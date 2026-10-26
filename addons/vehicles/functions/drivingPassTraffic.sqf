@@ -4,7 +4,10 @@
  * Locality/authority: Read-only passing-vehicle owner; no priority, agreement or movement writes.
  * Repeat/JIP: Fresh observation only. Both crew/order contexts and two-second proposal age
  * are checked before and after work. Never replay a prior traffic observation as clearance.
- * Arguments: 0 proposal <HASHMAP>, empty, from DrivingPassPlan.
+ * Arguments: 0 proposal <HASHMAP>, empty, from DrivingPassPlan. Optional monitorRemaining
+ * BOOL false permits live execution to omit a distant passed prefix only when the actual
+ * pose identifies one unambiguous nearby forward segment. Keep a hull-radius rear buffer;
+ * ambiguity, wrong floor or off-path pose retains the full corridor. No progress credit is granted.
  * Return: HASHMAP status REFUSED or TRAFFIC_OBSERVATION, blocked BOOL, reason, actor,
  * candidateCount, observedAt and context. No observed conflict is not permission to pass.
  * Bound: one native area query <=1250 m, at most 64 candidates and 127 guide segments each;
@@ -29,7 +32,9 @@ private _context=_proposal getOrDefault ["context",[]];
 private _observed=_proposal getOrDefault ["observedAt",-1];
 private _current={_observed isEqualType 0 && {finite _observed} && {serverTime >= _observed}
     && {serverTime-_observed <= 2} && {_context isNotEqualTo []}
-    && {([_vehicles] call CBE_fnc_DrivingPassContext) isEqualTo _context}};
+    && {([_vehicles] call CBE_fnc_DrivingPassContext) isEqualTo _context}
+    && {private _frame=[_vehicles select 0] call CBE_fnc_DrivingPassNativeFrame;
+        _frame isNotEqualTo [] && {_frame isEqualTo (_proposal getOrDefault ["ownerFrame",[]])}}};
 if !(call _current) exitWith {["STALE_CONTEXT"] call _fail};
 private _vehicle=_vehicles select 0;private _front=_vehicles select 1;
 if (!local _vehicle) exitWith {["OWNER_UNAVAILABLE"] call _fail};
@@ -52,6 +57,50 @@ private _box=boundingBoxReal _vehicle;
 private _width=((abs ((_box select 0) select 0)) max (abs ((_box select 1) select 0)))+0.5;
 private _height=((_box select 1) select 2)-((_box select 0) select 2);
 private _halfLength=(abs ((_box select 0) select 1)) max (abs ((_box select 1) select 1));
+private _monitor=_proposal getOrDefault ["monitorRemaining",false];
+if !(_monitor isEqualType true) exitWith {["INVALID_MONITOR"] call _fail};
+private _monitorPose=[getPosASL _vehicle,vectorDir _vehicle,vectorUp _vehicle];
+if (_monitor) then {
+    private _origin=_monitorPose select 0;
+    private _nearIndex=-1;private _nearDistance=3;private _nearPoint=[];
+    private _nearRuns=0;private _inNearRun=false;
+    // Locate the current stretch once, independently of traffic candidates. Multiple
+    // nearby stretches can be a crossing/loop: retain all of them rather than guess.
+    for "_i" from 0 to (count _guide-2) do {
+        private _a=_guide select _i;private _b=_guide select (_i+1);
+        private _line=_b vectorDiff _a;_line set [2,0];
+        private _lengthSquared=_line vectorDotProduct _line;
+        if (_lengthSquared >= 0.01) then {
+            private _fraction=(((_origin vectorDiff _a) vectorDotProduct _line)/_lengthSquared) max 0 min 1;
+            private _closest=_a vectorAdd ((_b vectorDiff _a) vectorMultiply _fraction);
+            private _distance=_origin distance2D _closest;
+            private _near=_distance <= 3 && {abs ((_origin select 2)-(_closest select 2)) <= 2};
+            if (_near) then {
+                if (!_inNearRun) then {_nearRuns=_nearRuns+1};
+                if (_nearIndex < 0 || {_distance < _nearDistance}) then {
+                    _nearIndex=_i;_nearDistance=_distance;_nearPoint=+_closest;
+                };
+            };
+            _inNearRun=_near;
+        };
+    };
+    if (_nearIndex >= 0 && {_nearRuns == 1}) then {
+        private _forward=+(_monitorPose select 1);_forward set [2,0];
+        private _line=(_guide select (_nearIndex+1)) vectorDiff (_guide select _nearIndex);_line set [2,0];
+        if ((vectorNormalized _forward) vectorDotProduct (vectorNormalized _line) >= cos 35) then {
+            private _start=_nearIndex;
+            private _back=_nearPoint distance2D (_guide select _start);
+            private _rearBuffer=sqrt (_halfLength^2+_width^2)+2;
+            // Entire prior stations are retained until the new start lies behind
+            // the circumscribed hull. This clips observations only, never the native path or deadline.
+            while {_start > 0 && {_back < _rearBuffer}} do {
+                _back=_back+((_guide select _start) distance2D (_guide select (_start-1)));
+                _start=_start-1;
+            };
+            if (_back >= _rearBuffer && {_start > 0}) then {_guide=_guide select [_start]};
+        };
+    };
+};
 private _reason="NO_OBSERVED_CONFLICT";private _limiting=objNull;
 {
     private _other=_x;
@@ -109,7 +158,8 @@ private _reason="NO_OBSERVED_CONFLICT";private _limiting=objNull;
         };
     };
 } forEach _candidates;
-if (!(call _current) || {!local _vehicle}) exitWith {["CONTEXT_CHANGED",count _candidates] call _fail};
+if (!(call _current) || {!local _vehicle}
+    || {_monitor && {_monitorPose isNotEqualTo [getPosASL _vehicle,vectorDir _vehicle,vectorUp _vehicle]}}) exitWith {["CONTEXT_CHANGED",count _candidates] call _fail};
 createHashMapFromArray [["status","TRAFFIC_OBSERVATION"],["blocked",!isNull _limiting],
     ["reason",_reason],["actor",_limiting],["candidateCount",count _candidates],
     ["observedAt",serverTime],["context",_context]]

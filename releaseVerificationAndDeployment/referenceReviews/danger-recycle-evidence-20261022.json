@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-22",
+  "baseline": "9de328b0",
+  "scope": "Separate actor danger continuation from group physical-event evidence",
+  "finding": "DangerEngineRecycle resamples native believed geometry and appends a positive cycle count while retaining its original cause for bounded actor/domain response. DangerEngineSubmit ignored that provenance and could publish a new HIT, SUPPRESSED, PROXIMITY or CANFIRE group event despite no corresponding new physical event. Original intake deadlines alone did not prevent this: recycled samples receive a new finite belief deadline.",
+  "implementation": [
+    "Validate the optional cycle as finite integral0..3 before observation side effects; missing cycle defaults0 for original native records.",
+    "Retain original cause in actor FSM and unchanged max2 ENGAGE/max3 VEHICLE budgets. Positive-cycle group samples publish DETECTED awareness, using the same native believed geometry and identity validation.",
+    "Real cycle-zero records preserve their original cause/priority. Existing stronger response lease remains authoritative until its original expiry. No new source geometry query, reveal, worker or cycle allowance."
+  ],
+  "interpretation_update": "Historical retained-cause checks still describe the actor/domain loop. They must not be read as authority to renew physical-event group priority from knowledge alone. This checkpoint corrects that cross-layer interpretation without rewriting historical receipts.",
+  "validation": {
+    "tests": 1490,
+    "full": ".qa/danger-recycle-evidence-build.log",
+    "final_package": ".qa/danger-recycle-evidence-package-final.log",
+    "result": "PASS full offline pipeline; only record-shape documentation changed after full gates, then HEMTT/package rebuilt without repeating unchanged unit gates",
+    "candidate": ".qa/candidates/danger-recycle-evidence-9de328b0",
+    "independent": ".qa/danger-recycle-evidence-independent.log",
+    "fingerprint": "86e82f875f9961e4bd1e7762dcb52efc0e601349207cfa361d3df0a31e17502f",
+    "provenance": "Unsigned baseline plus intended runtime/test/guide edits and retained unrelated dirt; later engineering metadata not product source. Not a clean signed release.",
+    "limits": "Source contracts and illustrative response-priority model do not execute SQF, prove combat reaction timing, cause delivery, locality, tactics or measured performance."
+  },
+  "cost": "One existing optional field read plus constant cycle validation per <=12 records. No added query/scan/worker. Runtime cost and tactical balance unmeasured.",
+  "material_remaining": [
+    "Physical danger response and5%median/10%p95 performance budget remain unverified.",
+    "Explicit actor-level fleeing cover/rejoin remains a source-functional gap; see native-flight-source-comparison-20261022.json. Do not fabricate native movement parity or add a competing flee controller without resolving its actual ownership path.",
+    "Full LAMBS functionality/intent, shared FSM lifecycle, Protocol collection, external-controller handovers and broader production goal remain incomplete."
+  ],
+  "evidence": {
+    "addons/infantry/functions/dangerEngineSubmit.sqf": "8c75b95e9ac306c3385a39d89f346bcac157005a919ad93fa24362389ddf0bf6",
+    "addons/infantry/functions/dangerEngineRecycle.sqf": "2c0bc9f50f84c2a3f5320c33cfbcf9a21639c911ba0262157115c519239cdcee",
+    "addons/infantry/functions/dangerStep.sqf": "5136ae73f03b5244c8c7f74612f473eff81d0c13f02d3aed6fa76a343f9e275b",
+    "addons/danger/danger.fsm": "d0d6f952bec35d9fd02aed22ee0ee7634685246d72a093fb08b45afc618bfffa",
+    "tools/fsm/danger.bifsm": "43e6f9b9e0753402c5d6ab7e8c0dca59709bea16af0b6f6b911c9c7126385f2d",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "6015efb70f2ce51ac45474202990db1639a6a5f42c541112ca29bdd22766c342",
+    "docs/Smart-AI-Pass.md": "39178fd4dff117bc47f2d5b87105d376104b9525defeb60c8c3a06d3167a52a2"
+  }
+}

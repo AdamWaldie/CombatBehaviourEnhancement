@@ -1,0 +1,20 @@
+{
+  "sourceCommit": "51e34002dd23185aaaf852864872b85fcf1173f7",
+  "validationCheckout": "C:/Users/AdamW/AppData/Local/Temp/CBE-clean-validation-51e34002",
+  "sourceBoundary": "Isolated local clone of exact committed branch; no copied working-tree changes, no commits made in clone, original checkout unrelated changes preserved. Clone origin is local source path, not a publishing remote.",
+  "candidate": ".qa/candidates/clean-committed-source-51e34002",
+  "fingerprint": "4424f945a6c72aefac1b358a9a0d7ba4839703ab2b6fbec82e1ce29e4296936b",
+  "manifestDirty": false,
+  "validation": {
+    "existingFullCases": 1491,
+    "compiledSQF": 412,
+    "PBOs": 9,
+    "independentVerification": true,
+    "cloneCleanAfterBuild": true
+  },
+  "logs": [
+    ".qa/clean-committed-source-build.log",
+    ".qa/clean-committed-source-independent.log"
+  ],
+  "limits": "Unsigned development package, not signed release. Proves offline clean committed-source build/package boundary only, not physical AI, performance, source parity or production readiness. Engineering record/handover postdate candidate; no final-head package claim. Audits remain PAUSED; no game launch/push/CI/merge/publish; protected Workshop files/archive/keys untouched."
+}

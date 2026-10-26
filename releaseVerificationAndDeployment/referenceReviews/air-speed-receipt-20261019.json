@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "b3e5811e",
+  "scope": "Aircraft attack temporary speed policy and exact native handback",
+  "finding": "Attack stage limitSpeed writes had no saved native baseline getter, and cleanup reset to a generic twice-config maximum. speedLimitApplied proved a write but could not preserve a mission cap or a later native limit change.",
+  "implementation": [
+    "Attack no longer writes limitSpeed. Its independent mission value remains untouched.",
+    "Native forceSpeed/getForcedSpeed provide an observable temporary cap in metres/second; planned km/h divides by3.6.",
+    "First actual write captures original pilot/value. Nonnegative original cap bounds every stage; subsequent stages retain that original baseline.",
+    "Pilot/native-cap replacement preempts the old attack. Same-group pilot replacement may restore the unchanged vehicle-policy cap under the original live flight lease. Authored-route resumption also requires that lease; a successor flight controller receives no route recall."
+  ],
+  "sources": [
+    {
+      "url": "https://community.bistudio.com/wiki/limitSpeed",
+      "supports": "Setter uses km/h and documented reset is default; no saved native limit getter documented."
+    },
+    {
+      "url": "https://community.bistudio.com/wiki/forceSpeed",
+      "supports": "Native speed limit uses metres/second and negative restores default."
+    },
+    {
+      "url": "https://community.bistudio.com/wiki/getForcedSpeed",
+      "supports": "Native paired getter used by existing ground-controller receipt design; flight-specific physical behaviour remains unverified."
+    }
+  ],
+  "sourceHashes": {
+    "addons/aircraft/functions/cortexAirAttack.sqf": "38e555cb73d1aba754c9c968f69cf1618eac77dd7669ac6172a43eb4ff0ec475",
+    "addons/support/functions/artilleryMissionStart.sqf": "7ec54ec133631852547fbd7ff1e4e074b516ebf0d755c956772472c79fb3803b",
+    "addons/support/functions/artilleryMissionStep.sqf": "5060922195ea2ef3738eb28947b028dbd7b4a07372089e2327e46974d4946a15",
+    "addons/support/functions/cortexArtilleryMissionStep.sqf": "2453f89866729f395ee2d95039814c54d5ef53c77ef240341eede4f371f9b0da",
+    "docs/Smart-AI-Pass.md": "2dbe22216c7e8de1fee0a382e07186918d11ff475a7a5ca7e2f1961a380419ee"
+  },
+  "validation": {
+    "compiler": ".qa/cbe-air-speed-receipt-hemtt.log",
+    "focused": ".qa/cbe-flight-relocation-handback-focused.log",
+    "existingTestsPassed": 623,
+    "initialFinding": "One existing source extraction stopped at a nested block terminator; changed its boundary to the following top-level gate, retaining pilot/task guards and adding native cap checks."
+  },
+  "newTestCases": 0,
+  "newWorkers": 0,
+  "physicalAcceptance": false,
+  "remaining": [
+    "forceSpeed flight response and interaction with independent mission limitSpeed require normal/HC physical validation.",
+    "Identical-value external writes are indistinguishable. Missing receipts, changed group/lease and owner migration do not authorize guessed restoration.",
+    "5percent median/10percent p95 overhead remains unproved."
+  ],
+  "audits": "PAUSED",
+  "flightRelocationCheckpoint": {
+    "fullBuild": ".qa/cbe-flight-relocation-handback-final-build.log",
+    "independentVerify": ".qa/cbe-flight-relocation-handback-independent.log",
+    "manifestCommit": "b3e5811e49dcdd82c67ef4932c3b3d93a7bb0a75",
+    "manifestDirty": true,
+    "fingerprint": "cf66977d21d1e674c9b44ea8b4a816191a18c25693eab1f50747f96434d358d7",
+    "tests": 1476,
+    "newTestCases": 0,
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "initialFullFinding": "Two authored-route source assertions still named the removed limitSpeed writer and old resume gate. Existing assertions updated to actual forceSpeed writer and stronger ownsFlight guard; no tests removed/added."
+  }
+}

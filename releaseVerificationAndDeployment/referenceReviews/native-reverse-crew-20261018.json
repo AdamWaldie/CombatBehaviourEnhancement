@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-18",
+  "scope": "Native reverse capability diagnostic prerequisites, not queue execution",
+  "baselineCommit": "05a72562",
+  "officialReferences": [
+    {
+      "url": "https://community.bohemia.net/wiki/sendSimpleCommand",
+      "finding": "Driving commands require an effective commander distinct from the driver; documentation warns solo driver arrangements refuse them. Turning must be retired with STOPTURNING."
+    },
+    {
+      "url": "https://community.bohemia.net/wiki/setEffectiveCommander?useskin=vector",
+      "finding": "Vehicle setEffectiveCommander person sets command authority; crew changes recalculate eligibility. Multiplayer documentation asks global execution; current diagnostic is normal server-owner only and supplies no HC/JIP capability credit."
+    }
+  ],
+  "findings": [
+    "Default unarmed wheeled/truck createVehicleCrew can leave driver as effective commander, conflating a command prerequisite with native steering capability.",
+    "DrivingRearClear now includes nine support rays, making a clear straight observation21 rays. The previous >12 turning criterion could falsely count straight/support work, and <=60 rejected the true69-ray maximum."
+  ],
+  "implementation": [
+    "Retain all six default tracked/wheeled/truck LEFT/RIGHT cases and their independent physical outcomes.",
+    "Add four separately labelled wheeled/truck LEFT/RIGHT cases with an initial seated helper and verified distinct effective commander. Setup is disposable fixture input only, not production recovery or permission to create helpers.",
+    "Crew arrangement is recorded and gates physical results. Backward samples, actual displacement, heading change and yaw-sign requirements remain.",
+    "Turning evidence now requires >21 rays with maximum69; no synthetic brain/result/consent success is assigned."
+  ],
+  "validation": {
+    "tests": 1287,
+    "log": ".qa/cbe-native-reverse-crew-diagnostic-verified-build.log",
+    "exitCode": 0,
+    "packageFingerprint": "7a36f22834c6a0d4a93e599ccb7b0fa12b71d1825913b61728cc20053d7ea4e1",
+    "physicalRun": false
+  },
+  "remaining": [
+    "Native wheeled/truck reverse and turning must be observed in-engine for each actual crew arrangement.",
+    "No queue HOLD/READY/reverse/dependency execution exists; ACK remains consent only.",
+    "Production braking, repeated recovery, safety interruption, native handback, HC and performance remain unaccepted."
+  ],
+  "audits": "paused",
+  "physicalAcceptance": false,
+  "wholeHBQParity": false
+}

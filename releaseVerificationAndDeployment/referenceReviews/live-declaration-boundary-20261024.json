@@ -1,0 +1,24 @@
+{
+  "baseline": "b8988467",
+  "finding": "CompatibilityExternalControl documents actor/group Waldo_AI_ExternalControl, but CortexExternalOwner ignored that live declaration and could return empty from immutable class memo. Shared CortexExternalTakeover used the classifier for its scoped actor set, leaving actor-only declarations invisible to some group/cleanup paths.",
+  "implementation": "Read actual actor and current group declarations before runtime specialist markers and class memo. True or non-boolean produces DECLARED; false/absent continues ordinary classification. Read-only, no memo of declaration, new worker, provider write or command. Existing shared actor-context narrowing remains unchanged.",
+  "validation": {
+    "focusedCases": 49,
+    "fullTests": 1496,
+    "compiledSQF": 413,
+    "PBO": 11,
+    "staticPerformanceFindings": 0,
+    "independentPackage": "PASS",
+    "candidate": ".qa/candidates/live-declaration-b8988467",
+    "fingerprint": "87448c65a599824ce91981b212fb04f0b5689e452af5640c2d0c765786ec3d4e",
+    "preparedUnrun": "ADDON-live-actor-declaration-boundary uses actual crew and an unrelated same-group foot actor: ordinary memo then true/malformed/false claim; group-wide veto and actor-scoped sibling availability. Fixture is deleted afterward.",
+    "live": "UNRUN - audits paused"
+  },
+  "limits": [
+    "A cleared declaration does not prove provider workers stopped or authorize replay of old CBE work",
+    "No controlled rappel executor or physical controller handover claim",
+    "Two live declaration reads per classifier call; actual runtime overhead unmeasured",
+    "Unsigned dirty development candidate preserves unrelated dirt; review/handover postdate package"
+  ],
+  "productionSHA256": "619abf09dfd643d691138003ce69ec3ca6a6f4132335286681124133dbd14a1c"
+}

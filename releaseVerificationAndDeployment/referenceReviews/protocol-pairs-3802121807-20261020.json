@@ -1,0 +1,291 @@
+{
+  "workshopId": "3802121807",
+  "name": "PROTOCOL AI PAIRS",
+  "date": "2026-10-20",
+  "source": {
+    "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3802121807\\addons\\prototcol_ai_pairs.pbo",
+    "sha256": "3356e179fb112de8070829dcb8a4408bfa3ad50ba218536bf9c2a881ad143cff",
+    "entries": [
+      {
+        "name": "bis_addoninfo.hpp",
+        "method": 0,
+        "originalSize": 0,
+        "size": 74,
+        "sha256": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215"
+      },
+      {
+        "name": "config.bin",
+        "method": 0,
+        "originalSize": 0,
+        "size": 472,
+        "sha256": "a73ed6ca0bb3db0519706048962c4b7172ed00dfcfca0ab51a688b2b4e3a4e97"
+      },
+      {
+        "name": "functions\\fn_pairs.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 1656,
+        "sha256": "fe29f98ea2341dc2cc753293cf8549fa0d298d2290eef978ed9cb3339a0b5284"
+      }
+    ]
+  },
+  "scope": "All one readable SQF reviewed. Binary config/startup, dependencies and licensing remain unverified; no source copied into product.",
+  "contributions": [
+    {
+      "intent": "A moving buddy is supported by the other, then roles alternate.",
+      "source": "Consecutive roster pairs toggle _leapFrog on the first actor; one doMove and one doSuppressiveFire per iteration.",
+      "cbe": "OperationStart/CombatPairs preserves pair metadata; CortexAdvanceStart/CortexAssaultStart and CortexFlankStep own finite group-element bounding and fire roles.",
+      "status": "PARTIAL: group-element bounding is not proof of independent pair-granular alternation. Outdoor team selection does not currently guarantee every persistent buddy stays in the same element."
+    },
+    {
+      "intent": "Keep a partner when casualties occur.",
+      "source": "Every iteration rebuilds consecutive alive roster pairs; no persistent identity or orphan repair and an odd actor gets no work.",
+      "cbe": "CombatPairs preserves intact eligible pairs and repairs orphans by nearest eligible3D partner; CombatPairsPublish retains out-of-scope living identity. RebalanceRoles repairs active participants under current generation/epoch and native-task guards.",
+      "status": "IMPLEMENTED_DIFFERENT_METHOD_PHYSICAL_ACCEPTANCE_PENDING"
+    },
+    {
+      "intent": "Move toward the fight while supporting fire remains available.",
+      "source": "Random15..25m zigzag toward a current live enemy transform, without terrain/path/fire-lane checks or route ownership.",
+      "cbe": "Finite authored/believed routes, actor admission, physical progress, original deadlines, screened avenues and native-order receipts. Suppression is separate owner-local fire control with ammunition, policy and protected-lane checks.",
+      "status": "INTEGRATED_BUILDING_BLOCKS_NOT_FULL_SOURCE_PARITY"
+    }
+  ],
+  "rejectedMechanics": [
+    "Endless allGroups loop with no sleep/interval; repeated native orders and group COMBAT writes even before enemy check.",
+    "No locality/player/Zeus/medical/ROE/external-owner guards; direct hidden live target position reads.",
+    "Unleased UP/MIDDLE stance and FULL speed writes with no restoration; role turn toggles per scan rather than after actual arrival or covering fire."
+  ],
+  "concreteFix": "RebalanceRoles now excludes queued medical healers before recruitment/retention and rechecks that same eligibility at publication; it does not clear queues or drop shared living pair identity.",
+  "remainingRequiredWork": [
+    "Confirm physical opposite buddy roles, covering fire, actual bound arrival, interrupted orders, odd-size groups, casualty replacement and normal/HC owner transfer when audits resume. Code integration is not functional acceptance.",
+    "Independent pair-granular timing is an optional CBE enhancement, currently unimplemented. The source flips per-pair flags on each global scan without arrival-driven waves; this optional extension is not required to reproduce its useful paired move/cover intent.",
+    "Binary registration/dependency declarations were reviewed in protocol-binary-configuration-20261021.json; runtime dependencies and source licensing remain separate from behaviour integration."
+  ],
+  "audits": "PAUSED",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "validation": {
+    "fullTests": 1477,
+    "focusedTests": 607,
+    "build": "PASS",
+    "independentVerification": "PASS",
+    "candidate": ".qa\\candidates\\role-replacement-medical-738d65a8",
+    "fingerprint": "4a2d14d492855298a0cb3fecf597fb13aaa1353f292a3a09cdc73d2039848936",
+    "signed": false,
+    "source": "738d65a8 plus intended replacement fix/docs"
+  },
+  "outdoorPairComposition": {
+    "status": "INTEGRATED_INITIAL_ELEMENT_SELECTION_PHYSICAL_PENDING",
+    "implementation": "Read-only CombatElementSelect shared by advance/flank/assault starts prefers intact persistent pairs in ranked eligible candidates, then orphans. Minimum mover strength may override cohesion. Existing specialist, ammunition, cover-capacity and order gates remain authoritative.",
+    "bounds": "Top16 ranked candidates,16 pair rows,max5movers; no world query/new worker/publication. Callers shortlist rather than rejecting larger groups.",
+    "limitations": [
+      "First advance/assault operation pairing now follows committed elements via initialElementPairing; physical flow remains unverified.",
+      "Independent per-pair leapfrogging is not implemented. Later casualty replacement can still split pairs when tactical capacity requires it.",
+      "Runtime flow, balance, actual covering fire and performance remain unmeasured."
+    ],
+    "validation": "607 focused/full1477 existing tests; HEMTT/SQF/FSM/docs/package and independent candidate verification passed. Initial coverage failure fixed by existing ADVANCE source registration/report regeneration; no acceptance scores changed.",
+    "candidate": ".qa\\candidates\\buddy-element-selection-4a732d96",
+    "fingerprint": "4cb1c9709757e71057b14e3fd3cc451ba9c860b9bb1b8da19ac6d11325b3add9",
+    "signed": false,
+    "source": "4a732d96 plus intended selector/callers/docs"
+  },
+  "initialElementPairing": {
+    "status": "INTEGRATED_PHYSICAL_PENDING",
+    "gap": "OperationStart originally generated nearest pairs across the whole advance/assault roster after mover/cover selection; fresh pairs could cross element boundaries.",
+    "change": "OperationStart optional element partition is validated for disjoint membership and full requested-roster coverage before previous operation cancellation. Within live capable participants, CombatPairs calculates per-element rows without publication; combined registry published once. Advance and assault supply actual mover/cover arrays. Ordinary callers retain default behaviour.",
+    "limits": "Metadata composition only; no independent per-pair executor. Later casualty/replacement/minimum-capacity needs can still split pairs. Individual CombatPairs16actor bounds retained; no broad scalability/physical claim.",
+    "validation": "607 focused/full1477 existing tests; HEMTT/SQF/FSM/docs/package and independent verification pass.",
+    "candidate": ".qa\\candidates\\initial-element-pairs-d54dea15",
+    "fingerprint": "d70b238f5a7756fd3a263017fa4b63163df9769c7edddcafd7b5d76898da233d",
+    "signed": false,
+    "source": "d54dea15 plus intended pair composition/docs"
+  },
+  "pairLifecyclePartitions": {
+    "status": "INTEGRATED_PHYSICAL_PENDING",
+    "finding": "RebalanceRoles and drill owner resumption could rebuild orphan pairs across existing mover/cover team boundaries.",
+    "implementation": "OperationStart records pairElements. RebalanceRoles uses current matching drill generation/epoch and disjoint complete team partition for dry per-element pair repair, one combined publication. It reacts to partition changes even with unchanged participants and avoids unchanged publication. CortexDrillResume supplies its filtered team partition to normal OperationStart admission.",
+    "authority": "No new movement owner, native command, worker or deadline. Recruitment remains separate from physical progress; source/current generation/epoch and participant-task commit guards remain.",
+    "limits": "Minimum role/fire capacity may split pairs, independent per-pair leapfrogging incomplete. Malformed/incomplete resume partition is refused by shared operation admission. Runtime flow and performance unverified.",
+    "validation": "607 focused/full1477 existing tests, HEMTT/SQF/FSM/docs/package and independent verification passed.",
+    "candidate": ".qa\\candidates\\pair-lifecycle-partitions-845b8220",
+    "fingerprint": "3f357146a9b3eb2b65126f69a55e26aeeacba99e558e051480dd33b3316ad63a",
+    "signed": false,
+    "source": "845b8220 plus intended pair lifecycle/docs"
+  },
+  "twoActorAdvanceAdmission": {
+    "baseline": "00a86dd2",
+    "implementation": "Exactly two available armed foot actors may start existing ADVANCE drill as 1+1. Persistent pairing spans mover/cover roles instead of singleton element partitions. Ordinary route bounds clamp to20m through actual shared route planner; road crossings remain continuous. Existing finite FSM, physical arrival, ammunition and current task/order checks retain role authority.",
+    "limits": "Successive buddy bounding only; independent pair-granular leapfrog within larger squads remains incomplete. No physical fire/arrival/balance/performance evidence; audits paused.",
+    "validation": "1478 existing tests/full HEMTT build passed; existing assertions extended, no new tests.",
+    "physicalAcceptance": false
+  },
+  "smallElementFlow": {
+    "baseline": "28635c56",
+    "implementation": "Three available armed actors with two suitable movers may start2+1 ADVANCE; ordinary bounds capped20m. Existing movingMinimum recognises arrived2+singleton-follow for ordinary and coordinated drills, avoiding a needless relief transfer. Two-capable-actor ADVANCE resume preserves one buddy identity across singleton roles.",
+    "limits": "Initial specialist-role suitability remains authoritative. No per-pair leapfrog executor for larger squads. Physical flow, casualties, migration, cover fire and overhead unverified; audits paused.",
+    "validation": "1478 existing tests, HEMTT/full build passed; existing assertions extended."
+  },
+  "untouchedPartnerRetention": {
+    "baseline": "aa48dcd2",
+    "finding": "Publication discarded a complete previous row when any member had a new active assignment, losing untouched living same-group partners from the registry.",
+    "implementation": "Filter already assigned actors individually from valid prior rows; retain remaining actors as singleton rows. Active assignments win, unique membership and sixteen-row bound remain.",
+    "limits": "Metadata only. No recruitment, movement, independent pair executor or fitness authority. Physical casualty flow and overhead unverified; audits paused.",
+    "validation": "Existing pair-publication regression extended with reassignment and singleton cases; full build result recorded in handover.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
+  },
+  "pairAwareReserveRefill": {
+    "baseline": "3e64b041",
+    "finding": "CortexFlankStep refill selected individual ranked reserves even when two vacancies could accept an intact reserve buddy pair. Donor transfer and initial admission were pair-aware but reserve refill was not.",
+    "implementation": "Reuse CombatElementSelect for existing non-team and team refill loops: up to five vacancies, top sixteen eligible ranked candidates, remove selected batch before next team. Preserve outer team index for replacement history.",
+    "authority": "Same existing private proposal and exact drill/native/operation/epoch commit boundary. No new command, worker, world query, lifetime or attempt.",
+    "limits": "Minimum capacity or a single vacancy can split a pair; shortlist and registry bounds remain. Existing buddy already assigned to a team receives no special candidate priority. Independent per-pair leapfrog and physical flow remain incomplete.",
+    "validation": "Existing casualty ownership regression extended; complete build result in handover.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "receivingTeamReunion": {
+    "baseline": "f0e9335a",
+    "finding": "Pair-aware reserve refill ignored a candidate whose recorded buddy already belonged to the receiving team, so unrelated intact reserve pairs could take vacancies first.",
+    "implementation": "CombatElementSelect optional receiving-team identities, bounded16 and disjoint from ranked candidates. Ranked eligible partners of those identities are selected first, removed from remaining candidate pool, then existing intact-pair/orphan/minimum selection runs. Both refill paths supply their current receiving team shortlist; initial callers default empty.",
+    "authority": "Identity preference only; candidate qualification and exact final owner/task/native commit remain. No movement, publication, query, worker or deadline.",
+    "cost": "Additional bounded candidate-by-registry membership pass when receiving team is nonempty, max16x16 pair rows; runtime unmeasured.",
+    "limits": "Receiving team and candidate shortlist16; historical identity must still be present. Does not restore overwritten old relationships, promise physical reunion or supply independent pair-level alternation.",
+    "validation": "Existing source-contract checks extended; full build result in handover.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
+  },
+  "reliefFireCapacity": {
+    "baseline": "fdc84147",
+    "finding": "Buddy-aware donor relief retained headcount but could transfer every ammunition-qualified rifle in an intact pair, leaving dry or hold-fire actors as nominal cover. A dry orphan could also be preferred despite not repairing mover fire capacity.",
+    "implementation": "When actual relief is requested and donor headcount permits, qualify current YELLOW/RED, FIREWEAPON and primary main-muzzle ammo/reserve availability. Prefer armed orphan, then intact pair only if a qualified rifle remains, then one qualified rifle. Require at least two qualified donor rifles before transfer. Recovery loop exits immediately on no feasible transfer; existing finite failure path remains.",
+    "authority": "Read-only selection; existing fit/task/native/owner/epoch roster commit and next-bound fire checks remain. No fire command, reload, inventory mutation, worker or deadline.",
+    "cost": "New bounded current donor ammunition checks only for depleted-role relief, loaded main-muzzle fast path. No routine every-movement-sample poll; runtime unmeasured.",
+    "limits": "Ammo/permission is not immediate readiness, covering-fire effect or balanced independent pair-level execution. Dry actors remain physical participants; insufficient global firepower may still end the drill. Physical casualty/recovery flow unverified.",
+    "validation": "All1482/full HEMTT/SQF/config/FSM/docs/package passed in .qa/relief-fire-capacity-final-build.log. Initial overly broad pre-issue ammo assertion narrowed to reject routine polling outside relief helper; finite empty-relief refusal checked. Independent candidate fingerprint fb908ccaf51695adc33a628bf77e19a6656dd4d69e8f4c156f7ffbe272916bd4.",
+    "physicalAcceptance": false,
+    "scoresChanged": false,
+    "exitExemption": "CROSS_FAR/CONSOLIDATE retain donor headcount/pair selection without ammo/ROE qualification, matching existing next-bound exemption so dry actors can leave danger."
+  },
+  "reserveRecruitFireCapacity": {
+    "baseline": "e307d7eb",
+    "finding": "Reserve refill could select dry/hold-fire/FIREWEAPON-disabled newcomers before the next-bound capacity check, replacing a casualty numerically without repairing tactical fire capacity. Reserve task/role ranking also ran when no vacancy existed.",
+    "implementation": "Filter new ordinary-leg reserve candidates with the same primary ammo, individual YELLOW/RED and FIREWEAPON policy before shared pair selection. Existing participants stay enrolled. CROSS_FAR/CONSOLIDATE preserve movement-only recruitment. Rank candidates only if single element or any team is below desired count.",
+    "authority": "Existing queued care, protected native tasks, reservations, locality, ownership and final roster commit unchanged. No forced reload, inventory edit, new worker, movement writer or deadline.",
+    "cost": "No reserve ranking/task/role/ammo work on intact-roster callbacks; actual vacancies add main-muzzle ammo qualification with loaded-round fast path. Physical cost not measured.",
+    "limits": "Available ammo/permission is not effective cover or instant readiness. No global firepower guarantee or independent pair-level executor. Dry existing actors can still finish current movement and use normal sharing/rearm paths.",
+    "validation": "Existing48 focused reservation tests passed; existing no-routine-inventory-poll assertion updated to restrict ammo checks to vacancy/relief helpers. Full build result in handover.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "preferredBoundSlotCohesion": {
+    "baseline": "cc4240dd",
+    "finding": "After recruitment or relief, existing buddies could receive opposite ends of the moving element slot order.",
+    "implementation": "Read current shared pair registry at issue, keep eligible existing buddies adjacent before slot geometry, and preserve the exact selected roster. Bound to sixteen movers and sixteen pair rows; larger elements retain their order.",
+    "authority": "No recruitment, team or pair-identity mutation, movement worker, query or deadline. Resume spots, progress clocks and retries are restored by actor identity; cover geometry remains authoritative.",
+    "limits": "Preferred slot adjacency is not a physical spacing guarantee. Current executor still alternates fire teams; independent pair-level leapfrogging remains unfinished.",
+    "validation": "All 1482 tests and full build passed. Preserved unsigned development candidate .qa/candidates/buddy-bound-slots-cc4240dd, built on cc4240dd plus intended product edits; independent verification passed. Fingerprint 2ecf14e0cec747ba0caca4cf1f5ec002511273c1f2e4b4b106f852cc39a886d0.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "recoveryCoverAdmission": {
+    "baseline": "b8e86c62",
+    "finding": "FlankStep removes recovery actors before constructing _fit, so two-team cover excludes them. Its no-team _issue branch instead queried _fitSquad minus movers, allowing an armed separated recovery actor to be the only covering-capacity witness.",
+    "implementation": "Subtract current recovery actors from the single-element wider-squad cover pool. Preserve available unassigned cover and existing fire permission/ammo checks, exit/consolidation exemptions, recovery movement and original deadlines.",
+    "cost": "One existing-roster array subtraction at next-bound issue; no world query, polling job, timer or native command.",
+    "validation": "Existing casualty/rebalance regression extended with armed-recovery-only refusal and legitimate-cover admission. All1482/full build and independent verification passed; candidate .qa/candidates/bound-recovery-cover-b8e86c62 fingerprint b68d70a9a0d7f55d16787e9db586053c69b8e54240dee084d2e18513a73712d2.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "pairExecutionTrace": {
+    "scope": "Current CortexFlankStep execution inspected 2026-10-21; independent pair-level execution remains incomplete.",
+    "selection": "_ensureMovingTeam assumes exactly two roles via otherTurn=1-turn; recruitment/relief and actor admission run before each issue.",
+    "arrival": "MOVE observes actor-specific spots/progress/retries, then a 60-percent role quorum with finite six-second progress grace can mark remaining actors as recovery. It does not record independent pair wave arrival.",
+    "transition": "First team arrival enters PAUSE; PAUSE flips teamTurn 0 to1. Only second-team completion advances the route point. boundDeadlineIdentity is [point index,teamTurn].",
+    "recovery": "Recovery prefers a real surviving buddy in the same element, with one finite route attempt. Physically rejoined actors return only outside MOVE. Recorded resume spots, progress and retries are actor-addressed.",
+    "requiredDeparture": "Only if independently timed CBE pair waves are selected as a further enhancement: preserve distinct wave identity/arrivals under the parent deadline, coherent cover selection and casualty recovery. Do not replace binary teamTurn with arbitrary pair indices. This is not an existing source arrival-driven feature.",
+    "limits": "This trace proves code structure, not actual covering fire, native path quality, pair timing or source parity."
+  },
+  "binaryConfigurationReview": "protocol-binary-configuration-20261021.json",
+  "pairExecutionReconciliation": {
+    "baseline": "2c82e308",
+    "protectedSourceHash": "fe29f98ea2341dc2cc753293cf8549fa0d298d2290eef978ed9cb3339a0b5284",
+    "sourceSemantics": "One actor per consecutive pair moves while its partner receives suppression; turn flips every unslept global scan without physical arrival. No finite independent-wave arrival lifecycle exists in source.",
+    "currentCBE": "AdvanceStart armed two-actor admission uses minimum1 mover/1 cover and bounds<=20m; FlankStep small-survivor rebalance preserves opposite roles, actual actor spots/progress, finite grace/recovery and binary team handoff. Larger groups use pair-preserving fire-team allocation.",
+    "disposition": "Two-person arrival-controlled alternation already has an integrated executor; not a missing parallel controller. Larger-group pair-granular alternation remains a distinct unimplemented capability. Do not replace binary teamTurn with arbitrary pair indices or claim full parity from two-actor support.",
+    "nextAction": "Validate current synchronised opposite roles and actual cover/arrival/casualty flow when audits are authorised. Independent pair timing is optional further build-out, not a missing source feature or a prerequisite added to the current implementation batch."
+  },
+  "sameBoundCasualtyContinuity": {
+    "baseline": "e553d729",
+    "finding": "MOVE casualty/relief/survivor rebalance reset to START and discarded spots. Subsequent issue rebuilt incumbent slots and per-actor progress/retries, despite retaining parent bound deadline. This could churn healthy paths and renew individual retry allowance.",
+    "implementation": "Capture previous actor-addressed spots, ASL3D progress clocks converted to existing server-time resume format, and spent retries before all three same-bound START transitions. Existing issue maps by actor; newcomers have no saved rows. Keep native MOVE only when current native goal equals preserved spot and existing native receipt still qualifies at write boundary.",
+    "authorityAndCost": "Capture <=64 previous movers, private arrays only. No extra world scan/worker or new deadline. Current native goal read only for retained MOVE candidates. New replacements with retained incumbents check at most5 local formation slots against terrain/all saved destinations before one existing cover query; no usable slot ends NO_REPLACEMENT_SPACE before movement writes. Existing ownership checks remain. Actual path/cover/performance unverified; not independent pair-wave parity.",
+    "validation": "All1482 regression cases/full HEMTT/SQF/config/FSM/docs/package gates pass; independent verify pass. Unsigned .qa/candidates/casualty-bound-continuity-e553d729 fingerprint8519305e19e73fdbbb8ff2940cbdd86df5d1fe2475fbab8062d391dc1076124d. Logs .qa/casualty-bound-continuity-build.log and .qa/casualty-bound-continuity-independent.log. Initial full run found one source-shape test referencing old resume-flag condition, updated to check stronger live command/goal/receipt contract. No runtime audit or new test cases.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "synchronisedBuddyBounds": {
+    "baseline": "f939c42e",
+    "implementation": "Own read-only CombatPairElements proposes opposite mover/cover roles for complete eligible pairs, preserves existing opposite assignments and balances orphans with extra actor in role0. Otherwise viable fully armed4..16 advances use bounded CombatPairs proposal without publishing before operation admission, then global pair identity across roles and <=25m bounds. Other advances retain fire-team policy.",
+    "lifecycle": "Existing binary teamTurn/stages, actual spot arrival, quorum/recovery, same-bound incumbent continuity and original deadlines retained. Next-bound _ensureMovingTeam explicitly reconciles available published pair rows before issue, not during independent active MOVE. RebalanceRoles does not re-pair buddy-bound actors inside role partitions. Checkpoint/DrillResume preserve buddyBounds and global pairing, original destinations/clocks/deadlines. No second worker or arbitrary pair index.",
+    "costAndBalance": "<=16 actors/16 pair rows, metadata comparisons at next-bound allocation. One extra existing nearest-partner proposal at qualifying start; no new world scan, setting, module, radar or direct fire/movement command. Existing specialist/capacity/ROE gates remain. Runtime cost unmeasured.",
+    "limits": "Synchronised pair-opposed roles, not independently timed pair waves or demonstrated cover efficacy. Physical arrival/cover/casualty/recovery/migration and performance remain unverified; audits paused. No whole Protocol parity or score increase.",
+    "validation": "All1482/full HEMTT/SQF/config/FSM/docs/package passed; independent verify passed. Unsigned .qa/candidates/buddy-role-f939c42e fingerprint29033595ec519c4f7f3e5d5942c0131ed8f474fa181a2b36dd442536fecd44c8. Logs .qa/buddy-role-build.log and .qa/buddy-role-independent.log. Existing pair lifecycle regression extended with2..16 actor partition model, stable opposite-role reconstruction, odd orphan/overlap handling and production wiring. Initial model shadowed a test-local source string, fixed locally; old two-person-only source assertion updated for explicit larger buddy mode. No new unittest case count or runtime audit.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false,
+    "twoActorMaintenance": "RebalanceRoles now also preserves global pairing for two-actor ADVANCE, even if the parent began in fire-team mode; otherwise participant maintenance could replace the single buddy identity with two singleton role partitions."
+  },
+  "intentScopeReconciliation20261023": {
+    "baseline": "6c4200d4",
+    "protectedSource": ".qa/protocol-pairs-3802121807-review/functions/fn_pairs.sqf",
+    "sourceSHA256": "fe29f98ea2341dc2cc753293cf8549fa0d298d2290eef978ed9cb3339a0b5284",
+    "sourceExecution": "Complete readable function re-read. Each consecutive pair reads actorA _leapFrog defaulttrue; one actor doMove and partner doSuppressiveFire; actorA flag immediately flips. Unslept allGroups scan invokes all groups repeatedly. No unitReady/physical arrival/wave deadline or independent pair completion transition exists. Per-pair flag storage alone is not independently timed movement.",
+    "currentExecution": "CombatPairElements keeps pair partners in opposite roles; AdvanceStart commits buddyBounds through OperationStart and one existing drill FSM. CortexFlankStep keeps binary teamTurn, actor-addressed actual spot/progress/retry observations, finite quorum/recovery and PAUSE handoff. No independent-wave controller exists or is added.",
+    "decision": "Retain synchronised paired move/cover as current selected source intent. Mark independently timed waves optional rather than silently expanding required parity/completion scope. No score increase or physical success claim.",
+    "currentHashes": {
+      "addons/infantry/functions/combatPairElements.sqf": "e4665ca374783a4f74747761735043f780d3b600384f24529a50609063b21b79",
+      "addons/infantry/functions/cortexAdvanceStart.sqf": "f430a804fa52828e97ee7ccdf4f9ee0b8a2387efa63df219ab5ea30446ce96d8",
+      "addons/infantry/functions/cortexFlankStep.sqf": "308e34efb3f1bf59e5e324682512040ccc7f8390db65a00465496dcc9e6c8e6f"
+    },
+    "validation": "Read-only runtime/source trace; engineering register correction only. Protected sources and runtime unchanged. Do not repeat the unchanged full build; run the existing reference-boundary check for final notes.",
+    "limits": "Actual cover efficacy, arrival/casualty/recovery/HC and runtime cost remain unverified. No whole Protocol or LAMBS parity/percentage claim. Audits paused."
+  },
+  "indoorSelection20261023": {
+    "baseCommit": "5f9dd844",
+    "scope": "Reuse CBE existing persistent buddy/element selector in qualified individual hostile-building investigation; not a new pair movement controller or whole Protocol parity.",
+    "implementation": "IndoorActorDispatch ranks only existing native-contact/range/task/ownership-qualified candidates. Live same-building/contact investigators with matching group, owner epoch, actor generation and unexpired brain can supply receiving-team identity. CombatElementSelect(max2,min1) prefers eligible receiving partners then intact existing pairs; adequate nonleader alternatives remain preferred, native formation anchor stays last within selected actors, and all original distance-ranked fallback candidates remain. Each START independently rechecks capacity/authority; refused buddies create no wait and no shared entry result. No new pair publication.",
+    "intentAndDeparture": "Combines useful buddy cohesion with current finite actor ownership. Source Protocol pairs rebuilt consecutive roster pairs; CBE persistent identity is an improvement already implemented, now reaching indoor selection. Do not copy raw per-scan alternating movement/fire or count this as synchronised two-person room clearing.",
+    "cost": "At most16 qualified candidates,16 existing pair rows and2 registered investigator brain reads per existing8-second selection interval; no new geometry/world scan, timer or worker. No measured performance/physical-flow claim.",
+    "validation": "1491 full offline tests/411SQF/9PBOs and independent verify. Candidate .qa/candidates/indoor-buddy-selection-5f9dd844 fingerprint32f99a612608875854cf175f2203da6b4b9264c52e7429762a89574da16364b8. Logs .qa/indoor-buddy-selection-build.log and .qa/indoor-buddy-selection-independent.log. Unsigned dirty development snapshot; review/notes postdate package.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "currentExactSourceRecovery20261025": {
+    "base": "d756b1cb",
+    "snapshot": ".qa/protocol-pairs-installed-20261025-d756b1cb",
+    "source": ".qa/protocol-pairs-installed-20261025-d756b1cb/fn_pairs.sqf",
+    "manifest": ".qa/protocol-pairs-installed-20261025-d756b1cb/manifest.json",
+    "pboSha256": "3356e179fb112de8070829dcb8a4408bfa3ad50ba218536bf9c2a881ad143cff",
+    "memberSha256": "fe29f98ea2341dc2cc753293cf8549fa0d298d2290eef978ed9cb3339a0b5284",
+    "finding": "Older private extraction path is absent; installed PBO and newly preserved member exactly match the original recorded hashes. This is recovered exact source, not source loss or a new source version.",
+    "executionComparison": "Complete source re-read: consecutive living group pairs alternate doMove and partner position suppression, then immediately flip actorA flag; unslept allGroups outer loop. No arrival/unitReady/wave completion gate. CBE CombatPairElements places buddies in opposite roles; AdvanceStart selects buddyBounds through common operation, and FlankStep uses the existing finite next-bound/recovery/arrival executor. This retains selected synchronous source intent; independent waves remain optional.",
+    "rejectedHypothesis": "Current AdvanceStart armedFoot already filters individual YELLOW/RED plus FIREWEAPON and primary ammunition. Do not infer a missing individual fire-mode gate from partial snippets. No runtime change is justified by this comparison.",
+    "validation": "Installed PBO/private copy/member hashes verified against historical review. Current call paths inspected; no unchanged full build repeated. Existing verified candidate remains .qa/candidates/clear-exterior-resume-probe-d937923e, fingerprint b590cb199d3327754803b459c0190e7f151e8f50a578b80a1d88bdcd4985a4d2.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "currentSourceHashes": {
+      "addons/infantry/functions/combatPairs.sqf": "e3ccb3a449e880944f847758f785fb2cebac726076b79f595a5a05d52c26e617",
+      "addons/infantry/functions/combatPairElements.sqf": "e4665ca374783a4f74747761735043f780d3b600384f24529a50609063b21b79",
+      "addons/infantry/functions/cortexAdvanceStart.sqf": "664c1abcd9bf22e976b102afbecf4f830a194fb767bb2dabc0ae90d1f7c5095d",
+      "addons/infantry/functions/cortexFlankStep.sqf": "4bbcab2cf89ee2f3e86def506ae59a44fb91bc1fa39b3f96e4c148ee8dd5fb8d"
+    }
+  }
+}

@@ -17,7 +17,7 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | Setting key | Default | Purpose / units |
 |---|---|---|
 | `CBE_AIPass_AmmoCapabilityOverrides` | `createHashMap` | MAP: magazine class to ["AT"] / ["AA"] / ["AT","AA"] role overrides. |
-| `CBE_AIRebalance_Enable` | `true` | BOOL: true applies CBE skill profiles to eligible AI. |
+| `CBE_AIRebalance_Enable` | `false` | BOOL: opt in to CBE skill profiles; mission skills are preserved by default. |
 | `CBE_AIRebalance_Profile` | `"LINE"` | STRING: MILITIA, LINE, VETERAN or ELITE. |
 | `CBE_AIRebalance_Mode` | `"AUTO"` | Ambient-darkness and NVG-aware; DAY disables the extra penalty; NIGHT retains legacy night tiers. |
 | `CBE_AI_ApplyMode` | `"BOTH"` | STRING: EXISTING, NEW or BOTH AI populations. |
@@ -134,7 +134,10 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | `CBE_AIPass_VehicleJink_Enable` | `true` | Allows one short terrain-checked escape by an eligible intact fighting vehicle under close or severe danger. |
 | `CBE_AIPass_DrivingAssist_Enable` | `true` | Applies a sparse terrain-grade speed cap to ordinary AI ground vehicles while preserving their native waypoint and route. Convoys use separate driving controls. |
 | `CBE_AIPass_DrivingAssist_Passing_Enable` | `false` | Experimental automatic road-pass admission; original finite deadlines and real owner consent. Physical/performance acceptance pending. |
+| `CBE_AIPass_DrivingAssist_Queue_Enable` | `false` | Experimental automatic head-on jam initiation; one attempt per original traffic-retry episode, actual-owner consent and finite commit retry. Physical/performance acceptance pending. |
 | `CBE_AIPass_DrivingAssist_MaxSpeed` | `70` | General driving safety cap in km/h; terrain and lower authored caps still apply. |
+| `CBE_AIPass_DrivingAssist_CrewRecall_Enable` | `false` | Optional ordinary reboarding for observed assigned operators; never force-seat. |
+| `CBE_AIPass_DrivingAssist_CloseGates_Enable` | `false` | Opt-in finite gate closure after observed passage and traffic clearance. |
 | `CBE_AIPass_DrivingAssist_Recovery_Enable` | `true` | Permit new finite ordinary-driving recovery attempts. |
 | `CBE_AIPass_CoverValidation_Enable` | `true` | Adds bounded slope and body clearance checks to shared cover selection. |
 | `CBE_Convoy_MountedFire_Enable` | `true` | CBE assigns targets to weapon crew under existing ROE. Disable to leave targeting to another AI mod. |
@@ -149,6 +152,7 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | `CBE_AIPass_DangerObservation_Enable` | `true` | Eligible idle actors glance toward body/scream positions without target revelation or movement authority. Requires danger response. |
 | `CBE_AIPass_DangerConcealment_Enable` | `true` | Separately budgeted visual screening fallback after solid cover fails; does not imply ballistic protection. |
 | `CBE_AIPass_DangerSmoke_Enable` | `true` | One available soldier may throw carried smoke during severe finite danger. The current operation continues without waiting for it. |
+| `CBE_AIPass_Illumination_Enable` | `false` | Experimental finite carried UGL illumination in darkness; physical validation pending. |
 | `CBE_AIPass_StaticSupport_Enable` | `true` | During confirmed contact, one uncommitted nonleader may physically occupy a nearby empty friendly static weapon. The squad does not wait for the mount. |
 | `CBE_AIPass_StaticDeploy_Enable` | `true` | When no suitable emplacement exists, a compatible two-person bag team may physically assemble its carried weapon and occupy the real gunner seat without holding squad movement. |
 | `CBE_AIPass_Hearing_Enable` | `true` | Nearby gunfire creates throttled approximate investigation reports, never target reveals. |
@@ -211,8 +215,10 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | `CBE_AIPass_CoordinatedAssault_Enable` | `true` | BOOL: reinforcing squads assault together while the first squad fires. |
 | `CBE_AIPass_CoordinatedAssault_MaxMovers` | `2` | Concurrent manoeuvre cap per opportunity; one to four safe distinct corridors. |
 | `CBE_AIPass_Stance_Enable` | `true` | BOOL: stance chosen from the height of the cover in front. |
+| `CBE_AIPass_CasualtyEquipment_Enable` | `false` | Recover one loaded casualty rifle or launcher into an empty slot; optional role change. |
 | `CBE_AIPass_AmmoShare_Enable` | `true` | BOOL: soldiers low on magazines get one from a squad-mate. |
 | `CBE_AIPass_AmmoShare_Distance` | `10` | METRES: how close the squad-mate must be. |
+| `CBE_AIPass_AAIntercept_Enable` | `false` | Experimental finite main-turret response and same-owner measured direct-pass fuse; cross-owner/payload support incomplete. |
 | `CBE_AIPass_VehicleGunnery_Enable` | `true` | BOOL: gunners prioritise AT soldiers; armour keeps away from them. |
 | `CBE_AIPass_Vehicles_StandoffDistance` | `250` | METRES: distance armour keeps from known AT soldiers. |
 | `CBE_AIPass_ArtillerySmoke_Enable` | `true` | BOOL: a retreating squad gets an artillery smoke screen (needs Artillery). |

@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-19",
+  "scope": "Queue role native-command prerequisites",
+  "finding": "Queue consent admitted driver-only reverse roles although the existing native BACK executor requires a distinct movement operator and NONE turn. A rear destination remains monitored ordinary recovery, not demonstrated queue reverse capability.",
+  "implementation": "Proposal rejects reverse-role participants at indices1..3 with NATIVE_REVERSE_UNAVAILABLE. Shared canonical-current validation checks live distinct crew and both captured/live NONE turn, so broker BEGIN/ACK/COMMIT/READY and owner VERIFY/COMMIT/HOLD enforce it. Index0 crossing holder is exempt. No crew reassignment, input cancellation, class allowlist, extra world query or controller.",
+  "sourceIntent": "Existing queue-execution-contract-20261018.json requires unsupported arrangements to refuse rather than retaining a30s movement hold. The preserved HBQ jam source supplies room-making intent; CBE native capability prerequisites come from its existing exact executor, not source push semantics.",
+  "validation": {
+    "focusedExistingTests": 54,
+    "focusedLog": ".qa/cbe-queue-native-capability-focused.log",
+    "hemttLog": ".qa/cbe-queue-native-capability-hemtt.log",
+    "newCases": 0,
+    "fullPipeline": "Passed1476 existing tests and complete build gates; .qa/cbe-queue-expired-rear-build.log",
+    "physical": "Unverified; audits paused.",
+    "independentPackage": "Passed .qa/cbe-queue-expired-rear-independent.log",
+    "package": {
+      "commit": "5468c87ceef99efdea0e6e5a2b6bfe8b2f8e42b5",
+      "dirty": true,
+      "fingerprint": "6a1845fe48f4a19004dab99f5103c420e409b5240e85911056864c894a2b81fd",
+      "signed": false
+    }
+  },
+  "limits": "Necessary native-command preconditions only, not proof a platform physically reverses. Queue moving context, native leaf execution, hold-after-reverse, parent full-hull clearance and complete handback remain incomplete. Automatic initiation remains disabled. No score increase.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
+      "sha256": "d09e4b9a4eb1e051181e81fb941ecb5e2ad8295126229aacb2f5b4a9fb1b962b"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
+      "sha256": "6364dccfa1d69f706404883874a4d3a73f5b550da0a52eded70c75bc5bbcbd61"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "sha256": "96cc823861d9d62177afc0954d23ea7ebd4d7a0049aeb0000a4e320116ace169"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_queue_proposal.py",
+      "sha256": "e4bb5ed27b4569ba6ffae6f8238d5ca8d724d3c5e61889267aa9c7837c93719b"
+    }
+  ]
+}

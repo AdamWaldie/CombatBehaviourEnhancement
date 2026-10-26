@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "dfdcf326",
+  "scope": "Active selected-gun cleanup after either distinct original operating actor dies. No replacement admission or already-unresolved survivor recovery.",
+  "implementation": [
+    "Recognise an original seated commander as the sole retirement actor after driver death/deletion only while the current driver seat is empty or still the original dead driver and effective commander is the original survivor. Retain the earlier original-driver-only case.",
+    "Store the first retirementActor identity; later seat changes or revival cannot switch that writer. Retirement-only active commands and return writes target that actor only.",
+    "Duplicate the surviving actor original pre-request frame into the existing two-seat acknowledgement helper, using original slot0 for driver or slot2 for commander. Never sample a fresh baseline. Original baseline seat indices remain intact for return.",
+    "SourceCurrent remains false throughout retirement, so no outward request/fire-ready authority is granted. Original cleanup deadline, actual rest, native destination/task acknowledgement and external/Zeus/route gates remain mandatory. Group membership and unrelated infantry orders are unchanged."
+  ],
+  "validation": {
+    "focused": "4 existing fire-session cases passed, expanded for surviving commander, replacement/vacant driver, pre-issue refusal, sticky writer and original baseline-slot mapping.",
+    "full": "Attempt2 terminal0:1497 tests,422 SQF,11 PBOs. Attempt1 failed the existing public/source-reference boundary because the previous road-guide appendix cited an upstream-named engineering review; that link was removed before the complete successful rerun.",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/artillery-surviving-operator-dfdcf326",
+    "fingerprint": "804d1dbad92881e22cb6cfd1e511e3fe7108af9b8b8573518160b0927330c472"
+  },
+  "limits": [
+    "Driverless commander stop/return acknowledgement is not physically proven. Failed native acknowledgement retains UNRESOLVED reservation; no elapsed timer grants handover.",
+    "Already-UNRESOLVED work with a living writer and deleted-platform recovery remain incomplete.",
+    "No replacement crew, group split, waypoint, new worker, fresh lifetime or physics write. Extra fixed two-seat observations are unmeasured cost.",
+    "Audits paused. Whole production goal and5%median/10%p95 acceptance remain incomplete."
+  ],
+  "sourceHashes": {
+    "addons/support/functions/artilleryCrewMoveStep.sqf": "09d37bfc85756494f0161184d86980eb2b65a8060d5d5fde0408a7d21e844194",
+    "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "aa9b8dd7c5210b426abb443b33574c52941fcbd8fef35c755078765ff38b8d79",
+    "docs/Smart-AI-Pass.md": "6bf6f129b1823ccaf9ce2c6f5d20c44ed765578fac26a4a71b8071bbbb4ec9d5"
+  }
+}

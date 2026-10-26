@@ -1,8 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
  * Reads a directly observed target using an active, visible assigned observer and its binoculars. No report is extrapolated.
- * Locality/authority: documented guards enforce server coordination and owner-local execution.
- * Repeat/JIP: mission tokens reject stale work; server state survives HC migration, not restart.
+ * Locality/authority: Read-only on the observer owner. Callers retain server mission-token
+ * authority; this helper never selects weapons or changes watch, target or movement orders.
+ * Repeat/JIP: Stateless; every call rechecks assignment, live native knowledge and visibility.
+ * Existing binocular equipment is required, but a fix grants no weapon-selection authority.
  * Arguments: 0: spotter <OBJECT>; 1: enemy <OBJECT>; 2: previous impact ATL <ARRAY>, default [].
  * Return Value: Array [reported ATL, error], or [] without observation.
  * Current callers: ArtilleryRequest and ArtilleryObserve.
@@ -26,6 +28,4 @@ if (!(_knowledge select 1) || {_spotter knowsAbout _enemy < 1.5}
 private _eye = eyePos _spotter;
 if ([_spotter, "VIEW", _enemy] checkVisibility [_eye, aimPos _enemy] < 0.5) exitWith {[]};
 if (_impact isNotEqualTo [] && {[_spotter, "VIEW"] checkVisibility [_eye, (ATLToASL _impact) vectorAdd [0, 0, 1]] < 0.5}) exitWith {[]};
-_spotter doWatch _enemy;
-_spotter selectWeapon (binocular _spotter);
 [_spotter getHideFrom _enemy, _knowledge select 5]

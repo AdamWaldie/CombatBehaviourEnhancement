@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "0704e99766a299811e78910babdb605e546caace",
+  "status": "OUTGOING_LANE_COMPONENT_OFFLINE_VERIFIED_TRANSPORT_PENDING",
+  "topic": "Fenced private lane capture at actual source locality loss",
+  "implementation": [
+    "New building brains retain machine-private producerOwner. FROZEN shares the existing EXPORT serializer but requires nonlocal group, the exact same local private producer owner/job/generation/epoch, LOCALITY_CHANGE cancellation/completion fence and unchanged CLEAR operation/visit/transform/original deadline. ENTRY/SWEEP only.",
+    "CortexLocality captures within one unscheduled pointer-checked block: remember whether the original producer was active, fence it, call FROZEN, retain a valid13-field lane copy, then remove private brain/FSM pointers. Epoch advancement remains afterward.",
+    "The eight-field machine-private capture is [version,producerOwner,clearGeneration,ownerEpoch,operationGeneration,capturedServerTime,originalHardDeadline,laneArray]. Capture time is not a new budget or readiness receipt.",
+    "Duplicate loss with no active original private producer does not recreate/renew capture. New producer admission, gained locality and CortexStop remove obsolete local records. Ordinary EXPORT still requires the current local uncancelled producer.",
+    "No public capture, remote message, native command, settings write, retry/deadline renewal, additional listener or worker."
+  ],
+  "newPrivateChannel": {
+    "name": "CBE_Cortex_ClearLaneCaptureLocal",
+    "writers": [
+      "BuildingOperationStart new producer admission",
+      "CortexLocality gain/loss",
+      "CortexStop"
+    ],
+    "scope": "One source-machine record per group, no publication or current consumer. Historical43-channel locator at60bb1184 predates this key; it is not a fresh complete scan."
+  },
+  "integrationState": "Actual outgoing locality handling now retains the source lane component before its private pointer and epoch are retired. No receiver consumes this data. Producer registration/full seal/replay transport remains disabled/unimplemented, and legacy resume transport is unchanged.",
+  "cost": "One bounded8lane/512node lane validation/copy per eligible source loss, plus fixed private identity/cache operations at admission/gain/stop. No recurring exporter or world scan; normal SAVE cadence unchanged. Runtime transfer cost and5/10budget remain unmeasured.",
+  "limits": [
+    "Not a complete transfer seal, proof the original FSM ended, or proof all writers quiesced. Actor interruption, settings, exterior, egress and post-clear retirement domains remain separate.",
+    "No authenticated registration/request/replay or incoming-actor reconciliation is enabled. Cache presence never grants native work or current readiness.",
+    "Invalid/moved/expired identity, lost parent, changed roster, missing original producer owner and non-lane phases may refuse capture. Do not replace refusal with stale public lane data.",
+    "Actual Local event ordering, normal/HC transfer, repeated source-owner return, CQB flow and performance remain physically unverified. Audits paused."
+  ],
+  "sourceHashes": {
+    "addons/core/functions/cortexLocality.sqf": "cf41726b668a9c50dd66f1c64bcc345e24428aecd9e21a41a5c80624c339e794",
+    "addons/core/functions/cortexStop.sqf": "d386c3be7707c252f43c36befda2ac82ead3bbccfa64d3f266802b1135163cd0",
+    "addons/infantry/functions/buildingLaneJournal.sqf": "0b9bfba8afca8a1d4ff12a4c8d0aa5b1814c44abd7f48b1c369b93829f9c6aa1",
+    "addons/infantry/functions/buildingOperationStart.sqf": "ad1414e6516011641b831e25a7a7a5f11ac317ece3f58d573ba1fad7cb6a0bc6"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "focusedExistingCases": 12,
+    "newCases": 0,
+    "result": "PASS",
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 432,
+    "PBOs": 11,
+    "candidate": ".qa/candidates/clear-outgoing-lane-0704e997",
+    "fingerprint": "3edbbfa63dec959f93b8ea16be33dabeded8bae7b1f255d1e26915b57952cac1",
+    "buildLog": ".qa/handovers/clear-outgoing-lane-build.log",
+    "independentLog": ".qa/handovers/clear-outgoing-lane-independent.log",
+    "independent": "PASS"
+  },
+  "exteriorStageFollowup": {
+    "review": "clear-stage-producer-snapshot-20261026.json",
+    "scope": "Shared actual-producer stage snapshot is appended in private version2/nine-field capture; both components must validate. Source maps are attached before first stage transition. Earlier eight-field lane-only schema remains historical. Full checkpoint and transport remain incomplete."
+  }
+}

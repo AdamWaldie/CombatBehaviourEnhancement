@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Passenger stop/continuation proof retains the full current native waypoint identity;
+ * same-position policy, script, attachment or synchronization edits end old cooperation.
  * Receives approximate onboard crew contact or targetless danger reports, requests an owner-local
  * safe stop and dismounts this squad's cargo only after the vehicle is physically stationary.
  * Locality/authority: passenger group owner; validates current reporting crew ownership.
@@ -55,7 +57,7 @@ private _vehicles=[];
                     _owned pushBack [_unit,_vehicle];
                     _group setVariable ["CBE_Cortex_DismountContinuation",[serverTime+60,
                         _group getVariable ["CBE_OperationGeneration",0],+_owned,
-                        [currentWaypoint _group,waypointPosition [_group,currentWaypoint _group]]],true];
+                        [_group] call CBE_fnc_NativeOrderReceipt],true];
                 };
                 _state set ["dismounted",_owned];
                 _state set ["onboardContactUntil",serverTime+30];

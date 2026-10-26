@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "f8c4635b",
+  "workshopId": "3812620045",
+  "scope": "Reconcile actual29-source-member HBQ package against partial19-source-member index; selected helper dispositions, not whole controller review or parity.",
+  "packageSha256": "30abacaee42340c12accc0b95cf31972f7bb2ad20cc1c6871494b8aa173f9667",
+  "privateSnapshot": ".qa/hbq-complete-source-20261025",
+  "evidence": "Installed package hash verified unchanged. Fresh HEMTT private extraction contains all29 SQF/CPP/HPP source members; every member exactly matches existing29-row package freshness manifest. Original19-file inventory remains untouched and valid as a partial snapshot.",
+  "indexCorrection": "Local index now requires exact file membership and SHA256 equality with the full preserved package manifest, not only the main controller hash. Missing/changed/extra source member refuses generation; no partial fallback. Existing historical review links remain dated and no completeness inferred from mentions.",
+  "previouslyOmitted": [
+    "BIS_AddonInfo.hpp",
+    "XEH_preInit.sqf",
+    "functions/fn_debugText.sqf",
+    "functions/fn_debugTextClient.sqf",
+    "functions/fn_driveAssistDebug.sqf",
+    "functions/fn_edenDraw.sqf",
+    "functions/fn_nearestThreat.sqf",
+    "functions/fn_perfMonitor.sqf",
+    "functions/fn_playersNear.sqf",
+    "functions/fn_precision.sqf"
+  ],
+  "selectedReads": {
+    "functions/fn_precision.sqf": "9d5d28551d748410a419f1ec602845bc3e3b6d653c8dd6179bb10eed71381a9b",
+    "functions/fn_playersNear.sqf": "9ab86035b3b06784c17383ed3efb0892dff55f087166c5079fad49896fedaee1",
+    "functions/fn_nearestThreat.sqf": "db2d82840137c2ee19eb8b1131c103771325ad84b6ecef023ac4320673a14ec5"
+  },
+  "dispositions": [
+    {
+      "source": "functions/fn_precision.sqf",
+      "intent": "Five-second cached per-vehicle precision0/1/2 and optional distance-to-player low-precision tier; explicit vehicle override bypasses auto-low.",
+      "disposition": "Evaluate sensing cadence against existing CBE relevance/scheduler budget before integrating. Never lower required active manoeuvre collision/crew/authority checks or count player distance as route safety. No behaviour port this checkpoint."
+    },
+    {
+      "source": "functions/fn_playersNear.sqf",
+      "intent": "Living non-HC players below10m, optional facing-sensitive radius, gate source teleport/recovery concealment.",
+      "disposition": "Do not use visibility to permit forbidden physical recovery/teleport. General player relevance is a distinct performance concern, not permission to alter unseen physics."
+    },
+    {
+      "source": "functions/fn_nearestThreat.sqf",
+      "intent": "Separate ahead/rear-sector and all-around distances to mission props, crewed vehicles and empty/wrecks; gate expensive precision rays. Uses shared250m placed-object grid refreshed60s plus local vehicles and global allDead.",
+      "disposition": "Useful broad-phase intent, but a60s prop grid can be stale after Zeus movement and global allDead/mission-object refresh costs are population-dependent. Compare current CBE perception caches and active safety boundaries before adding any new spatial index. No replacement of live collision veto by stale cached absence."
+    }
+  ],
+  "unreviewed": "Newly omitted helper/debug/performance/Eden/settings/config/metadata bodies now have targeted dated dispositions in hbq-complete-source-inventory, hbq-diagnostics-editor-semantics, hbq-settings-controller-policy and hbq-config-worker-lifecycle reviews. This does not complete full controller/worker branch reconciliation, permitted integration or physical parity.29available source members is an inventory count only.",
+  "validation": "Engineering-only metadata/tool change. Exact extraction/hash reconciliation passed; index write/check and deliberate helper-hash mismatch refusal checked. No production change or redundant full build; latest runtime candidate remains combined-discovery-side-6b97d9ec. Physical/performance UNRUN, audits PAUSED."
+}

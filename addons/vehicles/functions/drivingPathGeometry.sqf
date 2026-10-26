@@ -2,7 +2,9 @@
  * Author: WaldoTheWarfighter
  * Purpose: Validates a bounded ASL path proposal against support, lateral slope and body geometry.
  * Locality / Authority: Read-only vehicle owner. No route, movement, physics or speed commands.
- * Repeat/JIP: Fresh proposal only; no cache, handles or historical clearance replay. Consumers
+ * Repeat/JIP: Fresh proposal only; no cache, handles or historical clearance replay.
+ * Rejected proposals stop remaining support/body samples; clear paths retain every probe.
+ * Returned ray count records actual issued work. Consumers
  * must revalidate their target/route/owner receipt before execution and observe runtime geometry.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 guide ASL <ARRAY, []>, 2..24 finite positions,
  * adjacent distance 0.05..8 m; 2 half-width <NUMBER, 2>, 0.5..20 m;
@@ -11,8 +13,11 @@
  * Bound: 24 stations/72 support rays plus 23*9 body rays (279 total). Current corridor calls
  * use at most 20 stations/231 rays. Three body heights include middle-height beams/overhangs.
  * Terrain and static decks may support proposals; vehicle/person surfaces and moving props cannot.
+ * Proxy/parent resolution is shared by instability and water/deck classification; a
+ * direct-hit field alone cannot discard an otherwise resolved static support parent.
  * This is discrete sampled geometry, not continuous swept-volume or steering feasibility proof.
- * Current callers: DrivingCorridorGeometry and DrivingBypassPlan.
+ * Current callers: DrivingCorridorGeometry, DrivingPassGeometry, DrivingBypassPlan,
+ * DrivingBypassStep and ConvoyTick active-path safety.
  * Example: [truck1,_guideASL,2.5,3] call CBE_fnc_DrivingPathGeometry;
  */
 params [["_vehicle",objNull,[objNull]],["_guide",[],[[]]],["_halfWidth",2,[0]],
@@ -44,6 +49,7 @@ for "_i" from 0 to (count _guide-1) do {
         private _right=[_direction select 1,-(_direction select 0),0];_rights pushBack _right;
         private _supports=[];
         {
+            if (_reason != "") exitWith {};
             private _sample=_base vectorAdd (_right vectorMultiply _x);
             private _hits=lineIntersectsSurfaces [_sample vectorAdd [0,0,3],_sample vectorAdd [0,0,-3],
                 _vehicle,_ignored,true,1,"GEOM","NONE",true];_rays=_rays+1;
@@ -54,7 +60,7 @@ for "_i" from 0 to (count _guide-1) do {
                 private _supportObject=if (!isNull (_hit select 3)) then {_hit select 3} else {_hit select 2};
                 if (!isNull _supportObject && {_supportObject isKindOf "AllVehicles"
                     || {vectorMagnitude velocity _supportObject > 0.1}}) then {_reason="UNSTABLE_SUPPORT"};
-                if (surfaceIsWater _sample && {isNull (_hit select 2) || {((_hit select 0) select 2) <= 0.25}}) then {_reason="WET_SUPPORT"};
+                if (surfaceIsWater _sample && {isNull _supportObject || {((_hit select 0) select 2) <= 0.25}}) then {_reason="WET_SUPPORT"};
                 if (((_hit select 1) select 2) < 0.85) then {_reason="STEEP_SUPPORT"};
                 _supports pushBack (_hit select 0);
             };
@@ -74,8 +80,12 @@ for "_i" from 1 to (count _points-1) do {
         private _from=_points select (_i-1);private _to=_points select _i;
         if (abs ((_to select 2)-(_from select 2)) > (_from distance2D _to)*0.25) then {_reason="LONGITUDINAL_SLOPE"};
         {
+            // A rejected grade needs no body casts. A known obstruction likewise
+            // ends the remaining height/edge samples without changing acceptance.
+            if (_reason != "") exitWith {};
             private _offset=_x;
             {
+                if (_reason != "") exitWith {};
                 private _up=[0,0,_x];
                 private _a=(_from vectorAdd ((_rights select (_i-1)) vectorMultiply _offset)) vectorAdd _up;
                 private _b=(_to vectorAdd ((_rights select _i) vectorMultiply _offset)) vectorAdd _up;

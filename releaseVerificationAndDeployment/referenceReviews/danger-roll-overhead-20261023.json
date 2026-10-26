@@ -1,0 +1,20 @@
+{
+  "baseline": "10fcebb3",
+  "scope": "Owner-local immediate prone evasion under overhead cover",
+  "source": {
+    "path": ".qa\\lambs-2621-review\\main\\functions\\UnitAction\\fnc_doDodge.sqf",
+    "sha256": "b863cb3a5861fa5efb67ca045129ec16528afade15273fa84478e0b276684bb7",
+    "intent": "Reference doDodge allows stationary prone evasive gesture only with open seven-metre overhead trace. Other stance animations remain separate upstream behaviour; no whole reflex parity claim."
+  },
+  "finding": "CBE stationary prone roll had no overhead clearance check, unlike the reviewed reference; idle indoor/covered actors could attempt it even while committed movers were protected.",
+  "implementation": "After existing actor/task/reservation/movement/weapon/cooldown gates, one seven-metre eye-height upward lineIntersects query excludes own actor. Blocked overhead suppresses only roll, leaving existing finite posture. No destination, worker, scan, cooldown renewal or forced stance restoration.",
+  "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package build and independent copied-package verification passed. Existing danger mobile-posture regression extended, no new cases. Initial build failed packaged source-name boundary because guide mentioned reference name; provenance retained here, product prose corrected; reviewed pipeline passed.",
+  "candidate": ".qa/candidates/danger-roll-overhead-10fcebb3",
+  "fingerprint": "228b03fefb4aa19ee98883fe86c4a6a35b94683d8e024b9a660e3877f0e76982",
+  "logs": [
+    ".qa/danger-roll-overhead-build.log",
+    ".qa/danger-roll-overhead-build-reviewed.log",
+    ".qa/danger-roll-overhead-independent.log"
+  ],
+  "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Overhead test is not lateral body-volume/floor/animation clearance proof. Physical indoor/outdoor dodge, reaction balance and measured overhead remain unverified. No acceptance or build-out score renewal. Audits paused."
+}

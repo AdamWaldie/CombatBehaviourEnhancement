@@ -62,5 +62,9 @@
   "implementationAccepted": false,
   "physicalAcceptance": false,
   "wholeHBQParity": false,
-  "audits": "paused by user; no launch"
+  "audits": "paused by user; no launch",
+  "currentReconciliation20261025": {
+    "review": "hbq-native-implementation-current-20261025.json",
+    "meaning": "Historical absent/unsupported statements are superseded where later named source implementations exist. Keep original findings as point-in-time evidence; no physical parity claim."
+  }
 }

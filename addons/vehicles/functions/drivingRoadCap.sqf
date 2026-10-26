@@ -9,6 +9,10 @@
  * Road endpoints are read as ASL metadata, preserving bridge/deck elevation and within-piece
  * grade instead of deriving height from a road object's model origin. Bridge widths are not
  * assumed valid; this observer grants no footprint clearance or permission to cross.
+ * Road approach bearing also retains the total bend ahead when individual road-piece turns are small.
+ * Accepted-piece turn angles use the same endpoint midpoint as grade and distance; model-origin
+ * bearings select a candidate only and are not treated as measured road curvature or
+ * the forward-continuation cutoff. That cutoff uses the accepted endpoint segment.
  * Cost: at most eight transitions, nine road metadata reads and sixteen connections per node.
  * Native discovery cost is engine-dependent. Heading-based branch selection is a heuristic,
  * not the native planned route. Missing bridge endpoint geometry lowers the cap conservatively.
@@ -45,7 +49,9 @@ if (!isNull _road) then {
     private _roadPosition=_roadGeometry select 0;
     _maximumGrade=_maximumGrade max (_roadGeometry select 1);
     if (!(_roadGeometry select 2)) then {_overBudget=true};
-    private _roadHeading=getDir _vehicle;
+    private _initialHeading=getDir _vehicle;
+    private _vehiclePosition=getPosASL _vehicle;
+    private _roadHeading=_initialHeading;
     private _travel=0;private _visited=[];
     for "_sample" from 1 to 8 do {
         if (_overBudget || {_road in _visited}) exitWith {};
@@ -62,17 +68,26 @@ if (!isNull _road) then {
                 if (_candidateTurn < _bestTurn) then {_bestTurn=_candidateTurn;_nextRoad=_x};
             };
         } forEach _connected;
-        if (isNull _nextRoad || {_bestTurn > 110}) exitWith {};
+        if (isNull _nextRoad) exitWith {};
         private _nextGeometry=[_nextRoad] call _readRoadGeometry;
         if (!(_nextGeometry select 2)) exitWith {_overBudget=true};
         private _nextPosition=_nextGeometry select 0;
-        _maximumGrade=_maximumGrade max (_nextGeometry select 1);
         private _segment=_roadPosition distance2D _nextPosition;
         if (_segment < 1) exitWith {};
-        _maximumTurn=_maximumTurn max _bestTurn;
+        private _segmentHeading=_roadPosition getDir _nextPosition;
+        private _segmentTurn=abs (((_segmentHeading-_roadHeading+540) mod 360)-180);
+        // An offset model origin can look behind us even when the road endpoints
+        // continue ahead. Test the same geometry used for curvature and grade.
+        if (_segmentTurn > 110) exitWith {};
+        _maximumGrade=_maximumGrade max (_nextGeometry select 1);
+        // Small connected pieces can describe a substantial sweeping bend. Observe
+        // the bearing from the vehicle as well as each local piece-to-piece turn.
+        private _approachHeading=_vehiclePosition getDir _nextPosition;
+        private _approachTurn=abs (((_approachHeading-_initialHeading+540) mod 360)-180);
+        _maximumTurn=(_maximumTurn max _segmentTurn) max _approachTurn;
         _maximumGrade=_maximumGrade max (abs ((_nextPosition select 2)-(_roadPosition select 2))/_segment);
         _travel=_travel+_segment;
-        _roadHeading=_roadPosition getDir _nextPosition;
+        _roadHeading=_segmentHeading;
         _previousRoad=_road;_road=_nextRoad;_roadPosition=_nextPosition;
         if (_travel >= 70) exitWith {};
     };

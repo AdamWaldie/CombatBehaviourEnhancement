@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-18",
+  "scope": "Actual CQB locality cancellation/resume call path",
+  "finding": "CortexLocality invokes OperationCancel, which removes CBE_Operation before discovery resumes. Prior common-roster preference is therefore insufficient.",
+  "implementation": [
+    "Episode-bound durable entry roster",
+    "Guarded initial and promotion publication",
+    "Snapshot-checked resume preference",
+    "Exact-context cleanup"
+  ],
+  "validation": {
+    "tests": 1228,
+    "log": ".qa/cbe-cqb-durable-roster-build.log",
+    "exit": 0,
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Independent variable delivery ordering",
+    "OperationRestore effects on native paths",
+    "Physical migration and performance"
+  ],
+  "acceptance": "partial",
+  "coverageAndRosterReview20261023": {
+    "baseline": "5d8d3c17",
+    "scope": "Read-only floor-wave cache and visit-publication capacity review, not whole CQB acceptance",
+    "floor_cache": "Cache key keeps separate cleared/unreachable counts. Cleared membership only grows; physical visit can remove that same index from unreachable while growing cleared. Failure classification adds unreachable. Each observed union change therefore changes at least one count; moving a room between lists changes both counts. No hash-of-all-rooms or per-frame cache invalidation added.",
+    "publication_bound": "Initial interior team is capped at8 using full engine topology and eligible squad strength. CombatPairs returns only supplied eligible actors while shared registry may retain out-of-scope identity separately. Casualty replacement updates original pair slot and persists rotatedOut; active visit workers exclude rotatedOut/unavailable. Thus at most8 current interior workers can change their visit receipt per callback and publication cap8 does not drop a ninth admitted active worker under these paths.",
+    "decision": "No demonstrated fault in these two suspected paths. Keep existing bounds and tests rather than add a pending publisher queue or room-cache rebuild. This does not establish coherent entry, casualty timing, path reachability or physical observation quality.",
+    "hashes": {
+      "addons/infantry/functions/cortexClearBuilding.sqf": "c4840a915214814d11093470216b87f96e1b496f3f140cc70045be5a3dcebca4",
+      "addons/infantry/functions/buildingOperationStep.sqf": "bd23e13d738b3f622c42fc252222af42d6628c7266194adf799cebb7aec2039b",
+      "addons/infantry/functions/combatPairs.sqf": "9b214b6a428bdcce9e64fa8db77338599040363a5fffe1a65520160c67233500"
+    },
+    "validation": "Source trace only; no runtime or test edit, no repeated full build. Previous1491/full pipeline/independent verification remains exact runtime evidence for prior candidate.",
+    "candidate": ".qa/candidates/grenade-native-fire-policy-d0c77a25",
+    "fingerprint": "15e21ef61cce3df2bb819182f7dce72916c45401bb413115ca9de7cf2e032e65",
+    "limits": "No room-visit, entry-flow, interior capacity balance, physical casualty replacement, HC/JIP or performance acceptance. Audits paused. Historical review result retained; no score/denominator/global evidence-hash renewal."
+  }
+}

@@ -105,7 +105,7 @@ if !(_profile in (keys _profiles)) exitWith {
 };
 
 // Explicit server calls change CBA; callbacks apply only the effective owner-local state.
-private _configurationChange = !(missionNamespace getVariable ["CBE_AIRebalance_Enable", true])
+private _configurationChange = !(missionNamespace getVariable ["CBE_AIRebalance_Enable", false])
     || {_mode != (missionNamespace getVariable ["CBE_AIRebalance_Mode", "AUTO"])}
     || {_profile != (missionNamespace getVariable ["CBE_AIRebalance_Profile", "LINE"])};
 if (_configurationChange) exitWith {

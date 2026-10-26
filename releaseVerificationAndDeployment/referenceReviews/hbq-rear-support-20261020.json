@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-20",
+  "scope": "HBQ rear/forward obstruction observation comparison and stable rear support",
+  "baseline": "0787b2eb",
+  "workshopId": "3812620045",
+  "sourceIntent": "fn_rearClear uses rear-sector people/vehicle rejection and three lateral rays at two heights. fn_driveAssist forward sense follows measured bend and near-ground low-obstacle rays. Neither is a complete wheel/support/continuous steering proof.",
+  "CBEExisting": "DrivingRearClear already bounds actor hull/relative velocity/yaw occupancy and discrete support/body rays; DrivingGeometryCap already bends forward samples and has independent traffic handling. DrivingPathGeometry rejects dynamic vehicle/person or moving-prop support. No second HBQ driving loop copied.",
+  "fault": "Rear support and target rays accepted flat vehicle/person/moving-prop surfaces, unlike existing forward path support policy. Actor overlap is independent and does not establish stable support at every sampled location.",
+  "implementation": "Local pure hit predicate resolves parent then direct hit; terrain null allowed, AllVehicles or velocity magnitude>0.1 refused. Applied to existing rear corridor and destination hits, same REAR_SUPPORT/REAR_TARGET_SUPPORT refusal. No new ray/query/worker/command/deadline or larger scan.",
+  "remaining": "Support is discretely sampled and static decks are not proven connected road geometry. Actual ramp/bridge/roof/prop engine cases and 5/10 performance remain unverified. Head-on opposing traffic remains a distinct implementation gap; same-direction DrivingPassPlan refuses heading difference>25degrees. No wholeHBQ parity or acceptance credit.",
+  "validation": "15 existing rear monitor/full1482 tests and HEMTT/SQF/config/FSM/docs/package pass .qa/rear-stable-support-final-build.log. Initial full failure was reference name in packaged documentation; attribution moved to engineering register. Unsigned candidate .qa/candidates/rear-stable-support-0787b2eb independently verified fingerprint3245aed293b0e00ba554bddb81de93cb7ce082bde6ebffc69b57831ff4592e11. No runtime claim.",
+  "evidence": [
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_rearClear.sqf",
+      "sha256": "1b1935da7b23dfb6f04093e7f3601c1cd615e0b1c10c71137978c37dc2d067bc"
+    },
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRearClear.sqf",
+      "sha256": "e3bd46019f9abd68c3d3aa035d055f2431c72f17fc81e694bb28ea9088c53a73"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPathGeometry.sqf",
+      "sha256": "b866e8a29960b2c6cbf2d0b89ecddfa032b9d6f0848bc3cbbe02d5479523d3de"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPassPlan.sqf",
+      "sha256": "1232e9457f452af780ec5ae7e1aa2c17fd8190fad49e47e6cda8f34b332edfb0"
+    }
+  ]
+}

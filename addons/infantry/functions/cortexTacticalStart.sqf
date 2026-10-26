@@ -2,7 +2,8 @@
  * Author: WaldoTheWarfighter
  * Selects and starts one viable local infantry manoeuvre from the squad's live tactical context.
  *
- * CBE_fnc_CortexTacticalAssess first distinguishes close infantry, authored forward movement,
+ * CBE_fnc_CortexTacticalAssess gives fresh uncountered armour priority over opportunistic close assault,
+ * while retaining authored forward movement. It also distinguishes close infantry,
  * armour overmatch, fortified or elevated positions, and open versus concealed approaches. It
  * returns at most two candidate intents and one already-known contact. This dispatcher tries those
  * candidates in order, so a failed avenue or cooldown can immediately fall back without leaving a
@@ -12,6 +13,7 @@
  * Locality and authority: call only where the group is local. It reads the current server-published
  * feature gates and the live authored order/contact context, then delegates to owner-local starts.
  * Repeat/JIP: start functions reject active leases, drills and cooldowns, so repeated calls are safe.
+ * Publishes one completed assessment per invocation; successful fallback records its actual intent.
  * Feature and order changes apply on the next group tick; no state is replayed to JIP clients.
  *
  * Arguments:
@@ -21,6 +23,9 @@
  * 3: flank enabled <BOOL> - authoritative live feature gate (default true)
  * 4: advance enabled <BOOL> - authoritative live feature gate (default true)
  * 5: assault enabled <BOOL> - authoritative live feature gate (default true)
+ * 6: optional ground element <ARRAY of OBJECT>; actor-only assault/advance, no group fallback.
+ * Element distances use existing believed contact positions relative to the foot anchor.
+ * No hidden contact transform, native leader change or separate worker is introduced.
  *
  * Return Value:
  * Boolean - true when either manoeuvre started
@@ -39,23 +44,32 @@ params [
     ["_enemies", [], [[]]],
     ["_flankEnabled", true, [true]],
     ["_advanceEnabled", true, [true]],
-    ["_assaultEnabled", true, [true]]
+    ["_assaultEnabled", true, [true]],
+    ["_element",[],[[]]]
 ];
 if (isNull _group || {!local _group}) exitWith {false};
 
 if (!_flankEnabled && {!_advanceEnabled} && {!_assaultEnabled}) exitWith {false};
-private _assessment=[_group,_state,_enemies,_flankEnabled,_advanceEnabled,_assaultEnabled] call CBE_fnc_CortexTacticalAssess;
+private _elementScoped=count _this > 6;
+if (_elementScoped && {count _element > 64}) exitWith {false};
+if (_elementScoped) then {
+    private _anchor=[_group,_element] call CBE_fnc_CortexGroupAnchor;
+    if (!isNull _anchor) then {
+        _enemies=_enemies apply {private _record=+_x;_record set [3,_anchor distance2D (_record select 1)];_record};
+    };
+};
+private _assessmentArgs=[_group,_state,_enemies,_flankEnabled,_advanceEnabled,_assaultEnabled];
+if (_elementScoped) then {_assessmentArgs pushBack _element};
+private _assessment=_assessmentArgs call CBE_fnc_CortexTacticalAssess;
 private _intent=_assessment getOrDefault ["intent","HOLD"];
 private _reason=_assessment getOrDefault ["reason","NO_VIABLE_CONTACT"];
 private _targetIndex=_assessment getOrDefault ["targetIndex",-1];
 private _candidates=_assessment getOrDefault ["candidates",[]];
 private _evidence=_assessment getOrDefault ["evidence",[]];
-_group setVariable ["CBE_Cortex_TacticalAssessment",[
-    _intent,_reason,serverTime,_evidence,_enemies apply {_x param [0,objNull,[objNull]]}
-],true];
 if (_targetIndex < 0 || {_candidates isEqualTo []}) exitWith {
     private _handoff=switch (_reason) do {
         case "VEHICLE_DOMAIN": {"VEHICLE_LAYER_HANDOFF"};
+        case "ACTOR_TASKS_BUSY": {"ACTOR_TASK_HANDOFF"};
         case "MORALE_NOT_STEADY": {"MORALE_HANDOFF"};
         case "NO_MANOEUVRE_TARGET": {"WEAPON_LAYER_HANDOFF"};
         case "NO_VIABLE_CONTACT": {"NATIVE_CONTACT_HANDOFF"};
@@ -77,30 +91,35 @@ private _orderedEnemies=[_enemies,_targetIndex] call _prioritiseContact;
 private _started=false;
 {
     switch (_x) do {
-        case "ASSAULT": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexAssaultStart};
+        case "ASSAULT": {
+            private _args=[_group,_state,_orderedEnemies];
+            if (_elementScoped) then {_args pushBack _element};
+            _started=_args call CBE_fnc_CortexAssaultStart
+        };
         case "FLANK": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexFlankStart};
-        case "ADVANCE": {_started=[_group,_state,_orderedEnemies] call CBE_fnc_CortexAdvanceStart};
+        case "ADVANCE": {
+            private _args=[_group,_state,_orderedEnemies];
+            if (_elementScoped) then {_args pushBack _element};
+            _started=_args call CBE_fnc_CortexAdvanceStart
+        };
         case "REPOSITION": {_started=[_group,_state,_orderedEnemies,0,_reason] call CBE_fnc_CortexTacticalReposition};
     };
-    if (_started) exitWith {};
+    if (_started) exitWith {_intent=_x};
 } forEach _candidates;
 // A viable manoeuvre can still be rejected by terrain, a live-fire lane or a temporary role loss.
 // Do not convert that refusal into an unexplained pause: make one short screened improvement and
 // reassess from there. The helper is generation-owned and cooldown-bound, so it cannot churn routes.
-if (!_started && {!(_intent in ["HOLD","REPOSITION"])} && {_orderedEnemies isNotEqualTo []}) then {
+if (!_started && {!_elementScoped} && {!(_intent in ["HOLD","REPOSITION"])} && {_orderedEnemies isNotEqualTo []}) then {
     _started=[_group,_state,_orderedEnemies,0,"NO_SAFE_MANOEUVRE"] call CBE_fnc_CortexTacticalReposition;
     if (_started) then {
         _intent="REPOSITION";
         _reason="NO_SAFE_MANOEUVRE";
     };
 };
-if (_started) then {
-    _group setVariable ["CBE_Cortex_TacticalAssessment",[
-        _intent,_reason,serverTime,_evidence,_enemies apply {_x param [0,objNull,[objNull]]},"STARTED"
-    ],true];
-} else {
-    _group setVariable ["CBE_Cortex_TacticalAssessment",[
-        _intent,_reason,serverTime,_evidence,_enemies apply {_x param [0,objNull,[objNull]]},"NATIVE_REASSESS"
-    ],true];
-};
+// Publish only the completed decision, once. A rejected primary candidate must not
+// remain the reported intent after another candidate starts successfully.
+_group setVariable ["CBE_Cortex_TacticalAssessment",[
+    _intent,_reason,serverTime,_evidence,_enemies apply {_x param [0,objNull,[objNull]]},
+    ["NATIVE_REASSESS","STARTED"] select _started
+],true];
 _started

@@ -32,6 +32,32 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('} else {0}',s)
         self.assertIn('private _ahead=_maxY > _front-0.25',s)
         self.assertNotIn('private _centre=',s)
+        self.assertIn('[_vehicle,_modelLow,_modelHigh] call _projectTrafficHull',s)
+        self.assertIn('[_other,_otherLow,_otherHigh] call _projectTrafficHull',s)
+        self.assertIn('_corner vectorDotProduct _right,_corner vectorDotProduct _forward,_corner select 2',s)
+        self.assertNotIn('worldToModel',s)
+        self.assertNotIn(' modelToWorld ',s)
+        # Independent exhaustive corners establish common metre bounds for a scaled,
+        # pitched observer and a level peer; a body-coordinate gap mixes height/scale.
+        from itertools import product
+        import math
+        def world_bounds(low,high,scale,pitch,shift):
+            angle=math.radians(pitch); c=math.cos(angle); t=math.sin(angle)
+            points=[(shift[0]+scale*x,shift[1]+scale*(c*y-t*z),
+                     shift[2]+scale*(t*y+c*z)) for x,y,z in product(*zip(low,high))]
+            return tuple(min(p[i] for p in points) for i in range(3)), tuple(max(p[i] for p in points) for i in range(3))
+        for scale in (.5,1,2):
+            own=world_bounds((-1,-3,-1),(1,3,1),scale,30,(0,0,0))
+            peer=world_bounds((-1,-3,-1),(1,3,1),1,0,(0,20,0))
+            actual_gap=peer[0][1]-own[1][1]
+            self.assertAlmostEqual(actual_gap,17-scale*(3*math.cos(math.radians(30))+.5))
+            # The old own-model Y projection differs from horizontal metre separation.
+            old_gap=(17*math.cos(math.radians(30))-math.sin(math.radians(30)))/scale-3
+            self.assertNotAlmostEqual(actual_gap,old_gap)
+            self.assertGreaterEqual(peer[1][2],own[0][2])
+            self.assertLessEqual(peer[0][2],own[1][2])
+        above=world_bounds((-1,-3,-1),(1,3,1),1,0,(0,20,10))
+        self.assertGreater(above[0][2],own[1][2])
         # Forward projection must admit a long rotated hull whose centre is behind
         # our bumper, while excluding a hull entirely behind or above the corridor.
         def occupied(min_x,max_x,max_y,min_z,max_z):
@@ -40,6 +66,26 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertFalse(occupied(-2,2,2,0,2))
         self.assertFalse(occupied(3,5,8,0,2))
         self.assertFalse(occupied(-2,2,8,5,7))
+        # Dense broad-phase admission may prune a slow separated hull, never moving
+        # crossing traffic or a long hull whose projection still occupies the lane.
+        import math
+        def retained(bounds,speed):
+            return not (math.isfinite(speed) and speed<=0.8 and not occupied(*bounds))
+        parked=[((-2,2,2,0,2),0.0)]*100
+        self.assertEqual(sum(retained(*row) for row in parked),0)
+        conflict=((-2,2,5,0,2),0.0)
+        self.assertEqual(sum(retained(*row) for row in parked+[conflict]),1)
+        self.assertGreater(sum(retained(*row) for row in [conflict]*65),64)
+        self.assertTrue(retained((3,5,8,0,2),10.0))
+        self.assertTrue(retained((-2,2,5,0,2),0.0))
+        self.assertTrue(retained((3,5,8,0,2),float('nan')))
+        self.assertIn('count _candidates > 256',s)
+        self.assertIn('_denseTraffic && {canSuspend}',s)
+        self.assertIn('if (_evaluated > 64) exitWith {_predictionBudgetExceeded=true}',s)
+        self.assertLess(s.index('if (_denseTraffic && {finite _otherSpeed}'),s.index('_evaluated=_evaluated+1'))
+        self.assertLess(s.index('_evaluated=_evaluated+1'),s.index('private _otherCentre='))
+        self.assertIn('if (_predictionBudgetExceeded) exitWith {[0,_vehicle',s)
+
 
     def test_convoy_observes_external_hulls_without_replacing_predecessor_spacing(self):
         s=src('convoyTick')
@@ -65,7 +111,12 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('_vehicle nearEntities ["CAManBase",_radius]',s)
         self.assertIn('alive _thisActor || {_thisActor isKindOf "LandVehicle"}',s)
         self.assertIn('count _actors > 64',s)
-        self.assertIn('forEach [_otherLow select 2,_otherHigh select 2]',s)
+        self.assertIn('private _scheduledObservation=canSuspend',s)
+        self.assertIn('if (!_crewObserved || {_scheduledObservation})',s)
+        self.assertIn('_ownCrew=crew _vehicle;_crewObserved=true',s)
+        self.assertIn('!(_thisActor in _ownCrew)',s)
+        self.assertIn('_projectedLow set [_axis',s)
+        self.assertIn('_projectedHigh set [_axis',s)
         self.assertLess(s.index('private _occupied='),s.index('private _clear=true'))
 
     def test_discovery_covers_fast_approach_even_at_low_own_speed(self):
@@ -91,17 +142,17 @@ class DrivingTrafficTests(unittest.TestCase):
 
     def test_traffic_wait_does_not_enter_route_recovery(self):
         s=src('drivingAssistStart')
-        self.assertIn('&& {!_trafficLimited || {_solidReady} || {_reverseHandback}} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {abs speed _vehicle < 1',s)
+        self.assertIn('&& {!_trafficLimited || {_solidReady} || {_reverseHandback}} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {([_vehicle] call _stationary)',s)
         self.assertIn('["CORRIDOR_HANDBACK","TRAFFIC_FOLLOW"] select _trafficLimited',s)
         self.assertIn('_progressPosition=getPosATL _vehicle;_progressAt=time;',s)
         self.assertIn('CBE_DrivingAssist_Traffic',s.split('getForcedSpeed _vehicle == 0',1)[1].split('then {_release=true}',1)[0])
         self.assertIn('_capMps=_capMps min (_traffic select 0)',s)
         self.assertLess(s.index('call CBE_fnc_DrivingFollowingCap'),s.index('_vehicle forceSpeed _capMps'))
-        self.assertIn('time+([4,1] select (_trafficLimited || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))',s)
+        self.assertIn('time+([4,1] select (_trafficLimited || {_trafficWatch} || {_corridorActive} || {_bypassActive} || {_recoveryStage == 2}))',s)
     def test_fsm_uses_existing_queue_and_cleanup_clears_observation(self):
         step=src('drivingOperationStep')
         self.assertIn('"TRAFFIC"',step)
-        self.assertIn('time+([4,1] select (_crewPending || {_traffic} || {_obstacle} || {_rearLeg} || {_corridor != ""} || {_bypass != ""} || {_passing}))',step)
+        self.assertIn('time+([4,1] select (_crewPending || {_traffic} || {_watchTraffic} || {_obstacle} || {_rearLeg} || {_corridor != ""} || {_bypass != ""} || {_passing}))',step)
         fsm=(ROOT/'addons/main/fsm/drivingOperation.fsm').read_text()
         self.assertIn('class TrafficFollowing',fsm)
         self.assertIn('to="TrafficFollowing"',fsm)
@@ -111,9 +162,37 @@ class DrivingTrafficTests(unittest.TestCase):
         smoothing=s.split('// Tracks accelerate and brake unevenly.',1)[1].split('_limit = [_vehicle',1)[0]
         self.assertNotIn('_frontSpeed > 2',smoothing)
         self.assertIn('_controlGap >= _gapLow && {_closingCap > 0} && {!_frontReversing}',smoothing)
+        self.assertIn('(_controlGap-_gapLow)/((_desiredGap-_gapLow) max 1)',smoothing)
+        self.assertIn('max 0)*_smoothingBlend',smoothing)
+        import math
+        def cap(gap,front,previous,mass,blend):
+            limit=max(0,front+(gap-50)*.4)
+            if gap>60:limit+=min((gap-60)*math.sqrt(gap-60)*.15,8)
+            if gap<40:limit=min(limit,max(0,front-(40-gap)*1.2))
+            decel=4/max(1,min(2.5,1+(mass-3000)/7000));reaction=4*decel
+            closing=min(50,front+3.6*max(0,math.sqrt(reaction**2+2*decel*max(0,gap-40))-reaction))
+            if gap>=40 and closing>0:
+                weight=max(0,min(1,(gap-40)/10)) if blend else 1
+                limit=max(limit,max(0,previous-4)*weight)
+            return max(0,min(limit,previous+4,closing))
+        self.assertAlmostEqual(cap(40.00001,2,5,3000,False)-cap(39.99999,2,5,3000,False),1)
+        for mass in (3000,15000,30000):
+            for front in (0,2,10,30):
+                for previous in (0,5,20):
+                    for boundary in (40,50,60):
+                        self.assertLess(abs(cap(boundary+.00001,front,previous,mass,True)-cap(boundary-.00001,front,previous,mass,True)),.001)
         self.assertIn('min _closingCap',smoothing)
         self.assertLess(smoothing.index('_previous select 0)-4*_elapsed'),smoothing.index('min _closingCap'))
         self.assertIn('if (_frontReversing) then {_limit=0}',smoothing)
+        # A speed hold alone leaves native route planning active. Both destination
+        # and steering-path refresh must be inside the reversal yield boundary;
+        # independently retained handback still runs before that boundary.
+        route=s.split('// Reversal is a yield, not a new navigation leg.',1)[1]
+        gate=route.split('private _nearest = -1;',1)[0]
+        self.assertIn('if (!_frontReversing &&',gate)
+        self.assertIn('_movementOperator doMove _destination',route)
+        self.assertIn('setDriveOnPath',route)
+        self.assertLess(s.index('CBE_fnc_ConvoyRetireMoveReceipt'),s.index('// Reversal is a yield, not a new navigation leg.'))
         self.assertIn('_limit=_limit min _retainedPathCap',smoothing)
     def test_closing_cap_accounts_for_mass_and_cruise_reaction(self):
         s=src('drivingFollowingCap')
@@ -227,4 +306,80 @@ class ConvoyLeadGapMetricTests(unittest.TestCase):
         self.assertIn('private _gap=_spacingGaps select _i',pacing)
         self.assertNotIn('distance2D',pacing)
         self.assertIn('if (_gap > _target*2)',source)
+        self.assertIn('((_gap-_target*2)/((_target*0.2) max 3)) min 1',source)
+        self.assertIn('_catchup=_catchup+(_paced-_catchup)*_pacingBlend',source)
+        self.assertIn('(_gap-_catchupThreshold)*0.4',source)
+        # The lead cap must not jump by the accumulated deadband at first admission.
+        # This models the spacing request only, not physical acceleration or braking.
+        for target in (10,30,50,100):
+            threshold=target+max(target*.05,1)
+            def request(gap):
+                return 50 if gap<=threshold else max(50-min((gap-threshold)*.4,8),5)
+            self.assertEqual(request(threshold),50)
+            self.assertLess(abs(request(threshold+.001)-request(threshold-.001)),.001)
+            self.assertEqual(request(threshold+20),42)
+            self.assertEqual(request(threshold+100),42)
+
+        # Independent endpoint requirements: the blend must preserve the reserve at
+        # entry, reach actual-speed pacing at the tolerance edge, and have no jump.
+        for target in (10,30,50,100):
+            width=max(target*.2,3)
+            reserve,paced=42,5
+            caps=[reserve+(paced-reserve)*min(max(offset/width,0),1)
+                  for offset in (0,.001,width/2,width,width+1)]
+            self.assertEqual(caps[0],reserve)
+            self.assertEqual(caps[-1],paced)
+            self.assertEqual(caps[2],(reserve+paced)/2)
+            self.assertLess(abs(caps[1]-caps[0]),.02)
+            self.assertEqual(caps,sorted(caps,reverse=True))
+
         self.assertIn('_limit = ((_limit min ((_previous select 0)+4*_elapsed)) min _closingCap) max 0',source)
+
+    def test_approaching_lane_hull_retains_closing_speed_during_reaction_and_braking(self):
+        import math
+        s=src('drivingFollowingCap')
+        branch=s.split('private _approachSpeed=',1)[1].split('private _closing=',1)[0]
+        for proof in ('_room-_approachSpeed*_reaction','_approachSpeed+_reactionSpeed',
+                      '_approachCoefficient^2','2*_deceleration*_remainingRoom',
+                      '_approachSpeed*(_reaction+_ownForward/_deceleration)',
+                      '_room <= _actualStoppingRoom','_allowed=_allowed min _approachAllowance'):
+            self.assertIn(proof,branch)
+        self.assertNotIn('nearEntities',branch)
+        self.assertNotIn('forceSpeed',branch)
+        self.assertNotIn('doMove',branch)
+        # Solve the stated constant-approach model independently over light/heavy envelopes.
+        # Infeasible room (peer reaches the reserve during reaction alone) requires zero.
+        for a in (1.6,2.5,4):
+            for room in (0,10,40,100,200):
+                stationary=math.sqrt((a*4)**2+2*a*room)-a*4
+                for approach in (1,5,10,25):
+                    coefficient=approach+a*4
+                    cap=math.sqrt(coefficient**2+2*a*max(0,room-approach*4))-coefficient
+                    self.assertGreaterEqual(cap,-1e-12)
+                    self.assertLessEqual(cap,stationary+1e-9)
+                    if room<=approach*4:self.assertAlmostEqual(cap,0)
+                    else:
+                        closing=cap*4+cap**2/(2*a)+approach*(4+cap/a)
+                        self.assertAlmostEqual(closing,room,places=7)
+        # At 80m bumper room a 10m/s own vehicle cannot retain its old positive
+        # stationary-obstacle allowance while a peer approaches at another10m/s.
+        room=80-6;own=10;approach=10;a=4
+        old_cap=math.sqrt((a*4)**2+2*a*room)-a*4
+        actual_room=own*4+own**2/(2*a)+approach*(4+own/a)
+        self.assertGreater(old_cap,0)
+        self.assertGreater(actual_room,room)
+
+    def test_oncoming_fixture_requires_actual_encounter_braking_and_hull_separation(self):
+        qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text(encoding='utf-8')
+        case=qa.split('// Opposing native MOVE orders are the only stimulus.',1)[1].split('// Queue room-making must first',1)[0]
+        for proof in ('CBE_Headless_ExcludeGroup','_closing > 5','_peerApproach > 1',
+                      'vectorDotProduct (vectorDir _peer)) < -0.7','abs speed _own > 5',
+                      'abs speed _peer > 5','_observation param [1,objNull]',
+                      '_actual <= (_opposingPeaks select _forEachIndex)-3','boundingBoxReal _peer',
+                      'modelToWorld [_xx,_yy,_x]','_gap < 1','_opposingDamage',
+                      'DRIVING-oncoming-actual-lane-approach','DRIVING-oncoming-production-observed-braking',
+                      'DRIVING-oncoming-separated-no-damage'):
+            self.assertIn(proof,case)
+        for forbidden in ('forceSpeed','call CBE_fnc_DrivingFollowingCap','call CBE_fnc_DrivingAssistStart',
+                          'setVariable ["CBE_DrivingAssist_Traffic"','setVelocity'):
+            self.assertNotIn(forbidden,case)

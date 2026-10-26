@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-19",
+  "scope": "Terminal reverse safety after ordinary callback shutdown",
+  "finding": "Normal driving holds an expired SIMPLE_BACK at zero while native STOP is unacknowledged. Receipt-only cleanup instead returned at its original hard deadline before applying that constraint, potentially retaining a positive owned cap when the normal callback had ended.",
+  "implementation": "Factor the existing exact-lease zero-cap transaction into one local helper. The existing expired unacknowledged destination branch retains it. Exact owned pending reverse cleanup also calls it at its finite original hard deadline before recording terminal uncertainty. All original crew/route/native input/Zeus/actor/cap guards remain; helper checks state and baseline and updates cap/state/traffic/work atomically. No new native STOP/route command, deadline, recurring worker or public baseline replay.",
+  "cost": "Constant metadata checks on existing release path; one shared zero-cap writer. Actual stopping and overhead unmeasured.",
+  "validation": {
+    "focusedExistingTests": 620,
+    "focusedLog": ".qa/cbe-terminal-reverse-fixed-focused.log",
+    "hemttLog": ".qa/cbe-terminal-reverse-hemtt.log",
+    "newCases": 0,
+    "fullPipeline": "1476 existing tests and all sequential build/package gates passed.",
+    "physical": "Unverified; audits paused.",
+    "fullLog": ".qa/cbe-terminal-reverse-final-build.log",
+    "independentLog": ".qa/cbe-terminal-reverse-final-independent.log",
+    "packageSource": "373fa6838ce2343bfa49ee7ee43da215bd98dab0+dirty",
+    "packageFingerprint": "caba595fb87fe2c4c207d85a53b4912f7d7df42bb70488d14ec7c4f276645ee5"
+  },
+  "limits": "Not queue motion or native-stop acknowledgement. Lost cap/seat/task/route and split locality cannot acquire safety writes. Original unresolved receipt persists for explicit resolution.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+      "sha256": "d6cb1c70437ee589d1cba60717569cbff39c0aa1b0db76579dce8b8517a29eac"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_recovery_cleanup.py",
+      "sha256": "0b30863ac5e551a3a995a750c5df0d540b0e56d07859256f54ec1f06bfbd9e91"
+    }
+  ]
+}

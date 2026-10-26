@@ -1,5 +1,17 @@
 /*
  * Author: WaldoTheWarfighter
+ * Initial active role allocation excludes hidden/simulation-disabled actors without treating them as casualties.
+ * Native planner data waits and delayed search preserve existing intent and original budgets.
+ * Eligible persistent buddies stay together where element capacity permits; depleted
+ * two/three-person elements retain their minimum mover/cover capacity over pair cohesion.
+ * Initial role capacity excludes protected native tasks and live actor reservations through
+ * the shared task-availability gate; later executor checks remain authoritative.
+ * Main-muzzle ammunition is required at admission; a usable spare may reload natively.
+ * Only rifle-armed capable foot soldiers count toward assault and cover capacity;
+ * unarmed members remain outside this operation roster.
+ * Depleted admission: two armed available actors alternate one mover/one cover; three use
+ * two movers/one cover through the existing finite executor. Native planning/tasks defer admission.
+ * Natural admission preserves native STOP unless exact completed CBE hold provenance permits transfer.
  * Starts a direct close assault when a fresh known dismounted infantry hostile is already too near
  * for an advance or flank approach. Vehicles, mounted crew and static weapons are refused at this
  * operation boundary so a direct caller cannot bypass the tactical selector and make infantry clear
@@ -13,6 +25,8 @@
  * firing remain enabled. Optional grenades support the movement but never gate it. Casualty
  * replacement, isolated-actor recovery and physical completion are owned by CortexFlankStep.
  *
+ * The assault anchor belongs to its admitted foot element; mounted/nonparticipant group leaders
+ * cannot substitute when that element has no available anchor. No native leader is changed.
  * Locality / Authority: call only where the group is local. The function respects external/Zeus
  * ownership, authored hold-style orders and the shared TACTICAL_DRILL movement lease.
  * Repeat/JIP: an active drill, lease or assault cooldown refuses another start. The finite operation
@@ -23,6 +37,8 @@
  * 0: group <GROUP> - locally owned infantry group in contact
  * 1: state <HASHMAP> - current CBE group state
  * 2: enemies <ARRAY> - current CBE_fnc_CortexKnowledge result
+ * 3: optional explicit ground element <ARRAY of OBJECT>; only matching foot actors may enter
+ * or replace casualties. Cleanup rallies within the element without changing the native leader.
  *
  * Return Value:
  * Boolean - true when a direct close assault started
@@ -34,7 +50,8 @@
  * Result: two fire teams commit a safe approach and physical clear-through against the close threat.
  */
 
-params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]]];
+params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]],["_element",[],[[]]]];
+private _elementScoped=count _this > 3;
 private _refuse={
     params ["_reason",["_detail",[]]];
     private _previous=_group getVariable ["CBE_Cortex_AssaultRefusal",[]];
@@ -43,6 +60,7 @@ private _refuse={
     };
     false
 };
+if (_elementScoped && {count _element > 64}) exitWith {["ELEMENT_TOO_LARGE"] call _refuse};
 if (!local _group || {!([_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {["DISABLED_OR_REMOTE"] call _refuse};
 if (_state getOrDefault ["responding",false] || {_state getOrDefault ["assaulting",false]}) exitWith {["SUPPORT_OWNS_MOVEMENT"] call _refuse};
 private _movementLease=_state getOrDefault ["movementLease",[]];
@@ -70,22 +88,40 @@ if (_waypointIndex < count waypoints _group && {
 }) exitWith {["AUTHORED_OBJECTIVE_TYPE",[waypointType [_group,_waypointIndex]]] call _refuse};
 
 private _onFoot=(units _group) select {
-    [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {isNull objectParent _x}
+    [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {simulationEnabled _x} && {!isObjectHidden _x} && {isNull objectParent _x}
+        && {!_elementScoped || {_x in _element}}
+        && {primaryWeapon _x != ""} && {unitCombatMode _x in ["YELLOW","RED"]}
+        && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
-        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
+        && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
-if (count _onFoot < 4) exitWith {["INSUFFICIENT_ACTORS",[count _onFoot]] call _refuse};
-private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
-if (isNull _leader) then {_leader=leader _group};
-private _riflemen=_onFoot select {_x != _leader && {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG","AT","LEADER"])}};
+if (count _onFoot < 2) exitWith {["INSUFFICIENT_ACTORS",[count _onFoot]] call _refuse};
+// Native route creation/replanning belongs to the engine until it leaves those states.
+// Small elements cannot spare another independent mover, so defer their whole admission.
+private _smallElement=count _onFoot < 4;
+if (_smallElement && {_onFoot findIf {primaryWeapon _x == "" || {getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]}
+    || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}} >= 0}) exitWith {
+    ["SMALL_ELEMENT_UNAVAILABLE",[count _onFoot]] call _refuse
+};
+private _leader=[_group,_onFoot] call CBE_fnc_CortexGroupAnchor;
+if (isNull _leader) exitWith {["NO_ELEMENT_ANCHOR"] call _refuse};
+// A depleted element uses its armed non-leaders rather than demanding squad-only roles.
+// The shared executor already uses one mover/one cover for two survivors, two/one for three.
+private _riflemen=_onFoot select {_x != _leader && {_smallElement || {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG","AT","LEADER"])}}};
 private _ranked=[];
 {_ranked pushBack [_x distance2D _enemyPos,_forEachIndex]} forEach _riflemen;
 _ranked sort true;
-private _assaultSize=((floor (count _onFoot/2)) min 5) min count _ranked;
-if (_assaultSize < 2) exitWith {["NO_ASSAULT_ELEMENT",[count _riflemen]] call _refuse};
-private _assaultElement=(_ranked select [0,_assaultSize]) apply {_riflemen select (_x select 1)};
+private _desiredMovers=if (count _onFoot == 3) then {2} else {floor (count _onFoot/2)};
+private _minimumMovers=[2,1] select (count _onFoot == 2);
+private _minimumCover=[2,1] select _smallElement;
+private _assaultSize=(_desiredMovers min 5) min count _ranked;
+if (_assaultSize < _minimumMovers) exitWith {["NO_ASSAULT_ELEMENT",[count _riflemen]] call _refuse};
+private _rankedActors=(_ranked select [0,16]) apply {_riflemen select (_x select 1)};
+private _assaultElement=[_group,_rankedActors,_assaultSize,_minimumMovers] call CBE_fnc_CombatElementSelect;
+if (count _assaultElement < _minimumMovers) exitWith {["NO_ASSAULT_ELEMENT",[count _assaultElement]] call _refuse};
 private _coverElement=_onFoot-_assaultElement;
-if (count _coverElement < 2) exitWith {["NO_COVER_ELEMENT",[count _coverElement]] call _refuse};
+if (count _coverElement < _minimumCover) exitWith {["NO_COVER_ELEMENT",[count _coverElement]] call _refuse};
 
 private _start=[0,0,0];
 {_start=_start vectorAdd getPosATL _x} forEach _assaultElement;
@@ -118,6 +154,7 @@ _group setVariable ["CBE_Cortex_DrillFailure",[],true];
 _group setVariable ["CBE_Cortex_DrillReinforcements",[],true];
 _state set ["drill",createHashMapFromArray [
     ["token",_token],["target",_target],["type","ASSAULT"],["units",_onFoot],
+    ["elementScoped",_elementScoped],["elementRoster",if (_elementScoped) then {+_element} else {[]}],
     ["desiredStrength",count _onFoot],["teams",[_assaultElement,_coverElement]],
     ["teamSizes",[count _assaultElement,count _coverElement]],["teamTurn",0],
     ["points",_points],["index",0],["stage",""],["enemyPos",+_enemyPos],
@@ -129,7 +166,7 @@ if !([_group,"TACTICAL_DRILL",true,serverTime+90] call CBE_fnc_CortexOwnershipLe
     _state deleteAt "drill";
     ["EXTERNAL_MOVEMENT_BUSY"] call _refuse
 };
-private _operation=[_group,"ASSAULT",_target,_onFoot,_points apply {_x select 0},"ASSAULT"] call CBE_fnc_OperationStart;
+private _operation=[_group,"ASSAULT",_target,_onFoot,_points apply {_x select 0},"ASSAULT",[_assaultElement,_coverElement]] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {
     [_group,"TACTICAL_DRILL",false] call CBE_fnc_CortexOwnershipLease;
     _state deleteAt "drill";
@@ -137,9 +174,10 @@ if (count _operation == 0) exitWith {
 };
 (_state get "drill") set ["operationGeneration",_operation get "generation"];
 (_state get "drill") set ["ownerEpoch",_operation get "ownerEpoch"];
+(_state get "drill") set ["nativeAdmissionChecked",true];
 [_group,_state get "drill","START","ASSAULT_COMMITTED"] call CBE_fnc_CortexDrillSetStage;
 _group setVariable ["CBE_Cortex_AssaultRefusal",nil,true];
 _state set ["movementLease",["TACTICAL_DRILL",time+90]];
+if !([_group,_token] call CBE_fnc_CortexDrillStart) exitWith {false};
 missionNamespace setVariable ["CBE_AIPass_Assaults",(missionNamespace getVariable ["CBE_AIPass_Assaults",0])+1];
-[_group,_token] call CBE_fnc_CortexDrillStart;
 true

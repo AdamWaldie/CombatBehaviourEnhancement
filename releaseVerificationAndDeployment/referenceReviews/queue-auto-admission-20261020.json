@@ -1,0 +1,143 @@
+{
+  "reviewed": "2026-10-20",
+  "baselineCommit": "3f56dd8b",
+  "scope": "Default-off automatic admission from the existing traffic-retry episode into the existing authenticated queue executor; not general traffic resolution or physical acceptance.",
+  "workshopId": "3812620045",
+  "sourceContribution": "HBQ persistent-pair and asymmetric room-making intent. CBE uses original finite episode budgets and actual-owner consent, without public timestamp requests, physics pushing, traffic-ignore windows or waypoint recreation.",
+  "runtimeSources": [
+    {
+      "path": "addons/vehicles/functions/drivingQueueAutoStep.sqf",
+      "sha256": "82bf85536ec06c3c1f3a25c48bf9231dc5244f3e31706a259414427253f77678"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "sha256": "faa2c4bfabf858bc928ff95298648a0fb115db6c2409f214d079ef3890913bc2"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueAgreementRequest.sqf",
+      "sha256": "2550b6122a1f88c275b382374da3f6c7b7a1635d005db2e87b6e8c9dc0c4caff"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
+      "sha256": "0fbc7ea4b6882729a936915c42b8cd216476005eadbfadb3a30cb9229eadf5a6"
+    },
+    {
+      "path": "addons/core/functions/cortexTuningSpec.sqf",
+      "sha256": "9774d761e04be2a0e02fcda8ef998798d73839b1c5f8fd8bbf94e409a93957b3"
+    },
+    {
+      "path": "addons/main/settings/aiConfig.sqf",
+      "sha256": "08fd54d4b45c7b6e10f1a3af1499115d0da48f2cc23472e99dbb4f2d67322c91"
+    }
+  ],
+  "implementation": [
+    "CBA Queue_Enable defaultfalse, shared specification/shipped defaults/reference and per-group/vehicle disable-only policy. No Zeus settings module.",
+    "Existing ordinary-driving callback offers at most one proposal after continuous20s stationary traffic; consumption precedes bounded discovery even on refusal. One original trafficRetry deadline, unchanged progress/order reset policy.",
+    "Pending negotiation defers competing native route refresh. Matching local request serial/context and AGREED consent permit at most2 root COMMIT sends2s apart; unacknowledged retry abandons only uncommitted exact request.",
+    "Disabling initiation cannot cancel committed native motion. Expired committed metadata cannot extend the helper busy lifetime; actual finite motion cleanup stays with the existing executor.",
+    "No new speed writer, movement worker, recurring timer or route. Server and all owners still verify actual crew/route/FSM/geometry before movement."
+  ],
+  "remainingBuildGaps": [
+    "Stopped merges and non-head-on crossing-angle recovery choice.",
+    "Unsupported native reverse crew arrangements; no fabricated capability or forced seat setup.",
+    "Further recovery choice policy and composition beyond one supported head-on negotiation per episode."
+  ],
+  "validation": {
+    "tests": 1477,
+    "focusedDrivingTests": 251,
+    "newUnitCases": 0,
+    "build": ".qa/cbe-queue-auto-admission-verified-build.log",
+    "independent": ".qa/cbe-queue-auto-admission-preserved-independent.log",
+    "fingerprint": "fc6f3c602673cd08fb736ac23478c27c3d2fab61c5d7877f6300fc639e5dc58a",
+    "packageSource": "3f56dd8b plus dirty intended auto-admission/config/guide/test edits",
+    "candidate": ".qa/candidates/queue-auto-admission-3f56dd8b-fc6f3c60",
+    "initialFailure": "Published defaults omitted new opt-in; table corrected, original regression retained."
+  },
+  "physicalAcceptance": false,
+  "performanceAcceptance": false,
+  "audits": "paused",
+  "limits": [
+    "Default remains off; no in-engine natural auto-admission/commit/cancel/repeat or normal/providerHC evidence.",
+    "Source wiring and packages do not establish working traffic recovery, tactical superiority, production readiness or complete HBQ parity.",
+    "Build-out criteria remain partial due named code gaps; scores unchanged."
+  ],
+  "interruptedDwellFollowUp": {
+    "baselineCommit": "108ef651",
+    "finding": "DrivingAssistStart called automatic negotiation only inside jamEligible. Losing stationary/recovery eligibility skipped the helper cancellation branch, leaving an uncommitted request until protocol timeout.",
+    "change": "The existing ineligible branch invokes AutoStep with continuous=false for an existing jam and journals its result. No proposal discovery is possible from that call; matching committed work retains its original executor cleanup.",
+    "limits": [
+      "Only callbacks still admitted by ordinary-driving ownership reach this path; owner loss and external takeover retain their existing protocol cleanup.",
+      "Physical cancellation and performance remain unverified."
+    ],
+    "validation": {
+      "focusedDrivingTests": 251,
+      "newCases": 0,
+      "fullBuild": ".qa/cbe-queue-interrupted-dwell-build.log",
+      "independent": ".qa/cbe-queue-interrupted-dwell-independent.log",
+      "fingerprint": "aa989f31054bbc844e38a2c727541cb67d61863e97a3a246658bbffe9402f1d6",
+      "source": "108ef651 plus uncommitted interrupted-dwell edits",
+      "buildout": "evidence and report check passed, scores unchanged"
+    }
+  },
+  "terminalRequestFollowUp": {
+    "baselineCommit": "ff8eae55",
+    "finding": "Terminal owner results and consent expiry cleared consent but retained the root request. A finished automatic helper could leave this marker blocking subsequent episodes.",
+    "change": "Exact serial/context/original handshake deadline/expiry comparison retires the root request on terminal server results and matching consent expiry. Completion binding is recorded first. Successor identities remain untouched.",
+    "runtimeSource": {
+      "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+      "sha256": "ba279736f533fe040dee237e7e62524842619304c5d088dba8a0a40404c51360"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-queue-request-retirement-build.log",
+      "independent": ".qa/cbe-queue-request-retirement-independent.log",
+      "fingerprint": "f1bb3308b027a6c3035776e59025efcdb42d070981cff7f48fb8a6f6a62115de",
+      "source": "ff8eae55 plus intended dirty retirement changes",
+      "buildout": "passed; scores unchanged"
+    },
+    "physicalAcceptance": false
+  },
+  "finishRequestFollowUp": {
+    "baselineCommit": "776f50b0",
+    "finding": "DrivingQueueAgreementRelease retired private consent on FSM finish/owner loss but retained its root request. Terminal delivery uses current owners and expiry requires surviving consent, so neither guarantees old-machine request cleanup.",
+    "change": "In the same exact-consent retirement transaction, root context index0 also retires its request only when serial/context/original deadline/expiry all match. No current vehicle locality requirement or native commands were added.",
+    "holdReview": "DrivingQueueHold requires committed AGREED consent. AutoStep tests matching committed work before lost continuity, so the zero-cap hold does not trigger uncommitted cancellation.",
+    "runtimeSource": {
+      "path": "addons/vehicles/functions/drivingQueueAgreementRelease.sqf",
+      "sha256": "6168ea4e3d61fa85c8111820a77e3604f304ffe9de2f5d92b60bc1d7329ab0c9"
+    },
+    "validation": {
+      "tests": 1477,
+      "focusedDriving": 251,
+      "newCases": 0,
+      "build": ".qa/cbe-queue-finish-request-build.log",
+      "independent": ".qa/cbe-queue-finish-request-preserved-independent.log",
+      "candidate": ".qa/candidates/queue-retirement-776f50b0-a59cbece",
+      "fingerprint": "a59cbece9b89a43de7bcf25157f8c651c33abfcfbe71e70f5c14e38d1d0f6813",
+      "source": "776f50b0 plus intended dirty finish-request edits"
+    },
+    "physicalAcceptance": false
+  },
+  "naturalFixture": {
+    "baselineCommit": "f21b33f3",
+    "path": "releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf",
+    "sha256": "0ea62c3951a125214a4efcc75b6238532f95f7a6f372be3b12705fc17fc93de6",
+    "scope": "Normal-owner two tracked vehicles with authored opposing MOVE routes. Separate dwell, commit, reverse travel, independent eight-corner whole-hull passage, bound accepted completion and onward physical travel observations. Also samples native waypoint metadata without commands and rejects changed consent token/expiry or expiry beyond the original traffic-retry deadline.",
+    "nonInjection": "Initial actors/heading/waypoints and opt-in tuning only. No direct proposal, request, COMMIT, speed, BACK, path, roles, success or teleport assistance after setup. Original settings restored; normal and HC remain separate.",
+    "limits": [
+      "UNRUN; missing natural jam/readiness is a failure, never a manufactured pass.",
+      "Not HC, angled junction, obstacle-rich road, chain, repeat-use, casualty, collision or performance acceptance."
+    ],
+    "sourceReview": "HBQ fn_driveAssist lines1587-1640 uses asymmetric yield/pass, crossing-angle deadlocks and side push. Current CBE crossing selector agrees one role by supported reverse crew then stable netId. Angled junction behavior remains absent; no physics push copied.",
+    "validation": {
+      "tests": 1477,
+      "newUnitCases": 0,
+      "build": ".qa/cbe-natural-queue-contract-build.log",
+      "independent": ".qa/cbe-natural-queue-contract-independent.log",
+      "fingerprint": "dc3c606bb454c1ead14a42e690a227f8753a49972f8f3b21148ddac68df25ae1",
+      "source": "f21b33f3 plus dirty intended fixture/test edits"
+    },
+    "physicalAcceptance": false
+  }
+}

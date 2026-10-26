@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "9bc5a40b",
+  "scope": "Same-episode native MOVE metadata adoption after its actual leg has already settled.",
+  "finding": "BuildingActorMotion ADOPT required currentCommand MOVE even for a matching durable MOVE receipt whose native endpoint had completed into WAIT/idle before the new owner observed it. That prevented restoring existing movement bookkeeping for this terminal observation. No historical screenshot cause or physical occurrence is claimed.",
+  "implementation": "ADOPT alone can accept WAIT/idle with the original typed same-context MOVE receipt, unchanged finite native endpoint within0.25m, linear speed below0.278m/s, position within1.5m of AGLToASL target and vertical difference at most0.75m. Actual MOVE handling remains unchanged. Fresh MOVE publication cannot use this idle exception. STOP, changed endpoint, motion or another floor refuses. No native command, visit credit, request timestamp or deadline change.",
+  "sourceHashes": {
+    "addons/infantry/functions/buildingActorMotion.sqf": "a3025195a5b645da92815c40b23cb7addd7692bc6a640a4ab53eb11af29a5b97",
+    "releaseVerificationAndDeployment/test_cqb_motion_receipt.py": "5cd080827f37b222a5fb2ec75464f427c708ff3e24820629775039e647674268"
+  },
+  "validation": {
+    "focusedTests": 9,
+    "fullBuild": "PASS attempt1",
+    "tests": 1497,
+    "compiledSQF": 422,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-completed-move-9bc5a40b",
+    "fingerprint": "696feb7f8e3561a88461d0f20922a8bc4988e8176ccd501c7cd0f6a642c3cd93"
+  },
+  "limits": "Metadata continuity only, not owner-ready transport, old-writer quiescence, physical room clearance or future permission. Identical native observations cannot distinguish an externally reissued same-goal order without an ownership marker. Physical normal/HC/JIP and repeated CQB flow/performance unverified; audits paused. Whole goal incomplete; no percentage claim.",
+  "executorFollowup": {
+    "review": "clear-settled-execution-20261025.json",
+    "status": "Read-only CHECK now integrates settled WAIT ownership with room-command and exit predicates. The prior ADOPT-only checkpoint remains historical; no physical continuity claim."
+  }
+}

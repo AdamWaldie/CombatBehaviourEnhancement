@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "f473a2e3",
+  "workshopId": "3812620045",
+  "scope": "Full364-line config, addon metadata, startup/postinit bodies and selected delayed crew-writer/cancellation paths. Complete registration/attribute review; not whole-HBQ execution parity.",
+  "sourceHashes": {
+    "config.cpp": "84e7f3bc495b83d886de5a114cf82f509ad7b14fa7c941d4bf9b5f1e0748daa8",
+    "BIS_AddonInfo.hpp": "3656def7ca3f8e9227347d827fab09264756d3682d37677e0f5ee17da9fc193b",
+    "XEH_postInit.sqf": "a241dac9739c3f15025e05eb66b502dfebd8cef7b8310048cb4aefb846c737d2",
+    "functions/fn_start.sqf": "7bf30fd6a7e942a4710b6c829058f9936023c6f65fa7d063408d702603c1fd4b",
+    "functions/fn_initVehicle.sqf": "a779471f0fd13c55b223a07d6727b147e0b45d6139f151187f9da7e4caffdc40",
+    "functions/fn_crewHold.sqf": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076"
+  },
+  "attributes": [
+    "HBQAD_Attr_Enable",
+    "HBQAD_Attr_ObstacleAvoidance",
+    "HBQAD_Attr_GateLogic",
+    "HBQAD_Attr_CollisionAvoidance",
+    "HBQAD_Attr_Overtaking",
+    "HBQAD_Attr_JamResolving",
+    "HBQAD_Attr_Unstuck",
+    "HBQAD_Attr_DamageReduction",
+    "HBQAD_Attr_CrossingSlowdown",
+    "HBQAD_Attr_SidePush",
+    "HBQAD_Attr_PreventDisembark",
+    "HBQAD_Attr_Unflip",
+    "HBQAD_Attr_Precision",
+    "HBQAD_Attr_RayCount"
+  ],
+  "attributeContract": "Fourteen vehicle attributes: twelve Global/On/Off tri-states and two numeric precision/ray-count selectors. Global sentinel-10, expression only writes when value>-5; boolean writes test>0. Public object overrides are consumed after source5s startup delay. No explicit server guard appears in attribute expressions despite explanatory comment saying server. This read does not establish exact Eden expression execution locality or duplicate network cost.",
+  "configDispositions": [
+    "Per-object opt-out and clear inherit/on/off semantics are useful mission-author intent; do not copy exact HBQ variable names or allow object overrides to defeat CBE master ownership/safety/Zeus exclusions. CBE currently uses its own feature policy; source14attribute frontend parity remains unimplemented.",
+    "Numerical -10 sentinel is distinct from ray-count Very Low-1. Do not collapse all negatives into inherit. Global expression has no else branch clearing an existing public object override; repeated application on an existing object needs explicit clear semantics. No runtime reproduction claimed.",
+    "Navigable Area is a persistent rectangular Module_F, isGlobal2/isDisposable0; half-width4/half-length15, direction along arrow. Source advertises bridge/ford shortcut400m. CBE separate trusted Eden corridor/server registry and owner-native geometry are deliberate authority/physics departures; ford remains unsupported, not claimed from module registration.",
+    "Cfg3DEN editor hooks load/new/preview return start edenDraw. CBE selected-plane preview now implements this useful intent with capped selected logics; it remains visually unverified.",
+    "AddonInfo author/packed timestamp is package provenance only, not AI behaviour. HBQ runtime requires CBA/modules/3DEN in source config; CBE must remain standalone from HBQ and LAMBS."
+  ],
+  "writerLifecycle": [
+    "fn_start validates local/live/enabled then independently spawns driveAssist, unstuckLoop, crewHold and unflipLoop; handles are not retained by starter. One main Running marker cannot prove all four retired.",
+    "XEH_postInit installs interface debug handlers and independently spawns perfMonitor on every machine. These are separate lifetimes from per-vehicle startup.",
+    "crewHold GetOut handler admits actor while local/live/assigned and feature enabled, then spawns0.5s delayed moveInDriver/Gunner/Commander/Turret. Child checks alive/canMove/objectParent only; no late local/feature/assignment/new-task/episode recheck. Reject this force-seat behaviour and never use main-loop false flag as its quiescence acknowledgement.",
+    "crewHold main loop sleeps2s and adjusts setUnloadInCombat/allowCrewInImmobile; main loop flag lifetime is not delayed seat-child completion. Current CBE optional off-default assigned-crew recall deliberately requests normal boarding and does not force-seat.",
+    "CBE DrivingOperation FSM/Step recheck feature/epoch/brain/Zeus/external owner. Finish cancels matching private consent and invokes DrivingAssistRelease; that helper retains exact finite cap-only/recovery cleanup receipts and an independent receipt cleanup service when native handback remains unresolved. Ending the ordinary FSM does not itself prove physical return or restored baseline."
+  ],
+  "cbeEvidence": [
+    "addons/main/fsm/drivingOperation.fsm",
+    "addons/vehicles/functions/drivingOperationStep.sqf",
+    "addons/vehicles/functions/drivingOperationFinish.sqf",
+    "addons/vehicles/functions/drivingAssistRelease.sqf"
+  ],
+  "validation": "All config/start/postinit/metadata bodies read;14 unique attribute properties verified and source hashes recorded. Selected actual delayed seat writer inspected. Existing CBE finish/release receipt paths read; no newly demonstrated product defect and no speculative runtime change. Source/index integrity check PASS. No redundant build/test growth or audit.",
+  "remaining": "Full controller/worker branch reconciliation and physically proved external quiescence/resume still incomplete. Source frontend semantics do not establish reliable runtime behaviour. Current candidate corridor-editor-preview-76a2f973 unchanged. Audits PAUSED; full goal active/incomplete.",
+  "followup20261025": {
+    "checkpoint": "98bf2996",
+    "editorControls": "Eight opt-out checkboxes implemented through separate server-owned editor exclusions. This is partial frontend intent, not fourteen original controls or force-enable/numeric precision parity.",
+    "legacyGateChannels": "Source-empty paired indexed literal animate channels now implemented through open/passage/close; arbitrary models and physical operation remain unverified.",
+    "references": [
+      "hbq-vehicle-editor-exclusions-20261025.json",
+      "hbq-legacy-gate-channels-20261025.json",
+      "hbq-physics-worker-recovery-20261025.json",
+      "route-index-receipt-20261025.json"
+    ],
+    "remaining": "Full main-controller branch comparison and actual external quiescence/resume remain incomplete. Original review above is historical; its old candidate and unimplemented frontend statements predate these follow-ups."
+  }
+}

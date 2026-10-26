@@ -1,0 +1,95 @@
+{
+  "date": "2026-10-22",
+  "baseline": "f2989c955a566d66345813d13b16530e627f47ef",
+  "scope": "Native scripted MOVE temporary corridor/bypass lifecycle",
+  "status": "BUILD_GAP_CONFIRMED_NO_RUNTIME_CHANGE",
+  "findings": [
+    "Both step functions explicitly refuse NATIVE_MOVE before temporary movement admission. Existing native admission tests require this exclusion; their success does not establish this capability.",
+    "DrivingNativeRouteReceipt explicitly refuses nonempty corridor/bypass/pass child work. Removing only the step exclusion would invalidate route identity after temporary movement.",
+    "Both admission helpers derive consent from waypointPosition, and corridor additionally requires a plain authored MOVE. Native original-goal admission is absent.",
+    "Both release functions require a current authored waypoint for onward doMove. A native original goal is not handed back.",
+    "Ordinary bypass return already carries an exact recoveryParent binding, original hardDeadline, progressAnchor and bypassSpent into its request observation. This is a useful existing lifecycle, not permission to reset a native recovery episode."
+  ],
+  "requiredImplementation": [
+    "Use the original admitted native receipt for goal/crew/epoch identity, without manufacturing an authored waypoint.",
+    "Classify exact live temporary commands without recursive DrivingRouteReceipt calls, including approach, crossing and return acknowledgement. Preserve task replacement, direct commander input, flight, treatment, Zeus and external ownership vetoes.",
+    "Return only the original goal through a finite native return observation that survives child retirement. Preserve original parent hard deadline, progress anchor and spent bypass budget; missing acknowledgement remains unresolved.",
+    "Keep corridor and obstacle bypass as distinct task intents while sharing route provenance/return primitives. Pass and multi-owner queue support are separate gaps."
+  ],
+  "evidence": {
+    "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "e4f0148b6283efd621260a206487b788dee4b86379a8ff4f8af69194b84f3d17",
+    "addons/vehicles/functions/drivingCorridorStep.sqf": "82084c45bdde46a1300a0aabac26c3fbeba418a3b27418e29d80cab434526f65",
+    "addons/vehicles/functions/drivingCorridorRelease.sqf": "49a4bfe811544fe063db464c18e26a63cc765c2d6274ebdbd0561c7e1f35926a",
+    "addons/vehicles/functions/drivingBypassStep.sqf": "f7293584e9abf6f39d1b087c4e8f7bf25deb325fb7acc8e717767fc27a6a3187",
+    "addons/vehicles/functions/drivingBypassRelease.sqf": "42939d6a40736167463d312d93e08de3f02b7bfaad21eafa237e894e4027231f",
+    "releaseVerificationAndDeployment/test_driving_native_admission.py": "202a46e3665adba9752477994f8e047cf3f830c38f346fee481cfb3fb938549c"
+  },
+  "validation": "Read-only source trace; no Arma launch, physical proof, new package, parity claim or percentage rescore. Runtime source remains f2989c95; previous validated candidate unchanged.",
+  "sourceContext": "HBQ entire-controller priority and retained index; this review covers current CBE execution consumers, not a fresh whole-source parity assessment. Missing private registers remain recorded separately.",
+  "currentReconciliation20261022": {
+    "baseline": "486d1880",
+    "status": "HISTORICAL_GAP_SUPERSEDED_BY_CURRENT_IMPLEMENTATION",
+    "current": "DrivingRouteReceipt delegates absent authored waypoints to DrivingNativeRouteReceipt. Exact admitted native goals, recovery parent and conditional ordinary native bypass/corridor paths now exist. Release uses original native goal and finite return observation. These are built paths, not physical proof.",
+    "evidenceReviews": [
+      "native-bypass-lifecycle-20261022.json",
+      "native-corridor-lifecycle-20261022.json",
+      "native-return-task-adoption-20261022.json"
+    ],
+    "confirmedRemaining": "DrivingQueueAutoStep explicitly refuses NATIVE_MOVE. Native multi-owner queue negotiation remains a separate build gap; do not broaden by deleting its guard without broker/crew/return lifecycle review. Native passing not reassessed in full.",
+    "hashes": {
+      "addons/vehicles/functions/drivingRouteReceipt.sqf": "3cf86826cf2fc0b51ca495225186b3ab02e1fa408e3c9f332fafdd348cfb1930",
+      "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "1c589c80d9c4e3a7e6a65ca18b74f84370cc89748c2223ba2390b5d2f2449421",
+      "addons/vehicles/functions/drivingBypassStep.sqf": "e46ae8441e4c8276ef41a698ea75eb23339c2286deb2f4994fc6958404d39b96",
+      "addons/vehicles/functions/drivingBypassRelease.sqf": "3d167a37b845124b827548d32c2d796bae28f71959a59724b94da86515a7c4bb",
+      "addons/vehicles/functions/drivingCorridorStep.sqf": "ea245ebae3e71d2feb33472ef107b5cec1d7332db2cc1be2c6636c751aea1853",
+      "addons/vehicles/functions/drivingCorridorRelease.sqf": "966a6ea75bb54a813a5d3b66027cb5422f23e222d25bf06f72e10feee6aa3336",
+      "addons/vehicles/functions/drivingQueueAutoStep.sqf": "c4bf9e98181d9aec015f41f53edff8c7276b5bba228807f06dd1ba49d2ce50eb"
+    },
+    "validation": "Read-only source reconciliation. Runtime unchanged; reuse exact clearance-pace-dab5d3e3 candidate, no repeat full build or audit. No whole-HBQ parity/percentage claim."
+  },
+  "nativeQueueExecutionTrace20261022": {
+    "baseline": "398f0b5c",
+    "status": "CONFIRMED_MULTI_OWNER_PROTOCOL_GAP_NOT_ENABLED",
+    "consumers": [
+      {
+        "file": "addons/vehicles/functions/drivingQueueAutoStep.sqf",
+        "finding": "Explicit NATIVE_MOVE exclusion before proposal lifecycle."
+      },
+      {
+        "file": "addons/vehicles/functions/drivingQueueProposal.sqf",
+        "finding": "Observed eligibility requires a current plain authored MOVE waypoint, not just crew expectedDestination."
+      },
+      {
+        "file": "addons/vehicles/functions/drivingPassCanConsent.sqf",
+        "finding": "Owner consent explicitly excludes NATIVE_MOVE and requires plain authored route semantics."
+      },
+      {
+        "file": "addons/vehicles/functions/drivingQueueContext.sqf",
+        "finding": "Canonical context obtains route by DrivingRouteReceipt for each crew row. Native route helper requires actual group/vehicle/crew locality, so a remote observer cannot fabricate that receipt from public generation or destination."
+      },
+      {
+        "file": "addons/vehicles/functions/drivingNativeRouteReceipt.sqf",
+        "finding": "Existing route-reader-free SIMPLE_BACK classification can retain admitted native identity under exact crew/destination/simple-command checks. This is not authenticated queue agreement or new reverse authority."
+      },
+      {
+        "file": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+        "finding": "Existing nativeReturn original-goal observation is reusable only with exact parent lifetime and command ownership. Broker completion/token expiry alone cannot authorise return."
+      }
+    ],
+    "requiredImplementation": [
+      "Extend proposal/owner-consent/broker transport coherently with actual-owner authenticated native goal/seat/epoch/generation evidence; preserve remote observational limits.",
+      "Bind every temporary reverse/hold/cross leg and release to its exact agreement and original native receipt; no waypoint manufacture or recursion through route readers.",
+      "Observe original-goal return through existing finite parent deadline without refreshing spent budgets. Late replies, replacement commands, treatment, flight and split ownership must retire authority."
+    ],
+    "validation": "Read-only execution trace and JSON parsing only; runtime unchanged. No repeat build/audit and no functionality claim.",
+    "hashes": {
+      "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "1c589c80d9c4e3a7e6a65ca18b74f84370cc89748c2223ba2390b5d2f2449421",
+      "addons/vehicles/functions/drivingQueueAutoStep.sqf": "c4bf9e98181d9aec015f41f53edff8c7276b5bba228807f06dd1ba49d2ce50eb",
+      "addons/vehicles/functions/drivingQueueProposal.sqf": "1c176ef79b7e9bd85aa149a2fbdb60bc0b4d3c4b0be49a351113fbdf8ba12be5",
+      "addons/vehicles/functions/drivingQueueContext.sqf": "6e8e3773f107feee87e101916a6bab8148ed109f19bda3306e2a0b8573c1f86d",
+      "addons/vehicles/functions/drivingPassCanConsent.sqf": "4ab876f1f89385fc7af8c9e8a9a1d9803a421d2204c8245bdd4b08690bd412a7",
+      "addons/vehicles/functions/drivingQueueReverseCommit.sqf": "ec173345eea7eb7ae21e8315eafcb1d613dd70286d40c17bf95de22c5809889b",
+      "addons/vehicles/functions/drivingRecoveryRelease.sqf": "0572339c7446bdc9886a7b6a0ee0b3d03622bb6519aa865653dc7ca844229b4d"
+    }
+  }
+}

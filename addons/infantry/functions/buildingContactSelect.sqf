@@ -3,20 +3,22 @@
  * Purpose: Select one fresh hostile infantry belief inside target-owned building geometry.
  * Locality/authority: read-only, current local group owner. Uses native knowledge records,
  * never a hostile live transform; does not create an operation or grant movement authority.
- * Repeat/JIP: stateless, bounded to three eligible records and at most three roof queries.
+ * Captive, surrendered and restrained contacts do not initiate contact-driven building work.
+ * Repeat/JIP: stateless, inspects at most eight supplied native records, then three eligible
+ * records and at most three roof queries. Oversized direct inputs retain their first eight.
  * Results are observations for this call, not persistent access or room-clearance receipts.
  * Arguments: 0: group <GROUP>, grpNull; 1: knowledge records <ARRAY>, [], each
  * [hostile OBJECT, believed ATL ARRAY, age seconds NUMBER, range metres NUMBER, ...];
  * 2: maximum belief range <NUMBER>, 100, finite and positive (clamped to 1000).
  * Return Value: Array [building OBJECT, hostile OBJECT, [believed ATL ARRAY, server timestamp]]
  * or [] if no qualifying observation. Metadata/topology does not prove physical access.
- * Current callers: CBE_fnc_CortexBuildingContact.
+ * Current callers: CortexBuildingContact and IndoorActorDispatch.
  * Example: private _contact=[group player,_knowledge,100] call CBE_fnc_BuildingContactSelect;
  */
 params [["_group",grpNull,[grpNull]],["_enemies",[],[[]]],["_range",100,[0]]];
 if (isNull _group || {!local _group} || {!finite _range} || {_range <= 0}) exitWith {[]};
 _range=_range min 1000;
-private _records=_enemies select {
+private _records=(_enemies select [0,8]) select {
     if !(_x isEqualType []) exitWith {false};
     private _enemy=_x param [0,objNull,[objNull]];
     private _belief=_x param [1,[],[[]]];
@@ -26,6 +28,8 @@ private _records=_enemies select {
         && {finite _age} && {_age >= 0} && {_age <= 5}
         && {finite _distance} && {_distance >= 0} && {_distance <= _range}
         && {!isNull _enemy} && {_enemy isKindOf "CAManBase"} && {alive _enemy}
+        && {!captive _enemy} && {!(_enemy getVariable ["ace_captives_isSurrendering",false])}
+        && {!(_enemy getVariable ["ace_captives_isHandcuffed",false])}
         && {isNull objectParent _enemy} && {(side _group) getFriend (side _enemy) < 0.6}
 };
 if (count _records > 3) then {_records resize 3};

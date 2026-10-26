@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-19",
+  "scope": "Actual driving executor before pass/queue consent",
+  "finding": "Owner consent checked local crew and authored route but not actual ordinary driving executor lifetime. QueueProposalCurrent compared a stored generation but an ended noncancelled FSM could still leave that map/public generation intact. Such an owner could promise participation without a callback able to apply a hold.",
+  "change": "Shared DrivingPassCanConsent now requires exact current group/epoch/generation/route, noncancelled/nonfinished brain, and a typed finite nonnegative current live FSM. Both PASS and QUEUE callers inherit this observation. No startup, restart, timer, claim, native command or cleanup is performed by admission.",
+  "callTiming": "Consent runs from existing driving callbacks or later owner protocol delivery, not FSM initialization. The driving handle is published by DrivingOperationStart before queued callbacks. A participant not yet adopted must wait for existing discovery rather than manufacture a controller from consent.",
+  "validation": {
+    "existingFocusedTests": 47,
+    "focusedLog": ".qa/cbe-driving-consent-executor-focused.log",
+    "hemttLog": ".qa/cbe-driving-consent-executor-hemtt.log",
+    "newTestCases": 0,
+    "package": "Full local pipeline and independent verification passed; precommit dirty-source artifact, not later clean commit.",
+    "physical": "Unverified; audits paused.",
+    "fullTests": 1476,
+    "fullLog": ".qa/cbe-vehicle-consent-watch-build.log",
+    "independentLog": ".qa/cbe-vehicle-consent-watch-independent.log",
+    "packageFingerprint": "9304f5d3b71145b42bffa161ee6648b1718a02045d01ef36d93ba72c5d29a188",
+    "packageSource": "6f0f6e15+dirty unsigned development"
+  },
+  "remaining": "No moving queue context, leaf reverse or parent clearance implemented. Automatic queue initiation stays disabled.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingPassCanConsent.sqf",
+      "sha256": "8c6e5cfc5961f036ffbd70e20f8677da15ab4fb3f89f2e6cb18737fc79672746"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
+      "sha256": "5f9d84634a81fe78f734e3a9c9158a52d78be24a268fd776fd05c508e668f529"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPassPrepare.sqf",
+      "sha256": "90474056465fcb0c033986de21b4c4fe9c1a17546e458acb050b513398ab6306"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingOperationStart.sqf",
+      "sha256": "87ba5fbd8a170d4417a319fbf5633f870d7ee68a97f93318079d4d67e059c825"
+    }
+  ],
+  "crossOwnerDestinationBoundary20261022": {
+    "baseline": "f3969b87",
+    "status": "LOCAL_ARGUMENT_CONTRACT_MISMATCH_PHYSICAL_EFFECT_UNVERIFIED",
+    "engineReference": {
+      "url": "https://community.bistudio.com/wiki/expectedDestination",
+      "checked": "2026-10-22",
+      "contract": "Local argument required."
+    },
+    "trace": [
+      "DrivingQueueContext invokes expectedDestination for all crew, including remote participants, while describing read-only-anywhere observational context.",
+      "DrivingQueueProposalCurrent compares full eleven-field actor rows for actual local participants, including original field9 destination, against the initiator-sampled context.",
+      "AgreementOwner VERIFY invokes current owner validation and ACK cannot populate canonical destinations; existing server ACK payload contains token/acceptance/rear envelopes, not owner-local destination patches."
+    ],
+    "impact": "Multi-owner authored queue consent is not established by local static contracts or same-owner cases. A remote-sampled destination cannot be certified by later exact comparison as reliable owner-provided provenance. Do not claim proven runtime failure without engine observation. Native MOVE adds further owner-local route constraints.",
+    "requiredCorrection": "Gather authenticated per-owner local destination/task/route rows before freezing canonical queue context. Finalize/reconfirm the complete immutable context before any COMMIT, hold, BACK or crossing. Bind refresh to same request serial, original deadline and current ownership; do not delete destination comparison, substitute empty data or assume remote reads reliable.",
+    "hashes": {
+      "addons/vehicles/functions/drivingQueueContext.sqf": "6e8e3773f107feee87e101916a6bab8148ed109f19bda3306e2a0b8573c1f86d",
+      "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "968dc401831feb839188f0a7e52a4dda6a439f7aa26e4ca29352a0b17d0816e7",
+      "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "f24f809bd2f16e0dfef54fda8dcdde3f05983b78113e0927ed40933e344e9c4b",
+      "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "824dd40bde3e4fa3aad69f5c9a76d6dbbc6294d5ce74011409e2778b915a0013"
+    },
+    "validation": "Read-only source/API contract trace and JSON parsing. No runtime code, new package, acceptance or performance claim. Audits paused."
+  },
+  "ownerDestinationImplementation20261022": {
+    "baseline": "66af5b94",
+    "implementation": [
+      "Shared queue actor rows preserve existing shape with empty destination slot; no remote expectedDestination read.",
+      "Actual-owner VERIFY captures private ownerOrders before ACK. Token/serial/canonical context and existing server agreement remain the authority; no new remote mode or network round. RESULT/phase copies retain private receipt; duplicates compare current values before same-proof capture.",
+      "Deferred local proposal/hold checks compare native task and destination to the private owner receipt. Initial proposal remains current eligibility only, not movement authority.",
+      "Active reverse/crossing inserts actual and original destination data only on local owner rows, from exact same-token/context private consent. Server/remote observations do not certify destination.",
+      "Bounded remote STOP transition is phase observation under existing issue window/public identity and pose checks, not native destination ACK; exact root path checks stay owner-local."
+    ],
+    "validation": "1491 tests and full local build plus independent package verify passed. Existing queue tests extended. Initial build passed; final review removed the residual remote STOP-goal read and final candidate supersedes initial copy.",
+    "candidate": ".qa/candidates/queue-owner-destinations-66af5b94-reviewed",
+    "fingerprint": "59eec0bc95f6bece3e9339b91c8e8af61ba7e3480165b592e0d76e33e8a37d5c",
+    "hashes": {
+      "addons/vehicles/functions/drivingQueueContext.sqf": "bd1c6dd70a9197affbbd4cbae35a8b9a9aee6027b6de6ca512414220b0a0128a",
+      "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "8377649876558b009f027499bec23ae75089252f9e25faf2ae4715c679427fa4",
+      "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "3fbae0a29dcd6e33e3b293ff11d373c2ea1aaa318a03ae1b7d6b865cdbf145a6",
+      "addons/vehicles/functions/drivingQueueReverseCurrent.sqf": "90fd684723aedf8df77f3e44cbcd74ab9e97b636d341a987c110cdd25392c954"
+    },
+    "limits": [
+      "Unsigned dirty development snapshot with retained unrelated dirt; engineering metadata afterward.",
+      "No physical multi-owner/HC timing, destination replacement, native path cancellation/handback or performance proof. Audits paused.",
+      "Native MOVE queue negotiation remains excluded; this is prerequisite authored queue ownership correction."
+    ]
+  }
+}

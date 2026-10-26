@@ -1,0 +1,37 @@
+{
+  "baseline": "0c5a0286",
+  "scope": "Finite stealth hold-fire concealment response",
+  "sourceRead": [
+    {
+      "path": ".qa/lambs-2621-review/danger/functions/fnc_brainEngage.sqf",
+      "sha256": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
+      "scope": "complete helper"
+    },
+    {
+      "path": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doHide.sqf",
+      "sha256": "8f776e10fcf61d521d73b162622c484357dc603ff65ddeaab35d20e84cebd9fe",
+      "scope": "complete helper"
+    }
+  ],
+  "sourceIntent": "brainEngage calls doHide for stationary STEALTH/hold-fire actors. doHide uses nearby cover/building selection plus direct forceSpeed/stance/doMove/delayed stance and doStop. Retain concealment intent, not competing unowned writers or callback resets.",
+  "implementation": [
+    "Current validated ENGAGE DETECTED/PROXIMITY/CANFIRE witness with STEALTH and individual BLUE/GREEN can request existing DangerCoverStep. No new worker, firing permission or group ROE.",
+    "Shared cover owner retains stationary/native-task/planning/reservation/operation/Zeus/epoch/route gates and bounded screened search/travel/negative cache. Single witness releases rather than imposes group hide posture.",
+    "Immediate weak stealth stance uses individual unitCombatMode rather than group-only policy.",
+    "Native fleeing now immediately retires matching cover metadata before acquisition/continuation, with no native recall."
+  ],
+  "validation": {
+    "focusedInitial": ".qa/stealth-cover-focused.log exposed stale group-mode assertion; corrected to individual policy in existing case",
+    "superseded": ".qa/stealth-cover-build.log passed before shared native-flee veto",
+    "final": ".qa/stealth-cover-build-final.log all1484/394SQF and full offline gates passed",
+    "independent": ".qa/stealth-cover-independent.log",
+    "candidate": ".qa/candidates/stealth-cover-0c5a0286",
+    "fingerprint": "a9d01637adc5cdf22e389092192de76dbad629f2b6af333bed37ecdc1a0c7ebe"
+  },
+  "limits": [
+    "Audits paused; no physical stealth/concealment, route, repeated detection, HC or performance proof.",
+    "Eligible stealth detections can now incur existing18m bounded cover search; no measured overhead claim. Source broader indoor scattering not claimed equivalent.",
+    "Official unitCombatMode documentation fetch returned403; engine command is existing CBE policy API and compiler validated, not new live evidence.",
+    "Whole LAMBS engagement parity remains incomplete; source ACE timestamp mutation not copied."
+  ]
+}

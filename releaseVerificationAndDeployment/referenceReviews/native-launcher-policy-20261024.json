@@ -1,0 +1,32 @@
+{
+  "base": "5917bf08",
+  "workshopId": "1858070328",
+  "sourceSHA256": "c01f2ded8b80ee150c2a56d5a7e7891d3185fc1f02d2496eb57a40c8109d1daa",
+  "sourceScope": "Reviewed vanilla config only; no renewed CUP/RHS/SOG adapter implementation or whole-mod parity claim. Original preserved extraction unchanged.",
+  "implementation": "Separate restart-required Native Launcher Policy optional addon, not loaded by default. RPG7/RPG32 native AI range/preference, cadence and AI dispersion multipliers; PG7/PG32 usage960, SPG9HEAT/MAAWSHEAT704 plus infantry permission. No upstream assets or scripts shipped.",
+  "intentionallyExcluded": [
+    "Player/shared dispersion, recoil and sound rewrites",
+    "Ammo cost reset, projectile effects/whistle and airLock changes",
+    "CUP/RHS/SOG adapters and CUP projectile airFriction change",
+    "Runtime weapon/skill/assignment commands",
+    "Claim that usage flags guarantee engagement or enforce all target categories"
+  ],
+  "diagnostics": "On-demand effective values for22 firing-mode fields and8 ammo fields, missing/mismatched numeric entries reportERROR if optional loaded. Does not grant AI control.",
+  "balanceLimits": "Retained short minimum range and broad infantry/air target consideration need physical lethality, friendly safety and ammunition-economy validation. Native autonomous fire does not pass CBE scripted launcher safety gate. Global policy affects excluded AI and persists with CBA tactics off; restart/remove required to unload.",
+  "primaryDocs": [
+    "https://community.bohemia.net/wiki/CfgAmmo_Config_Reference",
+    "https://community.bistudio.com/wiki/CfgWeapons_Config_Reference"
+  ],
+  "validation": {
+    "tests": 1496,
+    "compiledSQF": 413,
+    "PBO": 11,
+    "independentPackage": "PASS",
+    "staticPerformanceFindings": 0,
+    "candidate": ".qa/candidates/launcher-policy-5917bf08",
+    "fingerprint": "bdcb18688f2bc7f5d142129d1e507bc84827a2098b2132832972930620b4be25",
+    "live": "UNRUN - audits paused"
+  },
+  "remaining": "Not whole-LAMBS parity or physically accepted RPG behaviour. Selected-battery mixed-group executor remains required; grouping clarification pending.",
+  "packageLimits": "Unsigned dirty development candidate preserves unrelated dirt; review/notes postdate package."
+}

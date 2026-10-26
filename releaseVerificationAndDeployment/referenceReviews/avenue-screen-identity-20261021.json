@@ -1,0 +1,12 @@
+{
+  "baseline": "0f63ba9f",
+  "finding": "CortexSelectAvenue already used supplied threat belief position, not a live target transform. Its any-hit FIRE/GEOM and VIEW/GEOM exposure score could count humans as screening, and fixed2m source offset could overshoot close endpoints.",
+  "implementation": "Use existing CortexCoverScreened for cover and concealment samples. Optional source-object second ray exclusion preserves avenue source hull ignore; existing consumers keep objNull default. Shared predicate excludes human surfaces, caps4 results and clamps offset to half segment. Concealment uses shared VIEW/NONE policy rather than material GEOM fallback.",
+  "authority": "Read-only scoring; same maximum8 candidates, existing route legs/three exposure samples per leg, terrain/firelane rejection and selected-route executor. No target-position query, state, worker, movement or deadline.",
+  "cost": "At most same2object rays per exposed sample, result cap1to4. Concealment may add one terrain test after failed cover; helper validation/arithmetic added per sample. Runtime and5/10budget unmeasured.",
+  "limits": "Four human hits can hide a later solid surface, conservatively withholding score. No continuous path/cover guarantee; physical tactical route quality unverified.",
+  "validation": "Existing609 source-contract checks adapted to shared query owner; full build result in handover.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false
+}

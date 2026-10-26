@@ -1,0 +1,512 @@
+{
+  "date": "2026-10-22",
+  "baseline": "dd8c9b68",
+  "scope": "Original source-functional comparison plus finite on-foot implementation follow-up; no physical parity claim",
+  "upstream": {
+    "dispatch": "brainForced invokes doFleeing when native fleeing is true.",
+    "foot": "doFleeing clears group building memory, finds nearby enemy, may stop/prone under overhead cover, otherwise searches terrain/buildings and moves to cover; distant/unseen branch recalls leader and resets stance. It can write strong posture, forceSpeed and ACE lastFired.",
+    "mounted": "At low grounded speed it may replace dead gunner, eject/reboard or abandon according to native mobility/fuel/ammo/damage and chance.",
+    "departs": "Do not copy unconditional strong posture, full speed reset, global group-memory erasure, live unseen enemy geometry or blind delayed crew actions over mission/Zeus/medical ownership."
+  },
+  "currentCBE": {
+    "forced": "FORCED now delegates one idle on-foot native-flight escape to DangerFlight under the existing engine FSM. Existing native command/planning/motion, common operations, reservations, medical, Zeus and external control defer admission. No mounted flight implementation.",
+    "withdrawal": "Morale and Retreat implement group pressure/overmatch withdrawal through a separate finite operation. This is not evidence of individual fleeing-cover/rejoin parity.",
+    "capacityDistinction": "Capabilities reads usable inventory/health. TacticalAssess separately filters current fire-task availability. Replacing morale inventory capability with temporary fire-task availability could spuriously classify a busy launcher as permanently absent; no such change made."
+  },
+  "openMaterialGap": {
+    "status": "PARTIAL_SOURCE_IMPLEMENTATION_PHYSICAL_BEHAVIOUR_UNVERIFIED",
+    "description": "A finite screened escape path now exists for otherwise idle fleeing foot soldiers. Native-versus-CBE travel, actual command acknowledgement, useful cover, route reachability, interrupted cleanup and performance remain unverified. Existing native routes, unavailable cover and mounted flight remain outside this path. This does not establish full doFleeing cover/rejoin or crew-domain parity.",
+    "minimumEvidence": "When audits are authorised, compare a known fleeing actor under native versus CBE danger FSM: actual destination changes, travel/cover, task replacement and recovery. Until then no assertion that native engine movement fills this gap.",
+    "implementationConstraints": "Any demonstrated missing response must use existing finite owner-local actor execution with original deadline, witnessed stagnation, known threat geometry, native task and Zeus interruption, exact cleanup and no perpetual duplicate controller. Mounted flight remains a separate crew-domain design."
+  },
+  "hashes": {
+    ".qa/lambs-2621-review/danger/functions/fnc_brainForced.sqf": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doFleeing.sqf": "9eb043092ed20c16e45023d9ff87f8d0b1cbaa496f5429758c53bbd807dbd450",
+    "addons/infantry/functions/dangerEngineMode.sqf": "0aee5da201a87aa55ff7437b4de6d9ed3073e5b9492e496db6c54f1cb92047fc",
+    "addons/infantry/functions/dangerEngineCanContinue.sqf": "9adbe38979d465505867b5a87190bf22c88464337af9224dfa73c5f1f5922b20",
+    "addons/infantry/functions/dangerEngineAct.sqf": "6329b7f1f5559161a47b94def63511b3118c2205fae1b472ad8ddbc21231f1fa",
+    "addons/infantry/functions/dangerEngineRecycle.sqf": "a55df7bc8a4923a9b8ca14a530ebe1e224fac154c1bf0e64cfa6b5a8a77c98b0",
+    "addons/infantry/functions/cortexMorale.sqf": "9ffa4058b4548f4cb74e3dafdc0d307340fe433c3355b2ef23a144b0f075943b",
+    "addons/infantry/functions/cortexTacticalAssess.sqf": "522c312750eeca0d4af1dddbd7dd540600fd98a4e6430b258f2c60d94bcda8fd",
+    "addons/infantry/functions/cortexCapabilities.sqf": "f34ee94ae2e865cc180ebcf09a13ec19864f38254a7b7491a1f32120ce58e1b9",
+    "addons/infantry/functions/cortexRetreat.sqf": "a442662a58ea7afcc3c8ce7488b828578759c13ed677abf722c740033f58f3fb"
+  },
+  "validation": "Read-only source comparison; no runtime code change, full build repeat or new candidate. Last candidate illumination-handback-68022164 remains current runtime evidence.",
+  "limits": [
+    "No full LAMBS review/parity or percentage claim.",
+    "Audits PAUSED; physical/performance acceptance incomplete.",
+    "Protected references unchanged; no source scripts executed."
+  ],
+  "executionTraceFollowup": {
+    "baseline": "c51e7527",
+    "scope": "Read-only forced-flight execution and reuse analysis; no movement implementation or runtime claim",
+    "fsm": "DangerEngineMode classifies fleeing as FORCED; Check_self invokes DangerEngineAct; its finite deadline reaches Check_self_2/Check_queue and End_Forced invokes DangerEngineRelease. FORCED has no movement branch or positive recycle budget.",
+    "cleanup": "DangerEngineRelease clears the response marker and defers owned stance restoration while native fleeing persists. This is posture cleanup, not escape travel or native movement acknowledgement.",
+    "reuseConstraints": [
+      "DangerCoverStep refuses fleeing actors before admission. It has one group cover lease and only recalls an exact owned failed approach when the leased actor is no longer fleeing; removing the veto would change ownership and cannot represent independent flight for multiple soldiers.",
+      "PointActorOperation and IndoorActorOperation exclude fleeing in admission and cleanup. They implement investigation, not flight; dispatching forced flight through these executors would be a semantic and ownership change.",
+      "LAMBS doFleeing operates on foot and mounted actors differently. Its unconditional posture reset, group-memory erasure, unseen enemy geometry and delayed crew actions are not safe replacements for these CBE guards."
+    ],
+    "nextDecision": "Do not weaken existing investigation/cover ownership gates to claim flight parity. A distinct finite actor-flight execution path needs original deadline and native-order proof, passive yield to existing native movement, generation/locality/Zeus/medical interruption and exact cleanup. Native-versus-CBE physical destination/travel comparison remains required to establish whether and where native movement stalls.",
+    "validation": "Paths and current hashes verified; existing runtime source unchanged. No repeat build, audit launch or feature credit.",
+    "hashes": {
+      "addons/danger/danger.fsm": "d0d6f952bec35d9fd02aed22ee0ee7634685246d72a093fb08b45afc618bfffa",
+      "addons/infantry/functions/dangerEngineMode.sqf": "0aee5da201a87aa55ff7437b4de6d9ed3073e5b9492e496db6c54f1cb92047fc",
+      "addons/infantry/functions/dangerEngineAct.sqf": "6329b7f1f5559161a47b94def63511b3118c2205fae1b472ad8ddbc21231f1fa",
+      "addons/infantry/functions/dangerEngineCanContinue.sqf": "71a009cc758ddb4d5fd79061e929450c28cd0f5a422df52b6bb73b34e1c5739e",
+      "addons/infantry/functions/dangerEngineRecycle.sqf": "2c0bc9f50f84c2a3f5320c33cfbcf9a21639c911ba0262157115c519239cdcee",
+      "addons/infantry/functions/dangerEngineRelease.sqf": "3415a04e84ce8983a791ca344e788a96847967bbbf624e783d5adc139644d2c6",
+      "addons/infantry/functions/dangerCoverStep.sqf": "f404ea583f70c2ffe463514b40085f015c81a191738ac50ec83620beea78659b",
+      "addons/infantry/functions/pointActorOperation.sqf": "d87c30d98a8ffbdc6b0dcb371a480aed175ec7deeda3e488270b77ac518abafb",
+      "addons/infantry/functions/indoorActorOperation.sqf": "e196c40a7a844a5781ab82700b9925e6643b45186afbefcb603f8f46261e1f4d"
+    }
+  },
+  "implementationFollowup": {
+    "baseline": "44a6014a",
+    "owner": "Existing engine danger FSM; no new FSM instance or scheduler worker",
+    "entry": "Fresh native event geometry and idle on-foot fleeing actor only; native and authored motion owners retain priority. Current solid screening defers movement; selected endpoint is re-screened even when generic cover validation is disabled.",
+    "bounds": "One group search per2seconds, each actor per15seconds. Nearby radius18m; original travel deadline4..12seconds, retained on repeated observations. Typed finite local receipt and unchanged epoch/operation/native waypoint context required.",
+    "interruption": "Cheap CanContinue compares actor reservation, native command/destination, native fleeing, MOVE/PATH and original generation/deadline. Native command acknowledgement grace is0.5seconds; no reissue is performed.",
+    "cleanup": "Release independently retires flight before stance cleanup. Physical3D arrival leaves the native position alone. A failed exact owned MOVE may request native formation only with unchanged full authored receipt and eligible local leader. It never changes posture, speed, allowFleeing, group memory or medical state.",
+    "limits": [
+      "Native command request is not acknowledgement or actual movement.",
+      "Same-valued replacement orders are indistinguishable.",
+      "No cross-owner command adoption; actor-local proof does not authorize a new owner.",
+      "No broader flight/crew parity or physical/performance claim. Audits remain paused."
+    ],
+    "validation": {
+      "tests": 1491,
+      "result": "Full local offline pipeline, HEMTT/FSM/SQF/config/docs/package gates and independent verify passed. Existing regression file extended with one distinct flight lifecycle case.",
+      "failedGate": "Initial build stopped at player-documentation reference-name check; wording corrected before the passing build. Final receipt review was included in the final full build.",
+      "buildLog": ".qa/finite-native-flight-build-reviewed.log",
+      "independentLog": ".qa/finite-native-flight-independent.log",
+      "candidate": ".qa/candidates/finite-native-flight-44a6014a",
+      "fingerprint": "08846b378b115e1ff99f3818cd93b23ef5c3bab1c17c1a0d1349fa176013445d",
+      "provenance": "Unsigned dirty development snapshot: baseline plus intended source edits and retained unrelated dirt. Review/handover metadata follows packaging."
+    },
+    "hashes": {
+      "addons/infantry/functions/dangerFlight.sqf": "3d5db2dc681ce8fa6f5852f5c57f7870bc4b0990ab1b23102d92c1078a09d0eb",
+      "addons/infantry/functions/dangerEngineAct.sqf": "0a51be86bc27df88e578966c4e0350812eb53f254d5198e40b0ecce700dc8b13",
+      "addons/infantry/functions/dangerEngineCanContinue.sqf": "007047de7ab571ec6c7e2a7677921f67e37184fe326e5d0dc89a92199202d917",
+      "addons/infantry/functions/dangerEngineRelease.sqf": "5f04a81d423f5c06c9ed52ffd3f833d3e29cd3a7564abf951517fdd4c400167f"
+    }
+  },
+  "fastPathFollowup": {
+    "baseline": "81876f72",
+    "change": "Empty RELEASE and empty non-fleeing START return before group lookup, receipt validation and helper setup. Nonlocal actors return immediately. Existing active or malformed leases still reach the typed validation path; no deadline/ownership rule changed.",
+    "validation": "Full1491 local offline gates/HEMTT/FSM/SQF/config/docs/package and independent verify passed; existing regression extended without adding cases. No measured runtime timing or physical claim. Audits remain paused.",
+    "buildLog": ".qa/flight-fast-path-build.log",
+    "independentLog": ".qa/flight-fast-path-independent.log",
+    "candidate": ".qa/candidates/flight-fast-path-81876f72",
+    "fingerprint": "6ffe06701558424e6f07d830c2a86ecaff09e06de0e9587cfb7ecdb9193a198e",
+    "sourceHash": "aba1795b17c705450b70133be43025e7828dbef1205ac2c4a35a5c1da055dc60",
+    "provenance": "Unsigned dirty development snapshot; retained unrelated dirt included, later engineering metadata excluded."
+  },
+  "quietRejoinFollowup": {
+    "baseline": "e079cc52",
+    "sourceIntent": "Previously reviewed doFleeing far/unseen branch requests native leader follow. Merge useful reunion intent without forced posture/speed reset, live unseen enemy geometry or group-memory erasure.",
+    "implementation": "Idle native-fleeing follower may request native formation only for fresh engagement evidence with believed threat farther than75m, no recent personal native observation, suppression below0.2 and an available local on-foot leader farther than8m. Existing order/operation/reservation/medical/Zeus/external gates remain. No lease or worker is acquired by the rejoin; result is NATIVE_REJOIN_REQUESTED, not acknowledgement or travel.",
+    "physicalPressure": "EngineSubmit retains greatest original cycle-zero physical hazard expiry plus5seconds from the existing bounded intake pass, including reflex-only forced events. One actor-local metadata update per qualifying batch. Quiet rejoin refuses until it elapses; positive-cycle recycled belief never renews it. Invalid metadata refuses rejoin.",
+    "identity": "Engagement-only flight now rejects logic/HC, dead, friendly, captive, surrendering and handcuffed sources as well as native ignored targets. Friendly real physical hazards retain approximate escape eligibility.",
+    "cost": "Reuses the targetKnowledge sample already read for ignore policy. Native rejoin precedes terrain selection and uses existing per-group2second/per-actor15second attempt gates. No new scan/timer; runtime cost unmeasured.",
+    "limits": [
+      "No command acknowledgement, physical reunion, path reachability, controller migration or performance acceptance.",
+      "Leaders and already moving/planning/native-task actors remain native-owned.",
+      "This is partial on-foot source implementation, not complete flight/crew or LAMBS parity. Audits remain paused."
+    ],
+    "validation": {
+      "result": "Full1491 offline gates, HEMTT/FSM/SQF/config/docs/package and independent verify passed; existing lifecycle regression extended with original physical-expiry and rejoin refusal boundaries, no added cases. Final review included hostile-identity and recent-physical-pressure boundaries.",
+      "buildLog": ".qa/flight-native-rejoin-build-final.log",
+      "independentLog": ".qa/flight-native-rejoin-independent.log",
+      "candidate": ".qa/candidates/flight-native-rejoin-e079cc52",
+      "fingerprint": "d1f1689b56cd477643358d3b0e8ec41b6b8b79719a5d5665ac86de4611dec278",
+      "provenance": "Unsigned dirty development snapshot including retained unrelated dirt; engineering metadata follows packaging."
+    },
+    "hashes": {
+      "addons/infantry/functions/dangerFlight.sqf": "3fdb22f67c5d1c5764db3a1ac083902aec25559aa8adf4bb60dfe08765db8481",
+      "addons/infantry/functions/dangerEngineSubmit.sqf": "df9da216a0e5b9002e69694e96153934a3bec42dd5c0fab5af4d3c9e9880c1a6"
+    }
+  },
+  "auditCoverageGap": {
+    "baseline": "82594959",
+    "fixture": "releaseVerificationAndDeployment/cortexQA/runReactions.sqf",
+    "sha256": "7ad007699ab08c04fbba281dff727aa9bac16e85de0bb1049c9e3332bbd6ea76",
+    "finding": "runReactions _newGroup applies allowFleeing0 to all its created groups, with no override or native-flight result/lease observation. Scripted retreat/surrender and civilian flee in this file are not native fleeing coverage.",
+    "minimumRequiredCase": "Preserve existing deterministic reaction cases. Add a distinct native-flight setup with real native casualties/courage policy, observe actual fleeing before evaluation, provide real native danger stimuli and record source/destination/travel, native movement yield, original expiry and physical replacement-order continuation. Do not assign solved flight metadata or call DangerFlight directly to claim FSM/physical acceptance.",
+    "attribution": "If Arma already owns movement and no CBE fallback is admitted, report native flight continuity separately and the fallback unexercised. A successful native path is not proof that the CBE escape/rejoin branch ran.",
+    "limits": "Read-only fixture review, no runtime or audit changes, no audit launched and no repeated unchanged build. Audits remain paused; full physical/performance acceptance remains incomplete."
+  },
+  "preparedNativeFlightAudit": {
+    "baseline": "5bb94c4c",
+    "focus": "nativeflight",
+    "status": "PREPARED_NOT_RUN",
+    "scope": "Isolated normal/server-owner fixture; ordinary all/reaction and HC batches unchanged. Explicit normal/no-HC launcher and staging gate.",
+    "stimulus": "Real native casualty loss and courage/allowFleeing policy, real enemy fire/FiredMan observation, native fleeing prerequisite; no solved variables, danger event injection, helper calls or AI relocation.",
+    "observations": "Two survivors sampled5Hz for35s after native fleeing. Unleased native routes reported separately. First CBE fallback per actor requires actual subsequent movement; fixed escape must approach recorded goal within original deadline. Immutable observed lease deadline checked. Missing fallback/lease exercise cannot pass its deadline/cleanup coverage. A later actual native waypoint must physically take survivors away; no cleanup/reset injection.",
+    "limits": [
+      "Untested native courage/fleeing stimulus and geometry require real calibration when audits resume.",
+      "Native movement success does not exercise CBE fallback; missing fallback remains a finding.",
+      "This case does not prove every quiet-rejoin/cover branch, mounted flight, HC/locality, JIP, continuous path safety or performance.",
+      "Audit runs remain paused; no Arma process or installed-game staging was started."
+    ],
+    "validation": {
+      "result": "Full1491 local offline gates/HEMTT/FSM/SQF/config/docs/package and independent verify passed. Existing22-case staging suite extended in-place and existing flight lifecycle contract extended, no new unit cases. First editing attempt stopped on a missing test anchor before tests were updated; corrected before full validation. Final review removed expired/unrelated-travel and vacuous deadline/cleanup success paths.",
+      "buildLog": ".qa/native-flight-fixture-build-reviewed.log",
+      "independentLog": ".qa/native-flight-fixture-independent-reviewed.log",
+      "stageLog": ".qa/native-flight-fixture-stage-reviewed.log",
+      "package": ".qa/candidates/native-flight-fixture-5bb94c4c",
+      "packageFingerprint": "cdb49de8322012a18bf408456f10713741363b46016c730ea557add563207535",
+      "preparedDirectory": ".qa/prepared-native-flight-5bb94c4c-reviewed",
+      "preparedHashIndex": ".qa/native-flight-fixture-prepared-sha256.json",
+      "provenance": "Product runtime unchanged from82594959; unsigned dirty development build includes unrelated retained dirt. QA source staged separately; review/handover metadata afterward."
+    },
+    "fixtureHash": "b5982740221b20273fbbcf6122c87ca5611b441f223589a06e74457ab28afe9a"
+  },
+  "launcherThreatKnowledge20261022": {
+    "baseline": "08538a77",
+    "finding": "CortexCapabilities correctly checked usable friendly launcher ammunition, but hostile infantry consumers in vehicle ranking/standoff and air threat planning reused that live inventory inspection.",
+    "implementation": "Optional potential flag defaults false. Friendly capacity keeps live magazinesAmmoFull round counts. Potential equipment mode classifies compatible configured ammunition only, sharing immutable ammo facts and live mission overrides, without reading hostile reserves. Three hostile infantry consumers explicitly select potential mode. Existing contact/reported-position gates unchanged.",
+    "balance": "An empty enemy launcher remains a potential threat; no confirmed firing capability claim. Secondary weapon identity still comes from existing contact object, not a new per-observer equipment memory system.",
+    "validation": "1491 tests/full local build/independent verify passed; existing capability test extended.",
+    "candidate": ".qa/candidates/launcher-threat-knowledge-08538a77",
+    "fingerprint": "f0c44283c1b09dcc629e4723a17a787dcf027744c26d5200c8baa80bbbfdd6b2",
+    "remaining": "AirAttackPlan non-infantry AA branch still reads hostile magazinesAllTurrets counts. Evaluate equipment/config potential threat there separately; no whole-mod knowledge fairness or physical claim.",
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; metadata afterward. Behaviour, balance, HC/JIP and5%median/10%p95 unverified; audits paused."
+  },
+  "vehicleAAThreatKnowledge20261022": {
+    "baseline": "bf825248",
+    "finding": "AirAttackPlan non-infantry AA threat planning read live hostile magazinesAllTurrets round counts.",
+    "implementation": "Class-armament potential estimate uses cached immutable class configuration, root/nested turret magazines and default pylon attachments. First inspection <=32 turret nodes, <=32 pylon slots, <=128 magazine entries and <=64 per node. Unknown/exhausted config budget is precautionary potential threat, not a safe negative. Existing native reported contact positions and own-aircraft live ammunition evaluation remain unchanged.",
+    "balanceLimits": "Vehicle type/equipment potential is not confirmed live weapon/ammunition/readiness. Runtime rearm/custom armament outside class configuration remains unknown. Empty or disarmed standard platforms may remain precautionary threats. No whole-mod intelligence-fairness claim.",
+    "validation": "1491 tests plus full local build and independent package verification passed. Initial existing air test required the old hostile inventory query and was updated to require bounded class facts. Review then added pylon-only configured armament before final build.",
+    "candidate": ".qa/candidates/vehicle-aa-threat-knowledge-bf825248",
+    "fingerprint": "e6be169a55abccb2adbeb99f6c854cc24af2be296e1cb6da79150256a8b5e2b2",
+    "limits": "Unsigned dirty development snapshot with unrelated dirt; metadata afterward. Physical air tactics/balance, HC/JIP and5%median/10%p95 unverified. Audits paused."
+  },
+  "nativeAttackPacingLifecycle20261023": {
+    "baseline": "df84dd41",
+    "status": "EXECUTION_GAP_CONFIRMED_NOT_IMPLEMENTED",
+    "source": "Retained LAMBS brainForced calls doAssaultSpeed for native ATTACK; CBE autonomous ATTACK remains combat-enabled but DangerEngineAct/Release contain no forceSpeed ownership.",
+    "currentBoundaries": [
+      "ActorSettings APPLY/CHECK/ADOPT permits only real OPERATION or GARRISON authority; RELEASE uses exact typed issuer/deadline/native-value pairs.",
+      "DangerEngineResponse has seven fields and uses time deadlines; ActorSettings contexts use serverTime deadlines. Do not mix clocks or append fields casually.",
+      "DangerPostureStep consumes only six-field stance proof and drops actors with no such proof; it cannot currently service speed-only cleanup.",
+      "OperationStart calls DangerEngineRelease only for actors with a stance lease, before generation publication. Speed-only state would be missed.",
+      "CortexFlankStep drives ASSAULT/ADVANCE/FLANK through one finite executor with group FULL; it does not provide native ATTACK actor pacing or actor forced-speed cleanup."
+    ],
+    "nextBatch": [
+      "Introduce a narrowly validated native ATTACK settings authority bound to exact local danger response, original deadline, group/epoch/generation and native task identity; never manufacture a common operation.",
+      "Retain stricter authored forcedSpeed baseline through ActorSettings and defer to existing operation/garrison/reservation, care, specialist and Zeus owners. Read only native-known target geometry for distance pacing.",
+      "Integrate exact speed release with danger end, original bounded deferred cleanup and OperationStart before generation changes, including speed-only actors and no stance lease. No new perpetual worker or independent movement controller.",
+      "Extend existing lifecycle regression and documentation coherently; full build only after runtime batch. Physical attack pace, native replacement/handover, cap restoration and overhead remain required when audits resume."
+    ],
+    "validation": "Read-only current-source trace plus parsed engineering JSON; no runtime changes, test increment, new package or parity credit.",
+    "limits": "Audits paused. Last runtime and candidate remain df84dd41 / .qa/candidates/morale-allied-support-718d6935. This is an implementation gap and integration boundary, not delivered pacing."
+  },
+  "nativeAttackPacingImplementation20261023": {
+    "baseline": "8a9b76cb",
+    "status": "IMPLEMENTED_PHYSICAL_ACCEPTANCE_PENDING",
+    "implementation": "DangerAttackPace START/CHECK/RELEASE uses the existing danger FSM and shared ActorSettings DANGER_ATTACK speed-only scope. Current native ATTACK, known hostile belief and no competing common operation/settings owner required. Original response expiry converted once to server deadline; no renewal, destination or firing command. Speed4/3 under suppression, leader/near-belief5m each minus1, minimum1, STEALTH1; authored stricter caps preserved.",
+    "lifecycle": "Engine CanContinue drains changed target/command/destination/response/expiry; EngineRelease independently retires speed before stance. Speed-only pending cleanup uses existing group posture queue, original expiry+30s, no replacement worker. Public issuer proof permits actual new owner to RELEASE unchanged cap through existing ActorSettings without APPLY/ADOPT; DangerSetup retires mismatched owner/response/expired proof. OperationStart releases participant caps before generation capture and refuses participants with unresolved proof.",
+    "bounds": "Existing max64 actor/settings boundary, one known native target query, no world search or new movement controller. Pending cleanup runs one actor per shared callback. Public proof and sparse actor index publish only start/retirement.",
+    "validation": "Initial full gate failed generated FEATURE_STATUS mismatch after helper registration; regenerated from coverage and reran.1491 tests, full HEMTT/SQF/FSM/config/docs/package gates and independent candidate verification passed. Existing lifecycle regression extended without new case.",
+    "candidate": ".qa/candidates/native-attack-pace-8a9b76cb",
+    "fingerprint": "aa547d0e5040e3b970265720edf821ed4e8d5662d4a7a3df75604c97559e9f69",
+    "logs": [
+      ".qa/native-attack-pace-build.log",
+      ".qa/native-attack-pace-build-reviewed.log",
+      ".qa/native-attack-pace-independent.log"
+    ],
+    "limits": [
+      "Unsigned dirty development snapshot with retained unrelated dirt; engineering metadata afterward.",
+      "No physical native pace, HC/JIP, task interruption, native cap confirmation, balance or5%median/10%p95 evidence. Audits paused.",
+      "Same-valued external speed edits remain indistinguishable. Restoration blocked beyond original+30s retains proof and can refuse later pacing/participant admission; no unowned reset or successful handback claim.",
+      "Scope is autonomous native ATTACK during ENGAGE/IMMEDIATE danger, not full LAMBS parity or continuous assault controller."
+    ]
+  },
+  "nativeAttackPacingEpochReview20261023": {
+    "baseline": "960bba6f",
+    "finding": "Pace CHECK compared response/native task/expiry but did not itself bind current operation generation and owner epoch. Engine waiter had an outer guard, while discovery separately inspected public context and its deadline. The shared predicate was insufficient as a complete current-identity check.",
+    "implementation": "CHECK now compares both context generation and epoch to current group identity. Discovery uses the same typed CHECK gate before requesting RELEASE, with bounded typed actor-index iteration. No new application, deadline or owner adoption; actual new-owner release still uses original issuer/baseline through existing ActorSettings.",
+    "validation": "1491 tests/full build and independent package verification passed; existing pace lifecycle regression extended.",
+    "candidate": ".qa/candidates/native-attack-pace-epoch-960bba6f",
+    "fingerprint": "0d0f9444665be56512299cc12a211a1dac03860b7a3af2c657ce6b850df32ffc",
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering notes afterward. No physical cap/HC/JIP/cleanup/balance/performance evidence; audits paused. Original unresolved-window and same-valued external-edit limits remain."
+  },
+  "independentPaceRetirement20261023": {
+    "baseline": "3c0b1fa6",
+    "finding": "Deferred worker attempted pace retirement directly only when stance proof was absent. Expired/malformed stance proof could consume the queue slot without servicing the independent speed window. A waiting stance also rewrote its pre-helper queue snapshot.",
+    "implementation": "Service any pending speed proof first, independently of stance shape/expiry. Requeue a waiting stance into the current live queue with pushBackUnique, preserving speed-helper requeue. Original per-setting expiry/authority and actual native writes remain in their existing helpers; no new worker or lifetime.",
+    "validation": "1491 tests/full build/independent verification passed; existing pace lifecycle regression extended.",
+    "candidate": ".qa/candidates/native-attack-pace-retirement-3c0b1fa6",
+    "fingerprint": "51bae0ad84a16b180e07c9924b662744365d1c8e573e89d4ea00a464eeca15df",
+    "limits": "Unsigned dirty development snapshot with retained unrelated dirt; notes afterward. Physical cleanup/native acknowledgements/HC/JIP/balance/performance unverified; audits paused. Original+30s unresolved-proof and same-valued external edit limits remain."
+  },
+  "paceGroupTransfer20261023": {
+    "baseline": "532083c2",
+    "finding": "A completed group transfer left pace proof bound to its original group. Both pace helper and ActorSettings refused retirement across group identity; a new group sparse index also could not discover the joined actor.",
+    "implementation": "Narrow DANGER_ATTACK RELEASE-only exception: actual actor and current-group owner, exact public pace context, unchanged original issuer/generation/deadline, and SPEED-only owned pairs. Current-group external/player/Zeus/specialist and actor safety/reservation/health gates remain authoritative. APPLY/CHECK/ADOPT cannot cross groups. Same-group epoch retirement unchanged.",
+    "discovery": "Existing DangerSetup uses at most64 current group members to locate own pace receipts. Removed unused public group pace index and its publication, avoiding stale transferred entries. No world scan, new worker, command replay or stance transfer.",
+    "validation": "Initial gate exposed existing source-contract assertions tied to original group variable. Updated existing tests to require actual authority group, exact pace proof and release-only speed restriction. Reviewed build passed; removed unused index and final1491 tests/full build/independent verification passed. No new cases.",
+    "candidate": ".qa/candidates/native-attack-pace-group-transfer-532083c2",
+    "fingerprint": "4b1fdf96546c671976531414e1e264e05d31368209d515736569b974790aee7e",
+    "logs": [
+      ".qa/native-attack-pace-group-transfer-build.log",
+      ".qa/native-attack-pace-group-transfer-build-reviewed.log",
+      ".qa/native-attack-pace-group-transfer-build-final.log",
+      ".qa/native-attack-pace-group-transfer-independent.log"
+    ],
+    "limits": [
+      "Unsigned dirty development snapshot retaining unrelated dirt; engineering metadata afterward.",
+      "Physical joined-group/HC/native-cap confirmation/balance/performance unverified. Audits paused.",
+      "Excluded/player-led/specialist/dormant/reserved/oversized groups may still refuse retirement; original expiry+30s preserves unresolved proof rather than overriding new authority. Same-valued external edits indistinguishable.",
+      "Build-out evidence freshness still fails; no hash/score renewal or percentage/parity claim."
+    ]
+  },
+  "paceSuccessorQueue20261023": {
+    "baseline": "739c5b8b",
+    "source_intent": "Preserved LAMBS doAssaultSpeed derives native assault pace from situation. CBE implements a finite owner-scoped speed cap rather than copying a competing controller; retaining its active lifetime is necessary to that selected intent. No whole-source parity claim.",
+    "finding": "DangerPostureStep stores actor identities, not immutable pace episodes. A successful prior speed release can leave a queued actor while a new engine response starts. The callback unconditionally released the current pace, terminating that fresh response cap early.",
+    "implementation": "Shared callback invokes typed CHECK before RELEASE. Exact live response/owner/generation/native identity/original expiry keeps its pace; expired or replaced proof still reaches release independently of stance. The existing engine Finished path retains responsibility for active-response retirement. No new job, retry, deadline or sensing.",
+    "validation": "1491 existing tests/full offline build including HEMTT/config/SQF/FSM/docs/package and independent copied-candidate verification passed. Existing lifecycle regression extended, no new cases.",
+    "candidate": ".qa/candidates/danger-pace-successor-queue-739c5b8b",
+    "fingerprint": "daae8d3345b80845999bfbc9abfe6470d1d742f94c38d182054f9f1a4eabfecf",
+    "logs": [
+      ".qa/danger-pace-successor-queue-build.log",
+      ".qa/danger-pace-successor-queue-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot with retained unrelated dirt, engineering notes afterward. No physical repeat-danger/assault pace/native ACK/HC/JIP/balance/performance proof. Original finite response and expiry+30 release limits remain; physical eventual cleanup and complete LAMBS parity remain unproven. Audits paused. No score/hash renewal."
+  },
+  "nativeMoralePace20261023": {
+    "baseline": "7cc26a15",
+    "reference": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultSpeed.sqf",
+    "reference_sha256": "0004608370622dcdc5c33628fe94ca6b321ea556be545876bdb8872bb932c105",
+    "source_intent": "Personal native morale below zero or leadership reduces assault pace once; suppression and target distance are separate modifiers.",
+    "finding": "CBE native ATTACK pace implemented the leader reduction but omitted native negative personal morale. Group tactical morale is a distinct0..1 estimate and cannot substitute the upstream native input.",
+    "implementation": "Existing leader condition now includes native morale<0 as an OR, never a second stacked penalty. Existing STEALTH1m/s, suppression/close-belief modifiers, min1m/s policy and ActorSettings stricter-authored-cap preservation remain unchanged. No skill/fleeing setting, new function/controller/scan/job or deadline.",
+    "validation": "1491 existing tests, full offline HEMTT/config/SQF/FSM/docs/package pipeline and independent copied-candidate verification passed. Existing lifecycle regression extended, no new case.",
+    "candidate": ".qa/candidates/native-attack-morale-pace-7cc26a15",
+    "fingerprint": "c8bd9df3b06bb3bc04cd756d56ce3c828a9c94ddcf8c6d74a5487e3415e33888",
+    "logs": [
+      ".qa/native-attack-morale-pace-build.log",
+      ".qa/native-attack-morale-pace-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot with unrelated dirt; engineering notes afterward. Selected source-intent omission only, not whole LAMBS parity. Physical pacing/balance/HC/JIP and5%median/10%p95 overhead unverified. Audits paused; no score/hash renewal."
+  },
+  "flightPlanningBudget20261023": {
+    "baseline": "c8b74e75",
+    "source_intent": "LAMBS preserves useful busy assault movement; selected CBE foundation principle is observe native planning within the existing finite episode instead of issuing repeated destinations or abandoning useful planning early. No copy of upstream random rerouting or blind delayed commands.",
+    "finding": "CanContinue ended an unacknowledged native flight after0.5s (or immediately when MOVE appeared before destination update), despite original travel budget4..12s. Unlike point investigation the flight lease did not retain its pre-request native command/destination/formation leader.",
+    "implementation": "Local lease now8fields with immutable pre-request native tuple. Cheap FSM continuation accepts exact requested MOVE destination or unchanged pre-request native tuple with empty/MOVE command, only within original deadline and existing actor/owner/generation/reservation gates. Replaced task/destination/leader refuses. No reissue, search, worker or deadline renewal.",
+    "validation": "1491 existing tests/full offline HEMTT/config/SQF/FSM/docs/package and independent copied-candidate verification passed. Existing native-flight regression extended; no new case.",
+    "candidate": ".qa/candidates/native-flight-planning-budget-c8b74e75",
+    "fingerprint": "4776972743469ad91d583a14e474571509e33c4cc1824812434f436a90c47312",
+    "logs": [
+      ".qa/native-flight-planning-budget-build.log",
+      ".qa/native-flight-planning-budget-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot with retained unrelated dirt; engineering notes afterward. Physical path/late ACK/cancellation/rejoin/HC/JIP and overhead unverified. Deadline timeout plus receipt deletion does not prove pending engine request quiescence; identical replacement native intent remains ambiguous. No full flight/mounted parity or eventual handback claim; audits paused. No score/hash renewal."
+  },
+  "flightPendingJournal20261023": {
+    "baseline": "6ecf6f3c",
+    "finding": "Flight RELEASE deleted its original journal/reservation when doMove still had not acknowledged, allowing routine admission after expiry while the engine request might remain pending.",
+    "implementation": "Exact unchanged pre-request native state with matching group/order/reservation retains immutable flight journal and reports CANCEL_PENDING. Existing bounded64-member DangerSetup pass independently reconciles expired or finished-response flight, without clearing a successor response. CortexActorMoveReserved respects unresolved journal after ordinary marker expiry. Original deadline+30 bounds follow commands; late exact-goal acknowledgement remains UNRESOLVED_DEADLINE without a native write. No request replay, new worker, world scan, timer or original deadline renewal.",
+    "edge": "An empty native command whose old destination already equals requested goal remains pending; only a MOVE label with requested goal can qualify acknowledgement.",
+    "validation": "1491 existing tests/full final offline pipeline with HEMTT/config/SQF/FSM/docs/package plus independent copied-candidate verification passed. Existing flight regression extended; no new case. Initial build also passed before same-goal idle edge was corrected; final covers actual runtime.",
+    "candidate": ".qa/candidates/native-flight-pending-journal-6ecf6f3c",
+    "fingerprint": "4462e5c2a5d712d18162aecb65aa076838a0856c198d6d645f78e1fbf1db9bf2",
+    "logs": [
+      ".qa/native-flight-pending-journal-build.log",
+      ".qa/native-flight-pending-journal-build-final.log",
+      ".qa/native-flight-pending-journal-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering tracker/notes afterward. Retained metadata can block admission indefinitely after cleanup window/shutdown. No guaranteed native quiescence, follow-command ACK or physical return. Owner migration, identical replacement intent, balance and5%median/10%p95 remain unverified; audits paused. No percentage increase."
+  },
+  "flightReturnSemanticReview20261023": {
+    "baseline": "f5afbf54",
+    "scope": "Read-only return-leg authority/engine API review; no runtime edit",
+    "paths": [
+      "addons/infantry/functions/dangerFlight.sqf",
+      "addons/infantry/functions/cortexHolderRecallPending.sqf",
+      "addons/infantry/functions/cortexGroupAnchor.sqf"
+    ],
+    "primary_sources": [
+      {
+        "url": "https://community.bistudio.com/wiki/doFollow",
+        "finding": "Return value Nothing. Return-to-formation is valid even for the leader itself. Same-group requirement. Documented player-issued orders can prevent it; do not substitute joinSilent to bypass mission/Zeus authority."
+      },
+      {
+        "url": "https://community.bistudio.com/wiki/formLeader",
+        "finding": "Reads formation leader, which can already equal the group leader before a return request. Equality alone cannot prove that a new follow request was consumed."
+      }
+    ],
+    "execution": "DangerFlight marks NATIVE_RETURN_REQUESTED and clears exact original reservation after issuing follow; holder recall likewise reports FOLLOW_ISSUED rather than physical reunion. These paths do not claim engine acknowledgement or actual route travel. A group anchor is a lifecycle fallback, not evidence that formation travel resumed.",
+    "remaining_material_uncertainty": "Native return request acceptance, delayed delivery and physical continuation are not proven. Do not introduce a positive acknowledgement based on guessed FOLLOW/MOVE labels or unchanged formLeader. No evidence justifies rejecting leader-self doFollow or forcibly joining groups.",
+    "minimum_next_evidence": "When audits are authorised, capture before/after currentCommand, full expectedDestination, formLeader, authored route and real position over the exact follow request under normal/leader-self/replacement/HC cases. Distinguish request, observed native change and actual authored-order travel. No audit launched or new fixture added.",
+    "validation": "Read-only source/API trace. No test/build/package repetition; previous exact candidate remains current runtime evidence. Existing source and protected references unchanged.",
+    "candidate": ".qa/candidates/native-flight-pending-journal-6ecf6f3c",
+    "fingerprint": "4462e5c2a5d712d18162aecb65aa076838a0856c198d6d645f78e1fbf1db9bf2",
+    "limits": "Audits paused. No complete handback/parity/performance or percentage claim. Continue other demonstrated offline execution work; do not infer global goal blockage from this physical evidence gap."
+  },
+  "mountedAuthorityFollowup20261023": {
+    "baseline": "7de730be",
+    "scope": "Mounted LAMBS fleeing intent compared with existing CBE danger abandonment, gunner replacement and driving driver recovery; no full mounted parity claim.",
+    "sourceIntent": "LAMBS doFleeing selects a surviving commander or driver for a vacant gunner at grounded speed below 3, may eject/reboard after 0.8s, and probabilistically abandons based on mobility/fuel/ammo/damage. CBE does not copy driver sacrifice, forced ejection, blind delayed callback or random crew release.",
+    "existingIntegration": "CBE exact-platform danger response deterministically releases unsafe emplacement or disabled-vehicle occupants; separate generation-owned gunner recovery uses an eligible commander, while DrivingCrewStep handles finite dead-driver replacement under its own route journal. These are different triggers, not an individual mounted FORCED-flight implementation.",
+    "fixed": "Danger abandonment previously checked only living/local/non-player/same-group occupants. It now reuses the shared crew-actor predicate before boarding cancellation, unassignment and exit request, with an additional explicit STOP veto. Protected medical/native tasks, reservations, direct remote or specialist ownership, incapacitation and hidden/suspended actors defer. No new controller or timer.",
+    "remaining": "Low fuel alone is not a new abandonment trigger. No complete individual mounted fleeing policy or coordinated crew recall is implemented here. Exit requests and reason markers do not establish dismount, safe escape, gunner recovery or physical handback. Arma audits remain paused.",
+    "validation": "610 focused operation checks; 1491 full offline tests; HEMTT compilation; independent unsigned dirty candidate verification. No physical acceptance or performance measurement.",
+    "hashes": {
+      "addons/vehicles/functions/cortexVehicles.sqf": "678aa5ca7331283d377248c1a275d7e380aa347d0fb9d1edc1ecfc8d35a642ea",
+      "addons/vehicles/functions/cortexVehicleCrewRecover.sqf": "eb115042e94d423734d2621c2c4adf024f87d8f5ec03d4fc8b0ce86549bc0c94",
+      "addons/vehicles/functions/drivingCrewStep.sqf": "410338623291efab2cbf10b4a7c802e5e1e01e237b346065950426e8f61933bd",
+      "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "1f2d7464cb85f240005257ed4c84cd8a7e07d7886e28ec4d33b53aa340858b23"
+    }
+  },
+  "ordinaryDangerIndoorRefugeFollowup": {
+    "baseline": "5487131e",
+    "source": {
+      "path": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doHide.sqf",
+      "sha256": "8f776e10fcf61d521d73b162622c484357dc603ff65ddeaab35d20e84cebd9fe"
+    },
+    "sourceIntent": "LAMBS doHide preserves selected native tasks and disabled movement, may stay prone indoors, otherwise searches building/terrain cover and may scatter into a building. It also forces speed24, changes strong stance and installs delayed stance/stop callbacks. CBE implements indoor refuge choice without those unowned resets/callbacks.",
+    "integration": "Extracted the bounded fleeing indoor selection into read-only DangerRefugeSelect and registered it. DangerCoverStep now invokes that same selector only after failed exterior COVER selection, before recording a negative search result. Existing three-second negative cache covers both failures; CONCEALMENT retry does not repeat houses. Flight retains its existing authority and final screen check.",
+    "bounds": "One native nearest-House query within18m; inspect at most two live houses. Per house existing IndoorActorNodeSelect ranks <=512 points and makes <=3 roof probes, with original actor-floor/body/failure exclusions; current threat screen and unchanged building transform required before return. Native query cost depends on density. No new scan loop, worker, cache or movement command.",
+    "authority": "Callers retain native-order, operation, reservation, Zeus/external-owner and posture handoff admission plus existing original4-12s movement leases. The selector grants no command permission, opens no doors, forces no speed/stance and supplies no room-clearance proof.",
+    "limits": "Native roof/node metadata does not prove an accessible interior; known actor failed-node observations are respected but this fallback creates no new reachability proof. Physical refuge arrival, useful protection, moved-building travel, behaviour balance and performance remain unverified. This is not full doHide, armoured-threat, CQB or whole-LAMBS parity.",
+    "validation": "Existing flight/cover regression extended without new cases. Initial full builds exposed source registry/report synchronization and product source-name boundary errors; corrected wiring/docs, no acceptance scores increased. Final1491 offline tests, HEMTT409SQF/9PBO and independent verification passed. Candidate .qa/candidates/danger-cover-indoor-5487131e fingerprint0f512d427b2385c217a9523494e8660583fe623c05535c477b8f7aa127d4d911, unsigned dirty development snapshot. Review/notes postdate build; audits paused.",
+    "currentHashes": {
+      "addons/infantry/functions/dangerRefugeSelect.sqf": "af12d2122141b2f3f8d364c43350446178ab877b5327207ba68c65efc7d890c3",
+      "addons/infantry/functions/dangerFlight.sqf": "845fac1ba9fa366eb17aa81df1ff7693bda3c1cb426a4dd352d02f265b1dd51d",
+      "addons/infantry/functions/dangerCoverStep.sqf": "7fa2615a40f56c0ffa3ec9f542d6580fbe34ddc9bc21050967eda3fe0ef8a5cf",
+      "addons/infantry/functions/indoorActorNodeSelect.sqf": "fbd2ce31fd66cb4e584dd3255e4d9acbf229d1c8f480566356e252d484699653"
+    }
+  },
+  "mountedNativePolicyHandoverFollowup": {
+    "baseline": "e57855ca",
+    "scope": "Native operating-crew flight versus CBE unload-retention policy; not a complete mounted fleeing/abandonment implementation.",
+    "existingBehaviour": "Both policy helpers already restored their captured policy on immobilisation. That path required no replacement. Changed external values and foreign leases already veto restoration/reacquisition.",
+    "gap": "A mobile platform could retain CBE unload suppression while its actual driver or effective commander was natively fleeing. Scripted danger abandonment independently defers native-fleeing actors, so that actor predicate did not relinquish the separate engine policy.",
+    "implemented": "Both existing ACQUIRE paths now observe at most driver/effectiveCommander and invoke their unchanged exact RELEASE path when either flees. Captured mission policy is restored only while the current value still equals CBE applied policy; no force-disembark, suppression, fuel or crew assignment command. Cargo panic alone does not release the carrier-wide lease.",
+    "integration": "Original group/epoch or convoy revision, local vehicle authority, external mutation block, changed-value checks and pending assigned GET IN admission remain. After flight ends, ordinary acquisition can resume under the same existing checks. No new controller, worker, public state schema or time window.",
+    "sourceDistinction": "LAMBS mounted doFleeing includes conditional crew replacement and probabilistic abandonment with its own native suppression/order commands. This CBE change yields to current native flight without copying those commands or claiming full mounted source parity.",
+    "cost": "At most two current operating actor flight reads per admitted policy check, no crew/world discovery added.",
+    "validation": "Existing policy regression extended without new test cases.610 focused/1491 full offline tests, HEMTT409SQF/9PBO and independent candidate verification passed. Candidate .qa/candidates/native-crew-flight-policy-e57855ca fingerprint e3d28ac39cd306cd17b97b91812a96a5cf0c56f4252f5117f3c60232abdfc01f, unsigned dirty development snapshot including unrelated dirt. Notes/review postdate build.",
+    "limits": "Policy restoration is not proof that native AI exits, escapes safely, remains aboard or later resumes its authored route. Those physical outcomes and convoy balance/performance remain unverified; audits paused.",
+    "hashes": {
+      "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf": "44cbf1547ef9397c289eeeec51e5d923eab5239d75716312cb7485cdcec00258",
+      "addons/vehicles/functions/convoyUnloadPolicy.sqf": "86a995aa187f9042368fc8d9346afc47894189591839b860cac74a4edbfb5160"
+    }
+  },
+  "subformationCleanup20261023": {
+    "baseline": "0ef1c2be",
+    "confirmed": "DangerFlight and PointActorOperation save formLeader in the native request frame but their acknowledged cleanup recalled leader group unconditionally. A valid existing native subformation could therefore be flattened to the squad leader. PointActorOperation also lacked the original-deadline cleanup limit already used by flight/indoor work.",
+    "implementation": "Both cleanup ownership predicates now require unchanged saved formation identity. Eligible saved same-group formation anchor receives the existing follow request; dead/departed/ineffective saved anchors may use the current group leader under existing native-leg and actor authority. Changed live formation identity yields rather than being overwritten. Leader-self return remains permitted. Point cleanup commands additionally require serverTime below original deadline+30; pending proof is not turned into late recall authority.",
+    "sourceIntent": "LAMBS doFleeing uses native formation return to avoid a stuck flight cycle. CBE retains that intent and does not import strong stance/forceSpeed resets, group-memory erasure or joinSilent. Preserving pre-existing subformations is a deliberate extension for mission and element cohesion, not a claim that Protocol pairing or physical rejoin is complete.",
+    "primaryReferences": [
+      "https://community.bistudio.com/wiki/doFollow",
+      "https://community.bistudio.com/wiki/formLeader",
+      "https://community.bistudio.com/wiki/doMove"
+    ],
+    "cost": "Constant existing receipt/actor checks, no group scan, world query, network payload, timer or worker. Original request/deadline and native command count unchanged.",
+    "validation": {
+      "existingDangerChecks": 2,
+      "fullOfflineTests": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "build": ".qa/actor-subformation-build.log",
+      "candidate": ".qa/candidates/actor-subformation-0ef1c2be",
+      "independent": ".qa/actor-subformation-independent.log",
+      "fingerprint": "453f032eb6c893970b109b9ee45a504455088851ffca3ae3ba952c3e35507980"
+    },
+    "limits": [
+      "No native follow acknowledgement or physical formation reunion, owner-transfer timing or performance evidence.",
+      "Indoor investigation still needs a durable original formation receipt before equivalent restoration can be claimed on journal-only cleanup; do not infer this change covers every infantry executor.",
+      "Late point cleanup can retire metadata while a native leg remains; this is a finite command-authority boundary, not guaranteed eventual handback.",
+      "Unsigned dirty development snapshot includes pre-existing unrelated dirt. Review/continuation notes postdate build; no percentage renewal. Audits paused."
+    ],
+    "hashes": {
+      "addons/infantry/functions/dangerFlight.sqf": "4621696b86c0ef9e151e57ed172fb94ea55a78c4ffdac5fe65bd863e55cbf8c8",
+      "addons/infantry/functions/pointActorOperation.sqf": "47174515cb913ac3b4e7608f28907e986135c20ef048713b4f6fa61c083aab49",
+      "releaseVerificationAndDeployment/test_danger_cover_order_context.py": "7823517a5be1a14e757c153a5e8aab5fd285ea99479895c59c03eb8374116c42",
+      "releaseVerificationAndDeployment/test_cortex_operations.py": "0d812138ef3f03176f3944b3c0f3ab0b13d9ef9a8c92561cf678539e0bbdbf1f"
+    }
+  },
+  "mountedGunnerAvailability20261023": {
+    "baseline": "13b4541d",
+    "confirmed": "CortexVehicles already offers exact-platform crew recovery on fresh known-hostile danger, but helper admission rejected all causes except DETECTED and required canMove despite issuing only a commander-to-gunner role request. Incoming-fire generations and immobile useful guns were excluded. Helper native-task guard also omitted queued ACE treatment before a HEAL command appears.",
+    "implemented": "Accept DETECTED/HIT/EXPLOSION/SUPPRESSED/GUNFIRE in existing helper; mobility no longer gates an internal gunner replacement request. Living platform, someAmmo, original sub20km/h speed ceiling, actual assigned commander turret, vacant/unreserved primary gunner role, eligible local commander distinct from driver, current native hostile knowledge, protected tasks/STOP, external/Zeus/convoy ownership and feature gates remain. Queued ACE care now explicitly refuses before assignment/action.",
+    "integration": "Caller still validates current exact danger vehicle/source expiry/witness/belief and fresh generation, excludes unsafe emplacement or disabled-hit abandonment, and records acceptance/refusal once per generation. No new danger producer, cooldown, repeated seat worker, gunner fabrication or native movement command.",
+    "sourceDisposition": "LAMBS doFleeing prioritises restoring an armed platform when its gunner is lost. CBE retains useful firepower even without mobility and responds to actual incoming-fire generations. Source driver reassignment and non-tank eject/delayed reboard shortcuts remain rejected. Existing CBE internal MoveToGunner and20km/h admission differ from source grounded3km/h gate and require physical vehicle-config comparison; this is not whole mounted-flight parity.",
+    "validation": {
+      "focusedOperationTests": 610,
+      "fullOfflineTests": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "build": ".qa/mounted-gunner-recovery-build.log",
+      "candidate": ".qa/candidates/mounted-gunner-recovery-13b4541d",
+      "independent": ".qa/mounted-gunner-recovery-independent.log",
+      "fingerprint": "f0dff0cd9fa33c348943f457cf811dfc953b53042fea3b5a46bb4412d4af8051"
+    },
+    "cost": "Same once-per-generation native request and existing reads, with a small fixed cause check and one queue read. No new scan/worker/timer/network schema. Actual cost remains unmeasured.",
+    "limits": [
+      "Request issue is not seat-change acknowledgement, actual station readiness or resumed fire.",
+      "Physical immobilised/active-hit/medical/seat/owner-transfer cases, balance, internal seat support and performance remain unverified.",
+      "No complete mounted fleeing/abandonment/fuel policy or source parity claimed.",
+      "Unsigned dirty development snapshot includes unrelated pre-existing dirt; review/notes postdate package. Audits paused; no scores renewed."
+    ],
+    "hashes": {
+      "addons/vehicles/functions/cortexVehicleCrewRecover.sqf": "4ddf96118b7fd2553844f6174257a5db4b3405c792b5ce9cc0d0880be340670a",
+      "addons/vehicles/functions/cortexVehicles.sqf": "f5196f861cb6f4caa41bbdd2b179278ee4c7d85029b702ef9a157f25f65a79fb",
+      "releaseVerificationAndDeployment/test_cortex_operations.py": "ab98c1fdbd6347c7d267a0a9a6a1c7fc7a3ba1ab1c69cd301165e501de437a0c"
+    }
+  },
+  "mountedSeatObservationReview20261023": {
+    "baseline": "fd95c10f",
+    "execution": "CrewRecover changes the assigned role then requests MoveToGunner once. The actual commander-assignment predicate already refuses repeat requests after that role changes. No timed rollback was added: an unobserved native action is not proven rejected, and restoring role intent could conflict with a pending action. No complete failed-seat handback is claimed.",
+    "primaryReference": "https://community.bistudio.com/wiki/Arma_3:_Actions",
+    "engineConstraint": "MoveToGunner is a native in-vehicle seat action and can swap an existing occupant. Current CBE vacancy/assigned-gunner guards remain necessary; generic CancelAction is not an episode-specific cancellation acknowledgement.",
+    "confirmedAuditFault": "Existing gunner-loss wait required latest vehicleDangerCrewRecovery attempt BOOL. A later fresh generation could record a refusal after actual seat recovery and hide physical success. The existing case now requires a changed fresh CBE_Danger_CrewRecovery issued receipt naming the original commander and timestamp>=case start, plus alive commander actually equal to native gunner. A request alone still cannot pass.",
+    "diagnostics": "Existing check detail now carries before and after fullCrew, assigned driver/commander roles, native commander command/destination and vehicleMoveInfo. No new scenario, production call shortcut, forced seat, injected completion or audit launch.",
+    "validation": {
+      "existingOperationTests": 610,
+      "SQFfilesChecked": 469,
+      "SQFerrors": 0,
+      "tests": ".qa/gunner-recovery-audit-proof-tests.log",
+      "SQF": ".qa/gunner-recovery-audit-proof-sqf.log",
+      "diffCheck": "passed"
+    },
+    "package": "Production runtime unchanged; retain prior mounted-gunner-recovery-13b4541d candidate fingerprint f0dff0cd9fa33c348943f457cf811dfc953b53042fea3b5a46bb4412d4af8051. Its full1491-test/411SQF/9PBO validation predates these audit-only edits. No repeated unchanged production build or new package.",
+    "limits": "Audit remains unrun. Failed/pending internal seat change, actual assignment rollback/cancellation, owner transfer, native gunnery readiness and physical performance remain unresolved. No parity/feature-completion or score credit.",
+    "hashes": {
+      "addons/vehicles/functions/cortexVehicleCrewRecover.sqf": "4ddf96118b7fd2553844f6174257a5db4b3405c792b5ce9cc0d0880be340670a",
+      "releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf": "911524da625b26bb4f4491b7e6abc0ed2cd71291be8643b52d5d8cf2e6c275d4",
+      "releaseVerificationAndDeployment/test_cortex_operations.py": "4e17f38609e15230e19d9be501ef9752ddc9c9ec5d39cb80d81afcf683b79005"
+    }
+  },
+  "quietRejoinFormationAnchor20261023": {
+    "base": "e28b5ded",
+    "source": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doFleeing.sqf",
+    "sourceSha256": "9eb043092ed20c16e45023d9ff87f8d0b1cbaa496f5429758c53bbd807dbd450",
+    "sourceIntent": "Quiet fleeing branch returns to native leader formation to avoid a stuck fleeing loop. Source also resets posture; CBE does not borrow that reset authority.",
+    "finding": "CBE quiet danger rejoin still used squad leader unconditionally, flattening valid current native subformations even though flight cleanup already preserves its saved anchor.",
+    "change": "Prefer current formLeader for the one eligible quiet rejoin request. Null/self/departed/ineffective anchors fall back to squad leader. Existing local/live/foot/simulation/visibility anchor checks, distant native contact, low suppression, no recent personal/physical pressure and actor/operation/ownership checks remain.",
+    "limits": "No lease, pair publication, extra world query, timer or worker. Not acknowledged follow, measured reunion, Protocol pair parity or physical acceptance. No score renewal.",
+    "implementationSha256": "16fc66d5c12318aac2f558c6762e22a0cc0f89fab268fa90a8c3575108c4f399",
+    "checks": {
+      "focusedExistingCases": 2,
+      "fullCases": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "independentVerification": true
+    },
+    "candidate": ".qa/candidates/quiet-rejoin-anchor-e28b5ded",
+    "fingerprint": "216e4b5aa7fccfe22fae9a6533bfee43052daf606f62ddcc391ae829d68c722f",
+    "logs": [
+      ".qa/quiet-rejoin-anchor-focused.log",
+      ".qa/quiet-rejoin-anchor-build.log",
+      ".qa/quiet-rejoin-anchor-independent.log"
+    ],
+    "provenance": "Unsigned dirty development snapshot includes unrelated dirt; review/handover postdate build. Audits PAUSED; runtime and performance unverified."
+  }
+}

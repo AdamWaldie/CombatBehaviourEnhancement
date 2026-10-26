@@ -1,0 +1,52 @@
+{
+  "reviewed": "2026-10-17",
+  "baselineCommit": "c1c324cd",
+  "scope": "Native authored-order handback after post-clear STOP or active-clearance interruption",
+  "documentation": [
+    {
+      "url": "https://community.bistudio.com/wiki/doFollow",
+      "evidence": "Official description documents return to native formation after doStop, including the leader himself; retrieved through indexed official page after direct fetch returned403."
+    }
+  ],
+  "sources": [
+    {
+      "path": "addons/infantry/functions/groupBrainStep.sqf",
+      "sha256": "17b104a87268a5423a50e7506e6f81ae8a95d55cbaca63d3e5497515bedf877e"
+    },
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "a1c8ff89755ada25f98de130e2482be6ea322866bbb7cde7abc91a197124c110"
+    }
+  ],
+  "finding": "Both handover paths converted MOVE waypoints into a one-time doMove position request. This did not preserve attached-target/scripted waypoint execution; post-clear non-MOVE leader handback also lacked a native return.",
+  "implementation": [
+    "Use native doFollow to return every eligible exact-owned actor, including leader, after authored order replacement.",
+    "Retain hold/journal actor identity, STOP or exact prior MOVE, current generation/epoch, changed authored receipt, task and external-owner safeguards.",
+    "Do not create/delete/advance waypoints, evaluate conditions/scripts, join actors or grant waypoint-completion credit.",
+    "Keep successful-clearance opt-in continuation separate, with unchanged plain-MOVE admission."
+  ],
+  "validation": {
+    "log": ".qa/cbe-clear-native-handover-verified-build.log",
+    "tests": 1123,
+    "compiledSQF": 313,
+    "PBOs": 9,
+    "exitCode": 0,
+    "earlierFailures": [
+      "Existing source contract expected the former leader-only positional shortcut.",
+      "Updated source contract initially selected both interruption and successful-continuation branches; narrowed to NEW_ORDER interruption and rechecked in isolation."
+    ]
+  },
+  "acceptanceRequired": [
+    "Replace completed-clear holds with plain MOVE, HOLD, SAD and scripted waypoints; observe actual native task execution and unchanged metadata.",
+    "Interrupt active clearance with a building-attached or moving-object MOVE and verify destination semantics.",
+    "Reserve/disable one held actor, then release availability while keeping command/identity unchanged.",
+    "Replace an actor command, give Zeus/player control or migrate ownership before handback; no stale recall."
+  ],
+  "remaining": [
+    "Player-issued commands may require different engine handling; no joinSilent workaround is introduced.",
+    "Same-value external STOP writes cannot be attributed from currentCommand alone.",
+    "Native response, repeat/JIP, egress coherence and frame-time acceptance remain unverified; audits paused."
+  ],
+  "physicalAcceptance": false,
+  "auditsLaunched": false
+}

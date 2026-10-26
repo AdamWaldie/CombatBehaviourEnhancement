@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "a8016028",
+  "scope": "Existing locality edge and cleanup integration for a future sealed clearance checkpoint. Source trace only; transport remains unimplemented.",
+  "evidence": [
+    "CortexDiscover installs a group Local event handler calling CortexLocality on both locality edges. It also performs gained-owner fallback adoption; this is not solely discovery polling.",
+    "CortexLocality still has the private building brain/job before marking it cancelled and clearing both local pointers. A final outgoing checkpoint would have to capture/fence that producer state before this retirement, not reconstruct it from a new-owner server cache.",
+    "ACE and companion headless handlers invoke destination adoption after confirmed engine locality. Their post-transfer notification does not itself acknowledge old-owner quiescence or complete actor locality.",
+    "OperationCancel first fences the exact operation and later rechecks before final retirement. OperationRestore explicitly declines native permission restoration on OWNERSHIP_LOST.",
+    "CortexGroupMoveClear is an owner-local atomic exact-intent waypoint cleanup with generation and authored-policy checks. It is not a remote delayed writer.",
+    "VehicleReverse RELEASE checks exact generation, original markers, actual local crew and native commands before stopping a still-owned reverse command. An absent or different reverse episode is not blanket movement authority."
+  ],
+  "implementationDirection": [
+    "Reuse the existing Local event edge and finite discovery scheduler; no new permanent network polling worker.",
+    "Add authenticated producer registration while actually owning the clear, then a final producer seal at loss before private brain retirement. Incoming owner must wait for the corresponding seal/request identity rather than immediately consuming separate journals.",
+    "Define an ordered envelope for durable order, lanes, roster/losses, phase budgets, physical visits, canonical actor settings and local interruption records. Bind schema/revision/producer identity/visit nonce and original deadlines.",
+    "Authenticate request/replay against actual groupOwner, source registration and current request identity; echo the incoming owner private epoch rather than interpreting a server cached epoch.",
+    "Only permit incoming tactical execution after per-actor actual locality/native-order/settings reconciliation. Old issued native commands remain live observations, not proof of callback liveness.",
+    "Do not implement a producer seal merely by wrapping current replicated variables in a server array or setting ownerReady=true."
+  ],
+  "remainingUncertainty": [
+    "Complete interruption writer sealing and membership ordering need executable tests before enabling transport.",
+    "Local event handler presence in source does not prove real normal/HC transfer timing or packet ordering. Audits remain paused."
+  ],
+  "sourceHashes": {
+    "addons/core/functions/cortexDiscover.sqf": "4cd8bdb6cb646dcf77dcbd0d38a796b6dc9b89c42baad7060806c2ad54b64197",
+    "addons/core/functions/cortexLocality.sqf": "0d9fae1f0ce61a81b5e8770e6f54b1b441b2fe8d30d9a407ce1d18d8d8fb8503",
+    "addons/core/functions/cortexInit.sqf": "fda6e74990ee50c377c64e79e831baee9bb4c6e6c8a9cf50d8b5fa6b81c43316",
+    "addons/core/functions/operationCancel.sqf": "4a0cc5983fe282cfdb3cf72a25309b5caf1c6b8b83eef97fe10b21db43399237",
+    "addons/core/functions/operationRestore.sqf": "d4b67fde4065deb747a1da71870f32456ee3d29afac420f1e00fe029531af8a8",
+    "addons/infantry/functions/cortexGroupMoveClear.sqf": "9c805e997901629d28d87f492d63b2a4026416b3458b742028b6c54511faadc2",
+    "addons/vehicles/functions/cortexVehicleReverseStep.sqf": "ea1e43e71cc39e6c15b7662a2047f9bb530d4575aa37fb27883ae74d9d46040a"
+  },
+  "validation": "Read-only source trace and JSON serialization. No runtime code, tests, build, score or physical acceptance changed.",
+  "writerBoundaries20261026": {
+    "review": "clear-producer-writer-boundaries-20261026.json",
+    "scope": "Current private producer/lane throttle and independent interruption/settings/hold writer domains identified. Source locator classifies43 quoted channels but is not complete dynamic-write or quiescence proof. Transport remains unimplemented."
+  }
+}

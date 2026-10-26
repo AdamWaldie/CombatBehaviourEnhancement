@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Checks ordinary driving command intent before a gate-opening request or mutation.
- * Locality / Authority: Read-only current owner or trusted server recheck. Callers authenticate
+ * Locality / Authority: Read-only current crew owner only. Callers authenticate
  * sender, route, seats, capability and locks separately; this helper grants no movement authority.
  * Repeat/JIP: Fresh native commands and public finite journals only; no cache, writes or replay.
  * Plain route matching compares full PositionAGL destinations, including height.
@@ -17,17 +17,12 @@ if (isNull _group || {isNull _vehicle} || {_route isEqualTo []}
     || {([_group] call CBE_fnc_DrivingRouteReceipt) isNotEqualTo _route}) exitWith {false};
 private _driver=driver _vehicle;private _operator=effectiveCommander _vehicle;
 if (isNull _operator) then {_operator=_driver};
-if (isNull _driver || {isNull _operator}) exitWith {false};
-private _index=currentWaypoint _group;private _waypoint=[_group,_index];
-private _destination=waypointPosition _waypoint;
-private _statements=waypointStatements _waypoint;
-private _condition=toLowerANSI ((_statements param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
-if (waypointType _waypoint != "MOVE" || {_condition != "true"}
-    || {((_statements param [1,""]) splitString (toString [32,9,13,10])) isNotEqualTo []}
-    || {waypointScript _waypoint != ""} || {(waypointTimeout _waypoint param [2,0]) > 0}
-    || {!isNull waypointAttachedVehicle _waypoint} || {!isNull waypointAttachedObject _waypoint}
-    || {(synchronizedWaypoints _waypoint) isNotEqualTo []}
-    || {(synchronizedTriggers _waypoint) isNotEqualTo []}) exitWith {false};
+// expectedDestination requires local arguments. Server-side route metadata alone
+// cannot establish the native intent of client/HC-owned crew.
+if (isNull _driver || {isNull _operator} || {!local _group} || {!local _vehicle}
+    || {!local _driver} || {!local _operator}) exitWith {false};
+private _destination=[_group] call CBE_fnc_DrivingRouteGoal;
+if (_destination isEqualTo []) exitWith {false};
 private _alternate=false;
 {
     _x params ["_variable","_phase"];

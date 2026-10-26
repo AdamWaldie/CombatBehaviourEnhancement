@@ -10,9 +10,16 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         refresh=s.split('case 0: {',1)[1].split('case 1:',1)[0]
         reverse=s.split('case 1: {',1)[1].split('case 2:',1)[0]
         retry=s.split('case 2: {',1)[1].split('default {',1)[0]
-        self.assertIn('_recoveryUntil=["REFRESH"] call _recordRecovery',refresh)
+        self.assertIn('_recoveryUntil=["REFRESH",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery',refresh)
+        planning=refresh.split('if (count _forwardJournal == 0',1)[1].split('if (count _forwardJournal > 0',1)[0]
+        self.assertIn('time-_progressAt < 2*_observationWindow',planning)
+        self.assertIn('getUnitState _driver',planning)
+        for state in ('INIT','INITFAILED','PLANNING','REPLAN','DELAY'):
+            self.assertIn('"'+state+'"',planning)
+        for forbidden in ('_progressAt=','set ["hardDeadline"','doMove','call _recordRecovery'):
+            self.assertNotIn(forbidden,planning)
         self.assertIn('call _recordRecovery',reverse)
-        self.assertIn('_recoveryUntil=["FINAL"] call _recordRecovery',retry)
+        self.assertIn('_recoveryUntil=["FINAL",[],"DESTINATION",[],[+_destination,serverTime+2,_forwardCommands]] call _recordRecovery',retry)
         self.assertIn('case "REFRESH":{_hard-66}',s)
         self.assertIn('default {_hard-60}',s)
         self.assertIn('serverTime >= (_scheduledRecovery get "hardDeadline")-60',s)
@@ -22,7 +29,7 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         changed=s.split('(_state param [9,[]]) isNotEqualTo _routeIdentity',1)[1].split('// A follower',1)[0]
         for marker in ('_state set [5,time]','_state set [6,0]','_state set [7,-1]'):
             self.assertIn(marker,changed)
-        progress=s.split('if (_recoveryStage != 2 && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {_vehicle distance2D',1)[1].split('private _waypointIndex=',1)[0]
+        progress=s.split('if (!_queueNativeActive && {_recoveryStage != 2} && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {_vehicle distance2D',1)[1].split('private _waypointIndex=',1)[0]
         self.assertIn('_progressAt=time',progress)
         self.assertIn('_recoveryStage=0',progress)
     def test_follower_handover_retires_owned_reverse_before_stage_reset(self):
@@ -32,12 +39,14 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text(encoding='utf-8')
         for guard in ('driverCommand','expectedDestination _operator','DrivingRouteReceipt','CortexExternalTakeover','CortexZeusHeld'):
             self.assertIn(guard,release)
-        self.assertIn('_operator doFollow leader _group',release)
+        self.assertIn('private _leader=leader _group',release)
+        self.assertIn('_operator doFollow _leader',release)
+        self.assertLess(release.index('if (_leaderVehicle == _vehicle || {_mountedTarget})'),release.index('_operator doFollow _leader'))
     def test_traffic_retry_is_finite_and_keeps_collision_caps(self):
         s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
         jam=s.split('// Bounded traffic replan:',1)[1].split('// Waiting behind traffic',1)[0]
         for guard in ('serverTime+80','serverTime+20','(_jam get "attempts") < 3','serverTime < (_jam get "deadline")',
-                      'serverTime-(_jam get "since") >= 20','abs speed _jamPeer < 1','abs speed _vehicle < 1',
+                      'serverTime-(_jam get "since") >= 20','([_jamPeer] call _stationary)','([_vehicle] call _stationary)',
                       '_recoveryStage == 0','call _mayRecoverOrdinaryRoute','driverCommand','["yielded",true]',
                       'distance2D (_jam get "origin")) >= 15','["since",-1]'):
             self.assertIn(guard,jam)
@@ -66,6 +75,15 @@ class DrivingPlanningGraceTests(unittest.TestCase):
             self.assertIn(gate,dwell)
         self.assertNotIn('"deadline"',dwell)
         self.assertNotIn('"attempts"',dwell)
+        stationary=s.split('private _stationary={',1)[1].split('};',1)[0]
+        for gate in ('vectorMagnitude angularVelocity _candidate','finite _angularSpeed','_angularSpeed < 0.01'):
+            self.assertIn(gate,stationary)
+        # A zero-translation pivot is active motion; nonfinite motion cannot settle.
+        import math
+        for linear,angular,settled in ((0,0,True),(0,0.02,False),(0,float('nan'),False),
+                                       (float('inf'),0,False),(0.4,0,False)):
+            self.assertEqual(math.isfinite(linear) and math.isfinite(angular)
+                             and linear < 1/3.6 and angular < 0.01,settled)
         # At 0.2m/s all four-second steps are below1.5m, but twenty-second dwell is false.
         anchor=0;since=0;last=0
         for now in range(4,25,4):
@@ -84,11 +102,12 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         guard=s.split('private _nativeRouteIntent={',1)[1].split('private _priorOwner=',1)[0]
         self.assertIn('_command == "STOP"',guard)
         self.assertIn('if (!(_command in ["MOVE","WAIT"])) exitWith {_command == ""}',guard)
-        self.assertIn('vectorDistance (waypointPosition _waypoint) <= 3',guard)
+        self.assertIn('vectorDistance _routeGoal <= 3',guard)
+        self.assertIn('call CBE_fnc_DrivingRouteGoal',guard)
         self.assertNotIn('distance2D',guard)
         for receipt in ('get "group"','get "route"','get "driver"','get "operator"','get "driverCommand"','get "command"'):
             self.assertIn(receipt,guard)
-        self.assertIn('private _mayRecoverOrdinaryRoute={call _mayRecoverRoute && {call _nativeRouteIntent}',guard)
+        self.assertIn('private _mayRecoverOrdinaryRoute={!_queueCrossing && {!_queueNativeActive} && {!_recoveryRequestPending} && {call _mayRecoverRoute} && {call _nativeRouteIntent}',guard)
         self.assertIn('currentCommand _movementOperator != "STOP"',s.split('private _release=',1)[0])
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text(encoding='utf-8')
         self.assertIn('(driver _follower) doMove _directDestination',audit)
@@ -126,7 +145,7 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         self.assertIn('_recoveryStage=4;',s)
         self.assertIn('["EXHAUSTED"] call _recordRecovery',s)
         self.assertIn('case "EXHAUSTED":{4}',s)
-        self.assertIn('if !(_recoveryStage in [2,4]) then {',s)
+        self.assertIn('if (!(_recoveryStage in [2,4]) && {!_keepBypassBudget}) then {',s)
         follower=s.split('// A follower must not retain',1)[1].split('private _origin=',1)[0]
         self.assertIn('(_state param [6,0]) != 4',follower)
         step=(ROOT/'addons/vehicles/functions/drivingOperationStep.sqf').read_text()
@@ -167,5 +186,40 @@ class DrivingPlanningGraceTests(unittest.TestCase):
         final=lease.split('call CBE_fnc_DrivingOperationFinish',1)[1].split('setVariable ["CBE_Cortex_MovementLease"',1)[0]
         self.assertIn('isNotEqualTo _lease',final)
         self.assertIn('!local _group',final)
+
+
+    def test_jam_retry_and_isolated_journal_publish_share_current_authority_boundary(self):
+        s=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text(encoding='utf-8')
+        block=s.split('// The public budget survives owner changes;',1)[1].split('// Waiting behind traffic',1)[0]
+        self.assertLess(block.index('isNil {'),block.index('private _jamPrior='))
+        self.assertIn('createHashMapFromArray ((keys _jamPrior) apply {[_x,_jamPrior get _x]})',block)
+        self.assertIn('time-(_traffic select 3) > 1.5',block)
+        self.assertIn('(_brain getOrDefault ["ownerEpoch",-1])',block)
+        self.assertLess(block.index('call _mayRecoverOrdinaryRoute'),block.index('_movementOperator doMove'))
+        self.assertLess(block.index('_movementOperator doMove'),block.index('isEqualTo _jamPrior'))
+        self.assertIn('(_jam get "attempts") < 3',block)
+        self.assertIn('serverTime < (_jam get "deadline")',block)
+        request=block.split('private _requestPending=false;',1)[1].split('if (!_jamContinuous ||',1)[0]
+        for guard in ('_request isEqualType []','_sameSeats','serverTime <= (_request select 1)',
+                      '_goalNow vectorDistance (_request select 0) <= 0.25',
+                      '_jam deleteAt "request"','_jam set ["yielded",true]'):
+            self.assertIn(guard,request)
+        for forbidden in ('doMove','"deadline",serverTime','"attempts",0','serverTime+2'):
+            self.assertNotIn(forbidden,request)
+        self.assertIn('!_requestPending',block)
+        self.assertEqual(block.count('serverTime+2,_requestTasks'),1)
+
+
+    def test_native_reverse_probe_requires_backing_without_heading_or_physics_shortcuts(self):
+        s=(ROOT/'releaseVerificationAndDeployment/cortexQA/runDrivingTraffic.sqf').read_text(encoding='utf-8')
+        probe=s.split('// Queue room-making must first',1)[1]
+        for required in ('["MOVE","PATH","BACK"]','"CBE_AIPass_Exclude",true',
+                         '_operator != _driver','_headingError > 15','_reverseSamples >= 4',
+                         '_rear >= 4','_probe distance2D _goal <= 2.5',
+                         '(velocityModelSpace _probe select 1) < -0.25','time+12'):
+            self.assertIn(required,probe)
+        for forbidden in ('setVelocity','setPos','setEffectiveCommander','call CBE_fnc_DrivingRecoveryRelease',
+                          'setVariable ["CBE_DrivingRecovery_Work"'):
+            self.assertNotIn(forbidden,probe)
 
 if __name__=='__main__':unittest.main()

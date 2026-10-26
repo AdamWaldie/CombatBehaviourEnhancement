@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-24",
+  "source_commit": "a6735a13cd4948f4ad47780e1fda5a100723dbcf",
+  "source_checkout": "C:/Users/AdamW/AppData/Local/Temp/CBE-audit-source-a6735a13",
+  "source_mode": "Detached clean worktree;no commits here",
+  "candidate": ".qa/candidates/clean-a6735a13",
+  "fingerprint": "dc8893cf5039f6316c2f620d3cedc5065694dc556bf2ce67a744364bbec873d5",
+  "dirty": false,
+  "signed": false,
+  "checks": "1496 tests pass in clean checkout;full offline SQF/config/FSM/docs/parity/performance/package gates and independent verify pass",
+  "purpose": "Exact clean candidate needed by existing audit launcher,which rejects dirty packages. Original checkout unrelated dirty changes preserved.",
+  "authority": "No installed-game staging,Arma launch,push,merge,remote CI,publish or source archive changes. Audits PAUSED. Async request asks permission for normal CQB/convoy observer pass,zero HCs;no reply yet.",
+  "limits": [
+    "Clean package is not production or physical acceptance",
+    "5% median/10%p95 performance unmeasured",
+    "Existing source build gaps include mixed-group artillery selected movement,rappel real producer retirement and shallow ford calibration",
+    "Retain full goal;do not mark complete or self-pause"
+  ],
+  "latestCandidate": {
+    "source_commit": "e771efcb5c65a358a4203fb9f26ffd71ef84bde5",
+    "candidate": ".qa/candidates/clean-e771efcb",
+    "fingerprint": "f4be8e6d5ebd051ad5ba9ccbefa6283ea0723da984b6c839ee8b09083b5c58c7",
+    "dirty": false,
+    "signed": false,
+    "validation": "Clean full offline build and independent package verification pass; clean worktree status verified. Includes airborne post-join protected task fix.",
+    "authority": "Audits remain PAUSED; no staging or Arma launch. Pending permission is not approval."
+  }
+}

@@ -57,10 +57,13 @@ if (_group getVariable ["CBE_AI_Exclude", false]
     || {_group getVariable ["CBE_AIPass_Exclude", false]}
     || {[_group] call CBE_fnc_CompatibilityExternalControl}) exitWith {false};
 
-private _alive = (units _group) select {alive _x};
+// ExternalTakeover above retains live whole-group player/remote/Zeus vetoes.
+// Native reflexes need only their actor for the remaining per-unit filters; do not
+// allocate and filter the entire living roster again before narrowing it to one.
+private _alive = if (isNull _actorContext) then {(units _group) select {alive _x}} else {
+    [_actorContext] select {alive _x && {group _x == _group}}
+};
 if (_alive isEqualTo [] || {_alive findIf {isPlayer _x} >= 0}) exitWith {false};
-if (!isNull _actorContext) then {_alive=_alive select {_x == _actorContext}};
-if (_alive isEqualTo []) exitWith {false};
 if (_groundPass && {_alive findIf {
     private _vehicle=vehicle _x;
     _vehicle != _x && {_vehicle isKindOf "Air"}

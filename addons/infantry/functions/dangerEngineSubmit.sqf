@@ -1,6 +1,15 @@
 /*
  * Author: WaldoTheWarfighter
+ * Target identity respects native ignoreTarget policy; no ignore setting is changed.
+ * Non-finite geometry/timestamps are rejected before selection or observation side effects.
+ * Position normalisation copies caller geometry; two-coordinate observations never mutate the queue.
  * Purpose: Convert one bounded engine danger queue into CBE group danger observations.
+ * Geometry and source keep their original separate engine expiries across that handoff.
+ * Expired records may support a local reflex but cannot bootstrap fresh group evidence.
+ * Recycled knowledge samples carry DETECTED group awareness, never a new hit/near-round/
+ * firing-opportunity claim. The actor FSM retains its original cause and finite cycle budget.
+ * Cycle-zero physical hazards retain their original expiry plus five seconds locally, so a
+ * later group-only contact cannot immediately grant quiet flight rejoin. Recycles never renew it.
  * Locality / Authority: Runs unscheduled on the machine local to the affected AI soldier. It records
  * causes and approximate positions only; it never reveals, targets, moves or changes the actor.
  * Repeat/JIP: Safe to repeat. A valid first observation may install the group's bounded contact
@@ -8,7 +17,8 @@
  * DangerRequest then coalesces each cause and generation on the current group owner. A locality
  * change ends the old engine FSM and fresh engine danger starts on the new owner.
  * Arguments: 0: affected soldier <OBJECT>, objNull; 1: engine records <ARRAY>, each
- * [cause number, ATL/ASL position, expiry number, source object], []; 2: selected response mode
+ * [cause NUMBER, ATL/ASL position ARRAY, expiry NUMBER, source OBJECT, optional recycle cycle NUMBER=0],
+ * [] by default. Cycle must be integral0..3; zero is a physical engine event. 2: selected response mode
  * <STRING>, ASSESS. FORCED records remain local observations and RELEASE records are discarded
  * before group planning.
  * Return Value: Boolean - true when at least one valid record was processed for a local reflex or
@@ -20,6 +30,10 @@
 params [['_actor',objNull,[objNull]],['_records',[],[[]]],['_mode','ASSESS',['']]];
 if (isNull _actor || {!local _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {isPlayer _actor}
     || {[_actor] call CBE_fnc_CompatibilityExternalControl}) exitWith {false};
+// A provider may claim only the occupied platform between engine FSM states.
+// Match the waiting gate before classification, observations or action side effects.
+private _parent=objectParent _actor;
+if (!isNull _parent && {[_parent] call CBE_fnc_CompatibilityExternalControl}) exitWith {false};
 private _group=group _actor;
 if (isNull _group || {!local _group}
     || {!(missionNamespace getVariable ['CBE_AIPass_Active',false])}
@@ -35,21 +49,28 @@ private _latestSource=createHashMap;
 private _latestExpiry=createHashMap;
 private _latestSourceExpiry=createHashMap;
 private _processed=false;
+private _physicalUntil=-1;
 private _reflexOnly=0;
 {
     if (_x isEqualType [] && {count _x >= 3}) then {
         private _cause=_x param [0,-1,[0]];
-        private _position=_x param [1,[],[[]]];
+        private _position=+(_x param [1,[],[[]]]);
         private _expires=_x param [2,time,[0]];
-        if (_cause >= 0 && {_cause < count _causeNames} && {count _position in [2,3]} && {_position findIf {!(_x isEqualType 0)} < 0} && {_expires >= time - 0.25}) then {
+        private _cycle=_x param [4,0];
+        if (_cycle isEqualType 0 && {finite _cycle} && {_cycle == floor _cycle} && {_cycle >= 0} && {_cycle <= 3}
+            && {finite _cause} && {_cause == floor _cause} && {_cause >= 0} && {_cause < count _causeNames} && {count _position in [2,3]} && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0} && {finite _expires} && {_expires >= time - 0.25}) then {
             _processed=true;
+            if (_cycle == 0 && {_cause in [1,2,4,9]}) then {
+                _physicalUntil=_physicalUntil max (_expires+5);
+            };
             if (count _position == 2) then {_position pushBack ((getPosATL _actor) select 2)};
             private _source=_x param [3,objNull,[objNull]];
             private _knownFriendly=!isNull _source && {(side _group) getFriend (side _source) >= 0.6};
             private _hostileSource=!isNull _source && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")} && {alive _source} && {!captive _source}
                 && {!(_source getVariable ["ace_captives_isSurrendering",false])}
                 && {!(_source getVariable ["ace_captives_isHandcuffed",false])}
-                && {(side _group) getFriend (side _source) < 0.6};
+                && {(side _group) getFriend (side _source) < 0.6}
+                && {!((_actor targetKnowledge _source) param [7,false,[true]])};
             private _hostileEngage=_cause in [0,3,8] && {_hostileSource};
             // Discovering a friendly body from another group is still an alert; native cause 6
             // must not be discarded merely because that casualty shares the observer's side.
@@ -61,8 +82,11 @@ private _reflexOnly=0;
             private _groupRelevant=if (_mode in ['FORCED','RELEASE'] || {_cause == 10}) then {false} else {
                 if (_cause in [0,3,8]) then {_hostileEngage} else {!_knownFriendly || {_cause in [5,6,7]}}
             };
-            if (count _position == 3 && {_groupRelevant}) then {
-                private _causeName=_causeNames select _cause;
+            if (count _position == 3 && {_groupRelevant} && {_expires > time}) then {
+                // Recycling resamples native belief, not the physical event which started it.
+                // Preserve that event only in the actor response. A fresh real native callback
+                // remains cycle zero and keeps its full group priority.
+                private _causeName=if (_cycle > 0) then {"DETECTED"} else {_causeNames select _cause};
                 // The engine supplies the current record before its queued records. Select by
                 // expiry rather than iteration order so an older queued duplicate cannot replace
                 // the freshest geometry or erase a valid hostile identity during dense contact.
@@ -84,6 +108,12 @@ private _reflexOnly=0;
         };
     };
 } forEach (_records select [0,12]);
+if (_physicalUntil >= 0) then {
+    private _previous=_actor getVariable ["CBE_Danger_PhysicalUntil",-1];
+    if (_previous isEqualType 0 && {finite _previous}) then {_physicalUntil=_physicalUntil max _previous};
+    _actor setVariable ["CBE_Danger_PhysicalUntil",_physicalUntil];
+};
+
 
 // A reflex-only record must not start a persistent group brain. Bootstrap the existing tactical
 // owner only when at least one observation is relevant to group combat planning.
@@ -102,7 +132,8 @@ private _accepted=false;
 private _acceptedCauses=[];
 if (_groupReady) then {
     {
-        if ([_actor,_x,_latest get _x,_latestSource getOrDefault [_x,objNull]] call CBE_fnc_DangerRequest) then {
+        if ([_actor,_x,_latest get _x,_latestSource getOrDefault [_x,objNull],
+            _latestExpiry get _x,_latestSourceExpiry getOrDefault [_x,-1]] call CBE_fnc_DangerRequest) then {
             _accepted=true;
             _acceptedCauses pushBack _x;
         };

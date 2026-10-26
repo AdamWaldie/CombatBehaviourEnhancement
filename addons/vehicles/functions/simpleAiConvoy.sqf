@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * The first registration captures the original group leader and immutable task revision;
+ * phase/speed updates retain them for exact owner-local temporary leadership handback.
  * Registers mixed land convoys; speed <= 0 holds vehicles and unloads passengers except a STALLED or OBSTRUCTION recovery halt. Release removes the controller.
  * Locality/authority: server validates requests and owns registry/baselines; each owner applies local effects.
  * Repeat/JIP: versioned snapshots include halt cargo and restoration data; reconfigure explicitly resumes travel.
@@ -64,7 +66,7 @@ if (!_release) then {
     } else {
         private _lead = vehicle leader _group;
         if (_lead in _vehicles) then {_vehicles = [_lead] + (_vehicles - [_lead])};
-        private _restore = if (_old isEqualTo []) then {[formation _group, attackEnabled _group, []]} else {+(_old select 7)};
+        private _restore = if (_old isEqualTo []) then {[formation _group, attackEnabled _group, [], leader _group, _revision]} else {+(_old select 7)};
         private _saved = +(_restore select 2);
         {
             private _vehicle = _x;

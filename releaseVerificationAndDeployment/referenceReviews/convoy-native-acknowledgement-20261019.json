@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "fdae5950",
+  "scope": "Native convoy command acknowledgement and retained speed cap trace",
+  "finding": "Both native convoy doMove writers immediately store expectedDestination as movement ownership proof. The diversion gate compares later MOVE destination to that sampled value. No original requested-target acknowledgement state bridges delayed engine publication.",
+  "counterexample": [
+    "Before write expectedDestination reports A. CBE issues doMove B. Same-call read still returns A and stores A in six-field receipt.",
+    "At next convoy tick native MOVE reports B. Gate sees A != B by more than0.25m, publishes CommandYield for current revision and invokes NEW_NATIVE_ORDER cleanup.",
+    "This is a source-permitted engine-acknowledgement gap, not a demonstrated current runtime root cause. Same-call publication latency needs live injection/capture."
+  ],
+  "callSites": [
+    "convoyTick native recovery doMove _recoveryTarget and following MovementReceipt publication",
+    "convoyTick native normal doMove _destination and following MovementReceipt publication",
+    "convoyTick pre-crew individual MOVE diversion gate",
+    "ConvoyRetireMoveReceipt exact expectedDestination comparison",
+    "ConvoyReleaseLocal six-field receipt retirement"
+  ],
+  "retainedCapDisposition": "Stored curve/grade cap values are18/25/35 or configured cruise; old cap is replaced by fresh>=2point path geometry or cleared when assist disabled. It cannot directly impose zero. A raised fresh cap is still limited by prior cap until the next pacing tick; this is not enough evidence to tune or remove safety.",
+  "requiredFix": [
+    "Represent an original finite native acknowledgement receipt with requested target, pre-command native destination/task and original expiry; no rolling grace.",
+    "Acknowledge only the issued target and matching group/revision/seats, then atomically refresh actual destination proof and local progress receipt.",
+    "During pending acknowledgement retain original unchanged native state only; do not reissue movement or count travel. Different native orders yield immediately. Expiry must retire without recalling over unknown native authority.",
+    "Preserve original acknowledgement budget across locality migration; update all receipt consumers, internal STOP retirement and cleanup. Steering path receipt stays separate.",
+    "Extend meaningful existing convoy command-identity test; no new broad source-spelling test expansion."
+  ],
+  "sourceHashes": {
+    "docs/Smart-AI-Pass.md": "bbb014f8bfbab6d8f42137a7ff02970f044d32fb938b79bf5212a8936b3cd5a1",
+    "addons/vehicles/functions/convoyRetireMoveReceipt.sqf": "7043f15cd9ec0f1c99b2d30c0309d5a01de1e8b72e584d5db7807a64a90bd1a9",
+    "addons/vehicles/functions/convoyReleaseLocal.sqf": "cbba645ef5c45e8945ea89f831cfb67070ce370be6cabe7633cee349518bc888",
+    "addons/vehicles/functions/convoyTick.sqf": "ed4a965bf669c309498c0d2dedbb2270a6e9ab1d34e84749523aa40969b53a94"
+  },
+  "implementation": "Original two-second request appended to existing native receipt; request target consumes acknowledgement, pending unchanged state waits without normal reissue, changed/unacknowledged expiry yields revision without native recall. All three receipt consumers updated; late observation of exact issued target is accepted without renewed request.",
+  "physicalAcceptance": false,
+  "scoresChanged": false,
+  "audits": "PAUSED",
+  "validation": {
+    "compiler": ".qa/cbe-convoy-native-ack-hemtt.log",
+    "firstFocused": ".qa/cbe-convoy-native-ack-focused.log",
+    "firstFocusedOutcome": "Two old six-field/source-boundary assertions updated; STOP and approach-envelope contracts retained.",
+    "fullPipeline": ".qa/cbe-convoy-native-ack-build.log",
+    "independent": ".qa/cbe-convoy-native-ack-independent.log",
+    "existingTestsPassed": 1476,
+    "fingerprint": "17f87f51eee2ecc6826b89c7e8c61a1a089cf52ca0c468751c46bbc3424d7dd0",
+    "manifestSource": "fdae5950+dirty unsigned development"
+  },
+  "remaining": [
+    "Engine native destination timing and real requested-goal acknowledgement",
+    "Mixed convoy native flow, cancellation and locality migration",
+    "Measured overhead and whole-source functionality",
+    "An indistinguishable STOP retaining pre-command destination/task can remain pending only until original expiry; same-value command origin is not available from engine receipts."
+  ],
+  "requiredFixStatus": "Implemented offline; listed requiredFix describes the original design contract, not physical completion."
+}

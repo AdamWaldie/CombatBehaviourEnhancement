@@ -1,0 +1,33 @@
+{
+  "baseline": "4c71f4f2",
+  "scope": "Cross-observer danger-cover cleanup preserves native flight and incapacitation",
+  "finding": "Entry guard checks incoming _actor, but an existing lease may belong to a different _leasedActor. Failed approach cleanup previously required only alive for that prior actor before doFollow; a newly healthy observer could therefore recall a fleeing or incapacitated previous responder whose native command still showed MOVE.",
+  "source_intent": {
+    "path": ".qa/lambs-2621-review/danger/functions/fnc_brainForced.sqf",
+    "sha256": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
+    "branch": "LAMBS brainForced defers incapacitated actors and gives fleeing its distinct native flight response. Preserve that authority; do not copy forced attack/stance or synthetic target deletion."
+  },
+  "implementation": [
+    "Native recall now checks the leased actor itself through CortexCombatEffective and !fleeing in addition to existing owner/task/context/expected-destination guards.",
+    "Matching old CBE movement marker can retire; no native follow is issued to flight/incapacitation. Existing admission and same-actor continuation guards remain.",
+    "Completed current-danger-format consumer review found no second six/seven-only danger-event consumer after prior CANFIRE fix; no other format changes made."
+  ],
+  "validation": {
+    "focused": ".qa/cover-retired-actor-tests.log:5 focused cover checks passed.",
+    "full": ".qa/cover-retired-actor-build-final.log:1489 tests/401 SQF and complete offline gates passed.",
+    "initial_failure": "An older source contract expected alive at the recall boundary; updated it to require combat effectiveness and fleeing veto while retaining release-only/context checks.",
+    "candidate": ".qa/candidates/cover-retired-actor-4c71f4f2",
+    "fingerprint": "48dc0594c8e28143524f4073c18b7e7deb607114d86c2045a86d5c7c242b42d7",
+    "independent": "Preserved candidate verification passed.",
+    "provenance": "Unsigned development candidate, baseline plus intended source and retained unrelated dirt."
+  },
+  "limits": [
+    "Physical native flight/care transitions and performance unverified; audits PAUSED.",
+    "No whole LAMBS parity or production readiness claim."
+  ],
+  "source_sha256": {
+    "addons/infantry/functions/dangerCoverStep.sqf": "f404ea583f70c2ffe463514b40085f015c81a191738ac50ec83620beea78659b",
+    "releaseVerificationAndDeployment/test_danger_cover_order_context.py": "8d87821e9160d3ee357dfe0bba449ccac2e0f083d77fa28f8f028e1a8aa5d17a",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "1d547effedd23072404f5be479bd6d8b6042c3897b185b45524705d1b143312d"
+  }
+}

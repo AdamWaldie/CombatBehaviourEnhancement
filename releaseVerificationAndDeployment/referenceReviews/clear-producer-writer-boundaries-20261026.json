@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceCommit": "60bb1184de21880bb260b17d28ce8ec1be049895",
+  "status": "SOURCE_BOUNDARY_REVIEW_TRANSPORT_NOT_IMPLEMENTED",
+  "topic": "Clearance producer checkpoint data and independent writer boundaries",
+  "privateLocator": ".qa/handovers/clear-producer-writer-map-60bb1184.json",
+  "locatorValidation": {
+    "allQuotedChannelsClassified": true,
+    "channels": 43,
+    "writerFiles": 16,
+    "sameLineWriteLocations": 141
+  },
+  "classification": {
+    "identity": [
+      "CBE_AIPass_ClearApplied",
+      "CBE_AIPass_ClearBuilding",
+      "CBE_AIPass_ClearGeneration",
+      "CBE_AIPass_ClearOrder",
+      "CBE_Cortex_ClearVisitContext"
+    ],
+    "roster": [
+      "CBE_Cortex_ClearRoster",
+      "CBE_Cortex_ClearLosses",
+      "CBE_Cortex_ClearReinforcements"
+    ],
+    "lanes": [
+      "CBE_Cortex_ClearLanes"
+    ],
+    "roomProgress": [
+      "CBE_Cortex_ClearEvidence",
+      "CBE_Cortex_ClearVisits",
+      "CBE_Cortex_ClearRouteEvidence"
+    ],
+    "entryBudget": [
+      "CBE_Cortex_ClearEntryAlternative",
+      "CBE_Cortex_ClearEntryRecovery"
+    ],
+    "exterior": [
+      "CBE_Cortex_ClearStageBudget",
+      "CBE_Cortex_ClearFollowBudget",
+      "CBE_Cortex_ClearReserveAdmission",
+      "CBE_Cortex_ClearReserve"
+    ],
+    "exit": [
+      "CBE_Cortex_ClearEarlyExits",
+      "CBE_Cortex_ClearEgress",
+      "CBE_Cortex_ClearEgressRetries",
+      "CBE_Cortex_ClearYield",
+      "CBE_Cortex_ClearRelief",
+      "CBE_Cortex_ClearExitWatch",
+      "CBE_Cortex_ClearExitWatchLocal"
+    ],
+    "motion": [
+      "CBE_Cortex_ClearMotion"
+    ],
+    "interruption": [
+      "CBE_Cortex_ClearEvasionReturn"
+    ],
+    "settings": [
+      "CBE_Cortex_ClearForcedSpeed",
+      "CBE_Cortex_ClearAppliedSpeed",
+      "CBE_Cortex_ClearStance",
+      "CBE_Cortex_ClearSettingToken",
+      "CBE_Cortex_ClearSettingRetireUntil",
+      "CBE_Cortex_ClearSettingsPending",
+      "CBE_Cortex_ClearSettingsResult"
+    ],
+    "postClear": [
+      "CBE_Cortex_ClearHold",
+      "CBE_Cortex_ClearHoldRetire",
+      "CBE_Cortex_ClearHoldRetireAttempts",
+      "CBE_Cortex_ClearHoldRetireResult",
+      "CBE_Cortex_ClearRecall"
+    ],
+    "result": [
+      "CBE_Cortex_ClearResult",
+      "CBE_Cortex_ClearStatus",
+      "CBE_Cortex_ClearAdmissionFailure"
+    ],
+    "configuration": [
+      "CBE_Cortex_ClearCaptureEntry"
+    ]
+  },
+  "interpretation": [
+    "The locator classifies all43 quoted clearance-prefixed names in current SQF. Same-line writer locations do not catch dynamic key arrays or delegated ActorSettings mutations; the counts are not implementation coverage or complete writer proof.",
+    "BuildingLaneJournal SAVE is throttled1.5s for unchanged phase and lane roster and requires local group. At group Local loss, a final source checkpoint cannot simply call the ordinary public SAVE or copy the last replicated lane array: it may predate private progress/request/proposal state.",
+    "CortexLocality has the private building brain/job before setting cancelled/completed and clearing its machine-local pointers. Capture must use that actual producer data with a controlled freeze boundary before pointer retirement, not a server cache of independently replicated variables.",
+    "Current ClearBuilding already aggregates known selected interior settings/motion failures and lane ADOPT before worker startup. This does not prove absent journals were delivered or reconcile every exterior/egress writer."
+  ],
+  "additionalStateOutsidePrefix": [
+    "CBE_Operation identity/participants/unavailable and its generation/owner epoch",
+    "CBE_BuildingBrain private job/phase/native request ages, progress and spent retry state",
+    "CBE_ActorSettings canonical context, actual baseline/applied values and pending restoration; convenience mirrors cannot replace it",
+    "CBE_Cortex_ActorMove grenade interruption lease and exact live native destination; source checkpoint cannot replay or overwrite this live reservation",
+    "Native group route receipt, actual actor locality, task/destination, settings readbacks and current building transform"
+  ],
+  "writerDomains": [
+    {
+      "domain": "Building FSM and its synchronous helpers",
+      "sources": [
+        "buildingOperationStep.sqf",
+        "buildingLaneJournal.sqf",
+        "buildingActorMotion.sqf"
+      ],
+      "finding": "Step entry rejects cancelled/finished brain, nonlocal group, epoch or current-brain mismatch. Lane SAVE is callback-tail/coalesced metadata. CHECK/ADOPT never proves all journals delivered."
+    },
+    {
+      "domain": "Admission and release",
+      "sources": [
+        "cortexClearBuilding.sqf",
+        "cortexClearRelease.sqf",
+        "cortexClearSettingsApply.sqf",
+        "cortexClearSettingsRelease.sqf"
+      ],
+      "finding": "Preparation/release and dynamic key loops write actor/group state outside the building callback. Settings delegate to canonical ActorSettings. A final main-FSM handle alone is not their completion receipt."
+    },
+    {
+      "domain": "Grenade interruption and delayed return",
+      "sources": [
+        "cortexGrenadeCheck.sqf"
+      ],
+      "finding": "The existing one-shot six-second return callback can retire its exact ActorMove marker on the actor owner even after the group epoch changes. Native follow separately requires current group epoch/generation/route and no owning task. A producer seal must not replay the old interruption or claim this metadata writer ended solely because the building FSM ended."
+    },
+    {
+      "domain": "Settings and post-clear holds",
+      "sources": [
+        "actorSettingsCleanupStep.sqf",
+        "clearHoldCleanupStep.sqf",
+        "cortexReleaseGroup.sqf",
+        "groupBrainStep.sqf"
+      ],
+      "finding": "Independent finite shared-scheduler cleanup exists. Settings cleanup requires current group owner/epoch and no live operation/order/brain; hold cleanup has its own exact issuer/window and one-actor service. These are retirement domains, not resumable room-motion commands."
+    },
+    {
+      "domain": "Lifecycle",
+      "sources": [
+        "cortexDiscover.sqf",
+        "cortexLocality.sqf",
+        "cortexStop.sqf",
+        "cortexInit.sqf"
+      ],
+      "finding": "Discovery/locality/shutdown mutate identity, cleanup and public control independently. Source registration, actual current owner and incoming private epoch must be distinguished; the server private epoch is not the owner epoch."
+    }
+  ],
+  "nextCodeBoundary": "Implement a pure producer-side phase snapshot/export from the actual private job, sharing lane validation and preserving original clocks while bypassing publication throttling. It must not publish, replay native commands or set owner-ready. Then integrate authenticated producer registration/final seal and finite request/replay with incoming per-actor actual-native reconciliation. Full writer/phase validation remains required before enabling transport.",
+  "limits": [
+    "Review and locator only: no runtime change, full-build rerun, new test case, package, parity or percentage claim.",
+    "Not a complete generic SQF side-effect/callback analysis. Dynamic-key writers and delegated/native interruption domains are explicitly identified, not inferred covered by the locator.",
+    "Physical owner-transfer ordering, original-worker quiescence, CQB flow and5/10performance remain unverified; audits paused."
+  ],
+  "sourceHashes": {
+    "addons/core/functions/actorSettingsCleanupStep.sqf": "02c50dbb443ac1b714acd50d04149eb44fc35eb82a9cfbf73f112a2a9ac9a923",
+    "addons/core/functions/clearHoldCleanupStep.sqf": "937799674542c96de3dccc9a6169d52c60233d9f7a4cd0ec4855205b8d73f612",
+    "addons/core/functions/cortexDiscover.sqf": "1928383985523cc3d19ddc9bb5e11afc754d6677001db67212e4e1873f357bba",
+    "addons/core/functions/cortexInit.sqf": "fda6e74990ee50c377c64e79e831baee9bb4c6e6c8a9cf50d8b5fa6b81c43316",
+    "addons/core/functions/cortexLocality.sqf": "fb10c6f701c1d1b5dd4e9e209f93ac46aaa60fc225259d93bb25536451aab015",
+    "addons/core/functions/cortexStop.sqf": "709d1a75f85dccf883143e50c9245ef468b93c46b3cba6e776579f4017dad988",
+    "addons/infantry/functions/buildingActorMotion.sqf": "3155ab2b736290094017886d4413a5ef50777ac3ee4aa6a6291a281ec1c7dcea",
+    "addons/infantry/functions/buildingLaneJournal.sqf": "1b062ce082e6767e67eb5cce181232a3d9c165320e826f2e7145c2bac328e48b",
+    "addons/infantry/functions/buildingOperationStep.sqf": "e49eca2180fe860f1cfe52339ef2da3096bbd5bd61d41e558a6a341b502671b6",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "f3534fb0a7938613338b186bdadcb3bb5c83f0813cdd9e7ce643396e65e10a52",
+    "addons/infantry/functions/cortexClearRelease.sqf": "e4ccb03fd436e01e9813a1ee4f86baaecf789571387e68a0fb22edafb52942a3",
+    "addons/infantry/functions/cortexClearSettingsApply.sqf": "1d8ecad947c707470cd26d1987d61d63d06bcbf8f0dbc35064f1799a242c58d8",
+    "addons/infantry/functions/cortexClearSettingsRelease.sqf": "e3a99f0d46d0f45503af14bc1ea05dbd8f54d5a52576cb79dff75f09acb179b2",
+    "addons/infantry/functions/cortexGrenadeCheck.sqf": "ff5e55d3f933314566466b8d684ddca09258f381d108c28218a3ca1c5ec27d6a",
+    "addons/infantry/functions/cortexReleaseGroup.sqf": "3e7f544af495ec243e55db4621d2afeadacf16837f566b5d84b560f42c199aa5",
+    "addons/infantry/functions/groupBrainStep.sqf": "f8ab8285c660d541ea24480be3ce5f2f40666826f07825ef9533f1b2ff18fba3",
+    "addons/infantry/functions/buildingOperationStart.sqf": "e09b06cf779d1e62568cb367d77aa54728299ef40625edce4ef85c15a81c42ec",
+    "addons/core/functions/actorSettings.sqf": "f0dc2571158d77920afadb79d795bb333427479a6e4fddebe192f1c2839051ab",
+    "addons/core/functions/operationRestore.sqf": "d4b67fde4065deb747a1da71870f32456ee3d29afac420f1e00fe029531af8a8"
+  },
+  "physicalAcceptance": false,
+  "runtimeCandidateUnchanged": ".qa/candidates/clear-exterior-idle-598279ba",
+  "runtimeFingerprint": "dd5808006e53508321fcde6ad57d2bb46f48cf44bf0dd44539cb194d7546405a",
+  "laneExportComponentFollowup": {
+    "review": "clear-lane-producer-export-20261026.json",
+    "scope": "Shared pure lane serialization component now exposed as current-owner EXPORT, with independent nested arrays and unchanged SAVE schema/throttle. Final fenced post-loss producer capture, other phase domains and transport remain unimplemented. Earlier source hashes remain the dated boundary trace."
+  }
+}

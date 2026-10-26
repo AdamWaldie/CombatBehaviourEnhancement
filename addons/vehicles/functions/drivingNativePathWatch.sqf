@@ -10,12 +10,14 @@
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 group <GROUP, grpNull>; 2 context <ARRAY, []>,
  * first element ORDINARY or CONVOY, second convoy revision where applicable; 3 release <BOOL, false>;
  * 4 expected convoy revision <NUMBER, -1> protects stale cleanup when >=0.
- * Return Value: ARRAY [] without usable evidence, otherwise [curvature NUMBER, allowStopped BOOL].
+ * Return Value: ARRAY [] without usable evidence, otherwise [curvature NUMBER, allowStopped BOOL, support path ARRAY, maximum grade NUMBER].
  * Bounds: native events retain at most 64 ASL nodes; owner callbacks make two bounded passes over those nodes.
  * Five-second evidence age, exact both-seat destinations, current proximity/floor and forward
  * lookahead 3..12 m protect use. A six-metre path-distance walk interpolates the forward
  * hint independently of node spacing; leaving the observed floor refuses the hint. Multiple disconnected nearby path stretches refuse a hint;
  * equal-distance ties within one stretch retain the first segment rather than jumping ahead.
+ * Maximum grade uses only the existing six-metre native path walk; no support or clearance proof.
+ * Consumers may lower a speed ceiling with the existing road-grade policy. No extra scan or timer.
  * A captured path grants neither movement nor physical completion.
  * Current callers: DrivingAssistStart, ConvoyTick, DrivingAssistRelease and ConvoyReleaseLocal.
  * Example: private _hint=[truck1,_group,["ORDINARY",_route,_epoch]] call CBE_fnc_DrivingNativePathWatch;
@@ -47,7 +49,7 @@ if (_release) exitWith {
 private _mode=_context param [0,""];
 if (!(_mode in ["ORDINARY","CONVOY"])) exitWith {[]};
 private _feature=["CBE_AIPass_DrivingAssist_Enable","CBE_Convoy_DrivingAssist_Enable"] select (_mode == "CONVOY");
-if (!([_group,_feature,true] call CBE_fnc_CortexFeatureEnabled)) exitWith {
+if (!([_group,_feature,true,_vehicle] call CBE_fnc_CortexFeatureEnabled)) exitWith {
     if (count _record == 4 && {(_record select 0) == _group}
         && {(((_record select 1) select 0) param [0,""]) == _mode}) then {call _remove};[]
 };
@@ -87,7 +89,7 @@ if (count _record != 4 || {(_record select 0) != _group} || {(_record select 1) 
         private _mode=(_identity select 0) param [0,""];
         private _feature=["CBE_AIPass_DrivingAssist_Enable","CBE_Convoy_DrivingAssist_Enable"] select (_mode == "CONVOY");
         if (time > (_vehicle getVariable ["CBE_DrivingNativePath_ValidUntil",-1])
-            || {!([_group,_feature,true] call CBE_fnc_CortexFeatureEnabled)}
+            || {!([_group,_feature,true,_vehicle] call CBE_fnc_CortexFeatureEnabled)}
             || {[_unit,effectiveCommander _vehicle] findIf {
                 isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _vehicle}
                     || {isPlayer _x} || {!isNull remoteControlled _x}
@@ -133,7 +135,8 @@ if (_nearIndex < 0 || {_nearRuns > 1}) exitWith {[]};
 // Native paths may use dense nodes. A fixed next-three-node window can contain
 // less than three metres and discard an otherwise usable forward bend. Walk an
 // actual bounded distance from the closest observed segment, with no route write.
-private _walked=0;private _cursor=+_nearPoint;private _targetASL=[];private _floorLost=false;
+private _walked=0;private _cursor=+_nearPoint;private _targetASL=[];private _floorLost=false;private _nativeGrade=0;
+private _supportPath=[+_nearPoint];
 for "_i" from (_nearIndex+1) to (count _nodes-1) do {
     if (_walked >= 6 || {_floorLost}) exitWith {};
     private _next=_nodes select _i;
@@ -143,6 +146,11 @@ for "_i" from (_nearIndex+1) to (count _nodes-1) do {
         private _advance=_length min (6-_walked);
         private _point=_cursor vectorAdd (_delta vectorMultiply (_advance/_length));
         if (abs ((_origin select 2)-(_point select 2)) > 2) then {_floorLost=true} else {
+            // Keep exact three-metre and six-metre stations, independent of event density.
+            if (_walked < 3 && {_walked+_advance >= 3}) then {
+                _supportPath pushBack (_cursor vectorAdd (_delta vectorMultiply ((3-_walked)/_length)));
+            };
+            _nativeGrade=_nativeGrade max (abs (_delta select 2)/_length);
             _walked=_walked+_advance;_cursor=_point;
             if (_walked >= 3) then {_targetASL=+_point};
         };
@@ -156,4 +164,5 @@ if !(_distance >= 3 && {_distance <= 12}) exitWith {[]};
 private _target=_vehicle worldToModel (ASLToAGL _targetASL);
 if !((_target select 1) > 1) exitWith {[]};
 private _distanceSquared=(_target select 0)^2+(_target select 1)^2;
-[2*(_target select 0)/_distanceSquared,true]
+if (_walked >= 6 && {count _supportPath == 2}) then {_supportPath pushBack (+_targetASL)} else {_supportPath=[]};
+[2*(_target select 0)/_distanceSquared,true,_supportPath,_nativeGrade]

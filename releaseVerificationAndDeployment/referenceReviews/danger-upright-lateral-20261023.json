@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-23",
+  "baseCommit": "4424b4d3",
+  "scope": "Owner-local immediate upright lateral danger action; not whole-LAMBS parity",
+  "sources": [
+    {
+      "path": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doDodge.sqf",
+      "sha256": "b863cb3a5861fa5efb67ca045129ec16528afade15273fa84478e0b276684bb7"
+    },
+    {
+      "path": ".qa/lambs-2621-review/main/functions/fnc_doGesture.sqf",
+      "sha256": "d89594b976d2637eddefbf1fe8a86d96e4cd470d5f6b40afefb9e76f83c2d3b2"
+    }
+  ],
+  "sourceIntent": "Immediate native dodge after a hit: prone stationary roll under open overhead space; otherwise stance drop and direction/distance-dependent native Fast/Tact actions. Forced gesture helper uses playActionNow. Source also emits optional voice callouts.",
+  "finding": "CBE implements prone native evasion and finite weak posture, but not the source upright action. Protecting committed/native movement does not supply a short reaction for idle upright riflemen.",
+  "implementation": "Existing DangerEngineAct IMMEDIATE hit/near-round branch now additionally admits idle STAND/CROUCH primary-weapon actors under the existing feature, task, medical, external, MOVE/PATH, route/reservation and three-second cooldown rules. Choose TactL/TactR away from the observed danger side, random only without a useful bearing. Two ASL side segments at lower-body/eye height over two metres veto known obstructions; a blocked side retains posture without alternate movement. Spend cooldown before probes, including refusal. Actual native action retains mobile crouch rather than immediate hard-cover prone. No destination, new movement lease, handler, worker or timer.",
+  "departures": [
+    "No fast, forward or backward rush added; source random callout not imported.",
+    "Existing prone overhead gate unchanged.",
+    "Native action remains engine-driven; segments do not establish swept human-body clearance, safe footing, animation range or tactical success."
+  ],
+  "cost": "At most two short-circuited geometry casts per eligible upright probe under the existing three-second actor cooldown. No world/roster scan. Runtime cost and balance unmeasured.",
+  "validation": {
+    "focused": 610,
+    "full": 1491,
+    "sqf": 411,
+    "pbos": 9,
+    "settings": 154,
+    "independentVerification": true,
+    "newCases": 0
+  },
+  "candidate": ".qa/candidates/danger-lateral-4424b4d3",
+  "fingerprint": "6fe61086836cb15c252d6f8ad9fc53b96647edef35449dd7938925020116fc19",
+  "logs": [
+    ".qa/danger-lateral-final-build.log",
+    ".qa/danger-lateral-independent.log"
+  ],
+  "provenance": "Unsigned dirty development snapshot based on4424b4d3 plus implementation and unrelated pre-existing dirt. Private review and handover postdate package. Initial successful build preceded the setting wording update; final build named here covers it.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "audits": "PAUSED"
+}

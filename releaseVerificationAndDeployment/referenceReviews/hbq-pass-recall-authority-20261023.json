@@ -1,0 +1,35 @@
+{
+  "baseline": "01e25ab2",
+  "scope": "HBQ overtaking route-return intent versus current CBE passing cleanup authority; not whole-source parity",
+  "source": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "ranges": [
+      "1982-1991 OvtEnd fixed path termination",
+      "2471-2518 OUT/BACK/END lifecycle"
+    ],
+    "refreshRouteHeader": "Reviewed fn_refreshRoute.sqf1-62: source recreates current waypoint or separately reissues commander MOVE, may enable MOVE/PATH and terminate a fixed path. These shortcuts are not imported."
+  },
+  "intent": "After real pass separation or abort/drop-back, retire temporary steering and let the unchanged mission route continue. Source END retries refresh for4 seconds; a request or END label does not prove travel.",
+  "finding": "PassFinish used full authority before doStop but a reduced local/seat/epoch/external check before doFollow and route recall. It also did not require current work equality and its captured brain was not refreshed in that shared predicate.",
+  "implementation": "Owned predicate re-reads current driving brain and exact current passing work. Post-stop recall uses the same full predicate, retaining actor care/task/player/provider, Zeus, crew, route and native destination proof. No additional controller, timer, world query, waypoint reconstruction or native command.",
+  "confirmedRemaining": [
+    "PassFinish still retires metadata after its stop/return requests without an exact deferred acknowledgement journal. Do not interpret its BOOL or result as physical handback.",
+    "Native passing is still refused; requires separate original-route provenance for its temporary path, pending stop/return acknowledgement and finite cleanup before admission.",
+    "Existing normal authored passing still requires physical OUT/drop-back/merge/return/new-order/Zeus/medical/cap/locality validation and measured overhead."
+  ],
+  "hashes": {
+    "addons/vehicles/functions/drivingPassFinish.sqf": "01d7bb9bfe5f78834c32e048e02c8bd2f25c5948714bb4199b37f57dfede92d2",
+    "addons/vehicles/functions/drivingPassCanConsent.sqf": "4dd8bc9d3967ea3e4b93aa31b518835e927cc47863259627333804b0f4ff62d8",
+    "addons/vehicles/functions/drivingPassStep.sqf": "7f1fc6d834fa4b735bf4454342acf753a5e4d90dd6e6fe8a578d37f096e035a3"
+  },
+  "validation": {
+    "focusedExistingTests": 36,
+    "fullExistingTests": 1491,
+    "build": ".qa/pass-recall-authority-build.log",
+    "independent": ".qa/pass-recall-authority-independent.log",
+    "candidate": ".qa/candidates/pass-recall-authority-01e25ab2",
+    "fingerprint": "b0c48e11093cd4e8fff3384438fda276bbd6cc31148be95e29680c3d86362fd0"
+  },
+  "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Static authority correction only, no physical handback or HBQ parity/score claim. Audits paused."
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "ebeae0d0f16165561b344afd4a19187070c70207",
+  "status": "ACTOR_VISITS_OFFLINE_VERIFIED_TRANSPORT_PENDING",
+  "topic": "Original physical participation accompanies room coverage",
+  "sourceTrace": [
+    "BuildingOperationStep records enteredActors and actorVisits only after inside, same-floor proximity and clear room-segment observations. Each actor receipt is published separately as CBE_Cortex_ClearVisits.",
+    "CortexClearBuilding resume reconstructs per-actor visits from separately delivered receipts. Shared cleared indices alone do not prove which worker physically participated.",
+    "The prior room component preserved shared progress only. The current pure serializer also copies original entered actor identities and private keyed visit lists, refusing inconsistencies."
+  ],
+  "implementation": [
+    "Room journal version2 appends enteredActors and actorVisitRows[actorNetId,indices], retaining the original ordered positions/context and six shared room progress fields. Private outgoing capture becomes version4, retaining its ten outer fields.",
+    "At most64 entered actors/map rows; unique original actor objects and netIds; map keys exactly match entered IDs; each nonempty unique visit list is bounded by room count and references only physically cleared indices. No actor is granted participation based on another actor's shared coverage.",
+    "Capture remains ENTRY/SWEEP only through existing FROZEN authority. Dead actors with retained object identity may be represented; deleted/identity-less entered actors refuse capture rather than being silently dropped or attributed to a replacement."
+  ],
+  "cost": "One bounded visit-map validation/copy at actual outgoing locality loss. No changed callback cadence, public writes, scan, native command, timestamp or worker. Per-actor retained lists may cover512 rooms for64 historical actors; actual cost/5percent median/10percent p95 remains unmeasured.",
+  "remaining": [
+    "Deleted original identity needs a separately retained stable identity/provenance solution before general handover can claim completeness.",
+    "EGRESS currently cannot enter FROZEN lane export: its public14-field version5 journal is produced separately at callback tail. Full egress component/authority remains pending; do not bypass ENTRY/SWEEP lane guards merely to copy stale public data.",
+    "Follow-through, actor motion/settings, interruption/retirement, authenticated producer seal/replay and actual native incoming readiness remain incomplete. No consumer yet accepts the private capture.",
+    "No physical acceptance or parity claim. Audits remain paused."
+  ],
+  "physicalAcceptance": false,
+  "sourceHashes": {
+    "addons/infantry/functions/buildingRoomJournal.sqf": "29d6628f8d3734289b073b109155e5da339b54daa71bacd02a1e6e613661d0af",
+    "addons/core/functions/cortexLocality.sqf": "b265dc1a0e3e0e46cc5a157b7ce196bee6299b733323a8559371ea3836562e6b",
+    "addons/infantry/functions/buildingOperationStep.sqf": "8fa736912f2c0e3d86d6cb070bddf87b85502867363fe522e781620efe45d456",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "f3534fb0a7938613338b186bdadcb3bb5c83f0813cdd9e7ce643396e65e10a52"
+  },
+  "validation": {
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 434,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-actor-visits-ebeae0d0",
+    "fingerprint": "6314e60f641382d91813bfd26c3c5bb68aaf9af963b0f00d63b59bf8a2e1ef14",
+    "buildLog": ".qa/handovers/clear-actor-visits-final-build.log",
+    "independentLog": ".qa/handovers/clear-actor-visits-independent.log",
+    "newCases": 0,
+    "sourceNote": "Final full build followed serializer header-version correction. Runtime files unchanged between final build and checkpoint; documentation/reference metadata followed build. Earlier clear-actor-visits-build.log is intermediate and not the retained candidate."
+  },
+  "egressFollowup": {
+    "review": "clear-egress-producer-capture-20261026.json",
+    "scope": "Later outer version5 adds phase/egress and a common original-producer predicate. Original ENTRY/SWEEP-only capture limitation is historical for EGRESS, while other named domains and deleted-identity limitations remain."
+  },
+  "originalIdentityFollowup": {
+    "review": "clear-original-visit-identity-20261026.json",
+    "scope": "Private identities now recorded before deletion. Room version3 retains null historical references with original keys, while missing/mismatched identity evidence still refuses. This resolves that serializer limitation only; active worker/native and full replay limitations remain."
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "date": "2026-10-20",
+  "baseline": "98202ff6",
+  "scope": "Artillery ammunition reachability before preference; pre-fire movement remains missing",
+  "finding": "Fire chose strongest eligible HE (or smoke) before range. The preferred magazine could fail range and reject a battery without considering a reachable alternative.",
+  "implementation": "ArtilleryAmmo optional finite ATL target filters each suitable available magazine by native inRangeOfArtillery before updating preference. Fire supplies reported target for automatic and explicit batteries. No-target API retains prior selection. Immutable classification cache never stores live range permission. Owner Shot still checks actual ammunition and current aim range.",
+  "sourceIntent": "Protocol artillery uses available ammunition ETA and attempts pre-fire relocation when none reaches. Its unbounded movement wait, oracle target selection and unsafe multiple crew movement are not copied. This change fixes false range refusal only.",
+  "remainingGap": "Actual out-of-range mobile battery pre-fire movement with original reported-fix age, magazine, route/crew/owner authority, finite deadline, physical arrival and fresh native range proof remains unimplemented. Post-fire Scoot is not equivalent.",
+  "files": {
+    "addons/support/functions/cortexArtilleryAmmo.sqf": "769eaecae227d0ce3396d15130864df59f968f1229176c8e1176253d92acde3f",
+    "addons/support/functions/cortexArtilleryFire.sqf": "4865ea2e49f0ce9213251a66452117e252453aed88580414b8c41bb678f109eb",
+    "addons/support/functions/cortexArtilleryShot.sqf": "951bcf051d7cad5c795b16390ad71b94a3df404b00ada8ed2121488a201806ca",
+    "addons/support/functions/cortexArtilleryScoot.sqf": "e3987bd0d0a65188cc5e5afa25c9f110a447d27a8b1dfe7dada48370e163738d",
+    "addons/support/functions/cortexArtilleryMissionStep.sqf": "39555ca7774454b8870e082198f08854a7664bf3659d08f31b324749878e4e74",
+    "addons/support/functions/artilleryMissionStep.sqf": "cd4f2264c7de6559a1bc9ee13a1b61c31a2322a785ea9c459e6bf44d1363a544",
+    "addons/infantry/functions/cortexGroupTick.sqf": "c78cfdcdd4a45228b4fae85256ff6f148b0e4931ebbd9258dbf5288ca723a7dc"
+  },
+  "validation": {
+    "tests": 1477,
+    "gates": "HEMTT/FSM/full build and independent candidate verify passed",
+    "initialFailure": "SQF validator found missing input-guard brace; corrected before final complete pass",
+    "candidate": ".qa/candidates/artillery-range-selection-98202ff6",
+    "fingerprint": "b712f054e3e398076f045ca6c567d5e6650361cdc825b66b4572b4dafa56ae9e",
+    "signed": false,
+    "physicalAcceptance": false,
+    "performanceMeasured": false
+  },
+  "audits": "PAUSED",
+  "crewAuthorityFollowup": {
+    "baseline": "ffbb205e",
+    "finding": "Automatic first-match selection used living gunner only, while owner Shot later rejected incapacitation. A visibly unavailable first battery could mask an eligible later battery. Shot lacked explicit actual-gunner task/treatment/player/specialist availability at its two authority boundaries.",
+    "implementation": "Server candidate and explicit admission use observable battery/gunner health, simulation, visibility and nonplayer/remote-control checks. Owner Shot independently requires current local actual gunner, protected-task availability, fire feature, no player/curator/specialist takeover before safety and again atomically before receipt/native fire.",
+    "limits": "Server observations do not establish remote task state. No fallback dispatch after an uncertain native shot, owner reassignment or relocation added.",
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verification passed",
+    "candidate": ".qa/candidates/artillery-crew-authority-ffbb205e",
+    "fingerprint": "7450f68dc3d1324592e8b155762377f0efe535ecdb2ffe39636c49870434be33",
+    "physicalAcceptance": false
+  },
+  "prefireExecutionAnalysis": {
+    "baseline": "29fece68",
+    "engineReferences": [
+      "https://community.bohemia.net/wiki/getArtilleryETA",
+      "https://community.bohemia.net/wiki/getArtilleryComputerSettings"
+    ],
+    "established": "getArtilleryETA operates on an actual artillery object, target and magazine; getArtilleryComputerSettings is player weapon UI data, not a hypothetical-position ballistic planner.",
+    "sourceMechanism": "Protocol fn_artillery attempts random 2500-3500m radius position about live target when every magazine ETA is negative, orders driver and commander, waits indefinitely for within120m/death then checks selected magazine ETA.",
+    "currentOwnershipBoundary": "Server ArtilleryFire currently rejects before token/registry creation when none of the eligible magazines reaches. ArtilleryMissionStep is a server fire FSM; CortexArtilleryScoot is post-fire owner movement. Neither already implements a pre-fire owner/arrival round trip.",
+    "implementationContract": {
+      "server": "Reserve exact original request, magazine and reported fix/time as a nonfiring mission phase; dispatch proposal to actual owner. No warning smoke, shot serial or spotter cooldown that implies fire before firing admission.",
+      "owner": "Only an explicitly mobile artillery vehicle with current AI control seats and available movement intent may plan/issue. Static mortars cannot be treated as mobile. Use the existing group movement operation with current route receipt and original absolute deadline.",
+      "proposal": "Use selected ammunition and geometric separation to rank finite supported destinations. Native ETA from current position can inform proposals, never establish future reachability. No ghost batteries, teleport, config maxRange-as-ballistics assumption or position swapping.",
+      "arrival": "Require actual destination/floor proximity, current owner/crew/route/operation, selected ammo still available and fresh native inRangeOfArtillery/getArtilleryETA. An ended operation or accepted waypoint is not arrival.",
+      "handoff": "Authenticated exact mission/owner/operation result returns to same server mission. A fresh fire admission then retains existing live target safety, warning, shot-serial and firing-event path.",
+      "interruption": "New Zeus/mission order, external control, stale fix, owner change, missing crew, movement refusal or original expiry cancels/refuses without fire or replay. Migration may observe only exact surviving native leg; it cannot issue a second move or renew clocks."
+    },
+    "status": "Pre-fire relocation remains unimplemented; analysis establishes required execution boundaries, not build-out or physical acceptance.",
+    "scopeExclusion": "Do not add a second driving controller, unbounded wait or generic per-battery polling worker."
+  },
+  "movementAuthorityFollowup": {
+    "baseline": "a6a99a09",
+    "finding": "Existing Scoot session/group checks did not establish current availability/native task authority for both actual movement-control seats at route acquisition.",
+    "implementation": "Snapshot actual driver/operator and authored receipt before geometry; require local available AI seats with no treatment/reservation/specialist control, enabled movement/path, no STOP or protected command. MOVE must still name current authored waypoint. Recheck before acquiring existing movement operation. No new movement worker or deadline policy.",
+    "clarification": "Post-fire pending admission120s and separately started move120s are deliberate existing finite stages; server observer already retains pending deadline plus120. No unsupported claim that these are one renewed deadline.",
+    "limits": [
+      "This is post-fire movement protection, not pre-fire relocation implementation.",
+      "Direct native intermediate MOVE goals may conservatively refuse rather than authorize takeover.",
+      "Original fire-request route continuity across the whole fire mission remains separate from this callback-local snapshot."
+    ],
+    "candidate": ".qa/candidates/artillery-movement-crew-a6a99a09",
+    "fingerprint": "cd2af07d734b4bc18b2580191067792de927729c29fc6c8e3aee12b6b4f5bee5",
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verify passed",
+    "physicalAcceptance": false
+  },
+  "requestRouteContinuity": {
+    "baseline": "68612e90",
+    "finding": "Scoot captured movement route only when delayed relocation callback started; a route replaced during firing could be adopted as fresh baseline.",
+    "implementation": "Fire mission captures [movementGroup,full NativeOrderReceipt] at reservation. Post-fire six-field session carries that exact row. Scoot validates original group/order before busy wait, planning and issue, and derives callback route proof from it. Server observer and active group session validators use the six-field receipt.",
+    "limits": "Active own waypoint execution keeps existing movement-operation native receipts; it does not compare its inserted CBE waypoint to the pre-insertion route. This protects delayed movement admission, not fire cancellation on any route edit. Pre-fire relocation remains absent.",
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verification passed; initial new test variable typo corrected",
+    "candidate": ".qa/candidates/artillery-request-route-68612e90",
+    "fingerprint": "ef6571fdc14261d829875a8fd16d00895f549fb4b7e14a23f0938287126c923c",
+    "physicalAcceptance": false
+  },
+  "prefireImplementation": {
+    "baseline": "cdcdbe66",
+    "implementation": "Existing artillery mission FSM now has a non-firing POSITIONING phase for independent mobile battery groups. Finite native ETA probes rank supported movement proposals; original observation deadline bounds arrival. Authenticated owner/server physical arrival, measured rest and current native range admit firing. Exact HOLD operation persists within original fire deadline. Owner rechecks HOLD at both shot boundaries. Post-fire owner retires matching HOLD synchronously before validating original route for scoot.",
+    "limitations": [
+      "Static batteries and mixed vehicle/foot groups refuse repositioning.",
+      "Finite proposal exhaustion is not proof that every possible firing location is unreachable.",
+      "Locality migration cancels positioning rather than issuing a replacement move.",
+      "No physical acceptance or measured performance; audits remain paused."
+    ],
+    "physicalAcceptance": false
+  }
+}

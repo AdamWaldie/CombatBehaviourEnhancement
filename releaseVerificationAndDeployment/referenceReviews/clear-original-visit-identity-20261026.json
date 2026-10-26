@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "dab305b7687678abb32c3f25d40252bbf879ba60",
+  "status": "ORIGINAL_VISIT_IDENTITY_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Retain original historical visit identities before object deletion",
+  "sourceTrace": [
+    "Private enteredActors retains object references, while actorVisits is keyed by netId recorded at observation. The version2 room serializer rejected null entered references and derived all IDs from current objects, so a deleted historical entrant prevented capture.",
+    "Physical observation adds enteredActors and keyed visits only after existing inside/same-floor/segment checks. Current resume reconstructs visits only from exact group/episode/node receipts for available original actors. These two points can retain original identity before later deletion."
+  ],
+  "implementation": [
+    "Add private enteredActorIdentities rows[originalActor,originalNetId] at first qualified physical entry and valid historical receipt adoption. Keep rows aligned with enteredActors. The existing pushBackUnique pass determines first entry by array length change; no second membership scan.",
+    "Room serializer version3/thirteen fields appends identity rows. Require at most64 rows aligned with enteredActors; unique nonempty original IDs exactly matching visit-map keys. A surviving object must still have that ID. A null original object can retain its historical string key; it never resolves to another object.",
+    "Preserve every original unique room index only within shared physically cleared coverage, exact ordered positions/visit context and original budgets/clocks. Copy row arrays; do not infer missing identities at transfer time or copy another actor's observations to a replacement.",
+    "Outer private capture becomes version6, still twelve fields, requiring the13-field room component. No public receipt schema, native command, worker, clock or incoming consumer changes."
+  ],
+  "cost": "One small private identity row per first physical entrant or admitted historical actor, using the existing uniqueness scan. Capture validates/copies at most64 identity rows in addition to existing room histories. No extra periodic callback, world query, timer or network message. Actual5percent median/10percent p95 remains unmeasured.",
+  "limits": [
+    "Only identities recorded before deletion survive. Missing/malformed legacy identity rows refuse; no reconstruction from null objects or nearby replacements.",
+    "Current lane/egress actor suitability and original native/settings proof still apply. An unavailable/deleted active worker can still fail those other component checks; this is not complete casualty replacement or deletion handover.",
+    "Incoming authoritative replay remains absent. Existing legacy resume only reconstructs receipts for currently admitted available actors; this change does not silently consume the new private capture.",
+    "Follow-through/early-exit/reserve domains, motion/settings/interruption/retirement, authenticated producer seal/request replay and actual native readiness remain incomplete.",
+    "Physical normal/HC/Zeus/repeat behaviour, casualty refill, balance and performance unverified; audits paused."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/buildingRoomJournal.sqf": "ab117119aa22ed998e6e7e22899ae53195887ac633e9c926c34e7700dba48fe7",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "15b1c1b2afcf3351614f83c98f0020cf63b06caa2204e177fdfffa9abf212901",
+    "addons/infantry/functions/buildingOperationStep.sqf": "621062b58d50b682aa7e258ab056ccafe1badcba88ca96e294e1609cbafe2576",
+    "addons/core/functions/cortexLocality.sqf": "bc0d36a38de5ea85894c267aca6cfbbdd20669ae93f72d250ea7ea4f903677ed"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "focusedExistingCases": 6,
+    "newCases": 0,
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 436,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-visit-identity-dab305b7",
+    "fingerprint": "a1eff8afa1b8d285b1730e8526332424e7edbe0185ed9c3956206cda10c9d027",
+    "buildLog": ".qa/handovers/clear-visit-identity-build.log",
+    "independentLog": ".qa/handovers/clear-visit-identity-independent.log",
+    "sourceNote": "Full build from implementation working tree afterdab305b7; runtime source unchanged between build and checkpoint; reference/handover metadata followed build."
+  }
+}

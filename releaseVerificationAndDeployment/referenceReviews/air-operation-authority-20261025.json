@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "a2de15c2",
+  "scope": "Existing aircraft attack common-operation authority, including native Fired guidance callback. Not a new air-support director, physical acceptance or whole-source parity.",
+  "failure": "OperationCancel/OperationStart can cancel or replace the common group operation independently of the aircraft FlightLease. CortexAirAttack previously checked the flight lease but not the original operation generation/epoch/cancel state at ongoing execution and guidance boundaries.",
+  "trace": [
+    "core/functions/operationCancel.sqf marks cancellation, restores owned state and removes the exact common record.",
+    "core/functions/operationStart.sqf retires predecessor and publishes a new generation.",
+    "aircraft/functions/airAttackOperationStart.sqf maintains separate aircraft flight lease and ownerEpoch; restart validation alone does not validate each ongoing executor callback.",
+    "aircraft/functions/cortexAirAttack.sqf creates common AIR_* operation, retains generation, executes native flight/fire and installs a Fired callback."
+  ],
+  "implementation": [
+    "Existing executor now reads exact shared operation generation, group generation counter, owner epoch, cancellation reason and terminal phase before continuing an admitted run. Initial pre-operation planning is allowed only while no generation is recorded and stage is empty.",
+    "Every existing _mayControlAircraft boundary reuses the read-only operation check, including after synchronous planning/calls; no assumption of scheduler preemption is required.",
+    "Fired callback independently validates current original operation before counting a release or assigning missing native missile guidance; it does not rely on a delayed scheduler callback to retire.",
+    "Existing receipt-scoped cleanup runs on OPERATION_REPLACED without authored-route resume. Exact generation checks keep OperationCancel from retiring a successor. No new controller, worker, timer, world query, reveal or actor order."
+  ],
+  "sourceIntent": "Owner-local finite FSM and reliable handover foundation required for LAMBS/Protocol/Emergency Air Support intent integration. No upstream code copied this checkpoint.",
+  "files": {
+    "addons/aircraft/functions/cortexAirAttack.sqf": "408bffcd569b5b47dab45640e829020b3b92dac44de6f2c015e51565d550cb2d"
+  },
+  "validation": {
+    "fullLog": ".qa/air-operation-authority-build-20261025-attempt1.log",
+    "exit": 0,
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pbos": 11,
+    "independentLog": ".qa/air-operation-authority-independent-20261025.log",
+    "candidate": ".qa/candidates/air-operation-authority-a2de15c2",
+    "fingerprint": "ef5b2344cac21408c1402056a77bc661436f3c692693840f59698df94fee867c",
+    "testScope": "Existing air combined-retirement test extended with production authority wiring and analytic active/replaced/epoch/cancelled/missing generation cases. No new test count. Not SQF VM or physical evidence."
+  },
+  "limits": [
+    "Unsigned dirty development candidate, engineering notes postdate package.",
+    "Actual native interruption, Fired callback timing, cleanup/Zeus authority, locality/JIP/HC and5percent median/10percent p95 performance remain UNRUN. Audits PAUSED.",
+    "Existing receipt cleanup, including equal-value external edits, retains its prior ambiguity. This does not prove external-provider quiescence or resumed native travel. Whole goal remains active/incomplete."
+  ]
+}

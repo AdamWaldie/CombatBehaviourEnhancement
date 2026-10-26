@@ -5,8 +5,11 @@
  * calm remount and damaged-armour withdrawal using live vehicles, including an active withdrawal
  * migrating from the server to a real headless owner before Zeus replacement.
  * Standalone driving also measures native travel, a condition-gated wait, resume and disabled cleanup.
+ * Normal-only head-on recovery observes natural admission, reverse, hull passage and route continuation.
  * Normal-only excluded tracked, wheeled MRAP and truck reverse-turn diagnostics observe real heading/travel and shared
- * sensor work; it does not validate production stopping, collision avoidance or HC migration.
+ * sensor work; default and distinct-effective-commander wheeled/truck cases stay separate.
+ * Turning counts must exceed22 straight/support rays, within70 total. These diagnostics do
+ * not validate production stopping, collision avoidance, helper creation or HC migration.
  * Locality/authority: scheduled server creates disposable fixtures; production Cortex code commands
  * each current owner, and the migration case deliberately transfers its crew group and vehicle.
  * Repeat/JIP: fresh fixtures and public observer state; caller restores tuning, actors are deleted.
@@ -190,7 +193,9 @@ private _jinkOrigin=getPosATL _jinkVehicle;
 private _jinkBlast=[_jinkVehicle modelToWorld [7,0,0]] call _spawnRealGrenade;
 private _jinkOwned=[{
     private _state=_jinkGroup getVariable ["CBE_AIPass_State",createHashMap];
-    count (_jinkVehicle getVariable ["CBE_Danger_VehicleJink",[]]) == 4
+    private _marker=_jinkVehicle getVariable ["CBE_Danger_VehicleJink",[]];
+    count _marker == 5
+        && {(_marker param [4,-1,[0]]) == (_state getOrDefault ["vehicleOperationGeneration",-2])}
         && {(_state getOrDefault ["movementLease",[]]) param [0,""] == "VEHICLE_JINK"}
 },25] call _wait;
 private _jinkMoved=[{
@@ -225,6 +230,8 @@ private _orientVehicle=createVehicle ["O_MBT_02_cannon_F",[1580,880,0],[],0,"NON
 createVehicleCrew _orientVehicle;
 _orientVehicle allowDamage false;
 _orientVehicle setDir 0;
+private _orientOriginalDriver=driver _orientVehicle;
+private _orientOriginalCommander=effectiveCommander _orientVehicle;
 private _orientGroup=group driver _orientVehicle;
 [_orientGroup] call _pin;
 _orientGroup setCombatMode "RED";
@@ -270,7 +277,14 @@ private _orientKnown=[{(effectiveCommander _orientVehicle) knowsAbout _orientTar
     str [_orientCrew apply {[_x knowsAbout _orientTarget,_x targetKnowledge _orientTarget]},
         getPosATL _orientVehicle,getPosATL _orientTarget]] call _check;
 private _orientOwned=[{
-    count (_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) == 5
+    count (_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) == 9
+        && {((_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) param [5,objNull,[objNull]]) == _orientOriginalDriver}
+        && {driver _orientVehicle == _orientOriginalDriver}
+        && {((_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) param [7,objNull,[objNull]]) == _orientOriginalCommander}
+        && {effectiveCommander _orientVehicle == _orientOriginalCommander}
+        && {((_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) param [8,"",[""]]) in ["LEFT","RIGHT"]}
+        && {((_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]]) param [6,[],[[]]])
+            isEqualTo ([_orientGroup] call CBE_fnc_NativeOrderReceipt)}
         && {private _state=_orientGroup getVariable ["CBE_AIPass_State",createHashMap];
             (_state getOrDefault ["movementLease",[]]) param [0,""] == "VEHICLE_ORIENT"}
 },25] call _wait;
@@ -478,6 +492,12 @@ private _dangerCountermeasure=[{
 private _recoveryDriver=driver _contactVehicle;
 private _lostGunner=gunner _contactVehicle;
 private _recoveryCommander=commander _contactVehicle;
+private _recoveryStartedAt=serverTime;
+private _recoveryIssuedBefore=+(_contactVehicle getVariable ["CBE_Danger_CrewRecovery",[]]);
+private _recoveryBefore=[_recoveryStartedAt,fullCrew [_contactVehicle,"",false],
+    assignedVehicleRole _recoveryDriver,assignedVehicleRole _recoveryCommander,
+    currentCommand _recoveryCommander,expectedDestination _recoveryCommander,
+    vehicleMoveInfo _contactVehicle];
 private _recoveryPrerequisite=!isNull _recoveryDriver && {!isNull _lostGunner}
     && {!isNull _recoveryCommander} && {_recoveryDriver != _recoveryCommander}
     && {_lostGunner != _recoveryCommander};
@@ -499,15 +519,22 @@ _recoveryEnemy disableAI "PATH";
 _recoveryEnemy setDir (_recoveryEnemy getDir _contactVehicle);
 _recoveryEnemy setVariable ["CBE_CortexQA_Label","FRESH CREW-RECOVERY CONTACT",true];
 private _gunnerRecovered=[{
-    private _crewState=_contactCrewGroup getVariable ["CBE_AIPass_State",createHashMap];
-    private _recovery=_crewState getOrDefault ["vehicleDangerCrewRecovery",[]];
-    count _recovery == 4 && {_recovery param [2,false,[true]]}
-        && {gunner _contactVehicle == _recoveryCommander}
+    // A later generation can record a refused replacement after the seat was already
+    // recovered. Its latest-attempt BOOL must not erase actual physical success.
+    // Require this case's fresh issued receipt AND the real live primary gunner.
+    private _issuedRecovery=_contactVehicle getVariable ["CBE_Danger_CrewRecovery",[]];
+    count _issuedRecovery == 4 && {_issuedRecovery isNotEqualTo _recoveryIssuedBefore}
+        && {(_issuedRecovery param [1,objNull,[objNull]]) == _recoveryCommander}
+        && {(_issuedRecovery param [3,-1,[0]]) >= _recoveryStartedAt}
+        && {alive _recoveryCommander} && {gunner _contactVehicle == _recoveryCommander}
 },30] call _wait;
 ["DANGER-VEHICLE-gunner-loss-recovered",_recoveryPrerequisite && {_gunnerRecovered},
-    str [_recoveryCommander,gunner _contactVehicle,
+    str [_recoveryBefore,_recoveryCommander,gunner _contactVehicle,
         (_contactCrewGroup getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["vehicleDangerCrewRecovery",[]],
-        _contactVehicle getVariable ["CBE_Danger_CrewRecovery",[]]]] call _check;
+        _contactVehicle getVariable ["CBE_Danger_CrewRecovery",[]],
+        fullCrew [_contactVehicle,"",false],assignedVehicleRole _recoveryCommander,
+        currentCommand _recoveryCommander,expectedDestination _recoveryCommander,
+        vehicleMoveInfo _contactVehicle]] call _check;
 ["DANGER-VEHICLE-driver-role-preserved",_recoveryPrerequisite
         && {alive _recoveryDriver} && {driver _contactVehicle == _recoveryDriver},
     str [_recoveryDriver,driver _contactVehicle,assignedVehicleRole _recoveryDriver]] call _check;
@@ -915,6 +942,12 @@ if (_hcOwners isNotEqualTo []) then {
             && {owner _migrateArmour == _hcOwner}
             && {_migrateCrew findIf {owner _x != _hcOwner} < 0}
             && {(_migrateGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "RETREAT"}
+            && {private _operation=_migrateGroup getVariable ["CBE_Operation",createHashMap];
+                private _intent=_migrateGroup getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap];
+                (_operation getOrDefault ["intent",""]) == "VEHICLE_WITHDRAW"
+                    && {(_operation getOrDefault ["ownerEpoch",-1]) == (_migrateGroup getVariable ["CBE_AIPass_Epoch",-2])}
+                    && {(_operation getOrDefault ["generation",-1]) == (_intent getOrDefault ["operationGeneration",-2])}
+                    && {(_operation getOrDefault ["phase",""]) != "CANCELLED"}}
             && {private _entry=_migrateGroup getVariable ["CBE_Cortex_PhaseTransition",[]]; count _entry == 5 && {(_entry select 3) == "VEHICLE_OWNERSHIP_RESUME"} && {(_entry select 4) == _hcOwner}}
     },40] call _wait;
     ["WITHDRAW-MIGRATION-owner-resume",_realOwnerBoundary && {_migrationRequested} && {_migrationAdopted},str [groupOwner _migrateGroup,owner _migrateArmour,_migrateCrew apply {owner _x},_migrateGroup getVariable ["CBE_Cortex_PhaseTransition",[]]]] call _check;
@@ -1217,18 +1250,186 @@ deleteGroup _driveGroup;
 [_drivePreviousSettings] call CBE_fnc_CortexTuning;
 
 
+// Natural queue admission: normal owner only. Initial placement and authored waypoints
+// are fixture inputs; no proposal, consent, COMMIT, speed, BACK or completion is injected.
+if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
+    private _queueKeys=["CBE_AIPass_Enable","CBE_AIPass_Contact_Enable",
+        "CBE_AIPass_DrivingAssist_Enable","CBE_AIPass_DrivingAssist_Recovery_Enable",
+        "CBE_AIPass_DrivingAssist_Queue_Enable"];
+    private _queueRestore=createHashMapFromArray (_queueKeys apply {[_x,missionNamespace getVariable [_x,false]]});
+    [createHashMapFromArray (_queueKeys apply {[_x,_x != "CBE_AIPass_Contact_Enable"]})] call CBE_fnc_CortexTuning;
+    private _queueVehicles=[];private _queueGroups=[];private _queueGoals=[];
+    {
+        _x params ["_start","_heading","_goal"];
+        private _v=createVehicle ["O_APC_Tracked_02_cannon_F",_start,[],0,"NONE"];
+        _v setDir _heading;
+        createVehicleCrew _v;
+        private _g=group driver _v;
+        _g setVariable ["CBE_Headless_ExcludeGroup",true,true];
+        _g setVariable ["acex_headless_blacklist",true,true];
+        {_x setVariable ["acex_headless_blacklist",true,true]} forEach units _g;
+        _g setBehaviour "AWARE";_g setCombatMode "BLUE";
+        private _wp=_g addWaypoint [_goal,0];_wp setWaypointType "MOVE";
+        _wp setWaypointCompletionRadius 5;_g setCurrentWaypoint _wp;
+        (driver _v) setVariable ["CBE_CortexQA_Label","NATURAL QUEUE",true];
+        (driver _v) setVariable ["CBE_CortexQA_Target",_goal,true];
+        _queueVehicles pushBack _v;_queueGroups pushBack _g;_queueGoals pushBack _goal;
+    } forEach [[[7188,7000,0],90,[7330,7000,0]],[[7212,7000,0],270,[7070,7000,0]]];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",_queueVehicles + (_queueVehicles apply {driver _x}),true];
+    ["Natural head-on queue recovery","Two ordinary authored routes oppose each other. Observe natural stationary dwell, one agreed recovery requiring more than six metres, the exact issued envelope, physical reverse to that stop distance and whole-hull passage, then onward travel. If native driving avoids the jam or negotiation never starts, this case fails readiness; the fixture supplies no queue requests or movement assistance.",[7200,7000,0]] call _phase;
+    private _queueReady=_queueVehicles findIf {isNull driver _x || {driver _x == effectiveCommander _x}
+        || {!local _x} || {!local group driver _x}} < 0;
+    private _queueReadAuthoredRoute={
+        params ["_routeGroup"];
+        (waypoints _routeGroup) apply {
+            [waypointType _x,waypointPosition _x,waypointStatements _x,waypointTimeout _x,
+                waypointCompletionRadius _x,waypointSpeed _x,waypointBehaviour _x,
+                waypointCombatMode _x,waypointScript _x,waypointAttachedVehicle _x,
+                waypointAttachedObject _x,synchronizedWaypoints _x,synchronizedTriggers _x]
+        }
+    };
+    private _queueAuthored=_queueGroups apply {[_x] call _queueReadAuthoredRoute};
+    private _queueRouteStable=true;private _queueLifetimeStable=true;private _queueOriginalUntil=-1;
+    private _queueDwell=-1;private _queueDwellProved=false;private _queueProposal=createHashMap;
+    private _queueRoot=objNull;private _queueYield=objNull;private _queueYieldOrigin=[];
+    private _queueAxis=[];private _queueReverse=false;private _queueCommitted=false;
+    private _queueCleared=false;private _queueAccepted=false;private _queueContinued=false;
+    private _queueBinding=[];
+    private _queueYieldAxis=[];private _queueRequestedEnvelope=[];
+    private _queueRequirementStable=true;private _queueIssuedEnvelope=false;
+    private _queueMeasuredRear=0;private _queueFullReverse=false;
+    // Independent QA hull projection uses all eight model corners, not the production helper.
+    private _queueSpan={
+        params ["_object","_axis"];
+        private _bounds=boundingBoxReal _object;private _values=[];
+        {private _cx=_x;{private _cy=_x;{
+            _values pushBack ((_object modelToWorldWorld [_cx,_cy,_x]) vectorDotProduct _axis);
+        } forEach [(_bounds select 0) select 2,(_bounds select 1) select 2];
+        } forEach [(_bounds select 0) select 1,(_bounds select 1) select 1];
+        } forEach [(_bounds select 0) select 0,(_bounds select 1) select 0];
+        [selectMin _values,selectMax _values]
+    };
+    private _queueEnd=diag_tickTime+160;
+    while {_queueReady && {diag_tickTime < _queueEnd} && {!_queueContinued}} do {
+        {
+            if (([_x] call _queueReadAuthoredRoute) isNotEqualTo (_queueAuthored select _forEachIndex)) then {
+                _queueRouteStable=false;
+            };
+        } forEach _queueGroups;
+        private _still=_queueVehicles findIf {vectorMagnitude velocity _x >= (1/3.6)
+            || {vectorMagnitude angularVelocity _x >= 0.01}} < 0;
+        if (_still) then {if (_queueDwell < 0) then {_queueDwell=serverTime}} else {_queueDwell=-1};
+        if (count _queueProposal == 0) then {
+            {
+                private _journal=_x getVariable ["CBE_DrivingTrafficRetry",createHashMap];
+                private _candidate=_journal getOrDefault ["queueAutoProposal",createHashMap];
+                if (count _candidate > 0) exitWith {
+                    _queueProposal=_candidate;
+                    _queueOriginalUntil=_candidate get "retryDeadline";
+                    _queueDwellProved=_queueDwell >= 0 && {serverTime-_queueDwell >= 19.5};
+                    _queueRoot=(_candidate get "vehicles") select 0;
+                    _queueYield=(_candidate get "vehicles") select 1;
+                    private _yieldPose=((_candidate get "context") select 1) select 4;
+                    _queueYieldOrigin=+(_yieldPose select 0);_queueYieldAxis=+(_yieldPose select 1);
+                    _queueAxis=vectorDir _queueRoot;_queueAxis set [2,0];_queueAxis=vectorNormalized _queueAxis;
+                };
+            } forEach _queueVehicles;
+        } else {
+            private _consent=_queueRoot getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+            if ((_consent getOrDefault ["serial",-2]) == (_queueProposal get "requestSerial")
+                && {(_consent getOrDefault ["context",[]]) isEqualTo (_queueProposal get "context")}
+                && {_consent getOrDefault ["committed",false]}) then {
+                _queueCommitted=true;
+                private _observedBinding=[_consent get "token",_consent get "expires"];
+                if ((_consent get "expires") > _queueOriginalUntil || {
+                    _queueBinding isNotEqualTo [] && {_queueBinding isNotEqualTo _observedBinding}
+                }) then {_queueLifetimeStable=false};
+                if (_queueBinding isEqualTo []) then {_queueBinding=_observedBinding};
+                private _required=(_consent getOrDefault ["rearRequirements",[]]) param [1,[]];
+                if (count _required == 2 && {_required findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                    && {(_required select 1) > 6} && {(_required select 1) <= 24}
+                    && {(_required select 0) == (_required select 1)+2}) then {
+                    if (_queueRequestedEnvelope isEqualTo []) then {_queueRequestedEnvelope=+_required};
+                    if (_queueRequestedEnvelope isNotEqualTo _required) then {_queueRequirementStable=false};
+                } else {_queueRequirementStable=false};
+            };
+            if (((getPosWorld _queueYield) vectorDiff _queueYieldOrigin) vectorDotProduct _queueAxis > 1
+                && {(velocity _queueYield) vectorDotProduct (vectorDir _queueYield) < -0.1}) then {_queueReverse=true};
+            // Independent world displacement proves the accepted travel; the journal alone
+            // cannot turn a short native leg into a successful extended reverse.
+            private _rearTravel=-(((getPosWorld _queueYield) vectorDiff _queueYieldOrigin) vectorDotProduct _queueYieldAxis);
+            _queueMeasuredRear=_queueMeasuredRear max _rearTravel;
+            private _reverseWork=_queueYield getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+            private _reverseBinding=_reverseWork getOrDefault ["queueBinding",[]];
+            if (_queueBinding isNotEqualTo [] && {count _reverseBinding == 4}
+                && {(_reverseBinding select [0,2]) isEqualTo _queueBinding}) then {
+                private _issued=_reverseWork getOrDefault ["rearEnvelope",[]];
+                if (_queueRequestedEnvelope isNotEqualTo [] && {_issued isEqualTo _queueRequestedEnvelope}) then {
+                    _queueIssuedEnvelope=true;
+                    if (_rearTravel >= (_queueRequestedEnvelope select 1)-0.25
+                        && {toUpperANSI ((vehicleMoveInfo _queueYield) param [0,""]) == "STOP"}
+                        && {vectorMagnitude velocity _queueYield < 0.1}
+                        && {vectorMagnitude angularVelocity _queueYield < 0.01}) then {_queueFullReverse=true};
+                } else {_queueRequirementStable=false};
+            };
+            private _rootSpan=[_queueRoot,_queueAxis] call _queueSpan;
+            private _yieldSpan=[_queueYield,_queueAxis] call _queueSpan;
+            if ((_rootSpan select 0) > (_yieldSpan select 1)+1) then {_queueCleared=true};
+            private _work=_queueRoot getVariable ["CBE_DrivingBypass_Work",createHashMap];
+            if (_queueBinding isNotEqualTo [] && {
+                ((_work getOrDefault ["queueClearanceAccepted",[]]) select [0,2]) isEqualTo _queueBinding
+            } && {_work getOrDefault ["queueCrossed",false]}) then {_queueAccepted=true};
+            _queueContinued=_queueCleared;
+            {
+                if (_x distance2D (_queueGoals select _forEachIndex) > 65) then {_queueContinued=false};
+            } forEach _queueVehicles;
+        };
+        sleep 0.2;
+    };
+    ["QUEUE-natural-fixture-ready",_queueReady] call _check;
+    ["QUEUE-natural-continuous-dwell",_queueDwellProved] call _check;
+    ["QUEUE-natural-owner-commit",_queueCommitted] call _check;
+    ["QUEUE-natural-physical-reverse",_queueReverse] call _check;
+    ["QUEUE-natural-extended-demand",_queueRequestedEnvelope isNotEqualTo [] && {_queueRequirementStable}] call _check;
+    ["QUEUE-natural-exact-issued-envelope",_queueIssuedEnvelope && {_queueRequirementStable}] call _check;
+    ["QUEUE-natural-full-requested-reverse",_queueReverse && {_queueFullReverse}
+        && {_queueMeasuredRear <= (_queueRequestedEnvelope param [0,0])+0.5}] call _check;
+    diag_log format ["CBE QUEUE EXTENDED REVERSE EVIDENCE: %1",[_queueBinding,_queueRequestedEnvelope,_queueMeasuredRear,_queueIssuedEnvelope,_queueFullReverse,_queueRequirementStable]];
+    ["QUEUE-natural-whole-hull-passage",_queueCleared] call _check;
+    ["QUEUE-natural-accepted-completion",_queueAccepted] call _check;
+    ["QUEUE-natural-authored-continuation",_queueContinued] call _check;
+    ["QUEUE-natural-authored-route-retained",_queueRouteStable] call _check;
+    ["QUEUE-natural-original-lifetime",_queueCommitted && {_queueLifetimeStable}] call _check;
+    missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
+    {{deleteVehicle _x} forEach crew _x;deleteVehicle _x} forEach _queueVehicles;
+    {deleteGroup _x} forEach _queueGroups;
+    [_queueRestore] call CBE_fnc_CortexTuning;
+};
+
 // Sensor diagnostic only: native inputs are fixture stimuli, never a CBE result/brain injection.
 // Keep this distinct from production withdrawal and the intentionally straight convoy case.
 if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
     {
-        _x params ["_class","_turn","_family"];
+        _x params ["_class","_turn","_family",["_separateCommander",false]];
         // Keep legacy tracked IDs; wheeled capabilities have their own results and cannot
         // inherit a tracked success. These excluded actors are native command diagnostics only.
-        private _case=(["REAR-TURN-","REAR-"+_family+"-TURN-"] select (_family != "TRACKED"))+_turn;
+        private _case=(["REAR-TURN-","REAR-"+_family+"-TURN-"] select (_family != "TRACKED"))+_turn+(["","-SEPARATE-COMMANDER"] select _separateCommander);
         private _vehicle=createVehicle [_class,[4300+150*_forEachIndex,3000,0],[],0,"NONE"];
         _vehicle setDir 0;
         createVehicleCrew _vehicle;
         private _group=group driver _vehicle;
+        private _helper=objNull;
+        if (_separateCommander) then {
+            // Initial fixture crew setup only. Never create/seat a production recovery helper.
+            _helper=_group createUnit [typeOf driver _vehicle,getPosATL _vehicle,[],0,"NONE"];
+            _helper assignAsCargo _vehicle;_helper moveInCargo _vehicle;
+            _vehicle setEffectiveCommander _helper;
+        };
+        private _commandCrewReady=!_separateCommander || {!isNull _helper
+            && {vehicle _helper == _vehicle} && {effectiveCommander _vehicle == _helper}
+            && {driver _vehicle != _helper}};
+        [_case+"-crew-arrangement",_commandCrewReady,
+            str [driver _vehicle,effectiveCommander _vehicle,_separateCommander,fullCrew [_vehicle,"",false]]] call _check;
         [_group] call _pin;
         _group setVariable ["CBE_AIPass_Exclude",true,true];
         _group setBehaviour "SAFE";_group setCombatMode "BLUE";
@@ -1257,7 +1458,7 @@ if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
             _previousHeading=getDir _vehicle;
             private _observation=[_vehicle,8] call CBE_fnc_DrivingRearClear;
             _maxRays=_maxRays max (_observation select 3);
-            if (_backward && {abs _delta >= 3} && {(_observation select 3) > 12}) then {
+            if (_backward && {abs _delta >= 3} && {(_observation select 3) > 22}) then {
                 _turnSamples=_turnSamples+1;
             };
             if (_maxHeading >= 35) exitWith {};
@@ -1266,11 +1467,11 @@ if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
         _vehicle sendSimpleCommand "STOPTURNING";
         _vehicle sendSimpleCommand "STOP";
         private _travel=(getPosASL _vehicle) vectorDistance _origin;
-        private _physical=_samples >= 3 && {_travel >= 1} && {_maxHeading >= 3};
+        private _physical=_commandCrewReady && {_samples >= 3} && {_travel >= 1} && {_maxHeading >= 3};
         [_case+"-native-physical-prerequisite",_physical,str [_samples,_travel,_maxHeading]] call _check;
         [_case+"-measured-yaw-sign",_physical && {_yawChecks >= 2} && {_yawConsistent},str [_yawChecks,_yawConsistent]] call _check;
         [_case+"-turning-observer-executed",_physical && {_turnSamples >= 2}
-            && {_maxRays > 12} && {_maxRays <= 60},str [_turnSamples,_maxRays]] call _check;
+            && {_maxRays > 22} && {_maxRays <= 70},str [_turnSamples,_maxRays]] call _check;
         missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
         {deleteVehicle _x} forEach crew _vehicle;
         deleteVehicle _vehicle;deleteGroup _group;
@@ -1280,6 +1481,10 @@ if !(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false]) then {
         ["O_MRAP_02_F","LEFT","WHEELED"],
         ["O_MRAP_02_F","RIGHT","WHEELED"],
         ["O_Truck_03_transport_F","LEFT","TRUCK"],
-        ["O_Truck_03_transport_F","RIGHT","TRUCK"]
+        ["O_Truck_03_transport_F","RIGHT","TRUCK"],
+        ["O_MRAP_02_F","LEFT","WHEELED",true],
+        ["O_MRAP_02_F","RIGHT","WHEELED",true],
+        ["O_Truck_03_transport_F","LEFT","TRUCK",true],
+        ["O_Truck_03_transport_F","RIGHT","TRUCK",true]
     ];
 };

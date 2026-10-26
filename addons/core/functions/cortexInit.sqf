@@ -7,12 +7,15 @@
  * - one CBA per-frame handler that runs CBE_fnc_CortexSchedulerTick. The due-time cache makes
  *   idle frames constant-time; due work gets one budgeted opportunity per rendered/simulated frame
  *   instead of being capped at four heavy jobs per second;
- * - one EntityKilled mission handler that passes kills in locally owned groups to survivor regroup;
+ * - one EntityKilled mission handler retains up to64 death identities for the current finite
+ *   clearance episode, separately from up to eight five-minute own-group casualty
+ *   identities and passes kills to survivor regroup. Exact clearance context can corroborate a
+ *   deleted exterior guard; public provenance alone never dispatches movement;
  * - the CBE_fnc_CortexDiscover sweep job, which brings local groups under the pass;
  * - a ProjectileCreated handler for grenade evasion, only while CBE_AIPass_GrenadeEvasion_Enable is
  *   on (it would otherwise run for every projectile);
- * - an ArtilleryShellFired handler for counter-battery, only while CBE_AIPass_CounterBattery_Enable
- *   is on.
+ * - a shared ArtilleryShellFired handler for native firing evidence and counter-battery;
+ *   counter-battery admission reads its live enable switch independently of evidence collection.
  * - event-driven civilian FiredNear/Hit reactions when enabled. Existing and newly created owner-local
  *   civilians are versioned once; no civilian polling loop is installed.
  * Existing local groups have their peak strength recorded. Repeat calls are safe, and they add the
@@ -86,6 +89,55 @@ if (isNil {missionNamespace getVariable "CBE_AIPass_KilledHandler"}) then {
         if !(_unit isKindOf "CAManBase") exitWith {};
         private _group = group _unit;
         if (isNull _group || {!local _group}) exitWith {};
+        // Retain identity from the actual death event, before later corpse/group detachment.
+        // This is provenance only; a fresh native casualty observation still gates body inspection.
+        private _casualties=_group getVariable ["CBE_Danger_Casualties",[]];
+        if !(_casualties isEqualType []) then {_casualties=[]};
+        _casualties=(_casualties select [0,8]) select {
+            _x isEqualType [] && {count _x == 5} && {(_x select 0) isEqualType objNull}
+                && {isNull (_x select 0) || {!alive (_x select 0)}}
+                && {(_x select 3) isEqualType ""} && {(_x select 4) isEqualType []}
+                && {count (_x select 4) in [0,4]}
+                && {!isNull (_x select 0) || {(_x select 3) != "" && {(_x select 3) != "0:0"}
+                    && {count (_x select 4) == 4}}}
+                && {(_x select 1) isEqualType 0} && {finite (_x select 1)}
+                && {(_x select 2) isEqualType 0} && {finite (_x select 2)}
+                && {(_x select 1) <= serverTime} && {(_x select 2) > serverTime}
+                && {(_x select 2) > (_x select 1)} && {(_x select 2) <= (_x select 1)+300}
+        };
+        if (_casualties findIf {(_x select 0) == _unit} < 0) then {
+            if (count _casualties >= 8) then {_casualties deleteAt 0};
+            // Keep positive death identity for this exact clearance even after corpse
+            // deletion. Missing object lookup alone never establishes a casualty.
+            private _clearContext=_group getVariable ["CBE_Cortex_ClearVisitContext",[]];
+            private _clearOperation=_group getVariable ["CBE_Operation",createHashMap];
+            if (!(_clearContext isEqualType []) || {count _clearContext != 4}
+                || {(_clearOperation getOrDefault ["intent",""]) != "CLEAR"}
+                || {(_clearOperation getOrDefault ["phase",""]) == "CANCELLED"}
+                || {(_clearOperation getOrDefault ["objective",objNull]) isNotEqualTo (_clearContext select 0)}) then {_clearContext=[]};
+            // Clearance loss provenance must outlive the rolling body-observation list.
+            // Keep only actual death identities, tied to the original finite episode;
+            // corpse removal or later deaths cannot manufacture or evict its first losses.
+            private _deathId=netId _unit;
+            if (count _clearContext == 4 && {!(_deathId in ["","0:0"])}
+                && {(_clearContext select 2) isEqualType 0} && {finite (_clearContext select 2)}
+                && {serverTime < (_clearContext select 2)}) then {
+                private _losses=_group getVariable ["CBE_Cortex_ClearLosses",[]];
+                private _ids=[];
+                if (_losses isEqualType [] && {count _losses == 2}
+                    && {(_losses select 0) isEqualTo _clearContext}
+                    && {(_losses select 1) isEqualType []} && {count (_losses select 1) <= 64}
+                    && {(_losses select 1) findIf {!(_x isEqualType "") || {_x in ["","0:0"]}} < 0}) then {
+                    _ids=+(_losses select 1);
+                };
+                if (!(_deathId in _ids) && {count _ids < 64}) then {
+                    _ids pushBack _deathId;
+                    _group setVariable ["CBE_Cortex_ClearLosses",[+_clearContext,_ids],true];
+                };
+            };
+            _casualties pushBack [_unit,serverTime,serverTime+300,netId _unit,+_clearContext];
+            _group setVariable ["CBE_Danger_Casualties",_casualties,true];
+        };
         [_group, _unit] call CBE_fnc_CortexRegroupOnKill;
     }]];
 };

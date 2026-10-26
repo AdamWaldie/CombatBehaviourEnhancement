@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-24",
+  "base_commit": "6665510e",
+  "requirement": "Higher engagement priority for things threatening the AA responder, within finite shared layered defence",
+  "gap": "Allocator ranked approach urgency, responder coverage and time but did not distinguish its own platform as the defended victim",
+  "change": "Sort urgent class first, self as victim second, existing responders third, relative approach time fourth; canonical track index stays final tie-break. Selected track index updated for extra rank field.",
+  "boundaries": [
+    "Native incoming-warning provenance and communication checks unchanged",
+    "No new scans, worker, retargeting, expiry extension or firing path",
+    "One start per platform/warning and existing finite limits retained",
+    "Urgent allied-asset warning still precedes nonurgent own warning"
+  ],
+  "checks": "Full1496-test offline build;413 compiled SQF;11 PBOs;155 settings;zero static performance findings;independent package verify pass",
+  "candidate": ".qa/candidates/aa-self-defence-priority-6665510e",
+  "fingerprint": "4d99a2b9072de964ac746684c76d61f51f7f640baf9c2f9b934b51a7d584ed5b",
+  "limits": "Unsigned dirty development package. Physical multi-threat allocation, balance, actual intercept and frame cost UNRUN; audits PAUSED. No whole-source parity claim."
+}

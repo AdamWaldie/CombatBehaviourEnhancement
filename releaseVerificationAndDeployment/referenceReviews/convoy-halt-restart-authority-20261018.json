@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-18",
+  "baselineCommit": "6617a7f1",
+  "scope": "Convoy steering HALT issue/receipt and explicit later travel restart; not whole-convoy authority or physical acceptance",
+  "finding": "Three-field group/revision/machine HaltOwner marker did not prove current seats, native command or unchanged authored route. Subordinate doFollow was also outside the final authority transaction.",
+  "implementation": [
+    "HALT native path clear/current-position move/forceSpeed/STOP and post-stop receipt now share a bounded unscheduled section. It rechecks actual seats, locality, simulation, combat effectiveness, service/reservations, remote/external ownership, pause and exact local registry configuration.",
+    "Local six-field HaltReceipt records owner marker, driver, movement operator, both native command/destination observations, current waypoint index and authored waypoint metadata. No new public field, handler, worker or world query.",
+    "An explicit later TRAVEL revision restarts only an older matching local halt with exact receipt/current native state, unchanged plain authored MOVE waypoint, matching current brain/configuration and local registry. Subordinate doFollow and vehicle MOVE are in that same transaction; only admitted restart deletes the halt markers."
+  ],
+  "remaining": [
+    "Immediate native command observations can settle asynchronously; changed observations refuse restart. Physical fast halt/resume timing and actual continuation are unverified. Do not weaken exact checks or infer native acknowledgement from receipt creation.",
+    "Receipt is local and intentionally not adopted as movement authority after migration; native stop/restart migration requires a separately validated handover.",
+    "Identical external commands are not distinguishable. Complete repeated HALT/new-order arbitration, group formation, seat repair, ordinary-route recovery and all remaining writers still need review/live testing.",
+    "No demonstrated fix for mixed-convoy gaps, tracked step-off, queue throughput or native reverse; authenticated queue execution remains incomplete."
+  ],
+  "validation": {
+    "tests": 1310,
+    "exitCode": 0,
+    "log": ".qa/cbe-convoy-halt-receipt-verified-build.log",
+    "packageFingerprint": "e9a216dcdea5938353a262852cfbfc8d400e16f50f210a1e676d4873fa4a4e7b",
+    "source": "6617a7f1 plus intended source/guide/tests; metadata appended afterward",
+    "initialFailure": "Existing test searched removed comment; locator updated to new block while preserving all waypoint/operator assertions."
+  },
+  "physicalAcceptance": false,
+  "audits": "paused",
+  "completion": "All65 families remain partial; full production objective unchanged."
+}

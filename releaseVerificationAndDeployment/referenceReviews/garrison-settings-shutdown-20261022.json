@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-22",
+  "baseline": "a31e3372",
+  "finding": "Deferred garrison settings still depended on GroupBrainStep after clearance had an independent finite cleanup path. Tactical shutdown removed that retry path.",
+  "implementation": [
+    "Consolidated clearance helper into core ActorSettingsCleanupStep, with explicit CLEAR/GARRISON kinds on the existing SETTINGS_CLEANUP runtime. Removed former CortexClearSettingsStep registration/file; no first-release alias. Historical prior review/candidate paths remain evidence.",
+    "Garrison pops one of at most64 pending actors before delegation, validates original issuer-bound per-actor retirement expiry, and calls existing RELEASE with deferral false. Refused work requeues without renewing the actor window.",
+    "Garrison release, controlled stop and actual locality adoption queue only existing pending facts against current local epoch. Canonical ActorSettings remains the native write boundary.",
+    "Removed garrison retry loop from tactical brain; duck recovery and active assignment remain separate, with no movement/watch/assignment/duck replay added.",
+    "Shared runtime retires when no cleanup kinds remain. No new PFH, worker, world scan or native mutation type."
+  ],
+  "validation": {
+    "tests": 1489,
+    "compiledSQF": 402,
+    "firstFull": ".qa/garrison-settings-shutdown-build.log (old callback-location assertion failed)",
+    "finalFull": ".qa/garrison-settings-shutdown-build-final.log",
+    "independentLog": ".qa/garrison-settings-shutdown-independent-verify.log",
+    "candidate": ".qa/candidates/garrison-settings-shutdown-a31e3372",
+    "fingerprint": "2dc724185314152e0aba42d313aa7cb9e96f6f3195fb94aff067731b3e576e88",
+    "provenance": "Unsigned development build: baseline+intended edits+retained unrelated dirt; no clean signed-release claim.",
+    "coverage": "Source mapping follows renamed executor; acceptance and build-out figures unchanged."
+  },
+  "limits": [
+    "Physical shutdown/re-enable, deferred native setting writes, HC transfer and measured performance remain unverified.",
+    "Original windows may exhaust; actor proof remains and automatic restoration is not guaranteed.",
+    "Existing pending/public receipts are not ordered side-effect replay or general provider handover.",
+    "Audits PAUSED; no push/merge/publication; protected references unchanged."
+  ],
+  "sourceHashes": {
+    "addons/core/functions/actorSettingsCleanupStep.sqf": "9d16c8b227dc33f0efa53acfd8ad9488ef19beab6d3e99aa3bbcf611879e8668",
+    "addons/infantry/functions/cortexGarrisonSettings.sqf": "2a64201b7746d3b255df7a4b9f1df00e9f8c6ac67dbc33df8d705470cc5ccc72",
+    "addons/infantry/functions/groupBrainStep.sqf": "ec0eb7c57acc04d437ffbe0756ac0f4de4b0011fb55aa5ee2c8ce91886a6e211",
+    "addons/core/functions/cortexLocality.sqf": "6cac5299865331bab7e1882cf389d6a76834fc80d49c160823162fe7f3b8e329",
+    "addons/core/functions/cortexStop.sqf": "a2e9a8e089a2881a09dfa33c43508ccfc2b908da53ad603c2c7ccdedb8d2adbf",
+    "addons/core/functions/schedulerReconcile.sqf": "68d81b022aa42209b0ebc32e451f13703531b27c2d5523f7ede5f24a77789dc8",
+    "addons/main/CfgFunctions.hpp": "86e5cf34b2f6ad03029753f8e573dfd1642fca358e95e7107299e1743eb7ee42"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-18",
+  "finding": "Direct DrivingRecoveryRelease deferral did not itself register the shutdown-independent observer; only the outer AssistRelease path did.",
+  "implementation": [
+    "Both locality and mobility deferrals register exact pending cleanup outside the first-publication guard",
+    "Existing pending receipts register too; no clock renewal or movement command in either branch",
+    "Locality lookup observes existing reverse receipts for a later pending flag within the original five attempts"
+  ],
+  "unresolved": [
+    "Public object variables have no durable receiver notification wired here",
+    "Late receipt or pending update beyond five seconds can still be missed on a new owner",
+    "No authenticated durable relay implemented; do not substitute an unauthenticated broadcast or stale receipt replay",
+    "Physical shutdown/readiness/HC transfer, repeats and performance remain unrun"
+  ],
+  "validation": {
+    "log": ".qa/cbe-recovery-defer-registration-build.log",
+    "tests": 1201,
+    "sqf": 323,
+    "pbos": 9,
+    "exit": 0,
+    "fingerprint": "28dd66229e62ad38da6f4d5fa627b2a71b9df6e350e00ba293e0c0188fd930dd"
+  },
+  "audits": "PAUSED"
+}

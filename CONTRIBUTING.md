@@ -8,6 +8,8 @@ Every SQF file, including audit helpers, starts with a useful documentation bloc
 
 Document FSM transitions and addon/config changes alongside their owning feature. State who starts the work, who owns it, what ends or cancels it and what cleanup restores. Never restore a value over a newer Zeus or mission order.
 
+SQF helper CODE called with `call` reads dynamically scoped variables. Keep control flags and actor lists under distinct names, especially in blocks that invoke movement or cleanup helpers. Reusing a boolean name for an actor array can change the helper's input type without changing its code. Pass queued callback context explicitly instead of relying on caller locals surviving.
+
 ## Feature documentation
 
 Each changed feature needs a guide containing:
@@ -27,7 +29,9 @@ Keep PR descriptions current with the final scope. List changed behaviour, contr
 
 ## Required checks
 
-Run `releaseVerificationAndDeployment/build_mod.ps1` for the sequential local pipeline. It runs unit tests, SQF structure checks, config checks, source/documentation contracts, CBA/Zeus/script parity, performance regression checks, feature coverage, HEMTT compilation, FSM validation and package sealing. CI runs the same checks for builds and signed candidates.
+Use focused existing checks while developing a coherent implementation batch. A local commit or a new continuation does not by itself require another complete build. Before delivering or pushing the batch, run `releaseVerificationAndDeployment/build_mod.ps1` for the sequential local pipeline. It runs unit tests, SQF structure checks, config checks, source/documentation contracts, CBA/Zeus/script parity, performance regression checks, feature coverage, HEMTT compilation, FSM validation and package sealing. CI runs the same checks for builds and signed candidates.
+
+Reuse the last successful full result only for the exact source it covered. Repeat checks when source changes, failures or unresolved concerns justify them. Prefer extending an existing regression case for a meaningful failure mode; avoid adding source-spelling checks for each implementation detail. Test counts are not behaviour acceptance.
 
 HEMTT provides compiler and lint diagnostics for current Arma commands. Fix compiler errors; review performance warnings. A static performance scan cannot establish the frame-time budget. Its high-severity baseline starts empty; an exception needs a specific reviewed reason and bounded count. Never regenerate a baseline merely to hide a new finding.
 
@@ -42,3 +46,6 @@ CBA owns addon settings, enablement and tuning. Native Zeus and optional ZEN mod
 ## CI usage and review checkpoints
 
 Validate locally while a PR is draft, and batch related commits into coherent push checkpoints. Automatic full validation runs on main pushes and on opened/updated/reopened ready PRs, including the ready-for-review transition. An explicit manual validation run remains available for draft branches. Superseded validation runs for the same PR/ref are cancelled; validation jobs have a 20-minute bound and ordinary build artifacts expire after three days. Signed candidates and published-release promotion retain their existing explicit triggers and full gates. No test or acceptance criterion is removed by this scheduling policy.
+
+
+Undefined SQF locals are configured as HEMTT errors. Do not downgrade this gate or suppress a finding without proving its actual caller-provided scope. Compilation and static contracts still do not establish physical behaviour.

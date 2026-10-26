@@ -1,0 +1,20 @@
+{
+  "base": "abd7eb26",
+  "status": "PHASE_TRANSITION_SAMPLING_INTEGRATED",
+  "finding": "BuildingOperationStep calls SAVE before publishing the operation phase, but BuildingLaneJournal could return the previous SAVE result under its1.5s throttle even after private ENTRY/SWEEP phase changed.",
+  "implementation": "Throttle SAVE only within the same recorded attempted phase. Record the attempt phase after exact owner/operation admission, alongside the original1.5s sampling bound. Existing lane-roster invalidation and changed-only publication remain.",
+  "consumer": "Existing BuildingOperationStep callback tail calls producer before operation phase publication; CortexClearBuilding CHECK/ADOPT still consume the existing lane format. No new dormant broker, observer, schema or task owner.",
+  "limits": [
+    "A sampling attempt can still refuse and is not a current-checkpoint acknowledgement.",
+    "No producer-owned aggregate snapshot, monotonic revision or authenticated current-owner request/replay is implemented by this fix.",
+    "Actor/native/settings/budget continuity and physical ownership handback remain incomplete or unverified."
+  ],
+  "validation": {
+    "build": ".qa/handovers/clear-phase-journal-build.log",
+    "independent": ".qa/handovers/clear-phase-journal-independent.log",
+    "candidate": ".qa/candidates/clear-phase-journal-abd7eb26",
+    "fingerprint": "b3b3cffa2852a917777109dfdbe766c8c63b4f3611465465b7477f596bb7e926",
+    "physicalAcceptance": false
+  },
+  "audits": "paused"
+}

@@ -1,0 +1,22 @@
+{
+  "baseline": "20a3f8be",
+  "scope": "Convoy native forceSpeed ownership confirmation",
+  "finding": "All3 convoy speed writers published requested caps as owned and allowed dependent route work without native confirmation, unlike ordinary driving.",
+  "implementation": [
+    "Lead, follower PACE and fresh TRAIL speed writes require getForcedSpeed match within0.001 before owned receipt and speed-history publication.",
+    "Unconfirmed lead cap defers remaining tick; unconfirmed follower/trail cap skips remaining work for that vehicle. Last confirmed proof retained.",
+    "Existing command boundaries, speed formulas, scheduling and route receipts unchanged. Adds one scalar readback per existing cap command, no worker or new retry."
+  ],
+  "validation": {
+    "initialFailure": ".qa/convoy-cap-confirm-build.log failed old assertion requiring unconditional immediate cap publication; moved new checks into that existing ownership case, no added test count.",
+    "final": ".qa/convoy-cap-confirm-build-final.log all1484/394SQF/full offline gates passed",
+    "independent": ".qa/convoy-cap-confirm-independent.log",
+    "candidate": ".qa/candidates/convoy-cap-confirm-20a3f8be",
+    "fingerprint": "ceb693dab74cf86c17ed484d458477ce2c95f95d5a6ff1807345c1eef23f17e6"
+  },
+  "limits": [
+    "Audits paused; command timing including delayed native application, actual stopping, mixed convoy throughput, ownership changes and frame-time performance unverified.",
+    "A failed cap does not stop the vehicle or reverse an earlier native command. No physical safety guarantee.",
+    "HBQ damage/crew source review does not establish convoy parity; HBQ excludes convoys from its main assist. No immunity, teleport or forced reseating imported."
+  ]
+}

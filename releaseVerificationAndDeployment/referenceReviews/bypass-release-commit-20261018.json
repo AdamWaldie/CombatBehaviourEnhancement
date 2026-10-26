@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-18",
+  "scope": "Atomic bypass command cleanup and episode retirement",
+  "sources": {
+    "addons/vehicles/functions/drivingBypassRelease.sqf": "eb61415420ab4673da9690cc3c32dde716f7a9db5c364ece96d05e473359581d"
+  },
+  "finding": "Release computed command authority, issued native handback and removed public work across scheduled statements; newer work could intervene.",
+  "change": "Live episode/locality, convoy successor/revision and command/actor checks now execute inside same unscheduled boundary as native handback and cooldown/result/work retirement. Recheck live episode/locality after native commands before metadata deletion. Returntrue only when matching episode actually retires. Geometry remains outside.",
+  "validation": {
+    "tests": 1187,
+    "sqf": 315,
+    "pbos": 9,
+    "log": ".qa/cbe-bypass-release-commit-build.log",
+    "exit_code": 0,
+    "fingerprint": "e1c6d9462ad436a8b1d3d3f5b7aa0c4eb56fba65ad32044fcb89fa5a0c5fc3a3",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "receipt": "Parenta48a6ad4 plus tracked diff/dirty Build; not signed Release."
+  },
+  "limits": [
+    "No actual native stop/handback/replacement/HC/JIP physical acceptance.",
+    "Synchronous native-event side effects on commands and identical external commands remain unresolved; post-command identity prevents successor metadata deletion but cannot undo issued commands.",
+    "Unscheduled cleanup cost unmeasured; registry/cooldown scans inherit prior bounds and validation assumptions.",
+    "All65 families partial; complete HBQ, bilateral queues, subsystem-off readiness cleanup and performance acceptance remain open."
+  ]
+}

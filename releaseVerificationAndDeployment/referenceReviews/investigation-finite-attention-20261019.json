@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "6feaa851",
+  "scope": "Investigation gaze ownership and native replanning",
+  "finding": "CALM installed persistent doWatch; INVESTIGATE contact/completion blindly cleared watch for all local survivors, including replacement mission orders.",
+  "implementation": "Finite native glanceAt for eligible support actors; no persistent watch lease and no blanket watch resets. Existing movement/target admission unchanged.",
+  "sourceIntent": "Preserved danger brainHide uses finite glance/watch attention separately from physical body-check; this change fixes CBE attention lifecycle only.",
+  "validation": {
+    "focused": "611 existing checks passed (test_search_move_ownership and test_cortex_operations)",
+    "compiler": ".qa/cbe-investigation-finite-attention-hemtt.log",
+    "buildoutEvidence": "passed; scores unchanged",
+    "fullPipeline": ".qa/cbe-investigation-attention-replan-build.log; 1476 tests passed",
+    "independentVerify": ".qa/cbe-investigation-attention-replan-independent.log",
+    "fingerprint": "96d1d533222f5742ef0ca291f2579a8d422d4901e3f9e7d67ff734efefb5d247",
+    "source": "6feaa851+dirty unsigned development; not a later clean commit package"
+  },
+  "newWorkers": 0,
+  "newScans": 0,
+  "newTestCases": 0,
+  "physicalAcceptance": false,
+  "remaining": [
+    "Finite individual body investigation still absent",
+    "Sustained support facing and actual search travel unverified"
+  ],
+  "audits": "PAUSED",
+  "replanning": {
+    "finding": "Indoor native admission/escalation protected PLANNING only. REPLAN could admit route replacement or be classified as node stagnation.",
+    "implementation": "PLANNING and REPLAN both defer admission/escalation. An existing approach defers no-progress classification during recalculation without resetting progressAt or its original hard deadline."
+  },
+  "sourceHashes": {
+    "addons/infantry/functions/cortexGroupTick.sqf": "949b211b881935dc5ccb2676bd754402ba0b14d8710784fecd7b14d50076e710",
+    "addons/infantry/functions/indoorActorNativeContext.sqf": "10abba814dd17e43f9f404e6ece13484e9ba88a83e32eef6e4979cbe1de3bd1b",
+    "addons/infantry/functions/indoorActorOperation.sqf": "b915806b1e79c498570102036ba1359f1f0c37d1ad3c60670d30787e1db343fc"
+  },
+  "bodyExecutionTrace": {
+    "dangerFSM": "HIDE action executes once; timeout/CanContinue transition alone cannot observe body approach, acknowledgement or actual arrival. Extending its timeout alone would not implement a physical task.",
+    "indoorActor": "START requires live building and transform; SELECT uses building nodes, APPROACH proves inside geometry, public journal and discovery/locality cleanup are indoor-specific. No fake building context permitted.",
+    "next": "Implement finite individual point execution with real acknowledgement/progress/deadline and exact cancellation/continuation; wire body observation without copying global corpse scans or inventory mutations."
+  }
+}

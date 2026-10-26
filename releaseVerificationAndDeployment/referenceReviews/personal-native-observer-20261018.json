@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-18",
+  "scope": "Personal observer selection in native knowledge summary",
+  "references": [
+    "https://community.bohemia.net/wiki/knowsAbout",
+    "https://community.bohemia.net/wiki/targetKnowledge"
+  ],
+  "finding": "Unit knowsAbout considers group knowledge and cannot identify the actual personal observer. targetKnowledge knownByUnit and timestamps provide that distinction.",
+  "implementation": [
+    "Coarse candidates use group belief and one group confidence read each, preserving the native candidate range/sort before nearest8 detail.",
+    "Existing detailed pass remains at most8contacts by8members. Freshest knownByUnit member refines getHideFrom belief; group fallback retained.",
+    "Re-sort at most8 output records after refinement with unique numeric tie index. First6 external record fields unchanged.",
+    "No reveal, live hostile transform, new observer or scan. Additional getHideFrom reads at most8; coarse candidate population remains unbounded."
+  ],
+  "validation": {
+    "tests": 1380,
+    "log": ".qa/cbe-personal-knowledge-observer-verified-build.log",
+    "fingerprint": "6c2d2d712b88007ebcb0c354aabd05474f5103c3af6b57cb59cf359c1318af82",
+    "physical": false
+  },
+  "remaining": [
+    "Covered leader/moving wingman natural-contact evidence, disappearing/reappearing contacts, owner transfer and native group-belief fallback.",
+    "Coarse shortlist can still omit candidates before personal refinement; not omniscient or exhaustive sensing.",
+    "Actual native cost and median/p95 budget remain unmeasured."
+  ],
+  "audits": "paused"
+}

@@ -2,10 +2,11 @@
  * Author: WaldoTheWarfighter
  * Purpose: Acquires the single owner-local CBE flight-mutation lease for an AI aircraft.
  * Locality / Authority: Aircraft-owner local. Player, curator, specialist and non-local aircraft are rejected before lease mutation.
+ * Active declared/provider airframe control refuses acquisition and fast mutation permission.
  * Repeat/JIP: Re-acquiring the same controller/token retains its lease identity; controller deadlines remain separate. A strictly higher priority may replace an older CBE controller; public state is diagnostic only and grants no remote authority.
  * Arguments: 0 aircraft <OBJECT>; 1 controller <STRING>; 2 token <STRING>; 3 priority <NUMBER>.
  * Return Value: Boolean - true only when the caller owns the current flight lease.
- * Current callers: aircraft attack, helicopter landing, missile defence and helicopter braking controllers.
+ * Current callers: airborne one-shot climb, aircraft attack, helicopter landing, missile defence and helicopter braking controllers.
  * Example: [_aircraft,"AIR_ATTACK",str _generation,300] call CBE_fnc_FlightLeaseAcquire;
  */
 params [
@@ -15,6 +16,8 @@ params [
     ["_priority",0,[0]]
 ];
 if (isNull _aircraft || {!local _aircraft} || {!alive _aircraft} || {_controller == ""} || {_token == ""}) exitWith {false};
+// A provider may take the airframe between the slower planner checks.
+if ([_aircraft] call CBE_fnc_CompatibilityExternalControl) exitWith {false};
 private _pilot=currentPilot _aircraft;
 if (isNull _pilot || {!([_pilot] call CBE_fnc_CortexCombatEffective)}
     || {isPlayer _pilot} || {!isNull (remoteControlled _pilot)}) exitWith {false};

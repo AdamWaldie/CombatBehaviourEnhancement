@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-25",
+  "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Selected original crew accepts newer native STOP after old worker completion",
+  "defect": "A native STOP can terminate the selected movement worker while leaving its unresolved reservation retained despite positive native STOP and physical rest.",
+  "implementation": [
+    "VehicleCrewMoveReturnProof optional EXTERNAL_STOP mode shares exact completed private-worker/owner/epoch/generation checks.",
+    "At least one surviving original operator; all survivors local, same original group/platform, native active STOP (perpetual, no readiness requirement); no replacement current driver/commander.",
+    "Actual finite linear velocity below0.278m/s and angular velocity below0.01rad/s.",
+    "No native commands, new worker, scan, timer, group split or deadline renewal.",
+    "Shared passive retirement preserves a newer same-label public lease by matching original holdUntil, as well as the original local lease.",
+    "Selected tactical interruption always INCOMPLETE; artillery clears only exact scoot token/session."
+  ],
+  "changedFiles": [
+    "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf",
+    "addons/vehicles/functions/vehicleCrewMoveRetire.sqf",
+    "addons/vehicles/functions/vehicleTacticalMoveRetire.sqf",
+    "addons/support/functions/artilleryCrewMoveRetire.sqf"
+  ],
+  "limitations": [
+    "No Arma audit; user pause retained.",
+    "Current-owner exact completed worker only; no cross-owner worker-termination claim.",
+    "Arbitrary new MOVE/ATTACK orders and replacement crew remain outside this positive STOP proof.",
+    "Actual STOP acknowledgement timing, physical behaviour and measured overhead pending."
+  ],
+  "physicalAcceptance": false,
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 432,
+    "PBOs": 11,
+    "build": ".qa/handovers/selected-native-stop-corrected-build.log",
+    "independent": ".qa/handovers/selected-native-stop-corrected-independent.log",
+    "candidate": ".qa/candidates/selected-native-stop-corrected-06b834a7",
+    "fingerprint": "452952463372f91fb17a5a41efdd4549cb1e31a78ea9d2dff1891c5e884190fc",
+    "note": "Fresh complete gates and independent verification after correcting the perpetual STOP semantics. Earlier provisional package is superseded."
+  },
+  "engineSemantics": {
+    "source": "https://community.bistudio.com/wiki/commandStop",
+    "finding": "Native stop never finishes and unitReady stays false on its controlling actor. Removed readiness as an impossible retirement condition; actual current STOP and measured rest remain required.",
+    "supersededCandidate": ".qa/candidates/selected-native-stop-06b834a7",
+    "supersededFingerprint": "188d28eb90e4e1b94ccfdee16ac1c442b6cc427e2d6530c2d1affe722f5e57ad",
+    "physicalAcceptance": false
+  },
+  "hashes": {
+    "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf": "9396c6afaa4e993a6c2418b2f7712278d73f5b34501264753a26893a10401386",
+    "addons/vehicles/functions/vehicleCrewMoveRetire.sqf": "69b63fbc4663b164694e1ce901505b8a82c35d17aa61d543fca0d1ab6525be8e",
+    "addons/vehicles/functions/vehicleTacticalMoveRetire.sqf": "c47a00970906f78d1c28ff33285a9dd51de5f83c3e71a2f2f7ca704b8955605b",
+    "addons/support/functions/artilleryCrewMoveRetire.sqf": "54dccd1cf2244871dfff485afdae90d91c58868204d3f8971ae972e093d81fc2"
+  },
+  "dismountedFollowup20261026": {
+    "review": "selected-dismounted-stop-retirement-20261026.json",
+    "scope": "Original survivors may now be on foot with newer active STOP and measured individual rest. Historical aboard-only restriction is superseded for this subset; actual worker/owner/epoch/generation/lease/platform-rest checks remain."
+  }
+}

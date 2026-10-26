@@ -1,0 +1,29 @@
+{
+  "baseline": "f5318674",
+  "scope": "Native driving recovery locality-edge adoption into existing FSM",
+  "implementation": [
+    "Actual group gain captures previous published driving owner/epoch before cleanup; actual vehicle Local gain captures the same source identity. Five-second proposals are private edge evidence; init/seat retries do not manufacture or extend them.",
+    "New metadata adopter requires all current operating actors/group/vehicle local, active driving authority, exact original native leg (destination or SIMPLE_BACK), unchanged cap/seats, typed original goal/frame/baseline/clocks and a matching unexpired edge. Competing child/abort work, care/fleeing/reservations, Zeus/provider ownership, changed caps/orders, unresolved or expired recovery refuse.",
+    "Only route issuer epoch/owner are rebound. Journal clocks, baseline, progress anchor, stage and spent flags are copied unchanged. Existing local assist metadata reconstructs original stage/deadline; existing DrivingOperationStart starts/deduplicates the owner FSM rather than granting a fresh recovery budget. Failed startup remains subject to existing terminal receipt policy.",
+    "Pending reverse/return can use existing exact cleanup and observed native return. Forward-stage metadata can resume within the original recovery lifetime. No native command or speed write occurs in adoption itself; no new permanent job/world scan."
+  ],
+  "validation": {
+    "initial": ".qa/native-recovery-adopt-tests.log:two stale/new source-contract expectations corrected (baseline uses getOrDefault; lookup now includes native forward-stage journals).",
+    "full": ".qa/native-recovery-adopt-build-final.log:1487 tests/400 SQF and complete offline gates passed. First full build passed before review found competing-child refusal missing; added it and rebuilt final candidate.",
+    "candidate": ".qa/candidates/native-recovery-adopt-f5318674",
+    "fingerprint": "522a6d68ad47a9189317dd2420a548ca46e9e6aa48e7f6dd38b52a97ebe4b40a",
+    "independent": "Preserved candidate verifier exit0.",
+    "provenance": "Baseline plus intended changes and retained unrelated dirty files; unsigned development candidate."
+  },
+  "limits": [
+    "No physical normal/HC transfer or native handback evidence. Audits paused; no performance budget result.",
+    "Adoption requires driving still active and actual source evidence delivered within five seconds. Disabled-driving cleanup-only native adoption and later delivery remain unsupported/unresolved; expiry is not proof of handback.",
+    "Same-value mission edits/native STOP remain observationally indistinguishable from matching receipts.",
+    "Native corridors/bypass/pass/queue and casualty replacement remain open. Full production goal incomplete."
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/drivingNativeRecoveryAdopt.sqf": "2dd4bc5dd1027dcb13439aee2b23d6d385d3edd841fcf9090f99d7208796c45c",
+    "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "b8b96955c98dff012cb44b35b2afeef55b040c72f3467ab253ce713c6cf3cbcb",
+    "addons/core/functions/cortexLocality.sqf": "90a186b3285d23a7ea86471fab7bdc98a9a47bf00578af99190beac4d4c41a2a"
+  }
+}

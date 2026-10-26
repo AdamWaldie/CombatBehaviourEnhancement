@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-25",
+  "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Infantry flare candidate leader fallback",
+  "referenceSources": [
+    {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_findReadyUnits.sqf",
+      "sha256": "5be4706ade968c0a081308ce6f18bc67de75ff0c9481b797bb1923163f2caf43"
+    },
+    {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doUGL.sqf",
+      "sha256": "d9a617b963a790a8da98d46d9f4e2ca528148f4d93075fcc614e822a37d80fb1"
+    },
+    {
+      "path": ".qa/lambs-2621-review/danger/functions/fnc_tacticsAssess.sqf",
+      "sha256": "77b708a13bc888a1e1e0aa4a9e044d4455e5c8aa6847c394f3c671136427dc93"
+    }
+  ],
+  "sourceInterpretation": [
+    "Retained danger assessment asks main findReadyUnits for candidates and passes those to doUGL. Installed main filtering does not categorically remove the leader; doUGL picks a local nonplayer launcher carrier.",
+    "CBE previously removed every leader before any ammunition/launcher check, leaving leader-only flare groups without an admission path.",
+    "This compares the separately preserved danger and installed-main snapshots, not a whole-version parity claim."
+  ],
+  "implementation": [
+    "Reorder the existing first16 candidates so a leader already present is last. Preserve all original candidates and their search budget.",
+    "Remove only the categorical leader exclusion. Idle/native target, readiness/planner, reservation, locality/ROE and all current loading/aim/fire/cleanup checks are unchanged.",
+    "Leader outside the original prefix remains outside; player or busy leaders remain ineligible.",
+    "No new movement, leadership, inventory, dummy-target, knowledge or physics command."
+  ],
+  "sourceMethodsNotCopied": [
+    "Source doUGL forces stop, posture and forceMove; it also creates/reveals a dummy target and directly replaces magazine inventory. CBE retains its existing native no-dummy/no-inventory-edit finite executor.",
+    "Source fire callback delay does not prove release. CBE still requires the actual matching FiredMan observation and native weapon readback."
+  ],
+  "cost": "Reorder at most16 existing entries. One selection-time leader read replaces the prior per-initially-eligible-actor reads; when none qualifies this adds one read. No worker/timer/world query; no universal speedup or measured runtime delta claimed.",
+  "limitations": [
+    "Audits paused; actual aim, release, effect, interruption and weapon handback unverified.",
+    "Native STOP/WAIT admission deliberately unchanged; this is not general holding-team illumination.",
+    "Whole LAMBS functionality/parity and measured performance are not established.",
+    "Raw reference sources remain private and untouched; no upstream assets copied into product."
+  ],
+  "changedFiles": [
+    "addons/infantry/functions/cortexIlluminationStep.sqf"
+  ],
+  "physicalAcceptance": false,
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 432,
+    "PBOs": 11,
+    "build": ".qa/handovers/illumination-leader-fallback-build.log",
+    "independent": ".qa/handovers/illumination-leader-fallback-independent.log",
+    "candidate": ".qa/candidates/illumination-leader-fallback-7345579a",
+    "fingerprint": "aac9296ebab1d68b69dc7f3b778b14c82dbbd4d1b276ab2ff994eeda11cdf5d7",
+    "physicalAcceptance": false
+  },
+  "sourceHashes": {
+    "addons/infantry/functions/cortexIlluminationStep.sqf": "5f002afee257460cd5fe0d16d62be97ebef438722c106bc712575d51f4db5659"
+  }
+}

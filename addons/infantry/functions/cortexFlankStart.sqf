@@ -1,5 +1,13 @@
 /*
  * Author: WaldoTheWarfighter
+ * Initial active role allocation excludes hidden/simulation-disabled actors without treating them as casualties.
+ * Eligible persistent buddies are selected together where element capacity permits;
+ * minimum mover/cover fire capacity and existing specialist-role preferences take priority.
+ * Admission sizes the moving element from ammunition-qualified rifle capacity and retains
+ * at least two such cover actors. Physical squad/cover membership stays separate.
+ * Initial role capacity excludes protected native tasks and live actor reservations through
+ * the shared task-availability gate; later executor checks remain authoritative.
+ * Natural admission preserves native STOP unless exact completed CBE hold provenance permits transfer.
  * Decides whether a squad in contact should flank, and if so plans the manoeuvre.
  *
  * Base of fire and manoeuvre uses multiple movement bounds. The leader, machine gunners and anti-tank gunners stay as the base of fire,
@@ -69,12 +77,17 @@ if ((_state getOrDefault ["moraleState", "STEADY"]) != "STEADY") exitWith {["MOR
 private _leader = [_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 if (vehicle _leader != _leader) exitWith {["LEADER_MOUNTED"] call _refuse};
-private _onFoot = (units _group) select {
-    alive _x && {local _x} && {vehicle _x == _x} && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
-        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+// Physical fighting strength is not the immediately assignable task roster.
+// Treatment, reservations and native ownership may defer a healthy fighter without
+// making that soldier a casualty. Minimum-ready admission remains separate below.
+private _strengthFoot=(units _group) select {[_x] call CBE_fnc_CortexCombatEffective && {vehicle _x == _x}};
+private _onFoot = _strengthFoot select {
+    local _x && {simulationEnabled _x} && {!isObjectHidden _x} && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
+        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
+        && {currentCommand _x != "STOP" || {[_group,_state,_x] call CBE_fnc_CortexHolderRecallOwned}}
 };
 if (count _onFoot < (missionNamespace getVariable ["CBE_AIPass_Flank_MinGroupSize", 6])) exitWith {["INSUFFICIENT_ACTORS",[count _onFoot]] call _refuse};
-if (count _onFoot / ((_group getVariable ["CBE_AIPass_PeakSize", count _onFoot]) max 1) < 0.6) exitWith {["CASUALTY_STRENGTH",[count _onFoot,_group getVariable ["CBE_AIPass_PeakSize",count _onFoot]]] call _refuse};
+if (count _strengthFoot / ((_group getVariable ["CBE_AIPass_PeakSize", count _strengthFoot]) max 1) < 0.6) exitWith {["CASUALTY_STRENGTH",[count _strengthFoot,_group getVariable ["CBE_AIPass_PeakSize",count _strengthFoot]]] call _refuse};
 private _targetIndex = _enemies findIf {
     (_x select 2) <= 15
     && {(_x select 3) >= (missionNamespace getVariable ["CBE_AIPass_Flank_MinRange", 60])}
@@ -84,18 +97,24 @@ if (_targetIndex < 0) exitWith {["NO_TARGET_IN_RANGE",[_enemies apply {_x select
 private _target = (_enemies select _targetIndex) select 0;
 private _enemyPos = (_enemies select _targetIndex) select 1;
 private _distance = (_enemies select _targetIndex) select 3;
-private _riflemen = _onFoot select {_x != _leader && {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG", "AT", "LEADER"])}};
+private _armedFoot=_onFoot select {unitCombatMode _x in ["YELLOW","RED"]
+    && {_x checkAIFeature "FIREWEAPON"} && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}};
+private _riflemen = _armedFoot select {_x != _leader && {!(([_x] call CBE_fnc_CortexUnitRole) in ["MG", "AT", "LEADER"])}};
 private _candidates = [];
 {_candidates pushBack [_x distance2D _leader, _forEachIndex]} forEach _riflemen;
 _candidates sort true;
-private _size = ((floor (count _onFoot / 2)) min 5) min count _candidates;
+private _size = ((floor (count _armedFoot / 2)) min 5) min count _candidates;
 if (_size < 2) exitWith {[_state, "flank", 30] call CBE_fnc_CortexCooldown; ["NO_MANOEUVRE_ELEMENT",[count _riflemen]] call _refuse};
-private _element = (_candidates select [0, _size]) apply {_riflemen select (_x select 1)};
+private _rankedActors=(_candidates select [0,16]) apply {_riflemen select (_x select 1)};
+private _element=[_group,_rankedActors,_size,2] call CBE_fnc_CombatElementSelect;
+if (count _element < 2) exitWith {["NO_MANOEUVRE_ELEMENT",[count _element]] call _refuse};
 
 private _start = [0, 0, 0];
 {_start = _start vectorAdd getPosATL _x} forEach _element;
 _start = _start vectorMultiply (1 / count _element);
 private _base = _onFoot - _element;
+private _coverRifles=_armedFoot-_element;
+if (count _coverRifles < 2) exitWith {["NO_COVER_ELEMENT",[count _base,count _coverRifles]] call _refuse};
 private _supportOrigins = [];
 private _supportCandidates = [];
 if (_base isNotEqualTo []) then {
@@ -185,12 +204,13 @@ if (count _operation == 0) exitWith {
 };
 (_state get "drill") set ["operationGeneration",_operation get "generation"];
 (_state get "drill") set ["ownerEpoch",_operation get "ownerEpoch"];
+(_state get "drill") set ["nativeAdmissionChecked",true];
 [_group,_state get "drill","START","FLANK_ACCEPTED"] call CBE_fnc_CortexDrillSetStage;
 _group setVariable ["CBE_Cortex_FlankRefusal",nil,true];
 // The drill moves selected actors directly rather than adding a group waypoint.
 // Publish that ownership so support, vehicles and artillery cannot replace it mid-bound.
 _state set ["movementLease",["TACTICAL_DRILL",time+90]];
-[_group,_token] call CBE_fnc_CortexDrillStart;
+if !([_group,_token] call CBE_fnc_CortexDrillStart) exitWith {false};
 if (missionNamespace getVariable ["CBE_AIPass_Debug", false]) then {
     diag_log format ["[CBE] %1 FLANK element=%2 points=%3 crossings=%4", _group, count _element, count _points, {(_x select 1) == "CROSS_NEAR"} count _points];
 };

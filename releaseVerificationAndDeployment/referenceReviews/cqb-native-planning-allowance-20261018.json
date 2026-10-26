@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-18",
+  "scope": "Bounded clearance native planning allowance",
+  "reference": {
+    "path": ".qa/source-refresh-20261011/inventory/1858075458/lambs_main/functions/UnitAction/fnc_doAssault.sqf",
+    "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+    "finding": "Retains BUSY matching expected destination rather than restarting it; individual assault is not whole-squad clearance parity."
+  },
+  "implementation": [
+    "CBE clearance keeps twelve-second ordinary and four-second ended-command retry windows.",
+    "A current matching owned MOVE reported PLANNING or BUSY receives thirty seconds before retry.",
+    "No progress timestamp, retry count, target, episode or hard deadline is renewed by this allowance.",
+    "No hidden target transforms, random offsets, second movement writer or new scheduler introduced."
+  ],
+  "validation": {
+    "tests": 1372,
+    "log": ".qa/cbe-cqb-native-planning-allowance-verified-build.log",
+    "fingerprint": "7e38b40f2d9c251180369ac342590a65d9f57fe816324cb8e0be47973a91117d",
+    "physical": false
+  },
+  "remaining": [
+    "Thirty-second timing is provisional; native planning outcome and door/stair/straggler flow require physical evidence.",
+    "Actual engine state transitions and matched performance budget remain unverified."
+  ],
+  "audits": "paused",
+  "wholeSourceParity": false
+}

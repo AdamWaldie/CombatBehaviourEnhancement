@@ -1,0 +1,14 @@
+{
+  "baseline": "ddf065d0",
+  "finding": "Shared CortexGroupMove excluded platform declared driving owners and native actor tasks, but vehicleMoveInfo BACK/direct input or simple LEFT/RIGHT did not veto temporary group waypoints. Jink uses this path.",
+  "implementation": "Existing repeated vehicle gate now deduplicates crew parents, retains all declared platform ownership checks and rejects native BACK/DirectByComander/LEFT/RIGHT for driven ground vehicles. Entry, same-route adoption, before cleanup and final insertion use the same gate. Static/air domain input excluded; no STOP/STOPTURNING issued to qualify.",
+  "convoyTrace": "ConvoyTick already clamps cruise to0.8 of slowest cached configured top speed, blends measured gaps and lead actual-speed pacing, and retains native endpoints. No further spacing constants changed without live evidence. This finding is route authority, not proof of mixed-convoy flow improvement.",
+  "references": [
+    "https://community.bistudio.com/wiki/vehicleMoveInfo"
+  ],
+  "cost": "Same group scan boundaries, one vehicleMoveInfo per distinct applicable crew parent per gate instead of per occupant; new native observations, no world query, timer or worker. Actual overhead unmeasured.",
+  "limits": "A currently owned simple turn must retire before a new shared route can qualify. Same-value replacement and native command quiescence remain unproven. Physical route interruption and mixed-convoy restart failures retained.",
+  "validation": "Existing focused generation tests extended; full build result in handover.",
+  "physicalAcceptance": false,
+  "scoresChanged": false
+}

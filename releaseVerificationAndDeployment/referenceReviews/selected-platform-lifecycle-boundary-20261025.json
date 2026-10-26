@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "02796a73129fe81cf25c8c46cf4f35dca17aaf1d",
+  "scope": "Execution-boundary comparison before replacing armoured standoff group waypoint with selected-platform native orders",
+  "decisions": [
+    {
+      "finding": "Ordinary OperationCancel/Release call OperationRestore, VehicleReverseStep RELEASE and CortexGroupMoveClear. OperationRestore restores exact group attack policy, not selected native crew commands.",
+      "consequence": "Replacing only CortexGroupMove with doMove would leave native orders without a selected-crew retirement contract."
+    },
+    {
+      "finding": "CortexGroupTick services vehicle leases through CortexVehicles lifecycle-only. CortexStop finishes ordinary driving and requests independent artillery crew retirement. Locality cancels previous generic operation before epoch replacement and separately resumes selected artillery retirement.",
+      "consequence": "Selected-native cleanup cannot depend solely on a normal group tick that ends on stop/ownership change. It needs finite cleanup execution and explicit stop/locality/discovery wiring."
+    },
+    {
+      "finding": "CortexOwnershipLease rejects a nonempty selected artillery reference before driving retirement, even when ordinary expiry passes. Group-local driving pending journals also prevent acquisition.",
+      "consequence": "A role-neutral selected-native reference must similarly block competing acquisition until real native retirement or proven supersession; expired lease metadata alone is insufficient."
+    },
+    {
+      "finding": "Artillery selected movement is already a finite original-seat ISSUE/REQUESTED/MOVING/HOLD/STOPPING/RETURNING lifecycle, with separate UNRESOLVED reservation, worker identity, baseline, original native reply/cleanup deadlines and physical rest checks. Its start/step policies are tied to artillery sessions and generations.",
+      "consequence": "Use its executed lifecycle as the extraction reference, not an artificial artillery session or a call to support-only admission from armour."
+    },
+    {
+      "finding": "Current vehicle escape candidates contain one leg each. CortexSelectAvenue returns the chosen supplied route; selecting its last endpoint here does not discard intermediate legs because none are supplied.",
+      "consequence": "No route-truncation fix is justified for this current caller."
+    }
+  ],
+  "implementationBoundary": {
+    "required": "One role-neutral original-seat finite selected-platform move/retire path, used by standoff and artillery rather than duplicate competing controllers. Original crew/native baseline/route, epoch, request/cleanup deadlines, exact worker identity and pending reservation survive cancellation. Artillery-specific session validation remains its policy boundary.",
+    "wiring": [
+      "CortexVehicles standoff admission and existing tactical operation identity",
+      "CortexOwnershipLease acquisition exclusion for pending native selected work",
+      "CortexStop retirement request without outward resumption",
+      "CortexLocality old-worker retirement/incoming observer only from actual locality edge",
+      "CortexDiscover finite pending retirement service",
+      "Native readiness/reporting only after original command acknowledgement and measured physical outcome"
+    ],
+    "mustNot": [
+      "Do not start an unserviced doMove from the group waypoint branch.",
+      "Do not treat OperationCancel, expired lease or an ended script as native quiescence.",
+      "Do not mint artillery fire/session authority for armoured movement.",
+      "Do not create a permanently scheduled second movement controller or a dormant broker.",
+      "Do not replace unresolved selected crew with new actors just to unblock movement."
+    ]
+  },
+  "validation": "Read-only source execution comparison. No new runtime implementation or behavioural acceptance, no new test and no package rebuild required. Existing verified runtime candidate remains standoff-crew-d1571e62, fingerprint dddb62ba1ece06475a994f59813bb07955a77f8023c713afc6efdd8d80cc1751. Audits paused.",
+  "sources": {
+    "addons/vehicles/functions/cortexVehicles.sqf": "26a8b4fc163eddedb0384d79bd2f75c264637afccc5af4ab9985db4847d8a73b",
+    "addons/core/functions/operationStart.sqf": "9c872b680e90c0472988dbc5bd4fe318f77acdb96e93d778a7343f75a767e610",
+    "addons/core/functions/operationCancel.sqf": "4a0cc5983fe282cfdb3cf72a25309b5caf1c6b8b83eef97fe10b21db43399237",
+    "addons/core/functions/operationRelease.sqf": "e3fc1b86e096f76372ba842090a7384d9254ff5ceb94e42287948da6984a09d8",
+    "addons/core/functions/operationRestore.sqf": "d4b67fde4065deb747a1da71870f32456ee3d29afac420f1e00fe029531af8a8",
+    "addons/core/functions/cortexLocality.sqf": "0d9fae1f0ce61a81b5e8770e6f54b1b441b2fe8d30d9a407ce1d18d8d8fb8503",
+    "addons/core/functions/cortexStop.sqf": "6b196f728366c38b58245cffe90e77e955702652fd59dc5bb31250f2058378d3",
+    "addons/core/functions/cortexDiscover.sqf": "4cd8bdb6cb646dcf77dcbd0d38a796b6dc9b89c42baad7060806c2ad54b64197",
+    "addons/compatibility/functions/cortexOwnershipLease.sqf": "ad84bf3e82b454727d64f94febac9a509728f061a6efe3c49ef517e8e22f5504",
+    "addons/support/functions/artilleryCrewMoveStart.sqf": "b13515c4afa44b9e651fc9137d62b9d4cd75cc72b0c3d95bb6c92163cf73407d",
+    "addons/support/functions/artilleryCrewMoveStep.sqf": "7f629d11e627e552193711a57ad97e233309d1ddb7da574f606faf87cf81b18a",
+    "addons/support/functions/artilleryCrewMoveRetire.sqf": "dcf3991cce568f3d8b976b37ae7981175e3c4c17029a4eddaef3d4b08bd223c9"
+  }
+}

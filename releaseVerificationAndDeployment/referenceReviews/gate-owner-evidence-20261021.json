@@ -1,0 +1,38 @@
+{
+  "baseline": "4b8fabe2",
+  "scope": "Owner-local gate native-intent evidence with server animation authority",
+  "engine_reference": {
+    "url": "https://community.bohemia.net/wiki/expectedDestination",
+    "finding": "Official indexed reference marks expectedDestination local-argument. Direct page retrieval403; locality label retrieved in search index on2026-10-21."
+  },
+  "source_finding": "Existing authored/convoy gate closure captured native destinations on server for potentially remote crew. Ordinary GateIntent also read remote destinations. Native direct-MOVE gate mode was already unsupported.",
+  "implementation": [
+    "GateIntent refuses nonlocal group/vehicle/operating crew before destination reads. Shared owner check samples current native destinations/tasks and exact ordinary/convoy intent only on the actual owner.",
+    "Server-issued one-use challenge records exact group/vehicle/seats, gate, route, action and original expiry. Only server sends probes; only recorded current operating owner can answer; ownership/seat changes and expired/replayed tokens reject. At most16 pending tickets; no perpetual worker/JIP replay.",
+    "Remote opening pauses before native checks and resumes only with a private matching witness bound to the original payload. Opening keeps original five-second expiry. Server final lock/pose/feature/crew/route/geometry checks retain animation authority.",
+    "Server passage observation no longer reads remote destinations. Only after observed passage and sampled nearby clearance does closure request fresh owner intent, within min(original job expiry,three seconds). Unconfirmed evidence retires without closing. Geometry and server context are rechecked before animation.",
+    "Owner convoy checks consume ordered CBE_Convoy_LocalRegistry on HC/client and authoritative CBE_Convoy_Registry on server."
+  ],
+  "validation": {
+    "focused": "14 gate regression cases passed, including one distinct exchange authentication/expiry/replay contract. These are static/model checks, not engine/network execution.",
+    "initial": "One existing test expected two literal GateIntent calls; changed to verify shared local/evidence selector at both boundaries. First full build passed, then source review found owner convoy registry mismatch; corrected and rebuilt.",
+    "full": ".qa/gate-owner-exchange-build-final.log: all1486 tests,398SQF and complete offline gates passed.",
+    "candidate": ".qa/candidates/gate-owner-exchange-4b8fabe2",
+    "fingerprint": "9632a951362b4d540ab7ca6002e5c24e315aa08576648b3cebcc5f443badec80",
+    "independent": "mod_pipeline.py verify preserved candidate exit0",
+    "provenance": "Baseline plus intended batch and retained unrelated working changes; unsigned development candidate."
+  },
+  "remaining": [
+    "Native script-only MOVE gate support remains explicitly unavailable; its server-readable route identity still needs integration.",
+    "Network timing, packet delay, normal and HC ownership, physical passage and performance remain unverified. Audits paused.",
+    "An owner reply is bounded evidence, not a cross-machine atomic command lock; same-value edits and changes during network transit remain material runtime limitations.",
+    "No whole-mod completion, source parity or performance percentage is claimed."
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/drivingGateOwnerCheck.sqf": "70273d56bec266da7d4e9c63b0bd08f9f7e04d2b7097eab3946d4fb2402e0533",
+    "addons/vehicles/functions/drivingGateOwnerEvidence.sqf": "7d9f5812e29079b36a96edd7e432c85f88c73cc06c0b05d9e6533dfd8a339ee6",
+    "addons/vehicles/functions/drivingGateOpenServer.sqf": "bc4086775ad8abdfff6e6e3ebfa359f7818661849233e833a5f1c09ae181f2f3",
+    "addons/vehicles/functions/drivingGateCloseServer.sqf": "fd288685e745dfa5d8ca03414eb950da1c1305370871ca63bed8fadbc265a747",
+    "addons/vehicles/functions/drivingGateIntent.sqf": "e307aa0acc0822bbe36e6f5a6a7e4c9630427b76c1c733d4c485744fafb9a12f"
+  }
+}

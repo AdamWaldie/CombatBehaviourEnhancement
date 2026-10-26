@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "585dfafc",
+  "scope": "Existing experimental AA native Fired round capture; not expanded interception, layered-defence acceptance or whole AEGIS/Protocol parity.",
+  "failure": "SHOT capture bound operator identity, admitted weapon/muzzle/magazine, local round and shotWindow but did not recheck current native crew/group/owner epoch/control/task/fire policy. A successor/player shot inside that window could populate an old episode before later STEP validation rejected control.",
+  "implementation": "After cheap round identity/capacity checks and before positions/round list/counters, require original live AI gunner and group, epoch, exact fire-owner token/deadline, combat effectiveness/task availability, no external/Zeus/controller ownership, active unpaused feature gates, group/unit ROE and unchanged native route/command/targets. Dead/deleted warned missile refuses capture. No effect, target/aim/fire/native command, deadline extension, new controller/worker/query scan or triggerAmmo added to capture.",
+  "intent": "Preserve genuine native shot provenance for measured AA correction and later optional effect policy; do not adopt player/successor shots as evidence of the old AI response. Source remains a selective intent reference, not a dependency.",
+  "files": {
+    "addons/vehicles/functions/cortexAAIntercept.sqf": "7baefd6ff26cff25dfa3718d2815f1e446b81f44c57eacd407c388ace81c3b10"
+  },
+  "validation": {
+    "fullLog": ".qa/aa-shot-authority-build-20261025-attempt1.log",
+    "exit": 0,
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pbos": 11,
+    "finalFocusedLog": ".qa/aa-shot-authority-focused-20261025-final.log",
+    "finalFocusedCases": 1,
+    "independentLog": ".qa/aa-shot-authority-independent-20261025.log",
+    "candidate": ".qa/candidates/aa-shot-authority-585dfafc",
+    "fingerprint": "d05cb8970991c5d07e9390a982172cfd5e7883cea790634419ecbad98d2a8e8a",
+    "testScope": "Existing AA observation regression extended with capture-boundary authority ordering and no effect/aim command. Removed a redundant boolean-only model after full build and reran the final focused case; production source/package unchanged. No added case count. Static contracts, not SQF execution."
+  },
+  "cost": "New authority reads occur only after weapon/round identity and eight-round capacity checks, within the existing episode. Shared external/task/feature helpers may inspect bounded state/rosters; additional event cost is not measured. No performance-budget acceptance claim.",
+  "limits": [
+    "Unsigned dirty development candidate. Metadata and final focused-test simplification postdate package; runtime source hash unchanged.",
+    "Physical same-actor Zeus/player takeover, reordered Fired events, repeats, normal-HC/JIP and5percent median/10percent p95 remain UNRUN. Audits PAUSED.",
+    "Already-captured native rounds retain prior receipt/effect safety checks. This correction does not validate interception effectiveness, ballistics/fuse fairness or full anti-air layering. Whole goal active/incomplete."
+  ]
+}

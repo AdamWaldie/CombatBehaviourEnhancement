@@ -1,0 +1,139 @@
+{
+  "date": "2026-10-18",
+  "scope": "Finite actual actor-owner chute deployment adoption",
+  "sources": {
+    "addons/infantry/functions/cortexParachuteJump.sqf": "401558c894a13c927571ea9ac076930552df1e8bae14cbd6e1f27a81383d3979",
+    "addons/infantry/functions/cortexParachuteDeploy.sqf": "4e5bbba3768ea6b2858d945784dc85c399070bf4810b442bf0d40ba620fcc9ae",
+    "addons/infantry/functions/cortexParachuteProtectionRelease.sqf": "b469d3526de5f634b182ff3bd90b3a2957ba90fe33c49f3207771ba825bbd77a",
+    "addons/main/XEH_postInit.sqf": "1f6ffa65a6b1cec7effa21518a205120095c251b47b8ffe960ec19c0f1ba10a4"
+  },
+  "prior_reviews": [
+    "hbq-damage-protection-20261018.json",
+    "parachute-protection-receipt-20261018.json",
+    "parachute-command-outcomes-20261018.json"
+  ],
+  "finding": "Old-owner-only delayed callback lost the accepted chute phase on locality transfer. Exit receipt cleanup alone did not preserve deployment.",
+  "implementation": [
+    "Public actor/exit-token/group/class/velocity/due/deadline receipt after observed exit motion.",
+    "Existing native init/Local adopts only deployment; no replay of dismount/position/actor exit velocity.",
+    "Exact unscheduled receipt consumption before creation prevents duplicate deployment.",
+    "Actual owner readiness/reservations/player/remote/external/ground/group gates at deployment; expiry at original protection deadline.",
+    "Preserves empty local chute cleanup and independent damage cleanup.",
+    "Malformed public receipt types refuse before array parsing in both readers."
+  ],
+  "validation": {
+    "tests": 1132,
+    "sqf": 315,
+    "pbos": 9,
+    "log": ".qa/cbe-parachute-deployment-verified-build.log",
+    "exit_code": 0,
+    "fingerprint": "000075852c65b72742067b0ad77665e61f62679a199dc201e9ed82991b7abce0",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "remaining": [
+    "Receipt arrives after native init/Local event; observation may be missed.",
+    "Physical transfer before/during deployment, late callbacks, failed boarding, takeover and JIP acceptance.",
+    "External identical damage permission writes need cooperating authority.",
+    "DropStep ignores failed exit return and may repeatedly select same failed passenger; review scheduling fairness.",
+    "No measured median/p95 performance acceptance."
+  ],
+  "currentStateReconciliation20261020": {
+    "reviewed": "2026-10-20",
+    "baselineCommit": "ee133151",
+    "scope": "Current-state reconciliation; historical findings retained, no product change",
+    "sources": {
+      "addons/infantry/functions/cortexParachuteJump.sqf": "401558c894a13c927571ea9ac076930552df1e8bae14cbd6e1f27a81383d3979",
+      "addons/infantry/functions/cortexParachuteProtectionRelease.sqf": "b469d3526de5f634b182ff3bd90b3a2957ba90fe33c49f3207771ba825bbd77a",
+      "addons/infantry/functions/cortexParachuteDeploy.sqf": "4e5bbba3768ea6b2858d945784dc85c399070bf4810b442bf0d40ba620fcc9ae",
+      "addons/main/XEH_postInit.sqf": "bbdeda2519c79f65bd83fc44a7f795636f726454a7acf39eeae1be35c3918c0b",
+      "addons/aircraft/functions/cortexAirborneDropStep.sqf": "25f811d6efd253b2a705b09cc716b9f09ba4529db27324ef516ac23c6035fe74"
+    },
+    "supersededWork": [
+      "Exact receipt and original-deadline protection release already implemented; no bare remote allowDamage timer remains in this jump path.",
+      "Native actor init/Local already adopts the accepted finite deployment phase without replaying exit motion.",
+      "Airborne roster rotation advances before attempted exit; rejected passenger cannot monopolize the next selection."
+    ],
+    "currentLimits": [
+      "Receipt delivery after init/Local observation has no guaranteed replay path.",
+      "Same-value external allowDamage false writes cannot be attributed without cooperation.",
+      "Actual migration, failed boarding, repeated use and frame-time acceptance remain unverified.",
+      "No general HBQ-style low-speed vehicle collision damage filter is implemented; parachute protection is a different scope."
+    ],
+    "nextAction": "Investigate guaranteed bounded late-receipt observation and cooperating protection authority before claiming full migration reliability; do not rebuild existing cleanup or fairness paths.",
+    "physicalAcceptance": false,
+    "auditsLaunched": false,
+    "scoresChanged": false
+  },
+  "lateDeliveryMechanismReview20261020": {
+    "finding": "Actor init/Local performs one synchronous receipt read. Receipt replication afterward has no callback in this path. A later Local edge may recover it, but no such edge is guaranteed before the original deadline.",
+    "engineReference": "https://community.bistudio.com/wiki/addPublicVariableEventHandler",
+    "rejectedShortcut": "Object-target addPublicVariableEventHandler alternative is documented as broken; missionNamespace broadcast handling is not an object setVariable arrival hook. Do not substitute it as guaranteed delivery.",
+    "performanceConstraint": "Do not poll every unit or install permanent movement workers. A future recovery observer must be scoped to known active exit episodes and retain their original deadline.",
+    "authorityConstraint": "Any wake or replay is observation only. It must validate the current local actor and exact live receipt before release/deployment; no replay of dismount, actor position or exit velocity.",
+    "physicalAcceptance": false
+  },
+  "finiteReceiptWake20261020": {
+    "baseline": "0c25af94",
+    "sources": {
+      "addons/infantry/functions/cortexParachuteObserve.sqf": "4d71c65f91c2cd6eb24b7c5e9f15583436b55f934a075ccf1cdf22f94c8519e0",
+      "addons/infantry/functions/cortexParachuteJump.sqf": "1939c40672aa583104149873a130f970c03ecf1ac354b4ca2559486c2efc5bf1",
+      "addons/main/XEH_preInit.sqf": "3cd55bb3257a8306baa8d07011479cf7aa9ceeac8e37a732dc408058864d3b7a",
+      "addons/main/XEH_postInit.sqf": "cf673bcde5eb84d51d673da5e678785082b8970767b0860c93e5164be5d55972"
+    },
+    "implementation": [
+      "One CBA global wake per acquired exit including failed dismount; cached proposal is observation only.",
+      "Native init/Local reuses the cached proposal; actual owner polls receipt equality every0.1s only while original deadline+1 remains.",
+      "Exact queue serial prevents stale callback ABA after locality loss/gain.",
+      "Original deployment deadline and exact mutation gates remain; extra cleanup second cannot extend deployment/protection.",
+      "One expiry callback per connected peer; no world scans, permanent movement worker or remote mutation endpoint."
+    ],
+    "limits": [
+      "Non-JIP wake cannot recover late receipts on peers that joined after the wake.",
+      "Receipt arrival after finite window, engine ownership timing, same-value external protection and runtime overhead remain unverified."
+    ],
+    "validation": {
+      "tests": 1477,
+      "newTestCases": 0,
+      "log": ".qa/cbe-parachute-observe-build.log",
+      "independentLog": ".qa/cbe-parachute-observe-independent.log",
+      "candidate": ".qa/candidates/parachute-observe-0c25af94-ed7ab5d0",
+      "fingerprint": "ed7ab5d012f5811cd13e9d6b11b9a35c3b02a7b09b6281859b88031d51b24f44",
+      "physical": false
+    },
+    "reference": "https://cbateam.github.io/CBA_A3/docs/files/events/fnc_globalEvent-sqf.html"
+  },
+  "finiteJIPWake20261020": {
+    "baseline": "33ff2396",
+    "sources": {
+      "addons/infantry/functions/cortexParachutePublish.sqf": "aadd8c984822857a1b1550f28a8e08b98732fef83fc1e7a5a37b823501a1828d",
+      "addons/infantry/functions/cortexParachuteObserve.sqf": "b27039dcc5060ea9b4cba75ad592ce6679b3edc7567212891beee1b0b2d926eb",
+      "addons/infantry/functions/cortexParachuteJump.sqf": "359e86d41670b481c82d415a9698779ef38c6676a999a9384546e326214fb3d2",
+      "addons/main/XEH_preInit.sqf": "b8bb98cdb95db455230e9766832b04e0d04f29abfa55de93651e7e2faf463f7c"
+    },
+    "implementation": [
+      "Original issuer sends a bounded metadata proposal to the server; server publishes one token-keyed CBA JIP wake.",
+      "Duplicate token proposals cannot replace or renew a retained entry.",
+      "Server removes exact JIP entry and registry row at original protection deadline+1; callback does not depend on actor survival/locality or issuer connection.",
+      "Existing actual-owner observer and exact live receipt readers retain all mutation authority and original deployment/protection deadlines."
+    ],
+    "supersedes": "The prior connected-only wake limitation has an implemented JIP proposal path; physical JIP acceptance is still absent.",
+    "remaining": [
+      "Wake or live receipts arriving after finite observation expiry remain unsupported.",
+      "Physical JIP/locality transfer, loss of issuer, actor deletion, repeated episodes, same-value external protection and measured performance remain unverified."
+    ],
+    "references": [
+      "https://cbateam.github.io/CBA_A3/docs/files/events/fnc_globalEventJIP-sqf.html",
+      "https://raw.githubusercontent.com/CBATeam/CBA_A3/master/addons/events/fnc_globalEventJIP.sqf",
+      "https://raw.githubusercontent.com/CBATeam/CBA_A3/master/addons/events/fnc_removeGlobalEventJIP.sqf"
+    ],
+    "validation": {
+      "tests": 1477,
+      "newTestCases": 0,
+      "log": ".qa/cbe-parachute-jip-build.log",
+      "independentLog": ".qa/cbe-parachute-jip-independent.log",
+      "candidate": ".qa/candidates/parachute-jip-33ff2396-2a0a113a",
+      "fingerprint": "2a0a113a2017feb1fdb6dd1e3f298da92a1869cc55510dab523adbff1c39bd44",
+      "physical": false
+    }
+  }
+}

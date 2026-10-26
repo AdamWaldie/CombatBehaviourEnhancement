@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "09ff6f83",
+  "scope": "Current route-wait/refresh helper comparison and explicit precision gap; not another full29-file/controller review.",
+  "protectedSources": {
+    "fn_routeWaiting.sqf": {
+      "sha256": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+      "readScope": "complete helper"
+    },
+    "fn_refreshRoute.sqf": {
+      "sha256": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8",
+      "readScope": "complete helper"
+    },
+    "fn_precision.sqf": {
+      "sha256": "9d5d28551d748410a419f1ec602845bc3e3b6d653c8dd6179bb10eed71381a9b",
+      "readScope": "complete helper"
+    },
+    "fn_playersNear.sqf": {
+      "sha256": "9ab86035b3b06784c17383ed3efb0892dff55f087166c5079fad49896fedaee1",
+      "readScope": "complete helper"
+    }
+  },
+  "productHashes": {
+    "addons/vehicles/functions/drivingRouteGoal.sqf": "2b96b048425e6b9a288830e4fd0817f60f6f173d06477770e47ea61067cf19ef",
+    "addons/vehicles/functions/drivingRouteReceipt.sqf": "3cf86826cf2fc0b51ca495225186b3ab02e1fa408e3c9f332fafdd348cfb1930",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "ac00414f13b62c07dab7d537d3f8dbce426dd7eff92de306a7dc521f6b424453",
+    "addons/vehicles/functions/drivingFollowingCap.sqf": "9cb72f1d0e44385c471a1e3952d98d8ced7577801b686d74855d7158d4da87c1",
+    "addons/vehicles/functions/drivingOperationStep.sqf": "c8e1c98de4d6d0cedfb8d90d77eb31df69d8bd3564ab967d3460f4df3dcaef73"
+  },
+  "dispositions": [
+    {
+      "intent": "Intentional authored waiting",
+      "source": "routeWaiting protects near-waypoint HOLD, inactive trigger, positive timeout and nontrue condition; it does not execute condition code.",
+      "current": "DrivingAssistStart near-waypoint wait also requires stationary/unitReady. DrivingRouteGoal separately refuses non-MOVE, code/script, timeout, attachments and synchronization even at a distance. Retain this stricter recovery boundary; no bypass selected."
+    },
+    {
+      "intent": "Restore a native route after temporary driving work",
+      "source": "refreshRoute throttles3s; commanded-vehicle branch avoids fixed paths and issues commander doMove. Other branch may end a path, forceSpeed -1, enable MOVE/PATH, delete/recreate current waypoint and recall selected crew. It copies many fields but is not CBE exact-owner handback.",
+      "current": "Keep CBE original-route/seat/native command receipts and finite handback acknowledgement. Do not adopt blanket speed/AI-feature release or authored waypoint replacement. Inspection did not prove a new CBE regression requiring such a change."
+    },
+    {
+      "intent": "Amortized distance/precision work",
+      "source": "precision caches5s, explicit per-vehicle override precedes optional player-distance low mode. playersNear uses altitude/body-direction heuristic for hidden recovery and is not visibility proof.",
+      "current": "CBE driving phase schedules4s cruise/1s constrained callbacks; FollowingCap explicitly budgets4s reaction time and6s prediction horizon. HBQ-style per-vehicle precision and player-distance observation LOD are not implemented by that phase cadence. Preserve this gap; do not claim parity or weaken geometric safety because an observer is distant."
+    }
+  ],
+  "costDecision": "No cadence/sensor reduction selected without response-latency, observation-age and physical safety evidence. Existing4s reaction accounting means a quicker-looking interval is not by itself a demonstrated correction. No performance acceptance claimed.",
+  "validation": "Read-only source comparison and source hashes. Prior precision/recovery reviews were consulted; this does not add four new source implementations or raise percentages. No source change/build/audit. Audits remain paused; whole production goal incomplete."
+}

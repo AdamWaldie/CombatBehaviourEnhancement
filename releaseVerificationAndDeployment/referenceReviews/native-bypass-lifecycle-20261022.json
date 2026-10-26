@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-22",
+  "baseline": "a65edbbd",
+  "scope": "Native scripted MOVE ordinary static-obstacle bypass",
+  "status": "IMPLEMENTED_OFFLINE_ONLY",
+  "sourceIntent": "HBQ whole-driving review priority: useful finite obstacle navigation integrated into CBE owner-local execution. This is a current CBE lifecycle implementation, not a new whole-HBQ source-parity assessment.",
+  "changes": [
+    "Native admission uses the original receipt goal, never waypointPosition or a fabricated waypoint. Requires an existing REFRESH/FINAL recovery parent and consumes its single bypass budget. Convoy and queue native admission stay refused.",
+    "PLAN/FOLLOW route retention binds current seats, group, owner epoch/client and exact child/parent receipts. FOLLOW uses the existing route-reader-free command classifier. No new worker or geometry queries.",
+    "Expired exact FOLLOW command identity remains classifiable for cleanup; this does not renew deadlines or authorize parent movement. Expired-parent cleanup requests stop-only with unchanged exact parent proof.",
+    "Native return requires both observed STOP tasks, original unexpired parent and unchanged work. One original-goal request uses the existing two-second acknowledgement journal bounded by original hard deadline.",
+    "Both operating seats must acknowledge MOVE at original goal before return retirement; partial acknowledgement remains pending or expires within original request window. Changed order yields LOST.",
+    "DrivingAssistRelease retires matching native bypass before recovery parent so child cleanup retains original provenance. Existing eligibility, native input, treatment, flight, Zeus and external ownership vetoes remain."
+  ],
+  "validation": {
+    "pipeline": ".qa/native-bypass-build-verified.log",
+    "tests": 1489,
+    "result": "PASS including HEMTT, FSM/config/SQF/documentation/package gates",
+    "priorBuilds": [
+      ".qa/native-bypass-build.log",
+      ".qa/native-bypass-build-final.log"
+    ],
+    "priorBuildDisposition": "Both passed earlier source versions; subsequent review found shutdown/expired-parent and both-seat ACK requirements, now covered by final build.",
+    "candidate": ".qa/candidates/native-bypass-a65edbbd",
+    "fingerprint": "899c29570e27dca914feaf5cfae890863f39d53bbf08ccb8045c53076a7f989b",
+    "independentVerify": ".qa/native-bypass-independent-verify.log",
+    "provenance": "Unsigned development package: a65edbbd plus these intended runtime/doc edits and previously retained unrelated working-tree dirt. Not clean final-head or signed release.",
+    "limits": "Static source checks and a small Python ACK-state model do not execute SQF or prove native command timing, physical passage, forward travel, HC/locality or performance. Audits paused."
+  },
+  "remaining": [
+    "Native corridor task lifecycle remains unimplemented; passing and automatic queue still refuse native routes.",
+    "No physical stop/return or both-seat ACK timing evidence. If the engine does not report immediate STOP, this implementation refuses onward return; it does not manufacture acknowledgement or add replay.",
+    "Native same-value order replacement remains observationally indistinguishable.",
+    "Production goal and measured 5% median/10% p95 overhead remain incomplete."
+  ],
+  "evidence": {
+    "addons/vehicles/functions/drivingAssistRelease.sqf": "a9754abc3ac7c9a710b0b1d7424da4ba5794eb4d38c9abbe040952f9c06afc00",
+    "addons/vehicles/functions/drivingBypassStep.sqf": "e46ae8441e4c8276ef41a698ea75eb23339c2286deb2f4994fc6958404d39b96",
+    "addons/vehicles/functions/drivingBypassRelease.sqf": "3d167a37b845124b827548d32c2d796bae28f71959a59724b94da86515a7c4bb",
+    "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "ca8af289a31652b6fe5d3be7ad94ada2285c4852de227ae3bca158da64a5c6c5",
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "e5635bc3efa7004588b4723490e4aab1d698bf5c65efe3c461eeba18e4df7164",
+    "releaseVerificationAndDeployment/test_driving_native_admission.py": "8489e0b101f213e6c78561a54f0dd1fd5a2c51982ff7d885a9c78a0cda29620f",
+    "docs/Smart-AI-Pass.md": "f65c5e7a474d61373b98d9cda18795be017fce39df21159b265e72a109c0cbad"
+  },
+  "supersedes": "native-temporary-route-gap-20261022.json bypass-only implementation gap; original historical finding retained. Corridor/pass/queue and physical validation gaps remain."
+}

@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "fdae5950",
+  "scope": "Mixed convoy pacing versus native route execution; source comparison only",
+  "reference": {
+    "workshopId": "3812620045",
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "read": "Traffic intent around997..1130; mass policy1024..1028",
+    "originalsModified": false
+  },
+  "findings": [
+    "HBQ separates following-speed allowance from physical stop, keeps6m plus1.8s ordinary following room and mass adjustment1..2.5. CBE ordinary traffic implements those intents with continuous relative closing envelope; convoy registered spacing has a separate size-aware model.",
+    "Current convoy follower policy already has proportional target correction, continuous outer-band boost, acceleration/deceleration smoothing, raw mass-aware closing cap, predecessor reverse yield and retained native-path cap. These independent constraints must not be conflated.",
+    "Lead substantially-stretched pacing switches to actual follower speed beyond twice desired gap. Analytic discontinuity is possible, but no fresh measurement establishes it as the reported stop/start cause. Do not change gains solely from source shape.",
+    "Historical CNVM-MIXED-50 slot1 has four near-stationary samples with positive requested cap. This establishes that zero cap is not necessary for that old failure; native route execution remains a candidate, not a proven cause.",
+    "Retained observations are five seconds apart from61e136b6 and cannot establish current command frequency, current root cause or success of later native endpoint/route-continuity fixes."
+  ],
+  "disposition": "Retain current pacing/safety gains. Next driving investigation should trace actual native endpoint/request lifecycle and retained-path-cap release under unchanged route, then use existing capture when audits resume to distinguish requested cap from physical motion. Do not disable safety to claim smoother movement.",
+  "sourceHashes": {
+    "addons/vehicles/functions/convoyTick.sqf": "e2682059d8c3212d97b91b73e9e788e91ba6dfcc2f26fa8008781ab3953523c8",
+    "addons/vehicles/functions/drivingFollowingCap.sqf": "3a4940e55f851899d64f4173afa1c9bb2c5a0071bc6115529b06054b7b73762b",
+    "releaseVerificationAndDeployment/referenceReviews/convoy-retained-mixed-20261017.json": "14712f9ad47b88e9dd0631a08a479ad5c6566afd70aa647c382b00c10c7b436b",
+    "releaseVerificationAndDeployment/referenceReviews/convoy-gap-mode-20261018.json": "0288ca6d020cf8d8cdfe17b47c773d72e69872ae5da044f70d95f3389bf06b1c",
+    "releaseVerificationAndDeployment/referenceReviews/convoy-continuous-catchup-20261019.json": "e723f90f8974c88d3a5c40ac60470a611fb70f389f3f2f1f6e2ac22744b24c44"
+  },
+  "implementationChange": false,
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "remaining": [
+    "Current normal-client mixed step-off/restart with per-owner control sample, actual motion, requested/applied cap, native command and destination.",
+    "Separate native route replanning/endpoint braking from retained geometry, close-gap braking and traffic holds.",
+    "Full HBQ source parity and measured overhead remain incomplete; this is a selected traffic-intent comparison."
+  ],
+  "leadOnsetCorrection20261023": {
+    "review": "convoy-pacing-onset-20261023.json",
+    "finding": "A separate exact discontinuity at the initial lead reserve threshold is corrected using the existing gain and bounds. This does not identify the physical mixed-column root cause or justify broad gain tuning. Current native endpoint lifecycle remains implemented and physically unverified."
+  },
+  "lowSpeedLookahead20261024": {
+    "base": "0cee7b3e",
+    "finding": "On a qualifying straight native leg the frontSpeed>2 condition adds up to40m to a recorded destination. Crossing below2 removes that extension despite unchanged route/crew/native receipt, making goalAdvance>8 eligible to retask toward the shorter point. This is a source/analytic discontinuity, not physical mixed-convoy root-cause proof.",
+    "change": "Retain an existing extended native goal below threshold only with original route/seat/native command receipts, actual previous pre-extension point, forward extension still ahead of current recorded goal, compatible heading/floor and no bypass or reversing predecessor. No new extension at low speed. Preserve original >2km/h approach-envelope rule even where no extension was made. No new fields/timers/workers/scans/settings or gain changes.",
+    "referenceDisposition": "HBQ following-versus-stop separation and mass-aware braking retained as complementary intent. Native goal retention is a CBE correction, not a claim HBQ supplies an identical convoy method. Protected driveAssist SHA2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931 reverified.",
+    "samples": {
+      "recordedGoalM": 100,
+      "previousExtendedGoalM": 140,
+      "frontAboveKmh": 2.001,
+      "frontBelowKmh": 1.999,
+      "oldThresholdRetractionM": 40,
+      "newOwnedSameLegRetractionM": 0,
+      "unownedOrPassedGoalRetained": false
+    },
+    "validation": "28 existing native-endpoint/traffic tests extended/passed; full1491, SQF validator, HEMTT412 SQF/9 PBO/all build gates and independent package verification passed. No new cases. Initial focused log retained false failure because moved read-only block included a doMove comment; existing no-command assertion now strips comments and continues checking actual code.",
+    "logs": [
+      ".qa/convoy-low-speed-lookahead-focused.log",
+      ".qa/convoy-low-speed-lookahead-final-focused.log",
+      ".qa/convoy-low-speed-lookahead-build.log",
+      ".qa/convoy-low-speed-lookahead-independent.log"
+    ],
+    "candidate": ".qa/candidates/convoy-low-speed-lookahead-0cee7b3e",
+    "fingerprint": "c83a4ea22ca2c52ec25e91f8f52e71905c6d888b82f9f31375cc4cdd34681fce",
+    "sourceHash": "bfe7d197bae12345fd91617b3733a6b9334aa04a327ce78ed0e5d48e03a33e63",
+    "limits": "Spacing/closing/reverse/obstacle/pedestrian/route arrival constraints unchanged. Analytic example and static coverage do not establish physical continuity, braking safety, actual command cadence or performance. Audits PAUSED; no launch/push/CI/merge/publish. No whole-HBQ parity or percentage renewal. Unsigned dirty candidate includes unrelated pre-existing dirt; review/notes postdate package."
+  }
+}

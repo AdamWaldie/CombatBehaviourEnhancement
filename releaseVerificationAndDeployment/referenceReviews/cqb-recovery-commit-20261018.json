@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-18",
+  "scope": "Atomic building-specific admission around all common CQB recovery calls",
+  "finding": "The common retry function already atomically validates operation generation/owner/budget, but scheduled building-specific checks could be separated from its call and movement receipt publication.",
+  "implementation": [
+    "One _recoverClearActor wrapper covers all4 building common-recovery calls",
+    "Current building brain/epoch/generation/native route/transform, actual actor and owned native task, Zeus and original soft/hard deadlines checked in same unscheduled scope as common retry",
+    "Movement receipt publication happens in the wrapper only after RECOVERING and still-current building admission",
+    "Callers retain original finite motion/retry evidence; refusal returns YIELDED without asking common helper to spend retry",
+    "Shared RecoveryStep checks Zeus-held groups at preflight and immediately before its live budget mutation/native move for all operation callers"
+  ],
+  "validation": {
+    "log": ".qa/cbe-cqb-recovery-commit-build.log",
+    "tests": 1210,
+    "sqf": 323,
+    "pbos": 9,
+    "exit": 0,
+    "fingerprint": "d38294c2b9c136730a6504ad35261444cc70341f64ce333e738cdfe8f14f25fe",
+    "contracts": "Scoped caller assertions follow wrapper, with new tests proving sole common call, all4 routes, atomic admission and no deadline renewal. Existing motion, consumption, release and visit checks retained."
+  },
+  "remaining": [
+    "Other direct CQB entry/reserve/egress writes and shared recovery callers need review",
+    "No proof of actual native recovery or improved tactical flow",
+    "Normal/HC/JIP/order replacement, accessibility, casualty replacement, isolation and performance unrun",
+    "Driving late receipt notification, native queue execution and entire HBQ/full goal remain open"
+  ],
+  "audits": "PAUSED",
+  "sharedPause20261024": {
+    "base": "b9bf422b",
+    "finding": "RecoveryStep enforced current ownership, actual actor, reservation and retry budget but did not read ENDEX/SafeStart. Scheduler normally defers paused jobs, yet the public shared helper could be directly invoked against a still-live operation and issue native recovery while mission freeze was active.",
+    "change": "Return YIELDED on CortexIsPaused at preflight and inside existing unscheduled final commit before current recovery budget mutation and sole doMove. Preserve operation, destination and retry allowance. No cancellation, added worker/clock/deadline or replay. Do not add tactical-active policy to independent feature admission in this scoped fix.",
+    "trace": "Reviewed current OperationStart participant validation/group-scoped pace cleanup, OperationCancel generation/epoch retirement and OperationRestore exact permission cleanup. No new participant/cancellation/restore defect established in selected paths; historical outstanding physical handover remains.",
+    "hashes": {
+      "addons/infantry/functions/recoveryStep.sqf": "fc48767d941eb6d39f22f98db32f050875ae927ef3bf462fd1fd084256747d18",
+      "addons/infantry/functions/cortexIsPaused.sqf": "3d6a18e8abe378497d33b3e6d1dc56cb685328f8e1b42102f1657b0fadde22c4",
+      "releaseVerificationAndDeployment/test_cortex_operations.py": "894e58ebbcee61de04678a50cc90da21ab525a399351bd6deea9663769cc08e2"
+    },
+    "validation": {
+      "focusedExisting": 610,
+      "fullExisting": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "newCases": 0,
+      "independentVerification": true
+    },
+    "candidate": ".qa/candidates/recovery-pause-admission-b9bf422b",
+    "fingerprint": "cfbb8495b5bf2f796db74ee3dbe34fbd402449eac99480e718aa0990184523df",
+    "logs": [
+      ".qa/recovery-pause-admission-focused.log",
+      ".qa/recovery-pause-admission-build.log",
+      ".qa/recovery-pause-admission-independent.log"
+    ],
+    "limits": "No physical paused/unpaused native recovery or migration, no stop of pre-existing native movement, no animation/normalHC/5/10performance proof. Two existing-state pause reads per successful direct recovery, no world query; cost unmeasured. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. Audits PAUSED; no parity/percentage renewal."
+  }
+}

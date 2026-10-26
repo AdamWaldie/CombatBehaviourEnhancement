@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "c95a7b4d",
+  "scope": "Shared authored-route indexed read hot path; selected HBQ main-loop/watchdog disposition, not full controller review.",
+  "sourceHashes": {
+    "addons/core/functions/authoredRouteReceipt.sqf": "cef11ff7c5beedda792935e28f117288c85a0cc16252371dfff74c9b7b80a076",
+    "releaseVerificationAndDeployment/test_convoy_waypoint_gates.py": "fc90e31e3dfa3f309899d133190b3ba53d853c360bd8a9a8a4945da3b7c1b015"
+  },
+  "implementation": [
+    "For a nonnegative finite integral in-range waypoint index, slice one engine handle before applying the existing name/index filter and reading metadata. Invalid indices return no receipt.",
+    "Negative-index full-route mode retains all authored handles and metadata. Remove the redundant first whole-route SQF filter; keep the existing current-handle and owned-name checks.",
+    "Engine waypoint-array retrieval remains route-size dependent; no constant-time engine or measured frame-time claim. No new scan, cache, worker, cadence or command."
+  ],
+  "sourceComparison": {
+    "reference": ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf",
+    "ranges": [
+      "2159-2292",
+      "2294-2377",
+      "2554-2599"
+    ],
+    "findings": [
+      "HBQ two-clock loop retains obstacle/traffic samples between their due times. Inactive handling clears own caps/holds and passing markers but still attempts gate closure. Player commander/leader is treated differently from player driver.",
+      "Order key uses group/current index/position with1m tolerance. It does not capture same-position edits to statements, timeout, attachment or other metadata; CBE full current-waypoint receipt retains these distinctions.",
+      "Route memory may reselect or reconstruct a deleted final MOVE waypoint with its saved statements and selected properties, up to6 times/10min,20s apart. Its stated purpose is premature engine completion; code cannot establish whether a mission intentionally removed that waypoint. Do not port authored task resurrection.",
+      "Watchdog grants20s initial planning, excludes followers/player-led/own holds/corridor/passing and routeWaiting. Replans use15/30s gaps;3 in90s can mark RouteLost for teleport recovery. Retain planning and follower exclusion intent through CBE native finite recovery, not waypoint recreation or physics repair."
+    ]
+  },
+  "validation": {
+    "focused": "13 existing tests PASS",
+    "fullBuild": "PASS attempt1",
+    "tests": 1497,
+    "compiledSQF": 422,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/route-index-receipt-c95a7b4d",
+    "fingerprint": "3a4612cd8ba542038de1300270d7a504aa331a50a4872dca50f0c1715faabfcf",
+    "physical": "UNRUN: long route costs, actual waypoint mutations and normal/HC lifecycle. Audits paused."
+  },
+  "limits": "Full production goal incomplete. Broad buildout evidence freshness remains unresolved, no percentage increase. Exact development candidate includes preexisting dirt; engineering metadata postdates it.",
+  "workshopId": "3812620045"
+}

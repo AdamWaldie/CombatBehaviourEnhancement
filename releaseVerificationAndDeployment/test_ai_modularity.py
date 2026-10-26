@@ -28,7 +28,9 @@ class AIModularityContracts(unittest.TestCase):
         self.assertLess(step.index('"OWNERSHIP_LOST" call _end'), step.index('_group setCombatMode'))
         end = src('cortexFlankEnd')
         self.assertIn('_reason in ["ZEUS","OWNERSHIP_LOST","ROLE_HANDOVER"]', end)
-        self.assertIn('if (_mayCommand) then {{_x doFollow _leader}', end)
+        self.assertIn('if (_mayCommand) then {_members call _returnElement}', end)
+        self.assertIn('_x doFollow _returnLeader', end)
+        self.assertIn('[_group,_members] call CBE_fnc_CortexGroupAnchor', end)
         self.assertIn('private _hold = _mayCommand', end)
 
     def test_child_switches_are_registered_by_cba_and_react_on_current_owners(self):
@@ -62,16 +64,65 @@ class AIModularityContracts(unittest.TestCase):
     def test_capability_is_live_ammo_not_exclusive_role(self):
         text = src('cortexCapabilities')
         self.assertIn('magazinesAmmoFull _unit',text)
+        self.assertIn('["_potential",false,[false]]',text)
+        self.assertIn('if (_potential) then {_compatible apply {[_x,1]}} else {magazinesAmmoFull _unit}',text)
+        vehicles=src('cortexVehicles')
+        self.assertIn('[_enemy,true] call CBE_fnc_CortexCapabilities',vehicles)
+        self.assertIn('[_x select 0,true] call CBE_fnc_CortexCapabilities',vehicles)
+        air=src('cortexAirAttackPlan')
+        self.assertIn('[_contact,true] call CBE_fnc_CortexCapabilities',air)
+        self.assertNotIn('magazinesAllTurrets _contact',air)
+        self.assertIn('[typeOf _contact] call _vehicleAAFacts',air)
+        threat=air.split('private _vehicleAAFacts={',1)[1].split('private _aaPositions=',1)[0]
+        for bound in ('_nodes < 32','_magazinesSeen < 128','min 64','_vehicleThreatCache set'):
+            self.assertIn(bound,threat)
+        self.assertIn('[0,2] select _unknown',threat)
+        self.assertIn('TransportPylonsComponent',threat)
+        self.assertIn('_pylons select [0,32]',threat)
+        self.assertIn('getText (_x >> "attachment")',threat)
+        self.assertNotIn('magazinesAllTurrets',threat)
+        self.assertNotIn('[_x,true] call CBE_fnc_CortexCapabilities',src('cortexMorale'))
         self.assertIn('_rounds > 0',text)
         self.assertIn('_magazine in _compatible',text)
         self.assertIn('/ 256',text)
         self.assertIn('/ 512',text)
         self.assertNotIn('leader group',text)
+        primary=src('cortexPrimaryAmmoAvailable')
+        self.assertIn('!local _unit',primary)
+        self.assertIn('"this" in _muzzles',primary)
+        self.assertIn('_unit ammo _loadedMuzzle > 0',primary)
+        self.assertIn('compatibleMagazines [_weapon,_mainMuzzle]',primary)
+        self.assertIn('(_x select 1) > 0',primary)
+        self.assertLess(primary.index('_unit ammo _loadedMuzzle > 0'),primary.index('magazinesAmmo _unit'))
+        for name in ('cortexTacticalAssess','cortexAssaultStart','cortexFlankStart','cortexAdvanceStart'):
+            self.assertIn('CBE_fnc_CortexPrimaryAmmoAvailable',src(name))
+        def primary_available(loaded,reserves,compatible):
+            return loaded>0 or any(rounds>0 and name in compatible for name,rounds in reserves)
+        self.assertTrue(primary_available(4,[],{'rifle'}))
+        self.assertTrue(primary_available(0,[('rifle',7)],{'rifle'}))
+        self.assertFalse(primary_available(0,[('grenade',1)]*4,{'rifle'}))
+        self.assertFalse(primary_available(0,[('rifle',0)],{'rifle'}))
+        for name in ('cortexFlankStart','cortexAdvanceStart'):
+            drill=src(name)
+            self.assertIn('private _armedFoot=_onFoot select',drill)
+            self.assertIn('private _riflemen = _armedFoot select',drill)
+            self.assertIn('floor (count _armedFoot / 2)',drill)
+            self.assertIn('private _coverRifles=_armedFoot-_element',drill)
+            self.assertIn('if (count _coverRifles < '+('_minimumCover' if name=='cortexAdvanceStart' else '2')+')',drill)
+        def split(total,armed,eligible):
+            movers=min(armed//2,5,eligible)
+            return movers,armed-movers,total-movers
+        self.assertEqual(split(8,4,4),(2,2,6))
+        self.assertEqual(split(8,3,3),(1,2,7))
+        self.assertEqual(split(8,0,0),(0,0,8))
+        self.assertEqual(split(8,8,6),(4,4,4))
+
+
         for name in ['cortexAntiArmour','cortexMorale','cortexSupportApply']:
             self.assertIn('CBE_fnc_CortexCapabilities',src(name))
     def test_passengers_share_safety_checks_and_cleanup_does_not_board(self):
         text = src('cortexPassengerReady')
-        for check in ['local _unit','isPlayer','CBE_fnc_CortexCombatEffective','abs speed _vehicle','surfaceIsWater','lineIntersectsSurfaces','fullCrew','emptyPositions']:
+        for check in ['simulationEnabled _vehicle','isObjectHidden _unit','_boarding && {_command == "STOP"','checkAIFeature "MOVE"','checkAIFeature "PATH"','local _unit','isPlayer','CBE_fnc_CortexCombatEffective','vectorMagnitude velocity _vehicle','vectorMagnitude angularVelocity _vehicle','surfaceIsWater','lineIntersectsSurfaces','fullCrew','emptyPositions']:
             self.assertIn(check,text)
         dismount = src('convoyDismountLocal')
         self.assertIn('CBE_fnc_CortexExternalTakeover',dismount)
@@ -84,7 +135,7 @@ class AIModularityContracts(unittest.TestCase):
         self.assertIn('private _restoreEligible=[_group,false,false,true] call CBE_fnc_CortexIsEligible',locality)
         self.assertIn('false, (!_restoreEligible || {_inheritedDrill isNotEqualTo []}), "OWNERSHIP_ADOPTED"',locality)
         restore = src('cortexRestoreCalm')
-        self.assertIn('!_yieldToExternal && {_ownedHold}',restore)
+        self.assertIn('!_yieldToExternal && {_recallOwned}',restore)
         release=src('cortexReleaseGroup')
         self.assertIn('[_group, _state, false, _externalTakeover, _reason] call CBE_fnc_CortexRestoreCalm',release)
         self.assertIn('_externalTakeover=_yieldToZeus || {_yieldToExternal}',release)
@@ -103,9 +154,10 @@ class AIModularityContracts(unittest.TestCase):
         report = src('cortexContactReport')
         self.assertIn('+(_x select 1)',report)
         self.assertIn('serverTime - (_x select 2)',report)
-        self.assertIn('private _reporters=',report)
-        self.assertIn('if (count _reporters > 8) then {_reporters resize 8}',report)
-        self.assertIn('_confidence=_confidence max (_x knowsAbout _target)',report)
+        self.assertIn('private _confidence=_group knowsAbout _target',report)
+        self.assertIn('(units _group) findIf {alive _x && {local _x} && {!isPlayer _x}} < 0',report)
+        self.assertNotIn('forEach _reporters',report)
+        self.assertIn('_visible select [0,3]',report)
         self.assertNotIn('leader _group knowsAbout (_x select 0)',report)
         for name in ['cortexReportServer','cortexReportLocal']:
             text = src(name)
@@ -175,6 +227,23 @@ class AIModularityContracts(unittest.TestCase):
         self.assertIn('CBE_fnc_CortexFeatureEnabled',src('cortexArtilleryShot'))
     def test_wait_movement_lease_is_exclusive_and_owner_scoped(self):
         lease = src('cortexOwnershipLease')
+        self.assertIn('[_owner,_expires]',lease)
+        self.assertNotIn('_expires max (serverTime + 1)',lease)
+        for guard in ('!(_acquire isEqualType true)','!(_expires isEqualType 0)','_expires <= serverTime'):
+            self.assertIn(guard,lease)
+        self.assertLess(lease.index('_expires <= serverTime'),lease.index('call CBE_fnc_DrivingOperationFinish'))
+        self.assertGreaterEqual(lease.count('_expires <= serverTime'),2)
+        pending=lease.split('private _members=units _group;',1)[1].split('setVariable ["CBE_Cortex_MovementLease",[_owner,_expires]',1)[0]
+        self.assertIn('count _members > 64',pending)
+        self.assertIn('driver _vehicle in _members || {effectiveCommander _vehicle in _members}',pending)
+        self.assertIn('!local _vehicle',pending)
+        for state in ('CBE_DrivingCapRelease_Work','CBE_DrivingRecovery_Work','CBE_DrivingPass_Work',
+                      'CBE_DrivingCorridor_Work','CBE_DrivingBypass_Work','CBE_DrivingCrew_Work'):
+            self.assertIn(state,pending)
+        self.assertIn('if (_drivingPending) exitWith {false}',pending)
+        self.assertNotIn('setVariable',pending)
+        self.assertIn('["COMPLETE","CANCELLED","EXPIRED"]',pending)
+
         for contract in ['CBE_Cortex_MovementLease','CBE_Cortex_OwnershipBusyRefusals',
                          'serverTime','CBE_fnc_CortexExternalTakeover']:
             self.assertIn(contract,lease)
@@ -227,18 +296,54 @@ class ExtendedSourceOwnershipContracts(unittest.TestCase):
         self.assertNotIn('allGroups', owner)
         self.assertNotIn('allUnits', owner)
         self.assertNotIn('call _patch', owner)
+        boundary=src('compatibilityExternalControl')
+        for text in (owner,boundary):
+            for marker in ('AR_Is_Rappelling','AR_Units_Rappelling'):
+                self.assertIn(marker,text)
+            self.assertIn('!(_active isEqualType true) || {_active}',text)
+            self.assertNotIn('setVariable',text)
+        self.assertLess(owner.index('AR_Is_Rappelling'),owner.index('configOf _unit'))
+        self.assertIn('_unit getVariable ["Waldo_AI_ExternalControl",false]',owner)
+        self.assertIn('(group _unit) getVariable ["Waldo_AI_ExternalControl",false]',owner)
+        self.assertIn('!(_declared isEqualType true)',owner)
+        self.assertIn('!(_groupDeclared isEqualType true)',owner)
+        self.assertIn('exitWith {"DECLARED"}',owner)
+        self.assertLess(owner.index('exitWith {"DECLARED"}'),owner.index('CBE_ExternalOwnerClassCache'))
+
+        self.assertLess(owner.index('if (_wbkMarker)'),owner.index('getOrDefault [_class,-1]'))
+        cache=owner.split('if (_static isEqualTo -1) then {',1)[1].split('if (_static) exitWith',1)[0]
+        self.assertIn('configOf _unit',cache)
+        self.assertIn('count CBE_ExternalOwnerClassCache < 256',cache)
+        for runtime in ('AR_Is_Rappelling','IMS_ISAI','animationState','getVariable'):
+            self.assertNotIn(runtime,cache)
+        self.assertLess(owner.index('if (_static) exitWith'),owner.index('animationState _unit'))
+
+
 
     def test_aircraft_cannot_bypass_external_operation_ownership(self):
         aircraft = src('cortexAircraftEligible')
         self.assertIn('[_aircraft] call CBE_fnc_CompatibilityExternalControl', aircraft)
         self.assertIn('[_x] call CBE_fnc_CortexExternalOwner != ""', aircraft)
         self.assertIn('CBE_fnc_CortexExternalOwner', src('cortexIsEligible'))
+        for name in ('flightLeaseAcquire','flightLeaseValid'):
+            lease=src(name)
+            self.assertLess(lease.index('[_aircraft] call CBE_fnc_CompatibilityExternalControl'),
+                            lease.index('getVariable ["CBE_FlightLease"'))
+            self.assertNotIn('AR_Units_Rappelling',lease)
+
 
     def test_specialist_actors_are_excluded_from_skill_layers_as_well_as_tactics(self):
         profile = src('aiApplyProfile')
         adoption = src('aiHeadlessAdoptLocal')
         diagnostics = src('aiGetDiagnostics')
         self.assertIn('[_unit] call CBE_fnc_CortexExternalOwner != ""', profile)
+        # Changing eligibility must retire the old layer, not merely refuse a fresh application.
+        for gate in (
+            'count _includedSides > 0 && {!(_unitSideKey in _includedSideKeys)}',
+            'count _includedFactions > 0 && {!(faction _unit in _includedFactions)}',
+            'faction _unit in _excludedFactions || {typeOf _unit in _excludedClasses}',
+        ):
+            self.assertIn('if ('+gate+') exitWith {[_unit] call CBE_fnc_AIRestoreProfile; false};', profile)
         self.assertIn('[_x] call CBE_fnc_CortexExternalOwner == ""', adoption)
         self.assertIn('_hcGroups = _hcGroups select', diagnostics)
         self.assertIn('[_unit] call CBE_fnc_CortexExternalOwner == ""', diagnostics)
@@ -507,6 +612,12 @@ class SemanticComponentContracts(unittest.TestCase):
     def test_convoy_cover_cleanup_preserves_new_actor_tasks(self):
         source = (ROOT/'addons/vehicles/functions/convoyDismountLocal.sqf').read_text()
         self.assertIn('private _operator = _nativeTask || {_reservedMove}', source)
+        for guard in ('private _reservedMove=[_unit] call CBE_fnc_CortexActorMoveReserved',
+                      'CBE_fnc_CortexCombatEffective','ace_medical_ai_healQueue','fleeing _unit',
+                      'simulationEnabled _unit','isObjectHidden _unit',
+                      'checkAIFeature "MOVE"','checkAIFeature "PATH"'):
+            self.assertLess(source.index(guard),source.index('_unit doFollow'))
+            self.assertLess(source.index(guard),source.index('_unit doMove'))
         self.assertIn('[group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover', source)
         self.assertIn('private _ownedExit=_ours', source)
         self.assertLess(source.index('private _nativeTask='), source.index('_unit doFollow'))
@@ -519,6 +630,17 @@ class SemanticComponentContracts(unittest.TestCase):
         self.assertIn('&& {!_protectedTask} && {!_newMove}', release)
         self.assertIn('call CBE_fnc_CortexCombatEffective', release)
         self.assertLess(release.index('private _protectedTask='), release.index('orderGetIn false'))
+        self.assertIn('ace_medical_ai_healQueue', release)
+        active = source.split('if (count _lease >= 7) exitWith', 1)[1]
+        self.assertLess(active.index('ace_medical_ai_healQueue'), active.index('"ACTIVE"'))
+        calm = (ROOT/'addons/infantry/functions/cortexRestoreCalm.sqf').read_text()
+        self.assertIn('[_group,_state,[],true,_yieldToExternal] call CBE_fnc_CortexStaticSupport', calm)
+        self.assertNotIn('private _staticSupport=', calm)
+        release_only = source.split('if (_releaseOnly) exitWith', 1)[1].split('private _enabled=', 1)[0]
+        self.assertIn('call _release', release_only)
+        self.assertNotIn('CortexStaticDeployStep', release_only)
+        self.assertNotIn('orderGetIn true', release_only)
+        self.assertLess(source.index('if (_releaseOnly) exitWith'), source.index('nearestObjects'))
 
     def test_danger_posture_restore_is_generation_and_owner_bound(self):
         source = (ROOT/'addons/infantry/functions/dangerReact.sqf').read_text()

@@ -7,6 +7,19 @@ from unittest.mock import patch
 from mod_pipeline import ROOT, seal, stage, verify, release_gate, supported_focuses
 
 class PackagePipelineTests(unittest.TestCase):
+    def test_native_stop_focus_stages_on_validated_terrain_and_rejects_hc(self):
+        for world in ('VR','Altis'):
+            mission=stage(self.folder,Path(self.temp.name)/('native-stop-'+world),
+                          'convoynativestop',world=world,batch_mode='normal')
+            self.assertEqual(mission.name,'CBE_Audit.'+world)
+            source=(mission/'cortexQAConvoyNativeStop.sqf').read_text(encoding='utf-8')
+            self.assertIn('CNVM-NATIVE-STOP',source)
+            self.assertIn('vectorDistance _nativeTravelOrigin >= 15',source)
+            self.assertNotIn('HeadlessClient_F',(mission/'mission.sqm').read_text(encoding='utf-8'))
+        with self.assertRaisesRegex(ValueError,'normal batch'):
+            stage(self.folder,Path(self.temp.name)/'bad-native-stop-hc',
+                  'convoynativestop',batch_mode='headless')
+
     def test_road_passing_stage_requires_real_terrain_and_separate_normal_batch(self):
         mission=stage(self.folder,Path(self.temp.name)/'road-pass','roadpassing',world='Altis')
         self.assertEqual(mission.name,'CBE_Audit.Altis')
@@ -81,6 +94,21 @@ class PackagePipelineTests(unittest.TestCase):
         self.assertIn('"airskills"', identity)
         self.assertTrue((mission.parent/'@CBE/addons/main.pbo').is_file())
         with self.assertRaises(ValueError): stage(self.folder, mission.parent, 'airskills')
+
+        solo=stage(self.folder,Path(self.temp.name)/'static-solo-normal','staticsolo',batch_mode='normal')
+        self.assertTrue((solo/'cortexQAStaticSolo.sqf').is_file())
+        with self.assertRaisesRegex(ValueError,'separate normal batch'):
+            stage(self.folder,Path(self.temp.name)/'static-solo-hc','staticsolo',batch_mode='headless')
+
+        flight=stage(self.folder,Path(self.temp.name)/'nativeflight-normal','nativeflight',batch_mode='normal')
+        self.assertTrue((flight/'cortexQANativeFlight.sqf').is_file())
+        with self.assertRaisesRegex(ValueError,'separate normal batch'):
+            stage(self.folder,Path(self.temp.name)/'nativeflight-hc','nativeflight',batch_mode='headless')
+        illumination=stage(self.folder,Path(self.temp.name)/'illumination-normal','illumination',batch_mode='normal')
+        self.assertTrue((illumination/'cortexQAIllumination.sqf').is_file())
+        self.assertIn('"illumination"',(illumination/'cortexQAServer.sqf').read_text())
+        with self.assertRaisesRegex(ValueError,'separate normal batch'):
+            stage(self.folder,Path(self.temp.name)/'illumination-hc','illumination',batch_mode='headless')
 
     def test_standalone_native_stage_has_no_addon_function_dependency(self):
         mission=stage(self.folder,Path(self.temp.name)/'native','standaloneperformance',native_baseline=True)
@@ -180,6 +208,15 @@ class PackagePipelineTests(unittest.TestCase):
         manifest=json.loads((mission.parent/'audit-manifest.json').read_text())
         self.assertEqual(manifest['batch_mode'],'headless')
         self.assertEqual(manifest['focus'],'indooractorshc')
+        naval=stage(self.folder,Path(self.temp.name)/'naval-hc','navalhc',batch_mode='headless',headless_provider=provider,world='Altis')
+        self.assertTrue((naval/'cortexQANavalOwner.sqf').is_file())
+        self.assertIn('cortexQANavalOwner.sqf',(naval/'init.sqf').read_text())
+        naval_manifest=json.loads((naval.parent/'audit-manifest.json').read_text())
+        self.assertEqual(naval_manifest['world'],'Altis')
+        self.assertEqual(naval_manifest['batch_mode'],'headless')
+        self.assertIsNotNone(naval_manifest['headless_provider'])
+        with self.assertRaisesRegex(ValueError,'real provider'):
+            stage(self.folder,Path(self.temp.name)/'naval-hc-no-provider','navalhc',batch_mode='headless',world='Altis')
         from mod_pipeline import mission_hashes
         self.assertEqual(mission_hashes(mission),manifest['mission_files'])
 
@@ -206,6 +243,29 @@ class PackagePipelineTests(unittest.TestCase):
     def test_focuses_follow_real_dispatch_and_invalid_focus_is_rejected(self):
         self.assertIn('performancemixed', supported_focuses())
         self.assertIn('airskills', supported_focuses())
+        self.assertIn('navalhc',supported_focuses())
+        naval=stage(self.folder,Path(self.temp.name)/'naval-normal','naval',world='Altis')
+        self.assertTrue((naval/'cortexQANaval.sqf').is_file())
+        with self.assertRaisesRegex(ValueError,'Altis coastline'):
+            stage(self.folder,Path(self.temp.name)/'naval-vr','naval')
+        with self.assertRaisesRegex(ValueError,'separate normal batch'):
+            stage(self.folder,Path(self.temp.name)/'naval-mixed-hc','naval',batch_mode='headless',world='Altis')
+        report=Path(self.temp.name)/'naval-report.json'
+        report.write_text(json.dumps(dict(focus='navalhc',status='PASS',complete=True)))
+        with self.assertRaisesRegex(ValueError,'cannot accept a CBE release'):
+            release_gate(self.folder,report)
+        self.assertIn('aa', supported_focuses())
+        mission=stage(self.folder,Path(self.temp.name)/'aa-normal','aa',batch_mode='normal')
+        self.assertTrue((mission/'cortexQAAAIntercept.sqf').is_file())
+        manifest=json.loads((mission.parent/'audit-manifest.json').read_text())
+        self.assertIn('cortexQAAAIntercept.sqf',manifest['mission_files'])
+        self.assertEqual(manifest['focus'],'aa')
+        evidence=Path(self.temp.name)/'aa-evidence.json'
+        evidence.write_text(json.dumps(dict(focus='aa',status='PASS',complete=True)))
+        with self.assertRaisesRegex(ValueError,'cannot accept a CBE release'):
+            release_gate(self.folder,evidence)
+        with self.assertRaisesRegex(ValueError,'separate normal batch'):
+            stage(self.folder,Path(self.temp.name)/'aa-hc','aa',batch_mode='headless')
         with self.assertRaises(ValueError): stage(self.folder, Path(self.temp.name)/'bad', 'unknown')
 
     def test_signed_matching_evidence_and_dirty_commit_gate(self):
@@ -220,6 +280,88 @@ class PackagePipelineTests(unittest.TestCase):
         record['dirty']=True
         (self.folder/'cbe-build.json').write_text(json.dumps(record))
         with self.assertRaises(ValueError): release_gate(self.folder,evidence)
+
+    def test_optional_launcher_policy_changes_only_native_ai_choices(self):
+        import re
+        text=(ROOT/'optionals/launcher_policy/config.cpp').read_text(encoding='utf-8')
+        body=text.split('class CfgWeapons {',1)[1]
+        props=set(re.findall(r'\b(\w+)\s*=',body))
+        self.assertEqual(props,{'aiDispersionCoefX','aiDispersionCoefY','aiRateOfFire',
+            'aiRateOfFireDispersion','aiRateOfFireDistance','maxRange','maxRangeProbab',
+            'midRange','midRangeProbab','minRange','minRangeProbab','aiAmmoUsageFlags',
+            'allowAgainstInfantry'})
+        flags={name:int(value) for name,value in re.findall(
+            r'class (\w+): RocketBase \{\s*aiAmmoUsageFlags = (\d+);',body)}
+        self.assertEqual(flags,{'R_PG7_F':64+128+256+512,'R_PG32V_F':64+128+256+512,
+            'M_SPG9_HEAT':64+128+512,'R_MRAAWS_HEAT_F':64+128+512})
+        self.assertEqual(body.count('allowAgainstInfantry = 1;'),4)
+        grenade=body.split('    class Launcher;',1)[0]
+        for mode in ('HandGrenadeMuzzle','MiniGrenadeMuzzle'):
+            self.assertIn('class '+mode+': ThrowMuzzle {',grenade)
+        self.assertIn('class ThrowMuzzle: GrenadeLauncher {};',grenade)
+        self.assertEqual(grenade.count('minRange = 20;'),2)
+        self.assertIn('minRange = 50;',grenade)
+        self.assertEqual(grenade.count('Probab = 1.015;'),6)
+        self.assertEqual(grenade.count('Probab = 1.05;'),3)
+        self.assertNotIn('SmokeShellMuzzle',grenade)
+        self.assertNotIn('FlashBang',grenade)
+        self.assertNotIn('GrenadeHand:',body)
+        self.assertNotIn('cost =',body)
+        self.assertNotIn('indirectHit',body)
+        diagnostics=(ROOT/'addons/core/functions/aiGetDiagnostics.sqf').read_text()
+        self.assertIn('engine-policy-launchers',diagnostics)
+        for entry in ('"UGL_F","Single","minRange",50',
+                      '"Throw","HandGrenadeMuzzle","minRange",20',
+                      '"Throw","MiniGrenadeMuzzle","minRange",20'):
+            self.assertIn(entry,diagnostics)
+        self.assertIn('"CBE_policy_launchers"',diagnostics)
+        self.assertIn('!isNumber _entry',diagnostics)
+        launcher=(ROOT/'releaseVerificationAndDeployment/launch_mod_audit.ps1').read_text()
+        self.assertIn('"launcher_policy"',launcher)
+
+    def test_native_suppression_policy_preserves_skill_and_weapon_configuration(self):
+        import re
+        text=(ROOT/'optionals/suppression/config.cpp').read_text(encoding='utf-8')
+        properties={}
+        for component in ('AIBrainSuppressionComponent','AIBrainAimingErrorComponent'):
+            body=text.split('class '+component+' {',1)[1].split('};',1)[0]
+            properties[component]={key:float(value) for key,value in
+                                   re.findall(r'(\w+)\s*=\s*([0-9.]+)\s*;',body)}
+        self.assertEqual(properties,{
+            'AIBrainSuppressionComponent':{'worstDecreaseTime':25,'bestDecreaseTime':4,'causeExplosionWeight':1.5},
+            'AIBrainAimingErrorComponent':{'worstDecreaseTime':3.5,'bestDecreaseTime':0.6,'turningInfluence':1.2}})
+        self.assertNotIn('class CfgWeapons',text)
+        self.assertNotIn('class CfgAmmo',text)
+        self.assertNotIn('class CfgAISkill',text)
+        self.assertIn('"CBE_danger"',text)
+        diagnostics=(ROOT/'addons/core/functions/aiGetDiagnostics.sqf').read_text(encoding='utf-8')
+        self.assertIn('!isNumber _entry',diagnostics)
+        self.assertIn('engine-policy-suppression',diagnostics)
+
+    def test_turret_policy_preserves_player_ballistics_and_native_burst_control(self):
+        import re
+        text=(ROOT/'optionals/turret_aiming/config.cpp').read_text(encoding='utf-8')
+        body=text.split('class CfgWeapons {',1)[1]
+        properties=set(re.findall(r'\b(\w+)\s*=',body))
+        self.assertEqual(properties,{'aiDispersionCoefX','aiDispersionCoefY','aiBurstTerminable'})
+        self.assertEqual(re.findall(r'aiBurstTerminable\s*=\s*(\d+)',body),['1']*12)
+        self.assertNotIn('class CfgAmmo',text)
+        self.assertNotIn('class CfgAISkill',text)
+        for child,parent in [('LMG_RCWS','MGun'),('HMG_127','LMG_RCWS'),
+                             ('LMG_coax','LMG_RCWS'),('autocannon_Base_F','CannonCore')]:
+            self.assertIn('class '+child+': '+parent+' {',body)
+        self.assertEqual(body.count('aiDispersionCoefX = 6;'),4)
+        self.assertEqual(body.count('aiDispersionCoefY = 7;'),3)
+        self.assertIn('aiDispersionCoefX = 5;',body)
+        self.assertIn('aiDispersionCoefY = 4;',body)
+        self.assertIn('aiDispersionCoefY = 5;',body)
+        diagnostics=(ROOT/'addons/core/functions/aiGetDiagnostics.sqf').read_text(encoding='utf-8')
+        policy=diagnostics.split('private _turretPolicyValues=[];',1)[1].split('// Native policy reads',1)[0]
+        self.assertIn('!isNumber _entry',policy)
+        self.assertIn('["close","short","medium","far"]',policy)
+        self.assertIn('["LMG_RCWS","HMG_127","LMG_coax"]',policy)
+        self.assertIn('[_weapon,_x,"aiBurstTerminable",1]',policy)
+        self.assertIn('select _turretPolicyMatches',policy)
 
     def test_optional_policy_is_sealed_staged_and_requires_its_own_signature(self):
         policy=self.folder/'optionals/@cbe_turret_aiming/addons/policy.pbo'

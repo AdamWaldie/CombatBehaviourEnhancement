@@ -1,0 +1,31 @@
+{
+  "base": "db700571",
+  "status": "LIVE_ALLOCATION_COVERAGE_SOURCE_INTEGRATED",
+  "finding": "Allocation counted any retained matching interceptor state until its original deadline, including finished state. Changed gunner or released fire lease could therefore still discourage coverage of that missile.",
+  "implementation": "Coverage retains original bounded platform list and requires unfinished state, original matching missile/epoch/deadline, living local platform, original living local main gunner in group, and exact original fire lease. No current episode is retargeted or renewed.",
+  "limits": [
+    "Coverage is a current reservation observation, not native fire, hit or interception evidence.",
+    "Existing default-off experimental main-turret scope and warning/shot/step budgets remain.",
+    "No physical multi-AA/interception/balance/MP/performance acceptance."
+  ],
+  "validation": {
+    "build": ".qa/handovers/aa-live-coverage-build.log",
+    "independent": ".qa/handovers/aa-live-coverage-independent.log",
+    "candidate": ".qa/candidates/aa-live-coverage-db700571",
+    "fingerprint": "738aa28b82d9ac944349852840142249b4fb4a5bd5383110922b8b7ad6ec0779",
+    "physicalAcceptance": false
+  },
+  "audits": "paused",
+  "callbackSampling": {
+    "base": "8fe14d2d",
+    "implementation": "Sample valid reservation ownership once across at most16 platforms per callback. For each of at most8 warnings, count matching missile identities in that ephemeral list. Exclude candidate platform exactly as before. START admission remains fresh and no sample is retained.",
+    "structuralCost": "Ownership validation at most16 platform visits instead of up to8*16 for8 eligible warnings. Cheap missile identity comparisons remain bounded by8*16. A callback with no eligible warnings can now still sample16 platforms; this is not a universal speedup or measured overhead claim.",
+    "validation": {
+      "build": ".qa/handovers/aa-coverage-sample-build.log",
+      "independent": ".qa/handovers/aa-coverage-sample-independent.log",
+      "candidate": ".qa/candidates/aa-coverage-sample-8fe14d2d",
+      "fingerprint": "823acf09db17da461710f5a892af826f73c60d8f7bea8f6bc0f88887d7884c3c",
+      "physicalAcceptance": false
+    }
+  }
+}

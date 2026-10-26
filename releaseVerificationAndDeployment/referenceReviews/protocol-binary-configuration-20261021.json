@@ -1,0 +1,173 @@
+{
+  "date": "2026-10-21",
+  "scope": "Nine registered local Protocol PBOs; complete decoded config inspection, not complete Workshop collection discovery or code implementation.",
+  "privateProvenance": ".qa\\protocol-config-review-20261021-nine-v1\\provenance.json",
+  "toolSHA256": "9d901d218e43c104b355926e4daf906f1f6900fa39c0e8cccda0e7a90582c921",
+  "findings": [
+    "All nine declare A3_Data_F and cba_xeh. These are binary-declared dependencies, not an exhaustive runtime-provider dependency graph.",
+    "All nine register post-init scripts through Extended_PostInit_EventHandlers; 7 register pre-init configuration scripts. Pairs and Navy have no pre-init handler.",
+    "No decoded config declares CfgFunctions or CfgVehicles, hence no native Zeus module registration appears in these PBO configs. This says nothing about scripts dynamically registering modules.",
+    "No machine/locality predicate appears in the config init registrations. Refer to the separately reviewed entry scripts for actual authority; absence in config alone is not proof every machine performs every mutation.",
+    "Rappelling config does not declare Advanced Rappelling. The user-required CBA/Advanced Rappelling runtime dependency and finite provider handover remain required; config detection does not supply either.",
+    "No licence grant was established from these configs; author metadata does not grant redistribution. No upstream implementation code was copied into CBE."
+  ],
+  "items": [
+    {
+      "workshopId": "3799391254",
+      "originalPBO": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3799391254\\addons\\prototcol_ai_cqb.pbo",
+      "pboSHA256": "d6f58e23fa013530a0bdde294df9309b1e85fd97887f37d0ebfb372732452630",
+      "configSHA256": "213b04b1235b67183893389bf1fee227bba7d6acd74f5644fc0c48ed5da0b53b",
+      "decodedSHA256": "33279799a8f8fbddbb5a1cbdbe22df75941620d5b0f8996e476a35be8b3c10a6",
+      "decoded": ".qa\\protocol-config-review-20261021-nine-v1\\3799391254\\config.cpp",
+      "declaredRequiredAddons": [
+        "A3_Data_F",
+        "cba_xeh"
+      ],
+      "preInit": true,
+      "postInit": true,
+      "cfgFunctions": false,
+      "cfgVehicles": false,
+      "configAuthorityPredicate": false
+    },
+    {
+      "workshopId": "3800081309",
+      "originalPBO": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3800081309\\addons\\prototcol_ai_airborne.pbo",
+      "pboSHA256": "9b484e9f8b48b59ee5355f8544f96f2a8668129df0aa73403c5becdc836bff1a",
+      "configSHA256": "3ae0d82569a30c4a2e8208db965a3a0357b09bded3f8673f6f0b608fa1c05a5f",
+      "decodedSHA256": "56be8158dbabb0bb0f1d7f2ff86b6e94c7122a60faa4c90814cdb22df4cfc9b1",
+      "decoded": ".qa\\protocol-config-review-20261021-nine-v1\\3800081309\\config.cpp",
+      "declaredRequiredAddons": [
+        "A3_Data_F",
+        "cba_xeh"
+      ],
+      "preInit": true,
+      "postInit": true,
+      "cfgFunctions": false,
+      "cfgVehicles": false,
+      "configAuthorityPredicate": false
+    },
+    {
+      "workshopId": "3801354927",
+      "originalPBO": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3801354927\\addons\\prototcol_ai_artillery.pbo",
+      "pboSHA256": "1cfb0a5cacd7d5156ed44692f3189faffb39349bc787b532fa7f7664a7a387bf",
+      "configSHA256": "23c70cecbc3ba3196eae4a8499b334ad15aa3a3b7afd604dccb8c948202ca1e3",
+      "decodedSHA256": "932d2061285ddd23e293671275037957c091bc83c823ba8efa0d4959c94d24c3",
+      "decoded": ".qa\\protocol-config-review-20261021-nine-v1\\3801354927\\config.cpp",
+      "declaredRequiredAddons": [
+        "A3_Data_F",
+        "cba_xeh"
+      ],
+      "preInit": true,
+      "postInit": true,
+      "cfgFunctions": false,
+      "cfgVehicles": false,
+      "configAuthorityPredicate": false
+    },
+    {
+      "workshopId": "3802121807",
+      "originalPBO": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3802121807\\addons\\prototcol_ai_pairs.pbo",
+      "pboSHA256": "3356e179fb112de8070829dcb8a4408bfa3ad50ba218536bf9c2a881ad143cff",
+      "configSHA256": "a73ed6ca0bb3db0519706048962c4b7172ed00dfcfca0ab51a688b2b4e3a4e97",
+      "decodedSHA256": "eec7b895334318979f04c1b226f1bfa0fd4a02820d2b1115987577cf48d48dc3",
+      "decoded": ".qa\\protocol-config-review-20261021-nine-v1\\3802121807\\config.cpp",
+      "declaredRequiredAddons": [
+        "A3_Data_F",
+        "cba_xeh"
+      ],
+      "preInit": false,
+      "postInit": true,
+      "cfgFunctions": false,
+      "cfgVehicles": false,
+      "configAuthorityPredicate": false
+    },
+    {
+      "workshopId": "3803702313",
+      "originalPBO": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3803702313\\addons\\prototcol_ai_city_tactics.pbo",
+      "pboSHA256": "3723886a871b8460a833c3d03ab8d183973ef4abe7e7c99f9f4bba91e6bd87e4",
+      "configSHA256": "ea887b51a097b73a6b43f988df5be92a4f2b076528b389b9481f93fca275c9cb",
+      "decodedSHA256": "bac26a472cf63856d980d5e07692e257154c2b388b8efec3c8f9289c9344de59",
+      "decoded": ".qa\\protocol-config-review-20261021-nine-v1\\3803702313\\config.cpp",
+      "declaredRequiredAddons": [
+        "A3_Data_F",
+        "cba_xeh"
+      ],
+      "preInit": true,
+      "postInit": true,
+      "cfgFunctions": false,
+      "cfgVehicles": false,
+      "configAuthorityPredicate": false
+    },
+    {
+      "workshopId": "3809708209",
+      "originalPBO": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3809708209\\addons\\protocol_ai_anti_air.pbo",
+      "pboSHA256": "4921491a6e4afd5b74eeaa9c009e1144e90b6103e92a6167a4e22ba0061877cf",
+      "configSHA256": "ab87881539a0b119987b09a0c1410110e4a1bfd6804cd8f2e51f6a8357011df5",
+      "decodedSHA256": "4500e6596a70db7832d343b119befd85e5729b2f42f206449d12d262a0ab3904",
+      "decoded": ".qa\\protocol-config-review-20261021-nine-v1\\3809708209\\config.cpp",
+      "declaredRequiredAddons": [
+        "A3_Data_F",
+        "cba_xeh"
+      ],
+      "preInit": true,
+      "postInit": true,
+      "cfgFunctions": false,
+      "cfgVehicles": false,
+      "configAuthorityPredicate": false
+    },
+    {
+      "workshopId": "3813369033",
+      "originalPBO": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3813369033\\addons\\prototcol_ai_navy_seal.pbo",
+      "pboSHA256": "2518d8cf9e8d66c47b05734f0e7a34bb4e2304e7bc72be0b7a273a58c71dcd65",
+      "configSHA256": "d6ae1d483f4137f012c117c50982219dc640497e3059bb7ddf8b23772b9dc2e5",
+      "decodedSHA256": "e1beb53975553b4fd4c65d4a7920514f108e8a0feadc0a9c736728c5c3ee0f92",
+      "decoded": ".qa\\protocol-config-review-20261021-nine-v1\\3813369033\\config.cpp",
+      "declaredRequiredAddons": [
+        "A3_Data_F",
+        "cba_xeh"
+      ],
+      "preInit": false,
+      "postInit": true,
+      "cfgFunctions": false,
+      "cfgVehicles": false,
+      "configAuthorityPredicate": false
+    },
+    {
+      "workshopId": "3819636004",
+      "originalPBO": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3819636004\\addons\\protocol_ai_rappeling.pbo",
+      "pboSHA256": "9d314ba77d568b81d87817fdccb6ddf86312cefc7d196687aba873575051f1e5",
+      "configSHA256": "db4d3c5eb0a5e4f7882730451c9d713cfff0c93d960e3c56f1e3b715b94ce1cb",
+      "decodedSHA256": "2012be6663ae517bdb1f10b7630ad6219d9100d0ec41a6bb0d495650758e4853",
+      "decoded": ".qa\\protocol-config-review-20261021-nine-v1\\3819636004\\config.cpp",
+      "declaredRequiredAddons": [
+        "A3_Data_F",
+        "cba_xeh"
+      ],
+      "preInit": true,
+      "postInit": true,
+      "cfgFunctions": false,
+      "cfgVehicles": false,
+      "configAuthorityPredicate": false
+    },
+    {
+      "workshopId": "3822504009",
+      "originalPBO": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3822504009\\addons\\protocol_ai_armored_force.pbo",
+      "pboSHA256": "443b80ca124a1c0c15756dc8dc7d15e2cd2fea461f61490cda2341ddb0d3fcbe",
+      "configSHA256": "907637039c354ff0fb8308d7126eba395ff8cb14ed724c35999c54d511f9a796",
+      "decodedSHA256": "41e25439e469cd5d42e4dcaacd0dea3c898102942775a4f5019b2698cf95db41",
+      "decoded": ".qa\\protocol-config-review-20261021-nine-v1\\3822504009\\config.cpp",
+      "declaredRequiredAddons": [
+        "A3_Data_F",
+        "cba_xeh"
+      ],
+      "preInit": true,
+      "postInit": true,
+      "cfgFunctions": false,
+      "cfgVehicles": false,
+      "configAuthorityPredicate": false
+    }
+  ],
+  "validation": "Every installed PBO hash matches its preserved inventory; extracted config.bin hash matches recorded entry. Private decoded hashes recorded. Outputs created in new directories; originals/prior extracts unchanged. No addon execution, audit or build.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false
+}

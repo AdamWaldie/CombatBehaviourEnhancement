@@ -1,0 +1,25 @@
+{
+  "baseline": "996c56e2",
+  "scope": "Default-off native passing integration and original-goal cleanup",
+  "implementation": "Native passing now uses the existing DEFAULT-OFF passing setting. Actual owner consent retains private original route/command proof. Real-edge handover carries original native intent; cleanup rebinds only owner/epoch, preserves goal/token/original deadline, and republishes a cleanup-only leg for a subsequent genuine transfer. No executable path adoption or replay. Near-goal native orders refuse a pass whose required forward travel exceeds the remaining goal projection. Admission observes an exact old passing return before route preflight, so a changed native order can retire stale proof and release only its owned cap/baseline without replaying movement or renewing time.",
+  "hashes": {
+    "addons/vehicles/functions/drivingCapReleaseOffer.sqf": "378c0afbe3858c5376774e29ad3153443801b2c3a9ed5e10dfe1fe0512ddeddc",
+    "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "b0844b7d6af7cf8656e6fa9c4ca9964fc8263a7ca04fae65bf3ea1577cb40772",
+    "addons/vehicles/functions/drivingOperationStart.sqf": "9dd5d5e99cd1e1e3887902e6f1bdb725935aecb5656a4b8735c47a8773b5dbd6",
+    "addons/vehicles/functions/drivingPassCanConsent.sqf": "860c18cd180af3f39f2853c46888a845ebe4eb40b0d3805ccdb331d3aa0fc3a5",
+    "addons/vehicles/functions/drivingPassPlan.sqf": "dc054df1c0c4293675586201a39c7b8b0d5533cf8b82fb32f8a75722d6cad805",
+    "addons/vehicles/functions/drivingPassRetireInherited.sqf": "44636acfc8bbe41ce4a4dcdfb6ea9dea0007970e030f5296eebad69dddc61664"
+  },
+  "validation": {
+    "focusedExistingDrivingTests": 258,
+    "newCases": 0,
+    "build": ".qa/pass-native-integration-build-final.log",
+    "independent": ".qa/pass-native-integration-independent.log",
+    "candidate": ".qa/candidates/pass-native-integration-996c56e2",
+    "fingerprint": "d6b9e9cd558c5656f8b84bd8bd2966dede1571acec4dacb3e02faf4e29c35139"
+  },
+  "remaining": [
+    "Physical native fixed-path STOP/rest/return, both-seat acknowledgement, transfer timing, changed crew/dead driver, expired or missing edge/facts, travel and performance remain UNVERIFIED. Expiry may leave an unresolved owned zero cap; never synthesize success or renew its movement clock. Native queue remains separately DEFAULT OFF and unaccepted. No whole-mod percentage or parity claim. HBQ grade/deck support projection remains a concrete separate foundation gap.",
+    "Audits PAUSED. No launch, push, merge, CI, release or Steam. Goal incomplete. Preserve unrelated dirt, other-checkout boundary, Workshop sources/archive and permanent keys. Missing private master ledger/comparison backup question remains pending. Verify root/remote/branch/live PR17 before EACH Git mutation. Next work should address a named remaining foundation requirement, not repeat unchanged checks or add speculative guard layers."
+  ]
+}

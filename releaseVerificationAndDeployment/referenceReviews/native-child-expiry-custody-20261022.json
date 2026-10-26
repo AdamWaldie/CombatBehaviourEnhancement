@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-22",
+  "baseline": "9f8ad43d",
+  "scope": "Expired exact native temporary child cleanup custody at real owner edge",
+  "finding": "The new child-adoption path rejected expired child or parent clocks before exact cleanup custody could be established. Deadline expiry must revoke execution without making its exact old path impossible to retire on the new owner.",
+  "changes": [
+    "Original typed parent/child clocks, actual seats/native command/cap and still-live real locality-edge proof remain required. Negative/missing/inconsistent clocks, changed controls, conflicting children and pending/unresolved parent proof still refuse.",
+    "Only an exact child may cross an expired parent cutoff for cleanup; standalone expired recovery remains refused. Expired child or parent forces _adoptResume=false, so no driving FSM starts.",
+    "Cleanup after child-only expiry may return the original mission goal only within the still-live parent hard deadline and existing both-seat ACK window. After parent expiry, existing child release permits exact stop-only and cannot issue onward return.",
+    "Expired-parent custody is additionally refused at original hardDeadline+5 regardless of a later fresh owner edge. This is a fixed cleanup-age cutoff, not a renewed manoeuvre or request deadline. No new timer, worker, movement command or budget reset."
+  ],
+  "validation": {
+    "initial": ".qa/native-child-expiry-build.log",
+    "initialCandidate": ".qa/candidates/native-child-expiry-9f8ad43d",
+    "initialFingerprint": "a7c3d1bad31ad362bbb671565ef753e3fc90339b7436fabc41710f3c241bb338",
+    "initialDisposition": "Passed offline and independently verified, then superseded after manual review added the original-hardDeadline+5 age bound. Retained separately, never overwritten.",
+    "final": ".qa/native-child-expiry-build-final.log",
+    "tests": 1489,
+    "result": "PASS including HEMTT/FSM/config/SQF/documentation/package gates; existing custody policy model/source checks extended, no new test cases",
+    "candidate": ".qa/candidates/native-child-expiry-bounded-9f8ad43d",
+    "fingerprint": "1f2f6350d73008dc39c6834793a436d8363fe27b182be1125b868d9580cc81b0",
+    "independent": ".qa/native-child-expiry-bounded-independent-verify.log",
+    "provenance": "Unsigned9f8ad43d plus intended source/doc edits and retained unrelated working-tree dirt. Later engineering metadata is not product source. Not a clean signed release.",
+    "limits": "Source checks/Python custody model do not execute SQF. Actual stop acknowledgement, path cancellation, cap restoration, staggered/repeated HC delivery and performance remain unverified; audits paused."
+  },
+  "cost": "Constant metadata/time comparisons at existing owner-edge retries; no new scan, native movement writer or recurring callback. Runtime cost unmeasured.",
+  "remaining": [
+    "After original edge proof or original hard deadline+5 cleanup age expires, custody is refused; this is not proof that the engine stopped an old path.",
+    "Identical replacement native/cap values remain ambiguous. Missing/mismatched or unresolved proof never grants late control.",
+    "Full production/tactical/MP/external-provider and5%median/10%p95 acceptance remain incomplete."
+  ],
+  "evidence": {
+    "addons/vehicles/functions/drivingNativeRecoveryAdopt.sqf": "17baca1a79f6d1985e58a7ef9d9f21693f6a3713cd0c409aec3a5afe5adddc09",
+    "addons/vehicles/functions/drivingBypassRelease.sqf": "3d167a37b845124b827548d32c2d796bae28f71959a59724b94da86515a7c4bb",
+    "addons/vehicles/functions/drivingCorridorRelease.sqf": "966a6ea75bb54a813a5d3b66027cb5422f23e222d25bf06f72e10feee6aa3336",
+    "releaseVerificationAndDeployment/test_driving_native_admission.py": "e118cd1cb75d3a6cad577dda56060ef2e9a2c2872d7c7e8cae61bb2e67cdad2a",
+    "docs/Smart-AI-Pass.md": "a49c925742805a123ed40055fe0295bff047d9ddf694a1a3dad46b730accdf06"
+  },
+  "relation": "Extends native-child-locality-adoption-20261022.json only for bounded cleanup custody; does not extend manoeuvre lifetime."
+}

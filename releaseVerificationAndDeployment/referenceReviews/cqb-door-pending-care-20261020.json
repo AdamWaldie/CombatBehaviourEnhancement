@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-20",
+  "baseline": "0402843d",
+  "scope": "Door interaction pending-care authority",
+  "finding": "Global door animation had actor/order/visibility gates but no pending medical queue check common to all CLEAR/GARRISON/INDOOR/ROUTE/direct contexts. Metadata discovery is intentionally independent.",
+  "change": "Read queued care before interaction query work and atomically before animation. Refuse nonempty/malformed queue without mutation. Metadata-only discovery unchanged; no new queries/workers/settings/deadlines.",
+  "limits": "Existing3m samefloor/visibility gates and bounded inaccessible-room handling are source evidence only. Actual door entry/CQB movement remains unverified; no parity/score credit.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/cortexBuildingDoor.sqf",
+      "sha256": "fa098c3df91815c62fd454709ed1e712070afb472a96a3d4e970aac1c7e646cb"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_indoor_actor_lifecycle.py",
+      "sha256": "c68060916d28a49595347b6d624fc68aae6bdb4a382935169bd06a114a2ddfb0"
+    }
+  ],
+  "validation": "Full1482 unit/static, HEMTT/SQF/config/FSM/docs/package gates pass .qa/cqb-door-care-build.log. Unsignedcandidate .qa/candidates/cqb-door-care-0402843d independentlyverified fingerprint7b895125344449e3d3161356db5b16eb73bbf3203328813df7a0f5aace97bed5. No Arma run/score claim.",
+  "nativeFlightPriority20261024": {
+    "base": "1eea0835b645fc57e0b85f7092c6752ad9b3baae",
+    "scope": "Shared building interaction intent priority; not a door-distance tuning or modded-model adapter",
+    "finding": "Current source already enforces3m absolute same-floor interaction, fresh<=0.5s visibility/transform proof, live locks, actor care and exact CLEAR/GARRISON/INDOOR/ROUTE/direct context. Native fleeing was absent from common order validation, so old interaction intent could survive flight priority. No physical distant-opening cause reproduced.",
+    "change": "The existing _orderCurrent closure refuses native fleeing before context-specific checks. Existing admission and final animation invoke this same closure. Metadata-only discovery returns beforehand. No new native command/query/worker/timer/setting/schema or distance/cooldown change.",
+    "sourceBoundary": "Official BIS_fnc_door interface documentation confirms canonical indexed source names; no actual modded plain-source class contract confirmed here, so no speculative animateSource fallback or arbitrary action parsing added.",
+    "documentation": "https://community.bistudio.com/wiki/BIS_fnc_door",
+    "evidence": [
+      {
+        "path": "addons/infantry/functions/cortexBuildingDoor.sqf",
+        "sha256": "05a17f8b579b6006258aa8339f49545c7aefb39cc002f5d558c29e9332586518"
+      },
+      {
+        "path": "releaseVerificationAndDeployment/test_cortex_operations.py",
+        "sha256": "e6a478567e4267dfb5720165c69a645d6ab9bf0bcb5d63f4b68a489f92e2d6fc"
+      },
+      {
+        "path": "docs/Smart-AI-Pass.md",
+        "sha256": "8cd6ad645dbd16de20cc6dba4150ff439159c99a92255b49bf20b5c34f515d61"
+      }
+    ],
+    "validation": {
+      "focusedExistingCases": 5,
+      "fullTests": 1491,
+      "sqf": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "fullOfflineAndIndependent": "PASS",
+      "candidate": ".qa/candidates/door-native-flight-1eea0835",
+      "fingerprint": "b0e3ffd5f08f0345841a7660bc8e490611ca2a41ca7e58919b09d2679b8a5ed7",
+      "logs": [
+        ".qa/door-native-flight-focused.log",
+        ".qa/door-native-flight-build.log",
+        ".qa/door-native-flight-independent.log"
+      ]
+    },
+    "limits": "No physical door timing, entry, native-flight transition, modded door contract, normal/HC/performance or source-parity proof. Earlier distant-opening report remains unverified; do not call it resolved. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. Audits PAUSED; no launch/push/CI/merge/publish."
+  }
+}

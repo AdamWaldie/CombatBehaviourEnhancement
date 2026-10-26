@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "3ed660395d1c203bcf8f8cd7a1fb99bd23bfaefe",
+  "workshopId": "3822504009",
+  "scope": "Cover/fire-cycle/relocation execution comparison and selected-platform prerequisite; engineering review only, no new behaviour or parity claim.",
+  "sourceIntent": [
+    "Use existing ground weapons and selected missile candidates in contact.",
+    "Deploy available station smoke and move near terrain cover.",
+    "Alternate firing requests with lateral/rearward movement to reduce exposure."
+  ],
+  "verifiedSourcePaths": [
+    {
+      "path": ".qa/protocol-armour-3822504009-review/functions/fn_armored_force.sqf",
+      "observations": [
+        "The inner controller ignores its passed group and loops allUnits. Its outer worker calls it once per allGroups entry with any mounted member, then sleeps0.5 only inside the enabled branch. Static work shape is mounted-group-count times all-unit-count per enabled iteration; disabled scheduled iterations have no explicit sleep. No engine frame-time measurement or total freeze claim.",
+        "selectRandom _atgmWeapons occurs before the empty-array check used later for fire. Missile discovery uses class/display/magazine text, vehicle-wide magazinesAmmo and repeated inventory checks, rather than exact loaded operator station readiness.",
+        "Cover chooses a random terrain object within20m and a point0.6m from its model origin toward the vehicle. No hull-sized path, occupancy or threat-screening validation appears in that helper.",
+        "shotsCycle increments after fireAtTarget requests, without Fired acknowledgement. It counts requests rather than confirmed shots.",
+        "The manoeuvre child issues doMove then clears maneuvering; its arrival/deadline wait is commented out. The separate retreat child sleeps2s, issues another doMove, then clears retreating after5s. Completion flags do not prove native movement ended; later workers can replace still-active destinations.",
+        "Target object positions and velocity are read directly after native target enumeration; no explicit age/belief preservation appears in this selected path. Smoke/reset workers likewise do not retain an original ownership/task generation."
+      ]
+    },
+    {
+      "path": ".qa/protocol-armour-3822504009-review/XEH_preInit.sqf",
+      "observations": [
+        "CBA exposes enable/radius/smoke/ATGM/cover settings; they are settings, not behaviour task surfaces. Empty setting callbacks do not themselves retire the controller workers."
+      ]
+    }
+  ],
+  "cbeComparison": [
+    "CortexGroundReload/GroundFireReady now supply exact station/config/inventory/native readiness for selected missile intent; latest runtime checkpoint3ed66039, not full source parity.",
+    "CortexVehicles is reached through the existing owner-local group assessment/lifecycle path. Current standoff uses OperationStart with group participant fallback and CortexGroupMove, whose documented/native effect is group waypoint movement. That is an existing group manoeuvre, not a selected-platform cover executor.",
+    "Current all-mounted standoff admission excludes living on-foot group actors but does not require all actors to occupy the selected platform. Reusing it unchanged for one vehicle's individual cover action could redirect other vehicles in the group. This is a scope mismatch for the proposed selected-platform behaviour, not proof that the existing group standoff is itself unintended.",
+    "Ordinary CortexVehicles gunnery records target/hold/reservation intents, not an actual-shot cycle for this proposed behaviour. AA and aircraft Fired handlers are real but belong to their own owner/episode/task semantics; they cannot be borrowed as ordinary tank shot acknowledgement.",
+    "No new periodic world scan, fire-request counter, detached movement worker or dormant signal producer was added during this review."
+  ],
+  "implementationDecision": {
+    "nextPrerequisite": "A selected-platform finite native move/handback path that preserves group membership and group waypoints, before porting per-vehicle cover/exposure movement.",
+    "execution": "Use the existing owner-local group FSM/lifecycle where possible. Scope participants to the original driver/effective commander, capture native order/seat/baseline state, require actual native acknowledgement, and retire before another task. Selected artillery movement provides a design reference, not a ready generic API: its fire-token/HOLD authority must not be borrowed for unrelated cover.",
+    "fireEvidence": "If the behaviour is defined as post-shot relocation, attach a finite episode-scoped actual Fired observer and retire it with that same task. A fire request, magazine preference or busy flag cannot count as a shot. Do not add an unused persistent observer before a consumer exists.",
+    "geometry": "Propose reachable hull-sized cover/escape positions using existing geometry/avenue helpers; no random offset inside cover objects or direct hidden-target-position pursuit.",
+    "completion": "Only then add cover/exposure trigger and casualty/Zeus/owner/new-order handback. Physical travel, native termination, tactical value and5%median/10%p95 remain necessary acceptance."
+  },
+  "validation": {
+    "runtimeChanged": false,
+    "checks": "All review JSON parsed and source hashes recorded. No full rebuild required for engineering-only metadata. Existing candidate remains the prior validated runtime.",
+    "candidate": ".qa/candidates/armour-legacy-missile-reserve-ba154972",
+    "fingerprint": "ab40f621e966519a9b3f18a46e0569ab013b14db04d701043488c0a1d84dbbe8"
+  },
+  "limits": [
+    "Static source/call-path comparison only; no native source behaviour, performance or dynamic cancellation reproduced.",
+    "Original Workshop sources remain read-only. No wholesale source or unsafe control shortcut copied. Licensing/dependencies remain separate.",
+    "Audits remain paused; full production goal active and incomplete."
+  ],
+  "sourceHashes": {
+    ".qa/protocol-armour-3822504009-review/functions/fn_armored_force.sqf": "f0b14982dca5aa4a574520ddf287730ec26f12a1bd8b571f6eccab106a087355",
+    ".qa/protocol-armour-3822504009-review/XEH_preInit.sqf": "38186589400e232dd94edd58c08029c4d7653b49a77d7519463430e040022ef2",
+    "addons/vehicles/functions/cortexVehicles.sqf": "f5196f861cb6f4caa41bbdd2b179278ee4c7d85029b702ef9a157f25f65a79fb",
+    "addons/infantry/functions/cortexGroupMove.sqf": "5c596e7f5c0910b526aa1e3e323b1c1da04d71424f27919ad1be46e0964c9f65",
+    "addons/infantry/functions/cortexGroupTick.sqf": "c22c6cf12cfb89dbf78236f6770540b8d52415c5995b45a98b5beaf856445078",
+    "addons/vehicles/functions/cortexAAObserve.sqf": "bb912774b6275ddc7b7bee489ee486af7fd2d9631a9a47bc06ca341a84335bb4",
+    "addons/aircraft/functions/cortexAirAttack.sqf": "408bffcd569b5b47dab45640e829020b3b92dac44de6f2c015e51565d550cb2d"
+  }
+}

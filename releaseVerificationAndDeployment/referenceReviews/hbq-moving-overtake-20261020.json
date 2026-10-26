@@ -1,0 +1,138 @@
+{
+  "date": "2026-10-20",
+  "baseline": "b7497d4b",
+  "scope": "Fresh semantic review of HBQ moving-vehicle overtaking block, active lifecycle and admission callsite; current CBE static-bypass/following boundary comparison",
+  "source": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "rangesReviewed": [
+      "1913-2156 helpers/admission/path issue",
+      "2471-2518 active OUT/BACK/END lifecycle",
+      "2898-2940 follow-candidate admission/cap composition"
+    ],
+    "historicReview": "HBQ-OVERTAKING-REVIEW-20261015.json remains unresolved; this fresh review does not recover its text."
+  },
+  "intent": [
+    "Only pass a persistently followed slower independent vehicle when calm, not player-led/follower/convoy and no competing navigation/traffic hold.",
+    "Use observed/configured attainable speed and authored cap; require useful relative speed and finite projected pass duration/distance.",
+    "Follow actual road geometry; reject intersections, bridges, pedestrians, additional road traffic and oncoming traffic before lateral path issue.",
+    "Reserve one passing vehicle per slower peer; keep collision avoidance active.",
+    "Finish only after hull-length separation; abort early behind peer or reduce speed to fall behind when alongside before native-route return."
+  ],
+  "sourceBounds": {
+    "followSeconds": 3,
+    "admissionCadenceSeconds": 2,
+    "roadRetrySeconds": 4,
+    "passMaxSeconds": 24,
+    "passMaxMetres": 350,
+    "roadSegments": 90,
+    "oncomingMaxMetres": 900,
+    "activeBudget": "estimated pass time * 1.8 + 5; abort BACK grants a separate 10 seconds; END retries route refresh up to4 seconds"
+  },
+  "departuresRequired": [
+    "Public OvtBy object alone is not exclusive owner/epoch/episode consent and expiry.",
+    "Source fixed-path points force terrain-relative zero height; CBE requires actual supported surfaces/hull clearance.",
+    "Source forward/outer rays do not establish swept whole-body/terrain support safety or future lane availability.",
+    "Source path end and refreshRoute can rewrite native intent; use exact owned fixed-path retirement and unchanged authored route receipts.",
+    "Keep one original finite operation deadline across OUT/BACK/END, including owner migration; do not renew stage budgets by reconstruction.",
+    "World query results and road-segment evaluation require explicit density/work limits and measured overhead.",
+    "Do not globally ignore the overtaken peer in collision protection; lateral separated hull proof must qualify any following-cap exception."
+  ],
+  "currentCBE": {
+    "implemented": [
+      "Opt-in DrivingPassAdmission consumes existing traffic observation, eight-second sustained follow, bounded geometry/traffic preparation, owner consent and fixed original expiry.",
+      "DrivingAssistStart calls DrivingPassStep under existing sole cap/path owner; excludes competing corridor/bypass/reverse work.",
+      "DrivingPassStep implements OUT, DROP_BACK, RETURN_SCAN, RETURN_READY and RETURN with whole-hull separation, bounded support/traffic observations and exact order/crew/epoch/token authority.",
+      "DrivingPassFinish retires matching command watch/consent/path journal, with unchanged native receipt required before recall.",
+      "DrivingOperationStep exposes PASS phase and existing constrained cadence."
+    ],
+    "evidence": [
+      "DrivingAssistStart OBSERVE -> DrivingPassAdmission and DrivingPassStep -> sole cap application",
+      "DrivingPassBegin binds current brain and consent",
+      "DrivingPassStep phase branches and native issue/return boundaries",
+      "DrivingPassFinish exact current native receipts"
+    ],
+    "files": {
+      "addons/vehicles/functions/drivingBypassObstacleAvailable.sqf": "114b0c9f5c723cf9b766405fa018b2ef9d512966c6477165f87f8f81b4851a39",
+      "addons/vehicles/functions/drivingBypassPlan.sqf": "8df680b72c4ca7114bae918957d6d401d94d9f90224bb874cf1db891d856c4f1",
+      "addons/vehicles/functions/drivingFollowingCap.sqf": "5633a8404e74b2b1d6597c5ec29af40ccf690283b8fed5bccb1db4307fdfcdf1",
+      "addons/vehicles/functions/drivingPassAdmission.sqf": "f125f167080e6b8fccdd6e42a1ee1c04b8db0f2db16f15371100944b27c1691d",
+      "addons/vehicles/functions/drivingPassBegin.sqf": "c6f387e3cc4af7c5e6596c1d1b1e68c708be8c55cc7e9c0b882cf771eae4868a",
+      "addons/vehicles/functions/drivingPassStep.sqf": "537467acb8bf9dd03410e05dd1c01b82de62e7d9bc5aad06198098a1e677d146",
+      "addons/vehicles/functions/drivingPassFinish.sqf": "d9862d3f0d9fe2a56318e6210d7cb139e4a32e892d5c112f637d7ff70ba0b6cf",
+      "addons/vehicles/functions/drivingPassCanConsent.sqf": "ff2de64d7921840d14b2f33533f6b81a05c96f12eba0827343aefea299a7e06b",
+      "addons/vehicles/functions/drivingOperationStep.sqf": "731efa14ff21c24d2062213859ab1712553e5bcb6c3227e69d8f4af3e4c07a91",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "c5ff0bd3504386234edf0e91f4ecbfdde6e098067acf88dc62d92a431e98d305",
+      "addons/vehicles/functions/drivingPassRetireInherited.sqf": "0d983a84b0ef7232b301fc0284e1a3e7b9e7103c6c283a24369d40a2bb2849b0"
+    },
+    "remainingEvidence": "Physical pass, drop-back, blocked return, STOP interruption, migration cleanup, native acknowledgement timing and performance are unverified. Current source exists; this review is not full semantic acceptance of all sixteen pass helpers."
+  },
+  "nextImplementation": "Use and validate the existing DrivingPass lifecycle. Do not build duplicate overtaking phases or relax stationary-bypass admission. Resolve specific traced gaps; physical validation remains paused.",
+  "physicalEvidence": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED",
+  "correction": {
+    "date": "2026-10-20",
+    "reason": "Initial current-CBE comparison inspected only static bypass and following and incorrectly declared moving passes missing. Broader current callgraph has DrivingPassAdmission/Begin/Step/Finish with dedicated phases. Do not repeat the superseded gap claim.",
+    "baseline": "b45e7291"
+  },
+  "medicalHandoffFix": {
+    "finding": "Active driving yields to queued ACE care, but shared consent and final pass handback lacked the same queue guard.",
+    "implementation": "DrivingPassCanConsent refuses queued treatment on either seat (PASS and QUEUE); DrivingPassFinish actorFree requires empty treatment queue before native stop/follow/route handback. Exact metadata retirement independent.",
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verify passed",
+    "candidate": ".qa/candidates/pass-medical-handback-b45e7291",
+    "fingerprint": "b426b3161055955cc21a9ea07bfdf4aa4f092ad41bd6784f9519310f84d39034"
+  },
+  "terminationReview": {
+    "engineReference": "https://community.bohemia.net/wiki/setDriveOnPath",
+    "documentedSemantics": "Other native movement commands or doStop stop a fixed path; unitReady alone is not path completion.",
+    "currentTrace": "Current pass Finish uses guarded doStop before optional unchanged-route handback, so no speculative fixed-path reset was added. Native interruption events preserve newer STOP and changed route metadata.",
+    "fixedGap": "DrivingPassRetireInherited lacked queued ACE care guard on either control seat. Added to _mayRetire actor qualification; exact stale metadata/watch/consent retirement remains outside movement qualification.",
+    "limits": [
+      "This does not prove that a refused cleanup has physically stopped a fixed path.",
+      "Treatment/controller takeover without observable native command change still needs in-engine observation.",
+      "No replay of old pass path or new deferred cleanup worker."
+    ],
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verify passed",
+    "candidate": ".qa/candidates/pass-inherited-medical-5f1ca7b6",
+    "fingerprint": "0dde6ce665cb3c78dfaaf95e00fad2fcc90ef416c61b4ebc4ff940bbf113d68c"
+  },
+  "sharedPathRejectionCost20261023": {
+    "baseline": "056bec5d",
+    "source": {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "selectedLines": "2130-2144",
+      "intent": "Source overtaking solid-path/edge probes stop after a blocking ray. Selected branch read/hash verified, not a renewed full driveAssist comparison."
+    },
+    "confirmed": "CBE DrivingPathGeometry retained the full remaining3-support or9-body sample loop even after reason was already a permanent rejection. A longitudinal-slope rejection also proceeded through body casts, which could overwrite the reason while acceptance remained false.",
+    "implementation": "Three loop-entry exits stop remaining support samples, remaining body heights and remaining lateral body offsets once reason is nonempty. Outer point/segment rejection, all thresholds, accepted-path coverage, exact ray counter and false return remain. Known longitudinal slope retains its reason without body queries.",
+    "sharedConsumers": [
+      "DrivingCorridorGeometry",
+      "DrivingPassGeometry",
+      "DrivingBypassPlan",
+      "DrivingBypassStep",
+      "ConvoyTick"
+    ],
+    "cost": "Up to2 discarded support rays avoided after an initial support rejection; up to8 remaining body rays avoided after an initial obstruction, or all9 after known longitudinal rejection (height sample count may be smaller). Clear-path maximum budgets are unchanged. No frame-time or 5percent/10percent budget claim.",
+    "validation": {
+      "existingCorridorTests": 25,
+      "fullOfflineTests": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "build": ".qa/path-rejection-earlyout-build.log",
+      "candidate": ".qa/candidates/path-rejection-earlyout-056bec5d",
+      "independent": ".qa/path-rejection-earlyout-independent.log",
+      "fingerprint": "0dc80e88a9b9f718046bb64820cc630a13a449bf1adcca40ecc39919f3c9b558"
+    },
+    "limits": [
+      "Read-only query optimization, no steering/access/safety coverage improvement or continuous swept-hull guarantee.",
+      "No native path/route/owner/retry/deadline mutation. Physical passage and measured median/p95 performance remain unverified.",
+      "Unsigned dirty development snapshot includes unrelated pre-existing dirt; review/notes postdate package. No scores renewed; audits paused."
+    ],
+    "hashes": {
+      "addons/vehicles/functions/drivingPathGeometry.sqf": "b176442ea4ccdcdfea9222a1ed77a5487699ea4647c7f0936acd778b30244281",
+      "releaseVerificationAndDeployment/test_driving_corridor.py": "f019c6906216c2a9f34c2bfdbe00f47b8b6939ec3ad1e32d0f4d0ab3d04afe94"
+    }
+  }
+}

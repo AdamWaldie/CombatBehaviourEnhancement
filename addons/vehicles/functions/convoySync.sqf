@@ -6,6 +6,8 @@
  * Separate passenger owners receive a finite, revision-scoped HALT retry on the shared scheduler.
  * Matching unloaded actors remain in that retry so their owner can execute post-exit cover steps.
  * Each retry handles at most sixteen cargo records and retains the existing safety/task gates.
+ * One coalesced five-second scheduler job checks at most four registered executor records per pass,
+ * preserving their owner epoch and task budgets; it issues no movement except existing exact terminal cleanup.
  * Arguments: 0: revision <NUMBER>; 1: registry <ARRAY> of [group, configuration].
  * Return Value: Nothing.
  * Current callers: SimpleAiConvoy and JIP replay.
@@ -136,5 +138,38 @@ if (_registry isNotEqualTo []) then {
             [_group,_configuration,_revision,_jobToken] call CBE_fnc_ConvoyOperationStart;
         };
     } forEach _registry;
+};
+// One coalesced lifecycle job shares the existing budgeted scheduler. It only
+// examines registered brains, four entries per pass; no world scan or native tick.
+// Read the live registry each pass so removal/replacement cannot revive old tasks.
+if (_registry isNotEqualTo []) then {
+    [{
+        params ["_maintenance"];
+        if !(missionNamespace getVariable ["CBE_Convoy_SchedulerActive",false]) exitWith {-1};
+        private _entries=missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]];
+        private _count=count _entries;
+        if (_count == 0) exitWith {-1};
+        private _cursor=(_maintenance getOrDefault ["cursor",0]) mod _count;
+        private _limit=4 min _count;
+        for "_offset" from 0 to (_limit-1) do {
+            private _entry=_entries select ((_cursor+_offset) mod _count);
+            _entry params ["_convoy","_snapshot"];
+            if (!isNull _convoy && {local _convoy}) then {
+                private _brain=_convoy getVariable ["CBE_Convoy_Brain",createHashMap];
+                if (count _brain > 0 && {!(_brain getOrDefault ["cancelled",false])}
+                    && {!(_brain getOrDefault ["finished",false])}
+                    && {(_brain getOrDefault ["configuration",[]]) isEqualTo _snapshot}) then {
+                    private _handle=_convoy getVariable ["CBE_Convoy_Brain_FSM",-1];
+                    if !(_handle isEqualType 0 && {finite _handle} && {_handle >= 0} && {!completedFSM _handle}) then {
+                        [_convoy,_snapshot,_brain getOrDefault ["registryRevision",-1],
+                            _brain getOrDefault ["jobToken",""]] call CBE_fnc_ConvoyOperationStart;
+                    };
+                };
+            };
+        };
+        _maintenance set ["cursor",(_cursor+_limit) mod _count];
+        5
+    },createHashMapFromArray [["subsystem","CONVOY"]],5,
+        "CBE_CONVOY_EXECUTOR_MAINTENANCE"] call CBE_fnc_CortexQueueJob;
 };
 [] call CBE_fnc_SchedulerReconcile;

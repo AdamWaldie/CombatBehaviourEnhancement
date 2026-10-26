@@ -22,10 +22,11 @@ class ClearActorMinimumTests(unittest.TestCase):
         self.assertIn('_minimumActors != floor _minimumActors',s)
     def test_fresh_admission_excludes_dormant_actors_but_resume_keeps_ownership(self):
         s=src('cortexClearBuilding')
-        roster=s.split('private _available =',1)[1].split('// Natural contact',1)[0]
-        self.assertIn('_resume || {simulationEnabled _x && {!isObjectHidden _x}}',roster)
+        roster=s.split('private _actorAdmissible=',1)[1].split('// Natural contact',1)[0]
+        self.assertIn('_resume || {simulationEnabled _actor && {!isObjectHidden _actor}}',roster)
         self.assertLess(s.index('private _resume ='),s.index('private _available ='))
-        self.assertIn('(_previous select 0) == _building',s)
+        self.assertIn('(_previous param [0,objNull,[objNull]]) != _building',s)
+        self.assertIn('RESUME_TARGET_CHANGED',s)
         natural=src('cortexBuildingContact').split('private _capable=',1)[1].split('// A natural entry',1)[0]
         self.assertIn('simulationEnabled _x',natural)
         self.assertIn('!isObjectHidden _x',natural)

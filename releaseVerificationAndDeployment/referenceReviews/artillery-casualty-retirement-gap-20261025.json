@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "9dfb8a93",
+  "workshopId": "3801354927",
+  "scope": "Selected relocation/displacement branches and CBE casualty retirement call path; not whole source parity.",
+  "referenceSource": {
+    "path": ".qa\\protocol-artillery-3801354927-review\\functions\\fn_artillery.sqf",
+    "sha256": "9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d"
+  },
+  "sourceHashes": {
+    "addons/support/functions/artilleryCrewMoveStep.sqf": "c86de9a107ec9cfe8efa7dabe2313bb6c81f562981e8f37c44b1060c457a7f10",
+    "addons/support/functions/artilleryCrewMoveRetire.sqf": "4f6ce93a24abe9519aadabced6bbf5fa9395adfaba5ea774da69bb20e7437608",
+    "addons/support/functions/artilleryCrewMoveStart.sqf": "afea7472324bf0970ea5466a2126dccb7be537b660555edfa181c36722aaf555",
+    "addons/core/functions/cortexDiscover.sqf": "4cd8bdb6cb646dcf77dcbd0d38a796b6dc9b89c42baad7060806c2ad54b64197",
+    "addons/compatibility/functions/cortexOwnershipLease.sqf": "ad84bf3e82b454727d64f94febac9a509728f061a6efe3c49ef517e8e22f5504"
+  },
+  "referenceIntent": "Move only current driver/commander using actor doMove, preserving group membership. Relocation waits in five-second sleeps until within 120m or platform death; selected branch has no finite timeout or current-task/crew handover acknowledgement. Displacement re-reads crew after firing sleep. Do not copy that unbounded wait or treat a replacement seat as continuation authority.",
+  "verifiedGap": {
+    "trigger": "After movement admission, original driver/effective commander is lost or replaced, or another control predicate fails.",
+    "path": [
+      "CrewMoveStep _control fails and calls _finish without retired=true except before ISSUE movement.",
+      "_finish publishes UNRESOLVED and retains group reference and local movement reservation.",
+      "Discover calls CrewMoveRetire when private worker is no longer live.",
+      "CrewMoveRetire only admits ISSUE/REQUESTED/MOVING/HOLD/STOPPING/RETURNING; UNRESOLVED cannot enter retirement.",
+      "OwnershipLease acquisition refuses any nonempty ArtilleryCrew_Reference even after lease expiration; CrewMoveStart also refuses it."
+    ],
+    "consequence": "Automatic subsequent CBE movement acquisition for this group remains refused. This is a deliberate fail-closed authority boundary with an unfinished recovery path, not verified physical quiescence."
+  },
+  "requiredImplementation": "Separate retired/dead original actors from live original native writers. Admit a finite owner/epoch/serial-scoped observation and retirement path for surviving original selected crew, with no automatic command to replacement crew or unrelated infantry. Release only on current native-task supersession or positively observed original writer retirement. Preserve original cleanup deadline; no timer-only success, force seating, group split or blanket reference deletion. Determine an explicit terminal disposition for destroyed/deleted platforms while preserving original actor authority.",
+  "validation": "Static call-path inspection only. No runtime change, new tests, build rerun, physical claim or percentage increase. Audit runs remain paused.",
+  "followup": {
+    "review": "artillery-dead-crew-retirement-20261025.json",
+    "status": "Original finding retained as historical source trace. All-original-crew-dead, stationary-platform retirement now implemented; surviving-writer and deleted-platform recovery remain incomplete."
+  },
+  "survivingDriverFollowup": {
+    "review": "artillery-surviving-driver-retirement-20261025.json",
+    "status": "Active worker can now retire through original surviving driver after distinct commander loss. Does not recover already-unresolved surviving-writer work or admit replacement actors."
+  }
+}

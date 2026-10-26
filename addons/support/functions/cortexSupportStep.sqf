@@ -1,6 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
  * Maintains at most six reserved responders and examines at most eight candidates per request step.
+ * Initial discovery scores eight snapshotted groups per callback, before any reservation.
+ * The complete ranked set retains nearest-first order and stable snapshot tie indices.
+ * Discovery uses the original deadline; interruption/restart never rescans or renews it.
  * Assigns each responder a distinct optional 45 m rally area, with at least 110 m between centres.
  * Six bounded candidate areas lie behind the requester. Occupied areas are excluded, then the
  * shared avenue selector chooses a dry, usable endpoint and rejects a cliff-like or unnecessarily
@@ -18,6 +21,7 @@
  * When every candidate is exhausted without an accepted lease, publishes NO_RESPONDER once so the
  * requester owner can make its single bounded retry instead of remaining inert for the engagement.
  * Repeat/JIP: unique tokens, shared deadlines and owner acknowledgements retire stale assignments.
+ * An exact executor failure invalidates the request and releases its existing leases; it cannot discover replacements.
  * Arguments: 0: request job <HASHMAP>.
  * Return Value: Next delay in seconds, or -1 on cleanup.
  * Current caller: CBE_fnc_SupportRequestStep as one bounded action under the support request FSM.
@@ -34,7 +38,7 @@ private _requesterReinforce = !isNull _requester && {[_requester,"CBE_AIPass_Rei
 private _requesterCoordinated = !isNull _requester && {[_requester,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled};
 private _requesterSupport = _requesterReinforce || {_requesterCoordinated};
 private _requesterTransmitter = [_requester] call CBE_fnc_CortexGroupTransmitter;
-private _valid = !isNull _requester && {!isNull _requesterTransmitter} && {serverTime < (_job get "expiry")}
+private _valid = (_job getOrDefault ["executorFailure",""]) == "" && {!isNull _requester} && {!isNull _requesterTransmitter} && {serverTime < (_job get "expiry")}
     && {missionNamespace getVariable ["CBE_AIPass_Enable",false]}
     && {[_requester,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {_requesterSupport}
@@ -59,16 +63,17 @@ private _kept = [];
         && {_lease isNotEqualTo [] && {(_lease select 0) == _token}};
     if (_keep && {groupOwner _helper != _owner}) then {
         _owner = groupOwner _helper; _ackBy = serverTime+15; _status = "PENDING";
-        [_helper,_lease] remoteExecCall ["CBE_fnc_CortexSupportLocal",_owner];
+        [_helper,_lease,true] remoteExecCall ["CBE_fnc_CortexSupportLocal",_owner];
     };
     if (_keep && {_status == "PENDING"} && {serverTime >= _ackBy}) then {_keep = false};
     if (_keep) then {_kept pushBack [_helper,_token,_owner,_ackBy,_status]} else {
-        if (_lease isNotEqualTo [] && {(_lease select 0) == _token}) then {_helper setVariable ["CBE_Cortex_SupportContact",nil,true]; _helper setVariable ["CBE_AIPass_SupportLease",nil,true]; _helper setVariable ["CBE_Cortex_SupportRole",nil,true]; _helper setVariable ["CBE_Cortex_SupportEligibility",nil,true]};
+        if (_lease isNotEqualTo [] && {(_lease select 0) == _token}) then {_helper setVariable ["CBE_Cortex_SupportContact",nil,true]; _helper setVariable ["CBE_AIPass_SupportLease",nil,true]; _helper setVariable ["CBE_Cortex_SupportRoleDeadline",nil,true]; _helper setVariable ["CBE_Cortex_SupportRole",nil,true]; _helper setVariable ["CBE_Cortex_SupportEligibility",nil,true]};
     };
 } forEach _leases;
 _job set ["leases",_kept];
 if (!_valid) exitWith {
     private _reason=call {
+        if ((_job getOrDefault ["executorFailure",""]) != "") exitWith {_job get "executorFailure"};
         if (isNull _requester) exitWith {"REQUESTER_DELETED"};
         if (serverTime >= (_job get "expiry")) exitWith {"EXPIRED"};
         if (!(missionNamespace getVariable ["CBE_AIPass_Enable",false]) || {!_requesterSupport}
@@ -82,6 +87,39 @@ if (!_valid) exitWith {
     _requester setVariable ["CBE_Cortex_SupportRequestState",nil,true];
     _requests deleteAt (_job get "key");
     -1
+};
+// Candidate scoring belongs to the same finite DISCOVER executor as reservation,
+// not the remote request callback. No new query or private polling loop is created.
+if (_job getOrDefault ["discoveryPending",false]) exitWith {
+    private _discoveryGroups=_job get "discoveryGroups";
+    private _discoveryCursor=_job get "discoveryCursor";
+    private _discoveryOrigin=_job get "discoveryOrigin";
+    private _discoveryRadius=_job get "discoveryRadius";
+    private _scored=_job get "candidates";
+    {
+        private _candidate=_x;
+        if (!isNull _candidate && {_candidate != _requester}
+            && {side _candidate == side _requester}) then {
+            private _candidateTransmitter=[_candidate] call CBE_fnc_CortexGroupTransmitter;
+            if (!isNull _candidateTransmitter
+                && {_candidateTransmitter distance2D _discoveryOrigin <= _discoveryRadius}
+                && {count ((units _candidate) select {[_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}}) >= 3}) then {
+                _scored pushBack [_candidateTransmitter distance2D _discoveryOrigin,
+                    _discoveryCursor+_forEachIndex,_candidate];
+            };
+        };
+    } forEach (_discoveryGroups select [_discoveryCursor,8]);
+    _discoveryCursor=(_discoveryCursor+8) min count _discoveryGroups;
+    _job set ["discoveryCursor",_discoveryCursor];
+    _job set ["candidates",_scored];
+    if (_discoveryCursor >= count _discoveryGroups) then {
+        _scored sort true;
+        _job set ["discoveryPending",false];
+        _job deleteAt "discoveryGroups";
+    };
+    // Reservation begins on a later callback even when this was the final slice.
+    // Do not combine two eight-candidate workloads in one scheduler action.
+    0.05
 };
 private _candidates = _job get "candidates";
 private _cursor = _job get "cursor";

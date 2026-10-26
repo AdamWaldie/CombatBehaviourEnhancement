@@ -1,0 +1,24 @@
+{
+  "finding": "Actual-station readiness could qualify a loaded target-compatible muzzle but its firing callers did not know which muzzle qualified. Native AI may choose correctly, but explicit source muzzle-selection intent was not implemented.",
+  "implementation": "GroundFireReady resets and returns loadedWeapon/loadedMuzzle/loadedMagazine only for actual native loaded damaging/target-suitable state; remains read-only. General gunnery and combined ground fire use fresh target-specific observations, selectWeapon only when currentMuzzle differs, and issue native fire only once selected muzzle matches. Combined pending switch returns1 within unchanged original role expiry. No loadMagazine/addAmmo/forceWeaponFire/second controller. This does not rank optimal warheads or handle reserve-only reload selection.",
+  "references": [
+    "Local LAMBS2621 main/functions/VehicleAction/fnc_doSelectWarhead.sqf",
+    "https://community.bistudio.com/wiki/selectWeapon",
+    "https://community.bistudio.com/wiki/weaponState"
+  ],
+  "source_sha256": {
+    "addons/infantry/functions/cortexGroundFireReady.sqf": "2660fa092674dcd76aaecb7cdb5554ceb7e9aad3eac284cb05551e3ea42fd7b4",
+    "addons/infantry/functions/cortexCombinedGroundStep.sqf": "7e4f8583ad64817c9887cfb9fbacc63d5439582354029fbbd0558c3f5bc3e0c2",
+    "addons/vehicles/functions/cortexVehicles.sqf": "80792411cee2b052fdff173f8efa5a70e0ec4928808264bb8e53035ad18414f5"
+  },
+  "validation": "Full final .qa/cbe-loaded-station-muzzle-final-build.log and independent package verify passed; fingerprint95556cdab6bb4ae95dd0ef4d6b35f4d2886af660d79659f8d5106e0844a6a148, manifest1a0bd35c+dirtydevelopment. Initial build stopped at an obsolete exact source assertion; updated existing shared-target test retains doFire independent of target mutation. No new test cases.",
+  "physical_acceptance": false,
+  "scores_changed": false,
+  "audits": "PAUSED",
+  "remaining": [
+    "Modded turret native selection acknowledgement and weapon transitions.",
+    "Actual target-appropriate firing/effect and friendly/civilian safety in engine.",
+    "Reserve-only ammunition switching and optimal warhead ranking.",
+    "Performance measurement and original full goal including native BACK/queue executor."
+  ]
+}

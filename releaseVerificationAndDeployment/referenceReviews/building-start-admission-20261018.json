@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-18",
+  "scope": "Exact admitted building FSM startup and idempotent worker acknowledgement",
+  "sources": {
+    "addons/infantry/functions/buildingOperationStart.sqf": "85540c4799f3dba472a674071f5dbf7daceed3900482d502c4fe5aee5b616d30",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "5cd124ea6d85bd815f2a3e8d9c219aee6091d82a6d1443b4b95fad05149a9b70",
+    "releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf": "485ea4f987551dab588c1174ba2513e6cc68cd258b26cdbd18c8a8fee0f8448e"
+  },
+  "finding": "BuildingOperationStart checked clear generation, then stamped the current epoch onto a prepared job and replaced the old brain. It did not verify its admitted common operation, target transform, native intent or deadlines. CortexClearBuilding ignored a false startup return and reported acceptance.",
+  "change": "Job retains admitted operation ownerEpoch. A bounded unscheduled startup validates the live CLEAR operation generation/epoch/objective, clear generation/flags, active gate, original deadlines, building pose, native order and eligibility. Identical live duplicate jobs reuse the existing brain; no retired same-generation worker restarts. Startup refusal returns false and cleanup retires only the exact still-local operation/generation/epoch without formation recall.",
+  "fixture": "Existing normal moved-building case captures actual brain/job/handle; duplicate start must preserve the same live worker. Old real job is replayed after cancellation and replacement and must fail while replacement survives and both actors subsequently enter. PREPARED_NOT_RUN.",
+  "validation": {
+    "tests": 1158,
+    "sqf": 315,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-building-start-admission-build.log",
+    "fingerprint": "16d9853cb07fdefce8cd2b3ee594f8a99e970ca2b86c502620c87539c3e5bda8",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "limits": [
+    "This commit does not make the whole multi-stage clearance admission atomic. Earlier preparation metadata and actor-setting interleavings still need review.",
+    "No actual-provider HC migration, runtime FSM scheduling/termination, physical repeatability or performance-budget acceptance.",
+    "execFSM engine scheduling and live mission interruption remain runtime checks.",
+    "All65 feature families remain partial."
+  ]
+}

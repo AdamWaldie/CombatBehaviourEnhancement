@@ -43,6 +43,6 @@ if !(_group getVariable ["CBE_AIPass_Adopted",false]) then {[_group,true] call C
 _group setVariable ["CBE_AIPass_RegroupQueued", true];
 [
     CBE_fnc_CortexRegroupStep,
-    createHashMapFromArray [["group", _group], ["phase", "EVALUATE"], ["firstEvaluation", -1], ["operationGeneration",_group getVariable ["CBE_OperationGeneration",0]]],
+    createHashMapFromArray [["group", _group], ["phase", "EVALUATE"], ["firstEvaluation", -1], ["nativeOrderReceipt",[_group] call CBE_fnc_NativeOrderReceipt], ["operationGeneration",_group getVariable ["CBE_OperationGeneration",0]]],
     missionNamespace getVariable ["CBE_AIPass_Regroup_SettleSeconds", 5]
 ] call CBE_fnc_CortexQueueJob;

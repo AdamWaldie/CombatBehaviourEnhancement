@@ -73,14 +73,25 @@ private _previousGarrisonFailure=_group getVariable ["CBE_Cortex_GarrisonAdmissi
             // Release automatic actor jobs too; no group-wide reset is needed to retire them.
             // Inspect every current member so reordered membership cannot hide an admitted actor.
             {
+                private _point=_x getVariable ["CBE_PointActor_Brain",createHashMap];
+                if (count _point > 0 || {(_x getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
+                    private _retiredPoint=["FINISH",_x,_point] call CBE_fnc_PointActorOperation;
+                    _released=_released || {_retiredPoint};
+                };
                 private _indoor=_x getVariable ["CBE_IndoorActor_Brain",createHashMap];
                 if (count _indoor > 0 || {(_x getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}) then {
                     private _retired=["FINISH",_x,_indoor] call CBE_fnc_IndoorActorOperation;
                     _released=_released || {_retired};
                 };
             } forEach units _group;
-            if ((_group getVariable ["CBE_AIPass_Garrison", []]) isNotEqualTo []) then {_released = [_group] call CBE_fnc_CortexGarrisonRelease};
-            if ((_group getVariable ["CBE_AIPass_Defend", []]) isNotEqualTo []) then {_released = [_group] call CBE_fnc_CortexDefendRelease};
+            if ((_group getVariable ["CBE_AIPass_Garrison", []]) isNotEqualTo []) then {
+                private _garrisonReleased=[_group] call CBE_fnc_CortexGarrisonRelease;
+                _released=_released || {_garrisonReleased};
+            };
+            if ((_group getVariable ["CBE_AIPass_Defend", []]) isNotEqualTo []) then {
+                private _defendReleased=[_group] call CBE_fnc_CortexDefendRelease;
+                _released=_released || {_defendReleased};
+            };
             _released
         };
         case "EXCLUDE": {
@@ -102,7 +113,26 @@ private _previousGarrisonFailure=_group getVariable ["CBE_Cortex_GarrisonAdmissi
             true
         };
         case "CLEAR": {[_group, _building] call CBE_fnc_CortexClearBuilding};
-        case "AIRBORNE": {[_group] call CBE_fnc_CortexAirborneDrop};
+        case "AIRBORNE": {
+            private _witnessCurrent=true;
+            if ("passenger" in _settings || {"aircraft" in _settings}) then {
+                private _passenger=_settings getOrDefault ["passenger",objNull];
+                private _aircraft=_settings getOrDefault ["aircraft",objNull];
+                _witnessCurrent=_passenger isEqualType objNull && {_aircraft isEqualType objNull}
+                    && {!isNull _passenger} && {!isNull _aircraft} && {local _passenger}
+                    && {group _passenger == _group} && {objectParent _passenger == _aircraft}
+                    && {[_passenger] call CBE_fnc_CortexCombatEffective}
+                    && {_aircraft isKindOf "Air"} && {!(_aircraft isKindOf "ParachuteBase")}
+                    && {private _seats=(fullCrew [_aircraft,"cargo"])
+                        +((fullCrew [_aircraft,"turret"]) select {_x select 4});
+                        _seats findIf {(_x select 0) == _passenger} >= 0}
+                    && {(units _group) findIf {alive _x && {local _x}
+                        && {(vehicle _x) isKindOf "Air"} && {!((vehicle _x) isKindOf "ParachuteBase")}
+                        && {vehicle _x != _aircraft}} < 0};
+            };
+            if (!_witnessCurrent) exitWith {false};
+            [_group] call CBE_fnc_CortexAirborneDrop
+        };
         default {false};
     };
 
@@ -129,6 +159,9 @@ if (!_accepted && {_newGarrisonFailure}) then {
         case "NO_VALID_POSITIONS": {"No valid garrison positions were found in the selected area. No earlier task was replaced."};
         default {"Garrison planning was invalid or exceeded its bounded planning budget. No earlier task was replaced."};
     };
+};
+if (!_accepted && {_order == "AIRBORNE"}) then {
+    _executionReason="Airborne insertion was refused. Check the selected passenger, squad aircraft, altitude, dry land and AI pilots; newer orders or another controller also take priority.";
 };
 if (!_accepted && {_order == "CLEAR"}) then {
     private _failure=_group getVariable ["CBE_Cortex_ClearAdmissionFailure",[]];

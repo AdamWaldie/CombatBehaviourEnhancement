@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "ae3ffd6f",
+  "scope": "Natural infantry stealth/contact discipline",
+  "reference": {
+    "workshopId": "1858075458",
+    "readOnlySource": ".qa/lambs-2621-review/danger/functions/fnc_brainEngage.sqf",
+    "sha256": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
+    "intent": "Reference engagement defers stealth/hold-fire while immediate self-defence remains a separate branch.",
+    "runtimeDependency": false,
+    "originalsModified": false
+  },
+  "finding": "DangerReact preserved STEALTH behaviour but could still raise combatMode to RED. GroupTick only deferred scripted attacks for BLUE/GREEN, and FireControl had no actor-level stealth gate. Concealed contact could therefore trigger a scripted assault without changing its STEALTH label.",
+  "implementation": [
+    "Atomic danger posture commit returns ASSESS for current STEALTH anchor before posture/combat escalation. Existing RESTORE/RELEASE and independent weak self-defence paths remain.",
+    "Natural contact scripted engagement gate includes current leader STEALTH without writing native combat mode. Existing attack/clearance/support-attack gates use it. Passive contact reports retain the original native hold-fire gate.",
+    "Scripted fire roster excludes current STEALTH actors; native fire/target AI remains enabled. Existing explicit operation executors are not cancelled by this new-admission gate."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/dangerReact.sqf": "9825c08e2c5c8263f8d6206de83bd9319ec3a4ab8b7c0210ffcc5b7bc792bc4f",
+    "addons/infantry/functions/cortexGroupTick.sqf": "1f3e2fa4ed89d25c5bca17c93b73d371c34d550293580fe069f78c8baa8845f1",
+    "addons/core/functions/cortexFireControl.sqf": "2a39a4438917270a0f80d692b0db2a3597d257cf97c03d2c6ed9eb76203908ff",
+    "docs/Smart-AI-Pass.md": "97276eb1c7546eaf9c9f518c944ae70133c78b41d9c7c8f73387c505ed3c5ef5"
+  },
+  "validation": {
+    "compiler": ".qa/cbe-stealth-native-discipline-hemtt.log",
+    "focused": ".qa/cbe-stealth-native-discipline-focused.log",
+    "existingTestsPassed": 1476,
+    "fullPipeline": ".qa/cbe-stealth-drill-batch-final-build.log",
+    "independent": ".qa/cbe-stealth-drill-independent.log",
+    "fingerprint": "c5091fff5510e2a5612b01477f7132c990015d98c15752b90baa0cbf86375bdb",
+    "manifestSource": "ae3ffd6f8a3041142650b78fb33ed4274f1a0001+dirty development; unsigned"
+  },
+  "newTestCases": 0,
+  "newWorkers": 0,
+  "newGeometryQueries": 0,
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "remaining": [
+    "Actual concealment, reports and native transition into combat under fire are unverified.",
+    "This scope is natural infantry escalation; all other search/security/vehicle/air policy paths still need their own intent comparison.",
+    "No complete source parity or performance acceptance inferred."
+  ],
+  "audits": "PAUSED",
+  "checkpointNote": "First full run caught obsolete unconditional support-start assertion; existing case now requires propagated executor result. No cases added or removed."
+}

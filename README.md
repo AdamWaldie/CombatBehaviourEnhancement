@@ -4,6 +4,8 @@ Combat Behaviour Enhancement (CBE) is a standalone CBA mod for Arma 3. Its goal 
 sound AI with bounded, locality-aware work that remains subordinate to Zeus and authored mission
 orders.
 
+Skill profiling is opt-in. By default, mission-authored skills and difficulty remain in control while tactical behaviours stay independently enabled. See [skill ownership and tuning](docs/Waldos-AI-Tweak.md).
+
 ## Current foundation
 
 The repository now builds as a conventional `z\cbe\addons\main` addon:
@@ -12,7 +14,7 @@ The repository now builds as a conventional `z\cbe\addons\main` addon:
 - CBA extended post-init starts only the systems enabled for that owner;
 - public functions use the sole `CBE_fnc_*` namespace through `CfgFunctions`;
 - CBA Settings owns global addon configuration and JIP synchronization;
-- Native Zeus orders are included; optional ZEN supplies an extended convoy dialog;
+- Native Zeus orders include **Airborne insertion now**, placed on an AI cargo passenger; optional ZEN supplies additional task dialogs;
 - the standalone settings request validates the requesting curator and updates the CBA server layer;
 - HEMTT owns packaging and version metadata.
 
@@ -91,7 +93,7 @@ Current implementation, physical acceptance and progression blockers are recorde
 
 ## Optional engine policy
 
-The packaged optionals folder contains a separate AI Turret Aiming addon. Load that optional mod alongside CBE to apply a restart-required AI turret aiming-error ceiling of 0.12 radians. It changes no weapon dispersion, ammunition, projectile or recoil properties. CBA switches cannot unload an engine configuration patch; remove the optional mod and restart to restore the base configuration. Default CBE installation does not load it. Physical lethality, player precision and compatibility acceptance remain pending.
+The packaged optionals folder contains a separate AI Turret Aiming addon. Load that optional mod alongside CBE to apply a restart-required AI turret aiming-error ceiling of 0.12 radians and native AI dispersion multipliers for RCWS machine guns, heavy machine guns, coaxial guns and autocannons. Machine-gun bursts remain interruptible when a target dies or leaves sight. It changes no player weapon dispersion, ammunition, projectile, recoil, burst length or firing cadence properties. CBA switches cannot unload an engine configuration patch; remove the optional mod and restart to restore the base configuration. Default CBE installation does not load it. Physical lethality, player precision and compatibility acceptance remain pending.
 
 For packaged audit comparisons, use the checked-in launcher with -EnginePolicies turret_aiming for the policy arm and omit it for the default arm. The launcher records the selection and uses the same sealed optional addon on every participating machine; native baseline runs reject CBE engine policies.
 
@@ -114,3 +116,11 @@ Candidate signing and independent verification cover every PBO recursively, incl
 ## CBE naming and artwork
 
 CBE abbreviates Combat Behaviour Enhancement. The selected logo and Workshop banner are in `artwork/branding/`. See [CBE migration](docs/CBE-MIGRATION.md) for function names and retained mission contracts.
+
+
+The separate **Native Suppression Recovery** optional addon supplies a native AI recovery baseline alongside the scripted danger reactions. Load `optionals/@cbe_suppression` with CBE on every participating machine. At the minimum/maximum skill endpoints, suppression decay uses 25/4 seconds and aim settling uses 3.5/0.6 seconds; explosion influence is 1.5 and turning influence is 1.2. These are engine configuration parameters, not guaranteed observed timings under continued fire. The policy does not change mission-set skills, maximum aim-error angles, weapons or ammunition. It is global to the default soldier brain, including actors excluded from CBE tactics, and remains active when CBA tactics switches are off. Remove the optional addon and restart to remove its overrides. Other configuration addons can override the same properties; diagnostics report effective values. Balance and performance remain unverified. The audit launcher accepts `-EnginePolicies suppression` or both policies, records the selection and rejects policies in a native-baseline run.
+
+
+The separate **Native Launcher Policy** optional addon (`optionals/@cbe_launcher_policy`) changes native AI RPG-7/RPG-32 firing preferences, cadence and AI-only dispersion, plus target-use flags for PG-7, PG-32, SPG-9 HEAT and MAAWS HEAT ammunition. PG-7/PG-32 permit native consideration of infantry, light vehicles, aircraft and armour; the other two omit the air flag. Flags are AI usage preferences, not guaranteed shots or a replacement for native target knowledge and ROE. The same optional addon includes native fragmentation-grenade and UGL AI choice/cadence parameters. Hand and mini-fragmentation muzzles use a 20 m minimum and UGL fire a 50 m minimum; smoke and other throw muzzles retain their native policy. These native choices remain separate from CBE's explicit grenade requests and their friendly-safety gate.
+
+This selected native policy preserves player dispersion/recoil/sounds, ammunition cost, projectile physics and damage. It does not implement CUP/RHS/SOG adapters or change lock behaviour. Its short minimum firing distances and target preferences need physical balance and friendly-safety validation; native autonomous shots do not pass through CBE's scripted launcher line-of-fire gate. It applies globally to affected config classes, including AI excluded from CBE tactics, and remains loaded when CBA tactics are disabled. It is **not loaded by default**: load it consistently on every participating machine, and remove it and restart to remove the overrides. Diagnostics read the effective values and report mismatches from other configuration addons. The paused audit launcher supports `-EnginePolicies launcher_policy`; no audit has been run for this policy.

@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-24",
+  "base": "7072f960d282bea17f9a67c0e7f3f026dbbcef04",
+  "workshopId": "3806472028",
+  "reference": "Drongo's Grenade Tweaks Lite",
+  "sourcePboSHA256": "bc834d6f01bcfbdbacfd211a3113557c34174d94f0f84fb9d9780c2f99417ef4",
+  "priorReview": "releaseVerificationAndDeployment/referenceReviews/source-reconciliation-20261024.json",
+  "scope": "Native AI fragmentation-grenade and UGL selection/cadence layer integrated into existing optional launcher policy; selected intent, not whole source transplant or balance acceptance.",
+  "implementation": [
+    "UGL_F/Single: native AI spread1.4/2,cadence4/dispersion1/distance400, ranges50/200/400 and range preferences1.05.",
+    "Throw/HandGrenadeMuzzle and MiniGrenadeMuzzle: cadence3/dispersion2/distance60, minimum20 and preferences1.015. Inherited native mid/max range and physical throw remain unchanged.",
+    "Do not retune shared ThrowMuzzle or generic GrenadeLauncher bases. Smoke, flashbangs, stones, chemlights and unrelated launchers keep their own inherited config policy.",
+    "No new optional folder, scheduler, firing command, dependency, event handler or settings loop. Existing launcher_policy staging/sealing/signature mechanism applies. Default installation does not load this restart-required optional.",
+    "Existing diagnostics read25 additional effective native properties and require numeric/matching values; no assertion about actual native shot decisions."
+  ],
+  "rejectedOrDeferred": [
+    "Source near-zero ammo cost and broad usage-flag edits not imported: preserve ammunition economy and avoid widening unrelated base ammo choices without balance evidence.",
+    "Source grenade blast radius/damage expansion excluded because shared player/AI physics is not an AI decision enhancement.",
+    "Bundled alternative LAMBS dependency not imported; CBE remains standalone.",
+    "No CUP/RHS/modded throw/launcher adapter expansion. Descendants may override these properties."
+  ],
+  "integrationBoundary": "CBE scripted smoke/frag remains an independent finite executor with original8..40m range, current selected-ammo blast safety and owner/task/ROE gates. Native autonomous shots do not pass through that script; no friendly-safety equivalence claimed.",
+  "productionHashes": {
+    "optionals/launcher_policy/config.cpp": "9cbc03b382e955b63ac877c1c69e7cb59154520ce30d438653a01a3844a54306",
+    "addons/core/functions/aiGetDiagnostics.sqf": "d452d06d0fbe405d8ddd31b5bbef321ab3f1b509e0727f01ae2a2add17682590"
+  },
+  "validation": {
+    "focusedExistingCases": 25,
+    "fullExistingCases": 1497,
+    "productionSQF": 413,
+    "PBOs": 11,
+    "newCases": 0,
+    "fullOfflineGates": "PASS",
+    "independentVerification": "PASS",
+    "initialFailure": "Product documentation named a reference mod; removed that name and reran the unchanged reference gate/full pipeline. No test weakened."
+  },
+  "candidate": ".qa/candidates/native-grenade-policy-7072f960",
+  "fingerprint": "112f8440c64a1d64b9e9967d2083d3e76e2a3a1bd7a69d3e8dfb6501207895f6",
+  "provenance": "Unsigned dirty development candidate containing preserved unrelated checkout changes. Review/handover/register update postdate package. Earlier clean-e771efcb excludes subsequent work.",
+  "remaining": [
+    "Actual autonomous grenade/UGL use, selected ammunition, close range, smoke nonregression and derived config merge",
+    "Friendly safety, mission hold fire, ammunition economy and physical balance",
+    "Normal versus actual-provider HC behaviour and measured5%median/10%p95 performance"
+  ],
+  "sourceProtection": "Original PBO rehashed unchanged. No upstream script or asset shipped; mechanical native configuration intent adapted, not a licence grant for future source reuse. Private raw source/manifest remains out of Git.",
+  "physicalAcceptance": false,
+  "scoresChanged": false,
+  "audits": "PAUSED; no staging or game launch"
+}

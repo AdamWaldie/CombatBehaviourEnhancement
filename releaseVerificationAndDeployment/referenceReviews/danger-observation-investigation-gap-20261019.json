@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "2ed432a4",
+  "scope": "Body/scream observation to individual investigation; source comparison only",
+  "reference": {
+    "workshopId": "1858075458",
+    "files": {
+      ".qa/lambs-2621-review/danger/functions/fnc_brainHide.sqf": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c",
+      ".qa/lambs-2621-review/danger/functions/fnc_brainAssess.sqf": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
+      ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doCheckBody.sqf": "be58252ed15228047ec673df09a0f7d3642df372ed21504309b537d4c501433c"
+    },
+    "originalsModified": false,
+    "runtimeDependency": false
+  },
+  "sourceIntent": [
+    "Scream causes brief look/watch; body types distinguish own-group physical check from unknown-body observation and nearby-building memory.",
+    "Own-body check moves one actor, waits for real proximity or timeout/death, performs rearm/inventory collection, then returns to leader.",
+    "Assessment can use accumulated building memory, while suppression, STOP, stealth and hold-fire defer autonomous action."
+  ],
+  "actualCbePath": [
+    "DangerEngineAct HIDE cause5 calls PointActorOperation START using original source/body position. Existing finite actor FSM owns one original12-second point approach, original2-second native acknowledgement and one move; new tasks interrupt through exact route/actor ownership.",
+    "CasualtyObservationSelect corroborates an explicit body or existing bounded actual-death identity receipt. No allDeadMen world scan. Visit requires real position proximity and LOS before optional compatible-magazine or empty-slot weapon recovery.",
+    "DangerStep BODY_FOUND publishes an original20-second observer/epoch-bound building clue with same-location coalescing; existing CALM group path may dispatch bounded individual nearby-building investigation. It does not invent enemy identity or room safety.",
+    "A point VISITED result and equipment transfer verification are separate. Native command issue alone does not verify visit or inventory conservation."
+  ],
+  "gap": "The original absence claim is superseded by the named implemented paths. Physical casualty visit, interruption/continuation, inventory conservation, nearby-building suspicion and runtime balance/performance remain unverified; source implementation is not acceptance.",
+  "disposition": [
+    "Do not implement a duplicate body-check controller from the historical gap. Use the listed source and current review evidence.",
+    "Keep original LAMBS intent comparison and deliberately reject global corpse scanning, forced inventory/backpack copying and unguarded follow commands.",
+    "Retain physical acceptance as unverified while audits are paused. No score changes or whole-source parity claim."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/dangerEngineAct.sqf": "53379611e2079f44c0d2cdda8edf34741e04528039d38b1d47134d24c413979d",
+    "addons/infantry/functions/dangerReact.sqf": "9825c08e2c5c8263f8d6206de83bd9319ec3a4ab8b7c0210ffcc5b7bc792bc4f",
+    "addons/infantry/functions/dangerStep.sqf": "981ebb3fdce7d742e8a693918fd6bf482a7cd0bdf6cb088ae085798eb4cb084b",
+    "addons/infantry/functions/cortexGroupTick.sqf": "1f3e2fa4ed89d25c5bca17c93b73d371c34d550293580fe069f78c8baa8845f1"
+  },
+  "implementationChange": false,
+  "physicalAcceptance": false,
+  "scoresChanged": false,
+  "audits": "PAUSED",
+  "currentReviewDate": "2026-10-22",
+  "currentSourceParent": "51349fb3",
+  "status": "HISTORICAL_BUILD_GAP_SUPERSEDED; PHYSICAL_ACCEPTANCE_UNVERIFIED",
+  "supersededBy": [
+    "casualty-point-investigation-20261019.json",
+    "body-building-memory-20261019.json",
+    "casualty-identity-provenance-20261019.json",
+    "casualty-equipment-recovery-20261020.json"
+  ],
+  "historicalGap": "Individual body investigation and memory-driven follow-on are not implemented by a brief look. No whole-source parity credit.",
+  "historicalActualCbePath": [
+    "Engine HIDE body/scream cause may glanceAt known position for idle actor; no target identity disclosure.",
+    "Group assessment retains finite alerting response and prompt cadence, without treating body/scream as incoming-fire geometry or confirmed attacker.",
+    "CALM investigations consume known hostiles or SOUND/REPORT area reports; native body/scream response does not create that memory or an individual body-check operation."
+  ],
+  "historicalDisposition": [
+    "Retain separation of alerting evidence from hostile knowledge and immediate physical hazard.",
+    "Build finite individual point investigation on owner/epoch/native-task/actor-reservation foundations; do not repurpose cover-away movement or send whole squad merely to reuse group investigation.",
+    "Use bounded local discovery only if physical corpse identity is needed; no allDeadMen world scan.",
+    "Treat inventory/rearm/launcher/backpack transfer separately with ammunition/loadout/mission-authority balance. No automatic raw upstream inventory mutation copied.",
+    "Actual position visit, cancellation, no-progress, original deadline and guarded continuation are required; flags or guessed corpse identity cannot count as physical success."
+  ],
+  "currentSourceHashes": {
+    "addons/infantry/functions/dangerEngineAct.sqf": "6329b7f1f5559161a47b94def63511b3118c2205fae1b472ad8ddbc21231f1fa",
+    "addons/infantry/functions/pointActorOperation.sqf": "d87c30d98a8ffbdc6b0dcb371a480aed175ec7deeda3e488270b77ac518abafb",
+    "addons/main/fsm/pointActor.fsm": "9663f6ca5c3b88645b4f48666b4ce8460b20d1ac3c0536f4cf4b0fdf71e7ddfe",
+    "addons/infantry/functions/casualtyObservationSelect.sqf": "ca6593060dd7303a534a24e4835fa2d089a95b17fde1612578866fc69904764c",
+    "addons/infantry/functions/casualtyWeaponRecover.sqf": "2a70a56b5241b67aa16a5ef0b023af737008e99fccbe65113e46bf6db3cc0b16",
+    "addons/infantry/functions/dangerStep.sqf": "ea99366d9107e6c639537ab996246c4eb14795062c2ae6d2b88f6183afbff9e1",
+    "addons/infantry/functions/cortexGroupTick.sqf": "050deee4a403d426947122dda90b8514e4ca1561e393a14426f3430b5b7f86f7"
+  },
+  "currentValidation": "JSON parsed; superseding files exist; seven current source hashes verified. No runtime source changed; unchanged passing full build was not repeated.",
+  "pointReleaseIntegration20261023": {
+    "baseline": "789141ce",
+    "finding": "Shared CortexReleaseGroup and authenticated Zeus RELEASE explicitly finished automatic indoor actors but omitted finite point investigations. RELEASE result also replaced prior success with later garrison/defend refusal.",
+    "implementation": "Both existing actor loops call PointActorOperation FINISH when its brain/order exists, preserving its immutable native request journal, replacement-order protection and CANCEL_PENDING result. No new reset, route command or worker. Garrison/defend release calls always execute before combining their result with earlier success.",
+    "validation": "1491 tests/full local build and independent package verification passed; existing actor lifecycle regression extended without new cases.",
+    "candidate": ".qa/candidates/point-investigation-release-789141ce",
+    "fingerprint": "a65499cdc3ca4f4ee3cdc3199d5dd9b77ab3bc9db41729cda5d63b19e776d8ef",
+    "logs": [
+      ".qa/point-investigation-release-build.log",
+      ".qa/point-investigation-release-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt, engineering notes afterward. FINISH acceptance is not proof pending native MOVE is quiescent; physical replacement/Zeus/HC/JIP/overhead unverified. Audits paused. Global build-out freshness failure remains; no source-parity/score claim."
+  },
+  "contactOnlyActorIndependence20261023": {
+    "baseline": "0f452bd2",
+    "finding": "Contact-off GroupTick already avoids repeated idle resets, but one-time CortexReleaseGroup reconciliation retired indoor/point jobs before validating keepBrain. Those actor jobs have independent Danger/Investigation/BuildingCombat gates, so Contact-only disable should not itself cancel them.",
+    "implementation": "Validate keepBrain before actor retirement and restrict it to explicit CONTACT_DISABLED reason, forget=false, current local non-external/non-Zeus group. Actor FINISH loop runs only outside that exemption. Full RELEASE/EXCLUDE/stop/takeover still retires jobs. No new task, worker, deadline or feature-gate override.",
+    "validation": "1491 tests/full build plus independent candidate verification passed; existing actor lifecycle test extended. No new cases or repeated-reset bug claim.",
+    "candidate": ".qa/candidates/contact-disabled-actor-independence-0f452bd2",
+    "fingerprint": "d785cbfb7cf211cb9f098cbb2f7ed5a9455ec2f2d3fe4b869cc05fb47b2da842",
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering metadata afterward. Physical feature transition, movement handback, HC/JIP and overhead unverified; audits paused. Tracker/global Workshop scope gaps remain."
+  }
+}

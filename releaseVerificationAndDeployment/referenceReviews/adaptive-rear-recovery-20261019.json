@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-19",
+  "scope": "Finite adaptive rear recovery and oncoming crossing boundary",
+  "source": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "lines": "1355-1514",
+    "intent": "HBQ chooses a longer smooth back-off with room, otherwise a shorter one; rear-first requests and temporary yielding preserve space. Separate lateral shifts and route replanning help opposing traffic pass.",
+    "redesign": "No source EachFrame push, physics movement or route reconstruction copied. Use existing native finite recovery, body/support observation and exact current-owner journal."
+  },
+  "implementation": "One8m rear clearance preference; only named spatial obstruction/support reasons allow one3.5m fallback. Actual supported destination comes from the selected observer. Public rearEnvelope stores8/6 or3.5/2 clearance/native BACK travel limit; legacy receipts default8/6, other envelopes fail active proof. Active observation uses remaining travel plus original positive end buffer; original heading/damage/lateral/overshoot bounds still apply. This avoids repeatedly demanding the full initial clearance behind an already backing vehicle. Original deadlines and retry count remain unchanged.",
+  "cost": "At most one additional bounded RearClear call per eligible rear admission attempt, not every ordinary callback. Worst-case two observer calls, each retaining its own64actor/250m/70ray bound. Active-leg observer count unchanged. No new worker/global scan; actual runtime cost unmeasured.",
+  "headOnGap": "Existing DrivingPassPlan refuses >25degree heading difference, so it cannot provide an oncoming crossing plan unchanged. HBQ lateral push cannot be replaced by rear travel alone. Native side-clear geometry, stable yield choice, complete crossing and held parent/leaf handback remain required before queue activation.",
+  "validation": {
+    "newCases": 0,
+    "focusedLog": ".qa/cbe-short-rear-focused.log",
+    "hemttLog": ".qa/cbe-short-rear-hemtt.log",
+    "fullPipeline": "Passed1476 existing tests and complete build gates; .qa/cbe-short-rear-build.log",
+    "physical": "Unverified; audits paused. No source parity or build-out score increase.",
+    "focusedExistingTests": 639,
+    "independentPackage": "Passed .qa/cbe-short-rear-independent.log",
+    "package": {
+      "commit": "c3d1625035d5047d3accaa24ad7bbe0202d02701",
+      "dirty": true,
+      "fingerprint": "078ce2c38aecb5d60e5755ac15caa44861bbfb74023ec0f65b87e7cf1fd2ee68",
+      "signed": false
+    }
+  },
+  "limits": "Driver-only destination still does not establish physical reverse capability. Short envelope may refuse too. Sampling does not guarantee collision avoidance. Whole HBQ semantic review remains incomplete.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "sha256": "b24d5cd63d89ac2221d36d57fda3d3800eebc17453aa1df91dfc7546c0999e11"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRearClear.sqf",
+      "sha256": "f39f82669e827442e17beb11ea34e6fc553a984d60815ad7b7a222c4bf6f500f"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingPassPlan.sqf",
+      "sha256": "1232e9457f452af780ec5ae7e1aa2c17fd8190fad49e47e6cda8f34b332edfb0"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_rear_monitor.py",
+      "sha256": "0dbea7c1b14591fef86ff32878c08c93f7ad36482d82bc7ee3dfd335989c9bb9"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_rear_motion.py",
+      "sha256": "3f195995d7e61a1c231efd150391d235518a19accdcfa9036296fbaed4303213"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-18",
+  "scope": "Combined-arms mounted candidate discovery",
+  "officialReference": "https://community.bohemia.net/wiki/nearEntities?useskin=vector",
+  "finding": "Primary position/type/radius query omits entities inside vehicles. Engine2.18 area syntax supports explicit includeCrew=true.",
+  "previous": "requesterAnchor nearEntities [Man,radius] can omit mounted armour and aircraft operating groups.",
+  "implementation": [
+    "One spherical area with existing max air/ground response radius.",
+    "nearEntities types Man, matchExactType false, aliveOnly true, includeCrew true.",
+    "Existing keyed group deduplication, comms/role gates and actual-owner gunner/route admission retained."
+  ],
+  "validation": {
+    "tests": 1374,
+    "log": ".qa/cbe-combined-mounted-discovery-build.log",
+    "fingerprint": "822144e96be4389543635fc1bc4e3e5c13a6eb8999e096202b13dac1f728d78a",
+    "physical": false
+  },
+  "remaining": [
+    "Physical mounted-only armour/aircraft discovery and actual support effects.",
+    "Discovery population remains unbounded by the fallback pool; mounted population/query cost needs matched performance measurement."
+  ],
+  "audits": "paused pending direct user reply"
+}

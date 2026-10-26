@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "887c8399",
+  "scope": "Compose existing grenade evasion with actual clearance-owned STOP and current clearance writer. Not arbitrary STOP override, new movement controller or physical grenade success.",
+  "failure": "GrenadeCheck admitted empty/MOVE/ATTACK/FIRE/SUPPRESS only, so clearance actors physically held at native STOP could never enter that escape path. ClearEvasionReturn creation/initial retention also assumed a prior MOVE receipt, leaving no complete held-worker escape/return composition.",
+  "implementation": [
+    "Private read-only clearHoldOwned checks current live building brain/job, group/clearance/operation generation and epoch, CLEAR intent, no cancellation, unexpired original job deadlines, matching nonce HOLD motion context and real BuildingActorHoldOwned proof. Only this owned STOP extends existing command admission.",
+    "After cover proposal, recheck the exact hold proof before publishing escape context. Keep existing six-field return record for both original MOVE and original HOLD; no schema change or fabricated MOVE receipt.",
+    "During existing first two seconds of the same six-second lease, retainedEvasion may recognise a still-acknowledging original native STOP only with matching receipt and current physical owned hold. Actual acknowledged escape retains existing destination proof. No timer renewal or movement replay.",
+    "After original escape expiry, unchanged current escape destination/actor/context/epoch/operation lets existing room writer choose the CURRENT clearance target. Existing grenade regroup sees active clearance and does not issue doFollow. Unknown native escape acknowledgement, new order/Zeus/medical or changed episode grants no return authority."
+  ],
+  "authorityAndCost": "No new worker/timer/world scan/animation/forced pose or return command. Existing16-nearby-actor bound, six-second lease and original clearance deadlines remain. Only STOP candidates perform additional current-job/hold reads, with at most4post comparisons per hold predicate. Cost and physical timings unmeasured.",
+  "files": {
+    "addons/infantry/functions/cortexGrenadeCheck.sqf": "ff5e55d3f933314566466b8d684ddca09258f381d108c28218a3ca1c5ec27d6a",
+    "addons/infantry/functions/buildingOperationStep.sqf": "54a56b2e53e78b780a3241a3394356b29e9519a9df8d032cde68bfd381af9d7e"
+  },
+  "validation": {
+    "fullLog": ".qa/cqb-held-grenade-build-20261025-attempt1.log",
+    "exit": 0,
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pbos": 11,
+    "independentLog": ".qa/cqb-held-grenade-independent-20261025.log",
+    "candidate": ".qa/candidates/cqb-held-grenade-887c8399",
+    "fingerprint": "e9456347209a4b461939acbd0ef944833f2f1932dcf06ef75a9e90533f135e8d",
+    "testScope": "Existing clearance evasion/replacement regression extended for live hold admission generation/deadline/context, final recheck, HOLD return record and retention/no return command; all original MOVE return assertions retained. No extra test count. Static wiring, not Arma native execution."
+  },
+  "limits": [
+    "Unsigned dirty development candidate; notes postdate package.",
+    "Same-value external STOP at an otherwise exact CBE hold remains observationally indistinguishable; no stronger authority claimed.",
+    "Physical held grenade escape, delayed/native missing ACK, current-room rejoin, casualties/new orders/Zeus/locality/normal-HC/JIP and5percent median/10percent p95 UNRUN. Audits PAUSED. Whole goal active/incomplete."
+  ]
+}

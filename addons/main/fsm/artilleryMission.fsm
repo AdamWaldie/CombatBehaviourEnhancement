@@ -7,6 +7,7 @@ class FSM {
    class Cancelled {priority=11;to="Finished";condition="_brain getOrDefault [""cancelled"",false]";action="_reason=_brain getOrDefault [""cancelReason"",""CANCELLED""];";};
    class Replaced {priority=10;to="Finished";condition="isNull _battery || {_generation != (_battery getVariable [""CBE_Artillery_BrainGeneration"",-2])} || {(_battery getVariable [""CBE_Artillery_Brain"",createHashMap]) isNotEqualTo _brain}";action="_reason=""REPLACED"";";};
    class Delay {priority=9;to="Delay";condition="time < (_brain getOrDefault [""nextAt"",time])";action="";};
+   class Positioning {priority=5;to="Positioning";condition="_phase == ""POSITIONING""";action="";};
    class Warning {priority=5;to="Warning";condition="_phase == ""WARNING""";action="";};
    class Firing {priority=5;to="Firing";condition="_phase == ""FIRING""";action="";};
    class Relocating {priority=5;to="Relocating";condition="_phase == ""RELOCATING""";action="";};
@@ -14,6 +15,7 @@ class FSM {
   };};
   class Delay {name="Delay";init="";precondition="";class Links {class Invalidated {priority=5;to="Router";condition="_brain getOrDefault [""cancelled"",false] || {_brain getOrDefault [""finished"",false]} || {isNull _battery} || {_generation != (_battery getVariable [""CBE_Artillery_BrainGeneration"",-2])} || {(_battery getVariable [""CBE_Artillery_Brain"",createHashMap]) isNotEqualTo _brain}";action="";};class Due {priority=0;to="Router";condition="time >= (_brain getOrDefault [""nextAt"",time])";action="";};};};
   class Requested {name="Requested";init="[_battery,_generation,_brain,""REQUESTED""] call CBE_fnc_ArtilleryMissionQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
+  class Positioning {name="Positioning";init="[_battery,_generation,_brain,""POSITIONING""] call CBE_fnc_ArtilleryMissionQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
   class Warning {name="Warning";init="[_battery,_generation,_brain,""WARNING""] call CBE_fnc_ArtilleryMissionQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
   class Firing {name="Firing";init="[_battery,_generation,_brain,""FIRING""] call CBE_fnc_ArtilleryMissionQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};
   class Relocating {name="Relocating";init="[_battery,_generation,_brain,""RELOCATING""] call CBE_fnc_ArtilleryMissionQueue;";precondition="";class Links {class Wait {priority=0;to="Waiting";condition="true";action="";};};};

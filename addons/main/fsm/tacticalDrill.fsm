@@ -6,7 +6,7 @@ class FSM
         class Init
         {
             name = "Init";
-            init = "_empty = createHashMap; _group = _this param [0,grpNull,[grpNull]]; _token = _this param [1,"""",[""""]]; _epoch = _group getVariable [""CBE_AIPass_Epoch"",0]; _generation = _group getVariable [""CBE_OperationGeneration"",0]; _job = createHashMapFromArray [[""group"",_group],[""drillToken"",_token],[""jobKey"",""CBE_DRILL_""+str _group+""_""+_token],[""queuedAt"",time],[""watchdogCount"",0],[""done"",false],[""cancelled"",false]]; _zeusToken = +(_group getVariable [""CBE_AIPass_ZeusHold"",[]]); _group setVariable [""CBE_Cortex_DrillFSMJob"",_job]; _finished = false;";
+            init = "_empty = createHashMap; _group = _this param [0,grpNull,[grpNull]]; _token = _this param [1,"""",[""""]]; _epoch = _group getVariable [""CBE_AIPass_Epoch"",0]; _generation = _group getVariable [""CBE_OperationGeneration"",0]; _job = createHashMapFromArray [[""group"",_group],[""drillToken"",_token],[""ownerEpoch"",_epoch],[""operationGeneration"",_generation],[""fsmHandle"",_thisFSM],[""jobKey"",""CBE_DRILL_""+str _group+""_""+_token],[""queuedAt"",time],[""watchdogCount"",0],[""done"",false],[""cancelled"",false]]; _zeusToken = +(_group getVariable [""CBE_AIPass_ZeusHold"",[]]); _group setVariable [""CBE_Cortex_DrillFSMJob"",_job]; _finished = false;";
             precondition = "";
             class Links
             {

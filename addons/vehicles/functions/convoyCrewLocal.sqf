@@ -1,19 +1,33 @@
 /*
  * Author: WaldoTheWarfighter
+ * Mounted-fire admission uses the shared protected-task predicate. A protected successor
+ * task retires the old target marker without issuing target-clear into that new task.
+ * Same-revision seat/vehicle assignment changes and every occupant native task/reservation
+ * veto assignment/boarding upkeep. Locality adoption cannot reclaim that changed intent.
  * Keeps travelling occupants assigned to their actual seats, directs mounted fire and unloads only snapshotted passengers on halt.
  * Locality/authority: each server/HC acts only on its own vehicles and units from the server registry.
  * Explicit mounted fire requests require an available operating crew member and the shared
- * full-corridor position veto. A blocked lane retires only a still-matching convoy target.
+ * full-corridor position veto and the current turret magazine blast exclusion. Empty, unknown
+ * or reloading station state defers explicit fire; native selection and reload stay untouched.
+ * A blocked lane retires only a still-matching convoy target.
  * This five-second upkeep is not continuous fire/blast safety or proof a burst has stopped.
  * Hostile Hit events count as contact even when armour absorbs the damage. Local handler ownership
  * records its convoy group/machine so obsolete cleanup cannot remove an adopted handler.
  * Unload policy uses an exact public lease; an external value change blocks reacquisition until release.
  * New individual MOVE handover blocks same-revision crew writes through a public yield receipt.
+ * Steering HALT records actual seats, native commands and the current authored waypoint
+ * after STOP. Resume consumes that local receipt only while those identities still match.
  * Repeat/JIP: five-second owner checks repair occupied seat assignments and replay a durable halt
- * after transfer. Boarding orders are cancelled before unloading; driver and operating turret roles are excluded.
+ * after transfer. HALT retires the current eight-field steering receipt; its cleanup
+ * authority includes both original driver and operator destinations. Boarding orders are cancelled before unloading; driver and operating turret roles are excluded.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, speed, gap, push, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
  * Arguments: 2: full reservation cargo <ARRAY>, [] uses configuration cargo; does not expand actor writes.
  * Return Value: Nothing. Unconscious passengers wait until capable; players and remote-controlled units are skipped.
+ * Local driver/commander service tasks and actor reservations refuse boarding/halt writes,
+ * including direct registry-sync calls before the convoy driving callback.
+ * Final passenger unloading validates the current HALT snapshot and passenger pair atomically;
+ * filtered remote-passenger packets retain the same authoritative policy. Shared passenger checks
+ * observe full linear/angular motion and task ownership before any dismount command.
  * Current callers: ConvoyTick on every AI-owning machine.
  * Example: [_group, _configuration] call CBE_fnc_ConvoyCrewLocal;
  */
@@ -21,6 +35,21 @@ params ["_group", "_configuration",["_reservationCargo",[],[[]]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
 _configuration params ["_revision", "", "", "", "_vehicles", "_phase", "_cargo", "_restore", ["_reason", "MANUAL"], ["_threat", []], ["_deadline", 0]];
 if (((_group getVariable ["CBE_Convoy_CommandYield",[]]) param [0,-1]) == _revision) exitWith {};
+// Registry synchronization can call this before the owner driving tick. Protect actual
+// local driving-seat tasks here too; a nonlocal crew callback cannot release the group.
+private _crewTaskNames=["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+    "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"];
+private _nativeCrewTask=_vehicles findIf {
+    private _driver=driver _x;private _operator=effectiveCommander _x;
+    if (isNull _operator) then {_operator=_driver};
+    [_driver,_operator] findIf {
+        !isNull _x && {local _x} && {
+            [_x] call CBE_fnc_CortexActorMoveReserved
+            || {toUpperANSI currentCommand _x in _crewTaskNames}
+        }
+    } >= 0
+} >= 0;
+if (_nativeCrewTask) exitWith {};
 if (time < (_group getVariable ["CBE_Convoy_CrewDue", -1])) exitWith {};
 _group setVariable ["CBE_Convoy_CrewDue", time + 5];
 private _externalCrew = _vehicles findIf {(crew _x) findIf {[_x] call CBE_fnc_CortexExternalOwner != ""} >= 0} >= 0;
@@ -61,15 +90,21 @@ private _seats = createHashMap;
             // Only occupants already aboard are adopted; dismounted troops are not forced back in.
             private _passenger = _role == "cargo" || {_role == "turret" && {_personTurret}};
             private _assignedOccupant = _x param [5,objNull];
+            private _repairSeat=assignedVehicle _unit != _vehicle || {_assignedOccupant != _unit};
+            private _previousAssignment=_unit getVariable ["CBE_Convoy_PassengerRevision",[]];
+            // An explicit new convoy revision may adopt actual occupied seats. Repeated
+            // upkeep or locality change cannot reclaim a later native seat/vehicle assignment.
+            private _assignmentReplaced=(_previousAssignment select [0,2]) isEqualTo [_group,_revision]
+                && {_repairSeat};
             if ((_phase == "TRAVEL" || {!_passenger}) && {canMove _vehicle} && {local _unit} && {alive _unit} && {!isPlayer _unit}
-                && {vehicle _unit == _vehicle}
+                && {vehicle _unit == _vehicle} && {!_assignmentReplaced}
+                && {!([_unit] call CBE_fnc_CortexActorMoveReserved)}
+                && {!(toUpperANSI currentCommand _unit in _crewTaskNames)}
                 && {!isPlayer leader group _unit} && {!([group _unit] call CBE_fnc_CortexZeusHeld)}
                 && {!([group _unit] call CBE_fnc_CompatibilityExternalControl)}
                 && {!("ALL" in ((group _unit) getVariable ["CBE_AIPass_DisabledFeatures",[]]))}
                 && {isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
                 && {[_unit] call CBE_fnc_CortexCombatEffective}) then {
-                private _repairSeat=assignedVehicle _unit != _vehicle || {_assignedOccupant != _unit};
-                private _previousAssignment=_unit getVariable ["CBE_Convoy_PassengerRevision",[]];
                 private _newAssignment=_previousAssignment isNotEqualTo [_group,_revision,clientOwner];
                 private _newController=(_previousAssignment param [0,grpNull]) != _group || {(_previousAssignment param [2,-1]) != clientOwner};
                 if (_repairSeat) then {
@@ -89,7 +124,8 @@ private _seats = createHashMap;
                 };
             };
             private _fireEnabled = [_group,"CBE_Convoy_MountedFire_Enable",true] call CBE_fnc_CortexFeatureEnabled && {[group _unit,"CBE_Convoy_MountedFire_Enable",true] call CBE_fnc_CortexFeatureEnabled};
-            private _fireReady=_fireEnabled && {local _unit} && {!isPlayer _unit}
+            private _fireTaskAvailable=[_unit] call CBE_fnc_CortexActorFireTaskAvailable;
+            private _fireReady=_fireEnabled && {_fireTaskAvailable} && {!_assignmentReplaced} && {local _unit} && {!isPlayer _unit}
                 && {!_passenger} && {_role in ["gunner","commander","turret"]}
                 && {[_unit] call CBE_fnc_CortexCombatEffective}
                 && {simulationEnabled _unit} && {!isObjectHidden _unit}
@@ -97,14 +133,30 @@ private _seats = createHashMap;
                 && {!([group _unit] call CBE_fnc_CortexExternalTakeover)};
             if (local _unit && {!isPlayer _unit} && {!_fireReady || {!(combatMode group _unit in ["YELLOW", "RED"] && {unitCombatMode _unit in ["YELLOW", "RED"]})}}) then {
                 private _previous = _unit getVariable ["CBE_Convoy_Target", objNull];
-                if (!isNull _previous && {assignedTarget _unit == _previous}) then {_unit doTarget objNull};
+                if (_fireTaskAvailable && {!isNull _previous} && {assignedTarget _unit == _previous}) then {_unit doTarget objNull};
                 if (!isNil {_unit getVariable "CBE_Convoy_Target"}) then {_unit setVariable ["CBE_Convoy_Target", nil, true]};
             };
             if (_fireReady && {combatMode group _unit in ["YELLOW","RED"]}
                 && {unitCombatMode _unit in ["YELLOW","RED"]}) then {
                 private _report = [_unit] call CBE_fnc_ConvoyThreat;
                 private _enemy=_report param [0,objNull,[objNull]];
-                if (!isNull _enemy && {[_unit,aimPos _enemy] call CBE_fnc_CortexLineOfFireClear}) then {
+                // Read only this occupied turret's selected weapon; another station or a
+                // reserve magazine cannot supply the blast policy for this fire request.
+                private _fireMagazine="";
+                private _stationReady=false;
+                if (!isNull _enemy) then {
+                    private _loaded=weaponState [_vehicle,_turretPath];
+                    _stationReady=count _loaded >= 7
+                        && {[0,1,2,3] findIf {!((_loaded select _x) isEqualType "")
+                            || {(_loaded select _x) == ""}} < 0}
+                        && {[4,5,6] findIf {!((_loaded select _x) isEqualType 0)
+                            || {!finite (_loaded select _x)}} < 0}
+                        && {(_loaded select 4) > 0} && {(_loaded select 5) >= 0}
+                        && {(_loaded select 6) == 0};
+                    if (_stationReady) then {_fireMagazine=_loaded select 3};
+                };
+                if (!isNull _enemy && {_stationReady}
+                    && {[_unit,aimPos _enemy,_fireMagazine] call CBE_fnc_CortexLineOfFireClear}) then {
                     // Target/fire never orders pursuit or changes ROE.
                     if (assignedTarget _unit != _enemy) then {
                         _unit doTarget _enemy;
@@ -113,42 +165,79 @@ private _seats = createHashMap;
                     };
                 } else {
                     private _previous = _unit getVariable ["CBE_Convoy_Target", objNull];
-                    if (!isNull _previous && {assignedTarget _unit == _previous}) then {_unit doTarget objNull};
+                    if (_fireTaskAvailable && {!isNull _previous} && {assignedTarget _unit == _previous}) then {_unit doTarget objNull};
                     if (!isNil {_unit getVariable "CBE_Convoy_Target"}) then {_unit setVariable ["CBE_Convoy_Target", nil, true]};
                 };
             };
         } forEach fullCrew [_vehicle, "", false];
         // Stop after any necessary boarding repair so the last driver command remains HALT.
-        if (_phase == "HALT" && {local _vehicle} && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
-            // Some tracked steering controllers retain the last drive path despite driver STOP.
-            // Retire that movement source explicitly before applying the stationary command.
-            if (isAISteeringComponentEnabled _vehicle) then {
-                _vehicle setDriveOnPath [];
-                // A driver can already report STOP while executing a scripted path.
-                // Replace that path with a current-position move once per halt/owner,
-                // then stop it. This uses navigation, never position or velocity changes.
-                private _haltOwner=[_group,_revision,clientOwner];
-                if ((_vehicle getVariable ["CBE_Convoy_HaltOwner",[]]) isNotEqualTo _haltOwner) then {
-                    _vehicle move getPosATL _vehicle;
-                    _vehicle setVariable ["CBE_Convoy_HaltOwner",_haltOwner];
+        if (_phase == "HALT" && {local _vehicle}) then {
+            private _stopDriver=driver _vehicle;
+            private _stopOperator=effectiveCommander _vehicle;
+            if (isNull _stopOperator) then {_stopOperator=_stopDriver};
+            isNil {
+                if (!local _vehicle || {!alive _vehicle} || {!simulationEnabled _vehicle}
+                    || {isObjectHidden _vehicle} || {driver _vehicle != _stopDriver}
+                    || {isNull _stopDriver} || {isNull _stopOperator}
+                    || {([effectiveCommander _vehicle,driver _vehicle] select (isNull effectiveCommander _vehicle)) != _stopOperator}
+                    || {[_group] call CBE_fnc_CortexExternalTakeover}
+                    || {[] call CBE_fnc_CortexIsPaused}
+                    || {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
+                        (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
+                    } < 0}
+                    || {[_stopDriver,_stopOperator] findIf {
+                        !local _x || {group _x != _group} || {vehicle _x != _vehicle}
+                        || {!([_x] call CBE_fnc_CortexCombatEffective)} || {isPlayer _x}
+                        || {!isNull remoteControlled _x}
+                        || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+                        || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+                        || {[_x] call CBE_fnc_CortexActorMoveReserved}
+                        || {toUpperANSI currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+                            "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+                    } >= 0}) exitWith {false};
+                // Some tracked steering controllers retain the last drive path despite driver STOP.
+                // Retire that movement source explicitly before applying the stationary command.
+                if (isAISteeringComponentEnabled _vehicle) then {
+                    _vehicle setDriveOnPath [];
+                    // A driver can already report STOP while executing a scripted path.
+                    // Replace that path with a current-position move once per halt/owner,
+                    // then stop it. This uses navigation, never position or velocity changes.
+                    private _haltOwner=[_group,_revision,clientOwner];
+                    if ((_vehicle getVariable ["CBE_Convoy_HaltOwner",[]]) isNotEqualTo _haltOwner) then {
+                        _vehicle move getPosATL _vehicle;
+                        _vehicle setVariable ["CBE_Convoy_HaltOwner",_haltOwner];
+                    };
                 };
-            };
-            _vehicle forceSpeed 0;
-            _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,0]];
-            if (local driver _vehicle && {!isNull driver _vehicle}) then {
-                doStop driver _vehicle;
-                private _corridor=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
-                if (((_corridor getOrDefault ["controller",[]]) param [0,""]) == "CONVOY") then {
-                    [_vehicle,_group,"CONVOY_HALT",false] call CBE_fnc_DrivingCorridorRelease;
+                _vehicle forceSpeed 0;
+                _vehicle setVariable ["CBE_Convoy_OwnedSpeed",[_group,_revision,0]];
+                if (local driver _vehicle && {!isNull driver _vehicle}) then {
+                    [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
+                    doStop driver _vehicle;
+                    private _haltOwner=_vehicle getVariable ["CBE_Convoy_HaltOwner",[]];
+                    if (_haltOwner isEqualTo [_group,_revision,clientOwner]) then {
+                        private _haltDriver=driver _vehicle;
+                        private _haltOperator=effectiveCommander _vehicle;
+                        if (isNull _haltOperator) then {_haltOperator=_haltDriver};
+                        private _haltIndex=currentWaypoint _group;
+                        _vehicle setVariable ["CBE_Convoy_HaltReceipt",[+_haltOwner,_haltDriver,_haltOperator,
+                            [currentCommand _haltDriver,+(expectedDestination _haltDriver),
+                                currentCommand _haltOperator,+(expectedDestination _haltOperator)],
+                            _haltIndex,[_group,"",false,_haltIndex] call CBE_fnc_AuthoredRouteReceipt]];
+                    };
+                    private _corridor=_vehicle getVariable ["CBE_DrivingCorridor_Work",createHashMap];
+                    if (((_corridor getOrDefault ["controller",[]]) param [0,""]) == "CONVOY") then {
+                        [_vehicle,_group,"CONVOY_HALT",false] call CBE_fnc_DrivingCorridorRelease;
+                    };
+                    private _bypass=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
+                    private _bypassController=_bypass getOrDefault ["controller",[]];
+                    if ((_bypassController param [0,""]) == "CONVOY" && {_revision >= (_bypassController param [1,1e9])}) then {
+                        [_vehicle,_group,"CONVOY_HALT",false,false,_bypassController select 1] call CBE_fnc_DrivingBypassRelease;
+                    };
+                    private _pathLease=_vehicle getVariable ["CBE_Convoy_PathLease",[]];
+                    if (count _pathLease == 8 && {(_pathLease select 0) == _group}
+                        && {(_pathLease select 1) == _revision}) then {_vehicle setVariable ["CBE_Convoy_PathLease",nil,true]};
                 };
-                private _bypass=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
-                private _bypassController=_bypass getOrDefault ["controller",[]];
-                if ((_bypassController param [0,""]) == "CONVOY" && {_revision >= (_bypassController param [1,1e9])}) then {
-                    [_vehicle,_group,"CONVOY_HALT",false,false,_bypassController select 1] call CBE_fnc_DrivingBypassRelease;
-                };
-                private _pathLease=_vehicle getVariable ["CBE_Convoy_PathLease",[]];
-                if (count _pathLease == 7 && {(_pathLease select 0) == _group}
-                    && {(_pathLease select 1) == _revision}) then {_vehicle setVariable ["CBE_Convoy_PathLease",nil,true]};
+                false
             };
         };
     };
@@ -167,13 +256,33 @@ if (local _group) then {
             (_x select 0) isEqualTo _group && {(_x select 1) isEqualTo _configuration}
         } >= 0}) then {[_group,[_passage get "revision"],"CONVOY_HALT"] call CBE_fnc_ConvoyCorridorStep};
 };
+// Local passenger owners may receive a sliced vehicle/cargo packet. Validate its unchanged
+// authoritative policy and exact passenger pair against the full current HALT snapshot.
+private _haltCurrent={
+    params ["_passenger","_transport"];
+    if ([] call CBE_fnc_CortexIsPaused || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
+    private _registry=missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]];
+    private _entry=_registry findIf {(_x select 0) isEqualTo _group};
+    if (_entry < 0) exitWith {false};
+    private _live=(_registry select _entry) select 1;
+    (_live select [0,4]) isEqualTo (_configuration select [0,4])
+        && {(_live param [5,""]) == "HALT"}
+        && {(_live select [7]) isEqualTo (_configuration select [7])}
+        && {_transport in (_live select 4)}
+        && {(_live select 6) findIf {
+            (_x select 0) isEqualTo _passenger && {(_x select 1) isEqualTo _transport}
+        } >= 0}
+};
 {
     _x params ["_unit", "_vehicle"];
+    // Scheduled direct callers must not separate snapshot/task proof from seat commands.
+    isNil {
+    if (!([_unit,_vehicle] call _haltCurrent)) exitWith {};
     if (local _unit && {vehicle _unit == _unit} && {(_unit getVariable ["CBE_Convoy_Unloaded", []]) isNotEqualTo [_group, _revision]}) then {_unit setVariable ["CBE_Convoy_Unloaded", [_group, _revision], true]};
     if ([_group,"CBE_Convoy_Unload_Enable",true] call CBE_fnc_CortexFeatureEnabled && {[group _unit,"CBE_Convoy_Unload_Enable",true] call CBE_fnc_CortexFeatureEnabled} && {[_unit,_vehicle] call CBE_fnc_CortexPassengerReady}
         && {local _unit} && {alive _unit} && {!isPlayer _unit} && {vehicle _unit == _vehicle}
         && {(_unit getVariable ["CBE_Convoy_Unloaded", []]) isNotEqualTo [_group, _revision]}
-        && {abs speed _vehicle < 1} && {!(_unit getVariable ["ACE_isUnconscious", false])} && {lifeState _unit != "INCAPACITATED"}
+        && {!(_unit getVariable ["ACE_isUnconscious", false])} && {lifeState _unit != "INCAPACITATED"}
         && {!isPlayer leader group _unit} && {!([group _unit] call CBE_fnc_CortexExternalTakeover)}) then {
         private _seat = _seats getOrDefault [netId _unit, []];
         if (_seat isNotEqualTo [] && {(_seat select 0) == _vehicle} && {(_seat select 1) == "cargo" || {(_seat select 1) == "turret" && {_seat select 2}}}) then {
@@ -184,6 +293,7 @@ if (local _group) then {
             unassignVehicle _unit;
             doGetOut _unit;
         };
+    };
     };
 } forEach _cargo;
 

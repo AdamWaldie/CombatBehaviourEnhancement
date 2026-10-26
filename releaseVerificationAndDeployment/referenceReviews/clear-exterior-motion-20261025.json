@@ -1,0 +1,31 @@
+{
+  "base": "84cd1cff",
+  "status": "EXTERIOR_RESERVE_NATIVE_MOTION_RECEIPTS_INTEGRATED",
+  "finding": "Exterior reserve guards intentionally do not belong to the interior CLEAR participant roster. BuildingOperationStep calls shared motion recording/CHECK for their issued moves and settled WAIT arrival, but BuildingActorMotion refused nonparticipants unconditionally. A guard could move successfully yet lack the receipt needed by subsequent arrival/security logic.",
+  "implementation": [
+    "BuildingActorMotion resolves the supplied/retained leg first. Outside the assault roster it requires the exact current reserve generation/owner epoch/post marker. MOVE matches that post exactly; HOLD remains within2m/0.75m vertically. All current CLEAR operation, visit nonce, route, actual native command/endpoint/rest, actor ownership/eligibility and live-producer checks remain. No arbitrary group membership permission.",
+    "Exterior APPROACH observes delayed actual native MOVE acknowledgement through the existing loop. It writes a missing/mismatched current group/visit/leg receipt only while that exact own MOVE is current. It never calls the movement-issue helper, so request/search/progress/deadline clocks are not renewed.",
+    "Journal records/adopts metadata only. No movement command, interior team expansion, new worker, world query, direction search, new setting or physical clearance credit."
+  ],
+  "cost": "One local role receipt check per shared motion validation; constant-size vector tests for matching exterior holds. Existing exterior loop adds a current-receipt comparison while an owned APPROACH is MOVE; full recording is skipped once matching metadata exists. No additional scan or scheduler.",
+  "validation": {
+    "tests": 1497,
+    "firstBuild": ".qa/handovers/clear-exterior-motion-build.log passed initial role repair.",
+    "intermediateFailure": "Build2 failed a newly extended existing test because its no-reissue pattern matched an explanatory comment. The assertion now checks the actual call syntax; movement replay/deadline bans remain.",
+    "build": ".qa/handovers/clear-exterior-motion-build-3.log",
+    "independent": ".qa/handovers/clear-exterior-motion-independent.log",
+    "candidate": ".qa/candidates/clear-exterior-motion-84cd1cff",
+    "fingerprint": "582bdc01ef2ad43cf6b9048c117278bf11e5915da8691dd8f0b39bf7e95c4814",
+    "physicalAcceptance": false
+  },
+  "limitations": [
+    "A pending request is not acknowledgement; this does not manufacture a receipt for already-settled work that never had a recorded MOVE.",
+    "Coherent producer checkpoint/replay, absent/delayed journal distinctions, full exterior aggregate adoption/readiness and actual old-owner/controller quiescence remain incomplete.",
+    "No demonstrated physical resolution of historical stragglers, weak isolation or migration failures; normal/provider-HC and5%median/10%p95 performance remain unverified. Audits paused."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/buildingActorMotion.sqf": "86f69d5e3a5343e3090a6ed32c99a27675e6275eb4c7364ae8f85c78d584aa95",
+    "addons/infantry/functions/buildingOperationStep.sqf": "8d32b355de0f314a8e517d5d229c90637d4864d55aca037af3bcaf45c6b416c7",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "691eb5e59fe71a06f45e3c13a62cdb098b24e38429942cfd53528673f183b6f2"
+  }
+}

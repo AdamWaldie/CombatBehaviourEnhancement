@@ -1,0 +1,33 @@
+{
+  "baseline": "356e4353",
+  "scope": "Defensive indoor reposition through existing actor FSM",
+  "sourceIntent": "LAMBS brainAssess/doReposition retain useful nearby indoor positions toward a threat; source direct movement and exact-nearest-enemy fallback are not copied.",
+  "implementation": [
+    "Existing CONTACT fallback only when no enemy-building selection and no accepted group movement. At most3 current-roof discovery probes; up to2 existing actor slots.",
+    "Authoritative START requires idle stationary non-stealth defender, known fresh contact, actual current-building owned roof and model containment. Native firing/task, reservation, order, epoch and group gates remain.",
+    "Selector retains actor floor, eight-metre radius, at least1.5m displacement and0.8m horizontal improvement toward belief. Same body/reservation/failure geometry and twelve-probe episode budget.",
+    "Existing deadlines, native planning observation, one alternative retry, transform checks and cleanup retained. Success REPOSITIONED requires physical node observation; no visit memory or clearance credit.",
+    "Exact successful defensive arrival releases metadata without formation recall. Failure/interruption retain ordinary cleanup. No new worker, fire, target or group route."
+  ],
+  "validation": {
+    "initialFailure": ".qa/defensive-indoor-build.log failed player-guide upstream reference boundary; corrected.",
+    "superseded": ".qa/defensive-indoor-build-final.log passed before successful-position retention correction.",
+    "final": ".qa/defensive-indoor-build-retention.log all1484,394SQF,HEMTT,FSM,docs/package passed",
+    "independent": ".qa/defensive-indoor-independent.log",
+    "candidate": ".qa/candidates/defensive-indoor-356e4353",
+    "fingerprint": "f79f1369bb89c756eb3b770ad816761327d6b832e90846592c58a82c8263d4aa"
+  },
+  "limits": [
+    "Audits paused; no physical tactical usefulness, repeated actors, native routing, HC or performance evidence.",
+    "Up to3 additional discovery rays and2 START confirmations per eligible fallback, beyond existing selector; existing node probe limits retained.",
+    "Native routing can temporarily exit building. Same floor is height-band filtering, not topology/access proof. Shorter horizontal threat distance is not a guaranteed useful firing lane.",
+    "Existing garrison/defend owners exclude this task; target-building assault still takes precedence. Does not establish all defensive-building or LAMBS parity."
+  ],
+  "hashes": {
+    ".qa/lambs-2621-review/danger/functions/fnc_brainAssess.sqf": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doReposition.sqf": "d9ce73cd75a48f58d853ff67b7fa1e11a9bf4663722e397fea40ca8cfc821bac",
+    "addons/infantry/functions/indoorActorDispatch.sqf": "b8dc701b68decc4c94697da0786b21b3da28e9b48cac27e6aa0d841e9ea52ae6",
+    "addons/infantry/functions/indoorActorOperation.sqf": "360c2e90783b92fcc1b9d453a549d1d7e1ee96d12e379e1c444f8d7fe4ead031",
+    "addons/infantry/functions/indoorActorNodeSelect.sqf": "19e385bed68fdd1c0372d3151c172282ab49db341e71efd357b4b56a1c69485e"
+  }
+}

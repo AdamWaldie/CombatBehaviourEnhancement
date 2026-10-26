@@ -26,7 +26,9 @@ if (!(_vehicles isEqualType []) || {count _vehicles != 2}
 private _vehicle=_vehicles select 0;
 if (!local _vehicle) exitWith {["OWNER_UNAVAILABLE"] call _fail};
 private _context=_proposal getOrDefault ["context",[]];
-private _sameContext={_context isNotEqualTo [] && {([_vehicles] call CBE_fnc_DrivingPassContext) isEqualTo _context}};
+private _sameContext={_context isNotEqualTo [] && {([_vehicles] call CBE_fnc_DrivingPassContext) isEqualTo _context}
+    && {private _frame=[_vehicles select 0] call CBE_fnc_DrivingPassNativeFrame;
+        _frame isNotEqualTo [] && {_frame isEqualTo (_proposal getOrDefault ["ownerFrame",[]])}}};
 if !(call _sameContext) exitWith {["CONTEXT_CHANGED"] call _fail};
 private _observed=_proposal getOrDefault ["observedAt",-1];
 private _fresh={_observed isEqualType 0 && {finite _observed} && {serverTime >= _observed} && {serverTime-_observed <= 2}};

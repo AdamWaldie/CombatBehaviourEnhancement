@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
- * Normal-owner base case also holds the first passenger while the second must physically exit.
+ * Normal-owner base case observes real mixed crew/cargo separation and ground brain handover.
+ * It also holds the first passenger while the second must physically exit.
  * Checks a moving aircraft drop, physical flight, parachutes, landing, retained backpacks and operating crew.
  * Locality/authority: scheduled server creates fixtures; passenger owner executes the public order.
  * Repeat/JIP: fresh flight per run; public actor overlay, all surviving fixtures cleaned afterwards.
@@ -10,6 +11,8 @@
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAAirborne.sqf";
  */
 params ["_check","_phase","_wait",["_chuteOverride","",[""]]];
+// Normal base case exercises mixed crew/cargo; HC and invalid-chute arms retain separate groups.
+private _mixedCrew=_chuteOverride == "" && {!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])};
 private _savedChute=missionNamespace getVariable ["WALDO_STATIC_STATICCHUTE","NonSteerable_Parachute_F"];
 private _savedJumpInterval=missionNamespace getVariable ["CBE_AIPass_Airborne_JumpInterval",1];
 if (_chuteOverride != "") then {missionNamespace setVariable ["WALDO_STATIC_STATICCHUTE",_chuteOverride,true]};
@@ -19,12 +22,13 @@ createVehicleCrew _aircraft;
 private _pilotGroup=group driver _aircraft;
 _pilotGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _pilotGroup setVariable ["acex_headless_blacklist",true,true];
-_pilotGroup setVariable ["CBE_AIPass_Exclude",true,true];
+_pilotGroup setVariable ["CBE_AIPass_Exclude",!_mixedCrew,true];
 _aircraft flyInHeight 180;
 _aircraft allowDamage false;
 private _crew=crew _aircraft;
 {_x setVariable ["acex_headless_blacklist",true,true]; _x allowDamage false} forEach _crew;
-private _cargo=createGroup [east,true];
+private _cargo=if (_mixedCrew) then {_pilotGroup} else {createGroup [east,true]};
+private _sourceCargo=_cargo;
 _cargo setVariable ["CBE_Headless_ExcludeGroup",true,true];
 _cargo setVariable ["acex_headless_blacklist",true,true];
 private _jumpers=[];
@@ -55,7 +59,7 @@ private _flightOrigin=getPosATL _aircraft;
 private _flightDestination=_flightOrigin vectorAdd [0,4000,0];
 private _flightWaypoint=_pilotGroup addWaypoint [_flightDestination,0];
 _flightWaypoint setWaypointType "MOVE";
-_flightWaypoint setWaypointBehaviour "CARELESS";
+_flightWaypoint setWaypointBehaviour (["CARELESS","AWARE"] select _mixedCrew);
 _flightWaypoint setWaypointSpeed "NORMAL";
 _aircraft limitSpeed 100;
 private _packs=_jumpers apply {[backpack _x,backpackItems _x]};
@@ -82,6 +86,7 @@ if (_heldFirst) then {
     missionNamespace setVariable ["CBE_AIPass_Airborne_JumpInterval",4,true];
     _heldActor setVariable ["CBE_Cortex_ActorMove",_holdLease];
 };
+private _crewRouteBefore=[_pilotGroup] call CBE_fnc_NativeOrderReceipt;
 ["AIRBORNE-order-accepted",[_cargo] call CBE_fnc_CortexAirborneDrop] call _check;
 ["AIRBORNE-repeat-order-refused",!([_cargo] call CBE_fnc_CortexAirborneDrop),"A second immediate order must not queue another drop for the same aircraft"] call _check;
 if (_heldFirst) then {
@@ -117,13 +122,29 @@ private _landed=[{
     if (_chutes findIf {_x getVariable ["CBE_Headless_HelicopterPinned",false] || {_x getVariable ["CBE_ImprovedHelicopterLanding_LocalHandlerInstalled",false]}} >= 0) then {_parachuteControllerConflict=true};
     _seen findIf {!_x} < 0 && {_jumpers findIf {!alive _x || {vehicle _x != _x} || {getPosATL _x select 2 > 2}} < 0}
 },170] call _wait;
+if (_mixedCrew && {_landed}) then {
+    private _grouped=[{
+        private _ground=group (_jumpers select 0);
+        _ground != _pilotGroup && {_jumpers findIf {group _x != _ground} < 0}
+            && {(_sourceCargo getVariable ["CBE_Airborne_GroundHandover",[]]) param [1,""] == "ASSIGNED"}
+    },15] call _wait;
+    private _ground=group (_jumpers select 0);
+    ["AIRBORNE-mixed-real-ground-squad",_grouped && {_ground != _pilotGroup}
+        && {_crew findIf {group _x != _pilotGroup || {vehicle _x != _aircraft}} < 0},
+        str [_ground,_pilotGroup,_sourceCargo getVariable ["CBE_Airborne_GroundHandover",[]]]] call _check;
+    ["AIRBORNE-mixed-crew-route-preserved",_crewRouteBefore isEqualTo ([_pilotGroup] call CBE_fnc_NativeOrderReceipt)] call _check;
+    ["AIRBORNE-mixed-ground-brain",_grouped && {
+        _ground getVariable ["CBE_AIPass_Managed",false]
+    }] call _check;
+    if (_grouped) then {_cargo=_ground};
+};
 ["AIRBORNE-aircraft-continued-flight",_aircraft distance2D _dropOrigin >= 100,format ["aircraft travel after order=%1 m",_aircraft distance2D _dropOrigin]] call _check;
 ["AIRBORNE-parachutes-not-helicopter-controlled",(_seen findIf {_x} >= 0) && {!_parachuteControllerConflict},format ["observed=%1 controllerConflict=%2",_seen,_parachuteControllerConflict]] call _check;
 ["AIRBORNE-each-parachute-seen",_seen findIf {!_x} < 0,str _seen] call _check;
 ["AIRBORNE-physical-landing",_landed,str (_jumpers apply {[alive _x,typeOf vehicle _x,getPosATL _x]})] call _check;
 ["AIRBORNE-backpack-preserved",(_jumpers apply {[backpack _x,backpackItems _x]}) isEqualTo _packs] call _check;
 ["AIRBORNE-operating-crew-retained",_crew findIf {!alive _x || {vehicle _x != _aircraft}} < 0] call _check;
-if (_landed) then {
+if (_landed && {!_mixedCrew || {_cargo != _pilotGroup}}) then {
     ["AIRBORNE-ground-order-refused",!([_cargo] call CBE_fnc_CortexAirborneDrop)] call _check;
     private _origins=_jumpers apply {getPosATL _x};
     // Put the destination beyond every landing position. A leader-relative point
@@ -155,7 +176,7 @@ if (_landed) then {
 sleep 15;
 missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach (_jumpers+_crew+_chutes+[_aircraft]);
-deleteGroup _cargo; deleteGroup _pilotGroup;
+{if (!isNull _x) then {deleteGroup _x}} forEach ([_cargo,_sourceCargo,_pilotGroup] arrayIntersect [_cargo,_sourceCargo,_pilotGroup]);
 
 missionNamespace setVariable ["WALDO_STATIC_STATICCHUTE",_savedChute,true];
 

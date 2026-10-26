@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-19",
+  "scope": "Passing full-hull interval projection cost",
+  "finding": "Passing already used all eight transformed corners for each hull, unlike its established rear/traffic siblings which use the affine corner/edge identity. This required16 model transforms per active pair callback.",
+  "implementation": "One transformed low corner and three transformed edge endpoints per object yield the same scalar interval along the peer heading; retain0.05m outward padding on each bound. Pair cost8 model transforms instead of16, boundingBox calls unchanged. Ahead6m/behind3m margins, alignment, consent, deadlines, return-entry, native command and traffic checks unchanged. Local numeric name avoids shadowing the outer _base CODE helper. No new shared API or movement worker.",
+  "mathEvidence": "Existing independent eight-corner oracle extended to arbitrary scalar projection for the same tilted/scaled/asymmetric affine matrix cases. Offline identity and outward-tolerance checks pass; not Arma floating-point or physical pass acceptance.",
+  "validation": {
+    "focusedLog": ".qa/cbe-pass-hull-affine-focused.log",
+    "hemttLog": ".qa/cbe-pass-hull-affine-hemtt.log",
+    "newCases": 0,
+    "fullPipeline": "Passed1476 existing tests and complete gates after final numeric rename; .qa/cbe-pass-hull-affine-build.log",
+    "physical": "Unverified; audits paused.",
+    "focusedExistingTests": 666,
+    "independentPackage": "Passed .qa/cbe-pass-hull-affine-independent.log",
+    "package": {
+      "commit": "4e2f22dcb44fc95f2aae2d359bf3e49dc797ce04",
+      "dirty": true,
+      "fingerprint": "7177aa77ef9f8b9ed86df9124a9b5298578df4b3f93057b90ed1296ab93d0a13",
+      "signed": false
+    }
+  },
+  "cost": "Eight fewer native model transforms per active passing pair callback; no new world query/ray/scheduler or cadence change. No measured FPS or5%/10% budget claim.",
+  "limits": "Bounding-box projection is still not a continuous body-sweep or steering proof. Queue moving-phase, native lateral guide, crossing and handback remain incomplete; automatic queue initiation stays off.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingPassStep.sqf",
+      "sha256": "0bc8132e957934ee441126b37aab1af00222cf608eb675c58af41b072c1edfec"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_pass_plan.py",
+      "sha256": "f891077325a002f0282c390542979a34a7a3d7254a558dd38b1ff8c3482102e5"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_rear_hull_projection.py",
+      "sha256": "2100f1e61c35ebd7933bc394cc7ab1435e7ab2e3ddaa84e6faa4b39c62fbd974"
+    }
+  ]
+}

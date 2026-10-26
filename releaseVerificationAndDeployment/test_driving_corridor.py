@@ -4,6 +4,151 @@ import math
 import unittest
 ROOT = Path(__file__).resolve().parents[1]
 class CorridorFoundationTests(unittest.TestCase):
+    def test_server_area_and_request_registry_mutations_are_serialized(self):
+        for filename,result,read,effects in (
+            ('drivingCorridorRegister.sqf','_registration','private _snapshot=',
+             ('_area setVariable','CBE_DrivingCorridor_Snapshot",[_revision,_records],true')),
+            ('drivingCorridorDispatch.sqf','_applied','private _receipts=',
+             ('createGroup [sideLogic,true]','call CBE_fnc_DrivingCorridorRegister',
+              '_receipts set [_key,[_serial,_answer]]'))):
+            s=(ROOT/'addons/vehicles/functions'/filename).read_text(encoding='utf-8')
+            transaction=s.split('isNil {',1)[1]
+            self.assertLess(transaction.index(result+'=call {'),transaction.index(read))
+            for effect in effects:self.assertIn(effect,transaction)
+            self.assertTrue(s.rstrip().endswith(result))
+            for forbidden in ('sleep ','waitUntil','spawn {'):
+                self.assertNotIn(forbidden,transaction)
+    def test_release_reads_and_retires_one_episode_without_a_scheduled_gap(self):
+        s=(ROOT/'addons/vehicles/functions/drivingCorridorRelease.sqf').read_text(encoding='utf-8')
+        transaction=s.split('isNil {',1)[1]
+        self.assertLess(transaction.index('_retired=call {'),transaction.index('private _work='))
+        for effect in ('doStop _driver','_operator doMove waypointPosition',
+                       'CBE_DrivingCorridor_Cooldown",_cooldown,true',
+                       'CBE_DrivingCorridor_Result",','CBE_DrivingCorridor_Work",nil,true'):
+            self.assertIn(effect,transaction)
+        self.assertTrue(s.rstrip().endswith('_retired'))
+        observer=transaction.split('if (_observeOnly) exitWith {',1)[1].split('private _work=',1)[0]
+        for forbidden in ('doMove','doFollow','doStop','forceSpeed','setDriveOnPath',
+                          'serverTime+','CBA_fnc_waitAndExecute'):
+            self.assertNotIn(forbidden,observer)
+        for proof in ('call CBE_fnc_DrivingRecoveryCommandState','serverTime >= (_return get "deadline")',
+                      'call CBE_fnc_DrivingOwnerReceipt','CBE_AIPass_Epoch',
+                      'count _liveCorridor == 0','"ACKNOWLEDGED"','"EXPIRED"'):
+            self.assertIn(proof,observer)
+        issued=transaction.split('private _returnBefore=[currentCommand _driver',1)[1]
+        authored=issued.split('private _returnUntil=_work get "deadline";',1)[1]
+        self.assertIn('["corridorReturn",true]',authored)
+        self.assertIn('["deadline",_returnUntil]',authored)
+        self.assertNotIn('serverTime+',authored.split('// Native command callbacks',1)[0])
+        cleanup=(ROOT/'addons/vehicles/functions/drivingRecoveryCleanup.sqf').read_text()
+        self.assertIn('(_head+4) min count _queue',cleanup)
+        self.assertIn('[_vehicle,_return,"CORRIDOR_RETURN"]',cleanup)
+        self.assertIn('"OBSERVE_RETURN",false,false,true',cleanup)
+        classifier=(ROOT/'addons/vehicles/functions/drivingRecoveryCommandState.sqf').read_text()
+        self.assertIn('"corridorReturn" in _work',classifier)
+        owned=transaction.split('private _owned=',1)[1].split('// The owned doStop',1)[0]
+        self.assertIn('["","MOVE","WAIT"]+',owned)
+        self.assertIn('[[],["STOP"]]',owned)
+        self.assertIn('== "CROSS"',owned)
+        for forbidden in ('sleep ','waitUntil','lineIntersectsSurfaces','nearestObjects'):
+            self.assertNotIn(forbidden,transaction)
+    def test_approach_cross_transition_commits_only_under_live_work_and_area(self):
+        s=(ROOT/'addons/vehicles/functions/drivingCorridorStep.sqf').read_text(encoding='utf-8')
+        transition=s.split('// Admission and the exact command/receipt transition',1)[1].split('if (_phase == "CROSS")',1)[0]
+        self.assertLess(transition.index('isNil {'),transition.index('doStop _operator'))
+        guards=transition.split('doStop _operator',1)[0]
+        for guard in ('call _mayWrite','call _approachTasksReady','isNotEqualTo _work',
+                      '!= "APPROACH"','serverTime >= (_work get "deadline")',
+                      'isNotEqualTo (_work get "command")','isNotEqualTo _definition',
+                      'isNotEqualTo (_work get "transform")','_now distance2D _entry > 8',
+                      'vectorNormalized _direction'):
+            self.assertIn(guard,guards)
+        for write in ('doStop _driver','_vehicle setDriveOnPath _points',
+                      '_work set ["phase","CROSS"]','_work set ["driverCommand",',
+                      '_vehicle setVariable ["CBE_DrivingCorridor_Work",_work,true]'):
+            self.assertIn(write,transition)
+        self.assertNotIn('lineIntersectsSurfaces',transition)
+        release=(ROOT/'addons/vehicles/functions/drivingCorridorRelease.sqf').read_text(encoding='utf-8')
+        helper=s.split('private _approachDriverReady={',1)[1].split('\n};',1)[0]
+        release_helper=release.split('private _approachDriverReady={',1)[1].split('\n};',1)[0]
+        self.assertEqual(helper,release_helper)
+        for proof in ('_recorded isEqualTo []','_driverNative isEqualTo _recorded',
+                      '_driverGoal vectorDistance _entryGoal <= 0.25','finite _x'):
+            self.assertIn(proof,helper)
+        self.assertEqual(s.count('call _approachDriverReady'),3)
+        self.assertIn('call _approachDriverReady',release.split('private _owned=',1)[1].split('// The owned doStop',1)[0])
+        admission=s.split('_operator doMove (_points select 0);',1)[1]
+        self.assertIn('["driverCommand",+(expectedDestination _driver)]',admission)
+        # A replacement destination is not protected merely because its command is MOVE.
+        def driver_current(recorded,current,entry):
+            if not recorded:return False
+            return current==recorded or math.dist(current[0],entry)<=0.25
+        old=[[10,20,0],'LEADER PLANNED',False]
+        self.assertTrue(driver_current(old,old,[30,20,0]))
+        self.assertTrue(driver_current(old,[[30,20,0],'LEADER PLANNED',False],[30,20,0]))
+        self.assertFalse(driver_current(old,[[80,20,0],'LEADER PLANNED',False],[30,20,0]))
+        self.assertFalse(driver_current([],old,[30,20,0]))
+    def test_convoy_tail_uses_interpolated_support_before_passage_credit(self):
+        s=(ROOT/'addons/vehicles/functions/convoyCorridorStep.sqf').read_text(encoding='utf-8')
+        floor=s.split('private _expectedFloor=[];',1)[1].split('if (abs _projection',1)[0]
+        for marker in ('count _asl <= 20','_projection >= _pa','_projection <= _pb',
+                       '_fraction=(_projection-_pa)/(_pb-_pa)',
+                       '_expectedFloor isNotEqualTo []',
+                       'abs ((_origin select 2)-(_expectedFloor select 0)) <= 2'):
+            self.assertIn(marker,floor)
+        self.assertNotIn('private _nearest=',s)
+        entered=s.split('if (!_entered',1)[1].split('if (_entered',1)[0]
+        self.assertIn('{_level}',entered)
+        self.assertLess(s.index('private _level='),s.index('_row set [4,true]'))
+        exit_check=s.split('private _exitLevel=',1)[1].split('// Lower the existing follower',1)[0]
+        self.assertIn('if (_expectedFloor isEqualTo [])',exit_check)
+        self.assertIn('else {_level}',exit_check)
+        self.assertIn('&& {_exitLevel}',exit_check)
+
+        for command in ('lineIntersectsSurfaces','nearestObjects','setDriveOnPath','forceSpeed'):
+            self.assertNotIn(command,floor)
+    def test_crossing_rejects_underpass_height_before_entry_or_exit_credit(self):
+        s=(ROOT/'addons/vehicles/functions/drivingCorridorStep.sqf').read_text(encoding='utf-8')
+        crossing=s.split('if (_phase == "CROSS") then {',1)[1].split('// An unfinished column passage',1)[0]
+        floor=crossing.split('private _expectedFloor=[];',1)[1].split('// An exit pose alone',1)[0]
+        for marker in ('count _asl <= 20','_pa=(_a vectorDiff _centre) vectorDotProduct _travel',
+                       '_pb=(_b vectorDiff _centre) vectorDotProduct _travel',
+                       '_fraction=(_projection-_pa)/(_pb-_pa)',
+                       '(_origin select 2)-(_expectedFloor select 0)',
+                       'CORRIDOR_FLOOR_DEPARTED','isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}'):
+            self.assertIn(marker,floor)
+        self.assertLess(crossing.index('CORRIDOR_FLOOR_DEPARTED'),crossing.index('_work set ["entered",true]'))
+        self.assertLess(crossing.index('CORRIDOR_FLOOR_DEPARTED'),crossing.index('"PHYSICALLY_CROSSED"'))
+        self.assertLess(crossing.index('private _expectedFloor=[]'),crossing.index('if (abs _projection <= _halfLength+5'))
+        exit_check=crossing.split('private _exitLevel=',1)[1].split('"PHYSICALLY_CROSSED"',1)[0]
+        self.assertIn('if (_expectedFloor isEqualTo [])',exit_check)
+        self.assertIn('(_origin select 2)-(_expectedFloor select 0)',exit_check)
+        self.assertIn('&& {_exitLevel}',exit_check)
+        # Both existing consumers share this exit-height rule. A within-span pose can
+        # differ from the endpoint by >2m on an approved modest slope; substituting
+        # endpoint height can reject the right floor and accept a lower level.
+        def floor_at(projection,nodes):
+            for (a,za),(b,zb) in zip(nodes,nodes[1:]):
+                if a <= projection <= b and b-a > .01:
+                    return za+(zb-za)*(projection-a)/(b-a)
+            return None
+        def exit_level(height,projection,nodes):
+            current=floor_at(projection,nodes)
+            return abs(height-(nodes[-1][1] if current is None else current)) <= 2
+        for grade in (-math.tan(math.radians(8)),0,math.tan(math.radians(8))):
+            nodes=[(-55,10-55*grade),(55,10+55*grade)]
+            expected=10+36*grade
+            self.assertTrue(exit_level(expected,36,nodes))
+            self.assertFalse(exit_level(expected+3,36,nodes))
+            if grade:
+                self.assertGreater(abs(expected-nodes[-1][1]),2)
+                self.assertFalse(exit_level(nodes[-1][1],36,nodes))
+            # No profile extrapolation or relaxed endpoint overshoot tolerance.
+            self.assertTrue(exit_level(nodes[-1][1]+1,60,nodes))
+            self.assertFalse(exit_level(nodes[-1][1]+3,60,nodes))
+
+        for forbidden in ('lineIntersectsSurfaces','nearestObjects','getTerrainHeightASL','setPos','setVelocity'):
+            self.assertNotIn(forbidden,floor)
     def test_registration_authenticates_remote_curators_and_has_no_movement_authority(self):
         source = (ROOT / 'addons/vehicles/functions/drivingCorridorRegister.sqf').read_text()
         body = source.split('params [[', 1)[1]
@@ -24,10 +169,57 @@ class CorridorFoundationTests(unittest.TestCase):
         self.assertIn('"MISSING_SUPPORT"', body)
         self.assertIn('"WET_SUPPORT"', body)
         self.assertIn('surfaceIsWater _sample', body)
-        self.assertIn('isNull (_hit select 2)', body)
+        self.assertIn('isNull _supportObject', body)
+        self.assertIn('if (!isNull (_hit select 3)) then {_hit select 3} else {_hit select 2}', body)
         self.assertIn('"AREA_CHANGED"', body)
         self.assertIn('"HULL_TOO_WIDE"', body)
+        path=(ROOT/'addons/vehicles/functions/drivingPathGeometry.sqf').read_text()
+        support=path.split('private _supports=[];',1)[1].split('if (count _supports == 3)',1)[0]
+        self.assertLess(support.index('if (_reason != "") exitWith {}'),support.index('lineIntersectsSurfaces'))
+        body_samples=path.split('private _bodyHeights=',1)[1]
+        self.assertEqual(body_samples.count('if (_reason != "") exitWith {}'),2)
+        self.assertLess(body_samples.index('if (_reason != "") exitWith {}'),body_samples.index('lineIntersectsSurfaces'))
+        self.assertIn('forEach _bodyHeights',body_samples)
+        self.assertIn('forEach [-_halfWidth,0,_halfWidth]',body_samples)
+        self.assertIn('[false,_reason,[],[],_rays]',path)
+
     def test_declared_sampling_bound_holds_across_allowed_lengths(self):
+        source=(ROOT/'addons/vehicles/functions/drivingCorridorGeometry.sqf').read_text(encoding='utf-8')
+        self.assertIn('private _nativeAxis=+(_transform select 1)',source)
+        self.assertIn('(_nativeAxis select 2)/_axisLength',source)
+        self.assertIn('vectorAdd [0,0,_along*_axisGrade]',source)
+        self.assertIn('"DEGENERATE_AXIS"',source)
+        self.assertNotIn('getTerrainHeight',source)
+        # An inclined selected plane must stay within the same support-search layer
+        # in either direction without changing horizontal station or ray budgets.
+        for pitch in (-8,0,8):
+            slope=math.tan(math.radians(pitch))
+            for bearing in (0,37,90,231):
+                angle=math.radians(bearing)
+                native=(math.sin(angle)*math.cos(math.radians(pitch)),
+                        math.cos(angle)*math.cos(math.radians(pitch)),math.sin(math.radians(pitch)))
+                planar=math.hypot(native[0],native[1])
+                axis=(native[0]/planar,native[1]/planar)
+                grade=native[2]/planar
+                profiles=[]
+                for side in (-1,1):
+                    profile=[]
+                    segments=math.ceil(2*(45+30)/8)
+                    for station in range(segments+1):
+                        along=(75-150*station/segments)*side
+                        x,y=axis[0]*along,axis[1]*along
+                        z=10+along*grade
+                        self.assertAlmostEqual(z,10+(x*axis[0]+y*axis[1])*slope)
+                        if pitch==0:self.assertEqual(z,10)
+                        if profile:self.assertLessEqual(math.dist((x,y),profile[-1][:2]),8.000001)
+                        profile.append((x,y,z))
+                    self.assertEqual(len(profile),20)
+                    profiles.append(profile)
+                for left,right in zip(profiles[0],reversed(profiles[1])):
+                    self.assertLess(math.dist(left,right),1e-10)
+                if pitch:
+                    # Previous constant-Z endpoints missed this selected plane by >3m.
+                    self.assertGreater(abs(profiles[0][0][2]-10),3)
         for half_length in range(5, 46):
             segments = math.ceil(2 * (half_length + 30) / 8)
             stations = segments + 1
@@ -44,6 +236,19 @@ class CorridorFoundationTests(unittest.TestCase):
             self.assertIn(required, source)
         self.assertNotIn('unitReady', source)
         self.assertEqual(source.count('setDriveOnPath'), 1)
+        self.assertIn('_best=_via',source)
+        self.assertIn('_via < 1.5*(_origin distance2D _destination)+100',source)
+        self.assertEqual(source.count('call CBE_fnc_DrivingCorridorGeometry'),1)
+        # Both areas are eligible shortcuts. The nearer entrance has a longer onward
+        # leg; selecting it loses the useful route-choice intent of navigation areas.
+        origin=(0,0);destination=(200,0)
+        areas={'near':((10,100),(50,100)), 'direct':((110,0),(150,0))}
+        costs={name:math.dist(origin,entry)+math.dist(entry,exit)+math.dist(exit,destination)
+               for name,(entry,exit) in areas.items()}
+        self.assertEqual(min(areas,key=lambda name:math.dist(origin,areas[name][0])),'near')
+        self.assertEqual(min(costs,key=costs.get),'direct')
+        self.assertTrue(all(cost < 1.5*math.dist(origin,destination)+100 for cost in costs.values()))
+
         for forbidden in ('addWaypoint', 'deleteWaypoint', 'enableAI', 'setPos', 'spawn', 'waitUntil'):
             self.assertNotIn(forbidden, source)
     def test_controller_owns_one_writer_and_suppresses_route_recovery(self):
@@ -135,6 +340,24 @@ class CorridorFoundationTests(unittest.TestCase):
         self.assertIn('!_activated', module)
         self.assertIn('CBE_processed', module)
         self.assertIn('deleteVehicle _logic;', module)
+        mission=(ROOT/'addons/vehicles/functions/moduleDrivingCorridorMission.sqf').read_text()
+        for guard in ('!isServer','is3DEN','remoteExecutedOwner','if (!_activated)',
+                      '[_logic,[]] call CBE_fnc_DrivingCorridorRegister',
+                      '[_area select 1,_area select 0,_speed]','CBE_DrivingCorridor_MissionResult'):
+            self.assertIn(guard,mission)
+        for forbidden in ('deleteVehicle','createUnit','setPos','hasInterface','doMove','forceSpeed','setDriveOnPath'):
+            self.assertNotIn(forbidden,mission)
+        eden=config.split('class CBE_ModuleDrivingCorridorMission:',1)[1].split('class CBE_ModuleGarrison:',1)[0]
+        for field in ('scope = 2','scopeCurator = 0','isGlobal = 0','isDisposable = 0',
+                      'isTriggerActivated = 1','canSetArea = 1','size3[] = {5, 25, -1}',
+                      'class Speed: Combo','CBE_DrivingCorridor_EdenSpeed'):
+            self.assertIn(field,eden)
+        for name in ('drivingCorridorDispatch','drivingCorridorRegister','zenDrivingCorridorModule'):
+            text=(ROOT/'addons/vehicles/functions'/f'{name}.sqf').read_text()
+            self.assertIn('isKindOf "CBE_ModuleDrivingCorridorMission"',text)
+        register=(ROOT/'addons/vehicles/functions/drivingCorridorRegister.sqf').read_text()
+        self.assertIn('_dimensions isEqualTo [] && {_index < 0}',register)
+
         self.assertIn('[_position,_target,_facing] call CBE_fnc_ZenDrivingCorridorModule', module)
 
     def test_tail_passage_has_no_second_movement_or_speed_writer(self):
@@ -197,3 +420,29 @@ class CorridorFoundationTests(unittest.TestCase):
             self.assertNotIn('disableAI', text.split('params [[',1)[1])
         self.assertIn('vehicle _operator == _vehicle', release)
         self.assertLess(release.index('_driver doFollow _operator'), release.index('_operator doMove waypointPosition'))
+
+        for text in (source,release):
+            self.assertIn('vehicleMoveInfo _vehicle',text)
+            self.assertIn('["BACK","DIRECTBYCOMANDER"]',text)
+            self.assertIn('["LEFT","RIGHT"]',text)
+        self.assertIn('call _nativeSteeringFree',source)
+        self.assertIn('_owned=_nativePathFree',release)
+        self.assertIn('toUpperANSI currentCommand _x in ["","MOVE","WAIT","STOP"]',source)
+
+    def test_initial_corridor_commit_uses_defined_symmetric_native_receipts(self):
+        source=(ROOT/'addons/vehicles/functions/drivingCorridorStep.sqf').read_text(encoding='utf-8')
+        self.assertIn('private _admissionNative=[_driver,_operator] apply',source)
+        self.assertLess(source.index('private _admissionNative='),source.index('call CBE_fnc_DrivingCorridorGeometry'))
+        self.assertNotRegex(source,r'\b_native\b')
+        mutation=source.split('private _admitted=false;',1)[1]
+        self.assertLess(mutation.index('isNil {'),mutation.index('_operator doMove'))
+        for guard in ('call _mayWrite','call _nativeAdmissionReady','call _admissionCurrent',
+                      'isNil {_vehicle getVariable "CBE_DrivingCorridor_Work"}',
+                      'isEqualTo _definition','isEqualTo _transform'):
+            self.assertLess(mutation.index(guard),mutation.index('_operator doMove'))
+        self.assertLess(mutation.index('_operator doMove'),mutation.index('setVariable ["CBE_DrivingCorridor_Work"'))
+        self.assertIn('if (!_admitted) exitWith {_inactive}',mutation)
+    def test_undefined_local_lint_is_a_build_error(self):
+        import tomllib
+        config=tomllib.loads((ROOT/'.hemtt/project.toml').read_text(encoding='utf-8'))
+        self.assertEqual(config['lints']['sqf']['undefined'],'Error')

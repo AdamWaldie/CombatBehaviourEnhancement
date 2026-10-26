@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "c74e893580544cc09450f29693341b8f6e64b6dd",
+  "status": "PRODUCER_COMPONENT_OFFLINE_VERIFIED_TRANSPORT_PENDING",
+  "topic": "Pure current-owner clearance lane export",
+  "implementation": [
+    "BuildingLaneJournal EXPORT returns the existing13-field lane format or[] without public lane reads, publication, job mutation or SAVE-budget consumption. SAVE and EXPORT share the serializer/validation and a precomputed encoding-mode flag.",
+    "EXPORT requires the current local group, exact CLEAR operation, private uncancelled/unfinished building brain/job, generation/epoch, live target transform, matching nonempty visit nonce and original hard deadline. It refuses after locality loss or outside ENTRY/SWEEP.",
+    "Routes, lane progress, pending indices, ordered entry nodes, request ages and buddy target proposals retain existing bounds and validation. Local clocks encode to original server-time observations without renewed age or grace.",
+    "Nested context transform vectors now copy independently, alongside existing route/progress/request/proposal copies. SAVE retains its original1.5s throttle and unchanged public version1/schema13. Legacy modes keep BOOL results."
+  ],
+  "integrationState": "The serializer is already used by production SAVE; EXPORT exposes its pure current-owner output for upcoming producer checkpoint work. No periodic EXPORT caller, transfer capture, network delivery or readiness consumer is enabled by this component.",
+  "cost": "Existing8lane/512node and per-lane512route bounds retained. SAVE adds typed nonce/context checks and copies three transform vectors instead of a shallow context array. Explicit EXPORT runs the bounded full validation and copying; callers must not poll it per frame. One encoding flag avoids per-row mode-array checks. No new worker, timer, scan or message. Runtime delta unmeasured.",
+  "limits": [
+    "Not a full producer checkpoint: egress, exterior, settings, interruption and retirement domains remain separate.",
+    "Current-owner-only EXPORT cannot be called as a final seal after Local loss. A fenced exporter/producer registration and authenticated finite replay still need implementation before changing resume transport.",
+    "Array output is metadata, not actor readiness, callback quiescence, native acknowledgment or physical continuity.",
+    "Physical normal/HC handover, CQB flow, repeated use and5/10performance remain unverified. Audits paused."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/buildingLaneJournal.sqf": "68a2e5899aef8c3a28b587335bb1e9550c507734ad8db37593e8cab49cc27d88"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "focusedExistingCases": 12,
+    "newCases": 0,
+    "result": "PASS",
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 432,
+    "PBOs": 11,
+    "candidate": ".qa/candidates/clear-lane-export-c74e8935",
+    "fingerprint": "f1bc4ffe1ce8f49e68ad9fc9884232de0205d4abfadf2c3619ea54f99bc1b341",
+    "buildLog": ".qa/handovers/clear-lane-export-build.log",
+    "independentLog": ".qa/handovers/clear-lane-export-independent.log",
+    "independent": "PASS"
+  },
+  "outgoingLaneCaptureFollowup": {
+    "review": "clear-outgoing-lane-capture-20261026.json",
+    "scope": "Separate FROZEN read-only mode now captures the original fenced private producer on actual group locality loss before pointer/epoch retirement. EXPORT remains current-owner-only. The capture is source-local with no receiver/full seal transport. Earlier source hashes describe the EXPORT-only checkpoint."
+  }
+}

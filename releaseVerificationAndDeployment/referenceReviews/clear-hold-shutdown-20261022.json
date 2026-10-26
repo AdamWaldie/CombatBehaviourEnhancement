@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-22",
+  "baseline": "68bcf4a7",
+  "scope": "Terminal clearance hold selection at master shutdown",
+  "finding": "CortexStop selected active/managed/remount/defend/garrison/clear groups but omitted a terminal ClearHold-only group. CortexClearRelease returns false when its active order is absent. Such a group therefore never reached existing post-clear hold release.",
+  "implementation": "Include nonempty CBE_Cortex_ClearHold in existing local-group cleanup selection. Native writes remain behind existing exact generation/epoch/same-floor STOP, treatment, fleeing and external-controller gates. No new world scan, job or movement command.",
+  "validation": {
+    "tests": 1489,
+    "full": ".qa/clear-hold-shutdown-selection-build.log",
+    "result": "PASS full offline pipeline",
+    "candidate": ".qa/candidates/clear-hold-stop-68bcf4a7",
+    "independent": ".qa/clear-hold-shutdown-independent.log",
+    "fingerprint": "3101cc6aaf57bb517555b093275be732737cbc6463e83e4a4706fba090ecc585",
+    "provenance": "Unsigned baseline plus intended stop/test/guide edits and retained unrelated dirt. Later engineering metadata not packaged product source. Not a clean signed release.",
+    "limits": "No Arma run; no proof of physical STOP acknowledgement/return or measured performance."
+  },
+  "material_remaining": [
+    {
+      "issue": "Temporarily unavailable post-clear actors at shutdown",
+      "evidence": "CortexReleaseGroup clears ClearHold before per-actor handback. Treatment/fleeing/dormancy correctly veto doFollow but no remaining hold proof is queued. Stop increments epoch and retires tactical brain.",
+      "required": "A finite exact-proof retirement path independent of tactics, preserving original authority/time bounds and yielding to new commands. Do not force a formation return or call the new selection condition full shutdown handback."
+    },
+    {
+      "issue": "Delayed-job broad formation fallbacks",
+      "evidence": "CortexStop later loops queued job groups and may doFollow all regroup members or team members from old clear job records. Broad group eligibility is not exact current movement ownership. BuildingOperationQueue now queues a brain rather than team-bearing job.",
+      "required": "Trace actual producer/receipt contracts before deleting or replacing legacy fallback; preserve real owned remnant movement handback and do not issue commands from stale queued metadata."
+    }
+  ],
+  "evidence": {
+    "addons/core/functions/cortexStop.sqf": "4e81680c1b2a6f6f0069149be7f9d78b479a944d1537476cff4382be3d012290",
+    "addons/infantry/functions/cortexReleaseGroup.sqf": "cc9c2d1b319993189fba79bdddec04395f4b6a18c9c2b66bd0d2d0c5c6e81b51",
+    "addons/infantry/functions/cortexClearRelease.sqf": "73aab91078a19c48c48df45751503e96941e8b3f24edacebad49ef3601a2714e",
+    "addons/core/functions/cortexLocality.sqf": "6cac5299865331bab7e1882cf389d6a76834fc80d49c160823162fe7f3b8e329",
+    "addons/infantry/functions/cortexRegroupStep.sqf": "5ac217500af031809e0ef64206c587e16055527c2209001347a7e9fbe557d7ac"
+  }
+}

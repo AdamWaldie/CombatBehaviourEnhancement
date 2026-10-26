@@ -1,8 +1,13 @@
 /*
  * Author: WaldoTheWarfighter
+ * Execution and Fired guidance require the original live common operation generation/owner
+ * epoch as well as the aircraft flight lease. Cancelled/replaced operations cannot keep attacking.
+ * Existing stage deadlines gate execution before planning/command side effects and at shared
+ * native-command permission; a delayed callback cannot fire once more after its stage expires.
  * Selected operators retain live same-group/local/task authority at each weapon boundary.
  * Operator replacement cancels the old plan before retained targeting/release state can transfer.
- * Target cleanup is scoped to the actor/target actually commanded by this job.
+ * Target cleanup is scoped to the actor/target actually commanded by this job. Native ignored
+ * contacts abort through owned cleanup and cannot receive CBE shot-callback guidance repair.
  * Pilot actor reservations/service tasks veto admission and later flight mutations.
  * Lateral feature snapshots retain the exact affected pilot; replacement crew inherit no restoration.
  * A durable actor receipt preserves unresolved baselines; admission never overwrites an older receipt.
@@ -67,14 +72,18 @@
  * Locality/authority: aircraft owner only. Public summary/outcome arrays support Zeus diagnostics;
  * movement commands and Fired handlers remain owner-local.
  * Repeat/JIP: one finite FSM brain per aircraft. Cleanup removes the owned handler,
- * named waypoint, speed limit and public plan; a short owner-local re-attack interval prevents immediate duplicate runs.
+ * named waypoint, exact unchanged forced-speed receipt and public plan; a short owner-local re-attack interval prevents immediate duplicate runs.
+ * Temporary speed caps retain the original pilot/value, preserve stricter authored forceSpeed and never
+ * write native limitSpeed. Changed pilot/input preempts attack; same-group policy cleanup can restore
+ * only an unchanged applied cap under the original flight lease. Same-value external writes are indistinguishable.
  * Arguments: 0: scheduler job <HASHMAP>; aircraft <OBJECT> is required; target <OBJECT> is optional
  * when an authenticated combined-arms opportunity already selected it.
+ * 1: internal executor failure <STRING>, default empty; only exact current failed-brain jobs may clean up. No attack step runs.
  * Return Value: NUMBER delay for the owning FSM, or -1 after cleanup.
- * Current caller: CBE_fnc_AirAttackOperationStep through the shared scheduler.
+ * Current caller: CBE_fnc_AirAttackOperationStep through the shared scheduler; AirAttackOperationStart for exact executor-failure cleanup.
  * Example: [createHashMapFromArray [["aircraft",_plane]]] call CBE_fnc_CortexAirAttack;
  */
-params [["_job",createHashMap,[createHashMap]]];
+params [["_job",createHashMap,[createHashMap]],["_executorFailure","",[""]]];
 private _aircraft=_job getOrDefault ["aircraft",objNull];
 if (isNull _aircraft) exitWith {-1};
 private _finish={
@@ -109,11 +118,19 @@ private _finish={
         private _ownsFlight=[_aircraft,"AIR_ATTACK",_job getOrDefault ["flightLeaseToken",""]] call CBE_fnc_FlightLeaseValid
             && {group driver _aircraft == _finishGroup};
         // A newer flight controller owns speed and pilot features. Retire only our bookkeeping.
-        if (_ownsFlight) then {_aircraft limitSpeed (2 * getNumber (configOf _aircraft >> "maxSpeed"))};
+        private _restoreSpeed=_job getOrDefault ["forcedSpeedReceipt",[]];
+        // This is vehicle-policy cleanup, not permission to command a replacement pilot.
+        // Same-group pilot replacement still releases our unchanged cap under the old flight lease.
+        if (_ownsFlight && {count _restoreSpeed == 3}
+            && {(_restoreSpeed select 1) isEqualType 0} && {finite (_restoreSpeed select 1)}
+            && {(_restoreSpeed select 2) isEqualType 0} && {finite (_restoreSpeed select 2)}
+            && {abs ((getForcedSpeed _aircraft)-(_restoreSpeed select 2)) <= 0.1}) then {
+            _aircraft forceSpeed (_restoreSpeed select 1);
+        };
         // Remove exactly the lease-owned waypoint before selecting any authored route. Searching
         // by name remains correct when Zeus added or removed other waypoints and shifted indices.
         private _ownedWaypointName=_job getOrDefault ["ownedWaypointName",""];
-        if (!isNull _finishGroup && {_ownedWaypointName != ""}) then {
+        if (!isNull _finishGroup && {local _finishGroup} && {_ownedWaypointName != ""}) then {
             private _ownedWaypointIndex=(waypoints _finishGroup) findIf {waypointName _x == _ownedWaypointName};
             if (_ownedWaypointIndex >= 0) then {private _ownedWaypoint=(waypoints _finishGroup) select _ownedWaypointIndex;
                     private _snapshot=_finishGroup getVariable ["CBE_Cortex_ZeusOrderSnapshot",[]];
@@ -146,10 +163,24 @@ private _finish={
             private _handoverPilot=driver _aircraft;
             private _handoverGroup=group _handoverPilot;
             private _snapshot=_handoverGroup getVariable ["CBE_Cortex_ZeusOrderSnapshot",[]];
+            private _handoverHold=_handoverGroup getVariable ["CBE_AIPass_ZeusHold",[]];
+            // Vehicle locality alone does not authorize group orders. Only the current waypoint
+            // takeover may replay its snapshot; generic release and direct edits have no route.
+            private _replayZeus=!isNull _handoverPilot && {local _handoverPilot}
+                && {_handoverGroup == _finishGroup} && {local _handoverGroup}
+                && {count _snapshot == 7} && {count _handoverHold == 2}
+                && {(_snapshot select 0) isEqualTo (_handoverHold select 0)}
+                && {(_handoverGroup getVariable ["CBE_AIPass_ZeusControlKind",""]) == "WAYPOINT"}
+                && {[_handoverGroup] call CBE_fnc_CortexZeusHeld};
+            if (_replayZeus) then {
             private _handoverPosition=+(_snapshot param [1,[]]);
             private _handoverWaypoints=waypoints _handoverGroup;
             private _authoredWaypointOffset=_handoverWaypoints findIf {
                 count _handoverPosition >= 2 && {waypointPosition _x distance2D _handoverPosition <= 2}
+                    && {waypointType _x == (_snapshot select 4)}
+                    && {waypointBehaviour _x == (_snapshot select 2)}
+                    && {waypointSpeed _x == (_snapshot select 3)}
+                    && {waypointCombatMode _x == (_snapshot select 6)}
             };
             // Re-select the exact curator waypoint and immediately apply its own movement semantics.
             // This is a one-time replay of authenticated Zeus intent, not a Cortex route. Without
@@ -157,12 +188,9 @@ private _finish={
             // Use the actual waypoint handle:
             // deletion reindexes native waypoints, so use the handle from this fresh lookup,
             // rather than retaining an index captured before cleanup.
-            private _authoredWaypoint=if (_authoredWaypointOffset >= 0) then {
-                _handoverWaypoints select _authoredWaypointOffset
-            } else {
-                [_handoverGroup,_snapshot param [5,currentWaypoint _handoverGroup]]
-            };
-            if ((_authoredWaypoint select 1) >= 0) then {
+            // No index fallback: removal can leave that index pointing at a different order.
+            if (_authoredWaypointOffset >= 0) then {
+                private _authoredWaypoint=_handoverWaypoints select _authoredWaypointOffset;
                 // flyInHeight persists after its owning MOVE waypoint is deleted. The completed
                 // handover audit showed the helicopter still climbing to Cortex's old hint, then
                 // hovering despite facing Zeus' selected MOVE point. Replace that stale hint once
@@ -191,7 +219,6 @@ private _finish={
                     && {count _handoverPosition >= 2}) then {
                     _handoverGroup move _handoverPosition;
                 };
-            };
             _aircraft setVariable ["CBE_Cortex_AirHandoverLease",nil,true];
             _aircraft setVariable ["CBE_Cortex_AirHandoverRecovery",nil,true];
             _aircraft setVariable ["CBE_Cortex_AirHandoverResult",[
@@ -199,6 +226,8 @@ private _finish={
                 behaviour _handoverPilot,unitCombatMode _handoverPilot,currentCommand _handoverPilot,
                 "ZEUS_IMMEDIATE_HANDOVER",expectedDestination _handoverPilot
             ],true];
+            };
+            };
         };
         // On an ordinary finite end, retire only the exact hostile CBE assigned and only while no
         // player, curator or specialist has claimed the group. A newer target survives cleanup.
@@ -221,7 +250,7 @@ private _finish={
                 } forEach crew _aircraft;
             };
         };
-        if (_resume && {!_preserveEditedLeg} && {!isNull _finishGroup} && {local _finishGroup}) then {
+        if (_resume && {_ownsFlight} && {!_preserveEditedLeg} && {!isNull _finishGroup} && {local _finishGroup}) then {
             private _resumePosition=_job getOrDefault ["resumePosition",[]];
             private _resumeGroup=group driver _aircraft;
             private _resumeWaypointIndex=if (count _resumePosition >= 2) then {
@@ -275,7 +304,27 @@ private _finish={
         };
     };
     [_job getOrDefault ["lateralPilot",objNull],_job getOrDefault ["lateralPilotReceipt",[]]] call CBE_fnc_CortexAirPilotFeatureRelease;
+    // Only the original combined reservation may be retired after this job's owned cleanup.
+    private _supportSnapshot=_job getOrDefault ["combinedOpportunity",[]];
+    if (_reason == "TARGET_IGNORED" && {!isNull _finishGroup} && {local _finishGroup}
+        && {(count _supportSnapshot) in [7,8]}
+        && {(_finishGroup getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _supportSnapshot}
+        && {(_supportSnapshot select 4) == "AIR_ATTACK"}
+        && {(_supportSnapshot select 2) == (_job getOrDefault ["target",objNull])}) then {
+        private _supportToken=_supportSnapshot select 0;
+        _finishGroup setVariable ["CBE_Cortex_CombinedResult",[_supportToken,"AIR_ATTACK",_reason,serverTime,_supportSnapshot select 2],true];
+        [_supportSnapshot select 1,_finishGroup,_supportToken,+_supportSnapshot] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
+    };
     -1
+};
+if (_executorFailure != "") exitWith {
+    private _failedBrain=_aircraft getVariable ["CBE_AirAttack_Brain",createHashMap];
+    if (!local _aircraft || {!(_executorFailure in ["FSM_START_FAILED","FSM_RESTART_FAILED","FSM_RESTART_EXHAUSTED","FSM_RESTART_CONTEXT_LOST"])}
+        || {(_failedBrain getOrDefault ["job",createHashMap]) isNotEqualTo _job}
+        || {(_failedBrain getOrDefault ["generation",-1]) != (_aircraft getVariable ["CBE_AirAttack_BrainGeneration",-2])}
+        || {!(_failedBrain getOrDefault ["cancelled",false])} || {!(_failedBrain getOrDefault ["finished",false])}
+        || {(_failedBrain getOrDefault ["cancelReason",""]) != _executorFailure}) exitWith {-1};
+    [_executorFailure,true] call _finish
 };
 private _pilot=driver _aircraft;
 private _group=group _pilot;
@@ -284,6 +333,24 @@ private _group=group _pilot;
 if (isNil {_job get "group"}) then {_job set ["group",_group]};
 if ((_job get "group") != _group) exitWith {["PILOT_GROUP_CHANGED"] call _finish};
 private _stage=_job getOrDefault ["stage",""];
+// Expiry is execution authority, not just a late stage-transition observation.
+// Retire before target updates, waypoint writes or another native weapon request.
+if (_stage != "" && {serverTime > (_job getOrDefault ["deadline",-1])}) exitWith {
+    ["STAGE_TIMEOUT"] call _finish
+};
+// A flight lease is not the common operation's lifetime. A script/Zeus task may
+// cancel or replace that operation without changing the aircraft lease immediately.
+private _operationCurrent={
+    private _generation=_job getOrDefault ["operationGeneration",-1];
+    if (_generation < 0) exitWith {_stage == ""};
+    private _operation=_group getVariable ["CBE_Operation",createHashMap];
+    local _group && {(_group getVariable ["CBE_OperationGeneration",-1]) == _generation}
+        && {(_operation getOrDefault ["generation",-2]) == _generation}
+        && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {(_operation getOrDefault ["cancelReason",""]) == ""}
+        && {!((_operation getOrDefault ["phase",""]) in ["CANCELLED","COMPLETE","ENDED"])}
+};
+if !(call _operationCurrent) exitWith {["OPERATION_REPLACED"] call _finish};
 private _flightLeaseToken=_job getOrDefault ["flightLeaseToken",""];
 // Air operations share the same generation contract as ground operations, but retain their own
 // native flight lease. The common record makes replacement, locality and Zeus diagnostics
@@ -313,13 +380,26 @@ private _explicitlyExcluded=[_group] call CBE_fnc_CompatibilityExternalControl
 // flight, targeting or fire request.
 private _mayControlAircraft = {
     private _livePilot=driver _aircraft;
-    local _aircraft && {alive _aircraft} && {local _group} && {(_job get "group") == group _livePilot}
+    private _speedReceipt=_job getOrDefault ["forcedSpeedReceipt",[]];
+    private _speedCurrent=_speedReceipt isEqualTo [] || {count _speedReceipt == 3
+        && {(_speedReceipt select 0) == _livePilot}
+        && {(_speedReceipt select 2) isEqualType 0} && {finite (_speedReceipt select 2)}
+        && {abs ((getForcedSpeed _aircraft)-(_speedReceipt select 2)) <= 0.1}};
+    _speedCurrent && {call _operationCurrent} && {local _aircraft} && {alive _aircraft} && {local _group} && {(_job get "group") == group _livePilot}
+        && {_stage == "" || {serverTime <= (_job getOrDefault ["deadline",-1])}}
         && {[_livePilot] call CBE_fnc_CortexCombatEffective} && {!isPlayer _livePilot}
         && {local _livePilot} && {[_livePilot] call CBE_fnc_CortexActorFireTaskAvailable}
         && {missionNamespace getVariable ["CBE_AIPass_Active",false]} && {!([] call CBE_fnc_CortexIsPaused)}
         && {[_aircraft,"AIR_ATTACK",_flightLeaseToken] call CBE_fnc_FlightLeaseValid}
         && {!([_group] call CBE_fnc_CortexExternalTakeover)}
         && {!([_group] call CBE_fnc_CortexZeusHeld)}
+};
+private _liveSpeedReceipt=_job getOrDefault ["forcedSpeedReceipt",[]];
+if (count _liveSpeedReceipt == 3 && {(_liveSpeedReceipt select 0) != _pilot}) exitWith {
+    ["PILOT_CHANGED",true] call _finish
+};
+if (count _liveSpeedReceipt == 3 && {abs ((getForcedSpeed _aircraft)-(_liveSpeedReceipt select 2)) > 0.1}) exitWith {
+    ["NATIVE_SPEED_CHANGED"] call _finish
 };
 if (_job getOrDefault ["flightLeaseLost",false]
     || {!([_aircraft,"AIR_ATTACK",_flightLeaseToken] call CBE_fnc_FlightLeaseValid)}) exitWith {
@@ -361,11 +441,13 @@ if (_stage == "") then {
         {
             private _candidate=assignedTarget _x;
             if (!isNull _candidate && {!(_candidate isKindOf "Logic")} && {!(_candidate isKindOf "HeadlessClient_F")} && {alive _candidate} && {(side _group) getFriend side _candidate < 0.6}
-                && {(_group knowsAbout _candidate) > 0}) exitWith {_target=_candidate};
+                && {(_group knowsAbout _candidate) > 0}
+                && {!((_pilot targetKnowledge _candidate) param [7,false,[true]])}) exitWith {_target=_candidate};
         } forEach ([effectiveCommander _aircraft,driver _aircraft,gunner _aircraft,commander _aircraft]+crew _aircraft);
     };
     if (isNull _target) then {_startFailure="NO_TARGET"};
     if (_startFailure == "" && {(_group knowsAbout _target) <= 0}) then {_startFailure="NO_KNOWN_TARGET"};
+    if (_startFailure == "" && {(_pilot targetKnowledge _target) param [7,false,[true]]}) then {_startFailure="TARGET_IGNORED"};
     private _plan=if (_startFailure == "") then {[_aircraft,_target] call CBE_fnc_CortexAirAttackPlan} else {createHashMap};
     if (_startFailure == "" && {count _plan == 0}) then {_startFailure="NO_PLAN"};
     if (_startFailure == "" && {!([] call _mayControlAircraft)}) then {_startFailure="CONTROL_RELEASED"};
@@ -484,7 +566,15 @@ if (_stage == "") then {
         if (isNull _fireGroup) then {_fireGroup=group currentPilot _aircraft};
         private _releaseTurret=_liveJob getOrDefault ["selectedTurret",[]];
         private _expectedOperator=if (_releaseTurret isEqualTo [-1]) then {driver _aircraft} else {_aircraft turretUnit _releaseTurret};
+        private _liveOperation=_fireGroup getVariable ["CBE_Operation",createHashMap];
+        private _releaseGeneration=_liveJob getOrDefault ["operationGeneration",-1];
         private _ownsRelease=(_liveJob getOrDefault ["firedHandler",-1]) == _thisEventHandler
+            && {_releaseGeneration >= 0} && {local _fireGroup}
+            && {(_fireGroup getVariable ["CBE_OperationGeneration",-1]) == _releaseGeneration}
+            && {(_liveOperation getOrDefault ["generation",-2]) == _releaseGeneration}
+            && {(_liveOperation getOrDefault ["ownerEpoch",-1]) == (_fireGroup getVariable ["CBE_AIPass_Epoch",0])}
+            && {(_liveOperation getOrDefault ["cancelReason",""]) == ""}
+            && {!((_liveOperation getOrDefault ["phase",""]) in ["CANCELLED","COMPLETE","ENDED"])}
             && {!(_brain getOrDefault ["finished",false])}
             && {!(_brain getOrDefault ["cancelled",false])}
             && {_operator == _expectedOperator}
@@ -507,7 +597,8 @@ if (_stage == "") then {
             if (_weapon == _guidedWeapon && {!isNull _projectile} && {!isNull _guidedTarget} && {alive _guidedTarget}
                 && {(_liveJob getOrDefault ["stage",""]) in ["INGRESS","ATTACK"]}
                 && {!captive _guidedTarget} && {(side _fireGroup) getFriend side _guidedTarget < 0.6}
-                && {(_fireGroup knowsAbout _guidedTarget) > 0}) then {
+                && {(_fireGroup knowsAbout _guidedTarget) > 0}
+                && {!((_operator targetKnowledge _guidedTarget) param [7,false,[true]])}) then {
                 private _nativeTarget=missileTarget _projectile;
                 private _nativePoint=missileTargetPos _projectile;
                 private _hasNativePoint=count _nativePoint == 3 && {vectorMagnitude _nativePoint > 1};
@@ -547,6 +638,9 @@ if (!isNil {_job get "ownedWaypointReceipt"} && {_currentOwnedReceipt isNotEqual
     ["OWNED_ROUTE_CHANGED"] call _finish
 };
 private _target=_job getOrDefault ["target",objNull];
+if (!isNull _target && {(_pilot targetKnowledge _target) param [7,false,[true]]}) exitWith {
+    ["TARGET_IGNORED",true] call _finish
+};
 if (!isNull _target && {alive _target} && {captive _target
     || {_target getVariable ["ace_captives_isSurrendering",false]}
     || {_target getVariable ["ace_captives_isHandcuffed",false]}
@@ -718,7 +812,14 @@ private _interceptRefresh=_job getOrDefault ["airToAir",false] && {_stage == "IN
 if (_interceptRefresh) then {_commandedStage=""};
 if (_commandedStage != _stage && {!([] call _mayControlAircraft)}) exitWith {["CONTROL_RELEASED"] call _finish};
 if (_commandedStage != _stage) then {
-    _aircraft limitSpeed (_stageSpeeds select _stageIndex);
+    // forceSpeed/getForcedSpeed are metres per second; planned stage speeds are km/h.
+    // Preserve a stricter authored cap and leave independent native limitSpeed untouched.
+    private _speedReceipt=_job getOrDefault ["forcedSpeedReceipt",[]];
+    private _originalSpeed=if (_speedReceipt isEqualTo []) then {getForcedSpeed _aircraft} else {_speedReceipt select 1};
+    private _appliedSpeed=((_stageSpeeds select _stageIndex)/3.6) max 0;
+    if (_originalSpeed >= 0) then {_appliedSpeed=_appliedSpeed min _originalSpeed};
+    _job set ["forcedSpeedReceipt",[_pilot,_originalSpeed,_appliedSpeed]];
+    _aircraft forceSpeed _appliedSpeed;
     // MOVE waypoint height is not a reliable flight-profile input for native aircraft. Apply one
     // terrain-relative height hint when the leg changes, then leave the flight model alone. The
     // terminal delivery assist below supplies only final weapon alignment; it does not become a

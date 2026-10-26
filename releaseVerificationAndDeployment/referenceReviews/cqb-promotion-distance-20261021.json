@@ -1,0 +1,20 @@
+{
+  "baseline": "e0be2e52",
+  "finding": "BuildingOperationStep claimed nearest reserve selection but evaluated promotion in roster order. An earlier farther candidate could spend the sole callback cover VIEW ray before a nearer established observer was evaluated.",
+  "implementation": "Rank the existing rotating maximum16 candidate window by distance to survivor/building and stable window index before calling promotion; first candidate with actual promotion proof wins.",
+  "authority": "Existing sole-exit-cover protection, one shared VIEW ray, current proof revalidation, native actor tasks, exact episode and original deadline unchanged.",
+  "cost": "Sort at most16 tuples per casualty slot; no new query or worker. Runtime not measured.",
+  "limits": "Nearest within current rotating window and available proof budget only; no shortest-route or physical arrival guarantee. Source intent is continuity of the surviving CQB pair, not copying unbounded upstream pair workers.",
+  "validation": "Existing promotion tests extended; full build and independent candidate results recorded in handover.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "proofFairnessFollowup": {
+    "baseline": "ef0b6cf4",
+    "finding": "Strict nearest-first retries can starve farther promotable posts when the nearest candidate repeatedly spends the single ray on blocked coverage. This supersedes the previous strict distance-priority description.",
+    "implementation": "Per casualty-slot private cursor stores only the identity of a candidate that actually spent the ray. The next callback rotates the currently distance-ranked bounded window after that identity, wrapping naturally. Success deletes the cursor. Equal-distance ties use stable netId, not rotating window index.",
+    "bounds": "At most one identity per existing lane slot, no extra query, timer, worker, retry or deadline. Cursor is proposal fairness only, not authority or coverage evidence.",
+    "limits": "Fixed candidate set gets round-robin probe opportunity; moving actors, larger rotating windows and physical flow remain unverified. Cursor may reset on owner adoption without renewing operation time.",
+    "validation": "Existing promotion regression extended with blocked-near/tie/far sequence; full build result in handover."
+  }
+}

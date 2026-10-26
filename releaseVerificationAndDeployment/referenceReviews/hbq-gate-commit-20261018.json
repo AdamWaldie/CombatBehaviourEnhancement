@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-18",
+  "scope": "HBQ gate opening intent and CBE authoritative mutation",
+  "upstream": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "read": "GateSet/lock helpers around292..330; existing full gate review retained",
+    "disposition": "Retain early-opening/lock intent; no source code copied and no timeout obstacle bypass."
+  },
+  "implementation": [
+    "Atomic final opening boundary",
+    "Current expiry/crew/owner/native task checks",
+    "Live convoy revision and TRAVEL membership",
+    "Live phase/lock/pose and concurrent opening proof"
+  ],
+  "validation": {
+    "tests": 1235,
+    "exit": 0,
+    "log": ".qa/cbe-gate-opening-commit-verified-build.log",
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Passage/directional arbiter/closure",
+    "Unknown gate models",
+    "Native queue execution",
+    "Physical braking and overhead"
+  ],
+  "acceptance": "partial; not whole-mod parity"
+}

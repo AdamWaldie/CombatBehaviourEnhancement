@@ -1,0 +1,75 @@
+{
+  "baseline": "5f4c7fb4",
+  "scope": "Reconcile historical HBQ remaining-code statements against current execution chain",
+  "evidenceScope": "Full DrivingRouteReceipt and selected current admission/caller/phase ranges; not complete renewed whole-source review or physical validation.",
+  "reconciled": [
+    {
+      "old": "Automatic gate closure/passage arbitration not implemented",
+      "current": "Optional CloseGates_Enable schedules bounded DrivingGateCloseServer from OpenServer. Source records crossing segment, hull clearance and sampled traffic, then requests closure and separately observes native leaf phases. Built path exists; whole arbitration and physical safe closure are not proven."
+    },
+    {
+      "old": "Moving-vehicle overtaking incomplete without executable path",
+      "current": "DrivingPassAdmission requires moving slower peer, prepares consent and calls DrivingPassBegin; existing DrivingAssistStart invokes DrivingPassStep OUT/DROP_BACK/RETURN phases. Optional implementation exists; performance, repeat use and physical success remain unaccepted."
+    },
+    {
+      "old": "Queue cascade absent",
+      "current": "DrivingQueueAutoStep negotiates from existing jam episode, server brokers roles, DrivingAssistStart invokes hold/reverse/crossing helpers through existing writer. Supported head-on/crossing paths exist; arbitrary queue topology is not established."
+    }
+  ],
+  "confirmedCodeGap": {
+    "area": "Direct script/native MOVE without authored waypoint",
+    "proof": "DrivingRouteReceipt returns[] at index<=0 or index>=waypoint count; DrivingGateIntent requires nonempty same authored route and matching current waypoint metadata.",
+    "impact": "Current authored-route recovery/pass/gate contract cannot be claimed for native script orders merely because driver has expectedDestination.",
+    "nextImplementation": "Trace start/step/recovery/cap cleanup consumers before adding a distinct exact native-order receipt. Preserve crew pairing, destination/task replacement, original deadline, owner generation and baseline cleanup. Do not fabricate a waypoint, refresh route or infer ownership from assignment alone."
+  },
+  "hashes": {
+    "addons/vehicles/functions/drivingRouteReceipt.sqf": "a6dd1662abbe339a2d85ee87b38d5b4298804bedcd8eafee973502cf901e1642",
+    "addons/vehicles/functions/drivingGateIntent.sqf": "6f57660951993338edb83677c47b2a89300e0f915923d83af8fe3a3b452f5606",
+    "addons/vehicles/functions/drivingGateOpenServer.sqf": "54b4c4a82f911d63a1d273182fac6ef72cb9780af26e18a47b862f0a81a526a1",
+    "addons/vehicles/functions/drivingGateCloseServer.sqf": "73bdac127c02cc29229b346aff5998fa0a51437406440d163fe52a031b7de4cf",
+    "addons/vehicles/functions/drivingPassAdmission.sqf": "f125f167080e6b8fccdd6e42a1ee1c04b8db0f2db16f15371100944b27c1691d",
+    "addons/vehicles/functions/drivingPassBegin.sqf": "c6f387e3cc4af7c5e6596c1d1b1e68c708be8c55cc7e9c0b882cf771eae4868a",
+    "addons/vehicles/functions/drivingPassStep.sqf": "537467acb8bf9dd03410e05dd1c01b82de62e7d9bc5aad06198098a1e677d146",
+    "addons/vehicles/functions/drivingQueueAutoStep.sqf": "04febe64ede4435be3bf62473fab2257ec95a7e2502ddfad1d20831dbcca176e",
+    "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "824dd40bde3e4fa3aad69f5c9a76d6dbbc6294d5ce74011409e2778b915a0013",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "5acb214361364f975481b0dc092c74d8c5c9d7878ee1481f80311e9fb798c2bb"
+  },
+  "validation": "Engineering reconciliation only; unchanged production source retains previous full offline candidate .qa/candidates/cover-posture-handoff-00737b2a. No new build or audit launched.",
+  "limits": [
+    "Audits paused; no physical or performance evidence added.",
+    "Historical reports remain dated snapshots, not current outstanding-work lists.",
+    "No implementation percentage, whole-HBQ parity or acceptance credit."
+  ],
+  "currentReconciliation20261022": {
+    "baseline": "486d1880",
+    "status": "HISTORICAL_GAP_SUPERSEDED_BY_CURRENT_IMPLEMENTATION",
+    "current": "DrivingRouteReceipt delegates absent authored waypoints to DrivingNativeRouteReceipt. Exact admitted native goals, recovery parent and conditional ordinary native bypass/corridor paths now exist. Release uses original native goal and finite return observation. These are built paths, not physical proof.",
+    "evidenceReviews": [
+      "native-bypass-lifecycle-20261022.json",
+      "native-corridor-lifecycle-20261022.json",
+      "native-return-task-adoption-20261022.json"
+    ],
+    "confirmedRemaining": "DrivingQueueAutoStep explicitly refuses NATIVE_MOVE. Native multi-owner queue negotiation remains a separate build gap; do not broaden by deleting its guard without broker/crew/return lifecycle review. Native passing not reassessed in full.",
+    "hashes": {
+      "addons/vehicles/functions/drivingRouteReceipt.sqf": "3cf86826cf2fc0b51ca495225186b3ab02e1fa408e3c9f332fafdd348cfb1930",
+      "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "1c589c80d9c4e3a7e6a65ca18b74f84370cc89748c2223ba2390b5d2f2449421",
+      "addons/vehicles/functions/drivingBypassStep.sqf": "e46ae8441e4c8276ef41a698ea75eb23339c2286deb2f4994fc6958404d39b96",
+      "addons/vehicles/functions/drivingBypassRelease.sqf": "3d167a37b845124b827548d32c2d796bae28f71959a59724b94da86515a7c4bb",
+      "addons/vehicles/functions/drivingCorridorStep.sqf": "ea245ebae3e71d2feb33472ef107b5cec1d7332db2cc1be2c6636c751aea1853",
+      "addons/vehicles/functions/drivingCorridorRelease.sqf": "966a6ea75bb54a813a5d3b66027cb5422f23e222d25bf06f72e10feee6aa3336",
+      "addons/vehicles/functions/drivingQueueAutoStep.sqf": "c4bf9e98181d9aec015f41f53edff8c7276b5bba228807f06dd1ba49d2ce50eb"
+    },
+    "validation": "Read-only source reconciliation. Runtime unchanged; reuse exact clearance-pace-dab5d3e3 candidate, no repeat full build or audit. No whole-HBQ parity/percentage claim."
+  },
+  "currentReconciliation20261023": {
+    "baseline": "01e25ab2",
+    "superseded": "Historical native queue exclusion is now removed through existing DEFAULT-OFF initiation; see native-queue-execution-boundary-20261023.json nativeAdmission20261023. Actual owner private original route and two-seat return ACK are implemented, not physically accepted.",
+    "confirmedRemaining": "Native passing is integrated default-off with finite STOP/return and real-edge cleanup; see native-passing-integration-20261023.json. Physical propagation and travel remain unverified. Grade/deck observation now has a bounded six-metre support extension, not whole-horizon parity; see grade-support-observation-20261023.json.",
+    "limits": "Selective reconciliation, not complete renewed HBQ review, whole-mod percentage or physical proof. No blanket hash renewal."
+  },
+  "passingHandbackReconciliation20261023": {
+    "baseline": "2f79c14d",
+    "current": "Authored passing now retains original-deadline STOP proof and a separate two-seat original-goal return journal through existing bounded cleanup. See pass-deferred-handback-20261023.json. This supersedes the previously confirmed missing deferred path, not physical acceptance.",
+    "remaining": "Native passing is integrated default-off; genuine transfer timing and actual STOP/return propagation still need physical evidence. Grade/deck support projection is implemented only within a fresh native six-metre window; longer transitions and runtime cost remain open."
+  }
+}

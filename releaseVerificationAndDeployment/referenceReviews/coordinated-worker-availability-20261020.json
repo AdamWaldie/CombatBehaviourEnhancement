@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-20",
+  "baseline": "adcee1ae",
+  "scope": "Coordinated bound admission, cover hold and recall worker availability; not full coordination acceptance",
+  "existingCapacityContract": "CortexSupportMaintain publishes owner-local eligible main-ammunition capacity on COVER at <=2s cadence; CortexSupportCoordinateStep requires fresh authenticated matching current role/owner/epoch report before new MOVE. This exists and must not be declared missing.",
+  "findings": [
+    "CortexSupportBoundStart fit roster omitted queued care although later fire capacity excludes it.",
+    "New COVER doStop lacked simulation/hidden/queued-care gates.",
+    "Exact hold cleanup and legacy supportHeld recall omitted queued-care veto."
+  ],
+  "implementation": [
+    "Exclude queued care before bound pair/worker allocation.",
+    "Cover STOP requires available simulation and no queued care.",
+    "Exact hold cleanup and legacy recall defer native follow during queued care.",
+    "Legacy owned PATH restoration and metadata remain independent; no treatment queue mutation, new worker or renewed deadline."
+  ],
+  "files": {
+    "addons/support/functions/cortexSupportBoundStart.sqf": "70421ac58882d876294d2e4d96fdce53ec8def162d27d6515a9a4e66cb5bcb95",
+    "addons/support/functions/cortexSupportMaintain.sqf": "d1231e7c2515a5225e653c580373646678f369fff238c7e5abe16d82190be599",
+    "addons/support/functions/cortexSupportCoordinateStep.sqf": "4c4d1c3aa3e670aa89002dbd904f9828f610f37a68bdeb1882b99db104e80978"
+  },
+  "validation": {
+    "tests": 1477,
+    "build": "HEMTT/FSM/full build passed",
+    "candidate": ".qa/candidates/support-worker-availability-adcee1ae",
+    "fingerprint": "0d899b559fafa08e6c2a043688a45a79ec3d2994c82c84cc67a81b195c2fead7",
+    "independentVerify": true,
+    "signed": false,
+    "physicalAcceptance": false,
+    "performanceMeasured": false
+  },
+  "audits": "PAUSED"
+}

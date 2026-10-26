@@ -3,7 +3,9 @@
  * Repeat/JIP: Read-only, repeat-safe local query; no public mutation or JIP side effects.
  * Decides whether a soldier can pass information or call for support by radio.
  *
- * AI communications do not require an inventory radio item.
+ * AI communications do not require an inventory radio item. Combat-ineffective actors
+ * (including ACE unconsciousness and captivity) cannot reach the mission jamming hook;
+ * conscious wounded soldiers remain eligible under the shared capability predicate.
  * Missions may provide CBE_AITweaks_JammingFactor as a read-only CODE hook. A result of 0.5 or
  * more blocks AI reports, reinforcement calls and artillery requests. Without a hook, transmission
  * is available and this addon remains independent of any electronic-warfare implementation.
@@ -23,7 +25,7 @@
  */
 
 params [["_unit", objNull, [objNull]]];
-if (isNull _unit || {!alive _unit}) exitWith {false};
+if !([_unit] call CBE_fnc_CortexCombatEffective) exitWith {false};
 private _hook = missionNamespace getVariable ["CBE_AITweaks_JammingFactor", {0}];
 if !(_hook isEqualType {}) exitWith {true};
 private _factor = [getPosASL _unit, side group _unit] call _hook;

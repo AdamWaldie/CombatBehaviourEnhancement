@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-22",
+  "baseline": "0fe42c1a",
+  "scope": "Corridor APPROACH driver-order authority",
+  "finding": "During approach, commander destination was checked but driver destination was only checked in CROSS. Allowed task names alone let a distinct newer driver MOVE survive until the old controller stopped it for crossing or cleanup.",
+  "changes": [
+    "Admission now records driverCommand after requesting the commander entry leg.",
+    "Read-only approach driver validation accepts the recorded native destination or finite three-dimensional exact entry-goal propagation within0.25m. Missing legacy proof refuses authority.",
+    "Live approach, pre-cross transaction and release all apply this validation with existing both-seat eligibility/task and native-input checks. A changed driver destination cancels the old episode without native recall.",
+    "No new actor/controller/FSM/PFH/timer/query or deadline; helper logic is identical in step and release."
+  ],
+  "validation": {
+    "focused": ".qa/corridor-driver-focused.log",
+    "full": ".qa/corridor-driver-build.log",
+    "tests": 1489,
+    "result": "PASS including HEMTT, FSM/config/SQF/documentation/package gates",
+    "candidate": ".qa/candidates/corridor-driver-0fe42c1a",
+    "fingerprint": "257a55062739202ad1c888d996b7ce501e1eeaae1c32183f3abb79ce74483011",
+    "independent": ".qa/corridor-driver-independent-verify.log",
+    "provenance": "Unsigned development package:0fe42c1a plus intended corridor edits and retained unrelated working-tree dirt. Later review/handover metadata not product changes.",
+    "limits": "Source-contract checks and illustrative Python destination model do not execute SQF or establish native propagation, physical corridor travel, interruption/HC timing or performance."
+  },
+  "remaining": [
+    "Native scripted-route corridor admission/return remains unsupported.",
+    "Identical destination/order replacement cannot be distinguished from retained/native entry propagation.",
+    "Physical and 5% median/10% p95 performance validation remain outstanding; audits paused."
+  ],
+  "evidence": {
+    "addons/vehicles/functions/drivingCorridorStep.sqf": "eb5ec10c3b6c49d574f72a8bd658d02b08b7d671c10de3c06e5b0c4ff93e8513",
+    "addons/vehicles/functions/drivingCorridorRelease.sqf": "0b35a4ef74e82ad4de22a819babe34dcf7c7dba45e20f85c1fcccb5af11d156a",
+    "releaseVerificationAndDeployment/test_driving_corridor.py": "04f6ebb7d424384a12c87f3c7f850ba49e66651942a46815da67edc76bb1e43b",
+    "docs/Smart-AI-Pass.md": "0a593be27c40a72d0f89f30cd82510f18063939ab60ebacdb30a16486f9c78a5"
+  },
+  "relation": "Prerequisite authority repair found while tracing native-temporary-route-gap-20261022.json. Not a claim to complete that broader gap or whole HBQ parity."
+}

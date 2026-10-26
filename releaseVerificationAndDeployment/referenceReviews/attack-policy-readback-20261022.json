@@ -1,0 +1,27 @@
+{
+  "baseline": "216b42d3",
+  "scope": "Native-confirmed acquisition of common operation attack permission",
+  "finding": "OperationAttackPolicy previously published groupAttack restore receipt and returned ACQUIRED after issuing enableAttack without checking resulting native state. CQB/flank callers accept ACQUIRED as admission.",
+  "implementation": [
+    "Issue native permission only when different; read back attackEnabled on current local anchor before publishing original/applied receipt or returning ACQUIRED.",
+    "Unconfirmed write returns existing REFUSED with no newly claimed restore entry; existing callers already handle refusal. Existing receipt checks remain read-only and never reapply changed permission."
+  ],
+  "validation": {
+    "focused": ".qa/attack-policy-readback-tests.log:5 existing attack-policy checks passed, extended order contract.",
+    "full": ".qa/attack-policy-readback-build.log:1489 tests/401 SQF and complete offline gates passed.",
+    "candidate": ".qa/candidates/attack-policy-readback-216b42d3",
+    "fingerprint": "7c44348dbe8c836d35a6e904803142559dbd715745c5fb26dce4f9bf15022613",
+    "independent": "Preserved candidate verify passed.",
+    "provenance": "Unsigned development candidate, baseline plus intended edits and retained unrelated dirt."
+  },
+  "open_material_issue": "OperationRestore still consumes its groupAttack receipt before native restore and reports RESTORED without confirmation. OperationCancel/Release retire the operation afterwards. A correct follow-up must retain finite unresolved restoration provenance across retirement and newer owner/order boundaries; adding a readback alone does not provide that handback. No complete attack-policy lifecycle claim.",
+  "limits": [
+    "Physical permission/combat and runtime performance unverified; audits PAUSED.",
+    "Native boolean readback is property-state evidence, not physical behaviour or external-controller quiescence."
+  ],
+  "source_sha256": {
+    "addons/core/functions/operationAttackPolicy.sqf": "03a0447aa84f2de3eb7bceb4681a94753f2b1d0a1bd53022436a1fb0f0d8a994",
+    "addons/core/functions/operationRestore.sqf": "293f11ff3a1bde37ff8615ecdc7788e4f6cb8d24f36213dc3beb74f1f793ad97",
+    "releaseVerificationAndDeployment/test_operation_attack_policy.py": "e358e401ff03454b76b2f480caadcd4d8b2fd2f56b8e49957fb2011c07dfd77e"
+  }
+}

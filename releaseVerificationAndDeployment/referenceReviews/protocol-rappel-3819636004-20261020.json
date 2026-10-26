@@ -1,0 +1,187 @@
+{
+  "workshopId": "3819636004",
+  "name": "PROTOCOL AI RAPPELING",
+  "date": "2026-10-20",
+  "source": {
+    "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3819636004\\addons\\protocol_ai_rappeling.pbo",
+    "sha256": "9d314ba77d568b81d87817fdccb6ddf86312cefc7d196687aba873575051f1e5",
+    "entries": [
+      {
+        "name": "bis_addoninfo.hpp",
+        "method": 0,
+        "originalSize": 0,
+        "size": 74,
+        "sha256": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215"
+      },
+      {
+        "name": "config.bin",
+        "method": 0,
+        "originalSize": 0,
+        "size": 653,
+        "sha256": "db4d3c5eb0a5e4f7882730451c9d713cfff0c93d960e3c56f1e3b715b94ce1cb"
+      },
+      {
+        "name": "functions\\fn_rappeling.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 6306,
+        "sha256": "cf36f814be1fcaf56b637a5879cc8f7db82cc30bde716488b79105da8e725f7e"
+      },
+      {
+        "name": "XEH_preInit.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 746,
+        "sha256": "99a5972051e4561b9611ae6b0c3a2f62038c725475f99d73fc3a4ad5d134c833"
+      }
+    ]
+  },
+  "scope": "Both readable SQFs fully read. Binary startup/dependencies/licence unverified; user-declared Advanced Rappelling and CBA dependencies retained.",
+  "intent": [
+    "Deliver existing helicopter cargo to a validated ground/roof insertion point, hand rope execution to provider and then resume ordinary infantry control."
+  ],
+  "existingCbe": [
+    "No CBE AR_Rappel_All_Cargo executor found in production SQF. Generic aircraft/flight leases and finite actor operations are reusable foundations, not implemented rappelling."
+  ],
+  "sourceDefects": [
+    "Every3s global vehicles scan, no authority/locality/Zeus/player/provider ownership contract.",
+    "Creates a new cargo group and joinSilent before deciding to insert, permanently changing mission group identity.",
+    "nearEntities600 and insideBuilding/live enemy transforms reveal knowledge; fallback nearest house is not the original objective.",
+    "Bounding-box roof centre is not a reachable safe roof/rope landing; height clamp local is not used in provider call.",
+    "doMove on pilot with repeated LIMITED, then flyInHeight setting and2s wait; distance2D<=18 is not proof of stable safe hover.",
+    "Direct AR_Rappel_All_Cargo call has no provider availability/signature validation, completion acknowledgement, cargo/rope cleanup or resume authority. buildingRappelDone marks request as success and prevents repeat use."
+  ],
+  "dependencies": [
+    "Advanced Rappelling",
+    "CBA_A3"
+  ],
+  "remaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature.",
+  "sourceProtection": "Original PBO and extracted readable files verified against inventory hashes; no raw source copied into product.",
+  "validation": "Source review, caller tracing, JSON parsing and archive/extract hash verification. No product edit or runtime test in this batch.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED",
+  "scoresChanged": false,
+  "installedProviderApiReview": {
+    "sources": [
+      {
+        "workshopId": "713709341",
+        "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\713709341\\addons\\AR_AdvancedRappelling.pbo",
+        "sha256": "f0065c5a96301a0eb080c3b6bc26d9490c841e90e7a4366560160d22aa8acf02",
+        "readableSource": ".qa/advanced-rappelling-713709341-review/functions/fn_advancedRappellingInit.sqf",
+        "sourceSHA256": "35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b"
+      },
+      {
+        "workshopId": "2963869423",
+        "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\2963869423\\addons\\AR_AdvancedRappelling.pbo",
+        "sha256": "e2398971db0cc7addcb934c301479e8efb2ed9426ca352280b9366801b384dfb",
+        "readableSource": ".qa/advanced-rappelling-2963869423-review/functions/fn_advancedRappellingInit.sqf",
+        "sourceSHA256": "bced3e3754a03ba8915c16bf61aa56790e3adef93434a7ddb49e1bbf2d20964e"
+      }
+    ],
+    "reviewScope": "Targeted API/ownership/worker/cleanup/remote-dispatch sections and whole readable-source diff between variants; not whole addon startup/binary or runtime acceptance. MIT notice present in both readable sources. Original PBOs unchanged; private extraction only.",
+    "bulkApi": {
+      "name": "AR_Rappel_All_Cargo",
+      "arguments": "[vehicle,rappelHeight=25,positionASL=[]]",
+      "finding": "Vehicle-owner scheduled worker creates LOGIC leader, changes behaviour/combat/formation, waits without deadline, drives helicopter velocity every0.05s, dispatches cargo and waits for rappelling flags. Cleanup restores initial policy without newer-order receipt. Do not call as an unbounded CBE helicopter controller."
+    },
+    "actorApi": {
+      "name": "AR_Rappel_From_Heli",
+      "arguments": "[actor,helicopter]",
+      "authority": "Server reserves available AR_Get_Heli_Rappel_Points slot, sets public AR_Is_Rappelling true, spawns AR_Client_Rappel_From_Heli on actor owner through provider remote wrapper. Returns no success receipt.",
+      "ownership": "Actor worker owns movement/physics/animation and rope objects; clears AR_Is_Rappelling after rope/device cleanup, then allowDamage restoration occurs2s later. Flag clear alone is not insertion or complete provider-quiescence proof.",
+      "variants": "Same API in both installed sources. Bundle variant changes ACE-compatible device class, player ground-detach condition and localization; AI movement exit condition otherwise remains."
+    },
+    "implementation": "Shared CortexExternalOwner and fast CompatibilityExternalControl now refuse active/malformed AR_Is_Rappelling or AR_Units_Rappelling markers read-only. False/absent markers leave ordinary AI eligible. No provider call, flag mutation or rope destruction.",
+    "remainingRequired": [
+      "Finite authenticated per-actor cargo insertion with stable CBE helicopter flight ownership; actual provider slot acceptance and physical ground/roof arrival required.",
+      "Original task/order/owner deadlines, no mission-group reassignment; cancellation must not tear down a still-active provider rope or declare early completion.",
+      "Provider cleanup overlap, normal/HC ownership and repeat/abort need runtime proof; no behaviour module until executor exists."
+    ],
+    "validation": "1479 tests, HEMTT/full build and source/API comparison passed; no Arma run.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false
+  },
+  "flightBoundaryFollowup": {
+    "baseline": "3d53c0c0",
+    "finding": "CortexAircraftEligible already reads declared/provider airframe ownership, but FlightLeaseAcquire/Valid fast paths checked pilot/group only. AR bulk control marks helicopter rather than pilot, allowing a CBE fast flight write between slower planner checks.",
+    "implementation": "Both lease admission and fast mutation predicate now read shared CompatibilityExternalControl on airframe before lease permission. No provider-specific flags duplicated in flight layer; lease release remains exact identity only. Existing air-attack and landing/braking paths use FlightLeaseValid to stop/retire their own commands.",
+    "validation": "1479 existing tests/full HEMTT build passed; no runtime handover/performance proof.",
+    "remaining": "Finite per-actor cargo insertion, stable flight ownership, provider slot/physical completion/abort and normal/HC handover remain incomplete. This is a takeover safeguard, not completed rappelling."
+  },
+  "providerQuiescenceContract20261023": {
+    "baseline": "dea4a20a",
+    "scope": "Targeted actual per-actor reservation/worker/cleanup trace in both installed provider variants; original files unchanged.",
+    "sourceHashes": {
+      ".qa/advanced-rappelling-713709341-review/functions/fn_advancedRappellingInit.sqf": "35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b",
+      ".qa/advanced-rappelling-2963869423-review/functions/fn_advancedRappellingInit.sqf": "bced3e3754a03ba8915c16bf61aa56790e3adef93434a7ddb49e1bbf2d20964e"
+    },
+    "observedContract": [
+      "AR_Rappel_From_Heli reserves a server-local AR_Rappelling_Player_index slot and publishes actor AR_Is_Rappelling before starting the actor-owner worker. It returns no structured acceptance/completion receipt.",
+      "The server slot-retirement worker polls actor flag/death every2s, without an original task deadline. Actor flag clear does not prove the server slot has retired.",
+      "Actor worker destroys ropes/devices, clears public AR_Is_Rappelling and AR_Rappelling_Vehicle, then sleeps2s and unconditionally calls allowDamage true. The bundle variant has the same ordering.",
+      "Earlier landing/fall branches also write allowDamage true. A current true damage readback or elapsed2s after flag clear cannot prove the final scheduled worker has executed; scheduler delay and indistinguishable intervening script writes remain.",
+      "The bulk API additionally runs its own unbounded helicopter/group controller. Using it would evade CBE flight ownership and finite-operation requirements."
+    ],
+    "impact": "Current read-only runtime-marker compatibility yields during active rope state only; it is not a complete provider-cleanup acknowledgement. No CBE rappel executor is present. Do not advertise a working insertion module or infer completed handback from flag false.",
+    "requiredImplementation": "Retain the requested finite cargo insertion feature. Implement controlled rope execution with explicit actual-owner acceptance, original task deadline, exact mission damage baseline, completion after all cleanup, and no stale delayed writes; or use a provider API revision that supplies those guarantees. Mere dependency detection, arbitrary grace time or a wrapper around the current bulk API is insufficient. Preserve group identity, actual stable flight and ground/roof arrival requirements.",
+    "validation": "Current source re-read and SHA256 confirmation; no runtime changes, build repetition or audit launch. Existing reference-boundary check validates final engineering notes only.",
+    "physicalAcceptance": false,
+    "goalStatus": "Incomplete; other offline foundation/source work remains possible. Audits paused."
+  },
+  "workerHandleTrace20261024": {
+    "base": "6a521b9c",
+    "question": "Can a CBE wrapper observe scriptDone on existing provider workers instead of inferring completion from early activity flags?",
+    "finding": "No complete task graph is exposed. Server actor API spawns the movement worker without saving/publishing its handle, then spawns a distinct slot-retirement worker. A last spawned value, if captured from that server call, identifies slot bookkeeping, not the actor task graph. Nonserver dispatch returns remote-wrapper transport semantics, not an actor-worker SCRIPT handle. No provider code executed to infer undocumented return types.",
+    "workers": [
+      {
+        "name": "server actor reservation",
+        "entry": "AR_Rappel_From_Heli",
+        "effect": "Reserves heli slot and publishes actor activity; independently starts actor and slot workers. No episode-scoped accepted/finished response."
+      },
+      {
+        "name": "actor owner movement",
+        "entry": "AR_Client_Rappel_From_Heli",
+        "effect": "Owns movement, physics, ropes/devices and delayed unconditional damage write after public activity clears. Handle unretained by public API."
+      },
+      {
+        "name": "server slot retirement",
+        "entry": "anonymous actor/heli/slot spawn",
+        "effect": "Polls activity/death every2s and clears slot. It can finish while actor damage or animation cleanup remains scheduled."
+      },
+      {
+        "name": "actor animation",
+        "entry": "spawn AR_Enable_Rappelling_Animation_Client",
+        "effect": "Separate ignored handle; toggles simulation, changes animation, installs/removes animation handler; waits on shared activity flag, then resets animation and enables simulation."
+      },
+      {
+        "name": "remote animation replicas",
+        "entry": "AR_Enable_Rappelling_Animation -> remoteExec animation client",
+        "effect": "Additional client workers and nonlocal refresh child with delayed switchMove/switchGesture writes. Main actor SCRIPT completion would not prove these workers retired."
+      },
+      {
+        "name": "AI descent start",
+        "entry": "anonymous actor spawn",
+        "effect": "Unconditional AR_DECEND_PRESSED=true after sleep2; no task serial or late-episode check."
+      },
+      {
+        "name": "overspeed detach observer",
+        "entry": "anonymous actor/heli spawn",
+        "effect": "Polls shared actor activity every2s and may detach. No episode serial, so boolean reuse does not distinguish an old descent from a successor."
+      },
+      {
+        "name": "sound loops",
+        "entry": "AR_Play_Rappelling_Sounds",
+        "effect": "Separate presentation workers; not treated as proof of physical control or terminal cleanup."
+      }
+    ],
+    "implementationDecision": "Do not implement public-API wrapper success from one script handle, remoteExec return, all visible flags false or arbitrary grace. Required finite insertion needs controlled serial-scoped movement/animation/slot workers and actual-owner acceptance/terminal receipts after all actor-state writers retire, plus physical destination and mission-baseline restoration proof. Existing provider marker detection remains incomplete compatibility, not insertion execution.",
+    "repeatabilityRisk": "Shared actor booleans carry no episode identity. An old delayed descent/animation/detach worker may overlap a newly activated descent. Serial guard must be inside the actual writers, not only in a caller wrapper.",
+    "sourceHashes": {
+      ".qa/advanced-rappelling-713709341-review/functions/fn_advancedRappellingInit.sqf": "35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b",
+      ".qa/advanced-rappelling-2963869423-review/functions/fn_advancedRappellingInit.sqf": "bced3e3754a03ba8915c16bf61aa56790e3adef93434a7ddb49e1bbf2d20964e"
+    },
+    "validation": "Both preserved readable variants hash-verified and relevant worker/cleanup/dispatch bodies inspected; static assertions confirm ignored actor spawn and simulation/descent/damage writers. Original PBO/extractions unchanged. No product runtime changes, new test cases, build repetition or audit.",
+    "limits": "Targeted source contract analysis, not whole-provider runtime validation or claim of reproducing actual overlap. Controlled rappel executor remains required and unimplemented; physical insertion/cleanup/normal-HC/performance remain unverified. Audits PAUSED."
+  }
+}

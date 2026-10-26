@@ -1,0 +1,24 @@
+{
+  "baseline": "13fb90a9",
+  "finding": "AIProfileYield latched changed values during application, but direct AIRestoreProfile preserved a changed value and erased complete baseline/application pairs without an observed-edit owner. A later profile restart could therefore reacquire the unit despite the edit being observed during stop/exclusion cleanup.",
+  "implementation": "During existing complete-pair restoration comparisons, record mismatch; after cleanup latch existing OBSERVED_EXTERNAL_CHANGE only when CBE_AI_SkillOwner is an empty string. Preserve existing/non-string owner declarations, unchanged native restoration, independent incomplete pairs and explicit mission-owned reset contract. No new native skill polling, worker, deadline, provider detector or ownership reset.",
+  "scope": "Optional skill layer remains default off. Value changes do not identify their writer. Same-value writes remain indistinguishable.",
+  "validation": {
+    "focusedCases": 5,
+    "fullTests": 1496,
+    "compiledSQF": 413,
+    "PBO": 11,
+    "staticPerformanceFindings": 0,
+    "independentPackage": "PASS",
+    "candidate": ".qa/candidates/profile-stop-edit-13fb90a9",
+    "fingerprint": "8d22898dced37e0e1aaf68ec7b404246dc672d7ee88a394420c75cb7cf204d45",
+    "preparedUnrun": "Existing real profile fixture now checks blocked reapplication after direct cleanup, then explicit SkillOwner reset followed by normal AIApplyProfile reacquisition. No global rebalance stop/restart invoked in the fixture.",
+    "live": "UNRUN - audits paused"
+  },
+  "limits": [
+    "Not proof of global stop/restart, native receipt ordering, HC migration or measured performance",
+    "Incomplete pairs do not establish a new observed-edit claim; existing unresolved cleanup limits remain",
+    "Unsigned dirty development preserves unrelated dirt; engineering notes postdate package"
+  ],
+  "productionSHA256": "51524f0ff7d774261471589cd04a2a5816262b505baf6adefe547701c65f83f7"
+}

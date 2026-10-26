@@ -18,6 +18,8 @@
  *
  * 4: group <GROUP> - optional grpNull, supplies per-group feature exclusions.
  * 5: screening mode <STRING, COVER>; CONCEALMENT tests visual screening instead of ballistic cover.
+ * 6: intended actor <OBJECT, objNull>; only this actor is excluded from occupancy and geometry
+ * rays. Other soldiers still block the post; the actor cannot count as its own cover.
  * Repeat/JIP: read-only; candidates are recalculated only when a caller requests a search.
  * Return Value:
  * Array - [screenedPosATL, found <BOOL>] for the selected mode; original position when none qualifies
@@ -29,7 +31,7 @@
  * Current callers: CBE_fnc_CortexFlankStep, CBE_fnc_CortexGrenadeCheck, CBE_fnc_CortexAntiArmour CBE_fnc_DangerCoverStep and CBE_fnc_BuildingOperationStep.
  */
 
-params [["_position", [], [[]]], ["_threat", [], [[]]], ["_radius", 12, [0]], ["_reserved", [], [[]]], ["_group",grpNull,[grpNull]],["_mode","COVER",[""]]];
+params [["_position", [], [[]]], ["_threat", [], [[]]], ["_radius", 12, [0]], ["_reserved", [], [[]]], ["_group",grpNull,[grpNull]],["_mode","COVER",[""]],["_actor",objNull,[objNull]]];
 if (count _position < 2 || {count _threat < 2}) exitWith {[_position, false]};
 _radius = (_radius max 1) min 25;
 private _validate = [_group,"CBE_AIPass_CoverValidation_Enable",true] call CBE_fnc_CortexFeatureEnabled;
@@ -77,23 +79,18 @@ private _result = [];
     private _free = _candidate distance2D _position <= _radius
         && {!surfaceIsWater _candidate}
         && {_reserved findIf {_x distance2D _candidate < 2} < 0}
-        && {(lineIntersectsSurfaces [_candidateASL vectorAdd [0, 0, 0.5], _candidateASL vectorAdd [0, 0, 20], objNull, objNull, true, 1]) findIf {(_x select 2) == _object || {(_x select 3) == _object}} < 0};
+        && {(lineIntersectsSurfaces [_candidateASL vectorAdd [0, 0, 0.5], _candidateASL vectorAdd [0, 0, 20], _actor, objNull, true, 1]) findIf {(_x select 2) == _object || {(_x select 3) == _object}} < 0};
     if (_free && {_validate}) then {
         _free = (surfaceNormal _candidate select 2) >= 0.65
-            && {(_candidate nearEntities ["CAManBase",1.2]) isEqualTo []}
-            && {(lineIntersectsSurfaces [_candidateASL vectorAdd [0,0,0.15],_candidateASL vectorAdd [0,0,1.8],objNull,objNull,true,1,"GEOM","NONE"]) isEqualTo []};
+            && {(_candidate nearEntities ["CAManBase",1.2]) findIf {_x != _actor} < 0}
+            && {(lineIntersectsSurfaces [_candidateASL vectorAdd [0,0,0.15],_candidateASL vectorAdd [0,0,1.8],_actor,objNull,true,1,"GEOM","NONE"]) isEqualTo []};
         if (_free) then {
-            {if ((lineIntersectsSurfaces [_candidateASL vectorAdd [0,0,0.8],(_candidateASL vectorAdd [0,0,0.8]) vectorAdd _x,objNull,objNull,true,1,"GEOM","NONE"]) isNotEqualTo []) exitWith {_free = false}} forEach [[0.45,0,0],[-0.45,0,0],[0,0.45,0],[0,-0.45,0]];
+            {if ((lineIntersectsSurfaces [_candidateASL vectorAdd [0,0,0.8],(_candidateASL vectorAdd [0,0,0.8]) vectorAdd _x,_actor,objNull,true,1,"GEOM","NONE"]) isNotEqualTo []) exitWith {_free = false}} forEach [[0.45,0,0],[-0.45,0,0],[0,0.45,0],[0,-0.45,0]];
         };
     };
     if (_free) then {
         private _endASL = _candidateASL vectorAdd [0, 0, 1];
-        // Start the object ray 2 m out from the threat: starting at the believed enemy position
-        // would hit the enemy soldier (or his own cover) and make every spot look covered.
-        private _rayStart = _threatASL vectorAdd ((_threatASL vectorFromTo _endASL) vectorMultiply 2);
-        private _blocked = terrainIntersectASL [_threatASL, _endASL]
-            || {(lineIntersectsSurfaces [_rayStart, _endASL, objNull, objNull, true, 1, ["FIRE","VIEW"] select (_mode == "CONCEALMENT"),
-                ["GEOM","NONE"] select (_mode == "CONCEALMENT")]) isNotEqualTo []};
+        private _blocked=[_threatASL,_endASL,_actor,_mode] call CBE_fnc_CortexCoverScreened;
         if (_blocked) then {_result = [_candidate, true]};
     };
     if (_result isNotEqualTo []) exitWith {};

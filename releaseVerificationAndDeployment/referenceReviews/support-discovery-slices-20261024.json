@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-24",
+  "base": "19b9b7cac02e7355f4ed096aed89f5f2e5579761",
+  "scope": "Support discovery scoring moved into existing finite DISCOVER FSM phase; foundation scaling improvement, not whole AI Zeus implementation or physical acceptance.",
+  "comparison": "Selected AI Zeus startup/disable lifecycle review prompted examination of existing CBE per-callback work. No upstream code copied. Full AI Zeus lifecycle call graph remains open.",
+  "implementation": [
+    "One original nearby-group spatial snapshot; eight candidate transmitter/roster evaluations per callback.",
+    "Complete scored set sorted before reservation, stable global snapshot tie index; no early-slice priority.",
+    "Original request serial, job identity, deadline, six-responder maximum and owner admission remain. No additional query, manager, poll loop or movement owner.",
+    "Final discovery callback does not also reserve eight groups. Existing finite FSM restart retains cursor."
+  ],
+  "limits": [
+    "Initial native query/deduplication, per-group member enumeration and final sort remain density dependent.",
+    "0.05 seconds is requested scheduling delay, not a guaranteed latency.",
+    "Physical support delivery, interruption, HC/JIP and 5% median/10% p95 performance remain UNRUN; audits paused."
+  ],
+  "hashes": {
+    "addons/support/functions/cortexSupportServer.sqf": "51689e8e700a81ac8545b24bed2bb155ad91aca6fea835e4e590dbd64e9cb6f1",
+    "addons/support/functions/cortexSupportStep.sqf": "8cf6d56ddc3ca02a8662c6c6f8095475ab6241ead2a6d39bc7eecd29aaafcf91",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "c6e9dc8b494beec3e836270005b4dbb278f55c9e7551d42e7b92d05fd59dcb84",
+    "releaseVerificationAndDeployment/test_group_communication.py": "78502305b2d917241d8509141954c263b2528a43ca91b5a30e2afd3575749c1c"
+  },
+  "validation": {
+    "tests": 1497,
+    "fullBuildLog": ".qa/support-discovery-slices-build-final.log",
+    "independentLog": ".qa/support-discovery-slices-independent.log",
+    "candidate": ".qa/candidates/support-discovery-slices-19b9b7ca",
+    "fingerprint": "36a641867bcece1bd43696aa2f580da1cb68816f2c9c8ca886d3691c1c8d6732",
+    "unsigned": true,
+    "dirtyDevelopmentBuild": true,
+    "earlierFailure": "Old communication test expected transmitter scoring in request creation; moved its assertion to the existing FSM step. No test count increase."
+  }
+}

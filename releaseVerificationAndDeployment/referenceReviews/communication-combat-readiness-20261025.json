@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "7b06957a",
+  "scope": "General radio eligibility and group transmitter candidate readiness. Not every voice path, physical medical transition or whole tactical acceptance.",
+  "finding": "General CortexCanTransmit checked only null/dead before mission jamming hook. Group candidate selection checked alive and vanilla lifeState but not ACE unconsciousness or captivity. An ACE-unconscious/captive actor could reach radio reporting or consume an eligible candidate slot.",
+  "implementation": "Reuse current CortexCombatEffective in direct radio admission before hook lookup and in leader/wingman eligibility before candidate counting. Shared predicate excludes dead, ACE unconscious, vanilla incapacitated, captive, surrendering/handcuffed actors without applying damage threshold to conscious wounded actors. Original leader preference, at-most12 eligible hook calls, streaming early exit, nil/invalid-provider fallback and0.5 jamming threshold retained. No actor command/public state/new worker or source dependency.",
+  "cost": "Shared readiness predicate adds finite health/state reads to direct radio queries; selected candidates are checked again at the hook boundary. No world/network scan or new cache. Sparse eligibility still may walk entire group. Actual performance cost unmeasured; no5percent/10percent claim.",
+  "files": {
+    "addons/infantry/functions/cortexCanTransmit.sqf": "49e3a4c19699638bd2b6863412af46e3fdecfae97611d1363f303aa0facf9eaf",
+    "addons/infantry/functions/cortexGroupTransmitter.sqf": "59a6a9d02f487513435f3193b22bac6326668e1a50df84b6a1c0de556f09727e"
+  },
+  "validation": {
+    "fullLog": ".qa/communication-readiness-build-20261025-attempt1.log",
+    "exit": 0,
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pbos": 11,
+    "independentLog": ".qa/communication-readiness-independent-20261025.log",
+    "candidate": ".qa/candidates/communication-readiness-7b06957a",
+    "fingerprint": "8479f9b2b5ab86b9e53359e257606531d0775ea9f416f41723f1f3bf0c93cb97",
+    "testScope": "Existing communications case verifies shared readiness use before hook/candidate counting, actual predicate medical/captivity guards, no damage-only veto and unchanged jamming/nil-hook contract. Existing streaming analytical regression retained. No added test count. Static wiring, not engine execution."
+  },
+  "limits": [
+    "Unsigned dirty development candidate; notes postdate package.",
+    "Voice delivery can have separate admission and is not proved by a radio helper. No new target knowledge or action authority granted.",
+    "Physical ACE/vanilla unconsciousness, wounded conscious/captive transitions, medical integration, communications, Zeus/normal-HC/JIP and5percent median/10percent p95 UNRUN. Audits PAUSED; full goal active/incomplete."
+  ]
+}

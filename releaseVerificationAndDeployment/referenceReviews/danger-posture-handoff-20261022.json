@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-22",
+  "baseline": "397c38e1",
+  "scope": "Danger posture lifetime across operation transitions",
+  "finding": "Operation start/cancel/completion reclassified existing danger and reapplied posture using time plus duration, renewing the reaction without fresh evidence.",
+  "changes": [
+    "Pass the surviving response deadline through operation handoffs and initial assessment.",
+    "Optional deadline is explicitly typed/finite checked and expired values refused before posture writes; atomic application rechecks expiry.",
+    "Cap the requested reaction to the original response expiry; independently intact prior lease keeps its original deadline and baseline. Restoration path is unchanged."
+  ],
+  "validation": {
+    "tests": 1489,
+    "full": ".qa/danger-handoff-build-final.log",
+    "result": "PASS full offline pipeline",
+    "candidate": ".qa/candidates/danger-handoff-397c38e1",
+    "independent": ".qa/danger-handoff-independent-verify.log",
+    "fingerprint": "8543c73889effd8023d17583b27296febd6bd60c29e8c83541791363a59219f2",
+    "provenance": "Unsigned baseline plus listed intended source/test/guide changes and retained unrelated dirt. Later engineering metadata excluded from product. Not a clean signed release.",
+    "limits": "Static/Python policy checks do not execute SQF or establish physical posture timing, locality or performance. Audits paused."
+  },
+  "cost": "Constant deadline checks on existing calls; no new workers or scans.",
+  "remaining": [
+    "Physical validation, required external handovers and performance budget remain incomplete."
+  ],
+  "evidence": {
+    "addons/core/functions/operationStart.sqf": "c76d82eca34c221b788bddb9d07b9faf896191f8da57423fe47bc5021f8cb664",
+    "addons/core/functions/operationCancel.sqf": "4a0cc5983fe282cfdb3cf72a25309b5caf1c6b8b83eef97fe10b21db43399237",
+    "addons/core/functions/operationRelease.sqf": "e3fc1b86e096f76372ba842090a7384d9254ff5ceb94e42287948da6984a09d8",
+    "addons/infantry/functions/dangerReact.sqf": "89a6fcb5e49f9feb64e6b3fe7eef9868a37bf73665e5c843dd7456b4f5ee66e6",
+    "addons/infantry/functions/dangerStep.sqf": "5136ae73f03b5244c8c7f74612f473eff81d0c13f02d3aed6fa76a343f9e275b",
+    "docs/Smart-AI-Pass.md": "d420650b5b4ba633e473f385c41583cf98e53aa7f58df693a8cd3a8311d96709",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "a6465818535080d47fc49dfb3f7d2d249ad383a0057d07776b1882edda5f1a40"
+  }
+}

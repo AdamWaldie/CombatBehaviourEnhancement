@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-19",
+  "scope": "Native authored foot-route door assistance without movement takeover",
+  "finding": "Door interaction had production callers for explicit clearance/garrison and finite indoor actors, but no automatic ordinary authored-travel caller. A native route could approach a recognised unlocked door without those controllers offering the existing interaction. This does not identify a historical screenshot root cause.",
+  "intent": "Preserve native movement/planning while supplying a nearby physical interaction; build the door affordance below larger CQB/routing behaviours rather than replacing the path controller.",
+  "implementation": "Existing CALM group tick calls CortexRouteDoors before the independent Contact toggle. Minimum2s gap, rotating16actor roster, one3m forward geometry probe, selecting only the first blocking House or proxy parent. No danger/response/group movement owner. Reject nonplain waypoint types/conditions/scripts/timers/attachments/synchronisation before query. ROUTE context binds group/epoch and revalidates native MOVE/goal/current features/availability at animation; current combat targets, actor reservation and STEALTH/CARELESS veto. Existing3m/floor/lock/visibility/transform/eye geometry guards remain. New0.8m forward native-goal-line gate is rechecked at mutation. No movement or access credit.",
+  "cost": "One3m geometry probe plus at mostfour existing door visibility rays per sample, on existing tick cadence with minimum2s gap and rotating16actor roster. No nearby-building radius query, new worker/timer, group cadence change or enemy-position scan. Actual overhead unmeasured.",
+  "validation": {
+    "focusedExistingTests": 639,
+    "focusedLog": ".qa/cbe-route-door-probe-focused.log",
+    "newCases": 1,
+    "fullPipeline": "1477 tests and all sequential compiler/FSM/config/docs/parity/performance/package gates passed.",
+    "physical": "Unverified; audits paused.",
+    "fullLog": ".qa/cbe-route-door-probe-final-build.log",
+    "independentLog": ".qa/cbe-route-door-probe-final-independent.log",
+    "packageSource": "c1a41bd084919284d6e79fd3ba82bd0445065659+dirty",
+    "packageFingerprint": "7b72aad9fc85258ba76843e5b61eee614efaeab09a44ebc738750dae7267607c"
+  },
+  "limits": "A straight current-goal line is conservative and is not the native planned path. Bent paths can miss assistance; a nearby visible door aligned with the goal may be opened even if the engine would walk around. Only recognised unlocked door sources are supported. No complete through-building navigation, accessible interior, coherent pair entry or room clearance claim. Geometry without a detectable closed-door surface can receive no assistance; empty probe is no clearance proof.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/cortexRouteDoors.sqf",
+      "sha256": "46bc0be20444f974ab9656d905c3a414480c7ef53117aea95a00ed3c973d540e"
+    },
+    {
+      "path": "addons/infantry/functions/cortexBuildingDoor.sqf",
+      "sha256": "eb9c40cd68953638e491c9af68b3750711976fcf94f4cfcb3d29ca7e5e37c01a"
+    },
+    {
+      "path": "addons/infantry/functions/cortexGroupTick.sqf",
+      "sha256": "54db866fc52f8131afea7dcfd73c8eaef1a756077c463a6ceabfa06a5ebeb7a5"
+    }
+  ],
+  "engineReferences": [
+    {
+      "url": "https://community.bohemia.net/wiki/nearestObjects",
+      "evidence": "Radius membership is measured from model centre; unsuitable for identifying only nearby door surfaces on large structures."
+    },
+    {
+      "url": "https://community.bohemia.net/wiki/lineIntersectsSurfaces",
+      "evidence": "First intersection returns direct object and proxy parent, in ASL. This identifies the encountered geometry, not a navigable route."
+    }
+  ],
+  "rosterFairness20261023": {
+    "baseline": "72495b0a",
+    "finding": "Ordinary door assistance truncated group to first16 members then rotated only that prefix, permanently excluding later supported members. It also evaluated expectedDestination before actor locality, even though remote results were subsequently discarded.",
+    "implementation": "Retain bounded64-member roster, sample at most16 per existing tick and advance cursor even when no eligible actor appears. A selection resumes after selected slot. Locality check now precedes actor native destination read. Same min2s cadence, one3m probe and at most4 door visibility rays; no movement, route, radius search, worker, deadline or door-range change.",
+    "validation": "1491 existing tests/full offline HEMTT/config/SQF/FSM/docs/package and independent copied-candidate verification passed. Existing route-door regression extended; no new case.",
+    "candidate": ".qa/candidates/route-door-roster-fairness-72495b0a",
+    "fingerprint": "cc77bf38132114d1ac024eef127771558a1a0330f81ebcc4821cd65efff73981",
+    "logs": [
+      ".qa/route-door-roster-fairness-build.log",
+      ".qa/route-door-roster-fairness-independent.log"
+    ],
+    "hashes": {
+      "addons/infantry/functions/cortexRouteDoors.sqf": "5c155e9b78dc2a00d61f4f5b7ff3a4efff7f544c224297a8eca93afd2f05a2af"
+    },
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering notes afterward. Roster retention increases from16 to64 refs, while per-sample native/geometry work stays bounded16. No measured performance or physical large-group/HC/native-versus-placed passage proof. Existing samefloor3m visibility gates already reject distant opening; do not claim historical screenshot root cause or full routing/parity. Audits paused; no score/blanket hash renewal."
+  }
+}

@@ -2,10 +2,26 @@
  * Author: WaldoTheWarfighter
  * Purpose: Execute one bounded group decision and publish the semantic phase consumed by the
  * owner-local tactical FSM.
+ * Post-clear owned STOP handback uses native formation return, including the leader,
+ * without replacing the new authored waypoint with a positional movement request.
+ * An active replacement operation defers handback without deleting the original hold receipt.
+ * Queued ACE treatment and native fleeing also defer an unchanged owned STOP; no formation
+ * return may compete with them. A newer native command still retires the old receipt.
+ * Native recall is issued once per hold/owner/anchor; an unacknowledged unchanged STOP
+ * retains proof without renewing or replaying the request. An unavailable leader defers it.
+ * Deferred danger posture belongs to DangerPostureStep on the shared scheduler; it does not
+ * depend on this tactical brain running and does not wake tactical planning.
  * Locality / Authority: Runs only through CBE's shared scheduler on the group owner. It validates
  * locality, generation, Zeus and external ownership before invoking existing bounded feature logic.
  * Repeat/JIP: One-shot callback. It always returns -1; the FSM queues the next step only after the
- * committed delay or a danger wake. A migrated or superseded callback records cancellation only.
+ * committed delay or a danger wake. Live coordinated COVER maintenance caps that delay at two
+ * seconds so distance/reaction tuning cannot outlast its six-second capacity report. No new worker.
+ * Low-FPS backoff applies to this private wake before illumination/COVER caps; a live finite
+ * danger responsiveness lease bypasses backoff. The shared scheduler cannot pace a -1 retry.
+ * A migrated or superseded callback records cancellation only. Non-finite private next-wake
+ * delays cancel this brain; its one-shot -1 return cannot validate that embedded deadline.
+ * A callback whose FSM ended retires its queue flags without running decisions or cleanup;
+ * the existing discovery sweep owns replacement of the recurring group brain.
  * Arguments: 0: brain <HASHMAP> created by CBE_fnc_GroupBrainStart.
  * Return Value: Number - always -1 because each FSM step is a separate coalesced scheduler job.
  * Current caller: CBE_fnc_GroupBrainQueue through CBE_fnc_CortexQueueJob.
@@ -32,50 +48,120 @@ if (!local _group) exitWith {["OWNERSHIP_LOST"] call _cancel};
 if (_epoch != (_group getVariable ["CBE_AIPass_Epoch",0])) exitWith {["OWNER_EPOCH"] call _cancel};
 if (_generation != (_group getVariable ["CBE_GroupBrain_Generation",0])
     || {(_group getVariable ["CBE_GroupBrain",createHashMap]) isNotEqualTo _brain}) exitWith {["SUPERSEDED"] call _cancel};
+// Queue delivery follows execFSM handle publication. An ended executor cannot own
+// this decision; discovery may replace it without this callback issuing handback commands.
+private _executor=_group getVariable ["CBE_GroupBrain_FSM",-1];
+if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0} || {completedFSM _executor}) exitWith {
+    _brain set ["pending",false];
+    _brain set ["completed",true];
+    -1
+};
 if (!(missionNamespace getVariable ["CBE_AIPass_Active",false])) exitWith {["DISABLED"] call _cancel};
 if ([_group] call CBE_fnc_CortexZeusHeld) exitWith {["ZEUS"] call _cancel};
 if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {["EXTERNAL_OWNER"] call _cancel};
 
+// Retired coordinated holds share this callback; no token is reacquired and no clock is renewed.
+private _supportCleanupState=_group getVariable ["CBE_AIPass_State",createHashMap];
+if ((_supportCleanupState getOrDefault ["supportStopCleanup",[]]) isNotEqualTo []) then {
+    [_group,_supportCleanupState,"PENDING"] call CBE_fnc_CortexSupportMaintain;
+};
+
+// Deferred danger posture uses its finite shared-scheduler job, independently of this brain.
+
+// The original duck timer may have belonged to a previous owner/generation. Service
+// one surviving receipt here without recreating that timer or extending its deadline.
+private _duckPending=_group getVariable ["CBE_Cortex_GarrisonDuckPending",[]];
+if (_duckPending isEqualType [] && {count _duckPending > 0} && {count _duckPending <= 64}) then {
+    private _duckActor=_duckPending deleteAt 0;
+    if (_duckActor isEqualType objNull && {!isNull _duckActor} && {group _duckActor == _group}) then {
+        private _duckReceipt=_duckActor getVariable ["CBE_Cortex_GarrisonDuckRestore",[]];
+        if (_duckReceipt isEqualType [] && {count _duckReceipt == 5}
+            && {(_duckReceipt select 2) isEqualType 0} && {finite (_duckReceipt select 2)}
+            && {serverTime < (_duckReceipt select 2)+30}) then {
+            private _status=[_duckActor,_group,"RECOVER"] call CBE_fnc_CortexGarrisonSettings;
+            if (_status in ["REFUSED","PENDING"]) then {_duckPending pushBack _duckActor};
+        };
+    };
+    _group setVariable ["CBE_Cortex_GarrisonDuckPending",_duckPending,true];
+};
+
+// Garrison settings retirement uses the shared finite restoration-only executor.
+
+// Deferred clearance settings use their finite restoration-only shared-scheduler job.
+
 // A native STOP survives a new waypoint. Release only our matching post-clear hold
 // when its author order changes, before ordinary tactical processing resumes.
 private _clearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
-if (count _clearHold == 4) then {
+if (count _clearHold == 5) then {
     private _owned=(_clearHold select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])
         && {(_clearHold select 1) == _epoch};
-    if (!_owned || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_clearHold select 2)}) then {
+    // Another operation owns the decision window. Retain our exact hold metadata until
+    // it ends; deleting now would lose stopped nonparticipants before handback can run.
+    if (!_owned || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_clearHold select 2)
+        && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}}) then {
         _group setVariable ["CBE_Cortex_ClearHold",nil,true];
         if (_owned && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
             private _leader=leader _group;
             private _deferred=[];
+            private _holdJob=createHashMapFromArray [["group",_group],["nativeHoldPositions",createHashMapFromArray (_clearHold select 4)]];
+
             {
-                if (local _x && {group _x == _group} && {!isPlayer _x}
-                    && {currentCommand _x == "STOP"} && {isNull remoteControlled _x}
+                if (!isNull _leader && {local _leader} && {[_leader] call CBE_fnc_CortexCombatEffective}
+                    && {local _x} && {group _x == _group} && {!isPlayer _x}
+                    && {currentCommand _x == "STOP"} && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned} && {isNull remoteControlled _x}
                     && {[_x] call CBE_fnc_CortexCombatEffective}
-                    && {isNull objectParent _x} && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
+                    && {!fleeing _x} && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+                    && {isNull objectParent _x} && {simulationEnabled _x} && {!isObjectHidden _x}
+                    && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
                     && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
                     && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
                     && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)}) then {
-                    if (_x == _leader) then {
-                        private _waypointIndex=currentWaypoint _group;
-                        private _waypoint=[_group,_waypointIndex];
-                        if (_waypointIndex > 0 && {_waypointIndex < count waypoints _group}
-                            && {waypointType _waypoint == "MOVE"}) then {
-                            _x doMove waypointPosition _waypoint;
-                        };
-                    } else {
+                    // Native formation return also releases a leader's scripted doStop.
+                    // Leave waypoint type, gates, attachments and scripts to the engine;
+                    // do not flatten a new authored task into one positional MOVE.
+                    // Record one native request for this hold/owner/anchor. An expired
+                    // observation window is not permission to replay an unacknowledged recall.
+                    private _recall=_x getVariable ["CBE_Cortex_ClearRecall",[]];
+                    private _requested=_recall isEqualType [] && {count _recall == 4}
+                        && {(_recall select 0) isEqualTo (_clearHold select 0)}
+                        && {(_recall select 1) isEqualTo _epoch} && {(_recall select 2) isEqualTo _leader}
+                        && {(_recall select 3) isEqualType 0} && {finite (_recall select 3)};
+                    if (!_requested) then {
+                        _x setVariable ["CBE_Cortex_ClearRecall",[_clearHold select 0,_epoch,_leader,time+5]];
                         _x doFollow _leader;
                     };
+                    // A request is not acknowledgement. Preserve only the same native STOP
+                    // at our recorded post; newer movement retires this receipt below.
+                    if (currentCommand _x == "STOP" && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned}) then {
+                        _deferred pushBackUnique _x;
+                    };
                 };
-                // A newer individual order retires the old hold. A still-owned STOP
-                // under a temporary actor reservation must retain its handover receipt.
-                if (local _x && {group _x == _group} && {!isPlayer _x}
-                    && {currentCommand _x == "STOP"}
-                    && {[_x] call CBE_fnc_CortexActorMoveReserved}) then {
+                // A newer individual order retires the old hold. A living soldier's unchanged
+                // STOP retains proof across temporary unavailability, not just reservations.
+                // The normal group callback retries; no extra observer or movement replay is added.
+                // Split actor/group locality cannot grant a native command. Retain only the
+                // original receipt until local observation can apply the strict pose/task checks.
+                // No new position, epoch, deadline or movement request is manufactured here.
+                if (!local _x && {group _x == _group} && {alive _x} && {!isPlayer _x}
+                    && {isNull objectParent _x} && {currentCommand _x == "STOP"}) then {
+                    _deferred pushBackUnique _x;
+                };
+                if (local _x && {group _x == _group} && {alive _x} && {!isPlayer _x}
+                    && {isNull objectParent _x} && {currentCommand _x == "STOP"} && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned}
+                    && {isNull remoteControlled _x}
+                    && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
+                    && {!([_group,false,_x] call CBE_fnc_CortexExternalTakeover)}
+                    && {[_x] call CBE_fnc_CortexActorMoveReserved
+                        || {!simulationEnabled _x} || {isObjectHidden _x}
+                        || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
+                        || {!([_x] call CBE_fnc_CortexCombatEffective)}
+                        || {fleeing _x} || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+                        || {isNull _leader} || {!local _leader} || {!([_leader] call CBE_fnc_CortexCombatEffective)}}) then {
                     _deferred pushBackUnique _x;
                 };
             } forEach (_clearHold select 3);
             if (_deferred isNotEqualTo []) then {
-                _group setVariable ["CBE_Cortex_ClearHold",[_clearHold select 0,_clearHold select 1,_clearHold select 2,_deferred],true];
+                _group setVariable ["CBE_Cortex_ClearHold",[_clearHold select 0,_clearHold select 1,_clearHold select 2,_deferred,(_clearHold select 4) select {(_x select 0) in (_deferred apply {netId _x})}],true];
             };
         };
     };
@@ -84,11 +170,31 @@ private _legacyJob=createHashMapFromArray [["group",_group]];
 private _responsiveUntil=_brain getOrDefault ["responsiveUntil",0];
 if (_responsiveUntil > time) then {_legacyJob set ["responsiveUntil",_responsiveUntil]};
 private _delay=[_legacyJob] call CBE_fnc_CortexGroupTick;
-if (isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}) exitWith {
+// This one-shot adapter returns -1 regardless of its private next wake. The shared
+// scheduler cannot validate that embedded deadline; reject it before publishing FSM state.
+if (isNil "_delay" || {!(_delay isEqualType 0)} || {!finite _delay}
+    || {!finite (time+(_delay max 0))}) exitWith {["INVALID_GROUP_DELAY"] call _cancel};
+if (_delay < 0) exitWith {
     [if (_group getVariable ["CBE_AIPass_Managed",false]) then {"RETIRED"} else {"RELEASED"}] call _cancel
 };
 
+// Group decisions are one-shot queue jobs, so retry-return backoff in the shared
+// scheduler never reaches this private FSM wake. Apply the same non-urgent policy
+// here, before the protocol/reflex caps below. Read the current danger lease.
+if (diag_fps < (missionNamespace getVariable ["CBE_AIPass_LowFpsThreshold",25])
+    && {time >= (_brain getOrDefault ["responsiveUntil",0])}) then {_delay=_delay*2};
+if (!finite _delay || {!finite (time+_delay)}) exitWith {["INVALID_GROUP_DELAY"] call _cancel};
 private _state=[_group] call CBE_fnc_CortexGroupState;
+if ([_group] call CBE_fnc_CortexIlluminationStep) then {_delay=_delay min 1};
+// Capacity freshness is a protocol deadline, not tactical reaction tuning. Keep only
+// a live coordinated COVER helper on this existing callback within its six-second TTL.
+private _supportLease=_group getVariable ["CBE_AIPass_SupportLease",[]];
+private _supportRole=_group getVariable ["CBE_Cortex_SupportRole",[]];
+if (_state getOrDefault ["assaulting",false] && {count _supportLease == 6}
+    && {count _supportRole == 5} && {(_supportRole select 0) == (_supportLease select 0)}
+    && {(_supportRole select 2) == "COVER"} && {serverTime < (_supportLease select 2)}) then {
+    _delay=_delay min 2;
+};
 private _legacyPhase=_state getOrDefault ["phase","CALM"];
 private _semanticPhase=switch (_legacyPhase) do {
     case "RETREAT": {"WITHDRAW"};

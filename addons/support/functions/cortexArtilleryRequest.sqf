@@ -19,7 +19,7 @@ private _sent = false;
         private _enemy = _x select 0;
         private _fix = [_spotter, _enemy] call CBE_fnc_CortexSpotterFix;
         if (_fix isNotEqualTo [] && {(_fix select 1) <= (missionNamespace getVariable ["CBE_AIPass_Artillery_MaxError", 50])}) exitWith {
-            _sent = [objNull, _fix select 0, _fix select 1, "HE", -1, -1, "SUPPORT", _spotter, _enemy] call CBE_fnc_CortexArtilleryFire;
+            _sent = [objNull, _fix select 0, _fix select 1, "HE", -1, -1, "SUPPORT", _spotter, _enemy,grpNull,serverTime-((time-((_spotter targetKnowledge _enemy) select 2)) max 0)] call CBE_fnc_CortexArtilleryFire;
         };
     } forEach _enemies;
     if (_sent) exitWith {};

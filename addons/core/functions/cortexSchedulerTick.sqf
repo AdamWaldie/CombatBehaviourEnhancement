@@ -1,7 +1,12 @@
 /*
  * Author: WaldoTheWarfighter
  * Repeat/JIP: Each invocation processes due jobs within the local budget. Joining owners have independent queues; jobs are not replayed across machines.
- * Runs due Smart AI Pass jobs on this machine with a soft time budget between jobs.
+ * Runs due Smart AI Pass jobs synchronously from the CBA per-frame handler, unscheduled.
+ * The soft time budget is checked between jobs; it cannot pre-empt a running callback.
+ * Invalid callback delays or overflowed deadlines cancel the existing state rather than
+ * silently dropping a pending FSM or publishing an unreachable deadline. No native cleanup
+ * commands are issued by the scheduler; the finite FSM observes cancellation.
+ * Recorded canSuspend describes the actual caller context, including direct diagnostic calls.
  *
  * Called by one CBA handler every frame on a machine with an active owner-local subsystem. Ground
  * tactics normally run on the server or a headless client; an interface machine only participates
@@ -18,7 +23,8 @@
  * Due processing still traverses the queue once and
  * jobs move to the back, so no group is starved when the budget is always spent. When the machine's FPS is below
  * CBE_AIPass_LowFpsThreshold, rescheduling delays are doubled. While ENDEX or SafeStart is
- * active, due jobs are postponed by five seconds and never run. The pause refreshes a one-minute
+ * active, tactical jobs are postponed by five seconds. Finite posture cleanup may remove only
+ * exact-owned settings during the pause; it cannot start tactics. The pause refreshes a one-minute
  * resumption grace used by tactical-drill watchdogs, so deferred work is not mistaken for starvation.
  * Locality and authority: machine-local. It performs no world scans. Changed restoration checkpoints are published after group jobs.
  * The latest 256 executed callbacks retain duration, lateness and bounded job identity in a local
@@ -44,7 +50,10 @@
 if (!(missionNamespace getVariable ["CBE_AIPass_Active", false])
     && {!(missionNamespace getVariable ["CBE_AI_RebalanceActive", false])}
     && {!(missionNamespace getVariable ["CBE_Convoy_SchedulerActive", false])}
-    && {!(missionNamespace getVariable ["CBE_Aircraft_SchedulerActive", false])}) exitWith {};
+    && {!(missionNamespace getVariable ["CBE_Aircraft_SchedulerActive", false])}
+    && {!(missionNamespace getVariable ["CBE_Danger_PostureSchedulerActive", false])}
+    && {!(missionNamespace getVariable ["CBE_ActorSettings_SchedulerActive", false])}
+    && {!(missionNamespace getVariable ["CBE_ClearHold_SchedulerActive", false])}) exitWith {};
 private _jobs = missionNamespace getVariable ["CBE_AIPass_Jobs", []];
 private _pending = missionNamespace getVariable ["CBE_AIPass_PendingJobs", []];
 private _now = time;
@@ -72,7 +81,22 @@ if (_paused) then {missionNamespace setVariable ["CBE_AIPass_ResumeGraceUntil",_
 private _processed = 0;
 private _next = [];
 private _rescheduled = [];
+private _postureRetired=false;
+private _settingsRetired=false;
+private _holdsRetired=false;
 private _earliest = -1;
+// A dropped callback must notify its existing FSM, not strand it in pending/watchdog replay.
+// The FSM retains responsibility for generation-scoped physical/settings cleanup.
+private _rejectDelay={
+    params ["_rejectedState"];
+    if (!(_rejectedState getOrDefault ["cancelled",false])) then {
+        _rejectedState set ["cancelled",true];
+        _rejectedState set ["cancelReason","INVALID_JOB_DELAY"];
+    };
+    if ("pending" in _rejectedState) then {_rejectedState set ["pending",false]};
+    if ("completed" in _rejectedState) then {_rejectedState set ["completed",true]};
+    -1
+};
 {
     _x params ["_dueAt", "_job", "_state"];
     _dueAt = _dueAt min (_state getOrDefault ["wakeAt",_dueAt]);
@@ -88,6 +112,9 @@ private _earliest = -1;
             case "SKILLS": {"CBE_AI_RebalanceActive"};
             case "CONVOY": {"CBE_Convoy_SchedulerActive"};
             case "AIRCRAFT": {"CBE_Aircraft_SchedulerActive"};
+            case "POSTURE_CLEANUP": {"CBE_Danger_PostureSchedulerActive"};
+            case "HOLD_CLEANUP": {"CBE_ClearHold_SchedulerActive"};
+            case "SETTINGS_CLEANUP": {"CBE_ActorSettings_SchedulerActive"};
             default {"CBE_AIPass_Active"};
         };
         private _enabled = missionNamespace getVariable [_enabledFlag, false];
@@ -96,13 +123,28 @@ private _earliest = -1;
         // unrelated infantry ENDEX or safe-start gate is active.
         private _jobPaused = _paused && {!_skillsJob};
         if (_subsystem in ["CONVOY", "AIRCRAFT"]) then {_jobPaused=false};
+        // Removing an already-owned stance is handback, not a new tactical action.
+        // This category retains the owner stale gate and shared budget; its finite handback
+        // runtime can outlive tactical shutdown.
+        if (_subsystem in ["POSTURE_CLEANUP","SETTINGS_CLEANUP","HOLD_CLEANUP"]) then {_jobPaused=false};
         private _group = _state getOrDefault ["group", grpNull];
         private _stale = !_enabled || {"group" in _state && {isNull _group || {!local _group} || {(_state getOrDefault ["ownerEpoch", -1]) != (_group getVariable ["CBE_AIPass_Epoch", 0])}}};
+        private _callbackCanSuspend=canSuspend;
         private _callbackStarted=diag_tickTime;
         private _delay = if (_stale) then {-1} else {if (_jobPaused) then {5} else {[_state] call _job}};
+        if (isNil "_delay" || {!(_delay isEqualType 0)} || {!finite _delay}) then {
+            _delay=[_state] call _rejectDelay;
+        };
+        if (_subsystem == "POSTURE_CLEANUP"
+            && {isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}}) then {_postureRetired=true};
+        if (_subsystem == "SETTINGS_CLEANUP"
+            && {isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}}) then {_settingsRetired=true};
+        if (_subsystem == "HOLD_CLEANUP"
+            && {isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}}) then {_holdsRetired=true};
         private _callbackMs=(diag_tickTime-_callbackStarted)*1000;
         private _queueLatency=(_now-_dueAt) max 0;
         _state set ["lastCallbackMs",_callbackMs];
+        _state set ["lastCallbackCanSuspend",_callbackCanSuspend];
         _state set ["queueLatency",_queueLatency];
         // Retain terminal callbacks too: their state leaves the queue below. One fixed-size
         // owner-local ring uses the timers already collected here, with no extra worker,
@@ -111,7 +153,7 @@ private _earliest = -1;
             private _samples=missionNamespace getVariable ["CBE_AIPass_CallbackSamples",[]];
             private _cursor=missionNamespace getVariable ["CBE_AIPass_CallbackSampleCursor",0];
             _samples set [_cursor,[_subsystem,(_state getOrDefault ["jobKey",""]) select [0,160],
-                _callbackMs,_queueLatency,_callbackStarted]];
+                _callbackMs,_queueLatency,_callbackStarted,_callbackCanSuspend]];
             missionNamespace setVariable ["CBE_AIPass_CallbackSamples",_samples];
             missionNamespace setVariable ["CBE_AIPass_CallbackSampleCursor",(_cursor+1) mod 256];
         };
@@ -144,8 +186,15 @@ private _earliest = -1;
             // A callback can wake its own keyed operation while it runs. Include that wake
             // in the idle cache, otherwise the early-return gate hides it until the long delay.
             private _rescheduledAt = (_now + _delay) min (_state getOrDefault ["wakeAt",_now + _delay]);
-            _rescheduled pushBack [_rescheduledAt, _job, _state];
-            if (_earliest < 0 || {_rescheduledAt < _earliest}) then {_earliest = _rescheduledAt};
+            if (finite _rescheduledAt) then {
+                _rescheduled pushBack [_rescheduledAt, _job, _state];
+                if (_earliest < 0 || {_rescheduledAt < _earliest}) then {_earliest = _rescheduledAt};
+            } else {
+                [_state] call _rejectDelay;
+                if (_subsystem == "POSTURE_CLEANUP") then {_postureRetired=true};
+                if (_subsystem == "SETTINGS_CLEANUP") then {_settingsRetired=true};
+                if (_subsystem == "HOLD_CLEANUP") then {_holdsRetired=true};
+            };
         };
     };
 } forEach _jobs;
@@ -171,3 +220,21 @@ if (
     missionNamespace setVariable ["CBE_Aircraft_LandingSchedulerActive", _landingActive];
     if (_changed) then {[] call CBE_fnc_SchedulerReconcile};
 };
+
+// A shutdown handback keeps only the existing finite cleanup job. When its final
+// receipt retires, reconcile the shared callback rather than leave an idle worker.
+if (_postureRetired && {missionNamespace getVariable ["CBE_Danger_PostureSchedulerActive",false]}) then {
+    private _postureLeft=(_next findIf {((_x select 2) getOrDefault ["subsystem",""]) == "POSTURE_CLEANUP"}) >= 0
+        || {((missionNamespace getVariable ["CBE_AIPass_PendingJobs",[]]) findIf {
+            ((_x select 2) getOrDefault ["subsystem",""]) == "POSTURE_CLEANUP"}) >= 0};
+    if (!_postureLeft) then {[] call CBE_fnc_SchedulerReconcile};
+};
+
+if (_settingsRetired && {missionNamespace getVariable ["CBE_ActorSettings_SchedulerActive",false]}) then {
+    private _settingsLeft=(_next findIf {((_x select 2) getOrDefault ["subsystem",""]) == "SETTINGS_CLEANUP"}) >= 0
+        || {((missionNamespace getVariable ["CBE_AIPass_PendingJobs",[]]) findIf {
+            ((_x select 2) getOrDefault ["subsystem",""]) == "SETTINGS_CLEANUP"}) >= 0};
+    if (!_settingsLeft) then {[] call CBE_fnc_SchedulerReconcile};
+};
+
+if (_holdsRetired) then {[] call CBE_fnc_SchedulerReconcile};

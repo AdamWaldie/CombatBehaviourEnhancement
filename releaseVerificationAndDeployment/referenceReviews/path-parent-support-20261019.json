@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-19",
+  "scope": "Shared parent/proxy support classification consistency",
+  "finding": "DrivingPathGeometry resolves parent over direct hit for unstable-support rejection, but used direct-hit nullness alone for water/deck rejection. Those decisions disagreed for a null direct hit with resolved static parent.",
+  "engineContract": {
+    "url": "https://community.bistudio.com/wiki/lineIntersectsSurfaces",
+    "verified": "2026-10-19",
+    "fields": "intersectObject may be a proxy; parentObject identifies its containing object and can differ. Both are null for terrain.",
+    "limit": "Documentation establishes distinct fields, not a demonstrated engine case returning null direct/static parent. No root cause for prior physical failures is claimed."
+  },
+  "implementation": "Water/deck classification now uses the already resolved supportObject. Missing support, insufficient elevation, steep/cross slope, any AllVehicles support and moving parent/props remain rejected. Corrected actual-caller header includes pass geometry, active bypass and convoy safety consumers.",
+  "cost": "Same value/queries/rays/bounds. No new worker, native movement or cache.",
+  "validation": {
+    "focusedExistingTests": 717,
+    "focusedLog": ".qa/cbe-role-support-foundation-final-focused.log",
+    "newCases": 0,
+    "retainedFailure": "Initial combined focused run found an older direct-hit source assertion; existing corridor case now requires parent resolution. Log retained.",
+    "fullPipeline": "Passed1476 existing tests and complete build gates; .qa/cbe-role-support-foundation-build.log",
+    "physical": "Unverified; audits paused.",
+    "independentPackage": "Passed .qa/cbe-role-support-foundation-independent.log",
+    "package": {
+      "commit": "0276de45b2abf9f849da4d874b44da26294761c4",
+      "dirty": true,
+      "fingerprint": "e3068aa835744f86dbc485b481be7df194aee39e18bd862559d39109dab9fc99",
+      "signed": false
+    }
+  },
+  "limits": "Discrete sampled path proposals remain geometry observations, not swept-body steering proof, owner agreement or physical passage. Native head-on queue execution remains incomplete.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingPathGeometry.sqf",
+      "sha256": "b866e8a29960b2c6cbf2d0b89ecddfa032b9d6f0848bc3cbbe02d5479523d3de"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_bypass.py",
+      "sha256": "03bb312774bef03da583cceab5b758c0e6511cda96133fbe2f6358fde058cb28"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_driving_corridor.py",
+      "sha256": "7bd6b9c3a2e16d264910f19f9164ab5dc9174d8f9566dece210f2214c7a42f29"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-18",
+  "scope": "Original driving-brain authority across scheduled queue discovery; not queue execution",
+  "sources": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "29e24ece37fe124ac24002e466a4ecfb7d1f687ba365f8518c6099cc5a70483f",
+    "addons/vehicles/functions/drivingQueueProposal.sqf": "8ce95123173598feb2c1755665f51350f223bd49e628f94ada0e07526e2e3010",
+    "addons/vehicles/functions/drivingQueueAgreementRequest.sqf": "19b031c6db177b3fbe2b7c86a091cd574c39eaa5b7fab545d440d5d62dfd7cd5"
+  },
+  "reference": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "review": "Reverified local hash; jam cascade1383-1533 and standing-pair intent. Preserve finite room-making, not physics pushes or unauthenticated timestamp requests."
+  },
+  "finding": "Scheduled proposal discovery could publish and submit under a successor brain because the old caller only rechecked ordinary-route eligibility.",
+  "change": "Atomic throttle claim checks original brain/epoch/noncancelled/unfinished, same observation/retry receipts, fresh observation and original deadline. Geometry stays scheduled between claim and final equivalent admission with exact claim timestamp before publication and existing consent request.",
+  "limits": [
+    "No new native command, world query category, timer or worker; existing5s dwell/30s discovery throttle retained.",
+    "Consent remains distinct from execution. No HOLD/READY/native reverse/dependency executor.",
+    "Replaced callbacks cannot publish; an admitted discovery attempt still consumes its original scan throttle even if later refused.",
+    "Clock/network/locality/native reverse capability and physical throughput/performance remain unverified."
+  ],
+  "validation": {
+    "tests": 1353,
+    "log": ".qa/cbe-queue-discovery-authority-verified-build.log",
+    "exitCode": 0,
+    "packageFingerprint": "fb27e2d741da6ff5ab481e83e11d91ee0e97ae2947319ce27941d9f2837b32b0"
+  },
+  "physicalAcceptance": false,
+  "performanceAccepted": false
+}

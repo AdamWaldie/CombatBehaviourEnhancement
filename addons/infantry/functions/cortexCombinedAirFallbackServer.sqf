@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Advances a finite combined-arms air candidate list after its actual aircraft owner rejects a
- * weapon/turret preflight. It only dispatches an already ranked live candidate; it never creates
+ * weapon/turret preflight or retires an ignored-target attack after owned cleanup. It only dispatches an already ranked live candidate; it never creates
  * an airframe, changes locality, changes player orders or assumes a remote loadout is usable.
  *
  * Locality / Authority: Server-only. The rejected group owner must be the remote sender. The next
@@ -11,21 +11,22 @@
  * Original contact confidence/time pass unchanged to replacements; fallback never renews observation age.
  * Repeat/JIP: The requester holds one expiring public fallback record. Duplicate rejection notices
  * consume no extra candidate after the cursor advances. The record is cleared with its opportunity.
+ * Fallback target, position and expiry must match the original role; expiry callbacks bind that role.
  * Role expiry preserves matching terminal outcomes; only active dispatch/application becomes EXPIRED.
  *
  * Arguments:
- * 0: requester group <GROUP>; 1: rejected aircraft group <GROUP>; 2: opportunity token <STRING>.
+ * 0: requester group <GROUP>; 1: rejected aircraft group <GROUP>; 2: opportunity token <STRING>; 3: original opportunity <ARRAY, []>, required exact snapshot.
  *
  * Return Value:
  * BOOL - true when one replacement candidate was dispatched.
  *
- * Current callers: CBE_fnc_CortexCombinedArmsLocal after local weapon or busy/start refusal.
+ * Current callers: CortexCombinedArmsLocal refusal and CortexAirAttack ignored-contact cleanup.
  *
  * Example:
- * [_requester,_rejectedGroup,_token] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
+ * [_requester,_rejectedGroup,_token,_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedAirFallbackServer",2];
  * Result: the next viable candidate receives the same finite AIR_ATTACK opportunity.
  */
-params [["_requester",grpNull,[grpNull]],["_rejected",grpNull,[grpNull]],["_token","",[""]]];
+params [["_requester",grpNull,[grpNull]],["_rejected",grpNull,[grpNull]],["_token","",[""]],["_snapshot",[],[[]]]];
 if (!isServer || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
     || {[] call CBE_fnc_CortexIsPaused} || {isNull _requester} || {isNull _rejected} || {_token == ""}
     || {remoteExecutedOwner > 0 && {remoteExecutedOwner != groupOwner _rejected}}) exitWith {false};
@@ -35,11 +36,15 @@ _fallback params ["_storedToken","_target","_position","_expiry","_candidates","
 private _contactReceipt=_fallback param [6,[],[[]]];
 if (_storedToken != _token || {serverTime >= _expiry} || {isNull _target} || {!alive _target}) exitWith {false};
 private _rejectedRole=_rejected getVariable ["CBE_Cortex_CombinedRole",[]];
-if (!((count _rejectedRole) in [7,8]) || {(_rejectedRole select 0) != _token}
+if (!((count _snapshot) in [7,8]) || {_rejectedRole isNotEqualTo _snapshot}
+    || {!((count _rejectedRole) in [7,8])} || {(_rejectedRole select 0) != _token}
     || {(_rejectedRole select 1) != _requester} || {(_rejectedRole select 4) != "AIR_ATTACK"}) exitWith {false};
 // Consume this exact refusal once. A duplicate notice has no matching role; a newer role
 // survives. Retiring the opportunity never cancels the aircraft's existing attack brain.
-if ((_rejectedRole param [7,[],[[]]]) isNotEqualTo _contactReceipt) exitWith {false};
+if ((_rejectedRole param [7,[],[[]]]) isNotEqualTo _contactReceipt
+    || {(_rejectedRole select 2) != _target}
+    || {(_rejectedRole select 3) isNotEqualTo _position}
+    || {(_rejectedRole select 5) != _expiry}) exitWith {false};
 _rejected setVariable ["CBE_Cortex_CombinedRole",nil,true];
 _rejected setVariable ["CBE_Cortex_CombinedApplied",nil,true];
 if (!([_requester] call CBE_fnc_CortexIsEligible)
@@ -75,8 +80,8 @@ _replacement setVariable ["CBE_Cortex_CombinedApplied",nil,true];
 _replacement setVariable ["CBE_Cortex_CombinedResult",[_token,"AIR_ATTACK","FALLBACK_DISPATCHED",serverTime,_target],true];
 [_replacement,_opportunity] remoteExecCall ["CBE_fnc_CortexCombinedArmsLocal",groupOwner _replacement];
 [{
-    params ["_replacement","_token","_target"];
-    if (!isNull _replacement && {((_replacement getVariable ["CBE_Cortex_CombinedRole",[]]) param [0,""]) == _token}) then {
+    params ["_replacement","_token","_target","_originalRole"];
+    if (!isNull _replacement && {(_replacement getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo _originalRole}) then {
         private _result=_replacement getVariable ["CBE_Cortex_CombinedResult",[]];
         if ((_result param [0,""]) == _token
             && {(_result param [2,""]) in ["FALLBACK_DISPATCHED","DISPATCHED","APPLIED"]}) then {
@@ -85,5 +90,5 @@ _replacement setVariable ["CBE_Cortex_CombinedResult",[_token,"AIR_ATTACK","FALL
         _replacement setVariable ["CBE_Cortex_CombinedRole",nil,true];
         _replacement setVariable ["CBE_Cortex_CombinedApplied",nil,true];
     };
-},[_replacement,_token,_target],(_expiry-serverTime) max 0] call CBA_fnc_waitAndExecute;
+},[_replacement,_token,_target,+_opportunity],(_expiry-serverTime) max 0] call CBA_fnc_waitAndExecute;
 true

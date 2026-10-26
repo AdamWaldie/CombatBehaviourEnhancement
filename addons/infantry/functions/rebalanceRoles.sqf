@@ -2,8 +2,16 @@
  * Author: WaldoTheWarfighter
  * Purpose: Replaces unavailable tactical-role participants with capable surviving soldiers without dropping the active element from progress accounting.
  * Locality/authority: Reads only local actors and updates the current group operation on its owner.
+ * Roster/pair publication atomically rechecks current operation and candidate native-task eligibility.
+ * A stopped actor outside the entry roster cannot be recruited. Existing covering/arrival
+ * participants retain the current policy; this does not prove ownership of a later STOP on them.
  * Newly enrolled replacements capture their platform; retained actors never rebind theirs.
- * Protected native tasks and strictly typed finite actor reservations cannot be recruited or retained as active role participants; an earlier roster entry does not override a newer finite owner.
+ * Protected native tasks, queued medical treatment and strictly typed finite actor reservations cannot be recruited or retained as active role participants; an earlier roster entry does not override a newer finite owner.
+ * Temporary treatment or native flight does not erase living pair identity; unavailable actors
+ * leave active roles without clearing medical queues, morale or the native fleeing state.
+ * A matching fire-team drill retains mover/cover partitions during pair repair; synchronised
+ * buddy bounds and two-actor advances preserve pair identity across those roles. This includes role
+ * transfers with unchanged participant count. New pair metadata grants no movement authority.
  * Repeat/JIP: Idempotent for an unchanged generation and owner epoch. Only roster changes publish
  * operation state; unchanged callbacks do not retransmit it. Public state carries the roster after
  * migration; actors marked unavailable remain excluded.
@@ -18,23 +26,63 @@ if ([_group] call CBE_fnc_CortexZeusHeld || {[_group] call CBE_fnc_Compatibility
 private _operation=_group getVariable ["CBE_Operation",createHashMap];
 if (count _operation == 0 || {(_operation getOrDefault ["generation",-2]) != _generation}) exitWith {[]};
 if ((_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])) exitWith {[]};
+if ((_operation getOrDefault ["phase",""]) == "CANCELLED") exitWith {[]};
+private _entryEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _entryParticipants=+(_operation getOrDefault ["participants",[]]);
+private _entryUnavailable=+(_operation getOrDefault ["unavailable",[]]);
 private _blocked=(_operation getOrDefault ["unavailable",[]])+_excluded;
-private _capable=(units _group) select {
-    private _reservationFree=!([_x] call CBE_fnc_CortexActorMoveReserved);
-    local _x && {!isPlayer _x} && {isNull (remoteControlled _x)}
-        && {([_x] call CBE_fnc_CortexExternalOwner) == ""} && {[_x] call CBE_fnc_CortexCombatEffective}
-        && {isNull objectParent _x} && {!(_x in _blocked)}
-        && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
-        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
-        && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+private _actorEligible={
+    params ["_actor"];
+    private _reservationFree=!([_actor] call CBE_fnc_CortexActorMoveReserved);
+    group _actor == _group && {simulationEnabled _actor} && {!isObjectHidden _actor}
+        && {local _actor} && {!isPlayer _actor} && {!fleeing _actor} && {isNull (remoteControlled _actor)}
+        && {([_actor] call CBE_fnc_CortexExternalOwner) == ""} && {[_actor] call CBE_fnc_CortexCombatEffective}
+        && {isNull objectParent _actor} && {!(_actor in _blocked)}
+        && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
+        && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
+        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+        && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {_reservationFree}
+        && {currentCommand _actor != "STOP" || {_actor in _entryParticipants}}
 };
+private _capable=(units _group) select {[_x] call _actorEligible};
 // Narrow specialist ownership to an eligible ordinary candidate; player/Zeus/group control
 // remains group-wide. No candidate means no role publication or replacement.
 if (_capable isEqualTo [] || {[_group,false,_capable select 0] call CBE_fnc_CortexExternalTakeover}) exitWith {[]};
 private _current=(_operation getOrDefault ["participants",[]]) select {_x in _capable};
 {if (count _current < _desired && {!(_x in _current)}) then {_current pushBack _x}} forEach _capable;
-if (_current isNotEqualTo (_operation getOrDefault ["participants",[]])) then {
+// Candidate observation is scheduled. Publish roster and pairs only while the original
+// operation still owns these participants and every proposed actor remains eligible.
+private _result=[];
+isNil {
+    private _live=_group getVariable ["CBE_Operation",createHashMap];
+    if (!local _group || {_entryEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+        || {(_live getOrDefault ["generation",-2]) != _generation}
+        || {(_live getOrDefault ["ownerEpoch",-1]) != _entryEpoch}
+        || {(_live getOrDefault ["phase",""]) == "CANCELLED"}
+        || {_live isNotEqualTo _operation}
+        || {(_live getOrDefault ["participants",[]]) isNotEqualTo _entryParticipants}
+        || {(_live getOrDefault ["unavailable",[]]) isNotEqualTo _entryUnavailable}
+        || {_current findIf {!([_x] call _actorEligible)} >= 0}
+        || {[_group] call CBE_fnc_CortexZeusHeld}
+        || {[_group,false,_capable select 0] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
+private _rosterChanged=_current isNotEqualTo (_operation getOrDefault ["participants",[]]);
+private _pairElements=[];
+private _drill=(_group getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
+if ((_drill getOrDefault ["operationGeneration",-1]) == _generation
+    && {(_drill getOrDefault ["ownerEpoch",-1]) == _entryEpoch}
+    && {!((_drill getOrDefault ["buddyBounds",false]) isEqualTo true)}
+    && {!((_operation getOrDefault ["intent",""]) == "ADVANCE" && {count _current == 2})}) then {
+    private _teams=_drill getOrDefault ["teams",[]];
+    if (_teams isEqualType [] && {count _teams == 2}
+        && {_teams findIf {!(_x isEqualType [])} < 0}) then {
+        private _elements=_teams apply {_x select {_x in _current}};
+        private _partitioned=(_elements select 0)+(_elements select 1);
+        if (count (_partitioned arrayIntersect _partitioned) == count _partitioned
+            && {_current findIf {!(_x in _partitioned)} < 0}) then {_pairElements=_elements};
+    };
+};
+if (_rosterChanged) then {
     // Start measuring replacements at commitment, not at a later scheduler callback.
     // Recruitment itself is not physical progress and must not renew the operation timer.
     private _progress=(_operation getOrDefault ["participantProgress",[]]) select {(_x select 0) in _current};
@@ -50,7 +98,17 @@ if (_current isNotEqualTo (_operation getOrDefault ["participants",[]])) then {
     })];
     _operation set ["participantProgress",_progress];
     _operation set ["participants",_current];
-    _operation set ["pairs",[_group,_current] call CBE_fnc_CombatPairs];
+};
+if (_rosterChanged || {_pairElements isNotEqualTo (_operation getOrDefault ["pairElements",[]])}) then {
+    private _pairs=[];
+    if (_pairElements isEqualTo []) then {_pairs=[_group,_current] call CBE_fnc_CombatPairs} else {
+        {_pairs append ([_group,_x,false] call CBE_fnc_CombatPairs)} forEach _pairElements;
+        [_group,_pairs] call CBE_fnc_CombatPairsPublish;
+    };
+    _operation set ["pairs",_pairs];
+    _operation set ["pairElements",_pairElements apply {+_x}];
     _group setVariable ["CBE_Operation",_operation,true];
 };
-_current
+    _result=_current;
+};
+_result

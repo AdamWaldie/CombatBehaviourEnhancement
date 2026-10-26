@@ -49,10 +49,65 @@ if (_failures isNotEqualTo []) exitWith {
     missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
     diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
 };
-private _wait = {params ["_condition",["_seconds",15]]; private _until = diag_tickTime + _seconds; waitUntil {sleep 0.2; call _condition || {diag_tickTime >= _until}}; call _condition};
+// SQF call is dynamically scoped. Helper locals must not hide a predicate's own
+// _until or other mission/server-time deadline; use reserved helper-specific names.
+private _wait = {
+    params ["_cbeQaWaitPredicate",["_cbeQaWaitSeconds",15]];
+    private _cbeQaWaitDeadlineTick=diag_tickTime+_cbeQaWaitSeconds;
+    waitUntil {sleep 0.2; call _cbeQaWaitPredicate || {diag_tickTime >= _cbeQaWaitDeadlineTick}};
+    call _cbeQaWaitPredicate
+};
 private _saved = createHashMapFromArray (([] call CBE_fnc_CortexTuningSpec) apply {[_x select 0,missionNamespace getVariable [_x select 0,_x select 5]]});
 if (_focus == "roadpassing") exitWith {
     [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQARoadPassing.sqf";
+    [_saved] call CBE_fnc_CortexTuning;
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+};
+// Real native AA warning/fire building blocks run separately from normal and HC suites.
+if (_focus == "aa") exitWith {
+    [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAAAIntercept.sqf";
+    [_saved] call CBE_fnc_CortexTuning;
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+};
+// Coastal normal and real-provider HC fixtures bypass fixed-coordinate VR stations.
+if (_focus in ["naval","navalhc"]) exitWith {
+    [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQANaval.sqf";
+    [_saved] call CBE_fnc_CortexTuning;
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+};
+// Single-carrier static mechanics stay separate from ordinary and HC batches.
+if (_focus == "staticsolo") exitWith {
+    [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAStaticSolo.sqf";
+    [_saved] call CBE_fnc_CortexTuning;
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+};
+// Native fleeing has independent prerequisites; stable reaction cases intentionally disable it.
+if (_focus == "nativeflight") exitWith {
+    [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQANativeFlight.sqf";
+    [_saved] call CBE_fnc_CortexTuning;
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+};
+// Separate normal-owner illumination mechanics; no unrelated fixtures or HC adoption.
+if (_focus == "illumination") exitWith {
+    [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAIllumination.sqf";
+    [_saved] call CBE_fnc_CortexTuning;
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+};
+// This terrain-aware focus does not create unrelated fixed-coordinate VR fixtures.
+if (_focus == "convoynativestop") exitWith {
+    [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQAConvoyMatrix.sqf";
     [_saved] call CBE_fnc_CortexTuning;
     missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
     missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];

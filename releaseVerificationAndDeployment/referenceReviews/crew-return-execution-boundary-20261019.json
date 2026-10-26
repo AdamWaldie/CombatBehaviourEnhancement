@@ -1,0 +1,144 @@
+{
+  "date": "2026-10-19",
+  "scope": "HBQ crew-left-behind intent and CBE passenger/crew boundary",
+  "source": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+  "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+  "rangesRead": [
+    "1680-1769"
+  ],
+  "sourceIntent": [
+    "Remember operating seat role/turret path, exclude cargo and FFV.",
+    "Preserve unassignment and incapacitation; native assigned-seat re-entry after delay.",
+    "Later forced seating and group detachment are source shortcuts, not adopted by CBE."
+  ],
+  "currentCallPaths": [
+    "DrivingOperationStep -> DrivingCrewStep: internal dead-driver seat replacement only.",
+    "CortexRestoreCalm / CortexGroupTick -> CortexPassengerReady: cargo-only finite remount.",
+    "CortexLocality resumes public passenger remount original deadline; it does not retain operating role/turret path."
+  ],
+  "finding": "Passenger remount cannot stand in for operating-crew return: assignAsCargo would discard operating-role intent. No complete ordinary dismounted-crew return executor exists.",
+  "implementedThisBatch": [
+    "Shared passenger admission now refuses boarding over explicit STOP or disabled MOVE/PATH, and refuses hidden/suspended actor/platform routine transitions.",
+    "DrivingCrewBoarding cooperates with current native GET IN for exact assigned empty operating seats through the existing sole driving cap writer.",
+    "Per-seat original 60-second public limits survive owner change on the same route; expired attempts cannot renew until boarding or assignment/context change.",
+    "New actor tasks end cooperation; active reverse/pass/bypass/corridor work prevents admission. Fresh plain route/crew intent is checked at the cap commit.",
+    "No recall order, assignment mutation, boarding permission override, forced seating or independent speed writer."
+  ],
+  "nextFoundation": [
+    "Capture actual occupied operating-seat provenance within existing driving operation, excluding cargo and FFV.",
+    "Observe still-assigned dismounted crew with original finite deadlines; preserve explicit unassignment and newer actor tasks.",
+    "Keep role/turret identity and issue at most one native re-entry attempt through current actor owner; do not reuse cargo remount.",
+    "Vehicle cooperation must use existing sole speed writer with exact finite receipt; no separate movement loop.",
+    "Owner migration must preserve original deadline and issued-state provenance without replay."
+  ],
+  "validation": {
+    "tests": 1476,
+    "buildLog": ".qa/cbe-crew-boarding-build.log",
+    "independentLog": ".qa/cbe-crew-boarding-independent.log",
+    "fingerprint": "415395540c1c3a4aca7c8d12571dc7605021945e3fd65db8575c1d194779160d",
+    "packageSource": "7db002b716d222fd2da6731eb6c30d3c2460f539+dirty unsigned development",
+    "failedFocusedCheck": "An explanatory comment matched a forbidden-command assertion; executable-body check corrected. Full existing suite then passed."
+  },
+  "physicalAcceptance": false,
+  "audits": "paused",
+  "nativeReferences": [
+    "https://community.bistudio.com/wiki/fullCrew",
+    "https://community.bistudio.com/wiki/AI_Group_Vehicle_Management",
+    "https://community.bistudio.com/wiki/orderGetIn"
+  ],
+  "authorityLimit": "orderGetIn false preserves assignedVehicle. Assignment alone is not recall permission. The implementation supports an observed GET IN without re-enabling boarding. Same-value native command changes wholly between observations remain unobservable.",
+  "remaining": [
+    "Automatic recall of dismounted operating crew is not implemented.",
+    "Absent driver return and cross-group boarding are not implemented.",
+    "Physical re-entry, blocked boarding, repeated departures, split ownership and measured runtime cost remain unverified."
+  ],
+  "boardingProgressFollowup": {
+    "implementation": "Original public per-seat receipt now carries ASL motion anchor and last measured progress time. Two metres of actual actor motion updates only progress metadata; twelve seconds without motion ends cooperation without any boarding cancellation. Original sixty-second deadline never renews.",
+    "schema": "Seven-field rows are required; unknown/old shapes refuse without native commands.",
+    "cost": "At most20 actor position observations per helper sample; active waits recheck at existing cap commit. Public progress updates only when the anchor changes by two metres. No new rays, world scan, worker or handler.",
+    "limits": "Detour/stair motion is progress, not boarding proof. Motion wholly between observations is not reconstructed; fixed expiry remains authoritative. Actual path-planning latency and boarding timing unverified.",
+    "validation": {
+      "tests": 1476,
+      "buildLog": ".qa/cbe-driving-gates-boarding-build.log",
+      "independentLog": ".qa/cbe-driving-gates-boarding-independent.log",
+      "fingerprint": "f76ff4f1564fbca8c2ae8361a1c5cead9eb5d2e02001ad108110f3c62ff54853",
+      "packageSource": "cfd3d02f2fd3aed6d411efe615c610afcbc7c100+dirty unsigned development",
+      "physicalAcceptance": false
+    }
+  },
+  "nativePlanningFollowup20261020": {
+    "sourceRangesReread": [
+      "1691-1772"
+    ],
+    "sourceIntent": "Preserve an operating crew role and let native return finish before moving on. Source forced seating and group detachment are not adopted. Retained assignment alone cannot override mission boarding permission.",
+    "implementation": "Existing GET IN cooperation now defers the twelve-second no-motion exhaustion only for native INIT/PLANNING/REPLAN. Search can consume only the original60-second seat deadline and never updates motion anchors or progress time. BUSY/WAIT/INITFAILED/DELAY/STOPPED do not receive this allowance. Queue root QUEUE_CROSSED_HOLD is classified TRAFFIC to retain existing one-second callback cadence.",
+    "authority": "Still requires local eligible actor, actual native GET IN, current exact assigned empty operating seat and live plain-route/crew admission. No assignment, orderGetIn, forced seating, group transfer or new worker.",
+    "cost": "Native planner query only for stalled eligible seat rows, at most20 rows per helper call. Existing cap commit rechecks waiting admission. No world/ray query or new timer. Engine cost unmeasured.",
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/getUnitState",
+      "https://community.bistudio.com/wiki/AI_Group_Vehicle_Management"
+    ],
+    "remaining": "Automatic operating-crew recall, absent-driver return and cross-group pickup remain incomplete; physical re-entry, delayed planning, repeated departures, interruption and normal/HC cost remain unverified.",
+    "physicalAcceptance": false
+  },
+  "unloadBoardingAcquisition20261020": {
+    "sourceParent": "4a8fb2cc",
+    "finding": "First ordinary/convoy unload-policy acquisition called setUnloadInCombat without checking assigned incoming native GET IN. Official engine documentation describes forced orderGetIn false as a command side effect. Actual in-engine interruption has not been reproduced while audits are paused.",
+    "engineReference": "https://community.bistudio.com/wiki/setUnloadInCombat",
+    "implementation": "Before first lease acquisition only, observe fullCrew including assignments; process <=64 rows. Defer with no lease/roster publication if a living actor assigned to this vehicle is outside it and has native GET IN, or is not local so intent is unverifiable. Oversized snapshot also refuses. Already-owned adoption remains write-free; newer-policy blocking, epochs/revisions, exact previous/applied restoration and takeover policy unchanged. Guard exits outer function before success/tracked publication.",
+    "cost": "One fullCrew engine observation at first acquisition attempts only, <=64 returned rows processed. No new world scan/timer/handler/native boarding command. Rejected acquisition can retry at existing caller cadence; no new cadence. Runtime cost unmeasured.",
+    "limits": "Protects existing boarding; does not authorize orderGetIn true from retained assignment alone, force seating, recall absent drivers or establish HBQ crew-return parity. orderGetIn false may preserve assignment; that intent remains respected. Existing release restoration remains a separate native-side-effect review boundary.",
+    "validation": "613 existing focused cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-unload-boarding-build.log. Candidate .qa/candidates/unload-boarding-4a8fb2cc-a9db6e22 fingerprint a9db6e22b9b6298f16afb73b9ab1ffde8876419abd7db8997fc4ccb682fc5bf1 actual4a8fb2cc+dirtysource. Independent copied-package verification .qa/cbe-unload-boarding-independent.log. No added cases or scores.",
+    "implementationHashes": {
+      "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf": "649a60f8e5565b08096c02ff298a384d3fcad5060de83e73cb76e248dcc42e81",
+      "addons/vehicles/functions/convoyUnloadPolicy.sqf": "5d33c36e665c9952f9e53d2ad4af9e7bf5aaf4f1c758f04b50479c51a7eb0fbc"
+    },
+    "audits": "PAUSED"
+  },
+  "unloadNoopWrites20261020": {
+    "sourceParent": "090afe15",
+    "finding": "Initial acquire and exact release could call setUnloadInCombat with an already-current value. This needlessly repeats documented engine boarding side effects even when previous==applied.",
+    "implementation": "Both ordinary/convoy acquisition and restoration skip the engine command when previous==applied. Initial boarding preflight runs only when a policy change is needed; already-matching policy can record its ordinary exact lease without interrupting boarding. Leases/current-value proof, external-change blocking, restoration permission and newer controller protection remain.",
+    "cost": "One existing policy read qualifies first-acquisition seat scan; matching baseline avoids that scan and native write. No new worker/state/timer. Frame and network effect unmeasured.",
+    "limits": "Restoration to a different previous value can still have native side effects; no deferred restoration lifetime or stale replay is introduced. Existing actual native boarding, repeated use, locality/HC and performance unverified.",
+    "engineReference": "https://community.bistudio.com/wiki/setUnloadInCombat",
+    "implementationHashes": {
+      "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf": "735f996a52adeaf2fec3bbaca220b861a10a5b73ce6d01e591f7c6779195cbcc",
+      "addons/vehicles/functions/convoyUnloadPolicy.sqf": "d98b15ef554b344f8e85385e1fc9e556f0cc5573e3e2b03a0ababb4cac337859"
+    },
+    "validation": "613 focused existing cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-unload-noop-build.log. Candidate .qa/candidates/unload-noop-090afe15-3d4f22e5 fingerprint 3d4f22e5dc64ccea49e80fb24dbc05f3926930da9668a4a54c8bc7c780d0c4dd actual090afe15+dirtysource. Independent copied-package verification .qa/cbe-unload-noop-independent.log. No added cases or scores.",
+    "audits": "PAUSED"
+  },
+  "convoySeatIntent20261020": {
+    "sourceParent": "bd474b34",
+    "sourceIntent": "HBQ crew return treats changed/unassigned vehicle intent as ordered-out rather than automatic return consent. CBE explicit convoy upkeep adopts actual occupants, but cannot continually reclaim newer assigned seats/vehicles on the same convoy revision.",
+    "finding": "Mounted-upkeep repairSeat treated assignment changes as faults on every sample, and only driver/effective-commander native tasks were checked at entry. A gunner/passenger assignment or service task could be overwritten by assignAs/orderGetIn upkeep.",
+    "implementation": "Read previous actual-adoption marker before per-unit admission. Same group/revision plus changed vehicle or occupied-seat assignment vetoes repair and boarding, independent of recorded clientOwner; a fresh explicit revision can adopt. Shared existing task list and actor movement-reservation veto apply to each occupant before native seat writes. Existing driver/operator whole-callback guard remains. No forced seats/new worker/timer/settings.",
+    "cost": "Reuses existing per-occupant assignment reads; adds marker comparison and per-actor native task/reservation predicate. No extra world/seat scan or publication. Engine cost unmeasured.",
+    "limits": "Physical assignment transitions, service tasks, owner migration, renewed explicit revisions and actual boarding unverified. Identical native writes remain indistinguishable. This does not implement automatic crew recall or prove source parity.",
+    "implementationHashes": {
+      "addons/vehicles/functions/convoyCrewLocal.sqf": "52a26a0f3073b2c1a204e27245c4279bc6ca949771c1e83b82fc2ecbbdabba6f"
+    },
+    "validation": "689 focused existing cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-convoy-seat-intent-build.log. Candidate .qa/candidates/convoy-seat-intent-bd474b34-f1624117 fingerprint f1624117121ba3e2048971c6c79ce1deabbd0ab1600d3065322eed81e58f13fa actualbd474b34+dirtysource. Independent copied-package verification .qa/cbe-convoy-seat-intent-independent.log. No new cases or scores.",
+    "audits": "PAUSED"
+  },
+  "differentValueRestorationReview20261020": {
+    "finding": "Ordinary master stop/group release and convoy release restore exact previous/applied lease without an existing dedicated deferred unload-property service. Native setUnloadInCombat side effect on different-value restoration has not been reproduced.",
+    "disposition": "Retain exact existing restoration for now. Do not discard a changed policy without restoring it, blindly reissue incoming orderGetIn true, or add an unbounded/new cleanup worker based on the documentation alone. Preserve as explicit engine acceptance boundary, distinct from completed no-op/initial-admission protections.",
+    "audits": "PAUSED",
+    "productChange": "NONE"
+  },
+  "convoyFireTask20261020": {
+    "sourceParent": "3a430e89",
+    "finding": "Convoy mounted fire did not use shared protected-native-task/actor-reservation fire predicate. Seat upkeep could correctly yield a gunner task while later doTarget/doFire still overwrote it; disabled/blocked cleanup also issued target-clear into protected native task if assigned target still matched old marker.",
+    "implementation": "Shared CortexActorFireTaskAvailable qualifies mounted-fire readiness before threat/lane work. Changed same-revision seat intent also refuses fire. Both target-clear paths require task availability; protected successor tasks retire only the old CBE marker. Existing ROE, operator health, target identity and shared full-corridor lane veto remain.",
+    "cost": "One existing bounded read-only native-task/reservation predicate per occupied row at five-second crew upkeep. Protected actors skip later threat/lane queries. No new observer, timer, scan or movement permission. Cost unmeasured.",
+    "validation": "640 focused existing cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-convoy-fire-task-build.log. Candidate .qa/candidates/convoy-fire-task-3a430e89-d82ea6aa fingerprint d82ea6aadd65ae58d9dc582bc974182c3b538639f1bc8b5cc8308dfb37312aff actual3a430e89+dirtysource. Independent copied-package verification .qa/cbe-convoy-fire-task-independent.log. No added cases or scores.",
+    "limits": "Actual protected service/boarding tasks, interrupted firing, locality/HC and performance remain unverified; same-value native target ownership remains indistinguishable. Target clearing is not burst-stop proof.",
+    "implementationHashes": {
+      "addons/vehicles/functions/convoyCrewLocal.sqf": "b4dce0db021fae07299471016b587001acdc82456b707f5841df2ba9bef273b1",
+      "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "ffdf9390c1b8e680b68a9ee678386f0dddb9364a25f9f491f015e4fa8bf29e60"
+    },
+    "audits": "PAUSED"
+  }
+}

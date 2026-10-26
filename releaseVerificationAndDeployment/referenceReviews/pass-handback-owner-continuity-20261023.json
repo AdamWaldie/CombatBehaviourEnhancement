@@ -1,0 +1,34 @@
+{
+  "baseline": "95f07dcd",
+  "scope": "Preserve exact same-owner passing handback across driving brain retirement; not cross-owner adoption",
+  "finding": "DrivingOperationFinish releases then clears its brain. Pending PassFinish previously required that brain generation; RetireInherited also treated a finished/missing brain as an inherited path. Discovery could increment executor generation over the original pending cap/order. Authored return route metadata contains no owner epoch.",
+  "implementation": [
+    "Capture handbackOwner=[owner,epoch,generation] at original passing STOP. Pending cleanup always checks current stamp; only an empty brain with exactly that original stamp may substitute for the retired brain generation.",
+    "RetireInherited leaves exact same-owner stamped pending passing work to its existing observer even after brain retirement, avoiding another stop/route request.",
+    "DrivingOperationStart reuses its existing per-vehicle traversal to service pending passing STOP/return before publishing a new executor. Exact same-order pending receipts block new generation; changed route/owner revokes old cleanup. No new scan/timer/worker.",
+    "PASS_RETURN includes passReturnOwner in cleanup signature. RecoveryRelease treats changed owner stamp or authored route as LOST before pending/expired classification, so new orders do not wait for an obsolete old goal."
+  ],
+  "hashes": {
+    "addons/vehicles/functions/drivingPassFinish.sqf": "6088940ca804a6e0dee1c209ff3afbae242a308eafca6e486015aec3dae8ebea",
+    "addons/vehicles/functions/drivingPassRetireInherited.sqf": "56dd9873fb58b949a48f4a1ca1516d9ff9962cbeed2cebedcbd0f8cf67c38942",
+    "addons/vehicles/functions/drivingOperationStart.sqf": "7cbb03e5106ccd117a3289a25584f2c4a3151c5432eef26f60cc3488d59e50e4",
+    "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "eef1378ba062f55db15a60f064b85137025ec367c9400e5f79e14e6affe2db8c",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "646c698442ac600f674e23eaa26125195945266e0fafd58d1080aae2f44330c0"
+  },
+  "validation": {
+    "focusedExistingDrivingTests": 258,
+    "fullExistingTests": 1491,
+    "newCases": 0,
+    "focused": ".qa/pass-handback-owner-continuity-focused.log",
+    "build": ".qa/pass-handback-owner-continuity-build.log",
+    "independent": ".qa/pass-handback-owner-continuity-independent.log",
+    "candidate": ".qa/candidates/pass-handback-owner-continuity-95f07dcd",
+    "fingerprint": "392dac310cdec66db9225268533ec54eeb5a01a6dd984b634a0ef636cc4293ac"
+  },
+  "remaining": [
+    "Genuine inherited public passing-leg cleanup still uses its separate existing stop/route path; it has not been converted to deferred exact acknowledgement or adopted private pending work.",
+    "Native passing remains disabled pending original-native-route provenance during its temporary path and real cleanup integration.",
+    "Physical same-owner brain shutdown, new-order/owner revocation, inherited leg/locality timing, both-seat acknowledgement and actual original-route travel remain unverified; measure performance when audits authorized."
+  ],
+  "limits": "Unsigned dirty development snapshot preserving unrelated dirt; notes afterward. Original deadline unchanged, no score renewal or physical/whole-HBQ parity claim. Audits paused."
+}

@@ -14,12 +14,19 @@ class SmokePayloadTests(unittest.TestCase):
         self.assertIn('_smokeChecks=0;',s)
     def test_smoke_gate_reaches_admission_continuation_and_owner_release(self):
         base=ROOT/'addons/support/functions'
+        ammo=(base/'cortexArtilleryAmmo.sqf').read_text(encoding='utf-8')
+        self.assertIn('_target isEqualTo [] || {_target inRangeOfArtillery [[_battery],_x]}',ammo)
+        self.assertLess(ammo.index('!finite _x'),ammo.index('magazinesAllTurrets'))
+        ranking=ammo.split('_profile params',1)[1]
+        self.assertLess(ranking.index('inRangeOfArtillery'),ranking.index('_best = _x'))
         fire=(base/'cortexArtilleryFire.sqf').read_text(encoding='utf-8')
         self.assertIn('_mode != "SMOKE" || {[group gunner _x,"CBE_AIPass_ArtillerySmoke_Enable"',fire)
+        self.assertIn('[_x, _mode == "SMOKE",_target] call CBE_fnc_CortexArtilleryAmmo',fire)
+        self.assertIn('[_battery, _mode == "SMOKE",_target] call CBE_fnc_CortexArtilleryAmmo',fire)
         explicit=fire.split('if (isNull _battery || {!alive gunner _battery}',1)[1]
         self.assertLess(explicit.index('CBE_AIPass_ArtillerySmoke_Enable'),explicit.index('CBE_AIPass_FireSerial'))
         mission=(base/'cortexArtilleryMissionStep.sqf').read_text(encoding='utf-8')
-        self.assertIn('private _blocked = _smokeBlocked',mission)
+        self.assertIn('private _blocked = _counterExpired || {_fireExpired} || {_smokeExpired} || {_smokeBlocked}',mission)
         self.assertIn('CBE_AIPass_ArtillerySmoke_Enable',mission)
         shot=(base/'cortexArtilleryShot.sqf').read_text(encoding='utf-8')
         final=shot.split('// Safety/munition checks',1)[1]

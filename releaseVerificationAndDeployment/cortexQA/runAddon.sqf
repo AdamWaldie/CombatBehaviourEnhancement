@@ -25,6 +25,52 @@ private _probeGroup=createGroup [civilian,true];
 private _takeoverResult=[_probeGroup] call CBE_fnc_CortexExternalTakeover;
 deleteGroup _probeGroup;
 ["ADDON-command-boundary-boolean",_takeoverResult isEqualType true,typeName _takeoverResult] call _check;
+// Real occupied-platform identity, not assignedVehicle or a forged parent receipt.
+// Boundary evidence only: this does not claim physical provider handover success.
+private _platformProbe=createVehicle ["B_Quadbike_01_F",[100,100,0],[],0,"NONE"];
+createVehicleCrew _platformProbe;
+private _probeDriver=driver _platformProbe;
+private _probeCrew=crew _platformProbe;
+private _probeCrewGroup=group _probeDriver;
+private _declarationBoundary=false;
+private _declarationDetails=[];
+private _probePeer=objNull;
+private _platformBoundary=false;
+private _platformDetails=[];
+if (!isNull _probeDriver && {local _probeDriver} && {local _probeCrewGroup}
+    && {objectParent _probeDriver == _platformProbe}) then {
+    private _ordinary=[_probeCrewGroup,false,_probeDriver] call CBE_fnc_CortexExternalTakeover;
+    _platformProbe setVariable ["Waldo_AI_ExternalControl",true];
+    private _actorHeld=[_probeCrewGroup,false,_probeDriver] call CBE_fnc_CortexExternalTakeover;
+    private _groupHeld=[_probeCrewGroup] call CBE_fnc_CortexExternalTakeover;
+    _platformProbe setVariable ["Waldo_AI_ExternalControl",false];
+    private _released=[_probeCrewGroup,false,_probeDriver] call CBE_fnc_CortexExternalTakeover;
+    _platformBoundary=!_ordinary && {_actorHeld} && {_groupHeld} && {!_released};
+    _platformDetails=[_ordinary,_actorHeld,_groupHeld,_released];
+    // The earlier ordinary classification populated the existing class memo.
+    // A later actor claim must still win, without becoming a sibling-wide claim.
+    _probePeer=_probeCrewGroup createUnit ["B_Soldier_F",[105,100,0],[],0,"NONE"];
+    _probeDriver setVariable ["Waldo_AI_ExternalControl",true];
+    private _declaredOwner=[_probeDriver] call CBE_fnc_CortexExternalOwner;
+    private _declaredGroup=[_probeCrewGroup] call CBE_fnc_CortexExternalTakeover;
+    private _peerHeld=[_probeCrewGroup,false,_probePeer] call CBE_fnc_CortexExternalTakeover;
+    _probeDriver setVariable ["Waldo_AI_ExternalControl","unknown"];
+    private _malformedOwner=[_probeDriver] call CBE_fnc_CortexExternalOwner;
+    _probeDriver setVariable ["Waldo_AI_ExternalControl",false];
+    private _ordinaryOwner=[_probeDriver] call CBE_fnc_CortexExternalOwner;
+    _declarationBoundary=!isNull _probePeer && {_declaredOwner == "DECLARED"}
+        && {_declaredGroup} && {!_peerHeld} && {_malformedOwner == "DECLARED"}
+        && {_ordinaryOwner == ""};
+    _declarationDetails=[_declaredOwner,_declaredGroup,_peerHeld,_malformedOwner,_ordinaryOwner];
+
+};
+if (!isNull _probePeer) then {deleteVehicle _probePeer};
+{deleteVehicle _x} forEach _probeCrew;
+deleteVehicle _platformProbe;
+if (!isNull _probeCrewGroup) then {deleteGroup _probeCrewGroup};
+["ADDON-occupied-platform-boundary",_platformBoundary,str _platformDetails] call _check;
+["ADDON-live-actor-declaration-boundary",_declarationBoundary,str _declarationDetails] call _check;
+
 
 // Configuration visibility only; this does not establish weapon lethality or player accuracy.
 private _policyLoaded=isClass (configFile >> "CfgPatches" >> "CBE_policy_turret_aiming");
@@ -34,3 +80,14 @@ private _policyRows=(_policyReport getOrDefault ["checks",[]]) select {(_x param
 ["ADDON-engine-policy-diagnostic-effective",count _policyRows == 1 && {
     (_policyRows select 0) param [2,""] == (["DISABLED","LOADED"] select _policyLoaded)
 },str _policyRows] call _check;
+private _launchersLoaded=isClass (configFile >> "CfgPatches" >> "CBE_policy_launchers");
+private _launcherRows=(_policyReport getOrDefault ["checks",[]]) select {(_x param [1,""]) == "engine-policy-launchers"};
+["ADDON-launcher-policy-diagnostic",count _launcherRows == 1 && {
+    (_launcherRows select 0) param [2,""] == (["DISABLED","LOADED"] select _launchersLoaded)
+},str _launcherRows] call _check;
+// Effective config only, not observed suppression recovery or combat balance.
+private _suppressionLoaded=isClass (configFile >> "CfgPatches" >> "CBE_policy_suppression");
+private _suppressionRows=(_policyReport getOrDefault ["checks",[]]) select {(_x param [1,""]) == "engine-policy-suppression"};
+["ADDON-suppression-policy-diagnostic",count _suppressionRows == 1 && {
+    (_suppressionRows select 0) param [2,""] == (["DISABLED","LOADED"] select _suppressionLoaded)
+},str _suppressionRows] call _check;

@@ -4,7 +4,7 @@
  * the AI skill system: a CBA class-init event catches editor, Zeus and scripted helicopters, while
  * client and player machines. Parachutes are excluded before installing any flight controller or pin.
  * On the server, every non-UAV helicopter is excluded from automatic
- * ACE/CBE headless-client transfer before its crew is considered for balancing. Dedicated testing
+ * ACE/companion headless-client transfer before its crew is considered for balancing. Dedicated testing
  * showed airborne helicopters losing stable flight immediately after an ACE `setGroupOwner`
  * transition, before this landing controller ever activated. Keeping the aircraft group on the
  * server avoids that engine/locality transition while still allowing CBE AI skill values to be
@@ -33,14 +33,15 @@ private _install = {
     // ACE Headless checks this public vehicle flag before every automatic transfer. Set it on the
     // aircraft itself so it is already effective when an empty helicopter receives crew later.
     // The server is authoritative for this compatibility boundary; clients only install locality
-    // handlers and never publish competing values.
+    // handlers and never publish competing values. The companion provider owns its
+    // Waldo_Headless_ExcludeGroup API; CBE branding must not rename that external flag.
     if (isServer) then {
         _helicopter setVariable ["acex_headless_blacklist", true, true];
         _helicopter setVariable ["CBE_Headless_HelicopterPinned", true, true];
         {
             private _crewGroup = group _x;
             if !(isNull _crewGroup) then {
-                _crewGroup setVariable ["CBE_Headless_ExcludeGroup", true, true];
+                _crewGroup setVariable ["Waldo_Headless_ExcludeGroup", true, true];
                 _crewGroup setVariable ["acex_headless_blacklist", true, true];
             };
         } forEach crew _helicopter;
@@ -68,6 +69,10 @@ private _install = {
             if (_isLocal && {!(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_TrackedLocal", false])}) then {
                 if (_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active", false]) then {
                     [_helicopter, false, "", true] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
+                };
+                private _featureRelease=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_FeatureRelease",[]];
+                if (_featureRelease isEqualType [] && {count _featureRelease == 2}) then {
+                    [_helicopter,_featureRelease] call CBE_fnc_ImprovedHelicopterLandingFeatureReleaseLocal;
                 };
                 _helicopter setVariable ["CBE_ImprovedHelicopterLanding_TrackedLocal", true];
                 missionNamespace setVariable ["CBE_Aircraft_LandingSchedulerActive", true];

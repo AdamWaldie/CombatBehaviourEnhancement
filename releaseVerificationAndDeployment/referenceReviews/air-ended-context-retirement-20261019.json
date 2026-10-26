@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-19",
+  "scope": "Exact original aircraft job recovery after its executor ends",
+  "finding": "Discovery offers the original job before new attack admission, but restart admission required a non-null matching target and a valid original lease before considering ended-worker retirement. Deleted targets or lost lease/group/epoch could leave the active job permanently marked without a live executor.",
+  "implementation": [
+    "Exact original jobs can reuse the existing one-restart path despite deleted target identity, so original cleanup/egress runs without selecting a replacement contact.",
+    "An ended exact job with lost original flight lease/group/epoch retires through the existing guarded executor-failure cleanup and exact-token lease release.",
+    "An ended exact job with no pilot group also retires. A nonlocal group remains deferred as a possible ownership split.",
+    "Different requests cannot use this retirement; live workers retain their normal context-loss path. No new lease, deadline, controller, world query or timer.",
+    "The existing cleanup failure allowlist now admits FSM_RESTART_CONTEXT_LOST only under matching failed brain/job/generation/reason proof."
+  ],
+  "evidence": [
+    {
+      "path": "addons/aircraft/functions/airAttackOperationStart.sqf",
+      "sha256": "ee8083e51327f5218fd4b1163940204c42be040f3292c6d185091e2435fc9c93"
+    },
+    {
+      "path": "addons/aircraft/functions/cortexAirAttack.sqf",
+      "sha256": "2b1b5702d28172d5673c6bd329f6e41ddfd5d1035a6f422efd66ed167180e350"
+    },
+    {
+      "path": "addons/aircraft/functions/flightLeaseRelease.sqf",
+      "sha256": "a8dc5aec2bf3ea443f9767cf61b2e07eb4e21323c02c8f0028c8c2a651ced1aa"
+    },
+    {
+      "path": "addons/core/functions/cortexDiscover.sqf",
+      "sha256": "0e17f230172264a14e2fc3a7ae82acac43cfa95a675640de95e2a398571b0377"
+    }
+  ],
+  "validation": {
+    "focusedTests": 607,
+    "focusedLog": ".qa/cbe-air-ended-context-reviewed-focused.log",
+    "hemttLog": ".qa/cbe-air-ended-context-reviewed-hemtt.log",
+    "fullPipeline": "Pending coherent aircraft/support batch; prior package predates these changes.",
+    "initialPreparation": "Initial exact-text edit assertion failed before any files were written. Its old-source focused/compiler results are not evidence for the correction. Final reviewed logs cover actual changed source.",
+    "coherentCheckpoint": {
+      "tests": 1476,
+      "focusedTests": 607,
+      "focusedLog": ".qa/cbe-air-support-lifecycle-focused.log",
+      "hemttLog": ".qa/cbe-air-support-lifecycle-hemtt.log",
+      "buildLog": ".qa/cbe-air-support-lifecycle-build.log",
+      "independentLog": ".qa/cbe-air-support-lifecycle-independent.log",
+      "fingerprint": "7b3d11727718b3867a09fd8e09d4741c1c09a66ec78fb4694589b1d22f151ab6",
+      "packageSource": "46dd5b445a64e38767c8f38c697d2df72a4a76e6+dirty unsigned development"
+    }
+  },
+  "remaining": [
+    "Physical target deletion/egress, no-pilot and changed-crew cleanup, lease expiry, native restoration and normal/HC transfer unverified."
+  ],
+  "physicalAcceptance": false,
+  "scoresChanged": false,
+  "audits": "paused",
+  "callbackFollowup": "Aircraft/support/artillery Step liveness boundaries now implemented with domain recovery review; see operation-callback-liveness-20261019.json."
+}

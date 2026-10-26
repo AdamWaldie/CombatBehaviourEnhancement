@@ -22,9 +22,9 @@ class PedestrianSpeedTests(unittest.TestCase):
         self.assertLess(s.index('private _pedestrianCap='),s.index('_vehicle forceSpeed _capMps'))
         self.assertIn('_traffic=[_pedestrianCap/3.6,_vehicle,-1,time,0]',s)
         self.assertIn('if ((_trafficLimited && {!_solidCandidate}) || {_corridorActive} || {_hadCorridor} || {_bypassActive} || {_hadBypass} || {_passActive} || {_hadPass}) then {',s)
-        self.assertIn('if !(_recoveryStage in [2,4]) then {',s)
+        self.assertIn('if (!(_recoveryStage in [2,4]) && {!_keepBypassBudget}) then {',s)
         self.assertIn('RECOVERY_PAUSED',s)
-        self.assertIn('if (_recoveryStage != 2 && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {_vehicle distance2D',s)
+        self.assertIn('if (!_queueNativeActive && {_recoveryStage != 2} && {!_trafficLimited} && {!_corridorActive} && {!_hadCorridor} && {!_bypassActive} && {!_hadBypass} && {!_passActive} && {!_hadPass} && {_vehicle distance2D',s)
     def test_hull_geometry_and_bounded_read_only_observation(self):
         s=(ROOT/'addons/infantry/functions/cortexInfantrySpeed.sqf').read_text(encoding='utf-8')
         for marker in ('count _people > 32','min 250','_person modelToWorld',

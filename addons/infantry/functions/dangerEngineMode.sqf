@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Target identity respects native ignoreTarget policy; no ignore setting is changed.
  * Purpose: Classify one engine danger record into a finite immediate-response state.
  * Locality / Authority: Runs for the local AI soldier and reads current orders and ownership only.
  * Repeat/JIP: Pure classification. A new owner receives and classifies later engine danger locally.
@@ -10,9 +11,14 @@
  */
 
 params [["_actor",objNull,[objNull]],["_record",[],[[]]]];
-if (isNull _actor || {!local _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)}
+if (isNull _actor || {!local _actor} || {!simulationEnabled _actor} || {isObjectHidden _actor}
+    || {!([_actor] call CBE_fnc_CortexCombatEffective)}
     || {isPlayer _actor} || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {count _record < 3}) exitWith {"RELEASE"};
+// A provider may claim only the occupied platform between engine FSM states.
+// Match the waiting gate before classification, observations or action side effects.
+private _parent=objectParent _actor;
+if (!isNull _parent && {[_parent] call CBE_fnc_CompatibilityExternalControl}) exitWith {"RELEASE"};
 private _group=group _actor;
 if (isNull _group || {!local _group}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
@@ -24,7 +30,8 @@ if (isNull _group || {!local _group}
 // ownership made the danger FSM observation-only for the exact actors already fighting. Zeus,
 // players and declared external owners have already yielded above; retain only commands which
 // represent a concrete boarding, action, treatment, supply or group-transfer task here.
-if (fleeing _actor || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {"FORCED"};
+if ((_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []
+    || {fleeing _actor} || {currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}) exitWith {"FORCED"};
 // Vehicle response is a domain handoff, not an infantry path request. Classify it before the
 // on-foot posture classification so an intentionally immobile static gunner, artillery crew or stopped vehicle
 // commander still publishes danger to the correct dedicated owner. No movement is issued here.
@@ -49,6 +56,7 @@ if (_cause in [0,3,8]) exitWith {
     if (!isNull _source && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")} && {alive _source} && {!captive _source}
         && {!(_source getVariable ["ace_captives_isSurrendering",false])}
         && {!(_source getVariable ["ace_captives_isHandcuffed",false])}
-        && {(side _group) getFriend (side _source) < 0.6}) then {"ENGAGE"} else {"ASSESS"}
+        && {(side _group) getFriend (side _source) < 0.6}
+        && {!((_actor targetKnowledge _source) param [7,false,[true]])}) then {"ENGAGE"} else {"ASSESS"}
 };
 "ASSESS"

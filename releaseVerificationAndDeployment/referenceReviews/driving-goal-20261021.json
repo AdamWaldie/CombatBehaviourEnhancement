@@ -1,0 +1,22 @@
+{
+  "baseline": "f1a2a3ed",
+  "scope": "Shared current plain authored driving goal boundary",
+  "purpose": "Required foundation for separate direct-native MOVE identity/handback; do not duplicate waypoint assumptions in another route mode.",
+  "implementation": [
+    "Registered DrivingRouteGoal returns one finite PositionAGL goal only for current plain authored MOVE. Conditions/code, scripts, timeout, attachments and trigger/waypoint sync reject. No native mutation, cache or scan.",
+    "RecoveryOrderFree, DrivingGateIntent and DrivingRecoveryRelease now consume this same policy. Exact route/crew/epoch/native receipts remain caller-owned command authority.",
+    "Recovery handback issues the resolved original authored goal, never synthesizes waypoint0. Native MOVE mode is not enabled by this checkpoint."
+  ],
+  "validation": {
+    "initial": ".qa/driving-goal-tests.log: existing literal-location tests failed after policy moved; updated to trace shared policy and caller ordering, coverage regenerated.",
+    "full": ".qa/driving-goal-build.log all1484/395SQF and full offline gates passed",
+    "independent": ".qa/driving-goal-independent.log",
+    "candidate": ".qa/candidates/driving-goal-f1a2a3ed",
+    "fingerprint": "04adb043c451fab2eec3ad7c137e9f92c015d70d4d9cc9578db3e353bf73bdca"
+  },
+  "remaining": [
+    "Direct native MOVE receipt, exact temporary leg recognition without recursive route calls, immutable original native goal and native-specific handback remain unimplemented.",
+    "All28 receipt consumers need explicit native-mode disposition; no fabricated authored waypoint or general compatibility inference.",
+    "Audits paused; native action timing, HC and performance unverified. Shared function adds call overhead; no performance gain claimed."
+  ]
+}

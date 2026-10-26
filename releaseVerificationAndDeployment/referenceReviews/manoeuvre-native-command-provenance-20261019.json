@@ -1,0 +1,466 @@
+{
+  "baseline": "fedab7ef6abdeff4af94e77f3622efe3ba16e8fc",
+  "scope": "Active manoeuvre native command provenance and buddy handoff",
+  "status": "Natural/coordinated STOP admission, standalone passive HOLD resume and finite coordinated passive-hold adoption implemented; independent MOVE/identical-order attribution and physical/performance acceptance remain open",
+  "source_sha256": {
+    "addons/infantry/functions/combatPairs.sqf": "76575c2042da0a36139d8529d02bd3bf370dac88962c3188876513a36502c69f",
+    "addons/infantry/functions/cortexFlankStep.sqf": "c0f2c81ea4ad9d68031ecba533d928c8cb822f3ef83ab8ad533b42c919eecb39",
+    "addons/infantry/functions/cortexFlankEnd.sqf": "0f230544b844cb622951a956dab304cb3bb5abc27440b47eedf33f83ca362eba",
+    "addons/infantry/functions/cortexDrillResume.sqf": "75a3bea227f145236095ef8572d4e37b11c1ea78dfeb3ca9ba0e9aa867df8118",
+    "addons/infantry/functions/cortexAdvanceStart.sqf": "bd658c1b381c47588c82a8a926b81c5cb988bb7bfa20359f1be13f69c224a140",
+    "addons/infantry/functions/cortexAssaultStart.sqf": "5e57551df574450e3ce77121b4c7951f7af431e0c777be9a2ea639cd595421a8",
+    "addons/infantry/functions/cortexFlankStart.sqf": "e912cdb239ca354f847bd8ecd84e860a1a693125e7112cac155d3e219fad2548",
+    "addons/support/functions/cortexSupportBoundStart.sqf": "07964ffc92ee1fe0eca077d7b85d9cbffc770bf4f3d72572fba624c6607148ae",
+    "addons/infantry/functions/cortexDrillStart.sqf": "5f4f2f1f69d1adcb998955a75d20c6c1586fd9e43ae55749bfde7458f3805574",
+    "addons/infantry/functions/cortexHolderRecallOwned.sqf": "df26f778de1115760cd1ef37af65ee3c2b7429c1149e719becc1477d6ef5d4cb"
+  },
+  "findings": [
+    {
+      "path": "addons/infantry/functions/combatPairs.sqf",
+      "finding": "Intact eligible pairs are retained; nearest eligible survivors repair orphans. This is pairing metadata, not movement or arrival proof."
+    },
+    {
+      "path": "addons/infantry/functions/cortexFlankStep.sqf",
+      "finding": "_actorTaskFree excludes finite actor reservations, specialists and service tasks but does not distinguish a native STOP from a CBE-issued covering/arrival STOP. _rankCandidates has the same STOP admission gap for unassigned relief. _mayIssueMovement delegates to that predicate. Native snapshots at commit protect against changes since observation, not an independent order already present at callback entry.",
+      "writes": [
+        "Cover doStop in _issueMoves",
+        "Arrival doStop in MOVE action commit",
+        "Main bound doMove",
+        "Timed retry doMove",
+        "Recovery rally doMove",
+        "Consolidation doMove"
+      ]
+    },
+    {
+      "path": "addons/infantry/functions/cortexFlankEnd.sqf",
+      "finding": "Movement cleanup filters reservations and service tasks but not independent STOP. On ordinary abort _mayCommand can doFollow for the remaining roster. Completed holds have separate holderRecallReceipts, but those do not prove ownership of active-bound STOP commands."
+    }
+  ],
+  "required_change": [
+    "Record active-drill command provenance at accepted actor admission and each actual native movement/hold write, scoped to token/epoch/generation and actor identity. Reuse existing drill state; no global registry or per-actor worker.",
+    "Compare current native intent with that proof before movement, cover, retry, casualty recruitment and end cleanup. A newer independent command yields that actor and never receives formation-return cleanup.",
+    "Keep current CBE-issued cover/arrival STOP eligible for the next bound; a blanket STOP veto is not a valid fix. New unassigned stopped relief actors must not be recruited.",
+    "Audit initial start, replacement admission and owner-resume paths together. Old-machine proof must not authorize replay after migration. Do not capture a new native baseline merely because a callback ran.",
+    "A native command identical to an owned command may be observationally indistinguishable. State that limit instead of claiming perfect order attribution."
+  ],
+  "validation_required": [
+    "Existing regression cases extended; no new tests.",
+    "Offline full build and package verification after implementation.",
+    "Later physical authored STOP/MOVE interruption during bounds, normal cover-to-move progression, casualty refill, abort cleanup and actual-provider locality transfer. Audits remain paused."
+  ],
+  "acceptance": {
+    "implemented": false,
+    "physical": false,
+    "performance_measured": false,
+    "buildout_scores_changed": false,
+    "new_controller": false
+  },
+  "implementation": {
+    "new_relief": "Unassigned candidates in CortexFlankStep reject native STOP before joining a fire team. RebalanceRoles rejects STOP for actors outside its entry participant roster, with the same predicate rechecked at publication.",
+    "retained_gap": "Initial individual MOVE attribution and coordinated/owner-resume initial admission remain open. Active command receipts remain owner-local and absent from checkpoints. Identical replacement orders remain observationally indistinguishable.",
+    "no_new_tests_or_controller": true,
+    "active_stop": "Current-drill nativeCommands records actual MOVE/HOLD issues, at most64 actors. After a recorded MOVE, STOP requires an unchanged prior owned HOLD within the original2second acknowledgement; a HOLD receipt permits next-bound transition only with matching destination/formLeader.",
+    "cleanup": "CortexFlankEnd recalls native STOP only with exact current-drill HOLD receipt. MOVE or absent receipts grant no STOP cleanup authority.",
+    "move_destination": "Actual main/retry/recovery requested destinations are retained independently of expectedDestination. Active MOVE must match the requested point, except unchanged post-write sampled native state during original2second acknowledgement. HOLD-to-MOVE acknowledgement remains bounded. Cleanup has no acknowledgement exemption and requires a matching MOVE target/formLeader.",
+    "natural_admission": "Advance/flank/assault initial rosters reject unknown STOP; exact completed CBE holder receipts may transfer in CortexDrillStart under current state/token/epoch/generation. Old holder recall tokens/rows retire atomically. Passive transfer issues no command or new acknowledgement interval. Checked natural starts refuse an unknown STOP before first callback."
+  },
+  "coordinatedStopFollowUp20261020": {
+    "baseline": "4f880d55",
+    "finding": "Coordinated bound roster and covering STOP admission accepted unknown native STOP. Active nativeAdmissionChecked was absent, allowing that baseline through the first callback.",
+    "change": "Read-only CortexSupportStopOwned compares exact seven-field local support hold. Coordinated bound/cover reject unowned STOP. Matching bound holds transfer as HOLD nativeCommands with ack=-1 and nativeAdmissionChecked=true; consumed support rows retire in the same allocation transaction. A roster larger than64 refuses rather than partially transferring STOP ownership.",
+    "cost": "At most64 direct map lookups, no scan/ray/worker/timer or new native write. Existing callback and drill lifecycle retained.",
+    "remaining": [
+      "Owner-resume initial STOP admission and portable active proof remain open.",
+      "Independent MOVE attribution and identical replacement orders remain open.",
+      "Cover-to-move, casualty flow, normal/providerHC migration and overhead remain physically unverified."
+    ],
+    "sources": {
+      "addons/support/functions/cortexSupportBoundStart.sqf": "409d33d42bccce98383c86174544743f9bfa8092ff89944797a5d3a4aabe22f0",
+      "addons/support/functions/cortexSupportMaintain.sqf": "1a51706e2752b45e2f1612f988618a4880c0904de4e90551ebdaeab10691dedb",
+      "addons/support/functions/cortexSupportStopOwned.sqf": "6446a77b8b4482b4f85eb4bd944ace64825eff22c902644aed3f513004df599a"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "focusedActorTests": 48,
+      "focusedOperations": 607,
+      "build": ".qa/cbe-coordinated-stop-admission-build.log",
+      "independent": ".qa/cbe-coordinated-stop-admission-independent.log",
+      "candidate": ".qa/candidates/coordinated-stop-4f880d55-0731e402",
+      "fingerprint": "0731e402a252e49a1e8d5ee6e07e29be289fc1342f048fb8972cf7529e99f4b8",
+      "source": "4f880d55 plus intended dirty coordinated-admission edits",
+      "initialFailures": "Coverage lacked new source and old exact minimum-roster assertion rejected combined upper bound. Source registered; upper bound split into separate guard, original minimum regression retained."
+    },
+    "physical": false,
+    "scoresChanged": false
+  },
+  "authoredOrderFollowUp20261020": {
+    "baseline": "d539b638",
+    "finding": "Resume guarded boundWaypoint index/position only; unchanged-position edits to conditions/scripts/attachments/synchronisation could resume old drill intent. Checkpoints did not carry full original authored identity.",
+    "change": "DrillStart freezes authoredOrder once using existing NativeOrderReceipt; checkpoint serialises original value. Active FlankStep retires REPLACED before operation progress or movement when changed. Resume rejects absent/changed receipt before inspectOnly admission, protecting locality mode preservation as well as actual reconstruction.",
+    "cost": "One read-only native current-order receipt per active callback, using existing metadata helper. Native waypoint handle count scales with route length; overhead unmeasured. No new query/ray/controller/worker.",
+    "sources": {
+      "addons/core/functions/nativeOrderReceipt.sqf": "52d06fec20595d048242239024f440d05cd421cb8b71849e5cfc985dbad64bd0",
+      "addons/infantry/functions/cortexCheckpoint.sqf": "f0547c029b5ae116443b77cd5bd307a919d5f50226b28970c02b9b381e370e3b",
+      "addons/infantry/functions/cortexDrillResume.sqf": "fd544aa2d3b14c15ff9bb3c1f968c2a1cef1491fdf8fd36e42e107f9358b463b",
+      "addons/infantry/functions/cortexDrillStart.sqf": "2225a9aa0d8bd03425865ba8003ddde1ac42874b6814ee3dda7957b1ba504aa9",
+      "addons/infantry/functions/cortexFlankStep.sqf": "ad109123de24862d6f36919edb8cadc4e66f4a3f301345710c3c5dfdbae94a72"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-drill-authored-order-build.log",
+      "independent": ".qa/cbe-drill-authored-order-preserved-independent.log",
+      "candidate": ".qa/candidates/drill-order-d539b638-2c1c8e24",
+      "fingerprint": "2c1c8e2412f308e3464dfc7a0a333d775d073f79ff06c125c8759e26fc7dc7ae",
+      "source": "d539b638 plus intended dirty authored-order edits"
+    },
+    "limits": [
+      "Independent native actor STOP/MOVE and identical-order provenance remain separate.",
+      "If locality changes before the initial executor captures its receipt, missing receipt refuses resume.",
+      "Normal and actual-provider HC interruption/performance remain unrun; audits paused."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "passiveHoldResumeFollowUp20261020": {
+    "baseline": "62226672",
+    "finding": "Checkpoint retained destinations/retries but omitted active nativeCommands. Resume admitted unknown STOP and did not mark admission checked, allowing the first resumed callback to replace it. Blanket STOP refusal would strand genuine CBE covering holds.",
+    "change": "Checkpoint exports at most64 exact current HOLD rows only, plus original issuer token/owner/epoch/generation. Actual resume validates original token/generation, unchanged authored receipt, local actor currentSTOP/destination/formLeader, fitness/features/reservations/unavailable state. Valid holds seed nativeCommands with ack=-1 and nativeAdmissionChecked=true. No MOVE/grace/FSM replay or public actor markers.",
+    "cost": "At most64 local command rows inspected per existing checkpoint and64 rows adopted per locality event, no new timer/ray/world query. Roster membership comparisons are bounded but overhead remains unmeasured.",
+    "sources": {
+      "addons/infantry/functions/cortexCheckpoint.sqf": "fca1820d7706e5ed4677d6867820619be4adae6ab57ae5c457831fe0a56fe47f",
+      "addons/infantry/functions/cortexDrillResume.sqf": "fbe4cf99bdcd4e45580c74e6a975a5cbd3c19078d73fd095216305a41981af68",
+      "addons/infantry/functions/cortexFlankStep.sqf": "0261dda285538299e54d5839ba3d3088826c440beb5e25e7ca5a875aef27a64e"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-drill-passive-hold-resume-build.log",
+      "independent": ".qa/cbe-drill-passive-hold-resume-preserved-independent.log",
+      "candidate": ".qa/candidates/drill-hold-62226672-a603a86e",
+      "fingerprint": "a603a86e5bd02d067c0340ab8487ca8de2caebd53e100d3e8ebc89804aff6efc",
+      "source": "62226672 plus intended dirty passive-HOLD resume edits"
+    },
+    "remaining": [
+      "Coordinated support holds still use their separate current-owner receipt policy.",
+      "Identical replacement orders remain observationally indistinguishable; missing or changed proof excludes the actor.",
+      "Normal/providerHC physical cover-to-move continuation and 5%median/10%p95 overhead remain unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "supportTransitionFollowUp20261020": {
+    "baseline": "3b3a06a4",
+    "finding": "Stricter coordinated STOP admission exposed existing split journals: completed support bounds wrote generic holder receipts, while next bound requires supportStopHolds. Active ROLE_HANDOVER retires child without recall, losing its exact local HOLD proof. Genuine CBE stops could then be excluded.",
+    "change": "Completed support holds stay in parent supportStopHolds, with original expiry; stragglers preserve existing doFollow path. ROLE_HANDOVER to matching COVER passively transfers only current-drill owned STOPs from the already-filtered members, before child retirement. Completion cleanup also verifies original authoredOrder before any native command; generic completed holds retain original frozen receipt, not a fresh baseline.",
+    "cost": "At most64 existing actor/hold rows, one authored-order receipt per end. Reuses existing cleanup transaction and journals, no new handler/query/ray/timer/lease.",
+    "source": {
+      "path": "addons/infantry/functions/cortexFlankEnd.sqf",
+      "sha256": "cb1784f589c9c095388682f29c41e56c7b6f654c4df9fe24eddf47b18342682d"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "focusedActorTests": 48,
+      "focusedOperationTests": 607,
+      "build": ".qa/cbe-support-hold-transition-build.log",
+      "independent": ".qa/cbe-support-hold-transition-independent.log",
+      "candidate": ".qa/candidates/support-transition-3b3a06a4-1e10f10f",
+      "fingerprint": "1e10f10f6236fd217cf2e8f5bb6f5bcfec3174bc53886b90d21a58a425f2c966",
+      "source": "3b3a06a4 plus intended dirty support-transition edits"
+    },
+    "remaining": [
+      "Actual-provider coordinated support hold migration remains open; no portable support cleanup granted.",
+      "Repeat MOVE/COVER flow, stragglers, casualty and authored-order interruption require later physical validation."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "supportParentOrderFollowUp20261020": {
+    "baseline": "02230168",
+    "finding": "Coordinated child drills had authored-order proof, but the parent support assignment and its owner-adoption path could continue or recapture a changed waypoint as baseline. Parent cleanup could then recall its old holds into the replacement order.",
+    "change": "SupportApply freezes supportAuthoredOrder for accepted attack parents; checkpoint and Locality job carry original receipt/revocation. Adopting coordinated assignments require unchanged nonempty original receipt before OperationStart. Maintain retires REPLACED before roles/commands and revokes native cleanup permanently for that assignment, including pending cleanup. Fresh accepted operation resets revocation; rally remains on its existing route lifecycle.",
+    "cost": "One current-order receipt per active coordinated parent callback, none after sticky revocation. Existing checkpoint/job transport only; no timer/ray/new controller. Overhead unmeasured.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "844536742b61b2d22d03b300eb61037a3dce2ea31ba1b604d5a2e44b95828f6b",
+      "addons/core/functions/nativeOrderReceipt.sqf": "17878101643a5f418aec5f9ebf2cb54188336e78d6d6b467940c2d649e6464e2",
+      "addons/infantry/functions/cortexCheckpoint.sqf": "52e03ec8fc88d4db5933a906a66fdd17615d8bd5991460414eced7033bfb64a8",
+      "addons/support/functions/cortexSupportApply.sqf": "2c93d1e723b39674996e4250a3748d0a554d2da5b7a06a4c1f66bad44db39b3b",
+      "addons/support/functions/cortexSupportMaintain.sqf": "b36b1b7de950b80b73fda0942a553ec387e72a06908f78bed9e639e0e4c095fe"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-support-parent-order-final-build.log",
+      "independent": ".qa/cbe-support-parent-order-independent.log",
+      "candidate": ".qa/candidates/support-order-02230168-0903b5d4",
+      "fingerprint": "0903b5d43fc293492c5d250fdaa9cb4c40bb27420399cb58b09faae1ac554230",
+      "source": "02230168 plus intended dirty parent-order/revocation edits",
+      "intermediateBuild": ".qa/cbe-support-parent-order-build.log passed before late-delivery refinement; not final evidence"
+    },
+    "remaining": [
+      "Coordinated passive support-hold adoption still requires implementation; this change establishes original-order continuity first.",
+      "Actual-provider HC ordering, replacement flow and performance remain unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false,
+    "lateDelivery": "Sticky exact revoked token survives local release and checkpoint adoption. A normal stale delivery of that same token refuses before OperationStart; declared adoption also requires the original matching public status. A newly accepted different token retires refusal metadata."
+  },
+  "coordinatedHoldAdoptionFollowUp20261020": {
+    "baseline": "42c061f7",
+    "finding": "Parent/child support holds were owner-local. New-owner exact STOP admission could not recognise old covering holds, especially when group Local preceded actor locality.",
+    "change": "Existing checkpoint exports exact parent/active-child HOLD union up to64 actors, refusing overflow. Locality passes proof to existing SupportApply. Original token/source generation/expiry/frozen order required before new parent starts. Existing Maintain consumes candidates for original min(now+5,lease expiry), retaining only nonlocal rows and dropping local mismatches. New-owner support receipts require actual native/actor/fitness/features/reservations checks. Duplicate actual-parent adoption ACKs without new generation/window. Release clears pending adoption.",
+    "cost": "At most128 original journal rows per checkpoint, union64; at most64 pending rows per existing callback during five seconds. No ray/query/marker/worker/timer/native command. Measured overhead unknown.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "da8bb6b5d078add8e08632f8efed8b74b1d501e6b95b7f8751b378070ddb36cb",
+      "addons/infantry/functions/cortexCheckpoint.sqf": "78fe5156705fd69c94084645bbb87b5b8e449505166544ea666f794eb733dd85",
+      "addons/support/functions/cortexSupportApply.sqf": "7c2c6882c9b200b4e35caf626cd9960e7cc16ed88b834cd91204445fbe75d2ea",
+      "addons/support/functions/cortexSupportMaintain.sqf": "5c99f5ff75105694c6a0ce776ca236ab79b0b17157381c0c95496ae78a264fd9"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "focusedActorTests": 48,
+      "focusedOperationTests": 607,
+      "build": ".qa/cbe-coordinated-hold-adoption-build.log",
+      "independent": ".qa/cbe-coordinated-hold-adoption-independent.log",
+      "candidate": ".qa/candidates/support-adoption-42c061f7-76016bae",
+      "fingerprint": "76016bae99bbce48f0adbdeb3d38ff7bc74a3ee743054fed882fc0bfd605d35f",
+      "source": "42c061f7 plus intended dirty coordinated hold-adoption edits",
+      "initialFailure": "Existing release-list assertion expected only prior fields. Extended it to require pending adoption removal as well."
+    },
+    "remaining": [
+      "Normal/providerHC physical cover-to-bound flow, ordering, casualties and measured cost unverified.",
+      "Identical replacement native orders remain indistinguishable.",
+      "Parent recovery-attempt/unavailable-state migration remains a separate lifecycle review scope; this adds no claim of full operation migration."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "supportRecoveryBudgetFollowUp20261020": {
+    "baseline": "023f6024",
+    "finding": "SupportApply constructed a fresh parent with empty recoveryAttempts/unavailable on adoption, even when the same finite support assignment had spent its budget.",
+    "change": "New parents publish exact supportToken/supportExpiry. Locality snapshots observed counters and unavailable roster before old-parent cancellation only for matching coordinated identity/expiry and <=64 rows. Coordinated adoption requires valid original token/source generation/expiry, typed nonnegative integer counts and unique keys. Missing/oversized/malformed proof refuses before OperationStart. New parent receives observed counts/exclusions before owner acknowledgement. No recovery command/destination/timer replay. Duplicate actual-parent acknowledgement also requires exact expiry.",
+    "cost": "At most64 counter and64 unavailable rows at transfer, no added periodic scan/timer/native command. One additional parent-record publication at acceptance.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "2b5e082c145042d27386934259e2d665a59bda3930ff8cf60e08f381bb1f03b8",
+      "addons/infantry/functions/recoveryStep.sqf": "280f29aa4f290097f1cd68f46429459697a3747bd63e0b75329793486694a1f2",
+      "addons/support/functions/cortexSupportApply.sqf": "9ba4f69e49a4417cd9eb6bf16a2f2f76f554054644db9066b09b91202afa575a"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-support-recovery-budget-build.log",
+      "independent": ".qa/cbe-support-recovery-budget-independent.log",
+      "candidate": ".qa/candidates/support-budget-023f6024-8474848a",
+      "fingerprint": "8474848a289d3d4595685502390e40e88e13739124838c95e4273bee00565198",
+      "source": "023f6024 plus intended dirty parent-budget edits"
+    },
+    "remaining": [
+      "Preserves delivered observed state; ordered replication and in-flight publication at transfer are physically unverified.",
+      "Child bound retries/deadline continuation remain separate scope.",
+      "Repeated actual-providerHC transfer and overhead unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "coordinatedServerClockFollowUp20261020": {
+    "baseline": "c4d8956b",
+    "finding": "Server boundActive retains its original watchdog and SupportAck does not renew it. Owner MOVE roles lacked that absolute clock; reconstructed child local deadlines could restart, and delayed role retirement could permit new owner commands beyond the original server bound.",
+    "change": "Coordinator publishes exact token/sequence/original deadline/point capped by lease expiry before role. Owner readiness waits within existing5s for both receipts; BoundStart rejects missing/expired/mismatched/extended deadline and captures it. Active FlankStep checks original clock after operation/eligibility interruption checks, before policy/movement; mismatched clock suspends new commands with heartbeat only, no deadline renewal. Movement issue requires unchanged captured clock and unexpired time. Cover/lease cleanup clears clock.",
+    "cost": "One small public receipt per role change, constant map/array/time checks through existing callbacks. No worker/timer/ray/world scan.",
+    "sources": {
+      "addons/infantry/functions/cortexFlankStep.sqf": "67a78b992665cfdf9accbc621adbc758b487dbf0bfaf902c91c35a56cf0d5bfe",
+      "addons/support/functions/cortexSupportAck.sqf": "d88bf11d048944f15439ab60413e15aa43442be5247a0ea3f8b7f2bbf48b8795",
+      "addons/support/functions/cortexSupportAssaultServer.sqf": "918858fcbf2d56a65a404b91065e7aced703a25ffe2c104de855d2f283033d0e",
+      "addons/support/functions/cortexSupportBoundStart.sqf": "0ad30d08fd9caa5ee11c486ac13c357508d4c080b8b5c716fe4bb57b647c9eef",
+      "addons/support/functions/cortexSupportCoordinateStep.sqf": "c82f121b353423845ba839c6903f810941ff6be30567f16c121f05e30816a497",
+      "addons/support/functions/cortexSupportMaintain.sqf": "5bd587d4de378d523de99dce3438d28ee1a41064bcfb9005974b8035f1b6b444",
+      "addons/support/functions/cortexSupportStep.sqf": "ecc967778c66f85794c8033e9e42ca185a50011bf13e6634d3afdd0d4a5f0b4d"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-coordinated-server-clock-build.log",
+      "independent": ".qa/cbe-coordinated-server-clock-independent.log",
+      "candidate": ".qa/candidates/support-clock-c4d8956b-4b523a99",
+      "fingerprint": "4b523a996b30f79b7245ed880ab1c9b07c75384f3381a6a44ce1bda70d25ba50",
+      "source": "c4d8956b plus intended dirty server-clock edits"
+    },
+    "remaining": [
+      "Child-local retry counts and team-turn continuation still need transfer review; outer server deadline is now consumed locally.",
+      "Normal/providerHC receipt reordering, timeout cleanup and overhead unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "supportOwnerRedeliveryFollowUp20261020": {
+    "baseline": "8f8cb3de",
+    "finding": "SupportStep owner-change branch sent ordinary SupportLocal delivery. Its job lacked adopt/proof context and could reach fresh SupportApply admission independently of canonical Locality recovery.",
+    "change": "Server owner-change branch sends explicit thirdBOOL. SupportLocal labels ownerChange/adopt and keeps original5s readiness window. Apply waits for exact current local parent identity including supportOwner/clientOwner, currentepoch/generation/token/expiry/intent/status, then borrows original local authored receipt and ACKs actual existing parent. Explicit ownerDelivery guard prevents any fallthrough into OperationStart. Parent acceptance publishes supportOwner. Duplicate actual-parent ACK now supports both coordinated and rally intents. No forced Locality call or new queue/worker.",
+    "sources": {
+      "addons/core/functions/cortexQueueJob.sqf": "05afa972b902df04c10d4d5e02c9ee7571a2ca02bfc3eec02ff2e6e9ceee7b11",
+      "addons/core/functions/cortexSchedulerTick.sqf": "e45cd0675bb7a67865cf043a7d24121f6070b6e05b29348682eb6069427b5ecf",
+      "addons/support/functions/cortexSupportApply.sqf": "d715d69a5c7f337f45c8dd83aaa9d78c12416697725a39882f5123322cf0385c",
+      "addons/support/functions/cortexSupportLocal.sqf": "6020adaab753ffcbf886d2d75926f51659db5c3a04344f3d53659785b3679ec1",
+      "addons/support/functions/cortexSupportStep.sqf": "f8a91b5a043883b9279bd992278de354ba43bbbc60c21e30669e79297a1e3794"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-support-owner-redelivery-build.log",
+      "independent": ".qa/cbe-support-owner-redelivery-independent.log",
+      "candidate": ".qa/candidates/support-delivery-8f8cb3de-bd49baab",
+      "fingerprint": "bd49baab79abeaa42689d78a416bd9d2ffb8e3626eec440cddcdcfe300786372",
+      "source": "8f8cb3de plus intended dirty owner-redelivery edits"
+    },
+    "remaining": [
+      "Actual SupportStep delivery before/after Local event, stale queued-epoch retirement and providerHC readiness remain physically unverified.",
+      "Canonical adoption can refuse missing original proof; server redelivery deliberately cannot rebuild it."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "supportBoundRetryFollowUp20261020": {
+    "baseline": "22771602",
+    "finding": "Child-local one-refresh counts could reset on coordinated bound reconstruction or parent adoption.",
+    "change": "Parent boundRetryAttempts retains at most64 actor keys with latest server sequence and spent refresh count. Consume and publish before native refresh. Only greater sequence replaces an older row; malformed or older rows refuse. Adoption validates and restores the journal before ACK. Standalone policy unchanged.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "9bc9d19883f24ac2cdbb60c76a7e58451f7b6a73147f012db517a1437c0e7aba",
+      "addons/infantry/functions/cortexFlankStep.sqf": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4",
+      "addons/support/functions/cortexSupportApply.sqf": "068c72e699e13d211dff41a849bdacb10f5f8b57a307e0c59f09985954635e1b"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "focused": "48 actor reservation and607 operation cases pass",
+      "build": ".qa/cbe-support-bound-retry-build.log",
+      "independent": ".qa/cbe-support-bound-retry-independent.log",
+      "candidate": ".qa/candidates/support-bound-retry-22771602-74ddb1d4",
+      "fingerprint": "74ddb1d43bc2ce22111194ef4288a8f71bb7fa67b0f6458ef171998b736b143e",
+      "source": "22771602 plus intended dirty bound-retry changes"
+    },
+    "remaining": [
+      "Team-turn continuation and main-move replay review remain open.",
+      "Observed snapshot preservation does not prove ordered in-flight replication; normal/providerHC transfer and performance unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "supportTeamContinuationReview20261020": {
+    "baseline": "3c096600",
+    "finding": "BoundStart always constructs teamTurn0/index0. Apply adoption resets supportBoundSequence to-1. Standalone drillIntent serialization explicitly excludes supportToken children. Public SupportTeams reports stage/turn/teams/movers but is diagnostic, without generation/epoch, original clock or native receipts. Therefore it cannot safely authorize child restoration.",
+    "secondaryFinding": "Maintain treats any sequence unequal to consumed sequence as new, including a lower sequence. Parent retry budget prevents replenishing an already-spent refresh but does not by itself prevent first-leg replay or team reallocation.",
+    "sourceIntent": {
+      "reference": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssault.sqf",
+      "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+      "observation": "LAMBS individual doAssault retains expectedDestination for a BUSY unit when its goal remains near getHideFrom. Useful intent is preserving current work, not arbitrarily reissuing it; this helper has no CBE coordinated migration contract.",
+      "disposition": "Implement continuity in CBE owner-local parent/child execution; no dependency or upstream code copied."
+    },
+    "nextImplementation": [
+      "Record semantic team membership, consumed server sequence and completed turn in current parent, bound to token, original expiry and point. Preserve through validated adoption.",
+      "Distinguish completed first turn, pending first turn and finished sequence. Never reset completed turns or restart an already-finished same sequence.",
+      "Revalidate native movement/hold ownership and actual arrival before continuing; do not treat diagnostic team labels as movement authority.",
+      "Preserve original deadline/retry counters, reject older role sequences, and reconcile casualties through existing finite roster logic."
+    ],
+    "sources": {
+      "addons/support/functions/cortexSupportBoundStart.sqf": "0ad30d08fd9caa5ee11c486ac13c357508d4c080b8b5c716fe4bb57b647c9eef",
+      "addons/support/functions/cortexSupportApply.sqf": "068c72e699e13d211dff41a849bdacb10f5f8b57a307e0c59f09985954635e1b",
+      "addons/support/functions/cortexSupportMaintain.sqf": "5bd587d4de378d523de99dce3438d28ee1a41064bcfb9005974b8035f1b6b444",
+      "addons/infantry/functions/cortexCheckpoint.sqf": "78fe5156705fd69c94084645bbb87b5b8e449505166544ea666f794eb733dd85",
+      "addons/infantry/functions/cortexFlankStep.sqf": "ccbe9d5bb4703bcb1878688a7d6ccaa24c249529c92c3b7ca67ec2e1bead73b4",
+      "addons/core/functions/cortexLocality.sqf": "9bc9d19883f24ac2cdbb60c76a7e58451f7b6a73147f012db517a1437c0e7aba"
+    },
+    "validation": {
+      "kind": "read-only call-path/source review",
+      "runtimeChanged": false,
+      "testsRepeated": false
+    },
+    "physical": false,
+    "scoresChanged": false
+  },
+  "supportTeamContinuationImplementation20261020": {
+    "baseline": "3c096600",
+    "change": "Parent boundProgress retains current sequence/point/two teams/completed turns. Arrival-only stage transitions publish progress before PAUSE continuation. Reconstructed same-sequence child retains partition and completed turn; newcomers enter pending second team. Completed two-turn sequence ACKs result without another FSM or command. Maintain uses monotonic new-sequence comparison and refuses roles older than parent progress. Eight-field recoveryProof validates and restores bounded semantic record. No new worker or command ownership granted.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "b03f3ad93b96883caa2d240999d89b9f0da92d82b8098f0f6fdd61e9b38a4115",
+      "addons/support/functions/cortexSupportApply.sqf": "b70e2b865cc05589c18d1e6ac4fb6389389adfc4745a18face6f8183f22305cf",
+      "addons/support/functions/cortexSupportBoundStart.sqf": "3da8e75246c6dbfa06a00cdfd33d4baa1dbf932e9a66022882974c081547ad55",
+      "addons/support/functions/cortexSupportMaintain.sqf": "229fece931058d4327ec970b547828fb581d7261d14f48117cfa1cfabffefd39",
+      "addons/infantry/functions/cortexDrillSetStage.sqf": "965823d91b791d8f56a6fdaef5789a1a3f6d4f0cefaf59aca154eefcf3741e6c"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-support-team-continuation-build.log",
+      "independent": ".qa/cbe-support-team-continuation-independent.log",
+      "candidate": ".qa/candidates/support-team-3c096600-7dad3d16",
+      "fingerprint": "7dad3d1617a2ffe6e6b75cb13f4c1a2129d5c91343bc4359f1902f7f4f6dc4a9",
+      "source": "3c096600 plus intended dirty team-continuation edits"
+    },
+    "remaining": [
+      "Native MOVE ownership and uninterrupted pending-leg transfer remain separate implementation work.",
+      "Physical ordering, casualty flow, normal/providerHC transfer and measured overhead unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "supportNativeMoveFollowUp20261020": {
+    "baseline": "457c8ac0",
+    "finding": "Reconstructed coordinated children had no imported native MOVE provenance and could reroll/reissue the pending leg.",
+    "change": "Existing bounded supportHoldProof now carries typed STOP or acknowledged MOVE rows. MOVE capture requires exact current goal and formation leader, current child identity and existing progress clocks. Existing finite owner-adoption callback validates current actor state and command; BoundStart requires matching sequence/turn on reconstruction and seeds exact destinations/native rows with no ACK grace. FlankStep observes imported legs without doMove/doWatch replay and converts original progress clocks to new local time. Original server clock and parent retry limits remain. Fresh admission policy unchanged; no new worker. Historical distance and ASL pose accompany clocks so travel during transfer remains observable instead of becoming a fresh baseline. Locality cleanup skips doFollow only for exact current MOVE proof matching source parent generation/epoch/token/expiry/authored order and live role; otherwise original cleanup remains.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "94d7977c7dd71fc83f6f75532724481f33c966f4f2cbbfdede92c80f72f19ec1",
+      "addons/infantry/functions/cortexCheckpoint.sqf": "2677b52bd225239eb87619dc0bc47eb85799dfbd814e58e0e8d6aa581859ddf3",
+      "addons/infantry/functions/cortexFlankStep.sqf": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0",
+      "addons/support/functions/cortexSupportApply.sqf": "5a3192b3dc78ce7917bb45916d2b4a604ca4c68da8165f723ab32042e020d208",
+      "addons/support/functions/cortexSupportBoundStart.sqf": "134d9a43eafdcd1948cfd5d7bb8b6a9a5850705d0df0457d7ab4b3dc76d9ed0b",
+      "addons/support/functions/cortexSupportMaintain.sqf": "a5240fd2fa701003a02a5d7653c698919446403b919d8e7326a02564c4da206c"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-support-native-move-complete-build.log",
+      "independent": ".qa/cbe-support-native-move-independent.log",
+      "candidate": ".qa/candidates/support-native-457c8ac0-ca5c89d4",
+      "fingerprint": "ca5c89d445ae0190efaa1ad368920ef4c6d7ac161ff33dc77c5654c7834c92a4",
+      "source": "457c8ac0 plus intended dirty native-MOVE continuity edits",
+      "superseded": ".qa/cbe-support-native-move-final-build.log passed before additional locality cleanup correction; initial build log retains two source-contract failures subsequently fixed"
+    },
+    "remaining": [
+      "Snapshot availability/ordered replication and actual native command behaviour on transfer remain physically unverified.",
+      "Repeated transfer, casualty flow and measured overhead unverified."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  },
+  "supportRapidTransferFollowUp20261020": {
+    "baseline": "3dc3fcce",
+    "finding": "A second transfer during settling could lose pending/native-imported rows and recreate a fresh5s window.",
+    "change": "Parent supportAdoptionUntil carries original absolute deadline through ninth recoveryProof field. Apply validates/reuses it; expired windows do not install pending rows. Checkpoint reexports bounded pending/imported observations under exact parent generation/epoch/token/expiry and original window; local changed commands dropped, nonlocal rows remain untrusted proposals for receiver checks. Actual child MOVE, completed sequence ACK or established COVER ends pending episode. No new callback/timer, destination reroll, progress-clock change or retry replenishment.",
+    "sources": {
+      "addons/core/functions/cortexLocality.sqf": "9f67647c04b142146bc8166b594aeff7090a891b3ecbb31a34ae435b819ebf9c",
+      "addons/infantry/functions/cortexCheckpoint.sqf": "d3c8c92cecf1864db86d80a82fc2ca09f10487aed86d52502bd51fe0086f114e",
+      "addons/infantry/functions/cortexDrillSetStage.sqf": "00cb7d93efe262861b8b4ec096916e92b3b8aabab99b07650016e20c5a4997c5",
+      "addons/support/functions/cortexSupportApply.sqf": "5c7a2f0a0a3623fd4f0c4659b2693cc4f2ce2c7b65e06de5db0f8465cfde8f4a",
+      "addons/support/functions/cortexSupportBoundStart.sqf": "83e3cb814f9a3d43916eb1632ad0979a64afa2722ce08cffb6ccf8353e6ddc3f",
+      "addons/support/functions/cortexSupportMaintain.sqf": "0a6715eae5892d808c036e436d4006affe625fb737ce144e738f5c86e4a9ada2"
+    },
+    "validation": {
+      "tests": 1477,
+      "newCases": 0,
+      "build": ".qa/cbe-support-rapid-transfer-build.log",
+      "independent": ".qa/cbe-support-rapid-transfer-independent.log",
+      "candidate": ".qa/candidates/support-rapid-3dc3fcce-fa1260c0",
+      "fingerprint": "fa1260c07e557fdb98b586636a2fe26c9819fc3e9ed9b9d3c794b065e4f3416c",
+      "source": "3dc3fcce plus intended dirty rapid-transfer edits"
+    },
+    "remaining": [
+      "Physical rapid transfer and partial/delayed snapshot replication unverified.",
+      "Snapshot absence still refuses continuity; performance overhead unmeasured."
+    ],
+    "physical": false,
+    "scoresChanged": false
+  }
+}

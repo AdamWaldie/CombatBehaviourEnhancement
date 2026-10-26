@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-18",
+  "scope": "CBE native crew handover journal isolation and mutation boundaries",
+  "source": "addons/vehicles/functions/drivingCrewStep.sqf",
+  "sha256": "c1d913a8459b553a792c33d9f3d3a2637ee184d1dc80d94b8da4b8a3ed620f74",
+  "source_lesson": "hbq-controller-handover-20261018.json; recheck every deferred mutation and retirement, not just initial admission. No upstream code copied.",
+  "findings": [
+    "Previously edited the live public HashMap in place before publication.",
+    "Publication/release cancellation did not compare an immutable entry snapshot against newer work.",
+    "Foreign-group journal reset could publish an empty replacement when current eligibility failed.",
+    "Original deadline was checked before action blocks but not again inside action admission."
+  ],
+  "implementation": [
+    "Healthy-driver fast exit precedes journal copies, route snapshots and crew enumeration.",
+    "Copy entry/work separately; publish only exact live entry with current group-owner brain and epoch unscheduled.",
+    "Refuse foreign-group journal rather than erase it.",
+    "Both native action guards require exact live journal and original deadline; publish issued phase in that same unscheduled block.",
+    "Retain all vacancy/driver/candidate/reservation/assignment/command/route/external guards and only two native actions."
+  ],
+  "validation": {
+    "tests": 1146,
+    "sqf": 315,
+    "pbos": 9,
+    "log": ".qa/cbe-crew-journal-isolation-verified-build.log",
+    "exit_code": 0,
+    "fingerprint": "807f7ce0d13e71166dafa289b3454455ab276f3374ac2846140873ab1cfb88d2",
+    "retained_failure": ".qa/cbe-crew-journal-isolation-build.log: fast-path comment assertion; initial focused calls also exposed moved release-scope delimiter and added publication isNil count. Checks now target actual release/action scopes and fast guard, retaining action/vacancy/no-forced-seating invariants.",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "remaining": [
+    "Native asynchronous seat completion and actor/vehicle split locality.",
+    "Same-value external ACTION remains indistinguishable during accepted SWITCHING phase.",
+    "Candidate-failure fallback and repeated casualty/route episodes require physical acceptance.",
+    "Deferred shutdown observation, actual external handovers and measured performance remain incomplete."
+  ],
+  "candidateSeatIntent20261020": {
+    "baseline": "fa8e71b9",
+    "finding": [
+      "Candidate selection allowed explicit unassignment or a newer same-vehicle seat intent to become its protected baseline.",
+      "A hidden/suspended priority cargo occupant passed selection, then failed the later candidate check and consumed the finite attempt ahead of usable alternatives."
+    ],
+    "implementation": [
+      "Require exact assigned vehicle and actual occupied fullCrew row assignedUnit equal candidate, before role priority and receipt capture.",
+      "Move existing visible/simulated prerequisites into candidate eligibility; retain the later current-boundary checks.",
+      "Reuse existing crew snapshot with no additional enumeration, query, worker or deadline."
+    ],
+    "sourceIntent": "HBQ assigned-vehicle preservation, extended to actual-seat intent and usable native replacement. No forced seating, crew recall or source-teleport shortcut.",
+    "sourceSHA256": "774abc26fb08ffea128b9e5fbeff2c4e848098f2eb21fc18602a98ced9466735",
+    "validation": {
+      "focusedTests": 251,
+      "tests": 1477,
+      "newCases": 0,
+      "focused": ".qa/cbe-driver-seat-intent-focused-final.log",
+      "full": ".qa/cbe-driver-seat-intent-final-build.log",
+      "independent": ".qa/cbe-driver-seat-intent-independent.log",
+      "candidate": ".qa/candidates/driver-seat-intent-fa8e71b9-5dc302dd",
+      "fingerprint": "5dc302dd48b74150bed01181155375d98f982fd599c3f7aa516a8bbf2bccf342",
+      "retainedInitialFailure": ".qa/cbe-driver-seat-intent-focused.log: fast-path test matched fullCrew in new header; scoped it to executable code, preserving ordering assertion.",
+      "earlierBuild": ".qa/cbe-driver-seat-intent-build.log: passed before the additional hidden/simulation eligibility fix."
+    },
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  }
+}

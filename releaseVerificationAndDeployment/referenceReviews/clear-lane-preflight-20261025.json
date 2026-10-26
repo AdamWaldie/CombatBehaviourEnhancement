@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "2b2a355d",
+  "scope": "Full read-only validation of resume lane content before operation startup.",
+  "finding": "The lightweight preflight accepted a journal with matching identity/roster even when routes, state rows, entries, buddy targets or request ages would fail the shared ADOPT validator after startup had consumed the durable order.",
+  "implementation": [
+    "Add CHECK mode to the existing shared validator. It requires exact expectedSnapshot, owner/epoch/generation, visit context, building transform and original hard deadline, then runs the same full bounded content checks as ADOPT. It exits before job mutation or publication; only SAVE/ADOPT require an already-started exact operation.",
+    "Move the existing sixteen-exit discovery/sort earlier and reuse it for CHECK and later preparation. No second exit scan, payload-schema change, native command, new worker or deadline renewal.",
+    "Resume supplies original cleared/unreachable progress, positions, pair roster and current native exit inventory. Invalid content defers read-only; the prior commit-boundary journal equality check remains."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/buildingLaneJournal.sqf": "ee2403666f257f976704c8b34d11751d03781584055a812eb5e37f1c7fbdc975",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "7128ce6ecad9a89e79087c8f5a09b68c58066e171bc4a41e31eeec624f55ae97",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "2f0ff3fd9ad2fdefb36bda3683d4de56dd1a017a0b3b08c24b14c960593a8e05"
+  },
+  "cost": "One extra bounded full validation on entry/sweep resume; existing 8-lane, 2-actor/lane and 512-node limits remain. Pending malformed data can repeat validation through existing discovery retries under original deadlines. No extra per-frame job or world query count on normal admission. Cost not measured.",
+  "validation": {
+    "focusedTests": 3,
+    "fullBuild": "PASS attempt2",
+    "tests": 1497,
+    "compiledSQF": 422,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-lane-preflight-bound-2b2a355d",
+    "fingerprint": "d62134511277fdd7384bf5627efd660115a43130726790a1dbfc2ef28eb80555",
+    "earlierBuild": "attempt1 passed before explicit expectedSnapshot binding; its candidate remains historical, not final evidence."
+  },
+  "limits": "No complete ordered journal replay/owner-ready transport, stale-owner quiescence or actual actor-native acknowledgement. Subsequent preparation/adoption can still fail if authority or geometry changes. Physical CQB flow, normal/HC/JIP and performance budget unverified. Audits paused; whole goal incomplete; no percentage increase."
+}

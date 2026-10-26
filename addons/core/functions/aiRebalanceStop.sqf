@@ -22,7 +22,7 @@
  */
 
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {};
-if (isServer && {missionNamespace getVariable ["CBE_AIRebalance_Enable", true]}) exitWith {
+if (isServer && {missionNamespace getVariable ["CBE_AIRebalance_Enable", false]}) exitWith {
     [createHashMapFromArray [["CBE_AIRebalance_Enable", false]]] call CBE_fnc_CortexTuning;
 };
 missionNamespace setVariable ["CBE_AI_RebalanceInitPending", false];

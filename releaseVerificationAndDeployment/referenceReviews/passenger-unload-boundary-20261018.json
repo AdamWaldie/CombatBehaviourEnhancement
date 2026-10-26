@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "findings": [
+    "Shared passenger motion gate used only model-forward speed",
+    "Final convoy HALT unloading did not bind the command boundary to the current local authoritative snapshot",
+    "ConvoySync sends filtered vehicle/cargo slices to actual passenger owners; whole-packet equality would reject valid split-owner work"
+  ],
+  "implementation": [
+    "Shared routine boarding/unloading requires finite total linear <1km/h/angular <0.01rad/s observations",
+    "Final HALT unloaded-marker/dismount transaction checks current registry policy and exact full-roster passenger/vehicle membership atomically",
+    "Compare unchanged policy slices [0,4] and [7], allowing filtered vehicle/cargo slices",
+    "Preserve local passenger authority, reservations, native task/seat exclusions and wet/deck guards"
+  ],
+  "validation": {
+    "tests": 1425,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-passenger-unload-boundary-build.log",
+    "unsigned_fingerprint": "ec0a308ba8555aeeb337d887199471f680571f3e46a5a47f78c55660716f01d6",
+    "physical": false
+  },
+  "cost": "Registry/payload lookups at existing crew cadence; no new worker/world discovery. Actual large-convoy overhead unknown.",
+  "remaining": [
+    "Actual vehicle-owner physics freshness across split passenger ownership not proven",
+    "Stale HALT rejection, native boarding/unloading and thresholds require engine evidence",
+    "Explicit STOP versus CBE-owned passenger stops needs lifecycle/provenance review",
+    "Performance unmeasured; audits paused"
+  ],
+  "pendingMovementAndCare20261024": {
+    "base": "85c7dc2a",
+    "finding": "PassengerReady duplicated ordinary reservation checks, missing unresolved flight/naval journals, queued care and fleeing. ConvoyDismountLocal used loose count/expiry reservation check and lacked queued-care, flight, dormancy and disabled movement gates before cover/recall.",
+    "change": "PassengerReady uses shared reservation predicate and denies queued care/fleeing before routine seat transitions. Convoy cover uses same predicate and shared combat-effectiveness plus queued care/fleeing/simulation/visibility/MOVE/PATH vetoes in existing operator gate. This retires matching convoy bookkeeping without issuing cover/recall while protected. Existing GET IN/GET OUT continuation, seat, motion, wet/deck, exact-destination and external gates unchanged.",
+    "hashes": {
+      "addons/vehicles/functions/cortexPassengerReady.sqf": "9e6a76da798b556085514454b4d355e196ccb1ccd8cdaa33983e4dcf8fbb1d5f",
+      "addons/vehicles/functions/convoyDismountLocal.sqf": "7cd7f3615c6aeccb52628e3f01e82eb16b59752cb3309c639b52d359c504a9c2",
+      "addons/infantry/functions/cortexActorMoveReserved.sqf": "80afc902cd6aea347aece06ec50074d366cdbef4e44a015506e19be66d506d69",
+      "releaseVerificationAndDeployment/test_ai_modularity.py": "e427b19f6787c00c3f9b0dafbd6f736cc978a37f64166b9cfb3d0eab31b84eb0",
+      "releaseVerificationAndDeployment/test_indoor_actor_lifecycle.py": "01f6f7d4fc6bf09d36a05b6282b34b381bca2fadfe627842a8667d5f9874e41f",
+      "releaseVerificationAndDeployment/test_convoy_unload_policy.py": "4289054dc04e41615abaeef4edc89e48c8ea396e969caf2dbb61439a76d092e8"
+    },
+    "validation": {
+      "focusedExisting": 49,
+      "fullExisting": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "newCases": 0,
+      "independentVerification": true
+    },
+    "retainedFailure": "Initial .qa/passenger-pending-movement-build.log failed one old direct-marker spelling assertion; existing passenger boundary test now requires shared predicate, keeping motion/seat/native-task checks.",
+    "candidate": ".qa/candidates/passenger-pending-movement-85c7dc2a",
+    "fingerprint": "b983d1c2a6d5202f6472160f76791584546fbebebcc4f437360653898b076883",
+    "logs": [
+      ".qa/passenger-pending-movement-focused.log",
+      ".qa/passenger-pending-movement-final-build.log",
+      ".qa/passenger-pending-movement-independent.log"
+    ],
+    "limits": "No native seat acceptance/occupancy, physical unload/cover/recall, owner migration, care/flight/disabled-resume or5/10performance proof. Existing callback cadence, cover-search budget and deadlines unchanged; metadata cost unmeasured. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. Audits PAUSED; no animation fix, whole-source parity or percentage credit."
+  }
+}

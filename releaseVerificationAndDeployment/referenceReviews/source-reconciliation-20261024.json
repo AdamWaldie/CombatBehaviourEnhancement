@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-24",
+  "base": "713cb7d7",
+  "scope": "Resolve three earlier requested source identities and inspect two small native configs plus selected commander declarations/helpers; not complete AI Zeus review or source implementation.",
+  "privateInventory": ".qa/source-reconciliation-20261024/manifest.json",
+  "originalsUnchanged": true,
+  "scriptsExecuted": false,
+  "sources": [
+    {
+      "workshopId": "2905259701",
+      "name": "isky's A.I Skill Tweaks",
+      "identity": "Installed meta.cpp publishedid2905259701 and matching name; isky author in decoded binary config.",
+      "pboSHA256": "8fd197603c68e5186ca341d347a984f15903a724cf566336baa66902ed1cbb5f",
+      "status": "LOCAL_CONFIG_REVIEWED_EFFECTIVE_LOADING_PENDING",
+      "readableConfig": ".qa/source-reconciliation-20261024/2905259701/brain/config.cpp",
+      "scopeRead": "Entire decoded config. Original PBO has only brain/config.bin; effective addon loading not observed.",
+      "findings": [
+        "Native brain countermeasure, suppression and aiming-error component changes, not per-unit setSkill scripts.",
+        "CfgWeapons, CfgAmmo, CfgSurfaces and CfgVehicles are nested under CfgBrains in the decoded binary. They do not occupy the root paths CBE uses; do not award functioning weapon, steering or ammo parity from those declarations. Exact engine loading remains unverified.",
+        "Native brain values overlap CBE optional suppression/turret policies with different tuning; overlapping configs cannot be treated as additive improvements.",
+        "Launcher properties include player dispersion/recoil/sound and ammunition ballistics/effects; CUP/RHS declarations are compatibility scope, not a blanket tactical implementation requirement."
+      ],
+      "next": "Evaluate native countermeasure/suppression/aiming intent against current engine declarations and CBE settings without overwriting mission skill policy; do not transplant nested classes or claim inactive declarations work."
+    },
+    {
+      "workshopId": "3623550024",
+      "name": "AI Zeus - Autonomous Battlefield Commander",
+      "version": "1.12.0",
+      "identity": "Installed mod.cpp and meta.cpp publishedid3623550024; config declares version1.12.0.",
+      "pboSHA256": "2a8ab59ddda84b5793083dfb5de940f7697a8cf5101dd22e69ae6117b807cfcd",
+      "status": "IDENTITY_CONFIG_AND_SELECTED_OWNERSHIP_HELPERS_REVIEWED",
+      "scopeRead": "Addon identity, declared CBA/functions/modules dependencies, function-area inventory, selected skill application and waypoint-clear helpers. Whole strategic implementation NOT reviewed.",
+      "declaredAreas": [
+        "core",
+        "awareness",
+        "advanced",
+        "tactical",
+        "fortification",
+        "support",
+        "vehicle",
+        "patrol",
+        "fogofwar",
+        "combinedarms",
+        "doctrine",
+        "vietnam",
+        "config",
+        "headless",
+        "modules",
+        "waypoints",
+        "llm",
+        "overlay"
+      ],
+      "findings": [
+        "Scope includes strategic/fog-of-war/doctrine/combined-arms/module work beyond recent tactical guards. Declared function folders are an evaluation queue, not delivered capabilities.",
+        "Selected skill entry can choose all living controlled-side non-blacklisted units and delegates randomized values to setSkillsLocal. Do not adopt broad skill rewrites over mission/custom AI policies. Caller/service authority still needs full trace.",
+        "Selected waypoint helper clears all native waypoints, locally for owner<=2 or through BIS_fnc_call on a remote owner. Caller authority not traced; do not copy wholesale route deletion into CBE exact-generation cleanup."
+      ],
+      "next": "Read startup, controlled-group admission, deterministic strategic decision/execution and cancellation chains; then evaluate the complete relevant modules. LLM/provider paths are not assumed required or safe merely because declared."
+    },
+    {
+      "workshopId": "3806472028",
+      "name": "Drongo's Grenade Tweaks Lite",
+      "identity": "Matching installed content directory and meta name plus root patch name/author; meta publishedid0 is not independent ID confirmation.",
+      "pboSHA256": "bc834d6f01bcfbdbacfd211a3113557c34174d94f0f84fb9d9780c2f99417ef4",
+      "status": "CONFIG_VARIANTS_AND_AI_PLAYER_SPLIT_REVIEWED",
+      "scopeRead": "Entire root and bundled LAMBS plaintext variants; root compiled config independently decoded to root-effective.json and key values inspected.",
+      "findings": [
+        "AI ThrowMuzzle probability1.015, minimum range20, rate3/dispersion2/distance60; UGL Single probability1.05, minimum50, rate4/dispersion1/distance400 and AI spread1.4/2. These are observed source values, not accepted CBE balance.",
+        "Ammo cost/usage preference accompanies GrenadeBase indirectHitRange10,40mmHE9 and20mmHE6. These damage properties are shared gameplay changes, not AI-only behaviour; do not import them as AI enhancements.",
+        "Bundled LAMBS alternative has equivalent policy with different patch dependencies, including Drongos_Grenade_Tweaks rather than root LITE patch. No separate alternative PBO found; automatic activation not proven. CBE must remain standalone, without a LAMBS dependency."
+      ],
+      "next": "Evaluate selected native AI grenade choice/cadence against CBE explicit grenade control and ammunition/friendly safety. That native choice layer is not implemented by merely having a scripted throw/evasion function."
+    }
+  ],
+  "productionBoundary": "No product behaviour changed and no percentage/source parity awarded. Raw extractions and their manifest remain ignored/private. No upstream scripts/assets shipped; licensing remains unverified before code reuse.",
+  "validation": "Source PBO hashes reverified and private hashes recorded; tracked reference boundary checked. Reuse last1497/413SQF/11PBO offline candidate with dirty unsigned provenance; no unchanged full build repeated. Audits PAUSED."
+}

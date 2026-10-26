@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-19",
+  "baseline": "2fecd692697447e34cde02d49acbdd8b7a065653",
+  "scope": "isolated prepared native STOP fixture and shared audit predicate scope",
+  "source_sha256": {
+    "releaseVerificationAndDeployment/cortexQA/runConvoyNativeStop.sqf": "2373b326371f04f5611e0636c3b4b62ac399e350a9f263f33bd378f2d6676ff4",
+    "releaseVerificationAndDeployment/cortexQA/runServer.sqf": "195c900a4fe6427b1f5af79445705a5070d3d7f505509af391f68f690dcfe004",
+    "releaseVerificationAndDeployment/mod_pipeline.py": "f9f89483ae8270565c1a7bc42e2e7d7b7c4062e7861ac5eb0be89d6ee20cae5f"
+  },
+  "fixture": {
+    "focus": "convoynativestop",
+    "batch": "normal only",
+    "worlds": [
+      "VR",
+      "Altis"
+    ],
+    "native_leg_metres": 15,
+    "stop_observation_seconds": 5,
+    "fresh_native_travel_metres": 25,
+    "physical_execution": "UNRUN"
+  },
+  "scope_defect": {
+    "helper": "runServer.sqf _wait",
+    "old_local": "_until",
+    "old_clock": "diag_tickTime",
+    "affected_callers": [
+      "runBuildingComparison.sqf garrison posture",
+      "runLanding.sqf feature-release acknowledgement"
+    ],
+    "fix": "reserved helper-specific parameter and local names; caller deadlines remain visible",
+    "old_findings": "retained; no retrospective pass"
+  },
+  "validation": {
+    "tests": 1438,
+    "production_sqf": 332,
+    "pbos": 9,
+    "build_exit": 0,
+    "independent_package_verify": true,
+    "log": ".qa/cbe-convoy-stop-fixture-ack-build.log",
+    "package_fingerprint": "427293b8c08650d60168eb70120588343dcf454a03b7a4a51c172ff5cc532171",
+    "package_commit": "2fecd692697447e34cde02d49acbdd8b7a065653",
+    "production_inputs_changed": false,
+    "staging": ".qa/native-stop-stage-e540cd9bf11849509d8c770e4ad36bd7",
+    "staged_fixture_byte_match": true,
+    "hc_slots_present": false,
+    "engine_launched": false
+  },
+  "native_position_contract": "https://community.bistudio.com/wiki/expectedDestination",
+  "acceptance": "offline only; all feature families partial"
+}

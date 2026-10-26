@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "b0559ec2",
+  "scope": "Native naval foot-egress journal and STEP input contract. Not new crew grouping, movement/return behaviour or physical handover acceptance.",
+  "finding": "Retained11-field journal validated row size, goal, expiry and baseline array size only. Unknown phase labels fell through as ordinary moving requests and could reach retirement STOP. Wrong baseline/identity/reservation types were consumed before complete schema checks. Fresh STEP boat input could reach object variable lookup without an object type guard.",
+  "implementation": [
+    "Before any retained-journal observation/mutation validate group/token, finite generation/epoch/issue/expiry, nonempty route array, known MOVING/STOP_PENDING phase, typed native command/destination/form-leader baseline and exact NAVAL_EGRESS reservation goal/finite local deadline. Invalid records return UNRESOLVED without clearing markers, commands, report writes or deadline renewal.",
+    "Fresh STEP validates nonempty token, object-typed boat, finite nonnegative generation and nonempty route array before previous-result/object accesses. Existing goal, expiry, native order, operation, current owner/task and dry-shore admission remain. Bad context returns WAIT; no new journal or actor movement.",
+    "Original same-group membership, one native RecoveryStep, observed stop/arrival, maximum original expiry+30cleanup and successor-task retirement remain unchanged."
+  ],
+  "files": {
+    "addons/vehicles/functions/cortexNavalEgressActor.sqf": "792902c95b5c345c13dc526aea6aee14f6d5bdc1249b8f3687cbcfb33fbdb955"
+  },
+  "validation": {
+    "intermediateLog": ".qa/naval-egress-journal-build-20261025-attempt1.log",
+    "intermediateScope": "First full pass covered retained-journal checks only. Fresh STEP guards added afterward; final second pass is authoritative.",
+    "fullLog": ".qa/naval-egress-journal-build-20261025-attempt2.log",
+    "exit": 0,
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pbos": 11,
+    "independentLog": ".qa/naval-egress-journal-independent-20261025.log",
+    "candidate": ".qa/candidates/naval-egress-journal-b0559ec2",
+    "fingerprint": "438f4bb5d7ec38d0caedcca406f37b15d5dd1e947af3b4864887f7a2cc06c142",
+    "testScope": "Existing naval egress regression extended with exact schema/provenance guards before observation, no effects on unresolved branch and typed STEP boundary. Original STOP/deadline/owner/release-order assertions retained; no extra test count. Static contracts, not engine execution."
+  },
+  "cost": "Fixed journal/input field reads per existing actor callback. No world/roster query, new FSM/job/cache/worker, repair, forced seating or animation. Actual runtime performance unmeasured.",
+  "limits": [
+    "Unsigned dirty development candidate; metadata postdates package.",
+    "Malformed proof intentionally remains reserved; this change does not manufacture native quiescence or a recovery reset.",
+    "Physical shore travel/disembarkation, stop acknowledgement, new orders/dead crew/migration/normal-HC/JIP/Zeus and5percent median/10percent p95 remain UNRUN. Audits PAUSED; full goal active/incomplete."
+  ]
+}

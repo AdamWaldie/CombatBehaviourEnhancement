@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-24",
+  "base": "6a3242f355e21dba5a9a6a88bebac0880be98e83",
+  "scope": "Competing known armour and close infantry threat priority in existing owner-local tactical assessment. Not complete tacticsAssess parity.",
+  "reference": ".qa\\lambs-2621-review\\danger\\functions\\fnc_tacticsAssess.sqf",
+  "referenceSHA256": "77b708a13bc888a1e1e0aa4a9e044d4455e5c8aa6847c394f3c671136427dc93",
+  "sourceIntent": "Reference evaluates nearby tank threat before close indoor infantry assault, with a fast-movement exception. CBE retains its existing authored forward-order policy instead of copying random plan selection or full-group setting writes.",
+  "finding": "CBE selected fresh close infantry assault before its armour-overmatch branch. A known protected platform the squad cannot counter could therefore be masked by a nearby rifle contact.",
+  "implementation": [
+    "Compute uncountered armour from existing assessed contact index, available AT capability and existing authored-forward policy. No new scan or observation.",
+    "Exclude opportunistic close assault when that uncountered threat exists, selecting the original ARMOUR_OVERMATCH branch and exact existing target index.",
+    "Existing reposition executor admits the owner-local finite operation; at<=120m it uses existing finite withdrawal, otherwise short screened reposition. Existing cooldown, task, care, reservations, mission and external ownership apply.",
+    "Authored forward-order handling unchanged. AT-capable squads retain close-assault option. Mixed crew actor-only elements cannot acquire group reposition/withdrawal; their existing final intent filter yields."
+  ],
+  "validation": {
+    "tests": 1497,
+    "focused": 610,
+    "buildLog": ".qa/armour-decision-priority-build.log",
+    "independentLog": ".qa/armour-decision-priority-independent.log",
+    "candidate": ".qa/candidates/armour-decision-priority-6a3242f3",
+    "fingerprint": "68b1e01763d398cceda3d16b45c67a206458fa349dafebb96217301081038f77",
+    "unsigned": true,
+    "dirtyDevelopmentBuild": true,
+    "testScope": "Extended existing source contract test, no test count increase. Existing physical armour procedure does not establish competing close-infantry priority and remains unrun."
+  },
+  "limits": [
+    "Actual simultaneous-contact decisions, chosen avenues, withdrawal safety, combat balance, HC/JIP and performance UNRUN.",
+    "Existing contact classification and knowledge age rules unchanged. No claim that all armour models or ammunition capabilities are balanced.",
+    "No full reference parity or percentage credit. Audits PAUSED."
+  ],
+  "hashes": {
+    "addons/infantry/functions/cortexTacticalAssess.sqf": "f814426e5007c8ce66385d427f449187020f714f6bc79eb44e55adbf8edeeaff",
+    "addons/infantry/functions/cortexTacticalStart.sqf": "95c3f5a76f078f60972d2db98d68ad6a0c86a0ecc1fc5822783c155e23c37f35",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "2be0e065dce6998c09116e6f738f30da3b96f7020565a7847719094705a26968"
+  },
+  "freshnessCorrection": {
+    "base": "81bdce36",
+    "finding": "CortexKnowledge retains native memories without a ten-second age cutoff and uses1e6 for never-seen timing. The initial new priority condition could indefinitely veto fresh close assault based on stale remembered armour.",
+    "implementation": [
+      "Use existing per-contact age in same assessment pass to retain first fresh armour index (0..10s). No new knowledge query or scan.",
+      "Only fresh uncountered armour overrides close infantry assault. First fresh threat supplies reposition target even if an older nearer armour contact precedes it.",
+      "Existing ordinary armour-overmatch fallback when no close assault is chosen remains, as do authored forward and available AT policies."
+    ],
+    "validation": {
+      "tests": 1497,
+      "focused": 610,
+      "build": ".qa/armour-priority-freshness-build.log",
+      "independent": ".qa/armour-priority-freshness-independent.log",
+      "candidate": ".qa/candidates/armour-priority-freshness-81bdce36",
+      "fingerprint": "125592013a45f7fd6d3981547690f6d0b4898e9ace0046f6465de739d5c551d9",
+      "unsignedDirtyDevelopment": true
+    },
+    "limits": "Source contracts/build evidence only. Timing boundary and competing old/fresh armour versus close infantry, physical reposition/withdrawal, balance, HC/JIP and performance UNRUN; audits paused.",
+    "hashes": {
+      "addons/infantry/functions/cortexTacticalAssess.sqf": "47d99d4ed6d28c0779dc5847a176584872b335f9c013692c526ec4e9b2ac33eb",
+      "addons/infantry/functions/cortexTacticalStart.sqf": "8677faa0c9992df0e9da93cd4be2b46d79dca462d5f960470b4fabc389c00690",
+      "addons/infantry/functions/cortexKnowledge.sqf": "e9df7da9829402308278a0e5838047001ce2784619086f76e4c0563ef1a91caf",
+      "releaseVerificationAndDeployment/test_cortex_operations.py": "56f85787ab6c2e04465c171f9f247914bb8917595171c7fec0a0cbe519a3cbac"
+    }
+  }
+}

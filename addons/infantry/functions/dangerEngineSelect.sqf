@@ -1,6 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Select one live engine danger record with a bounded priority pass. Direct hits remain
+ * Non-finite geometry/timestamps are rejected before selection or observation side effects.
+ * Purpose: Select one live engine danger record from at most48 recent records with a bounded
+ * priority pass. The FSM separately submits at most12 observations including this selection.
+ * Unsubmitted window records remain in the native queue with unchanged expiry for later passes.
+ * Direct hits remain
  * highest, but an actor that can fire retains higher priority than casualty observation, shouting
  * or ambient fire so actionable combat is not displaced by weaker events from the same queue.
  * Locality / Authority: Pure owner-local selection. It performs no commands or state mutation.
@@ -23,12 +27,12 @@ private _latest=-1;
         private _cause=_x param [0,-1,[0]];
         private _expiry=_x param [2,-1,[0]];
         private _position=_x param [1,[],[[]]];
-        private _rank=if (_cause >= 0 && {_cause < count _priorities}) then {_priorities select _cause} else {-1};
-        if (_rank >= 0 && {count _position in [2,3]} && {_position findIf {!(_x isEqualType 0)} < 0} && {_expiry >= time - 0.25} && {_rank > _best || {_rank == _best && {_expiry > _latest}}}) then {
+        private _rank=if (finite _cause && {_cause == floor _cause} && {_cause >= 0} && {_cause < count _priorities}) then {_priorities select _cause} else {-1};
+        if (_rank >= 0 && {count _position in [2,3]} && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0} && {finite _expiry} && {_expiry >= time - 0.25} && {_rank > _best || {_rank == _best && {_expiry > _latest}}}) then {
             _selected=+_x;
             _best=_rank;
             _latest=_expiry;
         };
     };
-} forEach (_records select [0,12]);
+} forEach (_records select [0,48]);
 _selected

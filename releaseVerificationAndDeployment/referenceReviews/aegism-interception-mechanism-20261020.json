@@ -1,0 +1,293 @@
+{
+  "workshopId": "3815260246",
+  "date": "2026-10-20",
+  "scope": "Focused native-shot/interception-effect/aim-correction mechanism trace only, not complete AEGIS source evaluation. Three PBO inventories preserved; ten named SQF files fully read. Other source functions were located only, not reviewed.",
+  "archiveEvidence": [
+    {
+      "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3815260246\\addons\\aegism_intercept.pbo",
+      "sha256": "6e95c3634ca937d24bdb2d12c98a0eb3f45e65034e69fedbe503d7f26711055c",
+      "entries": 127
+    },
+    {
+      "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3815260246\\addons\\aegism_main.pbo",
+      "sha256": "4ac7052efb96161cc39aea20a80f375255f25d299bac83d49cd056fd8d3bfbd0",
+      "entries": 67
+    },
+    {
+      "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3815260246\\addons\\aegism_detection.pbo",
+      "sha256": "0ff517a938bcabd3599c7aab870c2ff335ce52a376281b3164a4f9c2c566d1e9",
+      "entries": 59
+    }
+  ],
+  "readFiles": [
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_onSystemFired.sqf",
+      "sha256": "34684764e808afc8694a613b85ec104851e248514f5dca828593f3ab28355d3e"
+    },
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_ciwsRounds.sqf",
+      "sha256": "d857b92b4dbe7b33059734d2811e88c91acbced20e6e7661910a8eccbcd7d3a8"
+    },
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_interceptorPFH.sqf",
+      "sha256": "fa7ff533eb1c4c5e92ada817932f2b626090184b255964a176d332d08a6606e9"
+    },
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_interceptHit.sqf",
+      "sha256": "d17877dd3a197f919e447eab73ee37b2aa637e5e625d495678fc7ce4cf26c272"
+    },
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_bodyPass.sqf",
+      "sha256": "d9eff138afcea406fb187eca266203ca1daf2f40299fe54be0de9bc180f758b9"
+    },
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_targetHitRadius.sqf",
+      "sha256": "b696288a666961460e739c607367fc33da634bd94963fe3bee8155f45c447092"
+    },
+    {
+      "pbo": "aegism_intercept",
+      "path": "functions\\fn_ciwsSpot.sqf",
+      "sha256": "1e62e8d509de779ef9f2d1c432818e21052b86cadba3acede0fcf4a16c4131e4"
+    },
+    {
+      "pbo": "aegism_detection",
+      "path": "functions\\fn_destroyMunition.sqf",
+      "sha256": "7b933180052e83b534ce108e27ff94c63551848665b1ccc9eb02813492fb3c47"
+    },
+    {
+      "pbo": "aegism_detection",
+      "path": "functions\\fn_detonate.sqf",
+      "sha256": "5ad8901481345da4441117407a6d4ec2485a1bc446628b5286d348aecd0c181d"
+    },
+    {
+      "pbo": "aegism_detection",
+      "path": "functions\\fn_blastMunitions.sqf",
+      "sha256": "5d45c3f684c843efca419216504999605cc70f6e4111ceff6213b4b902d63217"
+    }
+  ],
+  "executionTrace": [
+    "OnSystemFired matches exact gunner turret and weapon to a short-lived capture receipt; absent context leaves ordinary fire unmodified. Launcher captures attempt setMissileTarget and start an interceptor observer; gun captures start round observation and every third eligible spot sample.",
+    "CIWS rounds and missile observers compare swept projectile/target relative segments against configured radius/body geometry and minimum arming distance. Missing-projectile handling may extrapolate its last-frame segment before evaluating a hit.",
+    "InterceptHit delegates munition destruction to destroyMunition -> detonate -> triggerAmmo; submunition carriers mark interception and suppress child payload. Nearby tracked munitions can also be detonated via blastMunitions radius checks.",
+    "Launcher targeting changes missile target after native shot. This is not a proof that native fireAtTarget/collision alone can provide the same result, nor proof the engine universally requires scripted detonation.",
+    "CIWSSpot estimates bounded lead/elevation bias by ammo and target class from sampled misses, applies decay and outlier rejection, and retains four burst summaries. This is aim calibration, distinct from simulated hit/fuze effects."
+  ],
+  "intentDispositions": [
+    {
+      "intent": "Actual incoming-munition interception",
+      "selection": "Requires native shot capture and measured armed closest-pass evidence plus a deliberate game fuze/effect policy; a command/request or projectile disappearing is not success.",
+      "constraint": "No unconditional target deletion/detonation from a target flag or distance to shooter. Scripted fuse based on a real qualifying shot is a separate implementation decision, not automatically rejected as all script physics."
+    },
+    {
+      "intent": "CIWS learning/correction",
+      "selection": "Ammo/class-scoped decayed correction and rejection of outliers are useful. Preserve authored AI skill; calibrating aim must not rewrite mission skill or make every round hit.",
+      "constraint": "Actual gun aim application, detection uncertainty and current weapon station remain to trace before implementation."
+    },
+    {
+      "intent": "Layered AA allocation/threat urgency",
+      "selection": "Located assignEngagements/launchSolution/timeToImpact but not fully reviewed. Do not claim complete layered defence or clone the entire network.",
+      "constraint": "Use normal CBE group/asset relationships, observation confidence, ammunition/weapon capability and finite owner epochs."
+    }
+  ],
+  "excluded": [
+    "Optional infiniteAmmo branch in OnSystemFired; source network/module construction; unrelated surface-strike seeker behaviour."
+  ],
+  "performanceRisks": [
+    "CIWS creates one zero-interval PFH per active turret-round collection and loops all live rounds. No explicit round-count cap found in the reviewed function; lifetime/time-of-flight expires records.",
+    "InterceptorPFH creates a zero-interval observer per interceptor. bodyPass does up to20 ternary steps per checked body pass. Additional nearby blast chain scans the tracked-munition registry.",
+    "CBE5percentmedian/10percentp95 budget needs measurement and a bounded/coalesced observer design before promotion. Source instrumentation is not performance acceptance."
+  ],
+  "remaining": [
+    "Full detection/track uncertainty and allocation/crew-timing/aim application trace.",
+    "Provider/source licensing and exact binary configuration/dependencies.",
+    "CBE current-owner shot receipt, bounded projectile observer, hostile track and exact weapon admission integration.",
+    "Normal/HC physical firing, intercept, friend/neutral protection, ammunition depletion, cleanup/migration and performance validation."
+  ],
+  "sourceProtection": "Original three archives and named extracted files rehashed unchanged; no upstream code copied into CBE.",
+  "validation": "JSON parsing and exact source-hash checks only. No product changes, runtime test or new implementation credit.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED",
+  "scoresChanged": false,
+  "aimAndFireTrace20261021": {
+    "baseline": "2686824a",
+    "files": [
+      {
+        "pbo": "aegism_intercept",
+        "path": "functions/fn_timeToImpact.sqf",
+        "sha256": "0229f78bd5ff5b5d1ba246ca8f0b45e50f89547d7856859e44baf7738e36d458",
+        "readScope": "complete"
+      },
+      {
+        "pbo": "aegism_intercept",
+        "path": "functions/fn_launchSolution.sqf",
+        "sha256": "3fab07a7297c2656edb2213843b61aac0de77f17d08c041b14eeafb1aa7e2e54",
+        "readScope": "complete"
+      },
+      {
+        "pbo": "aegism_intercept",
+        "path": "functions/fn_lockTurret.sqf",
+        "sha256": "5d863c65af5dbe2a92eae8df4b3062df51de89f4e0aed7569d8552d3c8d855ec",
+        "readScope": "complete"
+      },
+      {
+        "pbo": "aegism_intercept",
+        "path": "functions/fn_aimWeapon.sqf",
+        "sha256": "8aae07859709f693f8cfbb1edd4d28837862e408b3848384bff4f531320b9cb5",
+        "readScope": "aim and lock application branches"
+      },
+      {
+        "pbo": "aegism_intercept",
+        "path": "functions/fn_fireWeapon.sqf",
+        "sha256": "5af3f373aaeeac03bcd10318e8028dbb8aaba5fd8e0d4237f46d87fb0bec04d6",
+        "readScope": "admission, authority, shot capture and fire dispatch branches"
+      },
+      {
+        "pbo": "aegism_intercept",
+        "path": "functions/fn_ciwsBurst.sqf",
+        "sha256": "99ceda64434419bba4fc193023a8d6d7b35520607f127358d684213855f44dba",
+        "readScope": "burst admission, stop, readiness, UseMagazine dispatch and sample summary branches"
+      }
+    ],
+    "scope": "Focused additional aim/fire and urgency trace. assignEngagements and engagementLoop located/searched only, not fully reviewed. This does not complete the whole AEGIS review.",
+    "evidence": [
+      "AimWeapon applies class-scoped decayed lead/elevation correction to a predicted ASL aim point. It offsets the optic camera relative to barrel origin, requests lockTurret, then observes barrel angular error and feasibility before ciwsGate. Launcher branches account for slew/off-bore cone and cache launch path clearance for0.5s.",
+      "LockTurret invokes lockCameraTo on turret locality or remoteExecCall to turretOwner. It is deliberate turret point control, not an ordinary native AI doTarget request. A copied persistent false temporary argument would require exact baseline/owned-lock cleanup and newer player/Zeus-lock protection.",
+      "FireWeapon may setGroupOwner to server for remote AI groups and optionally replenish ammunition. Those source authority/ammo methods are not selected for CBE. Source reliability is a random skipped cycle, not preservation of mission-authored skill or proven human-like reaction.",
+      "FireWeapon binds a short-lived capture to actual turret and weapon before BIS_fnc_fire or CIWS burst. The delayed missing-shot check retires capture/round bookkeeping; dispatch return1 is not proof of a projectile. OnSystemFired and downstream observers provide separate evidence.",
+      "CIWSBurst uses a zero-interval PFH per burst, current turret aim proof no older than0.5s, barrel minimum elevation and loaded weaponState before native UseMagazine action. Superseded burst, ammo depletion, expired duration, target/platform loss or stale engagement heartbeat stop the PFH. It later summarises consumed ammo and measured round misses, not an independent physical hit proof.",
+      "TimeToImpact ballistic branch solves time to protected position altitude using vertical velocity and gravity; it does not test horizontal intercept/impact proximity. Nonballistic branch projects velocity toward nearest protected point. Neither alone proves an impact threat. Do not copy altitude-only urgency into layered defence."
+    ],
+    "primarySemantics": [
+      {
+        "url": "https://community.bistudio.com/wiki/lockCameraTo",
+        "fact": "Command is local to turret gunner. Alternative syntax controls non-stabilised turrets; temporary true releases after target/limit reached. A point lock needs its own finite authority and exact handback."
+      },
+      {
+        "url": "https://community.bistudio.com/wiki/lockedCameraTo",
+        "fact": "Readback can be no value, object or ASL position. Do not assume an array-only or object-only lock baseline."
+      },
+      {
+        "url": "https://community.bistudio.com/wiki/triggerAmmo",
+        "fact": "Local command triggers ammunition as if hit and can release submunitions. A shot-derived fuse/effect policy must deliberately handle that; unconditional use cannot supply safe interception."
+      },
+      {
+        "url": "https://community.bistudio.com/wiki/Arma_3:_Event_Handlers#IncomingMissile",
+        "fact": "Native event includes target, ammo, firing vehicle, instigator and missile. Warning receipt is sensing evidence, not a native shot/intercept result."
+      }
+    ],
+    "urgencyCounterexample": {
+      "munitionASL": [
+        10000,
+        0,
+        100
+      ],
+      "velocity": [
+        200,
+        0,
+        -50
+      ],
+      "protectedASL": [
+        0,
+        0,
+        0
+      ],
+      "timeToProtectedAltitudeSeconds": 1.712428635206943,
+      "horizontalImpactDistanceMetres": 10342.485727041389,
+      "conclusion": "Source reports imminent altitude crossing while the ballistic trajectory is more than10km away and moving farther away; altitude crossing alone must not promote immediate impact priority."
+    },
+    "implementationDecision": "Do not extend current aircraft gunnery by treating a projectile as an ordinary Air target or warning as an interception. Required execution chain is finite current-turret aim ownership -> actual station shot capture -> bounded coalesced projectile closest-pass observation -> armed qualifying effect policy -> exact cleanup. Detection and allocation remain separate inputs. No code copied, no new controller or executable change in this review.",
+    "nextConcreteWork": "Implement that shot/aim lifecycle on the existing current-owner scheduler and fire-task boundary, including authenticated sensing, projectile and turret caps, original deadlines and protected successor locks. Do not begin with global nearestObjects scans or a worker per bullet. Full allocation/capability source trace remains incomplete.",
+    "validation": "All three original PBO archives and six named extracted files hash-match protected inventory. Review JSON parsing and existing reference-boundary tests. Existing executable candidate remains aa-allocation-a7d45daa; no unchanged rebuild or Arma launch.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "finiteAimShotImplementation20261021": {
+    "baseline": "47bdd54f",
+    "scope": "Original CBE finite native-warning main-turret aim and actual-shot observation building block. Experimental default-off CBA setting CBE_AIPass_AAIntercept_Enable. This is not completed interception or whole-source parity.",
+    "implementation": "CortexAAObserve starts from its current native warning receipt and passes Fired payloads before the relocation1s throttle. CortexAAIntercept uses a keyed existing scheduler adapter with explicit token/gunner/deadline and no scheduler group key, allowing its own locality/epoch cleanup to run. Current group, actor task/external owner/ROE/FIREWEAPON, authored route and native target/command receipts remain required. A typed original-expiry gunner fire-owner lease excludes other CBE firing; GroundSelectMuzzle permits only exact matching owner. No motion/radar/skill/ammo creation changes.",
+    "aim": "Stationary<=3kmh main turret[0], editor-AA role, native hostile warning missile, loaded nonexplosive bullets>=20 and recognised barrel/optic Memory points. Positive constant-velocity quadratic solution within2s plus approximate gravity term; no drag/calibration. Native temporary point lock, fresh barrel alignment<=0.5deg and protected-actor/terrain/object lane checks precede fireAtTarget objNull for selected muzzle. New different/absent lock ends an applied episode, not automatic reacquisition. Exact unchanged applied point alone can be unlocked at cleanup.",
+    "actualShotObservation": "Native matching weapon/muzzle/magazine/operator Fired projectile inside dispatch window; up to8 live local rounds. Same-time relative swept segments measure closest pass only when both projectiles remain available and dt<=0.2s. Disappearance, dispatch or min distance never earns a hit. Result is captured shots and measured closest pass, not total shots fired, munition destruction or interception.",
+    "bounds": "At most4 local platforms,8s original episode,160steps,16native requests,8simultaneously observed rounds; requested0.05s existing scheduler cadence may defer/double under slow-mode. Per-step loaded-station query remains32cap; lane queries only at firing attempt. Extra runtime cost unmeasured. Existing active warning cannot renew deadline. Four-record expiry reap; deleted-platform job carries exact gunner/token/expiry for private cleanup; typed fire lease expires even after discarded cleanup. No per-round PFH/global scan/network effect command.",
+    "remaining": "Actual armed fuse/effect policy, authenticated shared detection and group/layered munition allocation, learned correction and other turret/ammo types remain incomplete. Native lock readback/automatic release, actual aim/fire, repeated episodes, successor orders, locality/HC and performance need runtime validation. Same-value successor locks are observationally indistinguishable. No physical success/score increase.",
+    "primaryLinks": [
+      "https://community.bistudio.com/wiki/lockCameraTo",
+      "https://community.bistudio.com/wiki/lockedCameraTo",
+      "https://community.bistudio.com/wiki/fireAtTarget",
+      "https://community.bistudio.com/wiki/selectionNames"
+    ],
+    "validation": "All1482 existing tests/full offline HEMTT/SQF/config/FSM/docs/coverage/package passed; independent copied-package verify passed. Unsigned .qa/candidates/aa-aim-shot-47bdd54f fingerprint c9ab121e6af97139b328cbc8b14f90a0d0c60e51cd0736c78cf28d469c7e0c2b. Logs .qa/aa-aim-shot-build.log and .qa/aa-aim-shot-independent.log.152 settings/380 mapped production sources are bookkeeping, not acceptance. Initial missing shipped/published setting defaults corrected; HEMTT invalid unary Memory-selectionNames warning fixed to documented binary syntax. Existing AA regression extended, no new case count. No Arma launch.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "localDirectPassFuse20261021": {
+    "baseline": "84a69bd6",
+    "implementation": "New CortexAAInterceptEffect invoked only after an actual captured round passes within5m broad-phase proximity. Both projectile objects must be current/local, exact current episode/epoch/gunner lease, native shot parents and magazine ammo class must match. Native shot real/deletion/arming flags apply. Original actor task/FIREWEAPON/ROE/enable/pause gates remain. No remote entry, approximate identity, network effect or extra worker.",
+    "effectPolicy": "Explicit scripted direct-pass fuse, not native collision. <=0.1s paired samples, <=5deg missile rotation, oriented model-centre relative segment with interior closest pass only. Central sphere radius<=0.15m, never larger than smallest model half-width; geometry below0.02m or centre offset>4m refuses. Cache exact episode geometry including failure once. Actual bullet must travel configured fuseDistance or>=3m; historical pass AND current target remain>=30m from platform; current target>=5m above terrain. Exact captured shot and current positions required, no vanished-shot extrapolation.",
+    "mutation": "One local missile receipt precedes triggerAmmo. Native effect occurs at CURRENT munition position; delay recorded, no movement or replacement explosion. FUSE_REQUESTED receipt is not proof of destruction, replication, suppressed damage or successful interception. Current observation loop ends after request and preserves effect telemetry separately from closest-pass distance.",
+    "refusals": "Cross-owner projectiles, missing/ambiguous model geometry, mismatched/friendly source, unarmed/unreal/pending-deletion bullet, stale sample, endpoint-only proximity, fast rotation and any nonempty submunitionAmmo refuse effects. No nearest matching projectile copy, remote detonation or blast-chain scan. Full cross-owner/submunition interception remains missing, not declared complete.",
+    "sourceComparison": {
+      "path": ".qa\\aegism-intercept-3815260246-review\\aegism_detection\\functions\\fn_detonateCopy.sqf",
+      "sha256": "8a7b0ccfb91424f27834555bcde4c83ca9b87bc3b3d148b3abdbe0643ce44e2d",
+      "scope": "Full small detonateCopy execution read and exact preserved inventory hash verified. Source uses approximate ammo/shooter/spatial matching when remote object identity is absent, including40m tube tolerance and30m+speed window. That fallback is not selected. Exact CBE local native identity required instead; owner bridge still unresolved."
+    },
+    "cost": "At most existing4platforms*8live rounds; effect qualification only inside broad-phase5m and existing finite160steps/8s. One geometry read per exact episode, bounded native shot info/parent reads per close pass and constant vector math. Existing scheduler, no per-bullet job. Runtime cost unmeasured.",
+    "validation": "All1482 existing tests/full offline pipeline and HEMTT passed. Independent verify passed. Unsigned .qa/candidates/aa-direct-pass-84a69bd6 fingerprint 8f3189401331a75af62ea9f142c102e3749a5ca6e02d4441f678e83fe13ef7bf; logs .qa/aa-direct-pass-build.log and .qa/aa-direct-pass-independent.log. Existing AA test adds crossing/miss/approaching endpoint/zero-relative fixtures and identity/arming/native-effect wiring. Initial test substring matched remoteExecutedOwner guard, corrected command-boundary regex; HEMTT rejected notIn syntax, replaced native !(... in ...) and final compile passed. Style config lookup warnings reviewed; no baseline waiver.",
+    "remaining": "Exact cross-owner projectile provenance/dispatch, submunition payload policy, layered sensing/allocation, learned aim correction, real normal/provider-HC effects/replication/successor cleanup and5%/10% performance acceptance. Default-off experimental path only. No parity/score increase.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "measuredAimCalibration20261021": {
+    "baseline": "85871dba",
+    "sourceIntent": "Selected source actual-round signed miss projection, decayed ammo/class calibration and outlier rejection. Original CBE implementation uses bounded consistent-median estimates rather than copying source weighted estimator or projectile effects. Protected ciwsSpot hash unchanged.",
+    "implementation": "CortexAASpot reads or samples owner-local cache. A captured native Fired row freezes actual shot time/target position/velocity/actual barrel origin and applied aim correction. Once per round, an interior same-time relative pass with<=0.1s gap can sample signed transverse/vertical error. Both projectiles local, current episode owner/epoch/station required. More than2m deviation from shot-time constant-velocity track,6m miss or flight outside0..2s refuses. Nearly radial motion cannot supply lead estimate.",
+    "learning": "At most8 ammo/munition-class rows, scoped to owner/group epoch/gunner/weapon/muzzle/magazine. Four estimates/axis retained<=30s. Need3 estimates and spread<=0.02s or0.002rad; median update gain0.2 with per-sample caps0.005s/0.0005rad and total0.05s/0.005rad. Rejected axes cannot reapply an old median. Corrections halve30s/expire60s, observer cleanup clears cache. No replay, timer, skill/velocity/damage edits or new firing authority. Later aim-point correction only.",
+    "nativeKinematics": "Honor weapon or selected muzzle positive initSpeed as fixed speed and negative value as magazine-speed multiplier; zero retains magazine speed. Honor finite configured ammunition coefGravity, default1, supported0..4. Existing solver still constant-velocity lead/approximate gravity, no direct drag solver. Unsupported speed/gravity refuse before operation.",
+    "cost": "Existing4platform/8round/8s/160step bounds unchanged. One calibration attempt/captured real round; <=8row metadata lookup and<=4sample median/axis. No extra worker/world/geometry scan. Snapshot actual barrel origin once/captured shot. Runtime cost unmeasured.",
+    "validation": "All1482 existing tests/full offline HEMTT/SQF/config/FSM/docs/coverage/package passed; independent verify passed. Unsigned .qa/candidates/aa-calibration-85871dba fingerprint b813089ca688b01a0d516f24f98e38dcb00d2bad1466e98032b64f519ec7ecda. Logs .qa/aa-calibration-build.log and .qa/aa-calibration-independent.log. Existing regression includes insufficient/inconsistent sample refusal, bounded positive/negative median updates, decay and source integration.152settings/382sources are bookkeeping. No actual calibration/convergence/accuracy/balance/performance proof.",
+    "remaining": "Physical convergence/evasion rejection/native aim and repeated handback, full ballistics, cross-owner effects/submunition payload support, layered sensing/allocation and5%/10% performance acceptance. Rappelling provider handover remains incomplete; current provider main and child workers still lack complete finite quiescence/abort acknowledgement. No module exposed or provider code rewritten by this batch.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "exactAdmittedMuzzleRead20261021": {
+    "baseline": "adbe73a9",
+    "finding": "Every experimental interceptor STEP repeated GroundFireReady station search with <=32 native muzzle-state reads, despite owning one exact admitted weapon/muzzle/magazine. No fresh station-wide choice is needed for continuation.",
+    "implementation": "START retains full bounded damaging nonexplosive loaded-bullet qualification. STEP reads its exact admitted muzzle once and checks weapon/muzzle/magazine identity, finite >=20 rounds, completed reload and first16 station-weapon membership before updating aim. Builds exact selection observation for unchanged final GroundSelectMuzzle checks. Immutable config qualification is retained by identity, not cached live permission.",
+    "behaviourDifference": "An unrelated newly loaded station weapon no longer terminates an otherwise valid exact admitted muzzle because a full station search happens to rank it first. No substitution, retargeting, reloading or firing cadence change. Missing/changed/empty/reloading admitted muzzle still retires.",
+    "cost": "Continuation readiness weaponState bound32->1 per existing step; full START search and additional exact final firing/selection reads unchanged. No extra job/world scan/config cache or changed episode bounds. Typical gain depends on station; runtime unmeasured.",
+    "sourceIntent": "Original CBE implementation efficiency change; no new upstream review/copy or parity credit.",
+    "hashes": {
+      "addons/vehicles/functions/cortexAAIntercept.sqf": "fa47c0420a1d5c0f265c6cd6241b7cac6eb7e7a04708d0ee767ee2148ccb5c61"
+    },
+    "validation": {
+      "tests": 1484,
+      "pipeline": ".qa/aa-exact-muzzle-read-build.log",
+      "independent": ".qa/aa-exact-muzzle-read-independent.log",
+      "candidate": ".qa/candidates/aa-exact-muzzle-read-adbe73a9",
+      "fingerprint": "ee47069ff64273b2807b55c06a25d3bc51a4401265637762970ddeb2e3296531"
+    },
+    "limits": "Default-off experimental feature. Physical aim/shot/interception, native station-change behaviour, normal/HC and5%median/10%p95 remain unverified. Static bound is not measured frame-time improvement. No scores changed.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false
+  },
+  "observedShotOrigin20261024": {
+    "base_commit": "1dbfd91b",
+    "fault": "SHOT used a configured first memory-point barrel as calibration origin even though real rounds were captured. Prior review wording actual barrel origin was too strong for alternating-barrel platforms.",
+    "change": "Freeze real round ASL and target ASL once in native Fired observation; use that round position as calibration origin and both initial trajectory positions. Initial aiming retains configured barrel approximation.",
+    "bounds": "Existing8 rounds/160 steps/8-second episode,stable-track validation,correction caps and native effect policy unchanged. No projectile creation,steering,new query,worker or fire request.",
+    "checks": "1496-test full offline build;413 compiled SQF;11 PBOs;155 settings;zero static performance findings;independent package verify pass",
+    "candidate": ".qa/candidates/aa-observed-shot-origin-1dbfd91b",
+    "fingerprint": "3d20700b5e45521cda8309d7dd682f0da3d3f4cfde08af387e011d7922455082",
+    "limits": "First observed projectile position is not guaranteed instantaneous muzzle position. Accuracy/convergence/alternating barrels,physical interceptions and frame cost UNRUN. Unsigned dirty development;audits PAUSED."
+  }
+}

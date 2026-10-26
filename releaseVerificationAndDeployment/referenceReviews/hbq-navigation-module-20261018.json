@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-18",
+  "baselineCommit": "9d6d88de",
+  "scope": "Complete HBQ moduleNavArea helper and CBE native/optional ZEN task registration chain",
+  "reference": {
+    "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_moduleNavArea.sqf",
+    "sha256": "b544b431168d68cadc8e8d5e74e79c8df92149fba61c993668fc0c328d82de4e",
+    "rangesRead": [
+      "complete executable file"
+    ]
+  },
+  "findings": [
+    "HBQ registers once on every machine, reading Eden objectArea half-width/length, arrow direction and initial centre. It stores a flattened centre and static axis in a local list. Activated is parsed but not used.",
+    "The reviewed driveAssist navigation consumer uses the first three row fields; module half-width is not a demonstrated runtime width constraint there. Do not claim active width handling merely from its registration.",
+    "CBE provides explicit native Zeus/optional labelled ZEN create/update/remove behaviour tasks with authenticated server dispatch, live area transforms, definition revisions, passive public snapshot and current-owner execution. CBA configuration remains separate.",
+    "Trusted scheduled server calls could interleave registry/request read-modify-write despite usual remoteExecCall delivery being unscheduled. Serializing only the remote entry assumption did not cover those callers."
+  ],
+  "implementation": [
+    "Registration now serializes bounded snapshot validation/revision/area update/publication.",
+    "Dispatch now serializes request sequence/budget validation, explicit area creation/update/removal and registration/answer publication.",
+    "No additional movement authority, hidden nearest-object selection, global loop, world query or copied upstream code."
+  ],
+  "remaining": [
+    "CBE native frontend currently requires interface/local logic and is curator-facing; HBQ Eden objectArea placement is not implemented as equivalent CBE Eden task authoring.",
+    "CBE geometry refuses wet unsupported/terrain-water paths. HBQ shallow-ford intent is not implemented; requires a separate explicit depth/vehicle suitability and physical support policy.",
+    "Actual multiplayer curator transforms/deletion, concurrent script calls, repeated task use and JIP require physical validation.",
+    "Whole-HBQ startup, controllers, queue/native reverse and measured runtime performance remain incomplete."
+  ],
+  "validation": {
+    "tests": 1292,
+    "exitCode": 0,
+    "log": ".qa/cbe-corridor-registration-transaction-build.log",
+    "packageFingerprint": "80ba74e665a291899adf56f3ff149d05b031cd5b09181d35b37d03b960c957ae"
+  },
+  "physicalAcceptance": false,
+  "wholeHBQParity": false,
+  "audits": "paused"
+}

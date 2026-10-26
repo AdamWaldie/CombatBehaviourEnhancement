@@ -1,9 +1,22 @@
 /*
  * Author: WaldoTheWarfighter
+ * New MOVE admission also requires a fresh current-owner COVER ammunition-capacity receipt;
+ * bootstrap publishes COVER before movement. In-flight bounds keep their original lifetime.
+ * Capacity binds to the published actual-owner parent generation/epoch/token/expiry, not this
+ * server machine's private epoch. It is rechecked when consumed, not only when received.
+ * This is the moving squad's capacity, not proof that another squad is firing effectively.
+ * Route centroids exclude dormant, hidden, fleeing and care-busy actors without counting
+ * those temporary states as casualties in the separate permanent-retirement strength check.
  * Coordinates reserved assault squads through short bounds while other squads provide cover.
+ * Publishes the original MOVE deadline with token/sequence/point before its role; owners
+ * require both matching receipts, never presumed cross-machine event ordering.
  * Locality/authority: server publishes tokened roles; each group owner executes its fire teams.
  * Repeat/JIP: roles are durable snapshots; only changed roles are broadcast. Existing support
  * lease expiry, exclusion and Zeus cancellation remain authoritative. At most six groups are read.
+ * Local actor reservations use the shared strict validator; nonlocal nonempty markers remain
+ * reserved because only their owner can interpret expiry. Owner execution still validates admission.
+ * Exact group/token membership retires superseded bounds without penalising a successor. Public
+ * roles, retry clocks and aborts revalidate that reservation inside unscheduled write boundaries.
  * A partial bound is useful progress and hands movement to the next squad, but never completes
  * the final assault objective; that squad remains eligible to finish its committed approach. Stalls are counted per
  * squad; one unreliable element can recover or retire without cancelling the other manoeuvre and
@@ -23,6 +36,15 @@
  */
 params ["_job","_leases"];
 if (!isServer || {!(_job getOrDefault ["assaultIssued",false])}) exitWith {};
+// A group identity alone does not preserve the authority of its previous reservation.
+// Use this again inside every public-write transaction after scheduled scoring/observation.
+private _sameLease={
+    params ["_group","_token"];
+    if (isNull _group) exitWith {false};
+    private _lease=_group getVariable ["CBE_AIPass_SupportLease",[]];
+    count _lease == 6 && {(_lease select 0) == _token}
+        && {serverTime < (_lease select 2)} && {(_lease select 5) isNotEqualTo []}
+};
 private _teams=[];
 {
     _x params ["_group","_token","","","_accepted"];
@@ -45,9 +67,12 @@ private _active=if (_activeRaw isEqualTo []) then {[]} else {
 private _stillActive=[];
 {
     _x params ["_group","_sequence","_deadline","_final","_token"];
+    isNil {
+    if (_teams findIf {(_x select 0) == _group && {(_x select 1) == _token}} < 0
+        || {!([_group,_token] call _sameLease)}) exitWith {};
     private _result=_group getVariable ["CBE_Cortex_SupportBoundResult",[]];
     private _finished=count _result == 3 && {(_result select 0) == _token} && {(_result select 1) == _sequence};
-    if (_teams findIf {(_x select 0) == _group} < 0 || {_finished} || {serverTime >= _deadline}) then {
+    if (_finished || {serverTime >= _deadline}) then {
         private _outcome=if (_finished) then {_result select 2} else {"TIMEOUT"};
         private _progressed=_outcome in ["COMPLETE","PARTIAL"];
         // A failed mover yields its turn; it cannot freeze or cancel the other squads.
@@ -72,6 +97,7 @@ private _stillActive=[];
     } else {
         _stillActive pushBack _x;
     };
+    };
 } forEach _active;
 _active=_stillActive;
 _job set ["boundActive",_active];
@@ -91,13 +117,40 @@ private _routeFailuresByToken=_job getOrDefault ["routeFailuresByToken",createHa
             && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
     };
     if (count _fit < 3 && {!(_token in _completed)} && {!(_token in _retired)}) then {
-        _retired pushBackUnique _token;
-        _group setVariable ["CBE_Cortex_SupportAbort",
-            [_token,serverTime,"INSUFFICIENT_STRENGTH",count _fit],true];
+        isNil {
+            if !([_group,_token] call _sameLease) exitWith {};
+            _retired pushBackUnique _token;
+            _group setVariable ["CBE_Cortex_SupportAbort",
+                [_token,serverTime,"INSUFFICIENT_STRENGTH",count _fit],true];
+        };
     };
 } forEach _teams;
 _job set ["boundRetired",_retired];
 
+// Inventory is observable only on its actor owner. New bounds consume a fresh
+// authenticated COVER capacity receipt; accepted leases alone cannot supply it.
+private _capacities=_job getOrDefault ["capacityByToken",createHashMap];
+private _capacityReady={
+    params ["_group","_token"];
+    private _entry=_capacities getOrDefault [_token,[]];
+    if (count _entry != 3 || {(_entry select 0) != _group} || {(_entry select 1) != groupOwner _group}) exitWith {false};
+    private _report=_entry select 2;
+    private _parent=_group getVariable ["CBE_Operation",createHashMap];
+    private _lease=_group getVariable ["CBE_AIPass_SupportLease",[]];
+    if (!(_parent isEqualType createHashMap) || {count _lease != 6}) exitWith {false};
+    count _report == 8 && {(_report select 0) == 2} && {(_report select 1) isEqualTo (_group getVariable ["CBE_Cortex_SupportRole",[]])}
+        && {((_report select 1) select 2) == "COVER"}
+        && {!local _group || {(_report select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}}
+        && {(_report select 7) == (_group getVariable ["CBE_OperationGeneration",-1])}
+        && {(_report select 7) == (_parent getOrDefault ["generation",-1])}
+        && {(_report select 2) == (_parent getOrDefault ["ownerEpoch",-1])}
+        && {(_parent getOrDefault ["supportOwner",-1]) == groupOwner _group}
+        && {(_parent getOrDefault ["supportToken",""]) == _token}
+        && {(_parent getOrDefault ["supportExpiry",-1]) == (_lease select 2)}
+        && {(_parent getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}
+        && {(_parent getOrDefault ["phase",""]) != "CANCELLED"}
+        && {serverTime < (_report select 4)} && {(_report select 5) >= 3} && {(_report select 6) >= 3}
+};
 private _cursor=_job getOrDefault ["boundCursor",0];
 private _maxConcurrent=(count _teams) min (_job getOrDefault ["boundMaxConcurrent",2]);
 for "_slot" from count _active to (_maxConcurrent-1) do {
@@ -119,13 +172,22 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
             && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
             && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
     };
+        // Temporary inactivity changes route planning, never the casualty retirement pool.
         _fit=_fit select {
+            if (!simulationEnabled _x || {isObjectHidden _x} || {fleeing _x}
+                || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}) exitWith {false};
             private _reservation=_x getVariable ["CBE_Cortex_ActorMove",[]];
-            private _free=_reservation isEqualTo [] || {_reservation isEqualType [] && {count _reservation == 3}
-                && {(_reservation param [2,1e12,[0]]) <= time}};
+            // Reservation deadlines use the actor owner's clock. The coordinator may inspect
+            // an empty remote marker, but cannot declare a remote or malformed lease expired.
+            private _free=if (local _x) then {
+                !([_x] call CBE_fnc_CortexActorMoveReserved)
+            } else {
+                _reservation isEqualTo []
+            };
             _free && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         };
-        if (count _fit >= 3 && {serverTime >= (_group getVariable ["CBE_Cortex_SupportRetryAfter",0])}
+        if (count _fit >= 3 && {[_group,_token] call _capacityReady}
+            && {serverTime >= (_group getVariable ["CBE_Cortex_SupportRetryAfter",0])}
             && {!(_token in _completed)} && {!(_token in _retired)}
             && {_active findIf {(_x select 4) == _token} < 0}
             // Concurrent movers need genuinely different approach lanes. A second squad on the
@@ -177,12 +239,15 @@ for "_slot" from count _active to (_maxConcurrent-1) do {
             } else {
                 // Geometry failure must not become a repeated hot-path scan or indefinite cover.
                 // One delayed retry can exploit changed positions; retire only this element after it.
+                isNil {
+                if !([_group,_token] call _sameLease) exitWith {};
                 private _routeFailures=(_routeFailuresByToken getOrDefault [_token,0])+1;
                 _routeFailuresByToken set [_token,_routeFailures];
                 _group setVariable ["CBE_Cortex_SupportRetryAfter",serverTime+8];
                 if (_routeFailures >= 2) then {
                     _retired pushBackUnique _token;
                     _group setVariable ["CBE_Cortex_SupportAbort",[_token,serverTime,"NO_SAFE_BOUND",_routeFailures],true];
+                };
                 };
             };
         };
@@ -210,8 +275,24 @@ _job set ["boundActive",_active];
     } else {
         [_token,_sequence,"COVER",[],+(_job get "assaultEnemy")]
     };
-    if (_old isNotEqualTo _role) then {
-        _group setVariable ["CBE_Cortex_SupportRole",_role,true];
+    isNil {
+        if !([_group,_token] call _sameLease) exitWith {};
+        // Publish the original server bound lifetime with its exact role identity.
+        // Owner admission waits for both receipts; arrival order cannot create extra time.
+        private _roleDeadline=[];
+        if (_moving) then {
+            private _record=_active select _activeIndex;
+            private _leaseNow=_group getVariable ["CBE_AIPass_SupportLease",[]];
+            _roleDeadline=[_token,_record select 1,(_record select 2) min (_leaseNow select 2),+(_role select 3)];
+        };
+        if ((_group getVariable ["CBE_Cortex_SupportRoleDeadline",[]]) isNotEqualTo _roleDeadline) then {
+            _group setVariable ["CBE_Cortex_SupportRoleDeadline",_roleDeadline,true];
+        };
+        // Compare the live role here: neither a stale unchanged-role observation nor a
+        // cancelled lease may overwrite a successor while the scorer was scheduled.
+        if ((_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _role) then {
+            _group setVariable ["CBE_Cortex_SupportRole",_role,true];
+        };
     };
 } forEach _teams;
 

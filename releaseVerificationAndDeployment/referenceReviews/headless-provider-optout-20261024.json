@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-24",
+  "base_commit": "5cfe98c4",
+  "confirmed_gap": "Production helicopter crew pinning wrote CBE_Headless_ExcludeGroup; actual companion migrate/rebalance code consumes Waldo_Headless_ExcludeGroup. Automatic ground squad copied the ineffective key.",
+  "initial_hypothesis_corrected": "Audit CBE_fnc_HeadlessMigrateGroup is defined in auditMission/initServer.sqf and delegates to the real provider when present. Do not rename this private wrapper or CBE_Headless_Clients discovery state.",
+  "changes": [
+    "Helicopter crew pin publishes actual provider-owned Waldo_Headless_ExcludeGroup",
+    "Landed ground squad retains that actual provider opt-out, alongside ACE blacklist; no permission to unpin a flight-group member is inferred",
+    "Audit wrapper checks its private CBE fixture exclusion before either real-provider delegation or engine-only fallback",
+    "Provider functions/source/bindings and all other CBE namespaces remain unchanged"
+  ],
+  "read_only_provider_evidence": {
+    "headlessMigrateGroup.sqf": "dfd904a76304497a6a01b73bad4868de4182d27376401ccc17f149628bdd1890",
+    "headlessRebalance.sqf": "874b05bcd1ca1fa7cf3d4a893ce1fb38449e8559c558cd71749542360a852fae"
+  },
+  "checks": {
+    "full_offline": "1496 tests;413 compiled SQF;11 PBOs;static performance0 findings;pass",
+    "independent_package_verify": "pass",
+    "candidate": ".qa/candidates/headless-provider-optout-5cfe98c4",
+    "fingerprint": "a7f88616ad95ba2e53d00d5b8b2f6522047c719c30079ec284c97e226c5efd57"
+  },
+  "limits": [
+    "Runtime receipt/owner migration and actual provider pin refusal remain unrun",
+    "Ground squad conservatively inherits crew-group opt-outs, including an existing flight pin; no automatic clearing is added",
+    "Naval HC scenario extension not added: this concrete provider boundary defect was addressed first",
+    "Unsigned dirty development package; final header wording and review/handover postdate build, runtime statements unchanged",
+    "Audits PAUSED; no game launch or push/merge. Full production goal incomplete"
+  ],
+  "provider_evidence_location": "Companion checkout MissionScripts/Headless; source root is retained in private handover context."
+}

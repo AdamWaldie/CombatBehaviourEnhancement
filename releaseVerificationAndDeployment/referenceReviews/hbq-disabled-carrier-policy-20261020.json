@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-20",
+  "baseline": "f80d2239",
+  "scope": "Complete HBQ crewHold, routeWaiting, refreshRoute and rearClear helper text; selected current CBE unload/mobility boundaries, not whole HBQ parity",
+  "sources": [
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_crewHold.sqf",
+      "sha256": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076",
+      "rangesReviewed": [
+        "complete file"
+      ]
+    },
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_routeWaiting.sqf",
+      "sha256": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+      "rangesReviewed": [
+        "complete file"
+      ]
+    },
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_refreshRoute.sqf",
+      "sha256": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8",
+      "rangesReviewed": [
+        "complete file"
+      ]
+    },
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_rearClear.sqf",
+      "sha256": "1b1935da7b23dfb6f04093e7f3601c1cd615e0b1c10c71137978c37dc2d067bc",
+      "rangesReviewed": [
+        "complete file"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "intent": "Crew retention only while mobile",
+      "source": "crewHold changes combat unload policy according to canMove; cargo remains separate. It also schedules forced reseating without repeating all original guards.",
+      "disposition": "Implement mobility-aware release of existing CBE retention leases; do not import forced seating or overwrite allowCrewInImmobile."
+    },
+    {
+      "intent": "Preserve intentional route waits",
+      "source": "routeWaiting protects HOLD, synchronized inactive trigger, timeout and nontrue condition near current waypoint.",
+      "disposition": "Current DrivingAssistStart has nativeWaiting and stricter plain-MOVE recoveryOrderFree. No additional route controller or arbitrary condition evaluation needed."
+    },
+    {
+      "intent": "Wake native route after script interruption",
+      "source": "refreshRoute replaces waypoint or directly moves effective commander; also resets crew features, engine and follow orders.",
+      "disposition": "Retain intent but reject blanket feature resets and authored waypoint replacement. Current CBE uses finite exact route/native receipts; physical forward handback remains unverified."
+    },
+    {
+      "intent": "Prevent unsafe reverse",
+      "source": "rearClear checks rear entities and six solid rays.",
+      "disposition": "CBE DrivingRearClear has bounded hull/support/relative velocity checks. This review inspected selected current portions, not complete new geometry acceptance."
+    }
+  ],
+  "implementation": {
+    "paths": [
+      "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf",
+      "addons/vehicles/functions/convoyUnloadPolicy.sqf",
+      "addons/vehicles/functions/convoyTick.sqf"
+    ],
+    "behaviour": "Disabled carriers release only unchanged matching unload leases; convoy reconciles registered disabled carriers before mobile filtering/all-immobile early return. Existing external-value conflict refusal remains before disabled release. No forced dismount, seat move, feature reset or damage protection.",
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verification passed",
+    "candidate": ".qa/candidates/disabled-carrier-unload-f80d2239",
+    "fingerprint": "87f68f28f8037213ad6521a6ff7055d5e1d02174322eba97cd07aab213080ee1",
+    "physicalAcceptance": false,
+    "performanceMeasured": false
+  },
+  "audits": "PAUSED"
+}

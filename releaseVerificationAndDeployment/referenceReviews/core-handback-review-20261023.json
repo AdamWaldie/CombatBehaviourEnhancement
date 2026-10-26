@@ -1,0 +1,108 @@
+{
+  "reviewed_at": "2026-10-23",
+  "source_commit": "bf76d203",
+  "scope": "CORE fourth declared build-out criterion; source review only",
+  "reviewed_paths": [
+    "addons/infantry/functions/cortexReleaseGroup.sqf",
+    "addons/infantry/functions/cortexRestoreCalm.sqf",
+    "addons/core/functions/cortexStop.sqf",
+    "addons/vehicles/functions/cortexVehicles.sqf"
+  ],
+  "finding": "Dismount-stop cleanup in CortexReleaseGroup and CortexStop restores matching speed pairs without consulting the separate stop-order proof; CortexVehicles also has a release branch using the pair alone. This needs a shared exact-owner/order restoration contract, not merely metadata clearing. Split locality, ambiguous identical replacement native orders, exhausted cleanup windows and provider quiescence/resume handover remain incomplete.",
+  "implemented": "Reviewed 2026-10-23 at bf76d203: shared release retires independent indoor/point actors except validated Contact-only preservation, cancels common operations and invokes feature-owned cleanup. Calm restoration separates owned PATH from recall, protects actor tasks, and records blocked group-policy restoration without granting late retry authority. Finite pending receipts are not proof of native handback.",
+  "next_bounded_action": "Trace the dismount-stop acquisition, order/generation invalidation and all three retirement callers. Implement a shared typed restoration contract that preserves newer actor/vehicle authority and original speed; do not restore solely from value equality or erase blocked proof to claim handback. Account for release advancing operation generation before cleanup. Extend the existing shutdown/vehicle regression, then run the full offline pipeline at the coherent runtime checkpoint.",
+  "score": "0.5 retained; no implementation increase",
+  "validation": "No runtime changes or new package. Previous1491-test/full-build/independent candidate remains the latest runtime evidence. Global build-out freshness intentionally still fails unreviewed families.",
+  "limits": "No physical acceptance, provider quiescence/resume, HC/JIP or measured performance. Audits paused.",
+  "dismountStopImplementation20261023": {
+    "baseline": "aa9c91af",
+    "implementation": "Shared CortexDismountStop captures typed previous/applied speed and original operating crew, full authored route, local native commands/destinations. Actual vehicle/crew owner and protected-task/external/convoy gates apply atomically at acquisition/retirement. All three previous pair-only paths use it. Repeated matching stop is read-only; no operation-generation assumption. Terminal refusal archives latest unresolved proof, revokes active authority and blocks same-epoch reacquisition. Repeated release cannot turn unresolved proof into success. No new scheduler, route, force boarding or timer.",
+    "validation": "1491 existing tests, complete offline build with HEMTT/FSM/SQF/config/docs/package gates and independent copied-candidate verification passed. Existing regressions extended; no new cases.",
+    "candidate": ".qa/candidates/dismount-stop-handback-terminal-aa9c91af",
+    "fingerprint": "7d7baafdbfe8b89f7e219684cfbd2a7643e0330bbc24b009f2bf4e07e6232f9b",
+    "logs": [
+      ".qa/dismount-stop-handback-build.log",
+      ".qa/dismount-stop-handback-build-reviewed.log",
+      ".qa/dismount-stop-handback-build-final.log",
+      ".qa/dismount-stop-handback-build-terminal.log",
+      ".qa/dismount-stop-handback-terminal-independent.log"
+    ],
+    "log_provenance": "Initial build failed old caller-local source assertion after speed writes moved into shared helper; test now checks shared command boundary. Reviewed intermediate passed but guide encoding reserialization was corrected preserving original bytes. Final passed before repeat-result issue found; terminal pass covers corrected repeat semantics. Earlier candidate remains preserved, not final.",
+    "limits": "Unsigned dirty development snapshot with retained unrelated dirt; engineering tracker and handover afterward. No physical speed readback/repeat/HC/JIP/provider handover or performance proof. A refused stop may remain physically zero; terminal evidence is not retry authority. Identical native replacements remain ambiguous. Audits paused."
+  },
+  "dismountStopComposition20261023": {
+    "baseline": "dd2b71d1",
+    "finding": "ReleaseGroup retired passenger speed after common-operation/calm route teardown, invalidating its own newly captured native proof. Ordinary driving could retain a separate cap beneath passenger zero, losing the real baseline or restoring underneath the stop.",
+    "implementation": "Retire passenger stop before OperationCancel/RestoreCalm and before ordinary driving release during shutdown. ACQUIRE refuses active ordinary recovery/pass/corridor/bypass and pending cap retirement, retires a plain ordinary cap, verifies its receipt removal plus unchanged seats/route, then captures its baseline. Ordinary driving roster/admission/command boundaries exclude active stop proof; its release cannot unwind underneath the stop. No route/boarding command, scan loop or timer added.",
+    "validation": "1491 existing tests/full offline build including HEMTT/config/SQF/FSM/docs/package and independent verification passed; existing lifecycle regressions extended, no new cases.",
+    "candidate": ".qa/candidates/dismount-stop-composition-dd2b71d1",
+    "fingerprint": "b6c11ddf1316592632574e18da791bcce4e6a85978bb88859de48a2d365c9399",
+    "logs": [
+      ".qa/dismount-stop-composition-build.log",
+      ".qa/dismount-stop-composition-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering tracker/notes afterward. No physical repeated stop/resume, recovery interruption, HC/JIP or overhead proof. Refused stops may remain stopped; exact identical replacements remain ambiguous. Audits paused."
+  },
+  "trafficConsentExclusion20261023": {
+    "baseline": "1bf73a35",
+    "finding": "Pending pass/queue consent and passenger safe-stop could overlap before native recovery work began.",
+    "implementation": "Passenger stop acquisition/restoration refuses outstanding or malformed pass/queue consent; shared pass/queue consent admission refuses active passenger stop before native input inspection. Only the original protocol owner retires consent. No worker, timer or native-MOVE queue expansion.",
+    "validation": "1491 existing tests and complete offline build passed; copied candidate independently verified. Existing regression extended, no new cases.",
+    "candidate": ".qa/candidates/dismount-traffic-consent-exclusion-1bf73a35",
+    "fingerprint": "63a896ebd36430a8d787cfea224024d3a61069a3228eef6c0fb9c5d2d85fca76",
+    "limits": "Unsigned dirty development snapshot including retained unrelated dirt. Notes afterward. No physical stop/resume, protocol retirement, HC/JIP or performance proof. CORE helper evidence hash now stale; no score renewal. Native-MOVE queues remain excluded; shared cross-owner route proof needs design. Audits paused."
+  },
+  "passConsentRetirement20261023": {
+    "baseline": "8c02d9b3",
+    "finding": "Pass owner terminal RESULT was gated by current topology and locality, leaving original private consent after participant deletion or migration. No original-expiry local cleanup existed; stale server ACK can delete the broker record without terminal delivery. Duplicate VERIFY could downgrade AGREED.",
+    "implementation": "Authenticated REFUSED/RELEASED dispatches existing exact-token metadata release before live topology inspection. Each newly installed PENDING/AGREED phase schedules exact-receipt cleanup at its original deadline on the original machine. Full receipt equality prevents pending expiry from retiring AGREED or a successor; duplicate VERIFY installs no callback and cannot downgrade AGREED. No native command or new recurring scan.",
+    "validation": "1491 existing tests, full HEMTT/FSM/SQF/config/docs/package build and independent verification passed. Initial build passed before duplicate VERIFY issue was found; final build covers that correction. Existing admission regression extended, no new cases.",
+    "candidate": ".qa/candidates/pass-consent-terminal-expiry-8c02d9b3",
+    "fingerprint": "075b74baaddb19ad18db15546a249cf8c804c4f4b7656ca4c44247836f8f2de2",
+    "logs": [
+      ".qa/pass-consent-terminal-expiry-build.log",
+      ".qa/pass-consent-terminal-expiry-build-final.log",
+      ".qa/pass-consent-terminal-expiry-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Metadata retirement is not native quiescence or speed/route restoration. Physical deletion/migration/cancellation/expiry/stop-resume and performance remain unverified. Audits paused. No tracker score or hash renewal."
+  },
+  "passRetiredTokens20261023": {
+    "baseline": "eb6ed853",
+    "finding": "Passive participant can receive delayed VERIFY after exact consent cancellation but before original deadline. Clearing the receipt alone does not remember withdrawal.",
+    "implementation": "Registered DrivingPassTokenClosed mirrors the existing queue intent with separate pass namespace: bounded64 original-expiry closures, exact original-owner release records closure before clearing, authenticated terminal delivery records even before receipt installation, owner admission refuses closed tokens. Overflow keeps a scalar refusal through any unrecorded token original expiry, so earlier entry expiry cannot reopen it. No recurring scan, deadline renewal, native command or external controller.",
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package build and independent verification passed. Existing consent regression extended, no new cases. Initial full build passed before saturation fence correction; final log covers corrected source.",
+    "candidate": ".qa/candidates/pass-retired-token-eb6ed853",
+    "fingerprint": "51264cb650964cec36ef376f0c950fb2253872da186bbf3e69fde254f22cd48d",
+    "logs": [
+      ".qa/pass-retired-token-build.log",
+      ".qa/pass-retired-token-build-final.log",
+      ".qa/pass-retired-token-independent.log"
+    ],
+    "remaining": "Existing DrivingQueueTokenClosed has no equivalent overflow-until scalar. Its full-journal rejection can end when an earlier token expires even though an unrecorded retired token has later expiry; review/fix next. Native-MOVE queue integration remains excluded.",
+    "limits": "Unsigned dirty development snapshot with unrelated dirt; notes afterward. No physical delayed-message/owner-migration/handback or performance proof. No tracker score/hash renewal; global evidence remains stale. Audits paused."
+  },
+  "queueSaturationReview20261023": {
+    "baseline": "595b17ba",
+    "correction": "Previous passRetiredTokens remaining finding was not traced through server admission. No queue runtime fix justified for normal broker operation.",
+    "evidence": "Queue broker retains at most64 root admission keys for90seconds, including after release; token expiry cannot exceed admission time+90. A new root admission requires a free key. Thus a65th simultaneously unexpired legitimate token cannot be generated, and old delayed messages carry expired original deadlines. Queue closure journal64 already matches the broker lifetime bound. External metadata corruption or other trusted scripts forging server messages are not this guarantee.",
+    "source_sha256": {
+      "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "824dd40bde3e4fa3aad69f5c9a76d6dbbc6294d5ce74011409e2778b915a0013",
+      "addons/vehicles/functions/drivingQueueTokenClosed.sqf": "8054f5f298e7259e028276d33fe0d88307ac1cc5ba6e8365392d660080c87281",
+      "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "8377649876558b009f027499bec23ae75089252f9e25faf2ae4715c679427fa4"
+    },
+    "limits": "Source lifecycle proof only, not actual transport ordering or physical handback. No queue runtime/test change."
+  },
+  "passBrokerAdmissionBudget20261023": {
+    "baseline": "595b17ba",
+    "finding": "Passing active registry32 did not bound fresh serial/release cycles; the newly installed per-phase expiry callbacks could accumulate until their original deadlines. Local auto context cooldown does not constrain direct requests.",
+    "implementation": "Authenticated broker retains at most64 root admissions for50seconds, one per initiating netId. Release does not remove admissions. Admission lifetime covers maximum consent expiry50seconds; duplicate live requests return before consuming another slot. Unknown/corrupt admission state refuses. No new worker or native command; two bounded64 metadata passes on validated BEGIN.",
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package build plus independent copied-package verification passed. Existing broker regression extended, no new cases.",
+    "candidate": ".qa/candidates/pass-broker-admission-budget-595b17ba",
+    "fingerprint": "f8f93122f490da6c5da2f4fc90b82517f0376a046aa8c8d4676ce1b704087303",
+    "logs": [
+      ".qa/pass-broker-admission-budget-build.log",
+      ".qa/pass-broker-admission-budget-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Physical message churn/owner transitions/stop-resume and overhead unverified. Scripted fresh pass attempts on same root now wait50seconds even after cancellation; ordinary driving unaffected, automatic context cooldown remains60. No tracker renewal. Audits paused."
+  }
+}

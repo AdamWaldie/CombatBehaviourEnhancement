@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-25",
+  "base": "7262a4c7",
+  "scope": "Current native-MOVE driving implementation reconciliation. Historical remaining fields are point-in-time evidence, not the present work queue. This is not renewed whole-HBQ parity.",
+  "referenceSource": ".qa/hbq-complete-source-20261025/functions/fn_vehicleUnstuck.sqf",
+  "currentSourceHashes": {
+    "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "b0844b7d6af7cf8656e6fa9c4ca9964fc8263a7ca04fae65bf3ea1577cb40772",
+    "addons/vehicles/functions/drivingNativeRecoveryAdopt.sqf": "e1dbff29d77b2e3f9205b7dcde49a0999ebd234ba208cdadccb2a031f6e80901",
+    "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "1c2fd4de4e9ec1d0eda130b8db4acd58d152c1bd1a2e450a3fdd2bab59fe0959",
+    "addons/vehicles/functions/drivingGateRouteMatches.sqf": "e2fd40b64e3b195f6dc2f06b8ec8f64e0741520a8a049909dfd566496795f63a",
+    "addons/vehicles/functions/drivingPassCanConsent.sqf": "860c18cd180af3f39f2853c46888a845ebe4eb40b0d3805ccdb331d3aa0fc3a5",
+    "addons/vehicles/functions/drivingQueueAutoStep.sqf": "d0c5fac9f465b5af7827f033eaf05692450941e79e969736afed7b2e01c8876b",
+    "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "3b264f571e7b7639bb5f320f0445b4bcb814c96661802e9e58e5d3ca5dce0abe",
+    "addons/vehicles/functions/drivingCorridorStep.sqf": "a173c9929e70fa1b68a20e8d96fca0971e3dbb7fe17e6968ecbe31159b742ef5"
+  },
+  "implementedSourcePaths": [
+    {
+      "area": "Direct native MOVE recovery",
+      "evidence": "DrivingNativeRouteReceipt plus recovery command/return lifecycle; read original native goal, current operating actors, owner/epoch and exact temporary leg.",
+      "historicalReview": "native-driving-20261021.json"
+    },
+    {
+      "area": "Genuine locality-edge recovery adoption",
+      "evidence": "DrivingRecoveryAdopt calls DrivingNativeRecoveryAdopt. Exact original edge/goal/crew/cap/epoch and finite custody required; not an arbitrary late lookup.",
+      "historicalReview": "native-recovery-adopt-20261021.json",
+      "followups": [
+        "native-child-locality-adoption-20261022.json",
+        "native-child-expiry-custody-20261022.json"
+      ]
+    },
+    {
+      "area": "Gate intent",
+      "evidence": "DrivingGateRouteMatches validates native-route metadata; actual owner intent exchange remains required. Metadata is not remote native command permission.",
+      "historicalReview": "native-gates-20261021.json"
+    },
+    {
+      "area": "Static bypass and conditional corridor",
+      "evidence": "Native recovery child paths exist; DrivingCorridorStep still requires a live REFRESH/FINAL parent. No unconditional native-route corridor claim.",
+      "historicalReviews": [
+        "native-bypass-lifecycle-20261022.json",
+        "native-corridor-lifecycle-20261022.json"
+      ]
+    },
+    {
+      "area": "Native queue",
+      "evidence": "Existing default-off automatic queue path composes owner consent and original-intent/stop/abort/return journals. DrivingPassCanConsent permits actual-owner native routes for QUEUE with live ordinary FSM and GateIntent.",
+      "historicalReview": "native-queue-execution-boundary-20261023.json",
+      "readLatestEntry": "nativeAdmission20261023",
+      "followup": "queue-rear-envelope-20261025.json"
+    },
+    {
+      "area": "Native passing",
+      "evidence": "DrivingPassCanConsent also permits native PASS after current-owner/live-executor/route/intent checks. Existing passing remains default off; it is not universally refused.",
+      "historicalReview": "native-passing-integration-20261023.json"
+    }
+  ],
+  "notResolved": [
+    "Physical native travel, reverse orientation, stop/rest/return and both-seat acknowledgement.",
+    "Repeated/staggered owner transfer and actual old-owner quiescence.",
+    "Missing/expired edge evidence, unknown native state and same-value external order ambiguity.",
+    "Native casualty replacement and required external-controller completion handover.",
+    "Measured whole-mod5% median/10% p95 overhead and tactical balance."
+  ],
+  "maintenanceRule": "Keep historical findings intact; use this current reconciliation and named later entries before selecting new work. An old remaining list must not justify adding a duplicate executor.",
+  "validation": "Recorded current file hashes rechecked locally. No production edit, new test case, unchanged build rerun or physical audit.",
+  "audits": "paused",
+  "physicalAcceptance": false,
+  "trafficFrameFollowup": {
+    "review": "hbq-traffic-world-frame-20261025.json",
+    "scope": "Own/other hull geometry now shares horizontal world metres with course/velocity/braking comparisons. Earlier hashes remain historical. No physical/performance/parity acceptance.",
+    "physicalAcceptance": false
+  }
+}

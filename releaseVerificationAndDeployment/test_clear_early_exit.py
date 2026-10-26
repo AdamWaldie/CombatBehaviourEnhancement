@@ -20,8 +20,8 @@ class ClearEarlyExitTests(unittest.TestCase):
         planner = s.split('private _chooseExteriorExit={',1)[1].split('// End exterior planner;',1)[0]
         self.assertIn('private _proposalCount=3 max count _ranked;',planner)
         self.assertIn('from 0 to (_proposalCount-1)',planner)
-        self.assertIn('_entries select [0,4]',planner)
-        self.assertIn('_entries select [0,4]',planner)
+        self.assertIn('_planningEntries select [0,4]',planner)
+        self.assertIn('_planningEntries select [0,4]',planner)
         self.assertIn('call CBE_fnc_BuildingExteriorCandidate',planner)
         self.assertNotIn('doMove',planner)
 
@@ -46,12 +46,19 @@ class ClearEarlyExitTests(unittest.TestCase):
                      'serverTime-(_motion select 1) >= 8',
                      '!(_record param [4,false,[true]])',
                      '[_actor] call _exitMovementOwned',
-                     'call CBE_fnc_RecoveryStep', '_record set [4,true]']:
+                     'call _recoverClearActor', '_record set [4,true]']:
             self.assertIn(gate,service)
         self.assertNotIn('_record set [2,',service)
         self.assertNotIn('doMove',service)
         adoption=self.start.split('private _earlyReceipt=',1)[1].split('// Adopt a transform/episode-bound exit journal',1)[0]
-        self.assertIn('count _x in [4,5,7]',adoption)
+        self.assertIn('count _x == 7',adoption)
+        self.assertNotIn('["_retryUsed",false]',adoption)
+        self.assertIn('_resumePhaseReceipts findIf',adoption)
+        refused=adoption.split('_early set [netId _actor',1)[1]
+        self.assertEqual(refused.count('_job set ["egressFailed",true]'),2)
+        self.assertNotIn('doMove',refused)
+        self.assertNotIn('serverTime+',refused)
+
         self.assertIn('_retryUsed isEqualType true',adoption)
         self.assertIn('[_actor,+_target,_until,_state,_retryUsed,+_entry,+_watch]',adoption)
 
@@ -75,6 +82,27 @@ class ClearEarlyExitTests(unittest.TestCase):
             self.assertIn(required,block)
         self.assertNotIn('doMove',block)
         self.assertNotIn('serverTime+',block)
+        self.assertIn('_entry in _securityEntries',block)
+        self.assertNotIn('_entry in _entries',block)
+        self.assertIn('private _settledExit=currentCommand _actor == "WAIT"',block)
+        self.assertIn('["CHECK",_actor,_job] call CBE_fnc_BuildingActorMotion',block)
+        self.assertIn('select 3) isEqualTo _target',block)
+        self.assertIn('|| {_settledExit}',block)
+        # Four assault lanes are a concurrency bound, not the full exterior topology.
+        all_entries=[(n,0,0) for n in range(12)]
+        assault=all_entries[:4]
+        journal_entry=all_entries[9]
+        self.assertNotIn(journal_entry,assault)
+        self.assertIn(journal_entry,all_entries)
+        # Replayed arrival keeps the original deadline/retry state; a rejected
+        # native observation cannot turn into a fresh exit request.
+        journal={"deadline":40,"retryUsed":True,"state":"ARRIVED"}
+        for command,receipt_ok in (("WAIT",True),("WAIT",False),("ATTACK",True)):
+            adopted=journal.copy()
+            if not (command=="WAIT" and receipt_ok):adopted["state"]="DIVERTED"
+            self.assertEqual(adopted["deadline"],40)
+            self.assertTrue(adopted["retryUsed"])
+            self.assertEqual(adopted["state"],"ARRIVED" if receipt_ok and command=="WAIT" else "DIVERTED")
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,0 +1,81 @@
+{
+  "finding": "Outer-band catch-up imposed max5 km/h only after crossing gapHigh. This creates a spacing-request jump for a slow/stopped predecessor, independent of nonlinear boost continuity.",
+  "implementation": "Remove only the outer-band minimum5 clamp. Retain existing proportional correction, nonlinear boost cap8, speed-increase slew and hard closing/reverse/traffic/infantry caps. No thresholds/settings/workers/tests added.",
+  "reference": "Local HBQ driveAssist traffic section distinguishes predecessor following caps from collision stops and scales braking by mass. Existing CBE safety constraints remain; no runtime dependency or raw source changes.",
+  "numeric_scope": "Spacing request before independent downstream clamps, desiredgap50m, tolerance10m, frontspeed0. This is algebraic evidence of the discontinuity, not an engine simulation or physical performance result.",
+  "samples": [
+    {
+      "gap_m": 59.999,
+      "old_spacing_request_kmh": 3.999600000000001,
+      "new_spacing_request_kmh": 3.999600000000001
+    },
+    {
+      "gap_m": 60,
+      "old_spacing_request_kmh": 4.0,
+      "new_spacing_request_kmh": 4.0
+    },
+    {
+      "gap_m": 60.001,
+      "old_spacing_request_kmh": 5,
+      "new_spacing_request_kmh": 4.000404743416489
+    },
+    {
+      "gap_m": 61,
+      "old_spacing_request_kmh": 5,
+      "new_spacing_request_kmh": 4.550000000000001
+    },
+    {
+      "gap_m": 70,
+      "old_spacing_request_kmh": 12.743416490252569,
+      "new_spacing_request_kmh": 12.743416490252569
+    }
+  ],
+  "source_sha256": "e2682059d8c3212d97b91b73e9e788e91ba6dfcc2f26fa8008781ab3953523c8",
+  "physical_acceptance": false,
+  "audits": "PAUSED",
+  "scores_changed": false,
+  "lowerToleranceSmoothing20261021": {
+    "baseline": "02c35371",
+    "finding": "Initial static reading found no outer-band jump, but numeric sweep disproved lower-band continuity. Current full smoothing floor enabled abruptly at controlGap>=gapLow. Example desired50/tolerance10/front2/previousCap5/mass3000/dt1: cap0 at39.99999m,1km/h at40.00001m. This was not an engine run.",
+    "implementation": "Multiply existing previous-cap decay floor by clamped gap progress from gapLow toward requested gap, denominator at least1m for collapsed physical/tolerance band. Same conditional/reaction/braking/closing-cap/acceleration/reverse/retained-path/traffic/pedestrian/route logic and same callbacks. No new CBA setting or timer.",
+    "balance": "Below lower tolerance compression remains immediate. Inside lower half-band smoothing now fades rather than switching at full value; full smoothing retained above band. Independent mass-aware raw closing cap remains final. No claim of actual safe stopping distance.",
+    "sourceSha256": "1048bd965f76bb000054cb3b04a7c015a0a177c9cfaa652b772695386a107297",
+    "validation": {
+      "focusedTests": 20,
+      "continuityCombinations": 108,
+      "massesKg": [
+        3000,
+        15000,
+        30000
+      ],
+      "frontKmh": [
+        0,
+        2,
+        10,
+        30
+      ],
+      "previousCapKmh": [
+        0,
+        5,
+        20
+      ],
+      "boundariesM": [
+        40,
+        50,
+        60
+      ],
+      "epsilonM": 1e-05,
+      "toleranceKmh": 0.001,
+      "oldJumpReproducedKmh": 1,
+      "tests": 1484,
+      "pipeline": ".qa/convoy-lower-band-smoothing-build.log",
+      "independent": ".qa/convoy-lower-band-smoothing-independent.log",
+      "candidate": ".qa/candidates/convoy-lower-band-smoothing-02c35371",
+      "fingerprint": "65346fb972f99a73106cf89b50c4baa4b4d426755ccd349be0c9e0ff31ffcaa4"
+    },
+    "limits": "Scalar continuity only, not native vehicle acceleration/path acquisition, closed-loop stability, gap convergence, collision safety or performance measurement. Historical mixed-convoy stop/start remains physically unverified. No source parity/score credit.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "audits": "PAUSED"
+  }
+}

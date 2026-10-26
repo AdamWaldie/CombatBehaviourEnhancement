@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-18",
+  "scope": "Clearance resume adopts an exact live episode rather than falling back to a fresh task",
+  "sources": {
+    "addons/core/functions/cortexDiscover.sqf": "005f1ef26b7c893cb4cdbc7cbcd76d7c9e4b59151cc3e442c449000bea5b2443",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "0d543ae85368e0fbaffe139bca2f70d7ab230140cc58d89ef4307ffd57b37cf8",
+    "releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf": "c28367ecd8bff89e14f54ae6fbb665bfaced7953ffee7f78053c812b3e85bfa9"
+  },
+  "finding": "The previous resume expression evaluated false for an absent or different-target durable order, then followed fresh-clear semantics. An old resume request could therefore start a new episode or replace another clear. Missing-target retirement also lacked a matching snapshot guard; destroyed-target resume did not retire its durable order.",
+  "change": "Discovery supplies observed order and generation. Resume requires nonempty matching live order, target and generation at entry, before expiry/handoff, and before publication. Missing/different/replaced requests refuse. Missing or destroyed targets retire only a still-matching resumed order. Explicit fresh task semantics and original deadlines remain.",
+  "fixture": "PREPARED normal moved-building case replays the genuine old snapshot after cancellation and after a fresh replacement; requires refusal, no resurrection, exact replacement preservation, then actual two-actor entry. No durable state or completion injection.",
+  "validation": {
+    "tests": 1154,
+    "sqf": 315,
+    "pbos": 9,
+    "log": ".qa/cbe-clear-resume-adoption-verified-build.log",
+    "exit_code": 0,
+    "fingerprint": "f64c146a489fe45bce2f0b5fa76a53e9cf6677ade2190bcd71fb9ae3350e8d04",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "limits": [
+    "No actual-provider HC timing, JIP, repeated physical clearance or runtime overhead acceptance.",
+    "Admission remains a multi-stage routine; this does not prove every possible scheduled interleaving is atomic.",
+    "Malformed public orders and broader fresh-task admission interleavings are not comprehensively resolved here.",
+    "All65 feature families remain partial."
+  ]
+}

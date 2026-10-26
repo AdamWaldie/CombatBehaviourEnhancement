@@ -7,14 +7,14 @@ class ConvoyPathHandoverTests(unittest.TestCase):
         s=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
         block=s.split('_vehicle setDriveOnPath _path;',1)[1].split('_progress set [6',1)[0]
         for key in ['CBE_Convoy_PathLease','_group,_revision','CBE_AIPass_Epoch',
-                    'driver _vehicle,_movementOperator','expectedDestination _movementOperator']:
+                    'driver _vehicle,_movementOperator','expectedDestination _movementOperator','expectedDestination driver _vehicle']:
             self.assertIn(key,block)
     def test_release_requires_exact_context_and_keeps_new_native_moves(self):
         s=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
         block=s.split('private _pathOwned=',1)[1]
-        for guard in ['count _pathLease == 7','_navigation getOrDefault ["revision",-1]',
+        for guard in ['count _pathLease == 8','_navigation getOrDefault ["revision",-1]',
                       'CBE_AIPass_Epoch','(_pathLease select 3) == _driver',
-                      '(_pathLease select 4) == _movementOperator','isEqualTo (_pathLease select 5)',
+                      '(_pathLease select 4) == _movementOperator','isEqualTo (_pathLease select 5)','isEqualTo (_pathLease select 7)',
                       '!(_vehicle in _keepCrew)','_taskFree','_mayStopOwned && {_pathOwned}',
                       '_live vectorDistance _committed <= 0.25']:
             self.assertIn(guard,block)
@@ -34,6 +34,17 @@ class ConvoyPathHandoverTests(unittest.TestCase):
         self.assertIn('+(_progress param [6,[]])',text)
         self.assertNotIn('"STEERING",+_path,',text)
 
+    def test_spacing_mode_measurements_are_opt_in_and_never_write_movement(self):
+        text=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        capture=text.split('private _measurementMode=',1)[1].split('// A stationary/braking predecessor',1)[0]
+        for field in ('"RADIAL"','"BLENDED","LONGITUDINAL"','_headingDifference,_longitudinal,_rawLateral',
+                      '_measurementWeight','_controlSample pushBack'):
+            self.assertIn(field,capture)
+        for command in ('forceSpeed','doMove','doStop','setDriveOnPath','nearEntities','lineIntersects'):
+            self.assertNotIn(command,capture)
+        location=text.index('private _measurementMode=')
+        self.assertGreater(text.rfind('if (_captureControl) then {',0,location),text.index('private _controlSample=[];'))
+
     def test_on_foot_leader_and_scripted_waypoint_do_not_receive_synthetic_recall(self):
         s=(ROOT/'addons/vehicles/functions/convoyReleaseLocal.sqf').read_text()
         recall=s.split('if (_driver != _leader',1)[1]
@@ -47,4 +58,20 @@ class ConvoyPathHandoverTests(unittest.TestCase):
         self.assertLess(recall.index('if (_index > 0'),recall.index('waypointStatements _waypoint'))
         self.assertIn('checkAIFeature "MOVE"',s)
         self.assertIn('checkAIFeature "PATH"',s)
+        register=(ROOT/'addons/vehicles/functions/simpleAiConvoy.sqf').read_text(encoding='utf-8')
+        tick=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text(encoding='utf-8')
+        self.assertIn('[formation _group, attackEnabled _group, [], leader _group, _revision]',register)
+        self.assertIn('_old select 7',register)
+        self.assertIn('_yieldReason="LEADER_CHANGED"',tick)
+        self.assertIn('alive (_leaderLease select 2)',tick)
+        issue=tick.split('_group selectLeader driver _lead;',1)[0].rsplit('isNil {',1)[1]
+        self.assertIn('call _mayIssueDriving',issue)
+        self.assertIn('CortexZeusHeld',issue)
+        self.assertIn('[_leaderTask,_originalLeader,driver _lead]',issue)
+        restore=s.split('_group selectLeader _originalLeader;',1)[0].rsplit('isNil {',1)[1]
+        for guard in ('!_preserveMoves','CortexZeusHeld','_restore param [4,-1,[0]]',
+                      'alive _originalLeader','group _originalLeader == _group','leader _group == _appliedLeader'):
+            self.assertIn(guard,restore)
+        self.assertIn('leader _group != (_releaseLeaderLease select 2)',s)
+
 if __name__=='__main__': unittest.main()

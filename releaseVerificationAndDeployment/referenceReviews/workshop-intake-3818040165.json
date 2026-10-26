@@ -1,0 +1,30 @@
+{
+  "added": "2026-10-20",
+  "status": "SELECTED_TEAM_THREAT_PRIORITY_BUILT_OTHER_INTENT_PENDING",
+  "licence": "UNVERIFIED; inspect before incorporating code.",
+  "sourceProtection": "Installed originals and archives are read-only. Keep raw source outside product packages.",
+  "acceptance": "Bounded supported-element proximity selection built into existing combined-arms request; offline checks passed, physical behaviour unverified. Staged response and observation not implemented from this reference. Audits PAUSED.",
+  "masterLedger": "Historical LOCAL_IMPLEMENTATION_LEDGER.md is absent; preserve this addition separately for reconciliation. Do not reconstruct the historical register.",
+  "workshopId": "3818040165",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3818040165",
+  "name": "Emergency Air Support",
+  "author": "Kevin K.",
+  "priority": "Intent-based selective reference",
+  "scope": "Evaluate useful air-support intent and methods across CBE aircraft and support systems. Select and adapt complementary parts as required; no straight port, wholesale implementation or mandatory dependency.",
+  "evaluationTopics": [
+    "Faction-matched aircraft selection and mission-side control.",
+    "Jets, gunships and unarmed airborne observation: request, task execution, cancellation, return and cleanup.",
+    "Safe support selection, friendly-fire and mission fire-policy authority, uncertainty of observer reports.",
+    "Zeus behaviour tasks versus CBA settings, multiplayer/locality, repeated requests and bounded performance.",
+    "Merge useful improvements with current CBE air/support FSMs without competing controllers; record selected, redesigned and rejected methods."
+  ],
+  "dependencies": "UNVERIFIED; metadata overview is not a source/config review.",
+  "identityEvidence": "Installed mod.cpp and meta.cpp identify Emergency Air Support, Kevin K. and publishedid3818040165. Overview describes faction-matched jets, gunships and an unarmed airborne observer without mission editing.",
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3818040165",
+  "files": {
+    "mod.cpp": "8625ba7c200401261fc1cb3d186ae6732cf506ad30e3bd064b7209a03738496a",
+    "meta.cpp": "00ef71347c3cbcfc98e5968b1551061696821d4f971ca05def9b8fa5476949fa",
+    "addons\\vanilla_air_support.pbo": "1667ad921aaaf73333f5d383c6ef92216803ce68e8294203ddecf29d4a5c2820"
+  },
+  "selectedSourceReview": "emergency-air-support-intent-20261025.json"
+}

@@ -1,0 +1,25 @@
+{
+  "baseline": "113e74e2",
+  "scope": "Expected-owner negative ACK withdraws agreed queue consent immediately",
+  "source_sha256": {
+    "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "406d6399f9341f67362e1dde7a2863e99d14d594cc4e1d8ceb8b600f0637b2c8"
+  },
+  "validation": {
+    "offline_tests": 1441,
+    "compiled_sqf": 333,
+    "pbos": 9,
+    "log": ".qa/cbe-queue-withdrawal-build.log",
+    "unsigned_fingerprint": "4b5e3d9be1c494cdfbc725a6630567fcb22b847f36d58afbd47a70b9bedba350",
+    "independent_package_verification": true,
+    "physical_acceptance": false
+  },
+  "remaining": [
+    "owner deferred-message replay retirement",
+    "COMMIT and finite HOLD ownership",
+    "phase-specific execution receipts",
+    "physical settled READY",
+    "leaf-to-root native reverse",
+    "whole-hull crossing clearance and handback"
+  ],
+  "source_integration": "Source methods must contribute complementary working capabilities, balanced and integrated through CBE ownership; no whole-mod parity credit."
+}

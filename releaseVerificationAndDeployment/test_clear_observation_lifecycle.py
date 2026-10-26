@@ -51,6 +51,50 @@ class ClearObservationLifecycle(unittest.TestCase):
         self.assertLess(install.index('&& {_viewConfirmed}'),install.index('_reserve doWatch _watch'))
         self.assertIn('_key == _stageViewKey',watch)
         self.assertIn('_stageViewBudget=_stageViewBudget-1',watch)
+        self.assertIn('if (_blockedSince != (_viewCheck select 1)) then {_stageJournalChanged=true}',watch)
+        proposal=text.split('if (_valid) then {',1)[1].split('// Native acknowledgement may arrive',1)[0]
+        self.assertLess(proposal.index('_reserve doMove _target'),proposal.index('_stageViewChecks deleteAt _key'))
+        journal=(INFANTRY/'buildingStageJournal.sqf').read_text(encoding='utf-8')
+        self.assertIn('private _stageBudget=[_job] call CBE_fnc_BuildingStageJournal',text)
+        self.assertIn('(_savedStage select 2) == "ARRIVED"',journal)
+        self.assertIn('_viewReceipt=[+(_savedStage select 0),+(_savedStage select 4)',journal)
+        for forbidden in ('setVariable','_job set','doMove','doStop','doWatch','serverTime+'):
+            self.assertNotIn(forbidden,journal)
+        for bound in ('count _x > 64','count _tried > 6','count _history > 3',
+                      '_count > 3','_count != floor _count','_maps findIf',
+                      '!(count _savedStage in [0,4,7])','!(count _savedView in [0,2])'):
+            self.assertIn(bound,journal)
+        for copy in ('_tried apply {+_x}','_history apply {+_x}',
+                     '_stage set [0,+(_stage select 0)]','forEach [4,5]',
+                     '_transform apply {+_x}','(_context select 1) apply {+_x}'):
+            self.assertIn(copy,journal)
+        self.assertIn('_stageViewChecks',text)
+        attach=text.index('_job set ["reserveStages",_reserveStages]')
+        self.assertLess(attach,text.index('_stageSearchCounts set [_key,(_searchCount+1) min 3]'))
+        self.assertEqual(text.count('_job set ["reserveStages",_reserveStages]'),1)
+        import copy
+        source_row={'targets':[[1,2,3]],'stage':[[4,5,6],True,'ARRIVED',60,[7,8,9],[10,11,12],True],
+                    'view':[30,20], 'count':3}
+        before=copy.deepcopy(source_row)
+        exported=copy.deepcopy(source_row)
+        exported['targets'][0][0]=99
+        exported['stage'][0][0]=99
+        exported['stage'][4][0]=99
+        self.assertEqual(source_row,before)
+        self.assertEqual(exported['view'],[30,20])
+        self.assertEqual(exported['count'],3)
+        admission=(INFANTRY/'cortexClearBuilding.sqf').read_text(encoding='utf-8')
+        resume=admission.split('private _stageBudget=',1)[1].split('// Resume restores native-work bookkeeping',1)[0]
+        for guard in ('(_viewReceipt select 0) isEqualTo (_stage select 0)',
+                      '(_viewReceipt select 1) isEqualTo (_stage select 4)',
+                      '(_viewReceipt select 3) <= serverTime',
+                      '(_viewReceipt select 2) <= _hardDeadline+2',
+                      '"reserveStageViewChecks",_stageViews'):
+            self.assertIn(guard,resume)
+        adopted=resume.split('if (_postCommitted) then {',1)[1]
+        self.assertIn('_stageViews set [_key,[_viewReceipt select 2,_viewReceipt select 3]]',adopted)
+        self.assertNotIn('serverTime+',adopted)
+
         self.assertEqual(watch.count('lineIntersectsSurfaces'),1)
         self.assertNotIn('setVariable ["_viewConfirmed"',watch)
 

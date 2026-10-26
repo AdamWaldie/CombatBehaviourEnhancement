@@ -1,15 +1,36 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Retires an controller-owned bypass and only its exact owned fixed path/native handback.
+ * Queued ACE treatment revokes movement cleanup; treatment queues remain untouched.
+ * Native flight revokes stop/route recall authority; exact unrelated cap release remains separate.
+ * Purpose: Retires a controller-owned bypass and only its exact owned fixed path/native handback.
  * Locality / Authority: Current vehicle/group owner. Both seats, route, command receipts and
  * external/tactical ownership protect cleanup. Both native command types must also match;
  * matching destinations alone cannot recall a changed MOVE/STOP/FOLLOW command. Identical
  * repeated commands remain indistinguishable; missing legacy task receipts grant no recall.
  * New individual reservations prevent movement cleanup; actor leases remain untouched.
+ * New native BACK, keyboard commander input or scripted LEFT/RIGHT revokes native path
+ * cleanup too, even while both unit destination/task receipts remain unchanged.
+ * Live episode/locality, controller revision, command admission and retirement share one
+ * unscheduled section. Identity repeats after native commands before metadata deletion; a
+ * replacement episode survives. No geometry or world query runs in this section.
  * Repeat/JIP: Public episode retires once; bounded 32-entry object/route cooldown lasts 120 s.
- * PLAN owns no movement and cannot stop native actors. Local handles/code are never published.
+ * PLAN owns no movement and cannot stop native actors. Exact ordinary-parent child cleanup
+ * may journal its newly issued native route request within two seconds/original parent expiry;
+ * this carries the spent budget without renewing the episode or copying the fixed path. Local handles/code are never published.
+ * Native queue return uses an explicit QUEUE_RETURN observation journal through the original
+ * queue deadline; no ordinary recovery parent is fabricated and no return command is replayed.
+ * QUEUE cleanup cannot resume a route until an explicit matching completed handback;
+ * Pending queue stops keep their exact cap/baseline and use the existing bounded cleanup service.
+ * Only an unchanged owned positive cap may be lowered to zero while awaiting STOP.
+ * An unacknowledged queue stop retains STOP_PENDING with its original deadline; repeat
+ * observation never reissues doStop. Expiry retains unresolved proof, not route-return authority.
+ * failed/expired owned paths stop, retain an observed exact STOP for separate finite safe handback,
+ * then retire their exact original queue consent. Missing STOP acknowledgement grants no new authority.
+ * A successor queue binding forbids native cleanup and survives metadata retirement.
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 expected group <GROUP, grpNull>;
- * 2 reason <STRING, RELEASED>; 3 resume <BOOL, true> permits exact unchanged authored-route handback.
+ * 2 reason <STRING, RELEASED>; 3 resume <BOOL, true> permits exact unchanged authored/native-route handback.
+ * Native return requires the original parent, both observed STOP tasks and its unexpired
+ * hard deadline. It requests the original goal once with the existing finite journal.
  * 4 stopOnly <BOOL, false> stops exact-owned work without route recall;
  * 5 expected revision <NUMBER, -1> optionally limits convoy cleanup to its original revision.
  * Return Value: BOOL - matching episode retired, never proof of actual passage.
@@ -22,63 +43,237 @@ if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _vehicle}
     || {isNull _group} || {!local _group}) exitWith {false};
 private _work=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
 if (count _work == 0 || {(_work get "group") != _group}) exitWith {false};
-private _controller=_work getOrDefault ["controller",["ORDINARY",-1]];
-private _convoy=(_controller param [0,""]) == "CONVOY";
-if (_expectedRevision >= 0 && {(!_convoy) || {(_controller param [1,-2]) != _expectedRevision}}) exitWith {false};
-private _current=_group getVariable ["CBE_Convoy_Brain",createHashMap];
-private _currentConfiguration=_current getOrDefault ["configuration",[]];
-private _successor=_convoy && {_currentConfiguration isNotEqualTo []}
-    && {(_currentConfiguration param [0,-1]) != (_controller param [1,-2])}
-    && {!(_current getOrDefault ["cancelled",false])};
-private _haltCleanup=_reason == "CONVOY_HALT" && {_expectedRevision == (_controller param [1,-2])}
-    && {(_currentConfiguration param [5,""]) == "HALT"}
-    && {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
-        (_x select 0) == _group && {(_x select 1) isEqualTo _currentConfiguration}
-    } >= 0};
-if (_successor && {!_haltCleanup} && {!(_reason in ["CONTROLLER_CHANGED","CONVOY_LEAD_CHANGED"])}) exitWith {false};
-private _driver=_work get "driver";private _operator=_work get "operator";private _route=_work get "route";
-private _owned=(_work get "phase") == "FOLLOW" && {_resume || {_stopOnly}}
-    && {!isNull _driver} && {!isNull _operator} && {local _driver} && {local _operator}
-    && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
-    && {group _driver == _group} && {group _operator == _group}
-    && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
-    && {(expectedDestination _operator) isEqualTo (_work get "command")}
-    && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
-    && {(toUpperANSI currentCommand _driver) == (_work getOrDefault ["driverTask","__MISSING__"])}
-    && {(toUpperANSI currentCommand _operator) == (_work getOrDefault ["operatorTask","__MISSING__"])}
-    && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
-    && {_convoy || {[_group] call CBE_fnc_DrivingMovementAvailable}}
-    && {_convoy || {!(_vehicle getVariable ["CBE_Convoy_Active",false])}}
-    && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}};
-{
-    _owned=_owned && {!isNull _x} && {local _x} && {vehicle _x == _vehicle}
-        && {[_x] call CBE_fnc_CortexCombatEffective}
-        && {!([_x] call CBE_fnc_CortexActorMoveReserved)} && {!isPlayer _x} && {isNull remoteControlled _x}
-        && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
-        && {simulationEnabled _x} && {!isObjectHidden _x}
-        && {[_x] call CBE_fnc_CortexExternalOwner == ""}
-        && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
-        && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
-            "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
-} forEach [_driver,_operator];
-if (_owned) then {
-    doStop _driver;if (_operator != _driver) then {doStop _operator};
-    private _index=currentWaypoint _group;
-    if (_resume && {_index > 0} && {_index < count waypoints _group}
-        && {_convoy || {vehicle leader _group == _vehicle}}
+private _retired=false;
+isNil {
+    if (!local _vehicle || {!local _group}
+        || {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isNotEqualTo _work}) exitWith {false};
+    private _controller=_work getOrDefault ["controller",["ORDINARY",-1]];
+    private _convoy=(_controller param [0,""]) == "CONVOY";
+    private _queue=(_controller param [0,""]) == "QUEUE";
+    private _queueBinding=_work getOrDefault ["queueCrossingBinding",[]];
+    private _queueConsent=_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap];
+    private _queueMatches=_queue && {_queueBinding isEqualType []} && {count _queueBinding == 4}
+        && {(_queueConsent getOrDefault ["crossingBinding",[]]) isEqualTo _queueBinding};
+    private _queueMayRetire=!_queue || {count _queueConsent == 0 || {_queueMatches}};
+    private _acceptedClearance=_queueBinding isEqualType [] && {count _queueBinding == 4}
+        && {(_work getOrDefault ["queueClearanceAccepted",[]]) isEqualTo _queueBinding}
+        && {_work getOrDefault ["queueCrossed",false]};
+    private _queueMayResume=!_queue || {_queueMayRetire && {_acceptedClearance}
+        && {_reason in ["QUEUE_COMPLETE","DRIVING_RELEASED"]}};
+    if (_expectedRevision >= 0 && {(!_convoy) || {(_controller param [1,-2]) != _expectedRevision}}) exitWith {false};
+    private _current=_group getVariable ["CBE_Convoy_Brain",createHashMap];
+    private _currentConfiguration=_current getOrDefault ["configuration",[]];
+    private _successor=_convoy && {_currentConfiguration isNotEqualTo []}
+        && {(_currentConfiguration param [0,-1]) != (_controller param [1,-2])}
+        && {!(_current getOrDefault ["cancelled",false])};
+    private _haltCleanup=_reason == "CONVOY_HALT" && {_expectedRevision == (_controller param [1,-2])}
+        && {(_currentConfiguration param [5,""]) == "HALT"}
+        && {(missionNamespace getVariable ["CBE_Convoy_LocalRegistry",[]]) findIf {
+            (_x select 0) == _group && {(_x select 1) isEqualTo _currentConfiguration}
+        } >= 0};
+    if (_successor && {!_haltCleanup} && {!(_reason in ["CONTROLLER_CHANGED","CONVOY_LEAD_CHANGED"])}) exitWith {false};
+    private _driver=_work get "driver";private _operator=_work get "operator";private _route=_work get "route";
+    private _pathInput=vehicleMoveInfo _vehicle;
+    private _nativePathFree=!(toUpperANSI (_pathInput param [0,""]) in ["BACK","DIRECTBYCOMANDER"])
+        && {!(toUpperANSI (_pathInput param [1,""]) in ["LEFT","RIGHT"])};
+    private _stopRequest=_work getOrDefault ["queueStopRequest",[]];
+    private _stopPending=_queue && {_stopRequest isEqualType []} && {count _stopRequest == 4}
+        && {(_work getOrDefault ["phase",""]) == "STOP_PENDING"};
+    private _retainStop=false;
+    private _owned=((_work get "phase") == "FOLLOW" || {_stopPending}) && {_resume || {_stopOnly} || {_queue}} && {_queueMayRetire}
+        && {!isNull _driver} && {!isNull _operator} && {local _driver} && {local _operator}
+        && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
+        && {group _driver == _group} && {group _operator == _group}
         && {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}
-        && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
-        if (_driver != _operator) then {_driver doFollow _operator};
-        _operator doMove waypointPosition [_group,_index];
+        && {_nativePathFree}
+        && {!_stopPending || {private _stopCap=_work getOrDefault ["queueStopCap",-1e9];
+            private _stopState=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
+            _stopCap isEqualType 0 && {finite _stopCap} && {_stopCap >= 0}
+                && {(_stopState param [3,grpNull]) == _group} && {(_stopState param [0,-2]) == _stopCap}
+                && {abs ((getForcedSpeed _vehicle)-_stopCap) <= 0.1}
+                && {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isEqualTo (_work getOrDefault ["queueStopBaseline",[]])}}}
+        && {(expectedDestination _operator) isEqualTo (_work get "command")}
+        && {(expectedDestination _driver) isEqualTo (_work get "driverCommand")}
+        && {(toUpperANSI currentCommand _driver) == (_work getOrDefault ["driverTask","__MISSING__"])
+            || {_stopPending && {currentCommand _driver == "STOP"}}}
+        && {(toUpperANSI currentCommand _operator) == (_work getOrDefault ["operatorTask","__MISSING__"])
+            || {_stopPending && {currentCommand _operator == "STOP"}}}
+        && {!([_group] call CBE_fnc_CortexExternalTakeover)} && {!([_group] call CBE_fnc_CortexZeusHeld)}
+        && {_convoy || {[_group] call CBE_fnc_DrivingMovementAvailable}}
+        && {_convoy || {!(_vehicle getVariable ["CBE_Convoy_Active",false])}}
+        && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}};
+    {
+        _owned=_owned && {!isNull _x} && {local _x} && {vehicle _x == _vehicle}
+            && {!fleeing _x} && {[_x] call CBE_fnc_CortexCombatEffective}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+            && {!([_x] call CBE_fnc_CortexActorMoveReserved)} && {!isPlayer _x} && {isNull remoteControlled _x}
+            && {isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+            && {simulationEnabled _x} && {!isObjectHidden _x}
+            && {[_x] call CBE_fnc_CortexExternalOwner == ""}
+            && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
+            && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+                "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])};
+    } forEach [_driver,_operator];
+    private _nativeRoute=(_route param [0,"",[""]]) == "NATIVE_MOVE";
+    private _nativeParent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+    private _nativeBinding=_work getOrDefault ["recoveryParent",[]];
+    private _nativeHard=_nativeParent getOrDefault ["hardDeadline",-1];
+    private _queueNativeCurrent=_nativeRoute && {_queue}
+        && {(_work getOrDefault ["queueNativeIntent",[]]) isEqualTo
+            [_route,[_group] call CBE_fnc_DrivingOwnerReceipt,_queueBinding]}
+        && {count _nativeParent == 0} && {count _queueBinding == 4}
+        && {(_work getOrDefault ["deadline",-1]) isEqualTo (_queueBinding select 1)};
+    if (_queueNativeCurrent) then {_nativeHard=_work get "deadline"};
+    private _nativeParentCurrent=!_nativeRoute || {_queueNativeCurrent} || {!_convoy && {!_queue}
+        && {_nativeHard isEqualType 0} && {finite _nativeHard}
+        && {_nativeBinding isEqualTo [_group,_route,_nativeHard,_nativeParent getOrDefault ["progressAnchor",[]]]}
+        && {(_nativeParent getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}
+        && {(_nativeParent getOrDefault ["bypassSpent",false]) isEqualTo true}
+        && {!(_nativeParent getOrDefault ["releasePending",false])}};
+    if (_owned && {_nativeParentCurrent}) then {
+        [_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt;
+        if (!_stopPending) then {doStop _driver;if (_operator != _driver) then {doStop _operator}};
+        if (_queue && {currentCommand _driver != "STOP" || {currentCommand _operator != "STOP"}
+            || {_stopPending && {serverTime >= (_work get "deadline")}}}) then {
+            private _pendingStop=createHashMapFromArray (keys _work apply {[_x,_work get _x]});
+            if (!_stopPending) then {
+                _pendingStop set ["queueStopRequest",[_reason,_resume,_stopOnly,_expectedRevision]];
+                _pendingStop set ["phase","STOP_PENDING"];
+                private _stopState=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
+                _pendingStop set ["queueStopCap",_stopState param [0,-1e9]];
+                _pendingStop set ["queueStopBaseline",+(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]])];
+            };
+            // Only lower the same ordinary cap. A newer mission/provider cap wins.
+            private _stopState=+(_vehicle getVariable ["CBE_DrivingAssist_State",[]]);
+            private _stopCap=_pendingStop getOrDefault ["queueStopCap",-1e9];
+            if (_stopCap isEqualType 0 && {finite _stopCap} && {_stopCap > 0}
+                && {(_stopState param [3,grpNull]) == _group} && {(_stopState param [0,-2]) == _stopCap}
+                && {abs ((getForcedSpeed _vehicle)-_stopCap) <= 0.1}
+                && {(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]]) isEqualTo (_pendingStop get "queueStopBaseline")}) then {
+                _vehicle forceSpeed 0;
+                _stopState set [0,0];_pendingStop set ["queueStopCap",0];
+                _vehicle setVariable ["CBE_DrivingAssist_State",_stopState];
+                _vehicle setVariable ["CBE_DrivingAssist_Traffic",[0,_vehicle,-1,time,0]];
+            };
+            if (serverTime >= (_work get "deadline")) then {_pendingStop set ["queueStopUnresolved",true]};
+            if (_pendingStop isNotEqualTo _work
+                && {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work}) then {
+                _vehicle setVariable ["CBE_DrivingBypass_Work",_pendingStop,true];
+                _vehicle setVariable ["CBE_DrivingBypass_Result",[
+                    ["STOP_PENDING","STOP_UNRESOLVED"] select (_pendingStop getOrDefault ["queueStopUnresolved",false]),
+                    serverTime,_work get "obstacle",_work get "index"],true];
+            };
+            [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
+            _retainStop=true;
+        };
+        if (!_retainStop) then {
+        if (_queue && {!_queueMayResume} && {_resume} && {!_stopOnly}
+            && {currentCommand _driver == "STOP"} && {currentCommand _operator == "STOP"}) then {
+            private _owner=[_group] call CBE_fnc_DrivingOwnerReceipt;
+            if (_owner isNotEqualTo []) then {
+                _vehicle setVariable ["CBE_DrivingAbort_Hold",createHashMapFromArray [
+                    ["binding",+_queueBinding],["group",_group],["driver",_driver],["operator",_operator],
+                    ["owner",_owner],["route",+_route],
+                    ["deadline",if (_nativeRoute) then {_work get "deadline"} else {(_work get "deadline")+15}],
+                    ["driverCommand",+(expectedDestination _driver)],["command",+(expectedDestination _operator)],
+                    ["driverLeader",formLeader _driver],["operatorLeader",formLeader _operator]
+                ],true];
+            };
+        };
+        private _index=currentWaypoint _group;
+        private _returnRouteCurrent=if (_nativeRoute) then {
+            // The owned stop intentionally invalidates the child command classifier.
+            // Observe that stop and the unchanged exact parent instead of minting a route.
+            serverTime < _nativeHard && {count waypoints _group <= 1} && {currentCommand _driver == "STOP"}
+                && {currentCommand _operator == "STOP"}
+                && {(_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _nativeParent}
+                && {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work}
+        } else {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route};
+        if (_resume && {_queueMayResume} && {_nativeRoute || {_index > 0 && {_index < count waypoints _group}}}
+            && {_convoy || {vehicle leader _group == _vehicle}}
+            && {_returnRouteCurrent}
+            && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
+            if (_driver != _operator) then {_driver doFollow _operator};
+            private _returnBefore=[currentCommand _driver,+(expectedDestination _driver),
+                currentCommand _operator,+(expectedDestination _operator)];
+            private _returnGoal=if (_nativeRoute) then {+(_route select 6)} else {waypointPosition [_group,_index]};
+            _operator doMove _returnGoal;
+            // Queue return is an issued-command journal, not an invented ordinary
+            // recovery parent or a fresh retry budget. Existing cleanup observes it.
+            if (_queueNativeCurrent && {local _vehicle} && {local _group}
+                && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
+                && {serverTime < _nativeHard}
+                && {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work}
+                && {count (_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) == 0}) then {
+                private _returnCap=getForcedSpeed _vehicle;
+                private _returnAssist=_vehicle getVariable ["CBE_DrivingAssist_State",[]];
+                if (finite _returnCap && {(_returnAssist param [3,grpNull]) == _group}
+                    && {abs ((_returnAssist param [0,-1e9])-_returnCap) <= 0.1}) then {
+                    _vehicle setVariable ["CBE_DrivingRecovery_Work",createHashMapFromArray [
+                        ["group",_group],["route",+_route],["driver",_driver],["operator",_operator],
+                        ["kind","QUEUE_RETURN"],["commandMode","DESTINATION"],["queueReturn",+_queueBinding],
+                        ["started",serverTime],["deadline",_nativeHard],["hardDeadline",_nativeHard],
+                        ["cap",_returnCap],["baseline",+(_vehicle getVariable ["CBE_DrivingAssist_Restore",[]])],
+                        ["driverCommand",+(_returnBefore select 1)],["command",+(expectedDestination _operator)],
+                        ["nativeReturn",[+_returnGoal,_nativeHard,_returnBefore]],["releasePending",true]
+                    ],true];
+                    [_vehicle] call CBE_fnc_DrivingRecoveryCleanup;
+                };
+            };
+            private _parent=_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap];
+            private _parentBinding=_work getOrDefault ["recoveryParent",[]];
+            private _hard=_parent getOrDefault ["hardDeadline",-1];
+            private _cap=(_vehicle getVariable ["CBE_DrivingAssist_State",[]]) param [0,-1,[0]];
+            if (!_convoy && {!_queue} && {_parentBinding isNotEqualTo []}
+                && {_hard isEqualType 0} && {finite _hard} && {serverTime < _hard}
+                && {_parentBinding isEqualTo [_group,_route,_hard,_parent getOrDefault ["progressAnchor",[]]]}
+                && {(_parent getOrDefault ["bypassSpent",false]) isEqualTo true}
+                && {(_parent getOrDefault ["kind",""]) in ["REFRESH","FINAL"]}
+                && {(_parent getOrDefault ["driver",objNull]) == _driver}
+                && {(_parent getOrDefault ["operator",objNull]) == _operator}
+                && {!(_parent getOrDefault ["releasePending",false])}
+                && {finite _cap} && {_cap >= 0} && {abs ((getForcedSpeed _vehicle)-_cap) <= 0.1}
+                && {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isEqualTo _work}
+                && {if (_nativeRoute) then {
+                    (_vehicle getVariable ["CBE_DrivingRecovery_Work",createHashMap]) isEqualTo _nativeParent
+                        && {driver _vehicle == _driver} && {effectiveCommander _vehicle == _operator}
+                        && {count waypoints _group <= 1}
+                } else {([_group] call CBE_fnc_DrivingRouteReceipt) isEqualTo _route}}) then {
+                private _returned=createHashMapFromArray ((keys _parent) apply {[_x,_parent get _x]});
+                // A distinct driver retains its pre-commander-write receipt. An unrelated
+                // driver order cannot become ours just because the commander acknowledged.
+                _returned set ["driverCommand",if (_driver == _operator) then {+(expectedDestination _driver)} else {+(_returnBefore select 1)}];
+                _returned set ["command",+(expectedDestination _operator)];
+                _returned set ["cap",_cap];
+                _returned set ["request",[+_returnGoal,(serverTime+2) min _hard,_returnBefore]];
+                _returned set ["bypassReturn",_work get "context"];
+                _vehicle setVariable ["CBE_DrivingRecovery_Work",_returned,true];
+            };
+        };
+        };
     };
+    if (_retainStop) exitWith {false};
+    // A synchronous native event may have published successor work during command handling.
+    if (!local _vehicle || {!local _group}
+        || {(_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap]) isNotEqualTo _work}) exitWith {false};
+    private _context=_work get "context";
+    private _cooldown=(_vehicle getVariable ["CBE_DrivingBypass_Cooldown",[]]) select {
+        (_x select 1) > serverTime && {(_x select 0) isNotEqualTo _context}
+    };
+    if (count _cooldown >= 32) then {_cooldown deleteAt 0};
+    _cooldown pushBack [_context,serverTime+120];
+    _vehicle setVariable ["CBE_DrivingBypass_Cooldown",_cooldown,true];
+    _vehicle setVariable ["CBE_DrivingBypass_Result",[_reason,serverTime,_work get "obstacle",_work get "index"],true];
+    _vehicle setVariable ["CBE_DrivingBypass_Work",nil,true];
+    if (_queueMatches && {((_vehicle getVariable ["CBE_DrivingQueue_Consent",createHashMap]) getOrDefault ["crossingBinding",[]]) isEqualTo _queueBinding}) then {
+        private _queueRows=_queueConsent getOrDefault ["context",[]];
+        if (count _queueRows > 0 && {count (_queueRows select 0) == 6}
+            && {count ((_queueRows select 0) select 2) == 11}) then {
+            private _rootActor=(_queueRows select 0) select 2;
+            [_vehicle,_group,_rootActor select 4,_rootActor select 5] call CBE_fnc_DrivingQueueAgreementRelease;
+        };
+    };
+    _retired=true;
+    false
 };
-private _context=_work get "context";
-private _cooldown=(_vehicle getVariable ["CBE_DrivingBypass_Cooldown",[]]) select {
-    (_x select 1) > serverTime && {(_x select 0) isNotEqualTo _context}
-};
-if (count _cooldown >= 32) then {_cooldown deleteAt 0};
-_cooldown pushBack [_context,serverTime+120];
-_vehicle setVariable ["CBE_DrivingBypass_Cooldown",_cooldown,true];
-_vehicle setVariable ["CBE_DrivingBypass_Result",[_reason,serverTime,_work get "obstacle",_work get "index"],true];
-_vehicle setVariable ["CBE_DrivingBypass_Work",nil,true];
-true
+_retired

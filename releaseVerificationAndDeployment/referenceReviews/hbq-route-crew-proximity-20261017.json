@@ -1,0 +1,145 @@
+{
+  "reviewed": "2026-10-17",
+  "baselineCBECommit": "b6ed5d85",
+  "scope": "HBQ route refresh, intentional waiting, crew retention and proximity observation; scoped source review, not whole-mod parity",
+  "sources": [
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_refreshRoute.sqf",
+      "sha256": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8",
+      "lineCount": 148,
+      "rangesReviewed": [
+        "complete executable file"
+      ]
+    },
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_routeWaiting.sqf",
+      "sha256": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+      "lineCount": 38,
+      "rangesReviewed": [
+        "complete executable file"
+      ]
+    },
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_crewHold.sqf",
+      "sha256": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076",
+      "lineCount": 68,
+      "rangesReviewed": [
+        "complete executable file"
+      ]
+    },
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_nearestThreat.sqf",
+      "sha256": "db2d82840137c2ee19eb8b1131c103771325ad84b6ecef023ac4320673a14ec5",
+      "lineCount": 108,
+      "rangesReviewed": [
+        "complete executable file"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "area": "effective commander route planning",
+      "evidence": "refreshRoute uses a distinct commanded-vehicle branch when effectiveCommander differs from driver. It avoids fixed paths and waypoint recreation there and sends the waypoint destination to the effective commander. Other crew follow excludes effective commander and leader.",
+      "disposition": "Retain commander-versus-driver distinction. CBE ordinary recovery already uses movementOperator/effectiveCommander. Do not replace it with indiscriminate crew doFollow or use a new fixed path as universal reset. Native execution remains unaccepted."
+    },
+    {
+      "area": "route refresh and suspension",
+      "evidence": "refreshRoute throttles per group for three seconds. Optional path reset suspends up to four seconds, then snapshots route metadata. Its unscheduled delete/recreate checks index bounds but does not compare the full original order identity. It also enables PATH/MOVE without an ownership baseline.",
+      "disposition": "Reject waypoint recreation and unconditional feature enabling for ordinary recovery. CBE preserves authored metadata and seat receipts. This follow-up places recovery release proof, plain-MOVE validation, stop/handback and exact retirement in one unscheduled transaction. Vehicle alive/canMove/simulation/visibility checks precede native commands. No source code imported."
+    },
+    {
+      "area": "intentional waypoint waits",
+      "evidence": "routeWaiting only considers HOLD, inactive trigger, timeout or nontrue condition within completion radius plus50 metres. It strips spaces only from condition text and does not evaluate the condition.",
+      "disposition": "Preserve read-only intent detection; never execute condition code. CBE additionally refuses recovery of distant gated/scripted/synchronized orders. The recovery release must validate plain MOVE before any stop command, even if no forward handback is permitted."
+    },
+    {
+      "area": "crew retention and re-entry",
+      "evidence": "crewHold applies a two-second mobility policy and a GetOut handler. Noncargo assigned AI may be forcibly seated after0.5 seconds, at most three times per minute. Delayed seating rechecks alive/canMove/empty occupant but omits renewed assignment, locality, player/group and external task authority. End of loop does not restore a captured original unload policy or remove the handler.",
+      "disposition": "Retain crew/cargo distinction and mobility-sensitive intent for future policy design. Reject forced moveIn recovery and delayed stale authority. CBE unload leases and finite internal dead-driver replacement serve different intents; they do not establish HBQ crew-retention parity. Controlled physical reboarding and immobility handback remain open."
+    },
+    {
+      "area": "proximity observation cache",
+      "evidence": "nearestThreat builds a250m-cell grid from allMissionObjects Static/Thing every60 seconds, queries local LandVehicle entities, and scans allDead. Grid entries retain insertion cells; moved Zeus props can remain in old cells until rebuild. It returns sector and all-around origin distances, not collision clearance.",
+      "disposition": "Retain distance-adaptive observation intent. Do not use stale cell membership or distant origin distance to authorise motion. No new global scanner or transplanted cache is added. Any future broad-phase cache needs transform freshness, bounded update cost and current swept geometry before command issue; performance budget remains unmeasured."
+    }
+  ],
+  "implementation": [
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+    "releaseVerificationAndDeployment/test_driving_native_admission.py"
+  ],
+  "remaining": [
+    "Authenticated multi-owner queue cascade and native physical reverse remain incomplete.",
+    "Retained mixed-column stalls with positive speed caps have no established causal resolution.",
+    "Source review does not prove 5% median/10% p95 budget or terrain/server/HC acceptance.",
+    "Audits remain paused."
+  ],
+  "physicalAcceptance": false,
+  "rawSourcesModified": false,
+  "currentRouteBoundary20261020": {
+    "commit": "95769f02",
+    "scope": "Revalidated complete routeWaiting and refreshRoute helper intent against current ordinary recovery/route receipt and fixed-path release; existing semantic review retained, no whole-mod parity inference.",
+    "files": [
+      {
+        "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_routeWaiting.sqf",
+        "sha256": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de"
+      },
+      {
+        "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_refreshRoute.sqf",
+        "sha256": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+        "sha256": "0c4b0a26567d0cb5f452d052344e638dc04f0dbe450df4f82cad4931d0b700c7"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingRouteReceipt.sqf",
+        "sha256": "a6dd1662abbe339a2d85ee87b38d5b4298804bedcd8eafee973502cf901e1642"
+      },
+      {
+        "path": "addons/core/functions/authoredRouteReceipt.sqf",
+        "sha256": "6ebe94a78601255e8526ee2ec50192e92eb83896011187af9973ee56b643b251"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassRelease.sqf",
+        "sha256": "6d966f70ed7a080e235f384576e4fdd30b47c8eedcab0e877bf66d1ad838f990"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingCorridorRelease.sqf",
+        "sha256": "77f92975bfc00322cc1f421eaaeb5d39edfcdefd2dd153ea9941767b9943d0fd"
+      }
+    ],
+    "findings": [
+      "Source routeWaiting preserves nearby HOLD, inactive trigger, timeout and nontrue condition without executing the condition. CBE retains this intent and strips all ordinary whitespace from the condition.",
+      "Current CBE recoveryOrderFree additionally requires plain MOVE, empty action/script, no attachment, no timeout and no waypoint/trigger synchronisation regardless of distance. Intentional distant gates are not treated as permission to rewrite their route.",
+      "Source refreshRoute may delete/recreate waypoints, re-enable MOVE/PATH, reset fixed steering and recall crew. CBE retains exact authored metadata and native intent; it does not import those blanket authority-changing shortcuts.",
+      "Current fixed-path release uses exact-owned doStop before guarded authored handback. Bohemia documents doStop or another movement command as cancelling setDriveOnPath; a tiny replacement path is not required by the documented command contract.",
+      "Bohemia also documents unitReady returning true during setDriveOnPath. It cannot supply path completion or physical arrival; existing ordered checkpoint, motion and hull-clearance observations remain necessary."
+    ],
+    "officialCommandReference": "https://community.bistudio.com/wiki/setDriveOnPath",
+    "remaining": [
+      "Physical interruption/cancellation/route continuation and exact native same-value command ambiguity remain unverified.",
+      "Native steering-component support is vehicle-config dependent; no universal modded-vehicle path claim.",
+      "Current-route receipt handle lookup still scales with route length; actual runtime cost requires measurement."
+    ],
+    "runtimeChangeRequired": false,
+    "physicalAcceptance": false,
+    "audits": "paused"
+  },
+  "ordinaryUnloadRepeat20261020": {
+    "sourceParent": "058c3238",
+    "sourceIntent": "HBQ crewHold changes unload policy only when its mobility/enable state changes. CBE exact unload ownership has a different intent from full crew retention; ordinary passenger-control lease must not be labelled automatic crew recall or immobility policy.",
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/setUnloadInCombat",
+      "https://community.bistudio.com/wiki/getUnloadInCombat",
+      "https://community.bistudio.com/wiki/allowCrewInImmobile"
+    ],
+    "finding": "Ordinary CortexVehicleUnloadPolicy republished unchanged five-field lease and tracked group roster on every ACQUIRE, unlike already guarded convoy adoption. This was avoidable public state traffic, not a new physical crew failure.",
+    "implementation": "Publish existing lease only for changed epoch/clientOwner, copy before editing. Publish tracked roster only for new membership; removal publishes only if membership changes. Exact original previous/applied policy, changed-value blocked epoch, current owner, convoy exclusion, external takeover and release rules remain. No engine policy rewrite on adoption, extra scan/timer/handler or setting.",
+    "limits": "No measured network or frame improvement. Same-value external writes remain unobservable. HBQ physical recall, mobility-sensitive policy and actual handovers remain incomplete.",
+    "implementationHashes": {
+      "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf": "7972637ed0f3b3753475f504158aa86b7ef9639df970dbc53c85bf8a0af30e72"
+    },
+    "validation": "607 existing operation cases and full1477/HEMTT/config/FSM/docs/package gates pass .qa/cbe-unload-repeat-build.log. Candidate .qa/candidates/unload-repeat-058c3238-055b1fa4 fingerprint 055b1fa4812207d895559d76115587a4944c1ad76de329eff64e4d07002aeb06 actual058c3238+dirtysource. Independent copied-package verification .qa/cbe-unload-repeat-independent.log. No added cases or scores.",
+    "audits": "PAUSED"
+  }
+}

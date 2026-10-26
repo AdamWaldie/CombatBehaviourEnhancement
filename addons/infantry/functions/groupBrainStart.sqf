@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Reuse requires the current generation and a live FSM handle as well as matching owner epoch.
+ * A stale map cannot consume a danger wake after its executor has ended.
  * Purpose: Start or wake the one owner-local tactical brain for an eligible ground group.
  * Locality / Authority: Must run where the group is local. It never transfers ownership and never
  * issues movement; the FSM routes bounded decisions through the shared CBE scheduler.
@@ -8,7 +10,8 @@
  * Arguments:
  * 0: group <GROUP, default grpNull>
  * 1: wake now <BOOL, default false> - shorten the next decision deadline without adding another job.
- * Return Value: Boolean - true when a brain exists for the current owner.
+ * Return Value: Boolean - true only when the exact current owner brain has a live FSM.
+ * Failed startup retires only its own queue state; discovery may retry the recurring brain.
  * Current callers: CBE_fnc_CortexDiscover, CBE_fnc_DangerStep and owner-local adoption.
  * Example: [_group,true] call CBE_fnc_GroupBrainStart;
  */
@@ -23,9 +26,13 @@ if (!(_group getVariable ["CBE_AIPass_Adopted",false])) then {
 if (!local _group || {!(_group getVariable ["CBE_AIPass_Adopted",false])}) exitWith {false};
 private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
+private _existingHandle=_group getVariable ["CBE_GroupBrain_FSM",-1];
 if (count _brain > 0
     && {(_brain getOrDefault ["ownerEpoch",-1]) == _epoch}
-    && {!(_brain getOrDefault ["cancelled",false])}) exitWith {
+    && {(_brain getOrDefault ["generation",-1]) == (_group getVariable ["CBE_GroupBrain_Generation",0])}
+    && {!(_brain getOrDefault ["cancelled",false])}
+    && {_existingHandle isEqualType 0} && {finite _existingHandle} && {_existingHandle >= 0}
+    && {!completedFSM _existingHandle}) exitWith {
     if (_wake) then {
         _brain set ["wakeAt",time];
         _brain set ["nextAt",time];
@@ -57,5 +64,25 @@ _group setVariable ["CBE_GroupBrain",_brain];
 _group setVariable ["CBE_GroupBrain_State",["CALM",_generation,_epoch,serverTime,"STARTED"],true];
 private _handle=[_group,_epoch,_generation,_brain] execFSM "\z\cbe\addons\main\fsm\groupTactics.fsm";
 _group setVariable ["CBE_GroupBrain_FSM",_handle];
-_group setVariable ["CBE_AIPass_Managed",true];
-true
+private _accepted=_handle isEqualType 0 && {finite _handle} && {_handle >= 0} && {!completedFSM _handle}
+    && {local _group} && {_epoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+    && {_generation == (_group getVariable ["CBE_GroupBrain_Generation",0])}
+    && {(_group getVariable ["CBE_GroupBrain",createHashMap]) isEqualTo _brain}
+    && {!(_brain getOrDefault ["cancelled",false])};
+if (_accepted) then {
+    _group setVariable ["CBE_AIPass_Managed",true];
+} else {
+    // Do not release settings or specialist operations from a failed tactical startup.
+    // Retire only this exact brain; discovery owns the next recurring attempt.
+    _brain set ["cancelled",true];
+    _brain set ["cancelReason","FSM_START_FAILED"];
+    _brain set ["pending",false];
+    _brain set ["completed",true];
+    if (local _group && {_epoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {_generation == (_group getVariable ["CBE_GroupBrain_Generation",0])}
+        && {(_group getVariable ["CBE_GroupBrain",createHashMap]) isEqualTo _brain}) then {
+        _group setVariable ["CBE_AIPass_Managed",false];
+        _group setVariable ["CBE_GroupBrain_State",["CALM",_generation,_epoch,serverTime,"FSM_START_FAILED"],true];
+    };
+};
+_accepted

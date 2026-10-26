@@ -1,7 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
+ * Target identity respects native ignoreTarget policy; no ignore setting is changed.
  * Purpose: Decide whether one completed engine danger response needs a bounded follow-up sample.
  * It preserves close hostile contact, its original danger cause and commander vehicle awareness
+ * from the observer's believed geometry, never the unseen source's actual range.
+ * It validates finite integral cause/cycle values before continuing,
  * without issuing movement, targeting, firing or posture commands and without starting another
  * tactical controller.
  * Locality / Authority: Runs only for the local AI actor from its engine danger FSM. The existing
@@ -28,6 +31,8 @@ if ((side _group) getFriend (side _source) >= 0.6) exitWith {[]};
 
 private _cause=_record param [0,-1,[0]];
 private _cycle=_record param [4,0,[0]];
+if (!finite _cause || {_cause != floor _cause} || {_cause < 0 || {_cause > 10}}
+    || {!finite _cycle} || {_cycle != floor _cycle} || {_cycle < 0}) exitWith {[]};
 // Immediate actor response must remain a bridge into the persistent group brain, not become a
 // second permanent controller while Arma retains nonzero knowledge. Close infantry gets two
 // follow-ups; an effective vehicle commander gets three because crew/domain handoff takes longer.
@@ -56,7 +61,7 @@ switch (_mode) do {
     case 'ENGAGE': {
         // Close hostile contact remains actionable between native danger callbacks. This mirrors
         // the engine's expected persistence while leaving target choice and movement native.
-        _follow=_actor distance2D _source < 35 && {_actor knowsAbout _source > 0};
+        _follow=_actor knowsAbout _source > 0;
     };
     case 'VEHICLE': {
         // Only the effective commander may sustain vehicle awareness. Other crew finish their
@@ -67,6 +72,7 @@ switch (_mode) do {
     };
 };
 if (!_follow) exitWith {[]};
+if ((_actor targetKnowledge _source) param [7,false,[true]]) exitWith {[]};
 
 private _position=_actor getHideFrom _source;
 // Recycling may retain only the engine's believed geometry. Falling back to the source object's
@@ -75,7 +81,9 @@ private _position=_actor getHideFrom _source;
 // EnemyDetected/knowledge intake will wake the shared group brain again after a real reacquisition.
 if (_position isEqualTo [0,0,0]) exitWith {[]};
 if (count _position == 2) then {_position pushBack ((getPosATL _actor) select 2)};
-if (count _position != 3) exitWith {[]};
+if (count _position != 3 || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {[]};
+if (_mode == 'ENGAGE' && {_actor distance2D _position >= 35}) exitWith {[]};
+
 
 private _stats=_group getVariable ['CBE_Danger_EngineStats',createHashMap];
 _stats set ['recycles',((_stats getOrDefault ['recycles',0])+1) min 100000];
@@ -90,7 +98,7 @@ if (_mode == 'VEHICLE') then {
     _stats set ['vehicleRecycleActors',_actors];
 };
 _group setVariable ['CBE_Danger_EngineStats',_stats];
-// Retain the cause which justified the response. Collapsing a continuing hit or near-round event
-// into DETECTED made the next group handoff lose its safety priority and could prematurely retire
-// a mounted response even though the same known hostile remained actionable.
+// Retain the original cause for this finite actor/domain response. The positive cycle count
+// marks resampled native belief: DangerEngineSubmit publishes it as DETECTED awareness rather
+// than inventing another physical hit/near round or firing opportunity for the group.
 [_cause,+_position,time+1.5,_source,_cycle+1]

@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-18",
+  "baselineCommit": "67404313",
+  "scope": "HBQ navigation-area main-loop branch compared with current CBE crossing execution",
+  "reference": {
+    "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "rangesRead": [
+      2386,
+      2484
+    ]
+  },
+  "findings": [
+    "Source selects near/far points from a registered axis, flattens vehicle/destination heights, admits a bounded detour and uses APPROACH/CROSS deadlines followed by route refresh and cooldown.",
+    "Source crossing completion is centre projection beyond the far end; CBE already retains support-derived ASL paths, full-hull/lateral checks, native route/crew receipts and finite handback. This is scoped comparison, not whole-HBQ parity.",
+    "CBE checked approach and exit height but did not reject a different floor through the interior of CROSS. Horizontal passage could therefore include an underpass."
+  ],
+  "implementation": [
+    "Within halfLength+5m of the area, interpolate expected support height at current longitudinal projection over the approved ordered ASL path, bounded to20nodes.",
+    "Missing profile coverage or more than2m height mismatch retires CORRIDOR_FLOOR_DEPARTED before new entry or completion credit.",
+    "Uses stored path and current pose only; no added ray/world query, geometry regeneration, waypoint edit or physics shortcut. Existing2m entry/exit tolerance retained for the interior.",
+    "Convoy follower passage already had nearest-station height checks; replaced those with the same bounded longitudinal support interpolation, retaining lateral/full-hull/deadline evidence.",
+    "APPROACH-to-CROSS now rechecks current work/controller/crew/native receipt/area/entry pose/deadline in one unscheduled boundary with stops, fixed path and CROSS receipts."
+  ],
+  "validation": {
+    "tests": 1290,
+    "exitCode": 0,
+    "log": ".qa/cbe-corridor-transition-final-build.log",
+    "packageFingerprint": "f408ad10c6789e7f1a0a6b8a92d2882c59afcd993702e043e0a9104753c17703"
+  },
+  "remaining": [
+    "Physical bridge/underpass, slope and modded vehicle origin-height cases remain unrun.",
+    "Discrete sampling does not establish continuous passage or collision safety. Lead and whole-column sloped-deck observations remain physically unrun.",
+    "Whole-HBQ navigation module/startup/lifecycle parity, native queue/wheel execution and measured runtime budget remain incomplete."
+  ],
+  "physicalAcceptance": false,
+  "wholeHBQParity": false,
+  "audits": "paused"
+}

@@ -1,0 +1,436 @@
+{
+  "date": "2026-10-23",
+  "baseCommit": "698b3278",
+  "scope": "Episode-bound clearance lane partner preference during true resume",
+  "finding": "Clearance admission reads resumePairs from the matched CLEAR operation/episode roster and prioritises its participants, but later CombatPairs rebuilt actual pairs from CBE_CombatPairs alone. A lagging general registry can therefore preserve older intact pair combinations even when all intended participants survived the resume admission.",
+  "counterexample": "With eligible roster A,B,C,D, matched clearance lanes A+B/C+D and lagging general pairs A+C/B+D, participant ordering alone cannot prevent the old helper preserving A+C/B+D.",
+  "implementation": "CombatPairs gains optional fourth preferred-pair array, default empty and bounded to16rows. Before the existing general-registry pass, only intact preferred pairs wholly within already-qualified remaining actors are retained. All other actor eligibility, orphan repair, nearest selection, out-of-scope preservation and publication stay unchanged. CortexClearBuilding passes its matched resumePairs only when useResumeRoster is true, inside the existing commitPreparation gate. Ordinary/new-clear callers retain empty preference.",
+  "authority": "Metadata preference only, no native command/target/route, no changed eligibility or new recruitment. Existing building/transform/hard-deadline/visit-context roster binding and RESUME_ROSTER_CHANGED admission checks remain. No pair preference can return actors outside the supplied eligible set.",
+  "cost": "At most16 extra preferred rows on explicit use; no world query, ray, worker, timer or scan of unsupplied actors. Normal default preference loop is empty. Runtime/performance budget unmeasured.",
+  "remaining": "Does not establish ordered public snapshots, latest-roster replication, full entry/sweep route-state adoption or physical normal/HC continuity. New-member floor/entry receipts remain mandatory. Master build-out figures not renewed.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/combatPairs.sqf",
+      "sha256": "0f5c1976ecab6318af8b22c42a6bb936b4068c17d90ece9874f496a2255ef05a"
+    },
+    {
+      "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+      "sha256": "6bc1d3b089655cce6fd8c4a0618c4791b234fe680a7973cf554d21dd7adb9b1b"
+    }
+  ],
+  "validation": {
+    "focused": 9,
+    "full": 1491,
+    "sqf": 411,
+    "pbos": 9,
+    "newCases": 0,
+    "independentVerification": true,
+    "note": "Existing resume contract extended; two guarded call-signature assertions updated after initial full failure. Final pipeline passed."
+  },
+  "candidate": ".qa/candidates/clear-resume-pairs-698b3278",
+  "fingerprint": "707c0205a292342ca295a0a17146d8f39998bc0ac57e518be1da862520d9d06e",
+  "logs": [
+    ".qa/clear-resume-pairs-final-build.log",
+    ".qa/clear-resume-pairs-independent.log"
+  ],
+  "provenance": "Unsigned dirty development snapshot based on698b3278 plus implementation and unrelated pre-existing dirt; private review/handover postdate build.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "audits": "PAUSED",
+  "naturalContinuationSubformations20261023": {
+    "base": "6da3e27a",
+    "finding": "Natural successful clearance continuation flattened every settled follower to the squad leader despite saved native formation admission.",
+    "implementation": "Use existing reserveAdmissionCommands native anchor; resolve only anchors already requested for continuation, at most 16 passes over 16 followers. Each actor authority check runs once; missing, cyclic, unavailable or refused branches retain existing exterior hold. Explicit-clear holding unchanged.",
+    "boundaries": "Existing current owner, epoch, generation, native route, actor and external/task vetoes retained. No new worker, schema, deadline or pair registry. Request is not native acknowledgement or physical travel.",
+    "checks": {
+      "fullTests": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "independentVerification": true
+    },
+    "candidate": ".qa/candidates/clear-subformation-continuation-6da3e27a",
+    "fingerprint": "0e69ea671dcb64ba253b456ded2ce5b17ee5e263cca8217b709b687b7bb200d2",
+    "logs": [
+      ".qa/clear-subformation-continuation-build.log",
+      ".qa/clear-subformation-continuation-independent.log"
+    ],
+    "provenance": "Unsigned dirty development snapshot based on6da3e27a, includes unrelated pre-existing dirt. Review and handover postdate package.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false,
+    "audits": "PAUSED"
+  },
+  "laneContinuationTrace20261024": {
+    "base": "7fdebe27",
+    "scope": "Current lane rebuild and shared pending-room allocation; no renewed family score or physical claim.",
+    "confirmed": [
+      "CortexClearBuilding initializes pairRoutes as empty arrays, pending as reconstructed remaining routeOrder and each pairState with cursor0, mover0, time progress/start clocks and entry defaults.",
+      "BuildingOperationStep mutates lane route claims by removing a room from pending and appending it to the lane route. Shared visits/unreachable history do not preserve that partition.",
+      "Lane state has initial13fields and runtime fields13bestDistance/14bestTarget. Index3 lastProgress and6 startAt are machine-local time; directly publishing/adopting them would use another owner clock.",
+      "Cursor0, approachingEntry1, positionSlots2, progress3, retry4, lastTarget5, startAt6, moverSlot7, previousPosition8, entrance9, triedEntrances10, roomCount11, entered12 and optional distance13/target14 are interdependent with pair identity and its claimed route.",
+      "Partner ClearEntryRecovery receipt separately retains original server progress time, spent retry, target and ASL anchor; it is not a whole-lane snapshot.",
+      "BuildingActorMotion adoption compares actual current native MOVE/HOLD and matching episode; that protects command ownership but does not restore room claim allocation or original pending request timing."
+    ],
+    "consequence": "Do not restore a cursor/timer alone into the freshly empty route and reconstructed pending queue. That could skip or redirect room work, renew stalled-leg handling or attribute one actor slot to another.",
+    "requiredIntegration": "An episode/transform-scoped coherent roster/routes/states/pending snapshot, typed indices/vectors/booleans and original shared-clock timing; preserve current actor-native issue proof and original hard deadline. Partial/missing/out-of-order delivery must not become fresh movement or fabricated physical entry. Publication cadence/payload cost needs explicit bounds before integration.",
+    "evidenceHashes": {
+      "addons\\infantry\\functions\\cortexClearBuilding.sqf": "117b435d861e1d18d8e8868a76a88c79bdf4e5747775d4944774d8d576091aa2",
+      "addons\\infantry\\functions\\buildingOperationStep.sqf": "24ecb3ba699a1ee63a87fa27ff151c63f7fa7584123ae204b5fa1f6c1d9a5a21",
+      "addons\\infantry\\functions\\buildingActorMotion.sqf": "da8f35a8f60d028dde6afe2eb6419fb35afbf09d9a8253f2ea5466221c97917a"
+    },
+    "validation": "Read-only current source trace and JSON/hash validation. Production unchanged; no repeated full build or audit. Retain prior exact runtime candidate quiet-rejoin-anchor-e28b5ded; review is later than that candidate.",
+    "audits": "PAUSED",
+    "physicalAcceptance": false,
+    "scoresChanged": false
+  },
+  "laneJournalImplementation20261024": {
+    "base": "9faafc4e",
+    "implementation": "BuildingLaneJournal SAVE/ADOPT wired at worker startup and existing owned callback tail. Snapshot v1 has11fields: version/group/visitContext/exact positions/pairs/routes/states/pending/phase/original entrance list/original entry goal. Exact actor ordering, bounded typed state and complete unique live-room partition required. Original local progress/start clocks transport through serverTime and rebase once.",
+    "authority": "Current CLEAR generation/epoch, visit nonce, transform and original hard deadline. Failed entry/sweep adoption refuses startup; refusal cleanup remains inside original preparation gate and cannot release a successor. ADOPT changes metadata only; actual actor-native motion/settings/visit proofs remain separate. Egress retains its existing independent journal.",
+    "entrances": "Current preparation sorts and truncates exits around the new leader. Saved ordered entry nodes and entry goal are therefore restored only when still in the full currently discovered securityEntries set; lane entrance/tried indices cannot be applied to a new door ordering.",
+    "cost": "Existing callback, at most one successful SAVE sample per1.5s and changed-only publication; at most8lanes/2actors and512nodes. Uses maps for live-room partition membership and retirement membership. No world queries, native commands, extra worker or retry/deadline reset. Copy/validation/replication cost is unmeasured.",
+    "limits": "Snapshots can be stale or delayed; no ordered delivery/owner-ready ACK. Exact changed roster/node/entrance mismatch refuses rather than recasts state. New actor admission still uses separate receipts. Original pending native request timing is not added to this snapshot. No exactly-once cross-owner movement, casualty continuity, physical re-entry, performance or complete lane-transfer claim.",
+    "evidenceHashes": {
+      "addons\\infantry\\functions\\buildingLaneJournal.sqf": "67f304c1467abfffdee76a655ca8c4d994ab93de6a2a4f8386bdf235e75fb355",
+      "addons\\infantry\\functions\\cortexClearBuilding.sqf": "9df4164b897fa3f93463a21e6cb2d247ff9cf7f780d27bba1aacf89610604ae0",
+      "addons\\infantry\\functions\\buildingOperationStep.sqf": "3b683127b1d546835c6b6f1d6a1f5c19fa83679848fb1cba8eeb1be026872449"
+    },
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-lane-journal-final-9faafc4e",
+    "fingerprint": "e9f77c5ff0d8f2020c14505c73113b4d686b85397a4596a46e795630b3808f6a",
+    "logs": [
+      ".qa/clear-lane-journal-entries-build.log",
+      ".qa/clear-lane-journal-final-independent.log"
+    ],
+    "initialFindings": "First build failed missing source coverage; second failed generated source-count report. Both corrected without weakening checks. Intermediate passing candidate clear-lane-journal-9faafc4e fingerprint0ceb5551ff3475bb6728af4b5df8db7e005c88532261d161731606af8a7003dd is superseded: final trace added guarded refusal cleanup and retained entrance ordering. Retain initial logs/candidate as historical evidence only.",
+    "provenance": "Unsigned dirty development snapshot includes unrelated dirt; private review/handover postdate package. No score/hash renewal in build-out tracker.",
+    "audits": "PAUSED",
+    "physicalAcceptance": false
+  },
+  "laneNativeRequestAge20261024": {
+    "base": "1b82d3fb",
+    "finding": "Lane adoption restored route/progress state but discarded movementRequestTimes, the original target/server-time observations used by nativeMoveAwaited. BuildingActorMotion adoption restores only acknowledged movement/hold ownership, not pending request age.",
+    "change": "Extend unreleased v1 snapshot11to12fields with bounded [actor,[target,originalServerIssueTime]] rows for matched lane roster. Validate actor membership/uniqueness, vector, finite nonnegative timestamp within original hard deadline. ADOPT installs observation map only; no movementTargets, reservations, command or new issue time.",
+    "cost": "At most16 matched actor observations within existing8lane/2actor snapshot; same SAVE cadence, no new publication/writer/world query or worker.",
+    "limits": "Missing/delayed/stale snapshots may omit a later request. This does not create ordered delivery or exactly-once native issue. Native acknowledgement, actual travel, normal/HC transfer timing and runtime/network cost remain unverified. No score renewal.",
+    "evidenceHashes": {
+      "addons\\infantry\\functions\\buildingLaneJournal.sqf": "90aab098c2d80338882b57aab43a7f0614dde0df4b0de56bb60d7984abe72f3f",
+      "addons\\infantry\\functions\\buildingOperationStep.sqf": "3b683127b1d546835c6b6f1d6a1f5c19fa83679848fb1cba8eeb1be026872449",
+      "addons\\infantry\\functions\\buildingActorMotion.sqf": "da8f35a8f60d028dde6afe2eb6419fb35afbf09d9a8253f2ea5466221c97917a"
+    },
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-lane-request-age-1b82d3fb",
+    "fingerprint": "1959f478c3c5d081563b782ceedd05c1389eb1396b1d4b12841ebd7998d86266",
+    "logs": [
+      ".qa/clear-lane-request-age-focused.log",
+      ".qa/clear-lane-request-age-build.log",
+      ".qa/clear-lane-request-age-independent.log"
+    ],
+    "provenance": "Unsigned dirty development includes unrelated pre-existing dirt; private review/handover postdate package. Audits PAUSED."
+  },
+  "laneRefusalCadence20261024": {
+    "base": "9ebd03c2",
+    "finding": "laneJournalAfter was set only after successful validation; refused data could repeat full snapshot validation on every shorter existing callback. Cadence skip returned true even after a failed prior sample.",
+    "change": "After exact current CLEAR/context/generation/epoch/deadline checks, admitted SAVE consumes original1.5s sampling cadence and sets last result false before data validation. Successful validation sets true. Cadence skip retains last result; ADOPT and native authority unchanged.",
+    "limits": "No movement or retry deadline change, extra worker/world query/publication or broader performance claim. Constant authority preflight remains outside data-sampling cadence. Runtime/replication/p95 measurement unverified; audits PAUSED.",
+    "evidenceHash": "01ae66546a1b348eb01ff487bdd90abb87831712ab2d893cb1a0372760dad400",
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-lane-refusal-cadence-9ebd03c2",
+    "fingerprint": "4606dbd5578655659128a278d2e528c1b010526f726bc21500c810bf610f3bfc",
+    "logs": [
+      ".qa/clear-lane-refusal-cadence-focused.log",
+      ".qa/clear-lane-refusal-cadence-build.log",
+      ".qa/clear-lane-refusal-cadence-independent.log"
+    ],
+    "provenance": "Unsigned dirty development includes unrelated dirt; private review/handover postdate package. Scores/evidence ledger unrenewed."
+  },
+  "casualtyLanePublicationTrace20261024": {
+    "base": "dd591825",
+    "finding": "Promotion mutates the lane actor slot, updates common operation participants/pairs and publishes ClearRoster. ClearLanes is published separately at the existing callback tail and SAVE may return its prior result during the1.5s sample cadence. Resume prioritises ClearRoster then requires exact snapshot pair identity. A newer roster with an older lane snapshot therefore refuses adoption; this source path does not require an intra-call scheduler race.",
+    "evidence": {
+      "addons/infantry/functions/buildingOperationStep.sqf": "d19dcb86265b1e78363d39deeb28949769b15260c2ba22903342a6594ed354b8",
+      "addons/infantry/functions/cortexClearBuilding.sqf": "9df4164b897fa3f93463a21e6cb2d247ff9cf7f780d27bba1aacf89610604ae0",
+      "addons/infantry/functions/buildingLaneJournal.sqf": "01ae66546a1b348eb01ff487bdd90abb87831712ab2d893cb1a0372760dad400",
+      "addons/infantry/functions/combatPairs.sqf": "0f5c1976ecab6318af8b22c42a6bb936b4068c17d90ece9874f496a2255ef05a"
+    },
+    "boundary": "An unavailable actor can also change CombatPairs eligible membership/order before adoption. Exact identity rejection prevents old actor slots/request observations from being silently assigned to another actor; removing that guard or blindly filtering dead actors is unsafe.",
+    "nextImplementation": "Make episode lane allocation and roster revision coherent at handover. Retain original lane slot identity until validated casualty repair; preserve original retry/request clocks and bounded room partition. Handle delayed/missing/newer publication explicitly. Do not treat publication order as receiver acknowledgement or introduce a second movement controller.",
+    "limits": "Source trace only. No code change, new test, candidate rebuild, runtime reproduction, percentage renewal or claim of complete ordered delivery. Audits remain PAUSED."
+  },
+  "casualtyRosterSampleInvalidation20261024": {
+    "base": "bcedfd57",
+    "change": "The existing guarded pair-roster publication invalidates laneJournalAfter. The same callback tail can SAVE completed lane state inside the normal1.5s cadence after actor-slot replacement. Unchanged rosters and refused samples retain the existing cadence; no immediate save of half-updated pair states.",
+    "limits": "Removes deterministic sample throttling after a roster change, not the separate-variable replication window. Exact pair identity and authority checks remain. No native command, new worker/query, retry reset or hard-deadline renewal. Ordered delivery/owner-ready acknowledgement, changed-roster adoption and physical casualty continuity remain incomplete.",
+    "evidence": {
+      "addons/infantry/functions/buildingOperationStep.sqf": "84f232c3653210cafbe21f7b1bfc5b21850e5e9bc0423b7ed30f33c03d090bec",
+      "addons/infantry/functions/buildingLaneJournal.sqf": "c0fcce588f83fa0a1e7e13c442f773f08b2c8e3b1625ee4e17a478353b7c2634"
+    },
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-roster-snapshot-refresh-bcedfd57",
+    "fingerprint": "6088e0cf6af8b330478f21f3eaeab395a63fa35279f09376478874af0fffbb6e",
+    "logs": [
+      ".qa/clear-roster-snapshot-refresh-build.log",
+      ".qa/clear-roster-snapshot-refresh-independent.log"
+    ],
+    "provenance": "Unsigned dirty development includes unrelated pre-existing dirt; private review/handover postdate package. Audits PAUSED; no physical/performance/percentage claim."
+  },
+  "terminalLaneRetirement20261024": {
+    "base": "5806ce4a",
+    "finding": "Terminal worker completion and explicit clearance release retired the roster but retained the lane snapshot. Episode identity already prevented adoption by a fresh clear; no stale-command replay defect claimed.",
+    "change": "Current-owner terminal finish and exact admitted explicit release retire a typed12field version1 lane snapshot only when its context matches the retiring job. Ownership-loss early return and CortexLocality transfer preserve it.",
+    "evidence": {
+      "addons/infantry/functions/buildingOperationStep.sqf": "c60d31f76184112288e6e2ce5619792f44cb497863d5731025f4c1901d646d7b",
+      "addons/infantry/functions/cortexClearRelease.sqf": "8c426668a02ca1ff2281287aa6b908feacfbcf9b9365dff6fd2b16a4ab1f3d89",
+      "addons/core/functions/cortexLocality.sqf": "351a25d6813ae8ef4685557e654580b03f81bc2f4df4b38512f44907ed54d319"
+    },
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-lane-terminal-retirement-5806ce4a",
+    "fingerprint": "5ed7c84d9d0cf25f064d263b562a0dcba948375cbf51609d09fd4fc8c909d34c",
+    "limits": "Offline lifecycle cleanup only; no new worker/query/native write or ordered delivery/performance/physical claim. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
+  },
+  "pendingResumePreflight20261024": {
+    "base": "9e735ae5",
+    "finding": "Missing/mismatched lane identity was detected only after setup; late adoption refusal calls explicit release and consumes durable resume order. Existing discovery already retries unapplied clearance orders.",
+    "change": "Before operation handoff, resume with incomplete room work requires available episode-bound roster and version1/12field lane snapshot matching group/context/positions/pairs. Pending metadata returns false read-only after original deadline expiry handling. No refusal publication, release, new worker or timer. Completed room work retains independent egress journal admission. Full ADOPT still validates remaining state after setup.",
+    "evidence": {
+      "addons/infantry/functions/cortexClearBuilding.sqf": "0508f582579ca6102438d3637349c789a64d3298ea65e881334054bbc85c2978",
+      "addons/core/functions/cortexDiscover.sqf": "28a202e878d6ca5b45e32ed4cd32ea73f2b3b000b7eb031810cc7730183b3dc2"
+    },
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-lane-resume-preflight-9e735ae5",
+    "fingerprint": "7eeb871cc0a535806daa93834ead8f7ae86540cdec932ef7dfd68961e442026d",
+    "limits": "Not delivery acknowledgement, exact-once replay or complete changed-roster casualty recovery. Eligible roster changes and malformed lane state can still refuse later adoption. Physical/HC/performance unverified. Unsigned dirty candidate includes unrelated dirt; private notes/review postdate package. Audits PAUSED."
+  },
+  "singletonLaneResume20261024": {
+    "base": "edb57ca1",
+    "finding": "ClearRoster adoption filtered rows to exactly2actors, although lane journal and CombatPairs support singleton lanes. Snapshot identity could not match legitimate odd/single-actor allocations. Preferred pairing also ignored explicit singleton slots.",
+    "change": "Roster adoption retains one/two-actor rows. Preferred lanes are admitted only when nonempty, fully eligible and unique (filtered cardinality equals original row cardinality). Exact ordered preferred singleton slots remain reserved ahead of the general registry. Default fresh pairing remains unchanged when preferred lanes are absent. No movement/settings/worker/timer/deadline change.",
+    "evidence": {
+      "addons/infantry/functions/cortexClearBuilding.sqf": "d1c1b1ad6c24a267b6c67cfd75ba635a94f6b3b52e94500afd518edf6d4d22f8",
+      "addons/infantry/functions/combatPairs.sqf": "e3ccb3a449e880944f847758f785fb2cebac726076b79f595a5a05d52c26e617"
+    },
+    "validation": {
+      "existingMotionCases": 9,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-singleton-lane-resume-edb57ca1",
+    "fingerprint": "0cebb8e0aaba1b34d7c0e2720d8cb663c5b77d22cb3c2b97aebc09a224947ab3",
+    "limits": "Offline allocation/admission correction. Changed eligibility can still alter roster and refuse adoption. Ordered delivery, exact-once transfer and physical one/three-person or casualty/HC continuity unverified. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
+  },
+  "commonLaneIdentity20261024": {
+    "base": "170ea584",
+    "finding": "OperationStart builds common pairs before final episode-preferred clearance lanes are selected. Job and ClearRoster published those lanes but common operation pairs could retain initial allocation, leaving fallback identity inconsistent. Common operation and movement worker already support singleton participants.",
+    "change": "Existing guarded ClearRoster publication receives current live operation map and synchronises its pairs to final selected lanes. Publishes common state only when allocation differs. No stale outer-map mutation, worker/query/command or deadline change.",
+    "evidence": {
+      "addons/infantry/functions/cortexClearBuilding.sqf": "71251912beeb7eab16b8993af13ac93060cdd599c1425555a56f3d4099b34659"
+    },
+    "validation": {
+      "focusedExistingCases": 12,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/clear-common-lane-identity-170ea584",
+    "fingerprint": "3d57668924c13b84bd08f5927952ce8b947ec45493f5750798a8ca5ff99ca952",
+    "limits": "Local publication consistency only; separate-variable ordering and owner-ready acknowledgement remain incomplete. No physical/HC/performance/parity/percentage claim. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
+  },
+  "buddyEntryTargetResume20261024": {
+    "base": "fb9c7fc74d9378ff16a9701a6f470b8dad11611c",
+    "finding": "Current lane journal already restores routes/cursors/movers/progress/request ages; actor entry-recovery budgets are public. It omitted pairEntryTargets, so the buddy proposal could rebuild against current geometry while inheriting old request age/recovery state.",
+    "change": "Extend unreleased v1 lane snapshot12to13 fields with <=8 ordered-lane destination proposal rows. SAVE rejects noncanonical/out-of-range map keys, malformed/duplicate lane rows and nonfinite/non3D targets. ADOPT detaches cache into job metadata under existing exact episode/building transform/node/roster/generation/epoch/hard-deadline checks. Resume preflight requires matching13field snapshot.",
+    "authority": "No movementTargets, actor reservation/native command, entry visit or renewed deadline is granted. Existing committed roster replacement deletes the changed lane cache. Missing/delayed/malformed snapshots retain refusal under original deadlines; no legacy12field replay adapter for unreleased schema.",
+    "cost": "At most8 existing lane proposals added to existing1.5s changed-only publication; no extra world query/ray/worker/clock. Network/runtime overhead unmeasured.",
+    "evidence": [
+      {
+        "path": "addons/infantry/functions/buildingLaneJournal.sqf",
+        "sha256": "1cb63ad8461c140b211c012c4bf63ddb75b6698283aaa2f3a2e53ca92a881754"
+      },
+      {
+        "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+        "sha256": "d5bd83a105625b2d394bed556f9146258f8f1113a2d5b47555c9e72695e374df"
+      },
+      {
+        "path": "releaseVerificationAndDeployment/test_clear_preparation_commit.py",
+        "sha256": "5f95089adb80765b821ee9aeb84301ba106c423a3cfd24476f770dcdd8375cef"
+      }
+    ],
+    "validation": {
+      "focusedExistingCases": 3,
+      "fullTests": 1491,
+      "sqf": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "fullOfflineAndIndependent": "PASS",
+      "candidate": ".qa/candidates/clear-resume-buddy-target-fb9c7fc7",
+      "fingerprint": "bdbe5b8e16fd0a114d2df7d1e1d5f7526fa303b55ceda3c3ca7640f47726476a",
+      "logs": [
+        ".qa/clear-resume-buddy-target-focused.log",
+        ".qa/clear-resume-buddy-target-build.log",
+        ".qa/clear-resume-buddy-target-independent.log"
+      ]
+    },
+    "limits": "Proposal continuity only, not current occupancy or native acknowledgement. Existing proposal-selection occupancy logic unchanged; import does not add fresh occupancy proof. Ordered delivery, latest snapshot, full changed-roster continuity and physical normal/HC flow/performance remain incomplete/unverified. No parity/percentage/acceptance claim. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. Audits paused; no push/CI/merge/publish."
+  },
+  "buddyCacheOccupancy20261024": {
+    "base": "9e7778027c83263a4da1fc2747c46f78bfead4c6",
+    "finding": "Cached initial buddy destination bypassed fresh occupancy ranking before uncommitted entry, including after resume. Other workers can occupy or own the point after selection.",
+    "change": "Before uncommitted cached entry, available/task-free partner with no owned MOVE or actual pending native request resamples existing <=8-worker occupancy. Occupied proposal is invalidated and the existing selector prefers free points using that same sample, not a second roster read. Committed or pending paths are not occupancy-retargeted.",
+    "pendingRequestCorrection": "Initial passing source checked pending window against cached proposal, which may differ from adjusted issued room point. Final source reads original movementRequestTimes target and uses existing nativeMoveAwaited; no new grace. Initial full log retained as superseded.",
+    "boundaries": "No new observer/query API/ray budget/worker/timer/deadline/schema or progress. Added existing bounded roster observation for each qualified cached lane; normal initial selection reuses sample. Existing16geometry budget and finite busy-node fallback retained. Admission preference, not occupancy reservation or continuous collision proof.",
+    "evidence": [
+      {
+        "path": "addons/infantry/functions/buildingOperationStep.sqf",
+        "sha256": "333dd1bafcf03550bcd72fe2ee2ee0343abb0aefbc4a6e39a512882695f6dd89"
+      },
+      {
+        "path": "releaseVerificationAndDeployment/test_clear_entry_flow.py",
+        "sha256": "108ded54392927f2ab6ef514e3423e3bb9e2b55d8173baca348a1f19fd9b7cae"
+      },
+      {
+        "path": "docs/Smart-AI-Pass.md",
+        "sha256": "ac2cceea9a30c8c0df33b171989dc93ac18dc3909d602975ed147ed6241877ff"
+      }
+    ],
+    "validation": {
+      "focusedExistingCases": 13,
+      "fullTests": 1491,
+      "sqf": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "fullOfflineAndIndependent": "PASS",
+      "candidate": ".qa/candidates/clear-buddy-cache-occupancy-9e777802",
+      "fingerprint": "f9dc60db03f617f3044116255e192ae4a2f148a18db1b67e657ce435eac84d8a",
+      "logs": [
+        ".qa/clear-buddy-cache-occupancy-focused.log",
+        ".qa/clear-buddy-cache-occupancy-build.log",
+        ".qa/clear-buddy-cache-occupancy-final-focused.log",
+        ".qa/clear-buddy-cache-occupancy-final-build.log",
+        ".qa/clear-buddy-cache-occupancy-model-focused.log",
+        ".qa/clear-buddy-cache-occupancy-independent.log"
+      ],
+      "postBuildTestRefinement": "Existing pending-target model replaced tautological example with explicit before/after proposal-vs-issued counterexample;13 focused cases passed afterward. Production sources unchanged; no redundant compiler/package rebuild."
+    },
+    "limits": "All candidates occupied still permits original finite busy-node fallback. Public snapshot freshness, current access, actual crowding/repeated buddy entry, normal/HC, added native observation cost and5%/10% budget remain unverified. No physical/parity/percentage claim. Unsigned dirty development includes unrelated dirt; test-model refinement/review/notes postdate package. Audits PAUSED; no launch/push/CI/merge/publish."
+  },
+  "terminalSchemaCoherence20261024": {
+    "base": "1d63eeb6d08a6abc29433e14793dce3b349fe7b8",
+    "finding": "Regression introduced by9e777802: buddy destination extended unreleased lane snapshot12to13fields and changed resume guards, but worker finish and CortexClearRelease still retired only12fields. Existing test independently pinned12, so previous full gates missed lifecycle disagreement. Matching13field lane metadata remained after terminal completion/release; episode guards still prevented fresh-clear adoption, no stale movement replay claimed.",
+    "change": "Both terminal paths retire the current13field shape under unchanged version/context/owner checks. Existing lifecycle case derives expected fields from journal ADOPT guard and checks resume preflight plus both retirement paths, retaining cross-episode and ownership-loss protections.",
+    "regressionEvidence": ".qa/clear-lane-retirement-schema-before.log:1491-suite existing focused lifecycle case fails12!=13 before production correction. No new testcase.",
+    "evidence": [
+      {
+        "path": "addons/infantry/functions/buildingOperationStep.sqf",
+        "sha256": "8c60e0b1a1b946c7e6f66ab03a0b53de3bb3c0dd10d09b232fc95c879ba17f81"
+      },
+      {
+        "path": "addons/infantry/functions/cortexClearRelease.sqf",
+        "sha256": "4ac1949305c5664f257f6307f52488fe6b033fd180b8c3bab912e91644c455a3"
+      },
+      {
+        "path": "releaseVerificationAndDeployment/test_cqb_motion_receipt.py",
+        "sha256": "caf2e2c7afe467cbcc0be920f279f2d93c0416e6be3888ffef8a6d2c1ec55247"
+      },
+      {
+        "path": "docs/Smart-AI-Pass.md",
+        "sha256": "218830ef6d85b66a79828080dfc0d6b27d10539e3d2994170aedb4f61891a87b"
+      }
+    ],
+    "validation": {
+      "focusedExistingCases": 12,
+      "fullTests": 1491,
+      "sqf": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "fullOfflineAndIndependent": "PASS",
+      "candidate": ".qa/candidates/clear-lane-retirement-schema-1d63eeb6",
+      "fingerprint": "47a67431e87bd219b2c13935afb7ac23ad11450fac8de3bba047aa832beffb3e",
+      "logs": [
+        ".qa/clear-lane-retirement-schema-before.log",
+        ".qa/clear-lane-retirement-schema-focused.log",
+        ".qa/clear-lane-retirement-schema-preparation.log",
+        ".qa/clear-lane-retirement-schema-build.log",
+        ".qa/clear-lane-retirement-schema-independent.log"
+      ]
+    },
+    "limits": "Internal metadata retirement only, no native command/settings/worker/route/deadline change. Locality transfer preserves snapshot. No visible wedge/bunching fix, physical repeat/Zeus/HC/performance or parity/percentage credit. Unsigned dirty candidate includes unrelated dirt; review/notes postdate package. Audits PAUSED; no launch/push/CI/merge/publish."
+  },
+  "postClearRecallAcknowledgement20261024": {
+    "base": "63a5afef01a6b7bb92d5185133e5e3eefea26a3a",
+    "finding": "Normal GroupBrainStep native-order handback sent doFollow then retained STOP proof only for independent temporary blockers. A delayed unacknowledged STOP without such blocker could lose proof immediately; unlike shutdown cleanup, request return was not separated from acknowledgement. No physical command-delay reproduction claimed.",
+    "change": "Normal handback records existing actor-local CBE_Cortex_ClearRecall before its sole request, bound to hold generation/current epoch/leader and existing5s observation field. Repeated callbacks including expired observation do not resend matching request. Exact unchanged native STOP/post remains in original hold receipt; changed native command or hold position retires old proof. Local combat-effective leader required, temporary leader unavailability retains original STOP.",
+    "boundaries": "Existing current-generation/epoch/route-change/no-successor-operation, actual held-pose, actor task/effectiveness/MOVE/PATH, care/flight/external/Zeus guards retained. No new tuple schema/journal/worker/timer/world query/route/deadline. Same-value foreign STOP remains indistinguishable. A changed leader may admit its own once-bound request; same leader/hold never renews the old request.",
+    "evidence": [
+      {
+        "path": "addons/infantry/functions/groupBrainStep.sqf",
+        "sha256": "bec15fb5bddc356aae28133ff0167567aa97f7dd4000743a19b8d9b237cbf9b9"
+      },
+      {
+        "path": "releaseVerificationAndDeployment/test_cortex_operations.py",
+        "sha256": "e09ed502545276d1dc17da0ee02a374180a58a8273b7dd9d936fda3705e10038"
+      },
+      {
+        "path": "docs/Smart-AI-Pass.md",
+        "sha256": "24e6af8312bab27f5dee542aee7199acba8f4f042bc4a7da638976e60f54f6e9"
+      }
+    ],
+    "validation": {
+      "focusedExistingCases": 4,
+      "fullTests": 1491,
+      "sqf": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "fullOfflineAndIndependent": "PASS",
+      "candidate": ".qa/candidates/clear-hold-native-ack-63a5afef",
+      "fingerprint": "7c374524bd9fb2dc141cb6b0fdd95a2fb4a576cb17454b51638560bf8b40da5c",
+      "logs": [
+        ".qa/clear-hold-native-ack-focused.log",
+        ".qa/clear-hold-native-ack-build.log",
+        ".qa/clear-hold-native-ack-independent.log"
+      ]
+    },
+    "limits": "An indefinitely unacknowledged native request remains unresolved evidence, not a completed handover; no renewed automatic retry from expiry or another waypoint with same hold/leader. Receipt is actor-local; physical normal/HC transfer and native timing remain unverified. No visible sprawl/wedge resolution or measured performance/parity/percentage claim. Unsigned dirty development includes unrelated dirt; review/notes postdate package. Audits PAUSED; no launch/push/CI/merge/publish."
+  }
+}

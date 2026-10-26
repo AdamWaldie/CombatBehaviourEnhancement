@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "90abe257",
+  "scope": "Selected artillery movement HOLD receipt: remote server and owner share replicated operating-crew readiness before position admission; owner-only native authority retained.",
+  "failure": "ArtilleryCrewMoveCurrent performed global pose/session/crew-identity checks then returned true for remote owner on server before its owner-local CombatEffective/player/control/parent/group checks. A still-published HOLD could pass server position admission after crew became incapacitated/captive/player-controlled. Owner fire checks already provided a later veto; this change does not claim prior unsafe shots.",
+  "implementation": "Move shared null/group/parent/player/remoteControlled/CombatEffective checks before the remote-server early return. Remove those duplicate clauses from final owner-only predicate; retain local seat, native expectedDestination/currentCommand, ActorFireTaskAvailable and live FSM proof after early return. No command, seat replacement/group split, session/deadline change, callback or discovery.",
+  "sourceHashes": {
+    "addons/support/functions/artilleryCrewMoveCurrent.sqf": "4bb9d6233abe72860477cfa3fc7ca8aba4fc79da691cfd3aa821b8e7a0fad294",
+    "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "893e19210d945fb076477f2c6e69aadccc381b3854238e25ef00059615f1bbbe"
+  },
+  "validation": {
+    "focused": "Existing4 fire-session tests PASS; selected-crew case extended to assert readiness precedes remote acceptance and native task/FSM proof remains owner-only. No test count growth.",
+    "full": "1497 tests PASS;420compiledSQF/11PBO; complete build terminal0.",
+    "independent": "Candidate verify terminal0.",
+    "candidate": ".qa/candidates/artillery-shared-readiness-90abe257",
+    "fingerprint": "39fbb8953be5563be252e2a6db4cb3ded5c5b4cf483ddc992b027a9a6c5883fc",
+    "buildLog": ".qa/artillery-shared-readiness-build-20261025-attempt1.log",
+    "independentLog": ".qa/artillery-shared-readiness-independent-20261025.log",
+    "kind": "Unsigned dirty development; base plus source hashes identify runtime, notes postdate package."
+  },
+  "limits": "Readiness is current observed replicated state, not instantaneous casualty propagation or owner-native command proof. Actual casualty/crew handback/new orders/Zeus/normal-HC/migration/JIP/physical fire and5percent median/10percent p95 overhead UNVERIFIED. Broader selected-crew casualty replacement/native unresolved handback remain open. Full goal active/incomplete; audits PAUSED."
+}

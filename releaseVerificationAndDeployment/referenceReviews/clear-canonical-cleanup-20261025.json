@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "f43a065ccb284f516c5aabbd5d6b670c73cd9e6f",
+  "scope": "Use an existing canonical clearance lease plus matching original retirement proof when convenience markers disappear. Not arbitrary canonical-lease restoration or missing-record handover.",
+  "defect": "The shared clearance cleanup service selected only actors with convenience speed/stance/token markers. If all those markers were absent but canonical applied settings and a matching original retirement receipt remained, it could publish RETIRED without offering that actor to cleanup. The release wrapper also required the convenience token and could not consume this independently retained proof.",
+  "implementation": [
+    "The existing at-most64 member filter additionally selects a canonical lease whose group/issuer matches a typed nonempty original clearance-retirement receipt. It does not select arbitrary generic settings leases. Expired matched evidence remains unresolved until the original service window closes, not silently retired.",
+    "When the convenience token is empty, the release wrapper may derive its local issuer only from that matching canonical group/issuer and original receipt. It does not publish or replace a token, reconstruct a baseline, apply settings or issue movement.",
+    "ActorSettings retains full actual-local-owner, actor/task/specialist, canonical shape, original generation/deadline and applied-value/readback checks. The received original retire-window expiry veto remains before release.",
+    "A different nonempty token cannot borrow the old issuer. It may replace an old retirement window only when its own canonical group/issuer matches; a conflicting convenience marker cannot discard the old canonical retirement proof.",
+    "The same shared callback restores one actor. No new timer, world query, movement writer, roster expansion or budget renewal. Additional reads are bounded to the existing member filter and candidates without existing markers."
+  ],
+  "validation": {
+    "focused": "14 existing settings-release/core-lease tests passed before full build; existing release case extended, total test count unchanged. Source contracts, not simulated native restoration.",
+    "full": "1497 tests,422 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/clear-canonical-cleanup-f43a065c",
+    "fingerprint": "e86511f22eb9a74fc37cdca5755609903658cd8ae22dd89f30cc8dd354e3db24"
+  },
+  "limits": [
+    "Canonical lease without matching clearance-retirement proof cannot be identified as eligible clearance work by this path. Missing/delayed producer records and full authenticated coherent handover remain incomplete.",
+    "Malformed canonical/window records and foreign groups/issuers grant no restoration. A conflicting token retains unresolved proof rather than being overwritten.",
+    "Native partial readback, actual locality/Zeus/casualty/repeated-use behaviour and5%median/10%p95 performance remain unverified; audits paused. No parity/build score increase."
+  ],
+  "sourceHashes": {
+    "addons/core/functions/actorSettingsCleanupStep.sqf": "02c50dbb443ac1b714acd50d04149eb44fc35eb82a9cfbf73f112a2a9ac9a923",
+    "addons/infantry/functions/cortexClearSettingsRelease.sqf": "e3a99f0d46d0f45503af14bc1ea05dbd8f54d5a52576cb79dff75f09acb179b2",
+    "addons/core/functions/actorSettings.sqf": "f0dc2571158d77920afadb79d795bb333427479a6e4fddebe192f1c2839051ab",
+    "releaseVerificationAndDeployment/test_clear_settings_release.py": "0f432d987513626d20ba62f50196a6a0e40417ff0b98dc0998f680bf6d3f6ce6",
+    "docs/Smart-AI-Pass.md": "eddfbfe1da53a2d51f2ddd3ee6bc714ff97f67ca57c41fe09eea23e753dd9990"
+  }
+}

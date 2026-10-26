@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Pending native movement cleanup, queued care, fleeing and disabled movement prevent
+ * both cover issue and release recall; only this convoy revision bookkeeping is retired.
  * Gives capable dismounts one short move clear of vehicles, using cover during contact, then returns them to ordinary AI.
  * Locality/authority: orders execute only on each passenger owner, using the server's frozen halt report.
  * Repeat/JIP: public per-unit deadlines and destinations survive HC migration; release/resume clears this order.
@@ -28,7 +30,7 @@ if (_reservationCargo isEqualTo []) then {_reservationCargo=_cargo};
     if (local _unit && {!isPlayer _unit}) then {
         private _job = _unit getVariable ["CBE_Convoy_Dismount", []];
         private _ours = count _job == 4 && {(_job select 0) == _group} && {(_job select 1) == _revision};
-        private _capable = alive _unit && {!(_unit getVariable ["ACE_isUnconscious", false])} && {lifeState _unit != "INCAPACITATED"};
+        private _capable = [_unit] call CBE_fnc_CortexCombatEffective;
         // Passenger cover is a temporary convoy-owned order. The common handover helper protects a
         // Zeus/player/specialist order on any member of this passenger group from a later convoy
         // release or remount cleanup, while this local flag still honours an explicit CBE disable.
@@ -36,9 +38,11 @@ if (_reservationCargo isEqualTo []) then {_reservationCargo=_cargo};
         private _ownedExit=_ours && {_command == "GET OUT"} && {vehicle _unit == _vehicle}
             && {(_job select 3) isEqualTo []};
         private _nativeTask=!_ownedExit && {_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]};
-        private _actorMove=_unit getVariable ["CBE_Cortex_ActorMove",[]];
-        private _reservedMove=count _actorMove == 3 && {(_actorMove param [2,-1,[0]]) > time};
+        private _reservedMove=[_unit] call CBE_fnc_CortexActorMoveReserved;
         private _operator = _nativeTask || {_reservedMove}
+            || {fleeing _unit} || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+            || {!simulationEnabled _unit} || {isObjectHidden _unit}
+            || {!(_unit checkAIFeature "MOVE")} || {!(_unit checkAIFeature "PATH")}
             || {[group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover}
             || {"ALL" in ((group _unit) getVariable ["CBE_AIPass_DisabledFeatures",[]])};
         private _end = _cleanup || {!([group _unit,"CBE_Convoy_Cover_Enable",true] call CBE_fnc_CortexFeatureEnabled)} || {!([_group,"CBE_Convoy_Cover_Enable",true] call CBE_fnc_CortexFeatureEnabled)} || {_phase != "HALT"} || {serverTime >= _deadline}

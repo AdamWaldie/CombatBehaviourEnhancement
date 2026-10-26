@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "scope": "Ordinary GroupTick recall transfer and traced hold lifecycle; not complete STOP receipt protocol",
+  "source_sha256": {
+    "addons/infantry/functions/cortexGroupTick.sqf": "66c9bbe5b330ad1a4a0befc077bb25037e87e9c36960068334afcf88cafaf5c3",
+    "addons/infantry/functions/cortexFlankStep.sqf": "2ec8723a5ec223c82df7c85801d2a8c89cff79eaaa1250df63ced4ddc4980e62",
+    "addons/infantry/functions/cortexFlankEnd.sqf": "586151d10c249eff620167e3b839a193a0f3d6965dbe157d0ef1753e12d2e0f6",
+    "addons/infantry/functions/cortexRetreat.sqf": "aeca195442031e45fb2d9d01a8a3908f82fe39cd6d5ed563c424ee04e031000b",
+    "addons/infantry/functions/cortexRestoreCalm.sqf": "dd5653b4fdc3213e9f33cb36a5a28e72df95745a7d52055fb50f7128b23a7a05",
+    "addons/infantry/functions/cortexCheckpoint.sqf": "aec89412089819a0c9ad82cbf334117784fd3f48f228ccb056488c7939d8e920",
+    "addons/core/functions/cortexLocality.sqf": "11cab626ff01d922b077db3aad59ece5542985d121ade79adb9b7b3f2b167dce"
+  },
+  "findings": [
+    "Near-leader holders were removed even when group follow admission refused",
+    "Nonlocal living same-group holders were pruned during temporary split locality",
+    "Standing cover/completed/failed-bound holds and transient retry stops are distinct source cases; historical holder membership is not exact per-actor STOP ownership"
+  ],
+  "implementation": [
+    "Atomically bind holder filtering and recall transfer to current state, epoch, operation generation and original holder rows",
+    "Retain nonlocal living same-group holders without commands",
+    "Retire old hold membership only for actors actually issued native follow",
+    "Refuse actors with protected tasks, finite movement reservations, external owners or current drill membership"
+  ],
+  "bounds": "Existing roster/cadence only, no new worker or discovery. Extra actor predicates/copies scale with holder count; actual overhead unmeasured.",
+  "validation": {
+    "tests": 1426,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-holder-recall-transfer-final-build.log",
+    "unsigned_fingerprint": "245264f7bea836f005e8d45d3e0336a8a0c5d221de7ce2cfa359b83cc79bcadb",
+    "physical": false
+  },
+  "remaining": [
+    "Exact per-actor STOP receipt across standing hold issuers, rejoin, retreat, calm, checkpoint and locality adoption",
+    "Failed support-bound hold is not ordinary holder membership; transient retry stop must not become a standing lease",
+    "Other locality cleanup may still discard unavailable actors; only GroupTick is changed",
+    "Issued follow is not physical rejoin",
+    "Audits paused; physical/performance acceptance missing"
+  ]
+}

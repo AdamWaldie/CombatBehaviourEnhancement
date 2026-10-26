@@ -1,0 +1,29 @@
+{
+  "baseline": "3ff2ed33",
+  "scope": "Observe an already issued native return after driver death through existing FSM and cleanup",
+  "implementation": [
+    "Native-return request uses original recorded goal, original reply deadline and surviving local commander; requires actual live current driving FSM even when invoked from cleanup. No additional return doMove.",
+    "Exact cap custody constrains speed to zero; original-goal ACK plus measured rest convert to FINAL, clear only completed return/release flags and preserve original hard deadline, anchor, baseline and spent allowances. Existing seat executor must still confirm replacement.",
+    "Cleanup offers casualty-return observation before split/deleted-driver classification and dead-driver native classifier. A pending or changed journal returns false to prevent general release; existing ticket signature then observes the changed proof and retires obsolete tickets.",
+    "Other crew STOP remains a veto; commander STOP is accepted only as the exact recorded pending/issued phase, never as arbitrary forward consent. Expired or changed replies remain terminal."
+  ],
+  "validation": {
+    "focused": ".qa/return-crew-tests.log:258 driving checks passed; existing regression extended.",
+    "full": ".qa/return-crew-build.log:1489 tests/401 SQF and complete offline gates passed.",
+    "candidate": ".qa/candidates/return-crew-3ff2ed33",
+    "fingerprint": "57e5112960cdd497add1deec88e8fc58369d162f2c015dd86d068ec749564206",
+    "independent": "Preserved candidate verification passed.",
+    "provenance": "Unsigned development candidate, baseline plus intended source and retained unrelated dirt."
+  },
+  "limits": [
+    "Physical seat/stop/goal travel and performance unverified; audits PAUSED.",
+    "Loss of original surviving commander, crew episode owner transfer and replies after original expiry remain unsupported.",
+    "Same-value replacement native orders remain observationally ambiguous.",
+    "No claim that static tests establish engine reply ordering or multiplayer physical acceptance."
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/drivingRecoveryCrewHandback.sqf": "24195dd50e0593e214eb4c6b0d57a0e24fc000f05ef9190af1eb9228c4cca208",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "9305161d683637a6132972e83597453cd7f5d12fd6f4c3ed946125e631cef956",
+    "releaseVerificationAndDeployment/test_driving_crew.py": "190aa522e590e8133481d3c6bbc86fa11ebc55c589e723c7a0e9e830541d03b7"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "2c54605d",
+  "scope": "Early-exit and reserve-admission clearance resume identity; not coherent owner-ready transport.",
+  "change": "Capture both auxiliary journals alongside egress/follow/stage before startup. Nonempty records must carry the exact current visit context and bounded row arrays (eight early exits, sixty-four reserve admissions). Existing commit equality now covers both including empty observations. Row-specific adoption and native ownership checks remain in their existing consumers.",
+  "reason": "Previously these records were read only after startup and a nonmatching record could be silently ignored. Preflight must defer on a nonempty stale visit instead of resuming with omitted historical work.",
+  "limits": [
+    "Does not prove complete/missing journal delivery or coherent network snapshot.",
+    "Does not fully validate auxiliary row contents before startup; existing consumers retain their per-row guards.",
+    "No movement command, fresh deadline, recurring worker or world query added. Added two bounded journal reads/comparisons; runtime cost unmeasured.",
+    "Audits paused; physical normal/HC/JIP and performance acceptance unverified."
+  ],
+  "validation": {
+    "focused": "3 existing preparation tests passed",
+    "full": "1497 tests, 422 SQF, 11 PBOs; terminal exit0",
+    "candidate": ".qa/candidates/clear-auxiliary-preflight-2c54605d",
+    "fingerprint": "2d4aefed5c0a122fb55dcd284c816182a3303c89f23a434dc8d2d9e711db1437",
+    "independent": "exit0, same fingerprint"
+  },
+  "sourceHashes": {
+    "addons/infantry/functions/cortexClearBuilding.sqf": "8a0a510cb754a304fb3aaf4b73c2267f85583122371b2ea60906827792ecd5d4",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "17d62680a46e4590a3d376ea9885b7045dcc82812aaae187afc0912848755716"
+  }
+}

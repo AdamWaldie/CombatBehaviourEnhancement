@@ -2,6 +2,9 @@
  * Author: WaldoTheWarfighter
  * Purpose: Builds a bounded elevated corridor proposal from current solid support and hull width.
  * Locality / Authority: Read-only on the vehicle owner; no movement/physics/AI commands.
+ * Pitch preserves the module's selected elevation profile without projecting onto terrain.
+ * Length/width and station spacing stay horizontal; measured support/body geometry remains
+ * authoritative. A pitched guide is not slope clearance or permission to ford water.
  * Repeat/JIP: No cache or handlers. Call at admission; the executor must invalidate on transform,
  * revision, vehicle or owner changes and retain runtime obstacle checks. Never replay as clearance.
  * Arguments:
@@ -33,7 +36,11 @@ if (_halfLength < 5 || {_halfLength > 45} || {_halfWidth < 2} || {_halfWidth > 2
 };
 private _transform=[getPosWorld _area,vectorDir _area,vectorUp _area];
 if (((vectorUp _area) select 2) < 0.98) exitWith {["TILTED_AREA"] call _failure};
-private _axis=vectorDir _area;_axis set [2,0];_axis=vectorNormalized _axis;
+private _nativeAxis=+(_transform select 1);
+private _axisLength=vectorMagnitude [_nativeAxis select 0,_nativeAxis select 1,0];
+if (!finite _axisLength || {_axisLength < 0.1}) exitWith {["DEGENERATE_AXIS"] call _failure};
+private _axis=[(_nativeAxis select 0)/_axisLength,(_nativeAxis select 1)/_axisLength,0];
+private _axisGrade=(_nativeAxis select 2)/_axisLength;
 private _right=[_axis select 1,-(_axis select 0),0];
 private _box=boundingBoxReal _vehicle;
 private _low=_box select 0;private _high=_box select 1;
@@ -56,7 +63,9 @@ private _segments=ceil (_span/8);
 private _guide=[];
 for "_station" from 0 to _segments do {
     private _along=(_halfLength+_extension-(_span*_station/_segments))*_side;
-    _guide pushBack (_centre vectorAdd (_axis vectorMultiply _along));
+    // Keep the intended support layer along a tilted module. Flat modules retain their
+    // original guide; every sample still needs real dry/deck support and hull clearance.
+    _guide pushBack ((_centre vectorAdd (_axis vectorMultiply _along)) vectorAdd [0,0,_along*_axisGrade]);
 };
 private _geometry=[_vehicle,_guide,_hullWidth,_height,_area] call CBE_fnc_DrivingPathGeometry;
 private _rays=_geometry select 4;

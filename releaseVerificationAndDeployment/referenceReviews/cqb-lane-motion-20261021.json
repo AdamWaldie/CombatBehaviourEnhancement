@@ -1,0 +1,27 @@
+{
+  "baseline": "c974e9f4",
+  "findings": [
+    "Physical visit collection already requires owned roof/interior bounds/floor/segment and rotates actor order. Main lane executor still processed fixed pair order against the same geometry budget.",
+    "Entry approach motion used _forEachIndex inside findIf, which supplies _x but no index. Inherited outer lane-processing index could compare an actor with another buddy sample, treating stationary separation as movement and delaying entry recovery."
+  ],
+  "implementation": [
+    "Iterate a rotating list of original pair indices. Durable lane rosters/states/routes/claims retain original index identity; no _pairs reorder.",
+    "Find each active actor in the filtered pair to select its own previous sample for entry motion. Existing one-metre threshold, progress/retry and original operation clocks retained."
+  ],
+  "references": [
+    "https://community.bistudio.com/wiki/Magic_Variables"
+  ],
+  "bounds": "Same sixteen-ray callback budget, existing lane count and visit-observer rotation. One small lane-index list/cursor; actor motion identity lookup is within the pair. No new worker, movement command or deadline.",
+  "limits": "Fair processing order is not guaranteed geometry availability if earlier visit work exhausts budget. It does not prove physical entry/cohesion or diagnose every historical straggler. Owner adoption may reset proposal cursor without resetting progress.",
+  "validation": "Existing13 entry-flow checks extended with durable-index permutations and stationary-separated-buddy regression; full build result in handover.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "validatorFollowup": {
+    "baseline": "c6b64e51",
+    "finding": "Offline validator rejected bare _forEachIndex only in simple apply blocks, missing the demonstrated findIf fault. Direct production scan found no remaining simple matches.",
+    "change": "Share compiled simple-block pattern for apply/findIf/select after comments and strings are removed. Diagnostic identifies the actual command and directs actor identity/indexed forEach/explicit outer capture. Nested blocks remain deliberately outside this heuristic.",
+    "validation": "All1482 existing tests passed without new cases; all434SQF files passed extended validator. Existing CQB identity regression exercises invalid three iteration commands plus valid actor identity/forEach/explicit capture/comment/string cases.",
+    "package": "No executable addon changed. Reuse unsigned .qa/candidates/cqb-lane-motion-c974e9f4 fingerprint4a7514bd9f3822082a5e9d2cd5a7a6b8ce4d6bcc171eab7ef1da2ba878944d01; no new build or physical claim."
+  }
+}

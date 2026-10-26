@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "7304f92f1cadf7dec05affd667ff87b4c53af6c6",
+  "status": "EXTERIOR_COMPONENT_OFFLINE_VERIFIED_TRANSPORT_PENDING",
+  "topic": "Shared exterior-post serializer and actual producer capture",
+  "implementation": [
+    "Extract the existing live exterior stage budget encoding into pure BuildingStageJournal. Changed-state normal publication and outgoing private capture now use this same serializer.",
+    "Attach the producer stage maps/attempt array to the private job before their first transition, rather than only near callback end. Native action, actor admission and publication checks remain unchanged.",
+    "Preserve counts, attempted targets/entries, stage and blocked ARRIVED view clocks. Copy nested vectors independently, including the stage, transform and visit context. No new timestamp, deadline, search count, native motion or view proof.",
+    "Refuse malformed/overflow maps/rows, orphaned unrepresented map keys and invalid spent counts rather than silently truncating history. Limits remain64 actors,6 target attempts,3 entry attempts and0..3 spent searches. Valid empty exterior state is a five-field journal with no rows;[] is refusal.",
+    "Outgoing private capture becomes version2, nine fields, retaining the existing eight plus the stage journal. Store it only when both the fenced lane and stage components validate; no receiver or native-ready consumer is added."
+  ],
+  "runtimeIntegration": "BuildingOperationStep still serializes only after a changed stage transition and current movement authority. Public changed-only write rechecks authority and requires a valid five-field result. CortexLocality performs one additional pure serialization inside the existing source-local frozen lane block.",
+  "cost": "Same existing changed-state publication cadence and at-most64 rows, plus bounded map/row validation and deep vector copies instead of shallow vectors/truncation. Outgoing locality adds one bounded exterior serialization. Private map attachment moves six existing assignments earlier, not an additional map pass. No new worker, timer, scan, message or callback cadence. Actual transfer/changed-state CPU delta and5/10budget unmeasured.",
+  "schema": {
+    "liveStageJournal": "Unchanged five-field [building,hardDeadline,transform,rows,visitContext]. Each row retains actor key,count,targets,stage,entries,blocked-view receipt.",
+    "privateOutgoingCapture": "Version2: [2,producerOwner,clearGeneration,ownerEpoch,operationGeneration,capturedServerTime,originalHardDeadline,lanes,stageJournal]. Version1 eight-field records are historical, with no current consumer."
+  },
+  "limits": [
+    "Still a partial outgoing component capture: room evidence, egress, actor motion/settings/interruption and retirement domains remain required for a complete checkpoint.",
+    "No authenticated producer registration/final seal/replay or incoming readiness. Serialization never grants native work, physical post coverage or visited-room credit.",
+    "Malformed or oversized private data refuses publication/capture; it does not reset or repair that source state.",
+    "Actual native owner-transfer ordering, flow/isolation, repeated use, normal/HC migration and performance remain unverified. Audits paused."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/buildingStageJournal.sqf": "460a07bf7cc1c51d6e9216b2adad3d19bc4dd408ec401853c2b6dcf2d1cf5179",
+    "addons/infantry/functions/buildingOperationStep.sqf": "8fa736912f2c0e3d86d6cb070bddf87b85502867363fe522e781620efe45d456",
+    "addons/core/functions/cortexLocality.sqf": "7329bff474706e507207d3117133b2f46f920d9589f052e4b6c9d029fc7c2f11",
+    "addons/main/CfgFunctions.hpp": "8fd2b5f10d51f2dc88ee5ad8dc0460af65d360d9aa10f2473a73c104c8efec21"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "focusedExistingCases": 18,
+    "newCases": 0,
+    "focusedResult": "PASS",
+    "coverageMembership": "PASS",
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 433,
+    "PBOs": 11,
+    "candidate": ".qa/candidates/clear-stage-producer-7304f92f",
+    "fingerprint": "beb3eaf02dc0c1cad65e7040dd132a0d94103d0bfbb1b6d67d29e44f73db78f9",
+    "buildLog": ".qa/handovers/clear-stage-producer-build.log",
+    "independentLog": ".qa/handovers/clear-stage-producer-independent.log",
+    "independent": "PASS"
+  }
+}

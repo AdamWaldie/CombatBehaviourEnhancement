@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Observe production ordinary driving around an empty parked hull and a wreck,
  * then physically board a blocker during an active bypass and require invalidation.
+ * REPLACE waits for issued FOLLOW and at least eight metres of actual bypass travel, replaces
+ * the authored waypoint, then requires preserved intent and100m real replacement-order travel.
  * Locality/authority: scheduled server-only normal batch. Creates disposable native MOVE
  * fixtures; CBE discovery and its real operation FSM own all follower movement.
  * Repeat/JIP: fresh actors per case; restores tuning, deletes crews/vehicles/groups and
@@ -53,7 +55,7 @@ private _northBounds={
     (driver _vehicle) setVariable ["CBE_CortexQA_Label","PARKED BYPASS "+_mode,true];
     (driver _vehicle) setVariable ["CBE_CortexQA_Target",_destination,true];
     missionNamespace setVariable ["CBE_CortexQA_Actors",[_vehicle,_blocker,driver _vehicle],true];
-    ["Ordinary bypass: "+_mode,"The truck must use production discovery and physically pass the parked hull with lateral clearance and no damage. In OCCUPIED, a native boarding order starts only after real bypass work exists; crew entry must invalidate it. No bypass path or result is injected.",getPosATL _blocker] call _phase;
+    ["Ordinary bypass: "+_mode,"The truck must use production discovery and physically pass the parked hull with lateral clearance and no damage. In OCCUPIED, a native boarding order starts only after real bypass work exists; crew entry must invalidate it. REPLACE changes the native waypoint after actual FOLLOW travel and requires physical continuation. No bypass path or result is injected.",getPosATL _blocker] call _phase;
     private _ready=!isNull driver _vehicle && {local _vehicle} && {local _group}
         && {simulationEnabled _vehicle} && {simulationEnabled _blocker}
         && {!surfaceIsWater _start} && {!surfaceIsWater getPosATL _blocker}
@@ -63,7 +65,9 @@ private _northBounds={
     private _active=false;private _clear=true;private _lateral=0;private _tail=false;
     private _boardingStarted=false;private _boarded=false;private _boarder=objNull;
     private _invalidated=false;private _passed=false;private _until=time+150;
-    while {time < _until && {!_passed} && {!_invalidated}} do {
+    private _replaced=false;private _replacement=[];private _replaceOrigin=[];
+    private _replaceAt=-1;private _replacementWaypoint=[];private _preserved=true;private _newTravel=false;
+    while {time < _until && {!_passed} && {!_invalidated} && {!_newTravel}} do {
         sleep 0.5;
         private _work=_vehicle getVariable ["CBE_DrivingBypass_Work",createHashMap];
         private _result=_vehicle getVariable ["CBE_DrivingBypass_Result",[]];
@@ -75,11 +79,32 @@ private _northBounds={
             _boarder assignAsDriver _blocker;[_boarder] orderGetIn true;
         };
         if (!isNull _boarder && {vehicle _boarder == _blocker} && {alive _boarder}) then {_boarded=true};
+        if (_mode == "REPLACE" && {_thisActive} && {!_replaced}
+            && {(_work getOrDefault ["phase",""]) == "FOLLOW"}
+            && {(_work getOrDefault ["points",[]]) isNotEqualTo []}
+            && {(getPosASL _vehicle) vectorDistance ((_work get "points") select 0) >= 8}) then {
+            _replaced=true;_replaceOrigin=getPosASL _vehicle;_replaceAt=time;
+            _replacement=ASLToAGL (_replaceOrigin vectorAdd [120,100,0]);
+            private _newWaypoint=_group addWaypoint [_replacement,0];
+            _newWaypoint setWaypointType "MOVE";_newWaypoint setWaypointCompletionRadius 5;
+            _group setCurrentWaypoint _newWaypoint;_replacementWaypoint=+_newWaypoint;
+            (driver _vehicle) setVariable ["CBE_CortexQA_Target",_replacement,true];
+        };
+        if (_replaced) then {
+            // Natural completion may advance currentWaypoint after real arrival; it must not
+            // masquerade as an overwritten order. The authored waypoint itself must survive.
+            if ((waypointPosition _replacementWaypoint) vectorDistance _replacement > 3
+                || {currentWaypoint _group != (_replacementWaypoint select 1)
+                    && {_vehicle distance2D _replacement >= 15}}) then {_preserved=false};
+            _newTravel=_preserved && {count _work == 0} && {time-_replaceAt >= 10}
+                && {(getPosASL _vehicle) vectorDistance _replaceOrigin >= 100}
+                && {_vehicle distance2D _replacement < 15};
+        };
         _lateral=_lateral max abs (((getPosASL _vehicle) select 0)-_lane);
         private _ownBounds=[_vehicle] call _northBounds;private _blockBounds=[_blocker] call _northBounds;
         if ((_ownBounds select 0) > (_blockBounds select 1)+5) then {_tail=true};
         if (damage _vehicle > (_damage select 0)+0.01 || {damage _blocker > (_damage select 1)+0.01}) then {_clear=false};
-        _passed=_mode != "OCCUPIED" && {_active} && {_tail} && {_lateral >= 3}
+        _passed=_mode in ["EMPTY","WRECK"] && {_active} && {_tail} && {_lateral >= 3}
             && {_vehicle distance2D _start >= 140} && {(_result param [0,""]) == "PHYSICALLY_PASSED"}
             && {(_result param [2,objNull]) == _blocker};
         _invalidated=_mode == "OCCUPIED" && {_active} && {_boarded} && {count _work == 0}
@@ -88,15 +113,21 @@ private _northBounds={
             _mode,time,getPosASL _vehicle,speed _vehicle,_thisActive,_lateral,_tail,_clear,_boarded,_result];
     };
     ["DRIVING-parked-"+_mode+"-production-bypass-started",_ready && {_active}] call _check;
-    if (_mode == "OCCUPIED") then {
+    if (_mode == "REPLACE") then {
+        ["DRIVING-parked-replacement-after-physical-follow",_ready && {_replaced}] call _check;
+        ["DRIVING-parked-replacement-intent-preserved",_replaced && {_preserved}] call _check;
+        ["DRIVING-parked-replacement-physical-continuation",_ready && {_newTravel} && {_clear},
+            str [_replaced,_preserved,getPosASL _vehicle,_replacement]] call _check;
+    } else {if (_mode == "OCCUPIED") then {
         ["DRIVING-parked-occupied-native-boarding",_active && {_boardingStarted} && {_boarded}] call _check;
         ["DRIVING-parked-occupied-work-invalidated",_ready && {_boarded} && {_invalidated} && {_clear}] call _check;
     } else {
         ["DRIVING-parked-"+_mode+"-actual-full-hull-passage",_ready && {_passed} && {_clear},str [_lateral,_tail,getPosASL _vehicle]] call _check;
     };
+    };
     missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
     {private _object=_x;{deleteVehicle _x} forEach crew _object;deleteVehicle _object} forEach [_vehicle,_blocker];
     {deleteVehicle _x} forEach units _boardingGroup;
     {deleteGroup _x} forEach [_group,_boardingGroup];
-} forEach ["EMPTY","WRECK","OCCUPIED"];
+} forEach (["EMPTY","WRECK","OCCUPIED"]+["REPLACE"]);
 [_previous] call CBE_fnc_CortexTuning;

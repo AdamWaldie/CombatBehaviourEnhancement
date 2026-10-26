@@ -1,11 +1,16 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native selected-weapon round/magazine loading, FIREWEAPON and fleeing gate all throws; fragmentation additionally retains current
+ * group and individual YELLOW/RED fire permission at admission and every queued callback.
+ * Admission, queue commitment and every delayed aim/release retry yield to hidden or
+ * simulation-disabled actors and queued medical treatment; no queue or deadline is changed.
  * Makes one soldier throw a smoke or fragmentation grenade he is carrying, towards a position.
  *
  * Grenade types are identified from config, so mod grenades work: smoke is ammo simulation shotSmoke
  * or shotSmokeX; fragmentation is shotGrenade. Chemlights and ACE
  * flashbangs are skipped. The throw muzzle is the "Throw" weapon muzzle that accepts that magazine.
- * The queued throw revalidates ownership and requests target observation. Release requires actual
+ * The queued throw revalidates ownership and requests target observation once per generation.
+ * Alignment retries observe the original request without replaying doWatch or renewing its deadline. Release requires actual
  * body and viewing alignment; an unaligned actor cancels rather than throwing behind contact. A fragmentation grenade is never thrown when a
  * friendly, civilian, captive, surrendering or handcuffed soldier is within max(12 m, four times the selected ammo indirectHitRange) of the target. The thrower
  * must also remain outside that radius; invalid ammo radii are refused. The target cannot be under 8 m or over
@@ -30,7 +35,10 @@
  * 0: unit <OBJECT>
  * 1: towards <ARRAY> - ATL position
  * 2: kind <STRING> - "SMOKE" or "FRAG" (optional, default: "SMOKE")
- * 3: context <ARRAY> - optional ["DANGER", generation, expiry] cancellation contract
+ * 3: context <ARRAY> - optional ["DANGER", generation, expiry] or
+ *    ["DRILL", group, originalToken, operationGeneration, ownerEpoch] cancellation contract.
+ * Explicit DRILL context is checked before queue markers, each queued aiming retry and
+ * final listener/native release. It never adopts the current token of a replacement task.
  *
  * Return Value:
  * Boolean - true when a carried grenade was queued; FiredMan/projectile evidence confirms deployment
@@ -43,12 +51,72 @@
  */
 
 params [["_unit", objNull, [objNull]], ["_towards", [], [[]]], ["_kind", "SMOKE", [""]], ["_context",[],[[]]]];
-if (isNull _unit || {!alive _unit} || {!local _unit} || {isPlayer _unit} || {!isNull remoteControlled _unit} || {vehicle _unit != _unit} || {count _towards < 2}) exitWith {false};
+if (isNull _unit || {!alive _unit} || {!local _unit} || {!simulationEnabled _unit} || {isObjectHidden _unit}
+    || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []} || {isPlayer _unit} || {!isNull remoteControlled _unit} || {vehicle _unit != _unit} || {count _towards < 2}) exitWith {false};
 if (!([_unit] call CBE_fnc_CortexCombatEffective)
     || {([_unit] call CBE_fnc_CortexExternalOwner) != ""}
     || {[_unit] call CBE_fnc_CompatibilityExternalControl}) exitWith {false};
 _kind=toUpperANSI _kind;
 if (!(_kind in ["SMOKE","FRAG"]) || {!([group _unit] call CBE_fnc_CortexIsEligible)}) exitWith {false};
+// Carry this stateless policy with the callback, rather than borrowing caller locals later.
+// Smoke does not acquire lethal fire permission; it still respects explicit weapon disable.
+private _fireAllowed={
+    params ["_actor","_type"];
+    private _allowed=_actor checkAIFeature "FIREWEAPON" && {!fleeing _actor}
+        && {_type != "FRAG" || {unitCombatMode _actor in ["YELLOW","RED"]
+            && {combatMode group _actor in ["YELLOW","RED"]}}};
+    if (!_allowed) exitWith {false};
+    // A throw must not replace native round/magazine loading. Read the selected
+    // weapon only; no selection, reload command or extra worker is needed.
+    // Phase-1 means a removed magazine, not a running reload. Permit that exact
+    // empty state, including an unarmed actor, when magazine loading is settled.
+    private _native=weaponState _actor;
+    _native isEqualType [] && {count _native >= 7}
+        && {[0,1,2,3] findIf {!((_native select _x) isEqualType "")} < 0}
+        && {[4,5,6] findIf {!((_native select _x) isEqualType 0)
+            || {!finite (_native select _x)}} < 0}
+        && {(_native select 4) >= 0} && {(_native select 6) == 0}
+        && {(_native select 5) == 0 || {(_native select 5) == -1
+            && {(_native select 3) == ""} && {(_native select 4) == 0}}}
+};
+if !([_unit,_kind] call _fireAllowed) exitWith {false};
+// Explicit finite callers must not adopt a replacement drill discovered during selection.
+// This local validator travels with queued callbacks; it captures no expired caller locals.
+private _contextMatches={
+    params ["_actor","_required"];
+    if (_required isEqualTo [] || {(_required select 0) isNotEqualTo "DRILL"}) exitWith {true};
+    if (count _required != 5 || {!((_required select 1) isEqualType grpNull)}
+        || {!((_required select 2) isEqualType "")} || {(_required select 2) == ""}
+        || {!((_required select 3) isEqualType 0)} || {!finite (_required select 3)}
+        || {!((_required select 4) isEqualType 0)} || {!finite (_required select 4)}
+        || {(_required select 3) < 0} || {(_required select 4) < 0}) exitWith {false};
+    _required params ["","_group","_token","_generation","_epoch"];
+    if (isNull _group || {!local _group} || {group _actor != _group}
+        || {(_group getVariable ["CBE_OperationGeneration",-1]) != _generation}
+        || {(_group getVariable ["CBE_AIPass_Epoch",-1]) != _epoch}) exitWith {false};
+    private _drill=(_group getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["drill",createHashMap];
+    private _operation=_group getVariable ["CBE_Operation",createHashMap];
+    private _parentGate=if ((_drill getOrDefault ["supportToken",""]) != "") then {
+        "CBE_AIPass_CoordinatedAssault_Enable"
+    } else {
+        switch (_drill getOrDefault ["type","FLANK"]) do {
+            case "ADVANCE": {"CBE_AIPass_Advance_Enable"};
+            case "ASSAULT": {"CBE_AIPass_Assault_Enable"};
+            default {"CBE_AIPass_Flank_Enable"};
+        }
+    };
+    missionNamespace getVariable ["CBE_AIPass_Enable",false]
+        && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+        && {!([] call CBE_fnc_CortexIsPaused)}
+        && {[_group,_parentGate,true] call CBE_fnc_CortexFeatureEnabled}
+        && {(_drill getOrDefault ["token",""]) == _token}
+        && {(_drill getOrDefault ["operationGeneration",-2]) == _generation}
+        && {(_drill getOrDefault ["ownerEpoch",-2]) == _epoch}
+        && {(_operation getOrDefault ["generation",-2]) == _generation}
+        && {(_operation getOrDefault ["ownerEpoch",-2]) == _epoch}
+        && {(_operation getOrDefault ["phase",""]) != "CANCELLED"}
+};
+if !([_unit,_context] call _contextMatches) exitWith {false};
 private _simulations = if (_kind == "FRAG") then {["shotGrenade"]} else {["shotSmoke", "shotSmokeX"]};
 if (toUpperANSI _kind == "FRAG") then {
     private _distance = _unit distance2D _towards;
@@ -84,6 +152,13 @@ private _thrown = false;
                 } >= 0}) then {_muzzleIndex=-1};
         };
         if (_muzzleIndex >= 0) then {
+            isNil {
+            if (!([_unit,_context] call _contextMatches) || {!local _unit}
+                || {!simulationEnabled _unit} || {isObjectHidden _unit}
+                || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+                || {!([_unit] call CBE_fnc_CortexCombatEffective)}
+                || {!([_unit,_kind] call _fireAllowed)}
+                || {!([group _unit] call CBE_fnc_CortexIsEligible)}) exitWith {};
             private _muzzle = _muzzles select _muzzleIndex;
             // A throw leaves along the unit's current facing. Do not alter facing until the queued
             // release has revalidated CBE, Zeus, specialist, generation and ammunition ownership.
@@ -95,15 +170,39 @@ private _thrown = false;
             private _operationGeneration=(group _unit) getVariable ["CBE_OperationGeneration",0];
             private _ownerEpoch=(group _unit) getVariable ["CBE_AIPass_Epoch",0];
             private _release = {
-                params ["_unit", "_muzzle", "_magazine", "_group", "_hold", "_kind", "_towards", "_drillToken", "_context", "_expires", "_retry", "_throwGeneration", "_operationGeneration", "_ownerEpoch"];
+                params ["_unit", "_muzzle", "_magazine", "_group", "_hold", "_kind", "_towards", "_drillToken", "_context", "_expires", "_retry", "_throwGeneration", "_operationGeneration", "_ownerEpoch", "_contextMatches", "_fireAllowed", ["_aimIssued",false,[true]]];
                 // A newer request supersedes this queued attempt without cancelling its frag token.
                 if ((_unit getVariable ["CBE_Cortex_ThrowGeneration",-1]) != _throwGeneration) exitWith {};
                 private _cancel = {
                     params [["_reason","OWNERSHIP_OR_SAFETY",[""]],["_details",[],[[]]]];
                     _unit setVariable ["CBE_Cortex_ThrowDecision",[time,_reason,_kind,_throwGeneration,_details]];
+                    // A queued request is not a fired grenade. Retire only this danger
+                    // carrier's unchanged reservation; never shorten a newer request's cooldown.
+                    if (_kind == "SMOKE" && {count _context == 3} && {(_context select 0) == "DANGER"}
+                        && {local _group} && {local _unit} && {group _unit == _group}
+                        && {(_unit getVariable ["CBE_Cortex_ThrowGeneration",-1]) == _throwGeneration}
+                        && {(_group getVariable ["CBE_OperationGeneration",0]) == _operationGeneration}
+                        && {(_group getVariable ["CBE_AIPass_Epoch",0]) == _ownerEpoch}) then {
+                        private _smokeLease=_group getVariable ["CBE_Danger_SmokeLease",[]];
+                        if (_smokeLease isEqualType [] && {count _smokeLease == 3}
+                            && {(_smokeLease select 0) isEqualTo (_context select 1)}
+                            && {(_smokeLease select 1) isEqualTo _unit}
+                            && {(_smokeLease select 2) isEqualType 0} && {finite (_smokeLease select 2)}
+                            && {(_group getVariable ["CBE_Danger_SmokeAfter",-1]) isEqualTo ((_smokeLease select 2)+45)}) then {
+                            _group setVariable ["CBE_Danger_SmokeLease",nil,true];
+                            _group setVariable ["CBE_Danger_SmokeAfter",time+3];
+                        };
+                    };
                     if (_kind == "FRAG" && {_drillToken != ""}) then {
                         _unit setVariable ["CBE_Cortex_FragCancelled",_drillToken];
                     };
+                };
+                if (time > _expires) exitWith {["AIM_WINDOW_EXPIRED"] call _cancel};
+                if !([_unit,_kind] call _fireAllowed) exitWith {["FIRE_POLICY_OR_FLIGHT_CHANGED"] call _cancel};
+                if !([_unit,_context] call _contextMatches) exitWith {["DRILL_REPLACED"] call _cancel};
+                if (!simulationEnabled _unit || {isObjectHidden _unit}
+                    || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}) exitWith {
+                    ["ACTOR_UNAVAILABLE"] call _cancel;
                 };
                 if ((_group getVariable ["CBE_OperationGeneration",0]) != _operationGeneration
                     || {(_group getVariable ["CBE_AIPass_Epoch",0]) != _ownerEpoch}
@@ -144,13 +243,30 @@ private _thrown = false;
                     if (!_contactChanged) then {
                         private _contactBearing=_unit getDir _contact;
                         private _throwBearing=_unit getDir _towards;
-                        _contactChanged=abs (((_throwBearing-_contactBearing+540) % 360)-180) > 60;
+                        _contactChanged=abs (((_throwBearing-_contactBearing+540) % 360)-180) > 60
+                            || {_unit distance2D _contact <= _unit distance2D _towards};
                     };
                 };
                 if (_contactChanged) exitWith {["CONTACT_CHANGED",[+_towards]] call _cancel};
                 if (_kind == "FRAG" && {_drillToken != ""}
                     && {!([_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {[] call _cancel};
-                _unit doWatch _towards;
+                private _alignAdmitted=false;
+                isNil {
+                    if ((_unit getVariable ["CBE_Cortex_ThrowGeneration",-1]) != _throwGeneration) exitWith {};
+                    if (time > _expires || {!([_unit,_context] call _contextMatches)}) exitWith {};
+                    // Carry one consumed request bit in this existing callback payload.
+                    // Reissuing watch on every observation could fight a later native watch.
+                    if (!_aimIssued) then {
+                        _unit doWatch _towards;
+                        _this set [16,true];
+                    };
+                    _alignAdmitted=true;
+                };
+                if (!_alignAdmitted) exitWith {
+                    if ((_unit getVariable ["CBE_Cortex_ThrowGeneration",-1]) == _throwGeneration) then {
+                        [["DRILL_REPLACED","AIM_WINDOW_EXPIRED"] select (time > _expires)] call _cancel;
+                    };
+                };
                 // setDir changes the object transform without proving the prone throwing animation
                 // has turned. Never force release into the actor's previous facing. A bounded
                 // asynchronous aiming window leaves the manoeuvre element free to continue.
@@ -186,6 +302,13 @@ private _thrown = false;
                         } >= 0};
                 };
                 if (_unsafeRelease) exitWith {["UNSAFE_RELEASE",[_unit distance2D _towards,_safetyRadius]] call _cancel};
+                // Safety geometry above stays scheduled. Bind listener setup and native
+                // weapon release to the original caller context in this final transaction.
+                isNil {
+                if ((_unit getVariable ["CBE_Cortex_ThrowGeneration",-1]) != _throwGeneration) exitWith {};
+                if (time > _expires) exitWith {["AIM_WINDOW_EXPIRED"] call _cancel};
+                if !([_unit,_kind] call _fireAllowed) exitWith {["FIRE_POLICY_OR_FLIGHT_CHANGED"] call _cancel};
+                if !([_unit,_context] call _contextMatches) exitWith {["DRILL_REPLACED"] call _cancel};
                 _unit setVariable ["CBE_Cortex_ThrowDecision",[time,"ALIGNED",_kind,_throwGeneration,[_bodyError,_aimError,_muzzle]]];
                 // Observe the native release once; never steer or replace the projectile.
                 private _oldTrace=_unit getVariable ["CBE_Cortex_ThrowTraceHandler",-1];
@@ -263,9 +386,11 @@ private _thrown = false;
                 _unit setVariable ["CBE_Cortex_ThrowDecision",[time,"RELEASE_REQUESTED",_kind,_throwGeneration,[_muzzle,currentWeapon _unit,stance _unit,+_towards,getDir _unit,eyeDirection _unit]]];
                     _unit forceWeaponFire [_muzzle,_muzzle];
                 };
+                };
             };
-            [_release, [_unit,_muzzle,_magazine,group _unit,+(group _unit getVariable ["CBE_AIPass_ZeusHold",[]]),_kind,+_towards,_drillToken,+_context,time+1.5,_release,_throwGeneration,_operationGeneration,_ownerEpoch]] call CBA_fnc_execNextFrame;
+            [_release, [_unit,_muzzle,_magazine,group _unit,+(group _unit getVariable ["CBE_AIPass_ZeusHold",[]]),_kind,+_towards,_drillToken,+_context,time+1.5,_release,_throwGeneration,_operationGeneration,_ownerEpoch,_contextMatches,_fireAllowed]] call CBA_fnc_execNextFrame;
             _thrown = true;
+            };
         };
     };
     if (_thrown) exitWith {};

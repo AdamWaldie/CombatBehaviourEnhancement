@@ -1,0 +1,11 @@
+{
+  "finding": "Tactical tracked withdrawal already issues native BACK with distinct commander/driver. Its seat/destination/route receipt did not reject an explicit native FORWARD/FAST/SLOW or keyboard-commander mode, allowing a later turn change to reissue BACK over unchanged destinations. Ordinary rear recovery/queue remain separate and do not implement this native command path.",
+  "implementation": "Read native mode in existing command-ownership predicate; known forward/keyboard modes revoke authority for active reverse and release STOP/turn writes. Existing handover returns RELEASED instead of caller forward fallback. Snapshot native move/turn info before geometry and require unchanged info at the existing command commit. No strict mode acknowledgement or new timer/controller.",
+  "reference": "https://community.bistudio.com/wiki/vehicleMoveInfo",
+  "source_sha256": "ea1e43e71cc39e6c15b7662a2047f9bb530d4575aa37fb27883ae74d9d46040a",
+  "validation": "Full .qa/cbe-tracked-reverse-native-handover-build.log and independent verify passed; fingerprintfda8da043a439d3db94efff61069628929b27b5d254532721bc6d395193e8b9b, manifest7eae7e49+dirtydevelopment. Existing checks extended, no new tests.",
+  "remaining": "Unknown/native planner modes and identical replacement BACK/turn states remain observational limits. Actual native tracked withdrawal, command handover and performance are unverified. Ordinary native BACK and negotiated queue execution remain missing.",
+  "audits": "PAUSED",
+  "scores_changed": false,
+  "physical_acceptance": false
+}

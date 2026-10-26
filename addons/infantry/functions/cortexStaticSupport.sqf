@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native flight, hidden actors and simulation dormancy veto recruitment and native commands.
+ * Recruitment also respects unresolved flight journals and existing native MOVE orders.
  * Purpose: Give one otherwise uncommitted infantry actor a finite chance to occupy a nearby useful
  * empty static weapon during confirmed contact, without taking the squad's movement operation. If
  * no existing emplacement is available, delegates compatible carried weapon bags to the finite
@@ -12,12 +14,14 @@
  * discards engine commands and lets the new owner reassess. Cleanup cancels only CBE's exact still-
  * matching assignment; Zeus, player, specialist, medical, equipment and newer actor movement ownership are never overwritten.
  * Arguments: 0 group <GROUP>; 1 group state <HASHMAP>; 2 known enemies <ARRAY>.
+ * 3 release only <BOOL>, false; 4 yield during release <BOOL>, false. Release-only never discovers
+ * or advances a weapon/deployment; it retires just this emplacement assignment.
  * Return Value: STRING - DISABLED, IDLE, MOVING, ACTIVE, FAILED or YIELDED.
- * Current callers: CBE_fnc_CortexGroupTick while a group is in confirmed CONTACT.
+ * Current callers: CBE_fnc_CortexGroupTick during CONTACT; CortexRestoreCalm for release-only cleanup.
  * Example: [group player, [group player] call CBE_fnc_CortexGroupState, []] call CBE_fnc_CortexStaticSupport;
  */
 
-params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]]];
+params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]],["_releaseOnly",false,[true]],["_releaseExternal",false,[true]]];
 if (isNull _group || {!local _group}) exitWith {"YIELDED"};
 private _lease=_group getVariable ["CBE_Danger_StaticSupport",[]];
 private _clearActorMove={
@@ -47,6 +51,8 @@ private _release={
         if (!_external && {!_protectedTask} && {!_newMove} && {!isNull _actor} && {alive _actor} && {local _actor}
             && {!isPlayer _actor} && {group _actor == _group}
             && {[_actor] call CBE_fnc_CortexCombatEffective}
+            && {simulationEnabled _actor} && {!isObjectHidden _actor} && {!fleeing _actor}
+            && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
             && {!isNull _weapon} && {assignedVehicle _actor == _weapon}) then {
             [_actor] orderGetIn false;
@@ -55,6 +61,13 @@ private _release={
         };
     };
     _group setVariable ["CBE_Danger_StaticSupport",nil,true];
+};
+
+// Both contact and CALM teardown share the same actor-task and assignment protections.
+// Release-only is evaluated before feature gates, deployment and opportunity discovery.
+if (_releaseOnly) exitWith {
+    [_releaseExternal || {count _lease >= 7 && {[_group] call CBE_fnc_CortexExternalTakeover}}] call _release;
+    "IDLE"
 };
 
 private _enabled=missionNamespace getVariable ["CBE_AIPass_Active",false]
@@ -84,7 +97,9 @@ if (count _lease >= 7) exitWith {
         (_operation getOrDefault ["intent",""]) in ["WITHDRAW","VEHICLE_WITHDRAW"]
             || {_actor in (_operation getOrDefault ["participants",[]])}
     };
-    if (_operationConflict || {!isNull _actor && {currentCommand _actor in ["GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED"]}}) exitWith {
+    if (_operationConflict || {!isNull _actor && {fleeing _actor || {!simulationEnabled _actor} || {isObjectHidden _actor}}}
+        || {!isNull _actor && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}}
+        || {!isNull _actor && {currentCommand _actor in ["GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED"]}}) exitWith {
         [true] call _release;
         "YIELDED"
     };
@@ -94,7 +109,7 @@ if (count _lease >= 7) exitWith {
     };
     if (_leaseEpisode != _episode || {isNull _actor} || {!alive _actor} || {!local _actor}
         || {isPlayer _actor} || {group _actor != _group} || {isNull _weapon} || {!alive _weapon}
-        || {!(simulationEnabled _weapon)} || {assignedVehicle _actor != _weapon && {vehicle _actor != _weapon}}) exitWith {
+        || {!(simulationEnabled _weapon)} || {isObjectHidden _weapon} || {assignedVehicle _actor != _weapon && {vehicle _actor != _weapon}}) exitWith {
         [false] call _release;
         "FAILED"
     };
@@ -132,7 +147,7 @@ if (isNull _anchor) exitWith {"IDLE"};
 private _sideIndex=switch (side _group) do {case west:{1}; case east:{0}; case independent:{2}; default {3}};
 private _weapons=(nearestObjects [_anchor,["StaticWeapon"],75,true]) select {
     // canFire requires an operator and cannot qualify an empty emplacement.
-    alive _x && {simulationEnabled _x} && {damage _x < 0.9} && {someAmmo _x}
+    alive _x && {simulationEnabled _x} && {!isObjectHidden _x} && {damage _x < 0.9} && {someAmmo _x}
         && {_x emptyPositions "gunner" > 0}
         && {crew _x isEqualTo []} && {locked _x < 2}
         && {getNumber (configOf _x >> "side") in [_sideIndex,3]}
@@ -154,7 +169,9 @@ _rankedWeapons sort true;
 private _weapon=(_rankedWeapons select 0) select 1;
 private _candidates=(units _group) select {
     alive _x && {local _x} && {!isPlayer _x} && {_x != leader _group}
-        && {[_x] call CBE_fnc_CortexCombatEffective} && {vehicle _x == _x}
+        && {simulationEnabled _x} && {!isObjectHidden _x} && {!fleeing _x}
+        && {[_x] call CBE_fnc_CortexCombatEffective}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []} && {vehicle _x == _x}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {isNull assignedVehicle _x}
         // Native contact commands such as TARGET and WATCH are transient observations, not an
@@ -162,6 +179,8 @@ private _candidates=(units _group) select {
         // interrupt; the group-level Zeus/mission-order gate above already protects authored work.
         && {!(toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
+        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {currentCommand _x != "MOVE"}
 };
 if (_candidates isEqualTo []) exitWith {
     private _potential=(units _group) findIf {

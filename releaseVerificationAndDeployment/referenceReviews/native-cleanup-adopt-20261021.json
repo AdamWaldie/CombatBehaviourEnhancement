@@ -1,0 +1,29 @@
+{
+  "baseline": "ba58bf14",
+  "scope": "Cleanup-only native recovery custody and cleanup/adoption ordering",
+  "implementation": [
+    "Actual locality-edge proof may rebind an exact unexpired native recovery while driving is disabled. Active mode still requires adopted group and starts/deduplicates existing FSM; disabled mode calls only existing guarded AssistRelease, without enabling tactics or installing handlers.",
+    "A real vehicle gain can identify the source group from its exact native journal when the driver slot has not replicated yet. It still captures the original edge window only; init/seat retries cannot create or renew it.",
+    "Cleanup preserves an unchanged old-issuer native journal after crew locality settles but before adoption runs. Native command classification is owner-local. Changed local native leg/seats/cap retires obsolete metadata; original deadline bounds retention. Native forward-stage budgets also survive this interval.",
+    "SIMPLE_BACK remains reverse-kind only. Existing typed receipt, cap, source edge, provider/Zeus/care/actor reservation and original clock checks still gate custody and release."
+  ],
+  "validation": {
+    "full": ".qa/native-cleanup-adopt-build-retention.log:all1487/400SQF and full offline gates passed. No new test count; existing native adoption/locality contracts extended.",
+    "review_repairs": "First builds passed; source review found cleanup-before-adoption loss and native forward-stage budget loss. Corrected both and rebuilt final source.",
+    "candidate": ".qa/candidates/native-cleanup-adopt-ba58bf14",
+    "fingerprint": "8ff98d92e4199bdfee3bf3c0ca7f9f2006b6611052c333f2265ac367baaaaa33",
+    "independent": "Preserved candidate verifier exit0.",
+    "provenance": "Baseline plus intended batch and preserved unrelated dirt; unsigned development candidate."
+  },
+  "limits": [
+    "No physical handback, normal/HC timing or performance evidence. Audits paused.",
+    "Evidence delivered after the original five-second edge window remains unsupported. Expired recovery remains unresolved, not completed by timeout.",
+    "Same-value command edits remain indistinguishable; exact source/cap/native proof cannot establish an unobserved new identical order.",
+    "Native corridor/bypass/pass/queue/casualty work remains unfinished. Full goal incomplete."
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/drivingNativeRecoveryAdopt.sqf": "1213a22e9cac9b7417f261b5c01dc74567a3d44210bd6da00ac15df80368d070",
+    "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "cbcafcfc2ae580f59c9a00a09fe0735d680c5ec725af8cbe9e323019147a70a6",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "36c1fb65e246d405f0628edf35decffaeee34470242300048ae1778095de069c"
+  }
+}

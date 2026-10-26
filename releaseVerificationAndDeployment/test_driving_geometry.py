@@ -5,11 +5,39 @@ ROOT=Path(__file__).resolve().parents[1]
 class DrivingGeometryTests(unittest.TestCase):
     def test_geometry_is_one_bounded_live_observation_without_helpers(self):
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text().split('params [[',1)[1]
-        self.assertEqual(s.count('lineIntersectsSurfaces'),1)
+        self.assertEqual(s.count('lineIntersectsSurfaces'),2)
         for required in ('true,4,"GEOM","NONE"','[_left,(_left+_right)*0.5,_right]',
                          'forEach _heights','max 25 min 600','getPosWorld _object','vectorUp _object',
                          '(_normal select 2) < 0.7','_object isKindOf "LandVehicle"'):
             self.assertIn(required,s)
+        # Optional contact sampling is bounded and read-only; ordinary callers retain defaults.
+        for required in ('["_nearContact",false,[true]]','if (_nearContact) then',
+                         '_linear < (1/3.6)','_angular < 0.01','forEach [-1,1]',
+                         'forEach [0.3,0.6]',
+                         '[[_frontY-0.1,_frontY+0.55,0.7],[_quarter,_quarter,0.6],[0,0,0.6]]',
+                         'count _probeObjects >= 16','call CBE_fnc_DrivingBypassObstacleAvailable',
+                         '(_leftContact isEqualTo []) != (_rightContact isEqualTo [])',
+                         '_probeSide == 0 && {_isGate}',
+                         '!isNull _object && {_kind == "STATIC"}'):
+            self.assertIn(required,s)
+        self.assertEqual(2*2*3,12)
+        self.assertEqual(3*3*3+12,39)
+        self.assertEqual(3*3*3+12+3*3+3*2,54)
+        for required in ('count _supportPath == 3','> 0.3','count _levels != 1',
+                         '_point vectorAdd [0,0,0.75]','_point vectorAdd [0,0,-0.75]',
+                         '<= 0.4','if (_supported) then','vectorAdd [0,0,0.45]'):
+            self.assertIn(required,s)
+        self.assertNotIn('getTerrainHeight',s)
+        # Wrong-floor terrain, roofs/undersides and multiple plausible levels cannot
+        # provide a low-row support profile. This is analytic filtering, not PhysX proof.
+        def support(path_z, surfaces):
+            candidates=[z for z,normal_z in surfaces if normal_z>=0.7 and abs(z-path_z)<=0.4]
+            return candidates[0] if len(candidates)==1 else None
+        self.assertEqual(support(10,[(10,1),(0,1)]),10)
+        self.assertIsNone(support(10,[(0,1)]))
+        self.assertIsNone(support(10,[(10,-1)]))
+        self.assertIsNone(support(10,[(9.9,1),(10.1,1)]))
+        self.assertIsNone(support(10,[(10,0.5)]))
         for forbidden in ('createVehicle','allMissionObjects','allDead','spawn','waitUntil','setVariable',
                           'setVelocity','doMove','forceSpeed','animateSource','animationSourcePhase'):
             self.assertNotIn(forbidden,s)
@@ -34,11 +62,28 @@ class DrivingGeometryTests(unittest.TestCase):
         s=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
         self.assertIn('_gateClasses getOrDefault',s)
         self.assertIn('for "_index" from 1 to 8',s)
-        self.assertIn('isClass (configOf _object >> "AnimationSources"',s)
+        self.assertIn('private _sourceConfig=configOf _object >> "AnimationSources"',s)
+        self.assertIn('isClass (_sourceConfig >> _x)',s)
+        candidates=s.split('if (!_isGate && {',1)[1].split('_gateClasses set',1)[0]
+        for native_class in ('Wall','Fence'):
+            self.assertIn('_object isKindOf "'+native_class+'"',candidates)
+        self.assertNotIn('isKindOf "House"',candidates)
+        self.assertLess(candidates.index('isClass (_sourceConfig >> _x)'),candidates.index('exitWith {_isGate=true}'))
         self.assertIn('[_gateObservation,_solidObservation]',s)
     def test_solid_constraints_reuse_existing_writers_and_fsm_queue(self):
         ordinary=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
         convoy=(ROOT/'addons/vehicles/functions/convoyTick.sqf').read_text()
+        qualification=ordinary.split('private _cornerProbe=',1)[1].split('private _geometry=',1)[0]
+        for required in ('!_reverseLeg','!_crewBoardingHold','!_queueHold','!_queueNativeActive',
+                         '!_queueCrossing','_recoveryOwned','(_state param [6,0]) == 1',
+                         '["kind",""]) == "REFRESH"','["bypassSpent",false]) isEqualTo false',
+                         'serverTime >= _cornerStarted+3','call _stationary',
+                         '["SAFE","AWARE"]','getSuppression _driver <= 0.1',
+                         'CBE_DrivingPass_Work','CBE_DrivingCorridor_Work',
+                         'CBE_DrivingBypass_Work','call _mayRecoverOrdinaryRoute'):
+            self.assertIn(required,qualification)
+        self.assertIn('[_vehicle,_capMps,false,_curveHint,_cornerProbe]',ordinary)
+        self.assertNotIn('_cornerProbe',convoy)
         self.assertEqual(ordinary.count('call CBE_fnc_DrivingGeometryCap'),1)
         self.assertEqual(convoy.count('call CBE_fnc_DrivingGeometryCap'),2)
         self.assertIn('_traffic=_obstacleObservation select [0,5]',ordinary)
@@ -56,7 +101,7 @@ class DrivingGeometryTests(unittest.TestCase):
                        'count _stations-1','_front*sin _angle','_width*sin _angle',
                        '_segmentStart+_fraction*(_segmentEnd-_segmentStart)','_from vectorDistance _to'):
             self.assertIn(marker,s)
-        self.assertEqual(s.count('lineIntersectsSurfaces'),1)
+        self.assertEqual(s.count('lineIntersectsSurfaces'),2)
         self.assertNotIn('setAngularVelocity',s)
         self.assertNotIn('setVariable',s.split('params [[',1)[1])
 
@@ -110,6 +155,29 @@ class DrivingGeometryTests(unittest.TestCase):
         # A single sparse segment also spans the desired lookahead; interpolation is required.
         self.assertLess(6,20)
         self.assertIn('_path select [0,64]',s)
+        self.assertIn('_supportPath=[+_nearPoint]',s)
+        self.assertIn('(3-_walked)/_length',s)
+        self.assertIn('_walked >= 6 && {count _supportPath == 2}',s)
+        self.assertIn('true,_supportPath,_nativeGrade]',s)
+        self.assertIn('_nativeGrade=_nativeGrade max (abs (_delta select 2)/_length)',selection)
+        for name,variable in (('drivingAssistStart','_capMps'),('convoyTick','_limit')):
+            consumer=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text()
+            grade=consumer.split('private _nativeGrade=_nativeHint param [3,-1,[0]];',1)[1].split('};',2)[0]
+            self.assertIn('finite _nativeGrade',grade)
+            self.assertIn('_nativeGrade > 0.2',grade)
+            self.assertIn('_nativeGrade > 0.12',grade)
+            self.assertIn(variable+'='+variable+' min',grade)
+        geometry=(ROOT/'addons/vehicles/functions/drivingGeometryCap.sqf').read_text()
+        self.assertIn('count _measured in [1,2,3,4]',geometry)
+        # Existing road policy applies symmetrically to observed climbs/descents;
+        # unknown/level metadata cannot raise a stricter independent speed ceiling.
+        def ceiling(requested,grade):
+            return min(requested,18 if grade>.2 else 25 if grade>.12 else requested)
+        for grade,expected in ((-1,50),(0,50),(.12,50),(.13,25),(.2,25),(.21,18)):
+            self.assertEqual(ceiling(50,grade),expected)
+            self.assertLessEqual(ceiling(5,grade),5)
+        self.assertEqual(abs(-1.5)/6,.25)
+        self.assertEqual(abs(.125)/.5,abs(1.5)/6)
 
     def test_native_path_subscription_expires_before_copy_and_feature_off_retires_old_revision(self):
         s=(ROOT/'addons/vehicles/functions/drivingNativePathWatch.sqf').read_text()

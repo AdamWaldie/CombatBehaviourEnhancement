@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-19",
+  "scope": "Native queue reverse executor integration boundary",
+  "findings": [
+    "Ordinary DrivingAssistStart already owns finite REVERSE recovery through DrivingRecovery_Work, native destination acknowledgement or SIMPLE_BACK, exact cap receipts, fresh rear clearance and original deadlines. QueueHold currently vetoes entry into ordinary recovery.",
+    "CortexVehicleReverseStep belongs to an active VEHICLE_WITHDRAW operation and threat-facing hull behaviour. It cannot be invoked for traffic queues by borrowing an unrelated operation generation or threat position.",
+    "Ordinary SIMPLE_BACK requires distinct driver and effective movement operator and no current turn input. Driver-only vehicles use native destination requests in current recovery; a rear destination is not proof that the engine will physically reverse rather than turn.",
+    "DrivingQueueProposalCurrent demands original stationary pose and native crew orders, so it is a consent/hold guard, not a moving-phase receipt. Applying it after the first intentional reverse command would revoke the episode."
+  ],
+  "nextImplementation": [
+    "Bind a broker-authorized dependency leaf to one exact current ordinary driving brain and original token expiry. Do not derive movement authority from historical READY alone.",
+    "Introduce phase-specific own-command/cap acknowledgement within the existing driving callback and recovery journal; preserve all nonmoving participant owner holds. Do not create another scheduler or use the tactical withdrawal FSM.",
+    "Use fresh rear full-body observation before every native leg; preserve original rear space budget and actual native command capability. Keep driver-only destination fallback separate from proven physical reverse.",
+    "Only after measured leaf separation and fresh full-hull parent clearance may parent move; exact release restores only original owned caps/commands. Automatic queue initiation stays off until this entire path exists."
+  ],
+  "implementedThisReview": "No native queue leg added. Separate READY retry fixes an existing message liveness gap without granting reverse movement.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "sha256": "634d7a180045198691310020cbb5770987c7f99eecc48c8e697ed8c56f67bef1"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryCommandState.sqf",
+      "sha256": "5aa5459573085850a600859b78732e1db201ba9daf4ead08373eae0074bad152"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+      "sha256": "a0ecd6fa6460012160c78f2611634eccb46bce8a6e4087d58b582e0b7d0f148e"
+    },
+    {
+      "path": "addons/vehicles/functions/cortexVehicleReverseStep.sqf",
+      "sha256": "ea1e43e71cc39e6c15b7662a2047f9bb530d4575aa37fb27883ae74d9d46040a"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
+      "sha256": "5f9d84634a81fe78f734e3a9c9158a52d78be24a268fd776fd05c508e668f529"
+    }
+  ],
+  "physical": "Unverified; audits paused. No parity/completion percentage increase."
+}

@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Tests hearing, report-led investigation and reinforcement with real firing, detection and travel.
+ * Additive normal-only mounted receiver case requires natural sender contact, occlusion,
+ * all receiver members aboard and actual server-to-owner report/observation-age receipt.
  * VR keeps deterministic geometry; terrain worlds rotate every actor, sight screen and rally onto a
  * measured dry sector so sound/report/support movement is exercised over relief and rough ground.
  * Locality/authority: scheduled server audit; fixtures pinned to the server until explicit transfer.
@@ -205,6 +207,69 @@ private _travel=[{
 ["REPORT-receiver-physical-investigation",_travel && {_reportSeen || {((_receiver getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["areaInvestigation",""]) == "REPORT"}},format ["travel=%1 directKnowledge=%2",_receiverUnit distance2D _start,_receiverUnit knowsAbout _shooter]] call _check;
 ["REPORT-observed-delivery",_reportSeen || {((_receiver getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["areaInvestigation",""]) == "REPORT"}] call _check;
 call _cleanup;
+
+// Mounted-report normal case: no direct report/reveal or receipt injection.
+if (!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])) then {
+    [createHashMapFromArray [["CBE_AIPass_ContactReports_Enable",true],["CBE_AIPass_Investigate_Enable",false]]] call CBE_fnc_CortexTuning;
+    private _mountedSender=[east] call _newGroup;
+    private _reporter=[_mountedSender,[[1600,1100,0]] call _terrainPosition,"MOUNTED REPORT SENDER"] call _unit;
+    _reporter disableAI "PATH";
+    private _carrier=createVehicle ["O_MRAP_02_F",[[1450,1100,0]] call _terrainPosition,[],0,"NONE"];
+    _carrier setDir _terrainHeading;
+    _carrier allowDamage false;
+    createVehicleCrew _carrier;
+    private _mountedReceiver=group driver _carrier;
+    _groups pushBack _mountedReceiver;
+    _objects pushBack _carrier;
+    _objects append crew _carrier;
+    _mountedReceiver setVariable ["CBE_Headless_ExcludeGroup",true,true];
+    _mountedReceiver setVariable ["acex_headless_blacklist",true,true];
+    _mountedReceiver allowFleeing 0;
+    {
+        _x allowDamage false;
+        _x setVariable ["acex_headless_blacklist",true,true];
+        _x setVariable ["CBE_CortexQA_Label","MOUNTED REPORT RECEIVER",true];
+        _x disableAI "PATH";
+        _x disableAI "TARGET";
+        _x disableAI "AUTOTARGET";
+    } forEach crew _carrier;
+    private _screenHeading=(getPosATL _carrier) getDir ([[1600,1190,0]] call _terrainPosition);
+    for "_i" from -3 to 3 do {
+        private _wall=createVehicle ["Land_CncWall4_F",(([[1490,1124,0]] call _terrainPosition) getPos [_i*4,_screenHeading+90]),[],0,"CAN_COLLIDE"];
+        _wall setDir _screenHeading;
+        _objects pushBack _wall;
+    };
+    // Finish the screen before the hostile exists: no early direct sighting may leak in.
+    private _mountedThreatGroup=[west] call _newGroup;
+    _mountedThreatGroup setVariable ["CBE_AIPass_Exclude",true,true];
+    private _mountedThreat=[_mountedThreatGroup,[[1600,1190,0]] call _terrainPosition,"MOUNTED REPORT CONTACT"] call _unit;
+    _mountedThreat disableAI "PATH";
+    {_x setCombatMode "BLUE"} forEach [_mountedSender,_mountedReceiver,_mountedThreatGroup];
+    missionNamespace setVariable ["CBE_CortexQA_Actors",+_objects,true];
+    ["Mounted contact-report delivery","Only the reporting soldier sees the contact. Every receiver stays aboard its simulated vehicle behind the screen; require a real report with original observation age. No report or target knowledge is injected.",getPosATL _carrier] call _phase;
+    private _members=units _mountedReceiver;
+    private _mountedReady=_members isNotEqualTo [] && {local _mountedReceiver} && {simulationEnabled _carrier}
+        && {_members findIf {!alive _x || {!local _x} || {vehicle _x != _carrier}} < 0};
+    private _occluded=_members isNotEqualTo [] && {_members findIf {
+        (lineIntersectsSurfaces [eyePos _x,eyePos _mountedThreat,_x,_mountedThreat,true,1,"VIEW","GEOM"]) isEqualTo []
+    } < 0};
+    private _senderClear=(lineIntersectsSurfaces [eyePos _reporter,eyePos _mountedThreat,_reporter,_mountedThreat,true,1,"VIEW","GEOM"]) isEqualTo [];
+    private _noDirectKnowledge=(_mountedReceiver knowsAbout _mountedThreat) == 0;
+    ["REPORT-mounted-fixture",_mountedReady && {_occluded} && {_senderClear} && {_noDirectKnowledge}] call _check;
+    private _delivered=[{
+        private _receipt=_mountedReceiver getVariable ["CBE_AIPass_AreaReport",[]];
+        count _receipt == 4 && {(_receipt select 3) == "REPORT"}
+    },25] call _wait;
+    private _receipt=_mountedReceiver getVariable ["CBE_AIPass_AreaReport",[]];
+    ["REPORT-mounted-natural-delivery",_mountedReady && {_occluded} && {_senderClear} && {_noDirectKnowledge} && {_delivered}
+        && {_mountedSender knowsAbout _mountedThreat > 0}
+        && {_members findIf {vehicle _x != _carrier} < 0},str _receipt] call _check;
+    ["REPORT-mounted-original-age",_delivered && {count _receipt == 4}
+        && {(_receipt select 1) <= serverTime} && {serverTime < (_receipt select 2)}
+        && {abs (((_receipt select 2)-(_receipt select 1))-30) < 0.05},str _receipt] call _check;
+    call _cleanup;
+};
+// End mounted-report normal case; HC delivery requires a separate actual-owner fixture.
 
 [createHashMapFromArray [["CBE_AIPass_ContactReports_Enable",false],["CBE_AIPass_Investigate_Enable",false],["CBE_AIPass_Reinforce_Enable",true],["CBE_AIPass_CoordinatedAssault_Enable",false]]] call CBE_fnc_CortexTuning;
 _sender=[east] call _newGroup;

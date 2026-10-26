@@ -1,15 +1,23 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native initialization data waits and delayed search retain planner ownership.
  * Purpose: Give one stationary exposed soldier a single bounded move to nearby physical cover after an immediate danger event.
  * Locality / Authority: Called by the group brain while it already runs in CBE's shared scheduler.
+ * Native fleeing retires matching metadata without a native recall command.
+ * Cross-observer cleanup checks the leased soldier itself for combat effectiveness and
+ * flight; the incoming observer cannot grant recall authority over the previous actor.
  * It runs on the actor and group owner and yields
  * to player, Zeus, specialist, native-command and CBE-operation ownership before selecting or issuing movement.
  * Repeat/JIP: One group lease coalesces a danger burst. Each call either retains, releases or creates
- * one finite move. Physical arrival releases the movement reservation immediately; the deadline is a failure bound.
+ * one finite move. Admission ignores only valid expired actor reservations; live or malformed leases block.
+ * Native INIT/PLANNING/REPLAN states also defer new cover admission without cancelling its destination.
+ * Physical arrival releases the movement reservation immediately; the deadline is a failure bound.
  * The lease also binds owner epoch, operation generation and full authored waypoint receipt.
  * Changed orders and legacy leases retire metadata without return-to-formation commands.
  * A locality or generation change retires it without restoring over newer work. Failed approach cleanup
- * checks both horizontal distance and floor band, and follows only while the expected destination still matches.
+ * checks horizontal distance and absolute-height floor band, and follows only while the native
+ * destination still matches. Stored movement points must match exactly before marker retirement;
+ * horizontal overlap alone cannot identify the CBE move on another floor.
  * Arguments: 0 group <GROUP>; 1 actor <OBJECT>; 2 threat position <ARRAY>; 3 danger generation <NUMBER>;
  * 4 release-only <BOOL>, false - retire the owned lease without recovery or new movement.
  * Return Value: Boolean - true while CBE owns a finite danger-cover move, otherwise false.
@@ -39,7 +47,7 @@ private _clearLease={
             if (count _lease >= 4 && {!isNull _actor} && {local _actor}) then {
                 private _ownedMove=_actor getVariable ["CBE_Cortex_ActorMove",[]];
                 if (count _ownedMove == 3 && {(_ownedMove select 0) == "DANGER_COVER"}
-                    && {(_ownedMove select 1) distance2D (_lease select 3) <= 1}
+                    && {(_ownedMove select 1) isEqualTo (_lease select 3)}
                     && {(_ownedMove select 2) == (_lease select 2)}) then {
                     _actor setVariable ["CBE_Cortex_ActorMove",nil];
                 };
@@ -50,7 +58,7 @@ private _clearLease={
     false
 };
 if (isNull _group || {isNull _actor} || {!local _group} || {!local _actor}
-    || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {isPlayer _actor} || {!isNull remoteControlled _actor}
+    || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {fleeing _actor} || {isPlayer _actor} || {!isNull remoteControlled _actor}
     || {([_actor] call CBE_fnc_CortexExternalOwner) != ""} || {group _actor != _group}) exitWith {[] call _clearLease};
 // A delayed old observation cannot retire the lease belonging to the current danger generation.
 if (_generation >= 0 && {_generation != (_group getVariable ["CBE_Danger_Generation",0])}) exitWith {[] call _clearLease};
@@ -62,19 +70,31 @@ private _entryContext=call _readOrderContext;
 private _lease=_group getVariable ["CBE_Danger_CoverLease",[]];
 private _leaseContextCurrent=count _lease == 6 && {(_lease select 5) isEqualTo _entryContext};
 private _moveProof=_actor getVariable ["CBE_Cortex_ActorMove",[]];
-// A fresh observation is not automatically a new movement intent. Adopt a still-live solid-cover
-// route only when the nearby new hazard is screened at that exact destination. Never extend its
+// A fresh observation is not automatically a new movement intent. Adopt a still-live screened
+// route only when the nearby new hazard passes its recorded COVER/CONCEALMENT screening at
+// that exact destination. Never extend its
 // deadline, repeat doMove or let a stale callback adopt a newer generation.
 if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 5} && {(_lease select 0) == _actor} && {(_lease select 1) < _generation}
     && {time < (_lease select 2)} && {count _threat == 3}
+    && {_generation == (_group getVariable ["CBE_Danger_Generation",0])}
     && {_threat distance2D (_lease select 4) <= 3}
     && {count _moveProof == 3 && {(_moveProof select 0) == "DANGER_COVER"}
         && {(_moveProof select 1) isEqualTo (_lease select 3)} && {(_moveProof select 2) == (_lease select 2)}}
     && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
     && {!([_group] call CBE_fnc_CortexExternalTakeover)}
     && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
-    && {lineIntersectsSurfaces [AGLToASL ((_lease select 3) vectorAdd [0,0,1.2]),
-        AGLToASL (_threat vectorAdd [0,0,1.2]),_actor,objNull,true,1,"GEOM","NONE"] isNotEqualTo []}) then {
+    && {
+        private _screenReceipt=_group getVariable ["CBE_Danger_CoverDecision",[]];
+        private _screening=_screenReceipt param [5,"",[""]];
+        if (!(_screening in ["COVER","CONCEALMENT"])
+            || {(_screenReceipt param [2,objNull,[objNull]]) != _actor}
+            || {(_screenReceipt param [3,-1,[0]]) != (_lease select 1)}) exitWith {false};
+        // Match selection's endpoint heights, actor exclusion and material/visual policy.
+        // A geometry-only obstruction cannot promote visual concealment to ballistic cover.
+        private _screenStart=(AGLToASL _threat) vectorAdd [0,0,1.6];
+        private _screenEnd=(AGLToASL (_lease select 3)) vectorAdd [0,0,1];
+        [_screenStart,_screenEnd,_actor,_screening] call CBE_fnc_CortexCoverScreened
+    }) then {
     _lease set [1,_generation];
     _lease set [4,+_threat];
     _group setVariable ["CBE_Danger_CoverLease",_lease];
@@ -88,11 +108,13 @@ if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 5} && {(_lease s
 if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 4} && {(_lease select 0) isEqualTo _actor}
     && {(_lease select 1) == _generation} && {time < (_lease select 2)}
     && {_actor distance2D (_lease select 3) > 2
-        || {abs (((getPosATL _actor) select 2)-((_lease select 3) param [2,0])) > 1.5}}
+        || {abs (((getPosASL _actor) select 2)-((AGLToASL (_lease select 3)) select 2)) > 1.5}}
     && {count _moveProof == 3} && {(_moveProof select 0) == "DANGER_COVER"}
-    && {(_moveProof select 1) distance2D (_lease select 3) <= 1}
+    && {(_moveProof select 1) isEqualTo (_lease select 3)}
     && {(_moveProof select 2) == (_lease select 2)}
     && {((expectedDestination _actor) select 0) distance2D (_lease select 3) <= 1}
+    && {abs (((AGLToASL ((expectedDestination _actor) select 0)) select 2)
+        -((AGLToASL (_lease select 3)) select 2)) <= 1.5}
     && {_generation == (_group getVariable ["CBE_Danger_Generation",0])}
     && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
     && {[_group,"CBE_AIPass_Danger_Enable",true] call CBE_fnc_CortexFeatureEnabled}
@@ -103,6 +125,8 @@ if (!_releaseOnly && {_leaseContextCurrent} && {count _lease >= 4} && {(_lease s
     && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
     && {isNull objectParent _actor}
     && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
+    && {simulationEnabled _actor} && {!isObjectHidden _actor}
+    && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
     && {currentCommand _actor in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}) exitWith {true};
 private _arrived=false;
 private _timedOut=false;
@@ -110,7 +134,7 @@ private _orderChanged=count _lease >= 4 && {!_leaseContextCurrent};
 if (count _lease >= 4) then {
     _lease params ["_leasedActor","_leasedGeneration","_expires","_leasedSpot"];
     private _distance=if (isNull _leasedActor) then {-1} else {_leasedActor distance2D _leasedSpot};
-    private _height=if (isNull _leasedActor) then {-1} else {abs (((getPosATL _leasedActor) select 2)-(_leasedSpot param [2,0]))};
+    private _height=if (isNull _leasedActor) then {-1} else {abs (((getPosASL _leasedActor) select 2)-((AGLToASL _leasedSpot) select 2))};
     private _endReason=if (_orderChanged) then {"ORDER_CHANGED"} else {if (_releaseOnly) then {"RELEASED"} else {
         if (!isNull _leasedActor && {alive _leasedActor} && {_distance <= 2} && {_height <= 1.5}) then {"AT_DESTINATION"} else {
             ["INTERRUPTED","TIMEOUT"] select (time >= _expires)
@@ -124,10 +148,11 @@ if (count _lease >= 4) then {
         private _actorMove=_leasedActor getVariable ["CBE_Cortex_ActorMove",[]];
         if (local _leasedActor && {count _actorMove == 3}
             && {(_actorMove select 0) == "DANGER_COVER"}
-            && {(_actorMove select 1) distance2D _leasedSpot <= 1}
+            && {(_actorMove select 1) isEqualTo _leasedSpot}
             && {(_actorMove select 2) == _expires}) then {
             _leasedActor setVariable ["CBE_Cortex_ActorMove",nil];
-            if (!_releaseOnly && {_leaseContextCurrent} && {_entryContext isEqualTo (call _readOrderContext)} && {alive _leasedActor} && {!isPlayer _leasedActor} && {isNull remoteControlled _leasedActor}
+            if (!_releaseOnly && {_leaseContextCurrent} && {_entryContext isEqualTo (call _readOrderContext)}
+                && {[_leasedActor] call CBE_fnc_CortexCombatEffective} && {!fleeing _leasedActor} && {!isPlayer _leasedActor} && {isNull remoteControlled _leasedActor}
                 && {([_leasedActor] call CBE_fnc_CortexExternalOwner) == ""} && {group _leasedActor == _group}
                 && {isNull objectParent _leasedActor} && {_leasedActor != leader _group}
                 // Successful arrival is useful cover, not a reason to run back across exposure.
@@ -135,11 +160,13 @@ if (count _lease >= 4) then {
                 && {_distance > 2 || {_height > 1.5}}
                 && {_leasedActor checkAIFeature "MOVE"} && {_leasedActor checkAIFeature "PATH"}
                 && {((expectedDestination _leasedActor) select 0) distance2D _leasedSpot <= 1}
-                && {abs ((((expectedDestination _leasedActor) select 0) param [2,0])-(_leasedSpot param [2,0])) <= 1.5}
+                && {abs (((AGLToASL ((expectedDestination _leasedActor) select 0)) select 2)-((AGLToASL _leasedSpot) select 2)) <= 1.5}
                 && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
                 && {!([_group] call CBE_fnc_CortexExternalTakeover)}
                 && {!([_group] call CBE_fnc_CortexZeusHeld)}
                 && {!([_leasedActor] call CBE_fnc_CompatibilityExternalControl)}
+                && {simulationEnabled _leasedActor} && {!isObjectHidden _leasedActor}
+                && {(_leasedActor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                 && {currentCommand _leasedActor in ["","MOVE"]}) then {
                 _leasedActor doFollow (leader _group);
             };
@@ -158,13 +185,19 @@ if (_generation != (_group getVariable ["CBE_Danger_Generation",0])
     || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {[_group] call CBE_fnc_CortexExternalTakeover}
     || {[_group] call CBE_fnc_CortexZeusHeld}) exitWith {[] call _clearLease};
+// Use the shared finite reservation gate: expired valid markers are free, while live or malformed
+// markers still block admission. Do not let stale metadata permanently suppress cover response.
+// A stationary native planner is not idle. Let its pending path resolve before choosing cover.
 // Recheck at the final command boundary. A danger observation recorded before a new order or operation
 // must retire instead of turning its stale observation into a movement instruction.
 if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0
     || {!(_actor checkAIFeature "MOVE")} || {!(_actor checkAIFeature "PATH")}
     || {!isNull objectParent _actor}
+    || {getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]}
+    || {!simulationEnabled _actor} || {isObjectHidden _actor}
+    || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}
-    || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo []}) exitWith {
+    || {[_actor] call CBE_fnc_CortexActorMoveReserved}) exitWith {
     _group setVariable ["CBE_Danger_CoverBlockedContext",[time,currentCommand _actor,
         _actor checkAIFeature "MOVE",_actor checkAIFeature "PATH",
         count (_group getVariable ["CBE_Operation",createHashMap]),
@@ -186,7 +219,8 @@ if (_sameSearch && {(_decision select 0) == "NO_VALID_COVER"}
     && {!([_group,"CBE_AIPass_DangerConcealment_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {
     ["NO_SCREEN"] call _clearLease
 };
-// One search per callback. A failed solid-cover pass permits a visual-only pass on the next
+// One screened selection pass per callback, with bounded refuge fallback after exterior failure.
+// A failed solid-cover pass permits a visual-only pass on the next
 // existing scheduler step; it never doubles the geometry work in the current callback.
 private _screenMode=if (_sameSearch && {(_decision select 0) == "NO_VALID_COVER"}
     && {[_group,"CBE_AIPass_DangerConcealment_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
@@ -201,7 +235,11 @@ private _sameGeometry=count _failedSearch == 3 && {time < (_failedSearch select 
     && {_origin vectorDistance (_failedSearch select 1) <= 2}
     && {_threat vectorDistance (_failedSearch select 2) <= 3};
 private _cover=if (_sameGeometry) then {[_origin,false]} else {
-    private _result=[_origin,_threat,18,[],_group,_screenMode] call CBE_fnc_CortexFindCover;
+    private _result=[_origin,_threat,18,[],_group,_screenMode,_actor] call CBE_fnc_CortexFindCover;
+    if (!(_result select 1) && {_screenMode == "COVER"}) then {
+        private _refuge=[_actor,_origin,_threat] call CBE_fnc_DangerRefugeSelect;
+        if (_refuge isNotEqualTo []) then {_result=[+_refuge,true]};
+    };
     if !(_result select 1) then {
         _failedSearches set [_screenMode,[time+3,+_origin,+_threat]];
         _actor setVariable ["CBE_Danger_CoverFailedSearches",_failedSearches];
@@ -232,7 +270,21 @@ if (_entryContext isNotEqualTo (call _readOrderContext)
     || {[_group] call CBE_fnc_CortexExternalTakeover} || {[_group] call CBE_fnc_CortexZeusHeld}
     || {[_actor] call CBE_fnc_CompatibilityExternalControl}
     || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
+    || {[_actor] call CBE_fnc_CortexActorMoveReserved}
+    || {getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"]}
+    || {!simulationEnabled _actor} || {isObjectHidden _actor}
+    || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
     || {!(currentCommand _actor in ["","ATTACK","FIRE","SUPPRESS"]) || {abs speed _actor > 0.5}}) exitWith {[] call _clearLease};
+// A stationary danger response may still own weak prone/crouch. Relinquish that exact
+// temporary policy before the movement owner starts; blocked restoration cannot become
+// a new route baseline or rely on the engine FSM finishing some time after step-off.
+[_actor] call CBE_fnc_DangerEngineRelease;
+if ((_actor getVariable ["CBE_Danger_EngineStanceLease",[]]) isNotEqualTo []) exitWith {
+    ["POSTURE_HANDOFF"] call _clearLease
+};
+if (!([_group,-1,false,"",objNull,_actor] call CBE_fnc_DangerGroupHideStep)) exitWith {
+    ["POSTURE_HANDOFF"] call _clearLease
+};
 _group setVariable ["CBE_Danger_CoverPending",nil];
 _group setVariable ["CBE_Danger_CoverDecision",["COMMITTED",time,_actor,_generation,+_spot,_screenMode]];
 // The observation may end before native pathing reaches cover. Retain the committed move

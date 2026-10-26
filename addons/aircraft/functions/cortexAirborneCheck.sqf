@@ -21,6 +21,10 @@
  * the aircraft is not climbed either), or from aircraft owned by another CBE feature (the squad
  * would already be ineligible: Transport Services, Paradrop, Gunship). The aircraft keeps the jump
  * altitude afterwards; give it a new flyInHeight in a later waypoint if it should fly lower.
+ * A single group-state receipt binds each climb request to airframe/crew/owner/route/height.
+ * Changed context may request again; contact-belief drift alone does not replay it.
+ * The one-shot climb obtains the shared lowest-priority flight lease; active flight controllers
+ * retain authority. Releasing that request lease is not altitude acknowledgement or restoration.
  * Locality and authority: call where the group is local.
  *
  * Each insertion retains an exact group/serial/owner-epoch episode for stale-job rejection.
@@ -53,7 +57,7 @@ private _passengersOf = {
 private _riding = (units _group) select {
     alive _x && {local _x} && {!isPlayer _x} && {(vehicle _x) isKindOf "Air"} && {!((vehicle _x) isKindOf "ParachuteBase")}
 };
-if (_riding isEqualTo []) exitWith {-1};
+if (_riding isEqualTo []) exitWith {_state deleteAt "airborneClimb";-1};
 private _aircraft = vehicle (_riding select 0);
 private _passengers = [_aircraft] call _passengersOf;
 private _cargo = _riding select {vehicle _x == _aircraft && {_x in _passengers}};
@@ -82,9 +86,30 @@ if (!_force) then {
 };
 if (_target isEqualTo []) exitWith {10};
 private _distance = _aircraft distance2D _target;
-if (!_force && {local _aircraft} && {!([group _pilot] call CBE_fnc_CortexExternalTakeover)} && {!(_aircraft getVariable ["CBE_AIPass_AirborneClimb", false])}) then {
-    _aircraft setVariable ["CBE_AIPass_AirborneClimb", true];
-    _aircraft flyInHeight (missionNamespace getVariable ["CBE_AIPass_Airborne_Altitude", 250]);
+private _pilotGroup=group _pilot;
+private _pilotWaypoint=currentWaypoint _pilotGroup;
+private _pilotRoute=[count waypoints _pilotGroup,_pilotWaypoint];
+if (_pilotWaypoint >= 0 && {_pilotWaypoint < count waypoints _pilotGroup}) then {
+    _pilotRoute append [waypointPosition [_pilotGroup,_pilotWaypoint],waypointType [_pilotGroup,_pilotWaypoint]];
+};
+private _requestedHeight=missionNamespace getVariable ["CBE_AIPass_Airborne_Altitude",250];
+private _climbContext=[_aircraft,_pilot,effectiveCommander _aircraft,clientOwner,
+    _group getVariable ["CBE_AIPass_Epoch",0],_pilotGroup,
+    _pilotGroup getVariable ["CBE_AIPass_Epoch",0],_pilotRoute,_requestedHeight];
+if (!_force && {local _aircraft} && {!([_pilotGroup] call CBE_fnc_CortexExternalTakeover)}
+    && {(_state getOrDefault ["airborneClimb",[]]) isNotEqualTo _climbContext}) then {
+    // This is a single native height request, not a persistent helicopter controller.
+    // Existing landing, attack, defence and braking leases all outrank it.
+    private _climbToken=format ["%1:%2:%3",netId _group,clientOwner,_group getVariable ["CBE_AIPass_Epoch",0]];
+    isNil {
+        if ([_aircraft,"AIRBORNE_CLIMB",_climbToken,50] call CBE_fnc_FlightLeaseAcquire) then {
+            if ([_aircraft,"AIRBORNE_CLIMB",_climbToken] call CBE_fnc_FlightLeaseValid) then {
+                _aircraft flyInHeight _requestedHeight;
+                _state set ["airborneClimb",_climbContext];
+            };
+            [_aircraft,"AIRBORNE_CLIMB",_climbToken,"HEIGHT_REQUESTED"] call CBE_fnc_FlightLeaseRelease;
+        };
+    };
 };
 private _height = (getPos _aircraft) select 2;
 private _ready = (_force || {_distance <= (missionNamespace getVariable ["CBE_AIPass_Airborne_DeployDistance", 700])})

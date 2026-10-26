@@ -1,0 +1,303 @@
+{
+  "date": "2026-10-20",
+  "baseline": "c7b82473",
+  "scope": "Installed HBQ byte freshness and selected current CBE queue execution boundaries; not a full new source review or physical acceptance.",
+  "hbq": {
+    "workshopId": "3812620045",
+    "installedPbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3812620045\\addons\\hbq_advanced_driving_ai.pbo",
+    "sha256": "30abacaee42340c12accc0b95cf31972f7bb2ad20cc1c6871494b8aa173f9667",
+    "matchesReviewed20261017Package": true,
+    "liveWorkshopFreshnessEstablished": false
+  },
+  "supersedesCurrentGapClaimsIn": [
+    "releaseVerificationAndDeployment/referenceReviews/hbq-queue-execution-gap-20261018.json",
+    "releaseVerificationAndDeployment/referenceReviews/hbq-rear-support-20261018.json",
+    "releaseVerificationAndDeployment/referenceReviews/hbq-traffic-following-holds-20261018.json"
+  ],
+  "currentSourceTrace": [
+    {
+      "stage": "Request",
+      "evidence": "DrivingAssistStart -> DrivingQueueAutoStep submits a single original jam episode; consent/COMMIT requests have finite retries and retain original expiry.",
+      "limit": "Auto initiation is optional; no movement success follows from acceptance."
+    },
+    {
+      "stage": "Hold",
+      "evidence": "DrivingAssistStart sole cap writer -> DrivingQueueHold APPLIED. READY observes exact cap binding and one second of linear/angular rest.",
+      "limit": "Replicated rest and reports are observations, not a full motion safety guarantee."
+    },
+    {
+      "stage": "Leaf reverse",
+      "evidence": "DrivingQueueReverseCommit issues sendSimpleCommand BACK under exact consent/brain/route/seat receipts and fresh rear plan; STOP requires the matching issued journal, zero owned cap, native STOP acknowledgement and one second rest before HELD.",
+      "limit": "Current executor requires separate driver and movement operator. Native BACK performance across tracked/wheeled classes is unverified; no physics shortcut is established."
+    },
+    {
+      "stage": "Dependency",
+      "evidence": "Owner CHECK_ROOM -> DrivingQueueParentRoom requires held-leaf measured reverse displacement and current full-hull gap, then fresh parent rear support. Server ROOM branch rechecks identities, rest and replicated hull gap before phase-serial/movingIndex advance. Parent ISSUE resamples again.",
+      "limit": "Sampled support and replicated hulls are not continuous collision proof."
+    },
+    {
+      "stage": "Root crossing",
+      "evidence": "Current server has CROSS_PLANNED, arm/acknowledge and CROSS_EXECUTE phases; owner contains corresponding private grants.",
+      "limit": "Only branch locations and selected dispatch inspected here; full crossing executor not reviewed in this checkpoint."
+    },
+    {
+      "stage": "Retirement",
+      "evidence": "DrivingQueueAgreementRelease retires only the captured original private participant consent/request and sends release; no movement or speed command in that helper.",
+      "limit": "Actual native command cleanup and authored forward travel require separate physical validation."
+    }
+  ],
+  "productionSha256": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "c5ff0bd3504386234edf0e91f4ecbfdde6e098067acf88dc62d92a431e98d305",
+    "addons/vehicles/functions/drivingQueueAutoStep.sqf": "04febe64ede4435be3bf62473fab2257ec95a7e2502ddfad1d20831dbcca176e",
+    "addons/vehicles/functions/drivingQueueHold.sqf": "4400459fabc65c3cfa0ceee7dc234716ab472bdbd22cc6cd728a65df2c41793f",
+    "addons/vehicles/functions/drivingQueueReverseCommit.sqf": "24e8a5a95ab24b714161eb937861d41dba8cd3532ab0658e42410d32f3649e1d",
+    "addons/vehicles/functions/drivingQueueParentRoom.sqf": "f976cfa9db07dec760b0cc7df679ec2c92f00ef6f0da6fe2981bad11993668c2",
+    "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "2d8f47809aca4927b4f9f8b1b70e80b7605e2cbbabca6556bbba0993800b1ada",
+    "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "ba279736f533fe040dee237e7e62524842619304c5d088dba8a0a40404c51360",
+    "addons/vehicles/functions/drivingQueueAgreementRelease.sqf": "6168ea4e3d61fa85c8111820a77e3604f304ffe9de2f5d92b60bc1d7329ab0c9",
+    "addons/vehicles/functions/drivingBypassStep.sqf": "903c95be0954e958ed8e913e30c3b413dc21f244685d729805b74b4b9cbbcbc5",
+    "addons/vehicles/functions/drivingBypassRelease.sqf": "89b34055681777ce84c870af734c9da1e2200c54434bd95befa182d12d6e09ac",
+    "addons/vehicles/functions/drivingQueueReverseCurrent.sqf": "1550ce64c5c75ac6de179eca1c1dd22cd9c7fccb75caf5b4952cbc8ac0665aa0"
+  },
+  "conclusion": "The historical blanket no-executor claim is obsolete. Current queue source includes HOLD/READY, finite native reverse/stop, measured dependency advancement and crossing protocol. Do not build a duplicate controller. These source paths do not establish physical HBQ parity.",
+  "remaining": [
+    "Native reverse/stop capability and clean forward resumption across supported crew layouts and vehicle classes.",
+    "Repeated 2-4 participant queues, new orders, owner migration, deletion, stale acknowledgements and failed support.",
+    "Required external HBQ controller quiescence/resume handover remains separate from CBE internal traffic consent.",
+    "Measured aggregate overhead within 5 percent median and 10 percent p95."
+  ],
+  "validation": {
+    "installedPackageHashVerified": true,
+    "referencedFilesExist": true,
+    "productCodeChanged": false,
+    "fullBuildRepeated": false,
+    "physicalRun": false,
+    "audits": "PAUSED",
+    "scoresChanged": false
+  },
+  "crossingFollowup": {
+    "baseline": "9e2ed4e8",
+    "scope": "Selected pose revocation, root completion and cleanup branches; not entire queue implementation review.",
+    "evidence": [
+      "DrivingQueueReverseCurrent CROSSING held rows require position within0.25m and direction/up within1degree of frozen crossing poses. Native task, route, crew, owner, expiry and motion checks remain live.",
+      "DrivingBypassStep retains zero cap and matching native/path journal after its final path index and full-hull tail-plane clearance, reporting CROSS_CLEAR only after measured rest.",
+      "Server CROSS_CLEAR rechecks authenticated actual root owner/crew, token/binding, original expiry, current participant context, path completion, zero cap and one-second rest. It independently projects all eight root hull corners past the frozen path tail plane before publishing RELEASED with completionBinding.",
+      "Owner RESULT RELEASED accepts the tenth-field binding only against its current private consent and crossing work, queueCrossed and current context before closing the token. Cancellation or a stale result cannot create queueClearanceAccepted.",
+      "DrivingBypassRelease permits queue resume only for exact accepted clearance and permitted completion/release reasons, unchanged actual seat/native/route ownership and eligible native waypoint. Reverse participant cleanup uses its separate exact journal."
+    ],
+    "correction": "BypassStep comment claiming authenticated handback was unimplemented is stale. Corrected the comment to name existing CROSS_CLEAR/root acceptance; no executable behaviour changed.",
+    "remaining": [
+      "This protocol has no demonstrated all-participant physical authored-route resumption. Server RELEASED is not that proof.",
+      "Native BACK/STOP and handback capabilities across crew layouts/classes remain unaccepted.",
+      "Full crossing route planner, dynamic collision, support sampling, failures, repeated queues and performance still require broader review/physical evidence."
+    ]
+  },
+  "plannerScopeFollowup": {
+    "baseline": "015c8755",
+    "supersedesBlanketGapClaimsIn": [
+      "adaptive-rear-recovery-20261019.json:headOnGap",
+      "hbq-rear-support-20261020.json:remaining"
+    ],
+    "finding": "Same-direction DrivingPassPlan heading refusal does not prove missing queue crossing. Actual CROSS_PLAN dispatch calls DrivingBypassPlan queue mode, never DrivingPassPlan.",
+    "path": "Stable crossing role -> dependency BACK/STOP holds -> CROSS_PLAN(one side, alternate at most once) -> full held hull union, smooth forward ramp or straight clear corridor -> existing sampled PathGeometry -> allowner CROSS_ARM/path ACK -> private root motion grant -> BypassStep native setDriveOnPath -> path index plus fullhull tail plane -> zero cap/rest -> server independent CROSS_CLEAR -> exact completionbinding and accepted release.",
+    "implementedLimits": "Queue rear roles use existing8/6 or3.5/2 clearance/travel envelopes. Source BackReq3m repeated push/sidepush intent is not copied. Current planner can refuse insufficient ramp room after these bounded legs. An executor is present; adaptive room-making sufficient for close opposing hulls is not established.",
+    "arithmeticIllustration": {
+      "input": "Pure projected bounds x[-2,2], y[10,18], circumscribed radius6, right side; not an engine measurement.",
+      "ramp": 23.56444211124489,
+      "requiredBack": 22.564442111244887,
+      "meaning": "A6m reverse cannot by itself guarantee the missing longitudinal ramp room in this example. Do not claim generic close headon resolution."
+    },
+    "nextImplementationRequirement": "If expanding closeheadon recovery, derive bounded requested room from actual held hull/ramp geometry and carry it through existing rear dependency/owner agreement within original expiry. Revalidate all rear support and actor occupancy; do not loosen ordinary overtaking, replay native movement or add a parallel controller.",
+    "correction": "Planner header incorrectly said no crossing executor consumes proposals. Updated documentation only; executable behaviour unchanged.",
+    "validation": "31 existing bypass and9 existing queue-proposal tests pass .qa/queue-planner-scope-bypass.log and .qa/queue-planner-scope-queue.log. Diff whitespace clean. Comment/engineering-only; no full pipeline/package rebuild or Arma run, no executable change. No physical/parity/percentage claim.",
+    "evidence": [
+      {
+        "path": "addons/vehicles/functions/drivingQueuePairGeometry.sqf",
+        "sha256": "6be1aa9d5edaa08e03ca7dbb652536b6446f46f4c56c27af7d851a239a046210"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
+        "sha256": "d4c6e17c0a2ef74fcd5f6afa4fd19196906be9f3261a32de860bdcbfbfdd538b"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "sha256": "ba279736f533fe040dee237e7e62524842619304c5d088dba8a0a40404c51360"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "sha256": "2d8f47809aca4927b4f9f8b1b70e80b7605e2cbbabca6556bbba0993800b1ada"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassPlan.sqf",
+        "sha256": "eb2b610f90085871d1d70499ff22cfa23dad9de246d466d57a7b5e90b26bc559"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassRoom.sqf",
+        "sha256": "643a988aec673101135ab0adb684f908ba749ad069d827d367bdea9e2e06fc4f"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassStep.sqf",
+        "sha256": "903c95be0954e958ed8e913e30c3b413dc21f244685d729805b74b4b9cbbcbc5"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassRelease.sqf",
+        "sha256": "89b34055681777ce84c870af734c9da1e2200c54434bd95befa182d12d6e09ac"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingRearPlan.sqf",
+        "sha256": "a0844d25be80edcd7a490e2ecdbaf48678861c64d6dc41ffc547a68a89ab32f8"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
+        "sha256": "24e8a5a95ab24b714161eb937861d41dba8cd3532ab0658e42410d32f3649e1d"
+      }
+    ]
+  },
+  "crossingRefusalFollowup": {
+    "baseline": "51295693",
+    "finding": "After authenticated second CROSS_PLANNED refusal, no more side planner was eligible but record stayed AGREED and participants held until original expiry.",
+    "change": "First valid refusal requests existing alternate side. Second valid refusal immediately publishes RELEASED without completionBinding, then removes exact server token. Existing owner terminal path closes only matching consent/request, existing journal cleanup handles native handback. No success/route-resume authority fabricated.",
+    "scope": "Same phase/planserial/actual root owner/current context/original expiry validation precedes transition. No deadline renewal, worker, additional query or movement command. This retires failed planning, not adaptive room-making or successful crossing.",
+    "limits": "Actual engine cancellation/native STOP handback and repeated failed queue recovery remain unverified. Larger safe room planning remains open.",
+    "evidence": [
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "sha256": "4cc89907f29308067b619dd26d4c161d9ab30ea024f68699802178dc7d969919"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "sha256": "ba279736f533fe040dee237e7e62524842619304c5d088dba8a0a40404c51360"
+      },
+      {
+        "path": "releaseVerificationAndDeployment/test_driving_queue_proposal.py",
+        "sha256": "02411f098c2c2c70d590a30e1a9f55166ab996ecc8f5c606b291898e9bebd0ab"
+      }
+    ],
+    "validation": "9 focused queue-proposal tests/full1482 unit/static, HEMTT/SQF/config/FSM/docs/package gates pass .qa/queue-plan-refusal-build.log. Unsignedcandidate .qa/candidates/queue-plan-refusal-51295693 independentfingerprintbdf0ea3e992f6f86b642930ce6cb13e36a049d316968b18380bce32860a2191f. No runtime/percentage claim."
+  },
+  "queueRoomPropagationFollowup20261021": {
+    "baseline": "0673b16d",
+    "finding": "Static-obstacle adaptive rear planning exists, but authenticated traffic queue preflight and native leaf issue still call DrivingRearPlan with its default six-metre maximum. Do not describe the static extension as queue implementation.",
+    "verifiedBoundaries": [
+      "DrivingRearPlan accepts maximumTravel6..24 only with a fresh nine-field STATIC obstacle observation and qualified DrivingBypassApproach BACKOFF geometry; default callers cannot extend.",
+      "DrivingQueueAgreementOwner VERIFY/COMMIT leaf preflight invokes DrivingRearPlan with vehicle only.",
+      "DrivingQueueReverseCommit native leaf issue independently invokes DrivingRearPlan with vehicle only; parent issue delegates DrivingQueueParentRoom.",
+      "DrivingQueueParentRoom accepts dependency rearEnvelope only [8,6] or [3.5,2], verifies measured travel/full-hull gap and obtains a default parent rear plan."
+    ],
+    "nextImplementationRequirement": "Derive requested longitudinal room from the actual queue crossing hull/ramp proposal, bind a bounded per-dependency travel requirement into the existing authenticated agreement, validate it at every owner and native issue boundary, and prove measured parent room before advancing. Retain original expiry, fresh rear support/body/pedestrian checks, exact native task receipts and sole movement writer. Do not feed moving traffic into the STATIC-only obstacle extension or merely widen the parent whitelist.",
+    "validation": "Read-only call-path examination. No product change, no build credit, no runtime evidence. Previous 0673b16d candidate remains the latest full validated product source.",
+    "cqbRecheck": "Current exit proposal/candidate paths already reserve posts >=3m apart, check current occupancy and physical endpoint arrival; completed cleanup uses one-shot holds instead of leader wedge recall. No distance tuning justified without fresh authorised physical evidence. Historical crowding remains unverified, not declared fixed."
+  },
+  "adaptiveQueueRoomImplementation20261021": {
+    "baseline": "831a87d5",
+    "supersedes": "Fixed2/6m queue limit described in plannerScopeFollowup and queueRoomPropagationFollowup20261021 for supported head-on geometry only.",
+    "implementation": "Server BEGIN and owner VERIFY derive integral6..24m travel plus2m clearance per dependency from agreed initial whole-hull poses. Native corners re-expressed in the agreed basis preserve model offset/scaling without moving objects. Existing crossing-ramp arithmetic determines head-on room; crossing-angle conflicts retain ordinary8/6 demand. Rear dependency demand propagates parent clearance minus initial full-body gap, with a1m arithmetic margin and actual heading projection; >24m or unsupported union refuses.",
+    "authority": "Requirements retained in existing server/owner agreement; existing all-owner ACK, phase metadata, motion grant, current native tasks, expiry and sole sendSimpleCommand writer remain. Global motion binding reflects largest agreed envelope; each held/moving vehicle has its own bound. Parent ROOM server check and actual-owner native issue use agreed requirement, measured dependency travel and full-hull body gap. Native issue and monitoring resample existing rear safety. Exact issued envelope checked against current consent; short fallback permitted only for ordinary6m demand, never extended demand.",
+    "cost": "At most16 native corner transforms per admission/VERIFY call, no extra world-discovery query or worker. Native monitor uses cached demand and existing rear query; extended area can increase candidates/geometry work inside existing caps. Runtime budget unmeasured.",
+    "limits": [
+      "Automatic queue initiation remains experimental/default-off.",
+      "No deadline extension or fallback to insufficient extended travel. Original expiry may cancel a slow or long chain.",
+      "Projected union >30m or other unsupported ramp geometry can refuse; this is not arbitrary-length queue resolution.",
+      "Actual backing, collision avoidance, repeated queues, owner migration, authored-route resumption and performance have no fresh physical evidence; audits paused."
+    ],
+    "validation": {
+      "fullBuild": ".qa/queue-room-build.log",
+      "tests": 1482,
+      "productionSQF": 378,
+      "PBOs": 9,
+      "independent": ".qa/queue-room-independent.log",
+      "candidate": ".qa/candidates/queue-room-831a87d5",
+      "fingerprint": "4e7a360b5a73bd84d5141c8a9dcfec4f23c46b3934d0d4d4837eefa09dffc060",
+      "provenance": "Unsigned development build from831a87d5 plus intended product changes; later review/handover metadata not executable changes. No parity/physical/percentage claim."
+    },
+    "evidence": [
+      {
+        "path": "addons/vehicles/functions/drivingQueueRearRequirements.sqf",
+        "sha256": "a2d7211427daab497257b6f3a0cb60511979837e739a5ab0424c8f2eaadcf17d"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "sha256": "554fcf50ea8ea518d3199df2b1bde21a75085cd795a425ce01c986e11a62b10a"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "sha256": "91c841a01f56207f897fc416a5a20dfd9ff9b75b84ac6f267ede84b472181ec7"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
+        "sha256": "3296fc556b621f3e9116b05770a7a2d38cf534a73fc5091ca22e55b6bd0ade80"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
+        "sha256": "2f2374c1791c8d854e4f68224edba818564ffc8b882d041a397bb47b11f94078"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueParentRoom.sqf",
+        "sha256": "c3fd6129d0be963ebe02b1bd41899ebf024a2c8802dc4bb422d6cbece66feece"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingRearPlan.sqf",
+        "sha256": "efc53bba8a77066c189fa12ad5a0399007f5b12e0ee70d75b41634c58139b9a6"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+        "sha256": "ad2355ccb40095c32cac1957b6146d28ae0599428c28c201e2a2cbaaf28da04b"
+      }
+    ]
+  },
+  "queueUnionBudgetFollowup20261021": {
+    "baseline": "9377ffd2",
+    "supersedes": "The >30m projected queue-union refusal in adaptiveQueueRoomImplementation20261021 is now scoped separately from individual hull limits.",
+    "finding": "DrivingBypassRoom applied the ordinary single-obstacle longitudinal30m cap to the entire held queue union. This could reject a valid3/4vehicle chain after room-making despite every individual body remaining within scope.",
+    "change": "Ordinary projected length remains30m. Held queue union longitudinal length may be90m; union width and every projected individual traffic hull remain30m. DrivingBypassPlan checks each individual body during its existing corner loop. Admission requirements mirror that individual budget, accounting for their0.05m per-edge rounding pad.",
+    "retained": "Existing <=4participants, radius<=12m, actual-owner/all-owner consent, finite original expiry, held pose/native STOP receipt, strict forward ramps, <=24guide points, existing geometry and post-query current-pose/authority checks. PATH_BUDGET refuses overlong sampled routes before geometry; no new world query, path node or movement writer.",
+    "validation": {
+      "fullBuild": ".qa/queue-union-build.log",
+      "tests": 1482,
+      "independent": ".qa/queue-union-independent.log",
+      "candidate": ".qa/candidates/queue-union-9377ffd2",
+      "fingerprint": "347ad0acf6430b02608b89498cc5f81e41f0e5d69c10de53590758be11346df6",
+      "provenance": "Unsigned development package from9377ffd2 plus intended product edits; later review/handover metadata non-executable."
+    },
+    "remaining": "No physical3/4vehicle crossing, repeated queue, locality handover or performance result.90m union budget does not guarantee a route fits24points, has support or clears occupied traffic. Audits paused; no percentage/parity claim.",
+    "evidence": [
+      {
+        "path": "addons/vehicles/functions/drivingBypassRoom.sqf",
+        "sha256": "d88d12e6e558ca58cdde3456e0926a1d2e8025d92d344294ac999bad673e7ab5"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingBypassPlan.sqf",
+        "sha256": "76fe4a472cb5fb9e22d01c33cdf359b28a4c50a5bbd007695f86b28d56c3486a"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueRearRequirements.sqf",
+        "sha256": "56d4658c9b256e9227074bdf6c899ccc48a51fefdb6098f75f75ec92beb39921"
+      }
+    ]
+  },
+  "exactOwnerPlanAcknowledgement20261021": {
+    "baseline": "30c9ad57",
+    "finding": "Owner ACK previously carried only boolean consent. Server and owners derive rear requirements independently, so matching context and maximum bound alone did not prove agreement to every vehicle envelope.",
+    "change": "Private ACK now [token,BOOL,rearRequirements]. Every positive owner reply echoes its complete cached/derived array. Before counting the owner or replying to an agreed duplicate, broker requires exact equality to its own admitted array. A negative or different-plan ACK refuses PENDING or releases AGREED via existing exact-token send/removal. Sender authentication, canonical current-context checks and original expiry remain. Malformed/wrong-size messages grant nothing; first-release private API has no legacy boolean-only adapter.",
+    "validation": {
+      "fullBuild": ".qa/queue-plan-ack-final-build.log",
+      "tests": 1482,
+      "independent": ".qa/queue-plan-ack-independent.log",
+      "candidate": ".qa/candidates/queue-plan-ack-30c9ad57",
+      "fingerprint": "3c05300cd497d926eb7ca072bb7ab10f21219b8426975990a349930e2e0ee2b0",
+      "notes": "Existing broker and expiry cases extended; includes different per-vehicle plans with the same largest envelope, late refusal before duplicate response, no timer renewal. Initial build stopped on two old ACK source-contract assertions; updated those contracts without removing their invariants, final full pipeline passed."
+    },
+    "cost": "At most4envelope rows per ACK; no timer, world query, worker or motion grant added.",
+    "remaining": "No fresh physical/multiplayer/performance evidence; audits paused. Unsigned development package on baseline plus intended product changes, no percentages or parity claim.",
+    "evidence": [
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "sha256": "824dd40bde3e4fa3aad69f5c9a76d6dbbc6294d5ce74011409e2778b915a0013"
+      },
+      {
+        "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "sha256": "f24f809bd2f16e0dfef54fda8dcdde3f05983b78113e0927ed40933e344e9c4b"
+      }
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "base": "e24596f2",
+  "scope": "CBE sampled reverse support consistency with its existing forward-path water/deck policy",
+  "finding": "Intermediate rear-support samples checked surface normal and stable parent only. Wet/submerged terrain could therefore pass when the separately checked target lay on a valid deck. Existing native rear target already retains observed height; no terrain-height overwrite fix was needed.",
+  "change": "The shared stable-support predicate now requires dry ground or a resolved static object with ASL hit height above0.25m at wet XY. The predicate applies to every existing support sample and the target. Removed redundant target-only water check. No new rays, loops, timers, workers or native writes; adds bounded surfaceIsWater checks to existing stations.",
+  "evidence": {
+    "addons/vehicles/functions/drivingRearClear.sqf": "5cf13f5a36c5581fa013237ebd6c12f201c58f3b7ddb1b4fdc97f809bf2499cd",
+    "addons/vehicles/functions/drivingPathGeometry.sqf": "b176442ea4ccdcdfea9222a1ed77a5487699ea4647c7f0936acd778b30244281"
+  },
+  "validation": {
+    "focusedExistingCases": 15,
+    "existingFullCases": 1491,
+    "compiledSQF": 412,
+    "PBOs": 9,
+    "independentVerification": true,
+    "newCases": 0
+  },
+  "candidate": ".qa/candidates/rear-water-support-stations-e24596f2",
+  "fingerprint": "6a87fb9827dcf0c8b1970c8010f7ad458f9d3d2149ca0b014fc31764a0d61f88",
+  "logs": [
+    ".qa/rear-water-support-stations-build.log",
+    ".qa/rear-water-support-stations-final-build.log",
+    ".qa/rear-water-support-stations-verified-build.log",
+    ".qa/rear-water-support-stations-independent.log"
+  ],
+  "retainedFailures": "Initial full test expected target-only water check; existing assertion updated to verify stronger shared predicate. First edit attempt failed on newline convention and its following build repeated that failure; both retained. Final build passed. No removed cases.",
+  "limits": "Discrete support samples are not swept-volume or physical bridge success. No ford capability or source-parity/performance percentage claimed. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
+}

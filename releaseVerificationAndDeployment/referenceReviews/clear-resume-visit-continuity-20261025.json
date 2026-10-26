@@ -1,0 +1,27 @@
+{
+  "base": "44953d7a",
+  "status": "CLEAR_RESUME_VISIT_IDENTITY_CONTINUITY_INTEGRATED",
+  "finding": "CortexClearBuilding could generate a new visit nonce during resume when its separate context was absent/malformed/different. That can disassociate per-visit recovery history despite the durable order retaining its original lifetime.",
+  "implementation": [
+    "Capture current visit context before room geometry. Resumes require its building/transform/hard-deadline prefix and nonempty string nonce. Unavailable context returns RESUME_CONTEXT_PENDING through existing discovery without operation admission, movement replay or a new nonce.",
+    "Original expired order retirement remains finite. Known moved-building pose mismatch cancels before context deferral or room geometry, rather than being retained as missing metadata.",
+    "Preparation commits require the captured context unchanged. Resumed job uses that captured context; only an explicit fresh clearance creates/publishes a nonce. No new callback, world query, transport, actor admission or deadline."
+  ],
+  "scopeBoundary": "This is missing-context continuity, not a generic retry of settings/native ADOPT failures. ActorSettings ADOPT is strict metadata adoption; PENDING originates in other settings paths. Do not reinterpret every refusal as replication delay.",
+  "validation": {
+    "tests": 1497,
+    "development": "Build1 caught an old regression that expected resume to mint a nonce for malformed context. It now requires fresh-only nonce creation. Build2/initial independent candidate passed, then final review moved existing transform cancellation before deferral. Build3 caught the old transform-guard test anchor; updated to assert cancellation before missing-context deferral and geometry.",
+    "build": ".qa/handovers/clear-resume-visit-continuity-build-4.log",
+    "independent": ".qa/handovers/clear-resume-visit-continuity-independent-2.log",
+    "candidate": ".qa/candidates/clear-resume-visit-continuity-final-44953d7a",
+    "fingerprint": "e7c943719616a55b47a762c4f9fc56b1a7f3255762a88a9278bca8b9581ec073",
+    "supersededCandidate": ".qa/candidates/clear-resume-visit-continuity-44953d7a",
+    "physicalAcceptance": false
+  },
+  "limitations": [
+    "Separate journals still lack coherent producer checkpoint/replay authentication and aggregate actor-ready/native-quiescence proof. Matching context is not proof that every other journal arrived.",
+    "Missing context may refuse until the original order expires; no fabricated fallback visit is supplied. Same-value newer task ambiguity remains without an ordered producer identity.",
+    "Normal/provider-HC replication order, physical task continuation, moved-building cancellation and5%median/10%p95 overhead remain unverified. Audits paused."
+  ],
+  "sourceSha256": "7efc93b75446891e5f331ea85607a5689323ee95f55526780fb8b021ee98d51d"
+}

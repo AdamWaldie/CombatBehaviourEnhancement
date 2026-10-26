@@ -5,7 +5,7 @@
  * Repeat/JIP: Idempotent. A stale release is a no-op; the public diagnostic state records the last valid release.
  * Arguments: 0 aircraft <OBJECT>; 1 controller <STRING>; 2 token <STRING>; 3 reason <STRING>, default RELEASED.
  * Return Value: Boolean - true only when the matching lease was released.
- * Current callers: aircraft attack, helicopter landing, missile defence, braking and Cortex shutdown cleanup.
+ * Current callers: airborne one-shot climb, aircraft attack, helicopter landing, missile defence, braking and Cortex shutdown cleanup.
  * Example: [_aircraft,"DECELERATION",str _generation,"STABLE"] call CBE_fnc_FlightLeaseRelease;
  */
 params [

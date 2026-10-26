@@ -1,0 +1,34 @@
+{
+  "baseline": "9c94a7b0",
+  "scope": "Static emplacement and carried-weapon authority during native flight and simulation dormancy",
+  "source": ".qa/lambs-2621-review/danger/functions/fnc_isForced.sqf",
+  "sourceSHA256": "b56d7eff15e0fad2019f6a42bb864a82ff321047683355d2473c7c6b780e6376",
+  "sourceIntent": "LAMBS treats native fleeing as forced work outside ordinary danger decisions. Static deployment is useful group support but must compose with that actor-level authority. No upstream delayed inventory/physics shortcut is copied.",
+  "finding": "CombatEffective excludes injury/captivity, not fleeing/hidden/dormant states. StaticSupport and StaticDeploy omitted those states in recruitment, active participant checks, release and native assembly callbacks. They could issue boarding/equipment/follow work while those states owned the actor.",
+  "implementation": [
+    "Reject fleeing, hidden or simulation-disabled actors in new emplacement and carried-team candidate selection. Existing temporary retry policy stays unchanged.",
+    "An active emplacement actor yields via existing metadata retirement. Deployment participant checks retire when a reserved actor enters those states. Existing release gates veto native writes over affected actors.",
+    "WeaponAssembled and WeaponDisassembled callbacks recheck actual actors before adopting results or issuing equipment work. Original phase deadlines and exact handlers remain.",
+    "Existing short bag approach repeats the same live actor boundary. No new scan, callback, timer, helper or global CombatEffective semantic change."
+  ],
+  "hashes": {
+    "addons/infantry/functions/cortexStaticSupport.sqf": "7270ee10d267b8c0b18eb97922c5c1278325aad4e5c45fefb1566e669ad8fd24",
+    "addons/infantry/functions/cortexStaticDeployStep.sqf": "406370a6cf34892d0808184300eece704e3113366de01d54359051b57b6e7df5"
+  },
+  "validation": {
+    "focusedExistingTests": 610,
+    "fullExistingTests": 1491,
+    "newCases": 0,
+    "focused": ".qa/static-support-flight-focused-final.log",
+    "build": ".qa/static-support-flight-build.log",
+    "independent": ".qa/static-support-flight-independent.log",
+    "candidate": ".qa/candidates/static-support-flight-9c94a7b0",
+    "fingerprint": "1e56e1e5c10a1d7808cec4b2f966b173d718e4e82e6184f65058b6601b5ec393",
+    "provenance": "Unsigned dirty development snapshot retaining unrelated dirt; review and handover notes afterward. Initial focused callback slice stopped at an earlier conditional; test slice corrected to actual callback body."
+  },
+  "limits": [
+    "No physical flight, late assembly, interrupted boarding, packing, locality or runtime performance acceptance.",
+    "Retiring CBE markers and handlers does not prove an already-issued engine action is quiescent. Physical equipment stays in the world; no forced inventory rollback.",
+    "Audits remain paused. No push, merge, CI dispatch, release or upload. No whole-mod parity or percentage claim."
+  ]
+}

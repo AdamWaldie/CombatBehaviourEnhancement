@@ -13,6 +13,8 @@
  * normal. Infantry retains a wider traversable envelope but still rejects cliff-like steps. This
  * closes the gaps between the three more expensive
  * ballistic/visual screening rays, so a route that looked valid on a flat range cannot jump across
+ * Human bodies cannot supply screening credit; shared cover/concealment observation retains
+ * the supplied threat belief point and excludes the source object without reading its live pose.
  * a narrow ridge, ditch or water strip on a real terrain. Vehicle callers use a stricter slope limit
  * and receive a small road preference; the selector still chooses only endpoints and leaves actual
  * driving and local obstacle avoidance to the engine. Concealment receives a smaller benefit and is
@@ -31,6 +33,18 @@
  * 3: support origins <ARRAY> - origins whose live-fire corridors remain clear, default []
  * 4: threat object <OBJECT> - optional ray exclusion object, default objNull
  * 5: mobility <STRING> - "INFANTRY" or "VEHICLE", default "INFANTRY"
+ * 6: platform <OBJECT,objNull> - optional vehicle for endpoint screening. Its conservative
+ * horizontal radius and full model height replace the three infantry-height route probes.
+ * All three upper-envelope samples must have material screening to earn cover credit;
+ * bushes, partial screening or unavailable/oversized bounds earn no endpoint credit.
+ * Terrain/lane admission remains independent. This is sparse screening, not hull clearance,
+ * ballistic protection, future heading/tilt prediction or firing-position proof.
+ * 7: require screened endpoint <BOOL>, default false. Vehicle callers may require the final
+ * endpoint to pass all three existing upper-envelope cover probes. Missing/invalid bounds
+ * refuse this mode; an unscreened high-scoring route cannot hide a screened alternative.
+ * This admits sparse observations only, not physical cover or a traversable native path.
+ * Cost: one bounds/scale observation per platform plan; at most three cover probes per leg,
+ * replacing existing route probes. No extra ray budget, scan, command, worker or cache.
  *
  * Return Value:
  * Array - selected ordered leg endpoints, or [] when no candidate is safe
@@ -52,12 +66,33 @@ params [
     ["_threat",[],[[]]],
     ["_supportOrigins",[],[[]]],
     ["_threatObject",objNull,[objNull]],
-    ["_mobility","INFANTRY",[""]]
+    ["_mobility","INFANTRY",[""]],
+    ["_platform",objNull,[objNull]],
+    ["_requireScreenedEndpoint",false,[false]]
 ];
 if (count _start < 2 || {count _threat < 2} || {_candidates isEqualTo []}) exitWith {[]};
 _mobility=toUpper _mobility;
 if !(_mobility in ["INFANTRY","VEHICLE"]) then {_mobility="INFANTRY"};
 private _vehicleRoute=_mobility == "VEHICLE";
+private _vehicleScreening=_vehicleRoute && {!isNull _platform};
+private _envelope=[];
+if (_vehicleScreening && {_platform isKindOf "LandVehicle"}) then {
+    private _bounds=boundingBoxReal _platform;
+    private _scale=getObjectScale _platform;
+    if (count _bounds >= 2 && {(_bounds select [0,2]) findIf {count _x != 3
+        || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}} < 0}
+        && {finite _scale} && {_scale > 0}) then {
+        _bounds params ["_low","_high"];
+        private _extentX=(abs (_low select 0)) max (abs (_high select 0));
+        private _extentY=(abs (_low select 1)) max (abs (_high select 1));
+        private _radius=sqrt (_extentX*_extentX+_extentY*_extentY)*_scale;
+        private _height=((_high select 2)-(_low select 2))*_scale;
+        if (_radius > 0 && {_radius <= 30} && {_height > 0} && {_height <= 20}) then {
+            _envelope=[_radius,_height];
+        };
+    };
+};
+if (_requireScreenedEndpoint && {!_vehicleScreening || {_envelope isEqualTo []}}) exitWith {[]};
 private _minimumSurfaceUp=[0.55,0.8] select _vehicleRoute;
 private _maximumGrade=[1.25,0.7] select _vehicleRoute;
 
@@ -73,6 +108,7 @@ private _bestScore=1e12;
             || {surfaceIsWater _x}} < 0};
     private _routeLength=0;
     private _hardScreen=0;
+    private _lastEndpointScreened=false;
     private _concealed=0;
     private _screenSamples=0;
     private _terrainPenalty=0;
@@ -165,31 +201,47 @@ private _bestScore=1e12;
                 if (!_valid) exitWith {};
             };
             if (!_valid) exitWith {};
-            {
-                private _fraction=_x;
-                private _sample=[
-                    (_from select 0)+((_to select 0)-(_from select 0))*_fraction,
-                    (_from select 1)+((_to select 1)-(_from select 1))*_fraction,
-                    0
-                ];
-                _screenSamples=_screenSamples+1;
-                private _sampleASL=(AGLToASL _sample) vectorAdd [0,0,1.0];
-                private _rayStart=_threatASL vectorAdd ((_threatASL vectorFromTo _sampleASL) vectorMultiply 2);
-                private _hard=terrainIntersectASL [_threatASL,_sampleASL]
-                    || {(lineIntersectsSurfaces [_rayStart,_sampleASL,_threatObject,objNull,true,1,"FIRE","GEOM"]) isNotEqualTo []};
-                if (_hard) then {
-                    _hardScreen=_hardScreen+1;
-                } else {
-                    if ((lineIntersectsSurfaces [_rayStart,_sampleASL,_threatObject,objNull,true,1,"VIEW","GEOM"]) isNotEqualTo []) then {
-                        _concealed=_concealed+1;
-                    };
+            if (_vehicleScreening) then {
+                if (_envelope isNotEqualTo []) then {
+                    private _endpointASL=AGLToASL [_to select 0,_to select 1,_to param [2,0]];
+                    private _sideBearing=(_to getDir _threat)+90;
+                    private _screened=true;
+                    _screenSamples=_screenSamples+3;
+                    {
+                        private _sample=_to getPos [_x*(_envelope select 0),_sideBearing];
+                        private _sampleASL=[_sample select 0,_sample select 1,
+                            (_endpointASL select 2)+(_envelope select 1)];
+                        if (!([_threatASL,_sampleASL,_platform,"COVER",_threatObject]
+                            call CBE_fnc_CortexCoverScreened)) exitWith {_screened=false};
+                    } forEach [-1,0,1];
+                    _lastEndpointScreened=_screened;
+                    if (_screened) then {_hardScreen=_hardScreen+3};
                 };
-            } forEach [0.25,0.5,0.75];
+            } else {
+                {
+                    private _fraction=_x;
+                    private _sample=[
+                        (_from select 0)+((_to select 0)-(_from select 0))*_fraction,
+                        (_from select 1)+((_to select 1)-(_from select 1))*_fraction,
+                        0
+                    ];
+                    _screenSamples=_screenSamples+1;
+                    private _sampleASL=(AGLToASL _sample) vectorAdd [0,0,1.0];
+                    private _hard=[_threatASL,_sampleASL,objNull,"COVER",_threatObject] call CBE_fnc_CortexCoverScreened;
+                    if (_hard) then {
+                        _hardScreen=_hardScreen+1;
+                    } else {
+                        if ([_threatASL,_sampleASL,objNull,"CONCEALMENT",_threatObject] call CBE_fnc_CortexCoverScreened) then {
+                            _concealed=_concealed+1;
+                        };
+                    };
+                } forEach [0.25,0.5,0.75];
+            };
             if (!_valid) exitWith {};
             _from=_to;
         } forEach _route;
     };
-    if (_valid) then {
+    if (_valid && {!_requireScreenedEndpoint || {_lastEndpointScreened}}) then {
         private _score=_routeLength
             -70*(_hardScreen/(_screenSamples max 1))
             -25*(_concealed/(_screenSamples max 1))

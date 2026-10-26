@@ -1,0 +1,26 @@
+{
+  "baseline": "57cd0c98",
+  "finding": "Natural clear continuation uses admitted subformation edges, but explicit CortexClearRelease unconditionally recalled every owned actor to the surviving squad anchor. That can flatten native pair/fireteam relationships during cancellation or release. No historical screenshot is attributed solely to this code.",
+  "implementation": "Capture the existing typed reserveAdmissionCommands map from the retiring building job. Recall only to the original actor-identity-bound parent while it remains the current native formLeader, local, on foot, effective and in the same group. Retain all exact owned-move/hold, epoch/generation, native task, settings and external-owner boundaries. Publish the existing one-shot recall receipt before doFollow. Remove obsolete group-anchor lookups before/per actor.",
+  "noFallback": "Missing/legacy proof, changed parent or unavailable parent does not become squad-leader follow. No new movement worker, regroup formation, exit point or synthetic route. Existing settings/metadata retirement continues independently.",
+  "admissionProof": "CortexClearBuilding snapshots all available actors, up to64, before task movement in reserveAdmissionRows, validates public visit context, then creates reserveAdmissionCommands. This is not restricted to the exterior reserve.",
+  "validation": {
+    "focusedCases": 10,
+    "fullTests": 1496,
+    "compiledSQF": 413,
+    "PBO": 11,
+    "staticPerformanceFindings": 0,
+    "independentPackage": "PASS",
+    "candidate": ".qa/candidates/clear-release-formation-57cd0c98",
+    "fingerprint": "386f29f8427fea382388fabcc867f4ea7636568ddc70e5eb49e6e9b64c844f79",
+    "live": "UNRUN - audits paused"
+  },
+  "retainedFailures": "Initial tests referred to removed squad-anchor recall; updated to assert admitted parent/identity/freshness. An overbroad test-text replacement affected unrelated hold release and was reverted before final passing build. No failing behaviour cases removed.",
+  "limits": [
+    "No physical cancellation/egress, repeated-clearance or casualty-parent proof",
+    "Native admission parent changes caused by engine/task transitions can suppress recall; no forced fallback",
+    "Does not redesign exterior isolation or claim all sprawl fixed",
+    "Unsigned dirty development candidate includes unrelated dirt; engineering notes postdate package"
+  ],
+  "productionSHA256": "b00a7ff9f904229af5d07128052823dc31e42d12dacec18a4789cf5c1d29f8f0"
+}

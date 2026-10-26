@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "da9d5dc4",
+  "workshopId": "3818040165",
+  "name": "Emergency Air Support",
+  "scope": "Complete reads of eight listed behaviour functions; first75 config lines only. Remaining client/audio/init functions and remaining config not reviewed. Not whole-mod parity.",
+  "sourcePboSha256": "1667ad921aaaf73333f5d383c6ef92216803ce68e8294203ddecf29d4a5c2820",
+  "privateExtraction": ".qa/emergency-air-support-3818040165-review",
+  "reviewedFiles": {
+    "functions/fn_serverRequest.sqf": "2bed94fb5a4652eb95a8e5b232edc86f497c260a5b4510b73947e5fa2ae85e85",
+    "functions/fn_startResponse.sqf": "1d2c77485824277b8961a344e1cf54f4acfb92473800e9ceae47dfc32892fcbb",
+    "functions/fn_runResponse.sqf": "7c3545fcdcee1c84320b18d95df4f240c2b14e41601a917f04a2321b35115b36",
+    "functions/fn_findTargets.sqf": "4092d19d8f225329c437c844f95bbef6f2468cc9493ba4ca792ec1496b9714c1",
+    "functions/fn_selectPriorityTarget.sqf": "856fa28050b519ff37bf0dff703504afd8f2aa13c0dad5c3cc82a50681eb01bf",
+    "functions/fn_discoverAircraft.sqf": "a3b642ebd44a76788ee5cc17ec5cd39ea08d7c1fb4cb52b547f9218ab18c6361",
+    "functions/fn_spawnFAC.sqf": "9f401a372230b8796d640e844af3aeabed355dac3c594537912b026666fa09a5",
+    "functions/fn_spawnStrikeAircraft.sqf": "658f647268c32153315ae1b6a43ecc92b6f0302f625385a12d2ff41cc33711bd"
+  },
+  "findings": [
+    "Request entry authenticates invoking multiplayer owner against the player caller and requires living group leader. This is a useful authority pattern, not evidence that all subsequent writers handle locality changes.",
+    "Aircraft discovery is a fixed side-based vanilla pool, excluding SOG and most independent factions. It does not generally match the caller faction despite the overview. Do not adopt a silent vanilla fallback for mission-selected factions.",
+    "Target discovery scans allUnits twice and checks every friendly against candidate hostiles. It has no native knowledge gate; observed target selection is omniscient and work scales with population.",
+    "Immediate threat priority considers all living caller-group members within150m; modest static/ground vehicle bias precedes distance ordering. Outside that area selection is random. Useful supported-element protection intent, not permission to read hidden enemy poses.",
+    "Response stages jets until globally counted enemy strength reaches20percent, then gunships until10percent. Up to two primary and one secondary helicopter slots are replenished; no overall response deadline. Hidden population counts cannot be CBE completion evidence.",
+    "Helicopters receive ammunition fill, absolute skill0.85 and reveal target4; subsequent four-second retargeting reveals fresh exact target positions. These shortcuts conflict with mission skill authority, knowledge uncertainty and existing-stock support.",
+    "Fixed-wing delivery delegates BIS moduleCAS and observes only its script handle. That does not prove quiescence of every native/module writer for handover to a persistent CBE aircraft.",
+    "Unarmed FAC uses native LOITER with captive/CARELESS protection. It does not contribute observed knowledge to findTargets. Its support value is not implemented reconnaissance simply because an observer aircraft exists.",
+    "Aircraft departure waits have no hard deadline; spawned crews and aircraft are deleted after departure or damage delay without an intervening authority check for curator takeover. No such cleanup may be copied onto mission-owned assets."
+  ],
+  "disposition": {
+    "retainIntent": [
+      "Protect the supported element using threats near every participating actor, with bounded known-contact scoring.",
+      "Separate observation, attack and departure roles; use capability-appropriate existing aircraft and real finite task results."
+    ],
+    "redesign": [
+      "Stage support from known threats and mission fire policy, not total hidden enemy counts.",
+      "Use existing owner-local air attack FSM and flight leases; observation must publish actual knowledge, not a decorative invulnerable FAC.",
+      "Any future spawn task must be explicit, faction/capability validated, finite and relinquish deletion rights after external takeover."
+    ],
+    "reject": [
+      "Global omniscient target scans and reveal4.",
+      "Automatic ammunition and absolute skill resets.",
+      "Captive safety as tactical improvement.",
+      "Random ordnance/loadout substitution and unconditional spawned-asset deletion."
+    ]
+  },
+  "currentCbeComparison": [
+    "aircraft/functions/cortexAirAttackPlan.sqf already selects live loaded weapon/turret pairs, native reported contact positions and bounded terrain routes; do not replace with spawn+SAD.",
+    "aircraft/functions/airAttackOperationStep.sqf retains current owner/generation/FSM identity and flight lease before the existing executor; support must compose with that lifecycle.",
+    "support/functions/supportRequestStart.sqf is an infantry cross-squad request, not proof of an aircraft observer/strike coordinator. No air-support completion awarded from that name."
+  ],
+  "nextImplementation": "Trace current combined-opportunity aircraft dispatch and target scoring completely before adding supported-element threat priority. Determine whether observations and aircraft support requests have a real missing execution path; do not add another global controller.",
+  "licence": "UNVERIFIED; no upstream code copied into product.",
+  "validation": "Workshop PBO hash matches registered intake; eight extracted file hashes recorded. Metadata-only review, no runtime edits or build rerun. Physical behaviour and performance UNRUN; audits PAUSED.",
+  "selectedImplementation20261025": {
+    "sourceBase": "b30a250f",
+    "scope": "Supported-element proximity priority only; no staged-air response or observer implementation.",
+    "path": "addons/infantry/functions/cortexCombinedArmsRequest.sqf",
+    "sourceSha256": "6fdd50c7b7e03db4eb663dcddad71672641e515336d88bc209ba0f28e54d9e00",
+    "changes": [
+      "Sample at most16 existing contact receipts; reject malformed, stale, dead, friendly, captive/surrendered/handcuffed targets before ranking. A stale first contact no longer hides a later valid one.",
+      "Sample at most64 current living requester members once. Rank fresh reported positions within150m of any sampled member by nearest distance; stable report order on ties and outside radius. No hidden enemy pose lookup, random rank jitter, platform bias, new global scan, worker, setting or new controller.",
+      "Existing20..28s request cooldown, original observation timestamp/confidence payload, authenticated server admission, communications and aircraft owner weapon/flight lease/executor remain unchanged."
+    ],
+    "cost": "At most16 report checks,64 member pose reads and1024 horizontal distances per request attempt after the existing cooldown check. Empty/invalid candidate set exits before member enumeration. Invalid reports do not consume the original cooldown. Static performance passes; actual median/p95 remains unmeasured.",
+    "validation": {
+      "fullBuildLog": ".qa/combined-team-priority-build-20261025-attempt1.log",
+      "tests": 1497,
+      "compiledSqf": 419,
+      "pbos": 11,
+      "exit": 0,
+      "independentLog": ".qa/combined-team-priority-independent-20261025.log",
+      "candidate": ".qa/candidates/combined-team-priority-b30a250f",
+      "fingerprint": "d75f69aa305af9d791618556e66eafd575a5ab3d10fb6c73d1140b9ce042a051"
+    },
+    "limitations": "Unsigned dirty development candidate. Existing test case extended with analytical selection and source wiring; not SQF runtime execution. Physical selection/fire-safety/aircrew handover/locality/JIP/Zeus and5percent median/10percent p95 remain UNRUN. Audits PAUSED. Remaining source intent still open; no whole-source parity or percentage awarded."
+  }
+}

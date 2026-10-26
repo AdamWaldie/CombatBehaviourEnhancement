@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-24",
+  "sourceCommit": "441441e66c528457bcb10aeedf3611bfe1bd9b69",
+  "scope": "Danger-cover arrival, native destination continuation and exact movement marker retirement; no general CQB/accessibility completion",
+  "reference": {
+    "path": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doHide.sqf",
+    "sha256": "8f776e10fcf61d521d73b162622c484357dc603ff65ddeaab35d20e84cebd9fe",
+    "intent": "Escape immediate exposure using nearby terrain or building positions; retain useful shelter rather than blindly return into danger.",
+    "disposition": "CBE bounded cover/refuge selection and original movement owner remain. Source free stance/speed writes and delayed restoration are not adopted."
+  },
+  "findings": [
+    "IndoorActorNodeSelect already separates floors using ASL, roof/occupancy checks and failed-node observations; metadata does not prove accessibility.",
+    "DangerCoverStep compared relative terrain height for arrival and cleanup, unlike that selector. Relative heights can agree on different absolute floors or differ on the same physical floor across terrain cells.",
+    "Continuation accepted native goals by XY alone; three marker-retirement/retention checks accepted nearby stored points by XY despite exact copied CBE goal being available."
+  ],
+  "implementation": [
+    "Use getPosASL and AGLToASL for existing1.5m floor band at continuation, arrival and recall. Retain existing horizontal tolerances.",
+    "Require exact stored goal for CBE movement marker retirement/continuation; existing type/deadline/epoch/order/actor gates unchanged.",
+    "Native destination retains1m horizontal tolerance plus1.5m absolute-height band; identical-value native replacement remains indistinguishable.",
+    "No new scans/rays/workers/timers/lease fields/route/deadline or door assistance. A few coordinate conversions replace relative-height arithmetic."
+  ],
+  "nativeDocumentation": [
+    "https://community.bistudio.com/wiki/expectedDestination",
+    "https://community.bistudio.com/wiki/Position",
+    "https://community.bistudio.com/wiki/getPosASL"
+  ],
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/dangerCoverStep.sqf",
+      "sha256": "7cd2b518ed576e04ee0b6f1174b3880d3590bb440a588519a0801c7683e70483"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_cortex_operations.py",
+      "sha256": "6ddfc4af7eb3f558d2282d2cb6b02247b59d2147dc866b8c24da323500bdd52e"
+    },
+    {
+      "path": "docs/ADDON-LIFECYCLE.md",
+      "sha256": "f31f9dade640071c3bd462489db5137ea8629a91dc1ac8354c85f7cc956d2f46"
+    }
+  ],
+  "validation": {
+    "focusedExistingCases": 5,
+    "fullTests": 1491,
+    "sqf": 412,
+    "pbos": 9,
+    "newCases": 0,
+    "logs": [
+      ".qa/danger-cover-absolute-floor-focused.log",
+      ".qa/danger-cover-absolute-floor-build.log",
+      ".qa/danger-cover-absolute-floor-independent.log"
+    ],
+    "candidate": ".qa/candidates/danger-cover-absolute-floor-441441e6",
+    "fingerprint": "8e82e2a196819df4faaa6ba40c9f4868b6e8aeb57b9d0973c128c593260ef213",
+    "result": "All offline gates and independent package verification passed; unsigned dirty candidate includes pre-existing unrelated dirt. Review and handover postdate package."
+  },
+  "remaining": [
+    "Actual native/placed/modded building accessibility, repeated refuge routing and general unreachable-point classification remain incomplete.",
+    "Physical terrain/floor arrival, new native goal handover, normal/HC and measured performance remain unverified.",
+    "Not established as cause of historical CQB failures; no parity/percentage or physical quality claim."
+  ],
+  "audits": "PAUSED; no launch/push/CI/merge/publish"
+}

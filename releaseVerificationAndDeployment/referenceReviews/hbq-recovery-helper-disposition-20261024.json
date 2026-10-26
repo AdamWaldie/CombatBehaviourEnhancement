@@ -1,0 +1,59 @@
+{
+  "base": "024e4228",
+  "scope": "Complete selected HBQ vehicleUnstuck and routeWaiting helpers; current CBE recovery/crew/wait call-path comparison, not whole HBQ parity.",
+  "referenceSources": [
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_vehicleUnstuck.sqf",
+      "sha256": "3b179087b1feeb34585905d960c11989357cb0d5a7c634463ea91d1605271ea8",
+      "lines": 181,
+      "scope": "Complete function body; called helpers not counted as re-reviewed."
+    },
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_routeWaiting.sqf",
+      "sha256": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+      "lines": 38,
+      "scope": "Complete function body; called helpers not counted as re-reviewed."
+    }
+  ],
+  "contributions": [
+    {
+      "method": "Destination fallback",
+      "intent": "Prefer current real waypoint; without one use current native driver destination instead of implicit spawn waypoint.",
+      "cbe": "DrivingRouteGoal and DrivingNativeRouteReceipt separately admit plain authored or exact native driver/operator goals; convoy recall keeps authored policy gates. Existing execution remains physically unverified."
+    },
+    {
+      "method": "Driver replacement",
+      "intent": "Dead/absent driver cannot resume route; do not displace a living incapacitated driver. Source ejects dead driver and waits before in-vehicle seat action.",
+      "cbe": "DrivingCrewStep uses finite actual-seat native action/occupancy and exact route/seat return receipts; preserves incapacitated drivers and native tasks. No forced seating or same-seat duplicate. Existing implementation, not new feature credit."
+    },
+    {
+      "method": "Soft retry versus authored waiting",
+      "intent": "Native route retries must not disturb intentional HOLD, trigger waits, timeout or custom conditions. Source range+50m wait test; condition whitespace only removes spaces.",
+      "cbe": "Ordinary nativeWaiting requires stationary/unitReady as well as nearby authored gate; condition normalization handles space/tab/CR/LF. Independent DrivingRouteGoal/convoy mayRecoverWaypoint refuses recovery over distant gates too. No gate bypass or waypoint recreation introduced."
+    },
+    {
+      "method": "Refuel declaration",
+      "intent": "Source header labels level1 crew/fuel/route, but complete body has no setFuel command.",
+      "cbe": "Do not invent a missing parity requirement from the header or auto-refuel immobilized vehicles. Actual fuel logistics is separate scope."
+    },
+    {
+      "method": "Mobility repair and physical nudge",
+      "intent": "Source optional default-off repairs mobility hitpoints then applies rearClear/push every-frame velocity; local safety checks are not exclusive authority or physical driving.",
+      "cbe": "Retain finite native rear requests with sampled pedestrian/body/support and original retry/deadline evidence. Do not copy hitpoint repair, unconditional PATH enable or velocity push to make recovery appear successful."
+    },
+    {
+      "method": "Escalated teleport",
+      "intent": "Source relocates aircraft/boats/land vehicles and briefly protects damage; no safe spot returnsfalse to caller.",
+      "cbe": "Reject teleport, arbitrary airframe altitude/velocity and damage-immunity recovery. Preserve crew/cargo/world object; physical failures remain failures. Caller escalation and called teleport helpers are not newly re-reviewed here."
+    }
+  ],
+  "currentHashes": {
+    "addons/vehicles/functions/drivingCrewStep.sqf": "410338623291efab2cbf10b4a7c802e5e1e01e237b346065950426e8f61933bd",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "f76c8f7249d46b831c8adf6e4a2a97c05a737d6dc552e86bca86335221312417",
+    "addons/vehicles/functions/convoyTick.sqf": "5853c55bd98267a320ab35da763edd476e40ce1758d582c94e3b934dadfe5b08",
+    "addons/vehicles/functions/drivingRouteGoal.sqf": "2b96b048425e6b9a288830e4fd0817f60f6f173d06477770e47ea61067cf19ef",
+    "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "b0844b7d6af7cf8656e6fa9c4ca9964fc8263a7ca04fae65bf3ea1577cb40772"
+  },
+  "validation": "Existing driving-crew/convoy-waypoint contracts pass .qa/hbq-recovery-helper-current-checks.log. Source hashes/JSON/HBQ index checked. Runtime unchanged; last anti-armour-native-movement-59ec2dce/842dce1b40bba112e836b63c06845875038dae94c59a45da28278d7fcc7c4008 full1491/412SQF/9PBO/independent package remains applicable with prior unsigned dirty limits. No repeated full build.",
+  "limits": "Two helper dispositions and selected CBE call paths, not renewed review of all19 source files, whole controller, source licence, native outcome or measured5/10performance. No new implementation/parity/percentage credit. Audits PAUSED."
+}

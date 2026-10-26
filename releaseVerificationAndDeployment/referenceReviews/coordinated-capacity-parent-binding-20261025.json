@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-25",
+  "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Coordinated COVER capacity actual-owner parent binding",
+  "finding": "Capacity acknowledgement and consumption compared an HC owner epoch with the server private CBE_AIPass_Epoch. Both counters change locally, so a valid report could be rejected without any ammunition shortage.",
+  "implementation": [
+    "Version2 appends the actual support parent generation to the existing finite owner observation. Owner publication verifies its local parent, private epoch, generation, owner, token and original expiry.",
+    "The authenticated server receiver and MOVE consumer compare generation/epoch with the existing published COORDINATED_ASSAULT parent, supportOwner with the current group owner, and the exact support token/original lease expiry. CANCELLED, missing, replaced and mismatched parents refuse.",
+    "Direct private epoch comparison remains mandatory for server-local groups only. No private counter is broadcast or overwritten.",
+    "Exact lease/role/sender authentication, accepted reservation, finite numeric counts, original observation/lease/job deadlines and delayed-observation rewind checks remain. Parent replication delay refuses until a later ordinary report; it never grants a grace period or new deadline.",
+    "Existing capacity is ammunition availability for the moving helper, not immediate weapon readiness or proof another squad is delivering covering fire."
+  ],
+  "cost": "One additional number per existing owner capacity message. Bounded parent metadata reads at current maintenance/receipt/selection points; no new actor enumeration, network endpoint, query, worker, polling schedule or timer. Existing <=64 actors /2-second report cadence and <=6 responders retained. Runtime delta unmeasured.",
+  "limits": [
+    "In-engine normal and HC behaviour, delayed replication, repeated migration and actual firepower still require physical validation. Audits remain paused.",
+    "This binds observations to available published state, not an atomic cross-machine owner-ready snapshot. Same-owner return before a newer parent reaches the server remains subject to existing bounded six-second report freshness; no claim of eliminating all replication windows.",
+    "No whole-mod parity, tactical acceptance or performance-budget claim."
+  ],
+  "changedFiles": [
+    "addons/support/functions/cortexSupportAck.sqf",
+    "addons/support/functions/cortexSupportCoordinateStep.sqf",
+    "addons/support/functions/cortexSupportMaintain.sqf"
+  ],
+  "sourceHashes": {
+    "addons/support/functions/cortexSupportAck.sqf": "fc5408c3b1466e69a221bc5499c3d3dbac961b4b3d2d8ecdbe6423cdb90a7154",
+    "addons/support/functions/cortexSupportCoordinateStep.sqf": "cefea32dfbb1657e548c0e72b7e9f50eecac9efd6d6d6b461ad11c311a18b165",
+    "addons/support/functions/cortexSupportMaintain.sqf": "19240c38fb27e7c9246b7396e26f3ebfa8237fb4baec0f05286b4caa51cac73b"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 432,
+    "PBOs": 11,
+    "focusedExistingRegression": "PASS",
+    "build": ".qa/handovers/coordinated-capacity-parent-build.log",
+    "independent": ".qa/handovers/coordinated-capacity-parent-independent.log",
+    "candidate": ".qa/candidates/coordinated-capacity-parent-7f2ea273",
+    "fingerprint": "252d19c0ea41bda2cfd9ea426c859e21c5e2477f15d40fb77280d0cecb57f714",
+    "physicalAcceptance": false
+  }
+}

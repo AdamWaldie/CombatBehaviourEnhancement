@@ -1,6 +1,11 @@
 /*
  * Author: WaldoTheWarfighter
- * Puts the squad's best anti-tank gunner onto a known armoured vehicle, clear of backblast.
+ * Native planner data waits and delayed search preserve existing intent and original budgets.
+ * Native fleeing vetoes launcher task admission, relocation and final fire revalidation.
+ * Puts the squad's best ready loaded anti-tank gunner onto known armour, clear of backblast
+ * and the shared forward friendly/civilian cone and magazine-aware blast veto.
+ * Reserve-only or reloading carriers cannot monopolise selection over a ready gunner.
+ * Native weapon selection/reload and mission ammunition overrides remain authoritative.
  *
  * When a tank or armoured vehicle the squad knows about is within 600 m, the
  * launcher gunner with ammunition, least damage and least suppression is ordered to target and fire on
@@ -11,9 +16,18 @@
  * morale (CBE_fnc_CortexMorale), which can make it withdraw.
  * Locality and authority: call where the group is local. Actor-local player/remote/external
  * ownership and native service actions refuse selection and are rechecked before writes.
- * Native FOLLOW/CBE/STOP or non-route tasks also refuse opportunistic relocation. A MOVE
- * must address the current plain authored waypoint; individual destination replacements refuse.
+ * FIREWEAPON-disabled actors, queued ACE treatment and native INIT/INITFAILED/PLANNING/REPLAN/DELAY defer
+ * selection and new writes. This does not change native permissions or the medical queue.
+ * Backblast uses the shared firing-safety allegiance policy: allied sides, civilians and
+ * protected captives behind the gunner refuse. The existing6m actor query caps at64 candidates.
+ * Native MOVE and moving FOLLOW/ATTACK retain movement ownership before selection and
+ * final writes, even without a CBE reservation. Native firing remains enabled.
+ * Stationary FOLLOW/STOP or non-route tasks also refuse opportunistic relocation;
+ * authored waypoint metadata and individual destination replacements retain their guards.
  *
+ * Shared typed movement reservations and current CLEAR/MEDICAL_AID/WITHDRAW participants
+ * refuse new targeting and relocation. Unknown leases remain reserved; typed expired leases
+ * may be reassessed. Two-team START protects the team selected for the next bound.
  * Review contract: A blocked backblast causes only a relocation request. A later group step must recheck clearance before ordering the shot.
  * Active actor reservations and every member of a tactical drill are not relocated. Explicit
  * holding/clearing orders and disabled PATH/MOVE also prevent relocation; stationary support
@@ -41,13 +55,27 @@ params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap
 if (isNull _group || {!local _group} || {!([_group] call CBE_fnc_CortexIsEligible)}
     || {!([_group,"CBE_AIPass_AntiArmour_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
     || {!(combatMode _group in ["YELLOW","RED"])}) exitWith {false};
+private _protectedParticipants=[];
+private _operation=_group getVariable ["CBE_Operation",createHashMap];
+if ((_operation getOrDefault ["intent",""]) in ["CLEAR","MEDICAL_AID","WITHDRAW"]
+    && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}) then {
+    _protectedParticipants=_operation getOrDefault ["participants",[]];
+};
 private _actorAvailable={
     params ["_actor"];
     !isNull _actor && {local _actor} && {group _actor == _group}
-        && {[_actor] call CBE_fnc_CortexCombatEffective}
+        && {[_actor] call CBE_fnc_CortexCombatEffective} && {!fleeing _actor}
+        && {!(_actor in _protectedParticipants)}
+        && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
         && {!isPlayer _actor} && {isNull remoteControlled _actor}
         && {isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {simulationEnabled _actor} && {!isObjectHidden _actor}
+        // An unreserved native route still owns this actor. Stationary FOLLOW/ATTACK
+        // may provide fire support; actual movement must settle without an injected order.
+        && {toUpperANSI currentCommand _actor != "MOVE"} && {abs (speed _actor) < 0.5}
+        && {_actor checkAIFeature "FIREWEAPON"}
+        && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+        && {!(getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY"])}
         && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
         && {!(currentCommand _actor in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
@@ -65,7 +93,11 @@ if (count _relocation == 3) then {
     } else {
         if (!isNull _relocating && {local _relocating}) then {
             private _actorMove=_relocating getVariable ["CBE_Cortex_ActorMove",[]];
-            if (count _actorMove == 3 && {(_actorMove select 0) == "ANTI_ARMOUR"}
+            if (_actorMove isEqualType [] && {count _actorMove == 3}
+                && {(_actorMove select 0) isEqualType ""} && {(_actorMove select 0) == "ANTI_ARMOUR"}
+                && {(_actorMove select 1) isEqualType []} && {count (_actorMove select 1) == 3}
+                && {(_actorMove select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {(_actorMove select 2) isEqualType 0} && {finite (_actorMove select 2)}
                 && {(_actorMove select 1) distance2D _relocationSpot < 1}
                 && {(_actorMove select 2) == _relocationUntil}) then {
                 _relocating setVariable ["CBE_Cortex_ActorMove",nil];
@@ -78,7 +110,11 @@ if (count _relocation == 3) then {
 if (_relocationBlocks || {[_state,"antiArmourMove"] call CBE_fnc_CortexCooldown}) exitWith {false};
 private _drill = _state getOrDefault ["drill",createHashMap];
 private _moving = if ((_drill getOrDefault ["stage",""]) in ["START","MOVE"]) then {
-    _drill getOrDefault ["movers",_drill getOrDefault ["units",[]]]
+    if ((_drill getOrDefault ["stage",""]) == "START" && {(_drill getOrDefault ["teams",[]]) isNotEqualTo []}) then {
+        // Selected movers change before new destinations exist. The prior bound's movers
+        // cannot identify the next team during this admission interval.
+        (_drill get "teams") param [_drill getOrDefault ["teamTurn",0],[]]
+    } else {_drill getOrDefault ["movers",_drill getOrDefault ["units",[]]]}
 } else {[]};
 // Reserve an opportunistic grenade thrower only for its short action window.
 if (time < (_drill getOrDefault ["grenadeActionUntil",-1])) then {
@@ -94,9 +130,7 @@ if (_armourIndex < 0) exitWith {false};
 (_enemies select _armourIndex) params ["_enemyUnit", "_enemyPos"];
 private _armour = vehicle _enemyUnit;
 private _gunners = (units _group) select {
-    private _actorMove = _x getVariable ["CBE_Cortex_ActorMove",[]];
-    ([_x] call _actorAvailable) && {!(_x in _moving)} && {!(_x in _recovering)} && {unitCombatMode _x in ["YELLOW","RED"]} && {isNull objectParent _x} && {"AT" in ([_x] call CBE_fnc_CortexCapabilities)}
-        && {count _actorMove != 3 || {_now >= (_actorMove select 2)}}
+    ([_x] call _actorAvailable) && {!(_x in _moving)} && {!(_x in _recovering)} && {unitCombatMode _x in ["YELLOW","RED"]} && {isNull objectParent _x} && {"AT" in ([_x,false,true] call CBE_fnc_CortexCapabilities)}
 };
 if (_gunners findIf {assignedTarget _x == _armour && {(_x getVariable ["CBE_AIPass_TargetHold", -1]) > _now}} >= 0) exitWith {false};
 private _ranked = [];
@@ -108,11 +142,20 @@ private _gunner = _gunners select ((_ranked select 0) select 1);
 
 private _eye = eyePos _gunner;
 private _behind = _eye vectorAdd ((_eye vectorFromTo (ATLToASL _enemyPos)) vectorMultiply -4);
-private _blocked = (lineIntersectsSurfaces [_eye, _behind, _gunner, objNull, true, 1]) isNotEqualTo []
-    || {((_gunner nearEntities ["CAManBase", 6]) select {_x != _gunner && {side group _x == side _group}}) findIf {
-        private _offset = (getPosASL _x) vectorDiff (getPosASL _gunner);
-        (_offset vectorDotProduct ((ATLToASL _enemyPos) vectorDiff (getPosASL _gunner))) < 0
+private _blocked=(lineIntersectsSurfaces [_eye,_behind,_gunner,objNull,true,1]) isNotEqualTo [];
+if (!_blocked) then {
+    private _rearActors=_gunner nearEntities ["CAManBase",6];
+    private _gunnerOrigin=getPosASL _gunner;
+    private _threatAxis=(ATLToASL _enemyPos) vectorDiff _gunnerOrigin;
+    _blocked=count _rearActors > 64 || {_rearActors findIf {
+        private _otherSide=side group _x;
+        private _protected=captive _x || {_x getVariable ["ace_captives_isSurrendering",false]}
+            || {_x getVariable ["ace_captives_isHandcuffed",false]};
+        _x != _gunner && {alive _x}
+            && {_protected || {_otherSide == civilian} || {(side _group) getFriend _otherSide >= 0.6}}
+            && {((getPosASL _x) vectorDiff _gunnerOrigin) vectorDotProduct _threatAxis < 0}
     } >= 0};
+};
 // Holding/clearing owns the destination even when the gunner may fire from it.
 private _mayRelocate={
     if (!([_gunner] call _actorAvailable)) exitWith {false};
@@ -144,7 +187,7 @@ if (_blocked) exitWith {
     private _relocationRoute=[_group] call CBE_fnc_NativeOrderReceipt;
     if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};
     if !([_gunner] call _actorAvailable) exitWith {false};
-    private _spot = ([(getPosATL _gunner) getPos [6, (_enemyPos getDir _gunner) + selectRandom [-70, 70]], _enemyPos, 8, [], _group] call CBE_fnc_CortexFindCover) select 0;
+    private _spot = ([(getPosATL _gunner) getPos [6, (_enemyPos getDir _gunner) + selectRandom [-70, 70]], _enemyPos, 8, [], _group,"COVER",_gunner] call CBE_fnc_CortexFindCover) select 0;
     if (!call _mayRelocate || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _relocationRoute}) exitWith {false};
     _gunner doMove _spot;
     _gunner setVariable ["CBE_Cortex_ActorMove",["ANTI_ARMOUR",+_spot,_now+10]];
@@ -153,6 +196,12 @@ if (_blocked) exitWith {
 };
 if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};
 if !([_gunner] call _actorAvailable) exitWith {false};
+private _fireObservation=createHashMap;
+if !("AT" in ([_gunner,false,true,_fireObservation] call CBE_fnc_CortexCapabilities)) exitWith {false};
+// Use the retained native belief, not the hidden target object's current world pose.
+// The loaded launcher's config supplies blast policy; reserves cannot qualify this request.
+private _firePoint=(ATLToASL _enemyPos) vectorAdd [0,0,1];
+if !([_gunner,_firePoint,_fireObservation get "loadedMagazine"] call CBE_fnc_CortexLineOfFireClear) exitWith {false};
 _gunner doTarget _armour;
 _gunner doFire _armour;
 _gunner setVariable ["CBE_AIPass_TargetHold", _now + 15];

@@ -1,0 +1,51 @@
+{
+  "base": "c5b3b167",
+  "scope": "Convoy mission-disabled movement admission/suspension and selected HBQ traffic/refresh-route contrast; not whole controller parity.",
+  "finding": "Shared convoy command guard and pre-acknowledgement native-task suspension omitted MOVE/PATH flags on actual driver/commander. Combat effectiveness and reservation predicates do not cover these flags. Lead recall and release taskFree already did; disabled actors could otherwise receive startup/path/cap writes or expire pending requests into a persistent command yield.",
+  "change": "Either actual local controlling seat with MOVE/PATH disabled enters existing NATIVE_TASK suspension before native acknowledgement handling. Every new vehicle write through mayIssueDriving rechecks both flags on both seats. Existing exact cleanup/no-recall policy reused; no feature enable, new controller/timer/query, pacing gain or safety-cap change.",
+  "reference": {
+    "controllerSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "controllerSection": "traffic prediction/following around997..1130; current pacing already has continuous gap control and mass-aware closing caps, no new gain change justified.",
+    "helper": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_refreshRoute.sqf",
+    "helperSha256": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8",
+    "helperSection": "header and commanded/crew route-refresh paths throughline100; includes enabling PATH/MOVE after recovery. CBE preserves mission choice rather than copying that mutation."
+  },
+  "hashes": {
+    "addons/vehicles/functions/convoyTick.sqf": "5853c55bd98267a320ab35da763edd476e40ce1758d582c94e3b934dadfe5b08",
+    "addons/vehicles/functions/convoyReleaseLocal.sqf": "60578c194b38e72d32ee0b5da13fb767e82da2f8503603be4bcee5039a847857",
+    "addons/infantry/functions/cortexActorMoveReserved.sqf": "80afc902cd6aea347aece06ec50074d366cdbef4e44a015506e19be66d506d69",
+    "addons/infantry/functions/cortexCombatEffective.sqf": "2914f40449f6e189410fbba8ca908585904bfe6d6188adf7964065d358c69ced"
+  },
+  "validation": {
+    "focusedExistingCases": 2,
+    "existingFullCases": 1491,
+    "compiledSQF": 412,
+    "PBOs": 9,
+    "independentVerification": true,
+    "newCases": 0
+  },
+  "candidate": ".qa/candidates/convoy-disabled-movement-c5b3b167",
+  "fingerprint": "03eea6e38aba4a022d201d710f6c9ed86894bcddc9c5f1bd0f1820a453db51b0",
+  "limits": "Offline authority correction only. Normal/HC disable-resume, actual path retirement and fresh route travel, mixed-column flow and5/10performance unverified. Unsigned dirty development includes unrelated dirt; review/notes postdate package. Audits PAUSED; no physical/parity/score credit.",
+  "ordinaryDrivingFollowup20261024": {
+    "base": "2afca79a",
+    "finding": "Ordinary driving already checked both MOVE/PATH flags at new-write admission, but its earlier callback could classify existing recovery acknowledgements and set route-yield evidence before reaching disabled-task release. Shared nativeTaskFree did not cover mission flags.",
+    "change": "Before ordinary recovery/consent classification, either actual local nonnull controlling actor with disabled MOVE/PATH invokes existing DrivingAssistRelease and continues to the next vehicle. Existing specialized cleanup and command-boundary flags remain. No setting re-enable, request, handler, query, timer, deadline reset or new control layer.",
+    "hashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "f76c8f7249d46b831c8adf6e4a2a97c05a737d6dc552e86bca86335221312417",
+      "addons/vehicles/functions/drivingAssistRelease.sqf": "ec0795c101b845b223e9d928e83e2481dcd6846687944c68fef1ceda6eda90a9",
+      "addons/vehicles/functions/drivingRecoveryRelease.sqf": "79c9d1377e462a60a60747b157a6ec21610bea536ca94aacddcdfaa1430cc736"
+    },
+    "validation": {
+      "focusedExistingCases": 10,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/driving-disabled-movement-2afca79a",
+    "fingerprint": "8d6856a548c633038ae3409b6f29f9f2254ebd93eb25ac882854c133eefd5dd1",
+    "limits": "Owner-local source ordering correction, not physical recovery/cleanup/resume, actual seat propagation or measured performance proof. Unsigned dirty development includes unrelated dirt; review/notes postdate package. Audits PAUSED."
+  }
+}

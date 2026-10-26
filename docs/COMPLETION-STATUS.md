@@ -1,18 +1,146 @@
 # CBE completion status
 
-Checked against the feature registry and local build evidence on 17 October 2026.
+Checked against the feature registry and local build evidence on 19 October 2026.
 CBE is not production-ready. All **65 feature families remain partial; 0/65 have full acceptance**.
-This is an acceptance count, not a claim that implementation is zero percent. The former
-implementation percentages were withdrawn because source inventories, registration and offline
-test counts did not measure delivered AI behaviour. No defensible overall implementation or
-Workshop-parity percentage is available.
+This is an acceptance count, not an implementation percentage. Track capability build-out separately in
+[Build-out progress](BUILDOUT-PROGRESS.md), with explicit partial credit and remaining code/integration gaps.
+Physical acceptance does not reduce build-out to zero. Unassessed build scope stays unknown; source file,
+setting and test counts do not supply implementation or Workshop-parity percentages.
+
+## Current build-out estimate
+
+The current registered product-plan build-out index is **approximately 80%**, with explicit subsystem weights and capability denominators in [Build-out progress](BUILDOUT-PROGRESS.md). All 64 product families have provisional assessments; the equal-force battle scenario is acceptance-only and earns no build credit. Most broad-survey estimates are low-confidence and require deeper review. This index does not include a fully reconciled denominator for every remaining Workshop contribution, does not measure remaining effort and is not readiness. Physical acceptance and source parity stay separate.
 
 ## Current evidence boundary
 
+- Subsequent CQB egress working candidate based on `0db65e6d` passed **1,444 tests,334 production SQF,nine PBOs** in `.qa/cbe-clear-egress-allocation-build.log`. Independent verification passed for unsigned fingerprint `edd711c70886af990e9ed2c944f51438f6f67029cd22c0deb7a90c1d94273709`; manifest dirty=true includes the pending source change and preserved unrelated deletions. Source hashes are recorded in `clear-egress-allocation-20261019.json`. This adds bounded allocation retries with adopted original budgets, not physical acceptance or a build-out score increase.
+
+- Latest sealed full offline build records commit `8fa63881e466bb6599a6aff5a6b35815069e0e44`, with **1,443 tests,334 compiled production SQF,nine PBOs**. Log: `.qa/cbe-pushed-8fa63881-build.log`; unsigned fingerprint `6798b1f0a06eb12a5a9a7e10561ba7a9f2273d7c7e6697130438400152f7d959`. Independent verification passed. The manifest records dirty=true because seven unrelated tracked deletions were preserved outside the commits. This is not a clean release artifact. Later tracker/documentation changes do not establish new production or physical acceptance.
+- Recent implementation covers mounted support/report discovery, mutual radio eligibility, original observation age, personal native observer selection, ignored-target handling in natural indoor/ground/air work, exact support reservation binding/expiry, ASL ground arrival and indexed gate detection/opening. Gate phase sampling is bounded8; ambiguous barrier metadata checks can rise8to32 per class. Physical effects and aggregate cost remain unverified.
+- Latest changes add bounded gate-unlock reconsideration, shared CQB request observation across recovery/alternate/pair retries, unchanged lane clocks while yielding, explicit driver replacement role priority and reduced rear-clearance native queries. The302-case affine hull oracle proves the mathematical model only; native precision, actual flow, gunnery retention and measured overhead remain unverified.
+- The user explicitly keeps audits paused and asks implementation to continue. Negotiated queue movement remains unimplemented despite owner consent; native execution and physical handback are still required. No new completion percentage or parity credit is assigned.
+
+- Distributed performance sampling now reads legacy/current callback schemas, preserves unknown context and reports missing callback timing as -1 instead of zero. Context-presence flags do not count unique callbacks or prove coverage. No new benchmark or performance acceptance is claimed.
+
+- Execution-context correction: normal shared-scheduler jobs are called from the CBA PFH and run unscheduled. Earlier scheduled-geometry/intra-call scheduler-yield descriptions were overbroad, not demonstrated races. The budget applies between jobs. Actual canSuspend is now captured in the bounded callback ring; older samples stay unknown. Added guard/copy/hull cost still requires measurement.
+
+- Normal wheeled convoy QA now prepares rapid public HALT/resume replacement followed by old-FSM retirement, newest applied-cap checks and every vehicle travelling 25 m forward. The fixture is unrun and does not prove every race timing, HC or physical acceptance.
+
+- Refused passage creation/progress/retirement now returns explicit DEFERRED. ConvoyTick stops before consuming refused caps or treating work as ended, retaining prior applied controls for the existing next tick. Physical response and performance remain unverified.
+
+- Previously passed corridor/bypass vehicles now recheck current crew and full hull beyond the exit plane. Returning hulls lose current clearance credit and re-enter existing observation/cap logic without renewed deadlines. Physical reversal, delayed geometry freshness and added bounded cost remain unverified.
+
+- New convoy corridor/bypass passage proposals now publish only while original owner, lead work, route, terminal result, gates, deadline and empty slot remain current. Geometry is prepared separately; physical crossing quality and aggregate cost remain unverified.
+
+- Corridor/bypass tail progress now uses copied rows and publishes only under unchanged episode/owner/original-row context. Bypass capture history commits with those rows; rejected proposals cannot overwrite successor progress. Active creation, geometric freshness and runtime/performance remain unverified.
+
+- Corridor/bypass cancellation now carries captured episode and owner-context receipts. Retirement atomically rechecks current episode/brain/job/epoch/registry before result publication and deletion, preserving retained or replaced successor work. Active passage creation/progress and physical cancellation/cost remain unverified.
+
+- Convoy release retains original brain/job/epoch/registry/local-state/baseline and guards group, per-vehicle and final restoration transactions. FSM release passes its expected job token. Physical cancellation, handover and cost remain unverified.
+
+- Convoy FSM final retirement now rechecks original brain/job/registry after cleanup before clearing brain/FSM slots. A replacement keeps its slots. Cleanup-internal policy/path writes and physical handover still require review and validation.
+
+- Convoy FSM callbacks now recheck original owner epoch, brain/job/configuration and registry after the physical tick and atomically before phase/counter/next-step publication. Replaced callbacks retire without publishing those results. Physical interruption and cost remain unverified.
+
+- Shared convoy command admission now binds the original brain/configuration, job token, registry revision and owner epoch. Lead/follower smoothing cap records publish with admitted speed commands rather than rejected proposals. Mixed-column stop/start and measured cost remain unverified; spacing tuning is unchanged.
+
+- Queue discovery now claims and publishes under the original driving brain/epoch and unchanged traffic observation/retry records. Scheduled discovery cannot adopt a replacement brain for consent submission. This supplies no native queue execution or physical acceptance.
+
+- Recovery retirement now rechecks the selected live teammate identity and both actors at publication, retaining existing 12 m/1.5 m vertical cohesion limits. Stale rally coordinates cannot prove rejoin. Physical navigation and performance remain unverified.
+
+- Separated-actor recovery now copies retry rows and admits each command/attempt journal under the current child, phase and native actor context. Issued attempts persist even if later roster publication yields. Final recovery publication is guarded; physical rejoin freshness and measured cost remain open.
+
+- Arrival-stage and post-grenade clear-through commits now recheck the original physical arrival witnesses against assigned ASL targets, retaining existing quorum, 3 m range and 1.5 m floor tolerance. Departed, transported or unavailable witnesses defer progression; runtime flow and overhead remain unverified.
+
+- Ordinary bound-arrival stages and pause deadlines now publish together under current child/owner, MOVE identity, roster/team and spot checks. Smoke and assault preparation remain scheduled after admission. Physical arrival freshness and tactical flow remain unverified.
+
+- Assault clear-through now rechecks its original MOVE identity, child/owner authority, roster, route, objective and assault feature after grenade preparation before advancing START/index. Refusal defers; movement retains separate admission and physical flow remains unverified.
+
+- HOLD assault-route publication now rechecks current phase, roster, route, native actor tasks, feature and reported objective after scheduled avenue selection. Refused proposals defer without publishing an assault or replacing their retry delay with immediate rescheduling. Physical timing remains unverified.
+
+- Consolidation enrollment and its pending START now commit together after current task, roster, route and actor-native checks. Refused issue cannot leave HOLD falsely eligible for completion. Physical follow-through and tactical layout remain unverified.
+
+- Elapsed manoeuvre PAUSE commits its next index/turn and START phase together under current-task checks.
+  A refused movement issue retries the pending bound rather than advancing PAUSE again. Physical continuity remains unverified.
+
+- Consolidation actor lists no longer shadow the support-mode boolean read by movement helper
+  CODE through SQF dynamic scope. This removes a concrete array/boolean input hazard during
+  follow-through; actual consolidation and its remaining task transitions still need physical validation.
+
+- Arrived-phase smoke/fragmentation requests now carry their original group/drill/generation/epoch.
+  Queue admission, delayed aiming and final native release refuse a replaced parent instead of
+  adopting its new token. Existing selection/safety rules remain; physical throws remain unverified.
+
+- MOVE quorum/straggler recovery, replacement preparation and failure feedback now recheck the
+  committed bound records, current tasks/route and fresh arrival/blocked motion before publication.
+  Refusal defers; later arrived-phase side effects and physical behaviour still require review/validation.
+
+- A delayed manoeuvre callback no longer marks a newly retried actor stalled immediately. The sole
+  admitted retry receives the existing eight-second observation interval; physical progress clocks
+  and the fixed bound deadline remain unchanged. Expired bounds issue no retry; live timing remains unverified.
+
+- Manoeuvre feature restoration and recovery team reassignment now use current-context helper
+  transactions. Refusal defers instead of restoring over a replacement or reporting recovery losses.
+  This does not complete later phase bookkeeping, native acknowledgements or physical acceptance.
+
+- MOVE arrival holds and one-shot retries now commit with copied progress/retry observations under
+  the current bound, task and actor-native context. Current waypoint metadata and fresh arrival/motion
+  checks must still match; refused proposals spend no retry. Physical interruption remains unverified.
+
+- Manoeuvre progress now measures actual 3D approach/travel and checks the arrival floor band.
+  Recovery targets an actual eligible teammate, preferring the buddy, instead of a centroid that
+  can fall between floors. Legacy record conversion preserves clocks; terrain/building behaviour remains unverified.
+
+- Drill cleanup now commits its actor/group restoration, handler removal, formation/hold writes and
+  feedback under the same current state/token/epoch/generation check. Shared operation release
+  remains separate, followed by guarded terminal retirement. Physical cleanup and cost remain unverified.
+
+- Finite manoeuvre cleanup now carries the original child drill token instead of selecting a newer
+  drill from a mutable state map. Stage/parent-phase/history publication also atomically requires
+  the current child token. Complete cleanup interleavings and physical handover remain unverified.
+
+- Main manoeuvre bound geometry is now prepared before an atomic movement/cover commit. Current
+  point, roster, phase, operation/epoch, support role and actor-native observations must still match
+  before commands and bound journals publish. Refused proposals defer; physical timing remains unverified.
+
+- Manoeuvre casualty roster proposals now remain private until current drill membership, phase,
+  operation/epoch, support role and actor-native observations pass one publication transaction.
+  Refused observations defer without cleanup or renewed deadlines; physical refill remains unverified.
+
+- Shared manoeuvre admission/cleanup, medical assistance and stance control now preserve malformed
+  or nonfinite actor reservations through the strict owner-local predicate. Stance release for known
+  tasks also requires a fully typed record. Physical service interruption and restoration remain unverified.
+
+- Coordinated bounds now match both group and reservation token when retaining active turns.
+  Superseded turns disappear without imposing a retry penalty on the replacement; public roles,
+  aborts and retry writes recheck the live lease atomically. Network/HC replacement remains unverified.
+
+- Convoy audit capture now retains bounded actual native-command issue histories, including pre-command
+  pose, remaining destination distance, elapsed issue age and reason. Normal driving gains no new
+  command or tuning. The prepared fixture logs unseen events; mixed-column causation remains unresolved.
+
+- Coordinated bound admission now checks current state, gates, role/lease, actor availability and
+  owner epoch in one unscheduled allocation transaction. A superseded scheduled observation cannot
+  create a new local drill. Network cancellation delivery and physical takeover remain unverified.
+
+- Manoeuvre casualty and recovery transfers now prefer an unpaired survivor, then a whole buddy
+  pair when donor cover can remain. Minimum surviving movement/cover capacity takes priority.
+  Physical refill continuity and interruption remain unverified; no runtime acceptance is added.
+
+- Coordinated bound teams retain eligible existing battle buddies together before balancing remaining
+  actors. All available roles stay enrolled; pair cohesion may produce unequal teams. This changes
+  roster composition only: physical buddy follow-through, casualty refill and tactical quality remain unverified.
+
+- Coordinated bound selection now uses strict owner-local actor reservation validation. The server
+  never expires a nonempty nonlocal reservation from its own clock; remote empty markers are only
+  planning candidates, with final admission retained on the group owner. HC timing remains unverified.
+
 - Audits are paused by the user. No new in-game result is claimed here.
-- The latest clean review source is `48a77bb`. Its complete Release build and fixed-key signing passed; nine signatures verified and nine damaged controls were rejected again after ZIP extraction. These package checks add no behaviour acceptance.
+- Current driving source adds current-position passing joins, live return monitoring, return-entry timing and gradual static-bypass ramps. Bypass path issue and retirement use unscheduled authority checks. Native queue negotiation, stopped-merge recovery, subsystem-off cleanup observation and measured steering/performance remain incomplete.
+- The last independently verified signed Release source remains `48a77bb`, predating the current CBE work. Its complete Release build and fixed-key signing passed; nine signatures verified and nine damaged controls were rejected again after ZIP extraction. These package checks add no behaviour acceptance.
 - Recent source changes protect actor ownership across smoke, drill refill, coordinated support, crew replacement and airborne exits. Airborne execution/cleanup uses insertion episodes. CQB preserves unchanged owned MOVE through native readiness changes; opt-in bounded entry diagnostics and stronger independent visit geometry prepare later investigation. These effects remain physically unverified.
-- The latest local code validation passed **1089 tests** and all sequential offline gates.
+- The `a48a6ad4` implementation checkpoint passed **1186 tests** and all sequential offline gates.
+  Subsequent checkpoint logs and scoped limits are recorded in `AGENT-HANDOVER.md`; this count is not physical acceptance.
   The current batch adds authenticated combined-ground failure replacement, exact role/operator authority,
   owner-epoch application receipts and durable destination/recovery journals. Active route changes retire
   movement; capability checks retain the original expiry. Routine ground gunnery yields to the live role.
@@ -168,3 +296,43 @@ behaviour or establishes the runtime performance budget. The latest full offline
 Audits remain paused. All physical acceptance and the 5% median / 10% p95 overhead requirement
 remain open. The sealed signing artifact is a separate historical candidate; later source work
 must not be represented as included in that artifact.
+## CQB native movement adoption - 2026-10-18
+
+Clearance now records episode-bound native MOVE/physical STOP metadata and adopts matching interior work during true owner resume. Adoption checks actual command, destination or held position, current operation membership, building transform, route and immutable visit context; it does not replay orders, extend deadlines or award visits. Terminal/explicit release retires only the original receipt. Existing room callbacks coalesce acknowledged motion records, without a new scheduler or world scan. Native acknowledgement timing, casualty-roster replication, physical migration, coherent entry and runtime cost remain unaccepted; audits remain paused.
+
+True CQB resume now prefers eligible members of the matching common CLEAR roster over separately replicated buddy metadata, and rechecks roster/visit snapshots before committing admission. Casualty promotion records its existing owned MOVE or physical STOP within the same local transaction as participant publication. Cross-machine receipt delivery is still not atomic; delayed/missing replicated state and physical migration remain unaccepted.
+
+Locality cleanup cancels and removes the common operation before discovery resumes clearance. A separate visit-context roster journal now preserves eligible entry selection across that path. Initial admission and casualty promotion publish it under current operation guards; resume verifies its exact episode and unchanged snapshot before acquisition. Terminal and explicit release retire only a matching episode. The journal does not authorize movement, restore commands or renew lifetime. Discovery already retries unapplied clears; network ordering and physical adoption remain unverified.
+
+Locality checkpoint mover recall now requires the exact finite 3D destination of an actual MOVE, with no active durable clearance or actor reservation. Later STOP/idle/combat tasks no longer inherit old drill movement ownership. Exact PATH-holder release remains separate. Source review confirms OperationRestore does not restore old-owner settings on OWNERSHIP_LOST; physical locality behaviour remains unverified.
+
+Calm cleanup restores PATH only with the actual legacy support marker; ordinary drill holders no longer enable PATH. Search-team return is restricted to movement/hold command classes and yields to active clearance, Zeus, external control, reservations, mounted or ineffective actors. Exact search MOVE/neutral hold provenance remains incomplete, so this does not establish complete handover safety or physical continuation.
+
+Investigation/search now records per-actor destinations only after admitted native MOVE issue, with current group state/epoch/route and actor-task guards. Checkpoints retain bounded receipts. Contact, search completion and calm handback require the actual MOVE or completed idle destination within0.25m3D and unchanged authored route, preserving newer STOP/service/MOVE tasks and clearance. No replay or new scheduler is added. Physical transition/migration and native acknowledgement timing remain unverified; neutral holder provenance is still incomplete.
+
+Search/contact and calm formation handback now commit ownership checks and native recall within the same unscheduled block. Tick handback verifies the current state and leader; calm handback selects a current combat-effective anchor. This closes a scheduled check/write gap without a new worker, but does not prove physical migration or neutral-hold provenance.
+
+Gate opening now commits final authority checks and animation atomically: original request expiry, actual crew/owners/native services, live convoy revision/TRAVEL membership, route, locks, pose and unchanged animation phases must remain valid. Concurrent opening records are rechecked without geometry queries in the commit. Gate automation is partly implemented; directional passage, automatic closure, unknown gate models and physical braking/passability remain incomplete.
+
+Passing negotiation now refuses live or malformed queue consent. Queue validation uses an explicit internal eligibility mode while retaining its independent passing-consent refusal, preventing overlapping pending/agreed roles. Expired well-formed queue consent does not indefinitely block passing. This is negotiation exclusion only: queue HOLD/READY/reverse/dependency execution remains unimplemented.
+
+Ordinary rear-path recovery now records its start pose/direction and rejects native turns over20degrees, forward displacement over1m, rear travel over10m or lateral departure over2.5m. Missing inherited pose proof also retires the rear leg. The existing exact route handback retains original deadlines, with a zero safety cap during rejection. This constrains a rear MOVE; it does not establish native reverse capability, queue room-making or continuous collision safety. Physical wheels/tracks/slope testing remains outstanding.
+
+Native driver/commander locality now offers pending driving cleanup through the existing actor init/Local handler, covering crew arrivals after the vehicle adoption lookup expired. Passengers and nonlocal vehicles cannot register through this path. The same finite lookup and exact cleanup checks apply; no rear leg or movement deadline is renewed. Receipt delivery with no later locality event remains unresolved, and physical owner/crew timing remains unverified.
+
+Tracked reverse release now checks the exact published reverse and command records in the same unscheduled block as native STOP/turn retirement. Local progress edits use copied arrays rather than mutating public records before commit. Replaced episodes retain their controls and metadata. Native start/steering commit boundaries and physical reverse remain under review; this is not queue execution.
+
+Tracked reverse START and steering now commit native commands with current operation/epoch, exact crew/native route/records, feature/Zeus/reservation gates and fresh pose/geometry checks. Planning remains scheduled; commit requires observation age<=1s, pose drift<=1m and heading drift<=5degrees. Initial expiry is captured before planning. Refused steering releases only matching work and returns RELEASED. Native reverse effectiveness, sampling limits and queue-specific execution remain unverified.
+
+Tracked reverse now refreshes its no-progress clock only after at least2m net separation along the original away axis while still threat-facing. Sideways travel, forward drift and oscillation back to a previous anchor no longer count. The original leg deadline remains unchanged. Numerical/source checks do not establish native reverse effectiveness or terrain handling.
+
+Temporary group-route admission now validates its captured operation generation and owner epoch before reuse, edited-route marking and atomic replacement. Unscoped admission refuses if an operation appeared after capture. Tracked reverse fallback callers pass their original generation instead of adopting whichever operation is live later. Caller phase publication and full native-route interruption remain separate review items; physical handover remains unverified.
+
+Common operation completion/cancellation now retire their public operation and result atomically only if the original record, generation and entry owner epoch remain current after cleanup. Completion rechecks external takeover and delegates matching cancellation instead of publishing COMPLETE. This protects successor state; earlier cleanup side effects and physical lifecycle transitions still require review and in-game validation.
+
+Operation attack-permission restoration now checks the exact current operation and performs its existing bounded roster/lease/value checks in the same unscheduled block as lease consumption and enableAttack. No movement, geometry query or additional observer is added. This closes a scheduled check/write gap; same-value external setting edits and physical handover remain unverified.
+
+Vehicle withdrawal now publishes RETREAT/MOVING and marks the hull withdrawn only after matching current reverse admission or a committed generation-bound fallback waypoint. State/operation/epoch are rechecked in the transaction; lease timing derives from original operation start. Refusal retires only the matching incomplete operation and releases its lease only after matching termination with no successor. Existing sparse retry remains; physical withdrawal and long-contact retry policy remain unverified.
+
+
+Automatic queue negotiation is inactive until its physical executor exists. Internal discovery/consent APIs remain implemented, now with actual-owner native move/turn receipts. This removes unconsumed automatic agreements that could block passing for30seconds; ordinary traffic recovery remains available. Queue HOLD/READY/dependency execution is still missing.

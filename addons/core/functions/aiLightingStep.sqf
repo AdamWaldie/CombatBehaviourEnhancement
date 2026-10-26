@@ -3,6 +3,9 @@
  * Refreshes lighting, sensor and crew-seat skill layers for at most ten registered local AI.
  * Locality / Authority: Runs on the unit owner through the shared budgeted scheduler. No world scan.
  * Repeat/JIP: One generation-bound job per owner; stop invalidates it. Joining owners register local AI.
+ * A declared skill owner releases exact CBE effects on the next bounded pass, even when lighting
+ * is unchanged. Player-controlled actors remain registered while any skill/aim receipt needs
+ * cleanup, including partial receipt delivery. Completed releases do not repeatedly parse absent receipts.
  * Arguments: 0 state <HASHMAP> containing subsystem SKILLS and generation <NUMBER>.
  * Return Value: NUMBER - next delay in seconds, or -1 when disabled or superseded.
  * Current callers: CBE_fnc_AIRebalanceInit through CBE_fnc_CortexQueueJob.
@@ -14,7 +17,11 @@ if ((_state getOrDefault ["generation", -1]) != (missionNamespace getVariable ["
 private _units = missionNamespace getVariable ["CBE_Cortex_LightingUnits",[]];
 private _cursor = missionNamespace getVariable ["CBE_Cortex_LightingCursor",0];
 if (_cursor >= count _units) then {
-    _units = _units select {!isNull _x && {alive _x} && {local _x} && {!isPlayer _x || {!isNil {_x getVariable "CBE_AI_OriginalSkills"}}}};
+    _units = _units select {!isNull _x && {alive _x} && {local _x} && {!isPlayer _x
+        || {!isNil {_x getVariable "CBE_AI_OriginalSkills"}}
+        || {!isNil {_x getVariable "CBE_AI_AppliedSkills"}}
+        || {!isNil {_x getVariable "CBE_AI_OriginalAimCoef"}}
+        || {!isNil {_x getVariable "CBE_AI_AppliedAimCoef"}}}};
     missionNamespace setVariable ["CBE_Cortex_LightingUnits",_units];
     _cursor = 0;
 };
@@ -29,9 +36,19 @@ for "_i" from _cursor to ((_cursor + 9) min ((count _units)-1)) do {
     private _signature = [_mode,_dark,hmd _unit,netId _profileVehicle,_profileSeat,_precisionExcluded];
     private _humanControl=isPlayer _unit || {!isNull remoteControlled _unit}
         || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])};
+    private _skillOwner=_unit getVariable ["CBE_AI_SkillOwner",""];
     private _profileBlocked=_humanControl || {_unit getVariable ["CBE_AI_Exclude",false]}
+        || {!(_skillOwner isEqualType "")} || {_skillOwner != ""}
         || {[_unit] call CBE_fnc_CortexExternalOwner != ""};
-    if (local _unit && {_profileBlocked}) then {[_unit] call CBE_fnc_AIRestoreProfile};
+    if (local _unit && {_profileBlocked}) then {
+        // Sticky mission ownership remains checked, but an already released layer has no work.
+        if (!isNil {_unit getVariable "CBE_AI_OriginalSkills"}
+            || {!isNil {_unit getVariable "CBE_AI_AppliedSkills"}}
+            || {!isNil {_unit getVariable "CBE_AI_OriginalAimCoef"}}
+            || {!isNil {_unit getVariable "CBE_AI_AppliedAimCoef"}}) then {
+            [_unit] call CBE_fnc_AIRestoreProfile;
+        };
+    };
     if (local _unit && {alive _unit} && {!_profileBlocked} && {_signature isNotEqualTo (_unit getVariable ["CBE_Cortex_LightingSignature",[]])}) then {
         [_unit] call CBE_fnc_AIApplyProfile;
     };

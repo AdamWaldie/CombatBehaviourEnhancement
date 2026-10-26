@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "ae3ffd6f",
+  "scope": "Shared tactical drill executor admission",
+  "finding": "Handle zero was treated as failure; startup queued an unkeyed degraded FlankStep while the real FSM could be live. Callers also returned success regardless of startup result.",
+  "implementation": [
+    "Accept only numeric finite nonnegative live handles, including zero. Require current owner epoch and operation generation before duplicate reuse.",
+    "Remove the alternate degraded scheduler path. Genuine failed/ended startup calls existing exact-token FlankEnd with FSM_START_FAILED and returns false.",
+    "All five actual callers propagate failure; assault counter increments only after successful start. No new task deadlines or retry budgets."
+  ],
+  "sourceIntent": "One owner-local finite FSM observes lifecycle while the existing shared scheduler executes bounded tactical steps; no second movement controller.",
+  "validation": {
+    "compiler": ".qa/cbe-drill-startup-hemtt.log",
+    "focused": ".qa/cbe-drill-startup-focused.log",
+    "fullPipeline": ".qa/cbe-stealth-drill-batch-final-build.log",
+    "independent": ".qa/cbe-stealth-drill-independent.log",
+    "existingTestsPassed": 1476,
+    "fingerprint": "c5091fff5510e2a5612b01477f7132c990015d98c15752b90baa0cbf86375bdb",
+    "manifestSource": "ae3ffd6f8a3041142650b78fb33ed4274f1a0001+dirty development; unsigned"
+  },
+  "remaining": [
+    "Physical handle-zero/failed-start injection and ordinary/HC handback unverified.",
+    "Ended-after-start tactical executor recovery and malformed journals remain separate lifecycle work.",
+    "No whole-source parity or runtime performance claim."
+  ],
+  "audits": "PAUSED",
+  "newTestCases": 0,
+  "newWorkers": 0,
+  "scoresChanged": false,
+  "checkpointNote": "First full run caught obsolete unconditional support-start assertion; existing case now requires propagated executor result. No cases added or removed.",
+  "sourceHashes": {
+    "addons/infantry/functions/cortexDrillStart.sqf": "57460b81857cee470358ea9116561ee8d50c601fb01f00f1791bc991d1ae8eeb",
+    "addons/infantry/functions/cortexFlankEnd.sqf": "896c26c4655fabc6def455ad7636e5b07e11174fccd2fd552b261b3836c38a96",
+    "addons/infantry/functions/cortexAssaultStart.sqf": "0009dbca8ce9688359f79149575954095753ba09c3cc327efd5cb954bd5fc4fe",
+    "addons/infantry/functions/cortexAdvanceStart.sqf": "977e959034a367000a347ec3c91c5741ac2ffdb39d4fbadaf544b137e8b70e06",
+    "addons/infantry/functions/cortexFlankStart.sqf": "575c192a24bd4b717280255bc1711bbc4d75510132f02d864bd7353ea825ca9b",
+    "addons/infantry/functions/cortexDrillResume.sqf": "9e513c9af4dafd74a98a7d3fd90c603b790449721bebad23ecb1aa5ccf74a58a",
+    "addons/support/functions/cortexSupportBoundStart.sqf": "5f2232411c47e0a125236d222357d6717356ac63fa09693adf728c150ddb7027"
+  }
+}

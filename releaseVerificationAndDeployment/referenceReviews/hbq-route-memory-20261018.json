@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-18",
+  "baselineCommit": "26177efc",
+  "scope": "HBQ final-route memory branch and CBE convoy endpoint retry command boundary",
+  "reference": {
+    "workshopId": "3812620045",
+    "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "linesReviewed": [
+      2296,
+      2387
+    ]
+  },
+  "findings": [
+    "HBQ remembers the final MOVE and restores it when the route ends while stopped far away. It may recreate a deleted waypoint with stored statements and properties, refresh the route, then escalate failed progress into route-lost relocation.",
+    "CBE only retries a still-existing unchanged plain MOVE. It does not recreate deleted waypoints, replay scripts or authorize relocation.",
+    "CBE checked waypoint identity before scheduled command issue. A replacement controller, registry, seat or native command could intervene before setCurrentWaypoint and doMove."
+  ],
+  "implementation": [
+    "Final endpoint retry now rechecks captured brain, configuration, token, registry revision/membership, group/vehicle/crew locality, current seats, TRAVEL phase, feature gate, completed route, exact authored receipt, intentional waits, unchanged native command/destination receipts and absence of competing corridor/bypass work in one unscheduled transaction.",
+    "Retry count and cadence update only after command admission. No new world query, native movement writer, teleport or waypoint recreation.",
+    "Public CBE_Convoy_EndpointRecovery stores revision, exact route receipt, original start/deadline, attempts, next eligible server time and terminal exhaustion. Only changed revision/route may create a new allowance; expiry/count refusal issues no movement and does not renew clocks."
+  ],
+  "remaining": [
+    "Initial finite endpoint retry policy implemented: six admitted recalls within the original120 seconds with15-second public cooldown, retained across owner/local-state replacement. Physical timing and migration acceptance remain outstanding.",
+    "An unchanged native receipt is admission evidence, not proof of physical travel or native reverse capability.",
+    "Physical route completion, deletion/edit, seat/owner migration, Zeus interruption and performance remain untested; audits paused."
+  ],
+  "physicalAcceptance": false,
+  "wholeHBQParity": false,
+  "offlineValidation": {
+    "tests": 1283,
+    "log": ".qa/cbe-convoy-endpoint-budget-build.log",
+    "exitCode": 0,
+    "packageFingerprint": "83528114a97244c54f08bcfe92a3a2a0ad74fdec439269d26651072feea41859"
+  }
+}

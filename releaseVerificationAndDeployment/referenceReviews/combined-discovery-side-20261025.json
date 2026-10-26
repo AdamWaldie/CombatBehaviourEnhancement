@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "6b97d9ec",
+  "scope": "Existing combined-arms discovery and bounded ground fallback pool; not complete discovery budgeting or physical support acceptance.",
+  "failure": "Candidate groups from nearEntities included requester and every side. Radio/crew/magazine ranking ran before same-side dispatch admission. Ground fallback retained the first32 ranked LandVehicles before that admission, allowing armed hostile groups/requester to consume the entire fallback pool and hide eligible friendly replacements.",
+  "implementation": "Filter the deduplicated request-local candidate groups to non-requester same-side groups before ranking. Preserve their order, existing friendly ranking and all live dispatch/owner admission checks. No added group query, controller, worker, timeout, cache or asset substitution. Side changes after discovery still face existing dispatch/fallback checks.",
+  "performance": "Removes transmitter/roster/magazine work for excluded groups; adds a linear cheap side/requester filter over already deduplicated candidates. Initial nearEntities query, eligible same-side population, transmitter selection and sorting remain population-dependent. No quantified runtime improvement or5percent/10percent claim.",
+  "sourceIntent": "Finite reliable combined support and efficient useful-asset selection; complements Emergency Air Support selective intent without omniscient target discovery, spawned force replacement or new global scanning.",
+  "files": {
+    "addons/infantry/functions/cortexCombinedArmsServer.sqf": "26fe6122b40e17e3a71fdcd1ea1a5b57336c1f9753eb7c970a25cdeb8743edfc"
+  },
+  "validation": {
+    "fullLog": ".qa/combined-discovery-side-build-20261025-attempt1.log",
+    "exit": 0,
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pbos": 11,
+    "independentLog": ".qa/combined-discovery-side-independent-20261025.log",
+    "candidate": ".qa/candidates/combined-discovery-side-6b97d9ec",
+    "fingerprint": "be8d098e144059ed0a6f77bcc0b2b9f4c2a3374d2b6ad3e95e3610b4dc8ddaf5",
+    "testScope": "Existing combined ground-fallback air-contact case extended with hostile40-group pool starvation, requester exclusion/order preservation and filter-before-expensive-work production wiring. No added test count; analytical/static, not SQF VM."
+  },
+  "limits": [
+    "Unsigned dirty development candidate; notes postdate package.",
+    "Physical refusal/fallback selection, enemy/friendly density and actual runtime budget UNRUN. Zeus, locality/JIP/normal-HC acceptance still pending. Audits PAUSED.",
+    "Other same-side ineligible/busy groups may still consume retained ground pool; eligibility/communications/role-aware bounded discovery remains a separate known gap. No whole-source parity or overall build percentage awarded."
+  ]
+}

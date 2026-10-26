@@ -1,0 +1,135 @@
+{
+  "reviewed": "2026-10-20",
+  "sourceCommit": "d57ed03c",
+  "scope": "Current casualty promotion and in-flight exit relief reconciliation; comparison to LAMBS individual doAssault only, not whole-mod parity.",
+  "sources": [
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "778dd5a7e066cc5bbcc803ac2bc0a61e7ece1765b7edeaaf9e09c241aaf448eb"
+    },
+    {
+      "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+      "sha256": "e6ddec265460852bcffb78fef3b22035b9d7db9d86976098244e8f5feb68e90b"
+    },
+    {
+      "path": "addons/infantry/functions/cortexClearSettingsApply.sqf",
+      "sha256": "0304ced7943ed278c7f3e5fd37b985d9865749bc4bf74b45ed6902608a547a51"
+    },
+    {
+      "path": ".qa/source-refresh-20261011/inventory/1858075458/lambs_main/functions/UnitAction/fnc_doAssault.sqf",
+      "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf"
+    }
+  ],
+  "findings": [
+    {
+      "area": "Interior casualty replacement",
+      "evidence": "buildingOperationStep ranks reserve candidates near surviving buddy/building, authenticates original pair slot and operation, retains reserve movement/hold provenance, updates participants/progress/platforms/pairs and publishes ClearRoster. Shared coverage and hard deadline remain unchanged.",
+      "disposition": "Existing implementation; do not create a parallel casualty controller. Physical replacement remains unverified."
+    },
+    {
+      "area": "Lane continuity",
+      "evidence": "Roster change invalidates buddy entry proposals. Healthy entered original survivors keep lane progress; whole-lane replacement restarts entry without manufacturing entered receipts. Removed member assignments are cleared before room selection.",
+      "disposition": "Retain these ownership and continuity constraints when extending exterior roles."
+    },
+    {
+      "area": "Existing exit relief",
+      "evidence": "Original vacancy and guard state bind pending relief. A known non-null dead/incapacitated guard permits its original bounded in-flight exit leg to finish even if interior vacancy was filled. Actual arrival/watch/VIEW remains separate.",
+      "disposition": "Earlier demandLifecycleFollowUp observer-death limit was superseded by securityLossFollowUp. Do not treat historic text as a current implementation gap."
+    },
+    {
+      "area": "Remaining exterior adaptation",
+      "evidence": "_requestExitRelief is called from a pending interior casualty slot and selects ARRIVED current reserve posts. Known guard loss continuation applies only to already MOVING relief. No general proactive uncovered-exit reassignment was established in this inspected path.",
+      "disposition": "Open implementation scope: rebalance existing eligible security actors toward a genuinely uncovered discovered exit, preserving authored actor orders, finite allocation budgets, useful current coverage and physical observation requirements. Do not infer death from null replication lookup."
+    },
+    {
+      "area": "LAMBS helper intent",
+      "evidence": "doAssault follows known enemy hide position, preserves nearby BUSY destination, selects same-floor nearer building nodes and avoids redundant destination issue. It contains no squad reserve/pair casualty roster or exit isolation lifecycle.",
+      "disposition": "Retain reactive individual intent as a foundation. This helper alone is neither a squad-clearance model nor evidence of complete LAMBS feature parity."
+    }
+  ],
+  "nextImplementation": "Trace existing security-post allocation and observer ownership before adding proactive uncovered-exit reassignment within the current clearance callback. Do not add a second scheduler or reset episode/search budgets.",
+  "physicalAcceptance": false,
+  "performanceAcceptance": false,
+  "audits": "paused",
+  "parityPercentage": null,
+  "proactiveSecurityFollowUp": {
+    "baselineCommit": "ab3a081f",
+    "implementation": "Existing clearance callback now rotates at most16 historic post rows, recognizes a non-null established guard dead/incapacitated, and checks whether the discovered exit already has a current assignment. A reserve at a different duplicated ARRIVED post may be reassigned only after the existing promotion proof establishes another physical observer at its source exit. One native endpoint proposal and exterior candidate validation share the remaining stage-selection budget; original three-search budget is consumed and journalled before queries. The same callback rechecks source observer proof, original lost-stage identity, casualty and still-vacant target before retiring only its own watch and issuing the new leg. Existing APPROACH/arrival/VIEW and migration journals are reused.",
+    "limits": [
+      "Known guard casualty only; null/deleted guard references, dormancy and new guard orders do not infer death.",
+      "No idle interior worker is newly recruited here. No sole guard is stripped; exhausted original stage budgets remain exhausted.",
+      "No physical/HC/repeat/performance acceptance. Audits paused."
+    ],
+    "runtimeSha256": "fef3a388a39b18f653f3273b27d089d1e9143a71f78bc4efe66f2a93c9653dda",
+    "validation": {
+      "tests": 1477,
+      "buildExit": 0,
+      "buildLog": ".qa/cbe-cqb-exit-rebalance-final-build.log",
+      "independentLog": ".qa/cbe-cqb-exit-rebalance-independent.log",
+      "packageFingerprint": "19c8286e8d0684687adf15ae565ccf7fbf7890254b5f2a1c95835feb652d1dd1",
+      "packageSource": "ab3a081f plus dirty runtime/documentation edits"
+    }
+  },
+  "preparedProactiveSecurityCase": {
+    "file": "releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf",
+    "status": "UNRUN_NORMAL_OWNER_ONLY",
+    "setup": "Ordinary twelve-person CLEAR must naturally establish distinct exterior exits, a duplicated source post, all reserve posts independently observed, and no pending early exit. No interior casualty or relief is supplied. Guards on one selected exit are killed only after natural readiness.",
+    "requires": [
+      "Actual replacement ASL travel greater than1m from its original post.",
+      "Three seconds of independent physical destination-floor post/facing/eye VIEW at the vacant exit; missing observation resets the interval.",
+      "At least one original live observer continuously retains each surviving source exit.",
+      "Original generation/hard deadline unchanged, mutable stall deadline never exceeds it; reserve search counts never decrease or exceed3, selected spare consumes at least one remaining original attempt."
+    ],
+    "limits": [
+      "No production state, role, room-visit, movement, door or completion injection.",
+      "Missing natural fixture readiness fails; native path success and coherent timings are not presumed.",
+      "Normal-owner only; no provider-HC/locality/repeated-loss or performance coverage.",
+      "Current source package passes1477 static tests/build; this fixture has not run in Arma."
+    ],
+    "validation": ".qa/cbe-cqb-security-fixture-build.log"
+  },
+  "casualtyHistoryAdoptionFollowUp": {
+    "baselineCommit": "762f210d",
+    "finding": "Owner adoption kept reserve posts only for currently capable actors. Dead/incapacitated established guards could lose their historical stage, leaving the successor without the evidence needed by proactive security replacement.",
+    "change": "Within the existing matching building/hard-deadline/transform stage-budget replay, retain seven-field ARRIVED history for a non-null known dead/incapacitated guard only after finite post/watch/exit coordinates and membership of the discovered security exits validate. History changes only the local stage map: no movement targets, actor settings, native commands, watching, budget reset or live observer receipt. Existing capable-actor adoption remains separate.",
+    "sourceSha256": "f2ed324db313887063b6168c174fecb8b8a1825cc25f989db979510eabf53767",
+    "validation": {
+      "tests": 1477,
+      "build": ".qa/cbe-cqb-security-history-adoption-build.log",
+      "independent": ".qa/cbe-cqb-security-history-adoption-independent.log",
+      "fingerprint": "39d53699ccfc9fb58a7f27d4344f4dfe0caa229fd0ad32c9d841fe8ec95294a5",
+      "packageSource": "762f210d plus dirty intended adoption/test edits"
+    },
+    "physicalAcceptance": false,
+    "limits": "Deleted/null guard lookup is not casualty evidence. Normal/provider-HC handover, physical post replacement and overhead remain unverified; audits paused."
+  },
+  "fullRosterWindowFollowUp": {
+    "baselineCommit": "f5cc7404",
+    "finding": "Promotion candidates and substitute observers were truncated to the first16 reserves before rotation. Later eligible actors never entered the selection window, unlike ordinary reserve staging.",
+    "change": "Build at most16 candidate slots directly by modular indexing over the full current reserve roster. Build at most24 observer slots over that roster plus up to8 distinct settled early-exit workers. Both local cursors advance over the full respective population; no full rotated roster copy is needed. Existing one fresh VIEW budget, task/pose/native proof, attempt counts and deadlines remain unchanged.",
+    "sourceSha256": "86331d8077b006a2febf19e295a9ca8d53f6e0979fcc79176928eaec44105f37",
+    "validation": {
+      "tests": 1477,
+      "build": ".qa/cbe-cqb-reserve-window-build.log",
+      "independent": ".qa/cbe-cqb-reserve-window-independent.log",
+      "fingerprint": "afde3339620f62912144ee039d3d9f9f65e6a4cfe134fe1d5b579585a4a37e58",
+      "packageSource": "f5cc7404 plus dirty intended window/test edits",
+      "scope": "Existing test case extended with bounded roster arithmetic and source contracts; no added unit cases or in-engine execution."
+    },
+    "limits": "Stable-roster fairness is not physical promotion acceptance. Roster churn, large groups, repeated losses and normal/providerHC behavior and overhead remain unverified. Audits paused."
+  },
+  "completePostExclusionsFollowUp": {
+    "baselineCommit": "edb8648d",
+    "finding": "The proactive reallocation path collected planned post exclusions from only the first16 eligible reserves, so a later actor approaching a reserved destination could be omitted.",
+    "change": "Read all current eligible reserve stage positions within the existing64-actor journal bound. Held rejected/exhausted posts still reserve their positions; active approaches/arrivals also contribute observation lanes. Include the existing at-most8 early-exit rows. Counts above the existing128-position/64-lane geometry limits defer before search budget mutation or query; no truncated exclusion list is treated as complete.",
+    "sourceSha256": "75c8329f085a2aa14ed288466c70d9a92afb8b6941b2b56b4a54e36c17d94e36",
+    "validation": {
+      "tests": 1477,
+      "build": ".qa/cbe-cqb-full-post-exclusions-build.log",
+      "independent": ".qa/cbe-cqb-full-post-exclusions-independent.log",
+      "fingerprint": "b9ef770425bac197305034768469dc62c11f399110fa582bbbf62988ef4d9e19",
+      "packageSource": "edb8648d plus dirty intended exclusion/test edits"
+    },
+    "limits": "No additional world scan, scheduler or geometry selection budget. Metadata work can cover more actors; runtime overhead and physical destination convergence/spacing remain unverified. Audits paused."
+  }
+}

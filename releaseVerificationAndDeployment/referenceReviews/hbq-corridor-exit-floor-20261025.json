@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "6ab932f7",
+  "scope": "Current approved floor at corridor exit for ordinary lead and convoy tail; not physical crossing acceptance or whole-HBQ parity.",
+  "referenceIntent": "Carry a marked crossing while preserving native route/finite ownership. Existing hbq-corridor-pitch-profile-20261025.json records selected upstream navigation intent and preserved source hashes; this follow-up traces actual CBE consumers, not another whole-source review.",
+  "finding": "Exit proximity allows a pose before the last station. Both lead and tail used constant endpoint Z even when the pose lies on an earlier sloping segment. That can reject the approved level or accept a different level matching endpoint height after the narrow in-area floor check no longer applies.",
+  "implementation": [
+    "Ordinary CROSS computes its existing bounded stored-profile interpolation across the retained path span. Existing in-area floor-departure release keeps its original region and2m threshold.",
+    "Lead completion uses interpolated floor at current projection when available; outside sampled span it retains original endpoint-height overshoot check. No unobserved grade extrapolation.",
+    "Convoy tail reuses its already-calculated current _level instead of endpoint height for within-span exit; same fallback outside the profile.",
+    "Original entry receipt, actual eight-corner tail-clear plane, lateral width, endpoint horizontal proximity, seats/owner/route/transform, deadlines and handback gates remain. Historical passed rows are not forced onto endpoint height after native onward travel.",
+    "No new native query, ray, timer, setting, controller, pose/physics correction or source mutation. Ordinary CROSS can now walk at most20existing nodes in exit approach where it previously skipped that interpolation; tail already did so.",
+    "Existing25-case corridor module extended in place with flat/+8/-8deg analytical profile cases, valid current level, wrong level matching endpoint Z, unchanged outside-span overshoot tolerance, and both actual source consumers. No test count added; models are not engine execution."
+  ],
+  "validation": {
+    "focusedLog": ".qa/corridor-exit-floor-focused-20261025-attempt1.log",
+    "focusedTests": 25,
+    "status": "FULL_OFFLINE_BUILD_AND_INDEPENDENT_VERIFY_PASS",
+    "fullLog": ".qa/corridor-exit-floor-build-20261025-attempt1.log",
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pboCount": 11,
+    "independentLog": ".qa/corridor-exit-floor-independent-20261025.log",
+    "candidate": ".qa/candidates/corridor-exit-floor-6ab932f7",
+    "fingerprint": "31c0cb606b9aa5e5eb2773abca02e6891c9ab4fdd1e39f1189a189c0c66ad539",
+    "provenance": "Unsigned dirty development candidate from base6ab932f7 plus recorded runtime hashes. Review validation/index/handover metadata postdate package; no in-engine acceptance."
+  },
+  "remaining": [
+    "Physical sloped lead/tail entry/exit, native stops/returns, deck/underpass separation, overshoot, mixed hulls, repeat/Zeus/HC/JIP and5%median/10%p95 cost UNRUN; audits PAUSED.",
+    "Support is a sparse frozen proposal with existing2m origin tolerance, not continuous hull/PhysX proof. No automatic grade following, ford policy or permission to relax water rejection.",
+    "Full CBE/HBQ/Protocol/LAMBS source integration, provider handover and production acceptance remain active/incomplete; no source parity or percentage awarded."
+  ],
+  "runtimeHashes": {
+    "addons/vehicles/functions/drivingCorridorStep.sqf": "a173c9929e70fa1b68a20e8d96fca0971e3dbb7fe17e6968ecbe31159b742ef5",
+    "addons/vehicles/functions/convoyCorridorStep.sqf": "ca88b64713781631dfd3e9b80d566d25950abb3f2fc7f809d5bd06e155f9d3a6"
+  },
+  "acceptance": false,
+  "scoresChanged": false
+}

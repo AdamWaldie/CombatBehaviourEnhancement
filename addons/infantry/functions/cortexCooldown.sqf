@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
- * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
+ * Repeat/JIP: Owner-local state only; no publication or JIP replay. Valid writes replace the named deadline.
+ * Non-finite durations or overflowed deadlines leave the existing cooldown unchanged.
  * Reads or sets a named cooldown in a group's pass state.
  *
  * Locality and authority: machine-local.
@@ -23,9 +24,12 @@
 params [["_state", createHashMap, [createHashMap]], ["_name", "", [""]], ["_seconds", -1, [0]]];
 private _cooldowns = _state getOrDefault ["cooldowns", createHashMap];
 private _running = time < (_cooldowns getOrDefault [_name, -1]);
-if (_seconds >= 0) then {
-    _cooldowns set [_name, time + _seconds];
-    _state set ["cooldowns", _cooldowns];
+if (_seconds >= 0 && {finite _seconds}) then {
+    private _until=time+_seconds;
+    if (finite _until) then {
+        _cooldowns set [_name, _until];
+        _state set ["cooldowns", _cooldowns];
+    };
 };
 _running
 

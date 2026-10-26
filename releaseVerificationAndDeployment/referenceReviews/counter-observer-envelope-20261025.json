@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "251e433aa69e8ca89ff77bf12c1ff1379b0ead8b",
+  "scope": "Counter-battery original observer-session continuity from delayed server wake through owner scan and server fire admission. Not new detection capability or physical acceptance.",
+  "defect": "The server delay retained its generation, but its observer message omitted it. The owner created a new fifteen-second deadline on receipt and queued scan callbacks checked enabled state only. A delayed wake, unfinished scan or delayed remote fire reply could cross disable/re-enable into a later counter-battery generation.",
+  "implementation": [
+    "Server wake carries original generation and dispatch-time fifteen-second deadline. Delivery consumes, rather than renews, that deadline. Invalid, expired or different-generation envelopes refuse.",
+    "Every existing four-observer callback checks the retained generation and deadline; original generation accompanies its remote fire request.",
+    "Server fire admission requires a finite integral matching generation for remote COUNTER requests before selecting/reserving a battery. Direct local server scripts may omit it. Radar internal requests explicitly carry their captured generation as well.",
+    "No observation position oracle, new observer roster, scan, timer or movement command. Native knowledge, visibility, transmit, owner and feature gates remain unchanged."
+  ],
+  "validation": {
+    "focused": "4 existing counter-battery lifecycle cases passed with extended wake/queue/reply source contracts; test count unchanged. These are static contracts, not a multiplayer simulation.",
+    "full": "1497 tests,422 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/counter-observer-envelope-251e433a",
+    "fingerprint": "c44f94298294ea93936457fc97ad65ebaccfafcf3a60a6f6808d7eb9c9b31d62"
+  },
+  "limits": [
+    "Actual network ordering, setting toggles, HC ownership and live-fire behaviour remain unverified; audits paused.",
+    "A receiver may conservatively refuse when public generation delivery lags the request; there is no replay that renews the window.",
+    "Does not retract issued native fire or projectiles; existing mission/shot generation fences still own later cancellation.",
+    "Full required controller handovers, overall source parity and5%median/10%p95 performance remain incomplete."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/cortexCounterObserve.sqf": "6afb8c546b1930ea294994332ae9e617f2658f04b28ab7a55dec3c5edec1289e",
+    "addons/support/functions/cortexCounterBattery.sqf": "926874df50eac9fe404041f30795a10dbb218df6397d95662d97680eb0420f9a",
+    "addons/support/functions/cortexArtilleryFire.sqf": "9524060c7d1d7b0e22cff479e37d4bdcf8a830a58274cee582fbd6f74a412e76",
+    "releaseVerificationAndDeployment/test_counterbattery_setting_epoch.py": "bd8a3b5f200b1ea6a51e94558cc2332a3b56b8e93296826760db23709c6970c9",
+    "docs/Smart-AI-Pass.md": "e0d3f86e76fd0a04b720b9e333b42ef0ebf3480489fd42c24478594c286668fb"
+  }
+}

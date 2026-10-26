@@ -1,0 +1,44 @@
+{
+  "baseline": "49d2a0ae8e2452e089b3dd0e720adea92e2195e8",
+  "scope": "Shared bounded settings receipt validation and independent complete-pair restoration",
+  "source_sha256": {
+    "addons/core/functions/aiProfileReceipt.sqf": "0fbb3f1721d26c4cc0fc10a431e5d6783ac049053a80325c51ccf2684ed7d65d",
+    "addons/core/functions/aiProfileYield.sqf": "411a80b4708316c47430f0cf052c60287bd6c20acdabe08fa1044c35a3278d75",
+    "addons/core/functions/aiRestoreProfile.sqf": "af466d06e82609e1ce4c9a09daaf59b15aeb25ea6e923e5845187478fb50a19a",
+    "addons/core/functions/aiApplyProfile.sqf": "4bc27785f6f6778f8e403a75122a635c2e4ea825f6666d14ff0f6e76db4f1fe9"
+  },
+  "findings": [
+    "AIProfileYield validated data but direct player/specialist/stop cleanup bypassed that validation.",
+    "AIRestoreProfile could consume original baselines without matching applied values, losing future restoration information.",
+    "Fractional negative aim values between -1 and0 passed the old absent-sentinel validation.",
+    "A precision-excluded first profile captured an aim baseline despite never acquiring its coefficient."
+  ],
+  "implementation": [
+    "Read-only AIProfileReceipt returns detached supported9-key finite0..1 maps, strict -1-or-nonnegative finite aim values, independent ready/pending flags and application readiness.",
+    "Actual-owner atomic restoration reads the same shared contract; invalid metadata does not authorise writes or deletion.",
+    "Only complete skill or aim pairs may be restored/retired. The other pending pair and variance remain; changed native values are preserved.",
+    "Application refuses orphan applied data rather than recapturing it as original.",
+    "Fresh precision-excluded profiles acquire no aim baseline. An existing coefficient pair retires only after observed native restoration; no-applied state is not repeatedly published as nil.",
+    "No new worker, world scan, movement/target command, timeout or mission-owner reset."
+  ],
+  "source_intent": "Continue the existing exact baseline/applied ownership design and source-review preference for finite holds with real release. No additional Workshop method is claimed as ported by this validation change.",
+  "limits": [
+    "Separate object variables still do not prove ordered delivery or distinguish a never-profiled unit from missing initial replication.",
+    "Pending baseline data may remain indefinitely without a later safe caller; no eventual-restoration or provider-handback completion is claimed.",
+    "Same-value edits cannot establish writer identity. Physical stop/exclusion/partial delivery and owner migration remain unverified.",
+    "Bounded map validation/copy cost and runtime overhead are unmeasured; accepted performance budgets remain outstanding."
+  ],
+  "validation": {
+    "status": "full offline build passed",
+    "tests": 1462,
+    "compiled_sqf": 338,
+    "pbos": 9,
+    "log": ".qa/cbe-profile-receipt-cleanup-build.log",
+    "independent_verify": true,
+    "unsigned_fingerprint": "2ff8dac88dfb1fda03c15367fa2035a647096401b3a72736d9bb9594ad39d144",
+    "manifest_commit": "49d2a0ae8e2452e089b3dd0e720adea92e2195e8",
+    "manifest_dirty": true,
+    "physical_acceptance": false
+  },
+  "progress": "Existing build-out scores unchanged; current dependencies reassessed."
+}

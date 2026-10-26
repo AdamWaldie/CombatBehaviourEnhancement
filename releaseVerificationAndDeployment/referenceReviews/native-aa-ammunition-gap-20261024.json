@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-24",
+  "source_commit": "7a3fe70a",
+  "status": "confirmed static capability gap; no runtime change or physical validation",
+  "finding": "AA interception START uses the nonexplosive bullet-suppression readiness policy. Native B_35mm_AA ammunition is explosive and is rejected before aiming.",
+  "native_evidence": {
+    "private_extract": ".qa/native-aa-config-20261024/weapons_f.cpp",
+    "ammo": "B_35mm_AA",
+    "parent": "BulletBase",
+    "hit": 60,
+    "indirectHit": 25,
+    "indirectHitRange": 2.4,
+    "explosive": 0.6,
+    "magazine": "680Rnd_35mm_AA_shells",
+    "loaded_capacity": 680,
+    "magazine_initSpeed": 1440,
+    "weapon": "autocannon_35mm",
+    "sources": [
+      {
+        "pbo": "E:\\SteamLibrary\\steamapps\\common\\Arma 3\\Addons\\armor_f_beta.pbo",
+        "sha256": "EF64AB1D5684FBC59DE168ADCE2A837778A580DF5B398C584226B43DAB25D08C"
+      },
+      {
+        "pbo": "E:\\SteamLibrary\\steamapps\\common\\Arma 3\\Addons\\weapons_f.pbo",
+        "sha256": "9043BEFB56E50FF585FFD42762C87DBB1990CD59E2B92EF2F58C7957EA085D32"
+      },
+      {
+        "pbo": "E:\\SteamLibrary\\steamapps\\common\\Arma 3\\Addons\\weapons_f_beta.pbo",
+        "sha256": "7C535D650FD262F6D97A20CD3DFACB26245D603E2F89DF563B724A67AD2594E4"
+      }
+    ]
+  },
+  "production_trace": [
+    "addons/vehicles/functions/cortexAAIntercept.sqf START passes bulletSuppression=true to CortexGroundFireReady",
+    "addons/infantry/functions/cortexGroundFireReady.sqf rejects indirectHit>0 or explosive>0 under this policy",
+    "addons/vehicles/functions/cortexAAInterceptEffect.sqf separately requires nonexplosive direct bullets; relaxing admission alone does not implement safe explosive interception"
+  ],
+  "limits": [
+    "No AA fixture was added or launched",
+    "No claim that custom projectile destruction is valid for explosive cannon rounds",
+    "Existing runtime and last coherent build remain unchanged",
+    "Cheetah native configured cannon loadout confirmed; not an inventory of every AA platform or a live merged-config/station validation."
+  ],
+  "required_next_action": "Prepare a real native Cheetah incoming-warning/firing fixture to verify station and memory-point admission, actual shots and impacts, owner/Zeus interruption and finite cleanup. Do not synthesize tracks or scripted success. Native explosive interception effectiveness remains an explicit unmet requirement; custom direct-pass fuse stays nonexplosive. Launch only after the user resumes audits.",
+  "audits": "PAUSED by user instruction",
+  "native_platform_evidence": {
+    "class": "B_APC_Tracked_01_AA_F",
+    "pbo_member": "APC_Tracked_01/config.bin",
+    "private_extract": ".qa/native-aa-config-20261024/apc_tracked_01.cpp",
+    "extract_sha256": "1f9af0ca8b9b7a502aeeb156282a326999967ac2949fc582db69c3e582f50899",
+    "main_turret_weapons": [
+      "autocannon_35mm",
+      "missiles_titan_AA"
+    ],
+    "main_turret_magazine": "680Rnd_35mm_AA_shells_Tracer_Red",
+    "ammo": "B_35mm_AA_Tracer_Red",
+    "ammo_inherits": "B_35mm_AA",
+    "tracer_override": "model only; explosive and indirect hit unchanged",
+    "result": "Native Cheetah cannon loadout is excluded by current interception readiness filter. This is config evidence, not an in-engine run."
+  },
+  "implementation": {
+    "date": "2026-10-24",
+    "base_commit": "9621ff31",
+    "status": "native cannon admission implemented; physical effectiveness unproven",
+    "changes": [
+      "GroundFireReady optional AA cannon policy accepts shotBullet with at least20 loaded rounds without the infantry nonexplosive restriction; missile, rocket and shell simulation excluded",
+      "Bullet-suppression policy remains nonexplosive, including when both flags are supplied",
+      "AA interception uses cannon policy, binds admitted ammo to directFuse eligibility, and skips custom fuse calls for explosive ammunition",
+      "Actual loaded-magazine firing-lane and aimpoint blast checks unchanged; current owner/task/ROE and finite bounds unchanged"
+    ],
+    "checks": {
+      "focused_aa_regression": "pass",
+      "complete_build": "pass;1496 tests;413 compiled SQF;11 PBOs;static performance0 findings",
+      "independent_package_verify": "pass",
+      "candidate": ".qa/candidates/aa-cannon-admission-9621ff31",
+      "fingerprint": "404d5548be7d47e7bdacb1e9e696d3bb74ac9ccbac10036891a9b266b4ec30dc"
+    },
+    "limits": [
+      "Unsigned dirty development candidate, including pre-existing unrelated working-tree changes",
+      "Native cannon station/memory-point admission, actual shots and impacts still require the paused real-warning audit",
+      "No demonstrated custom explosive interception effect or live performance budget result"
+    ]
+  },
+  "barrel_origin_support": {
+    "base_commit": "238a8173",
+    "evidence": "Cheetah main turret declares memoryPointGun[] = {usti hlavne 1, usti hlavne 2}; prior executor read only gunBeg",
+    "change": "Use first model-present declared barrel from at most8 array entries, then native gunBeg fallback. Optic and barrel must exist in actual Memory selections. No centre-of-model fallback.",
+    "limits": "Not proof that inherited gunBeg was absent from the Cheetah model. First declared barrel is an approximation for alternating barrels; actual firing geometry and effectiveness unvalidated.",
+    "validation": "Full offline1496 tests,413 compiled SQF,11 PBOs,static performance0 findings; independent package verification pass",
+    "candidate": ".qa/candidates/aa-barrel-origin-238a8173",
+    "fingerprint": "88982deadd880a293db0ea3657edcd66448ae82682084b2524518ce0c4dd2ddb",
+    "audits": "PAUSED"
+  }
+}

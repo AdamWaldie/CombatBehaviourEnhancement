@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-18",
+  "scope": "HBQ jam cascade/rear observation versus CBE sampled rear support",
+  "reference": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "ranges": [
+      "1383-1533 release/back-up/cascade helpers",
+      "fn_rearClear.sqf complete"
+    ]
+  },
+  "findings": [
+    "HBQ distinguishes obstacle back-off from rear-to-front jam requests and uses physics pushes. Preserve bounded room-making intent; do not copy its push executor.",
+    "CBE rear observer already adds hull/approach/turn checks, but had no downward support observation.",
+    "CBE now samples three longitudinal positions and three hull-width positions, at most nine downward GEOM rays. Missing or steep first supporting surfaces veto native reverse via shared observer.",
+    "Bridge geometry can provide support independently of terrain water in the shared observer. Ordinary recovery retains a separate terrain-water/normal destination veto and ground destination; bridge traversal is not accepted."
+  ],
+  "limits": [
+    "Discrete samples cannot certify continuous support or thin gaps; native steering changes remain unknown.",
+    "Support tolerance is current hull-bottom frame +1.2/-2m and world normal z>=0.7. Modded hull extents, slopes, decks, shorelines and discontinuities require physical validation.",
+    "No queue HOLD/READY/reverse/dependency executor exists. Consent is not execution.",
+    "At most69 total observer rays; no additional world scan. Runtime overhead unmeasured."
+  ],
+  "implementationAccepted": false,
+  "physicalAcceptance": false
+}

@@ -1,0 +1,40 @@
+{
+  "finding": "Already-started buddy movement depended on the lead room-request flag even when the selected support target changed. An exterior-to-interior handoff or refused prior support assignment could wait for another lead room claim.",
+  "implementation": "Inside existing final actor/episode/native/settings commit, compare buddy committed target to intended target with0.25m tolerance. Changed buddy target independently sets unitIssue. Existing sameActiveTarget guard still prevents repeated unchanged path requests. No lead progress/deadline/visit credit is granted.",
+  "source_reference": "LAMBS2621 doAssault retains useful BUSY native destination and avoids repeated unchanged movement. CBE uses distinct bounded native room points and its existing authority boundary; no dependency or upstream code copied.",
+  "source_sha256": {
+    "addons/infantry/functions/buildingOperationStep.sqf": "ab389b0624e536f2c061f2858566b46a9b2f396a56f312f65395acae93796588"
+  },
+  "validation": "Focused existing checks/full offline build .qa/cbe-buddy-independent-target-build.log and independent package verify passed. Manifestbb50a150+dirty development, fingerprint0ab8cffb24002054f355d937688256ca424b028cd25a252fdce9e42e6aa87d31.",
+  "physical_acceptance": false,
+  "new_tests": false,
+  "audits": "PAUSED",
+  "remaining": "Native doorway flow, path contention, inaccessible nodes, casualty/locality transitions and performance remain unverified. Build-out scores unchanged.",
+  "capable_lane_exhaustion_20261019": {
+    "finding": "Room exhaustion compared failure count with all configured pairs, including dead/retired/exited lanes. A room already failed by every surviving lane could remain pending and block the floor wave until timeout.",
+    "implementation": "Track current capable lane IDs, require each ID in actual failure history, and reconcile pending rooms after abandoned claims return on capability changes. Do not infer room failure when no capable lanes remain. Original configured lane count continues to bound room retries; casualty changes do not replenish the budget.",
+    "scope": "Controller attempt exhaustion only, not inaccessible geometry proof or physical clearance. No new query, ray, worker or test case.",
+    "source_sha256": "57e4783311224c36f7c8220c6fef5cf7bdf3a1fe23603eb4b22d73d9ba44493e",
+    "physical_acceptance": false
+  },
+  "partner_detour_20261019": {
+    "finding": "Partner entry recovery refreshed its stall clock only when straight-line distance improved. A valid owned path around the building could move away from its target and be treated as stalled.",
+    "implementation": "Receipt adds a real ASL motion anchor. At least1m actual movement on the unchanged owned native leg can refresh only the local no-progress clock. Target changes and legacy receipts adopt an anchor without clock/retry renewal. Operation deadlines and visits are unchanged.",
+    "source_sha256": "57e4783311224c36f7c8220c6fef5cf7bdf3a1fe23603eb4b22d73d9ba44493e",
+    "validation": "Focused CQB/clear checks, HEMTT and complete offline pipeline passed .qa/cbe-cqb-detour-casualty-build.log; independent package verification passed. No physical acceptance.",
+    "commit_state": "Validated as part of the local CQB detour/casualty checkpoint.",
+    "new_tests": false,
+    "physical_acceptance": false,
+    "remaining": "Native doorway flow, repeated casualties, locality and performance remain unverified; audits paused."
+  },
+  "detour_casualty_checkpoint": {
+    "fullBuild": ".qa/cbe-cqb-detour-casualty-build.log",
+    "independentFingerprint": "9a26b8ae8650b8dc1ed73744aa5aaaf7d9326b5cbccb2efc2bdb4ca8ad5ca234",
+    "manifestCommit": "0f2f3ac2a7699704edb9db49889cf9013eb905c6",
+    "manifestDirty": true,
+    "newTestCases": 0,
+    "newWorkers": 0,
+    "physicalAcceptance": false,
+    "scoresChanged": false
+  }
+}

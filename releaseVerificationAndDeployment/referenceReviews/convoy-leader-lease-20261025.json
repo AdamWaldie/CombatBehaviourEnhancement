@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "e955c809b1af6afebbb099c22c111a0729a38df7",
+  "scope": "Preserve a convoy temporary leader selection through original-task receipt and guarded handback. Not a mixed-convoy pacing fix.",
+  "finding": "ConvoyTick unconditionally selected the lead driver when the current group leader was outside the mobile convoy vehicles. It retained neither original nor applied leadership, so later ticks could replace a newer on-foot leader and release never restored the original choice.",
+  "sourceComparison": {
+    "HBQ": "Current source separates obstacle/traffic clocks and precision tiers. CBE convoy already samples every second with continuous spacing, smoothing and independent closing caps; no unmeasured sampling or acceleration retune was made. The inspected HBQ helpers do not supply a selectLeader handback model. Its separate crew-group shortcut is not copied.",
+    "referenceHashes": {
+      ".qa/hbq-complete-source-20261025/functions/fn_precision.sqf": "9d5d28551d748410a419f1ec602845bc3e3b6d653c8dd6179bb10eed71381a9b",
+      ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      ".qa/hbq-complete-source-20261025/functions/fn_refreshRoute.sqf": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8"
+    }
+  },
+  "implementation": [
+    "First server registration baseline extends to [formation,attack,vehicles,originalLeader,originalTaskRevision]. Existing phase/speed snapshots retain it. First release has no legacy live-schema adapter.",
+    "Owner-local leader receipt is [originalTaskRevision,originalLeader,appliedDriver]. Actual selection uses existing current brain/token/registry/epoch/platform/crew authority plus Zeus and captured-receipt equality; original living in-group leader or exact current receipt is required. Missing/foreign evidence grants no new selection.",
+    "A different current leader while the applied driver remains alive uses existing NEW_NATIVE_ORDER cleanup and persistent per-revision command yield, with LEADER_CHANGED diagnostic. Native succession after applied-driver death is not automatically considered a manual replacement.",
+    "Normal cleanup may select the original leader only from the matching original task and captured current receipt, while original is alive/in-group and applied driver still leads. Replacement native orders, Zeus and external takeover cannot grant restoration. No group membership is changed.",
+    "Receipt retirement checks actual leader supersession/restoration or original death. An unchanged applied leader after refused restoration retains its evidence; there is no new retry service or claim that an issued selection succeeded."
+  ],
+  "validation": {
+    "focused": "25 existing convoy path/driving traffic tests passed before full checks; path-handover and cleanup-context cases extended without count increase.",
+    "firstFull": "Failed one adjacency-based source assertion after guarded receipt retirement was inserted. Updated the assertion to verify the final transaction starts with its original authority guard and checks captured receipt equality. No guard removed.",
+    "finalFull": "1497 tests,422 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/convoy-leader-lease-e955c809",
+    "fingerprint": "7719f8cb67950e5d5196ba9cfeca7da26f16ff9dad5802497f4542d36be5ce8a"
+  },
+  "limits": [
+    "Actual group leadership, casualty succession, repeat registration, migration and handback need physical tests; audits paused. Public receipt delivery is not a complete ordered handover protocol.",
+    "No measured convoy pacing improvement or5%median/10%p95 claim. Existing one-second convoy cadence retained; adds bounded receipt/leader checks and publication only on selection/retirement.",
+    "Original leader death/departure never forces revival/regrouping. Same-value external selections remain indistinguishable. Refused restoration may retain unresolved evidence.",
+    "Required full controller handovers, HBQ/source parity and production acceptance remain incomplete."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/simpleAiConvoy.sqf": "349331fc759179980ed92c0722a2524caca08dc2e7bc7d2da3487eaad7454295",
+    "addons/vehicles/functions/convoyTick.sqf": "bb8061d66584afa7d5ea849e47927491d54e04abe83c26e364b3ef5265c50dbb",
+    "addons/vehicles/functions/convoyReleaseLocal.sqf": "84dcb1515f6f4a4bf8eab5e8a258a81a49d3327c7f505f52eccd2f430baf4cb7",
+    "releaseVerificationAndDeployment/test_convoy_path_handover.py": "42ce577078b4de14fd374ece3f065633b95426fa827f913158aa3bb8c10243c7",
+    "releaseVerificationAndDeployment/test_calm_actor_reservations.py": "1577459a1b5b32289ee2a45a52a97748bec7c1336adf71628dce0c015f37022b",
+    "docs/Smart-AI-Pass.md": "c7525118d950823ef84fface8a27036c0672b3728096aea573518d42818b7b10"
+  }
+}

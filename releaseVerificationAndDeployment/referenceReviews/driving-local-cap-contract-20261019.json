@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-19",
+  "scope": "Engine-local driving cap versus private/public migration metadata",
+  "initialHypothesis": "A private ordinary/queue cap baseline might strand an inherited zero cap after migration. Do not treat this as established: engine guidance says forceSpeed needs reapplication on a new owner.",
+  "engineReferences": [
+    {
+      "url": "https://community.bistudio.com/wiki/forceSpeed",
+      "verified": "2026-10-19",
+      "evidence": "Main command contract gives m/s and negative reset; a2020 locality note says execute on actual owner and reapply after locality changes. Community note, not current live-engine evidence."
+    },
+    {
+      "url": "https://community.bistudio.com/wiki/setGroupOwner",
+      "verified": "2026-10-19",
+      "evidence": "Locality note likewise says forceSpeed must be reapplied on owning client. No current HC test performed."
+    },
+    {
+      "url": "https://community.bistudio.com/wiki/Join_In_Progress",
+      "verified": "2026-10-19",
+      "evidence": "Distinguishes local effects and warns some MP commands such as netId do not work in singleplayer. Queue stable IDs/broker currently require distinct network identities; SP queue execution remains unproven/inactive."
+    }
+  ],
+  "sourceTrace": "Ordinary DrivingAssist_State/Restore are private and not broadcast. Finite DrivingRecovery_Work carries public command/baseline/cap provenance but admission/release require current actual cap and command identity. Vehicle/crew init/Local hooks only offer existing pending reverse cleanup through bounded lookup; they do not replay reverse. Queue private consent is invalid under changed original owner/epoch; peers recheck canonical context in existing holds.",
+  "disposition": "No public baseline transport or unconditional old-cap reapplication added. Corrected stale Repeat/JIP header that claimed private state resumed on a new owner. Actual owner transfer behavior must decide whether a reset-cap with continuing native command needs an explicit stop/handback path; do not lower ownership guards to make it adopt.",
+  "requiredLiveEvidence": [
+    "Transfer ordinary positive safety cap and zero traffic/queue hold between real owners, read native cap before any CBE reapplication.",
+    "Transfer pending and acknowledged destination reverse and SIMPLE_BACK independently; capture whether native command/motion persists while cap resets.",
+    "Separate group, vehicle and crew locality ordering; repeat and transfer back to original owner.",
+    "Apply a newer mission cap/order during transfer; confirm cleanup preserves it.",
+    "Observe broker/peer hold retirement when ownership changes, without accepting old private consent."
+  ],
+  "implementationThisReview": "Documentation/header accuracy only; no runtime commands, handlers, state publication or controller change.",
+  "limits": "Audits paused. No claimed stuck-zero root cause, migration fix, HC acceptance or SP queue support. Full objective remains incomplete.",
+  "evidence": [
+    {
+      "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+      "sha256": "20fab9147abe03e98340af28fd46e42e58a8347b0d68b91d8cd84b7b54d30fd4"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingAssistRelease.sqf",
+      "sha256": "282fc0661677e90a27babfcf5211376b2661aac0332fde0471a92b81f9f5ad93"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingQueueHold.sqf",
+      "sha256": "dbb26a8700279a2a5da59608b392ff4062f484e570a37bbc6a701d3e8027bf32"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryAdopt.sqf",
+      "sha256": "ba6ed9ca2ade445d501bbc009e8694a372e57a373635a9a4091c5f8706944a75"
+    },
+    {
+      "path": "addons/vehicles/functions/drivingRecoveryCrewAdopt.sqf",
+      "sha256": "bd19002cf593334771bc4ad8c279d253e013f37df4a3f824f4c0dbf724c84df8"
+    }
+  ]
+}

@@ -1,6 +1,12 @@
 /*
  * Author: WaldoTheWarfighter
- * Finite indoor actors release only their exact journal-owned native legs before group cleanup.
+ * Post-clear hold recall respects unresolved native movement cleanup through the shared
+ * reservation gate; no hold/retry deadline or successor task is renewed.
+ * Pending landed-foot handover is retired by group release even after the boat operation ended.
+ * Finite indoor and point actors release only their exact journal-owned native legs before group cleanup.
+ * Contact-only disable may preserve independent jobs after validating its narrow keep-brain scope.
+ * Dismount speed handback uses the shared exact crew/native-order receipt; refusal retains evidence.
+ * Final post-clear recall yields to native flight, queued care and dormancy.
  * Hands a group back to its own orders and removes everything the pass applied to it.
  *
  * Ends any flank drill (re-enabling only the AI features the drill itself disabled), rejoins the
@@ -48,17 +54,24 @@
 
 params [["_group", grpNull, [grpNull]], ["_forget", true, [false]], ["_reason", "", [""]], ["_keepBrain",false,[false]]];
 if (isNull _group) exitWith {};
+[_group,true] call CBE_fnc_CortexIlluminationStep;
+// Only the Contact-disabled reconciliation may preserve the independent actor/brain work.
+// Validate before actor retirement; full release and takeover cannot inherit this exemption.
+_keepBrain=_keepBrain && {_reason == "CONTACT_DISABLED"} && {!_forget} && {local _group}
+    && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+    && {!([_group] call CBE_fnc_CortexZeusHeld)};
+if (!_keepBrain) then {
 {
+    private _point=_x getVariable ["CBE_PointActor_Brain",createHashMap];
+    if (count _point > 0 || {(_x getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
+        ["FINISH",_x,_point] call CBE_fnc_PointActorOperation;
+    };
     private _indoor=_x getVariable ["CBE_IndoorActor_Brain",createHashMap];
     if (count _indoor > 0 || {(_x getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []}) then {
         ["FINISH",_x,_indoor] call CBE_fnc_IndoorActorOperation;
     };
 } forEach units _group;
-// Contact disablement releases autonomous state without rebuilding the same independent
-// safety/aid brain every discovery cycle. Full, external and locality releases still retire it.
-_keepBrain=_keepBrain && {!_forget} && {local _group}
-    && {!([_group] call CBE_fnc_CortexExternalTakeover)}
-    && {!([_group] call CBE_fnc_CortexZeusHeld)};
+};
 private _state = _group getVariable ["CBE_AIPass_State", createHashMap];
 private _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
 if (count _brain > 0 && {!_keepBrain}) then {
@@ -81,25 +94,78 @@ if (_reason == "") then {
     _reason=if (_yieldToZeus) then {"ZEUS_TAKEOVER"} else {if (_yieldToExternal) then {"EXTERNAL_TAKEOVER"} else {"RELEASED"}};
 };
 private _externalTakeover=_yieldToZeus || {_yieldToExternal} || {_reason in ["ZEUS_TAKEOVER","EXTERNAL_TAKEOVER"]};
+// Release an interrupted cross-group dismount without stranding the vehicle at forced speed zero.
+private _releasedVehicles=[];
+{
+    private _vehicle=vehicle _x;
+    if (_vehicle != _x && {!(_vehicle in _releasedVehicles)}
+        && {local _vehicle} && {effectiveCommander _vehicle in units _group}) then {
+        _releasedVehicles pushBack _vehicle;
+        [_vehicle,_group,"RELEASE",!_externalTakeover] call CBE_fnc_CortexDismountStop;
+        _vehicle setVariable ["CBE_Cortex_DismountStopRequest",nil,true];
+        _vehicle setVariable ["CBE_Cortex_OnboardDanger",nil,true];
+    };
+} forEach units _group;
+// Stop restoration precedes operation/route cleanup, which can change our own native receipt.
 // Full shutdown must release a native STOP acquired after a successful clear.
 // Ordinary contact-state cleanup does not undo the explicit post-clear hold.
 private _clearHold=_group getVariable ["CBE_Cortex_ClearHold",[]];
-if (local _group && {count _clearHold == 4} && {_externalTakeover || {_reason == "CORTEX_STOPPED"}}) then {
+if (local _group && {count _clearHold == 5} && {_externalTakeover || {_reason == "CORTEX_STOPPED"}}) then {
     _group setVariable ["CBE_Cortex_ClearHold",nil,true];
     if (!_externalTakeover && {(_clearHold select 0) == (_group getVariable ["CBE_AIPass_ClearGeneration",0])}
         && {(_clearHold select 1) == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
         private _anchor=leader _group;
+        private _deferredClear=[];
+        private _issuedClear=[];
+        private _priorAttempts=_group getVariable ["CBE_Cortex_ClearHoldRetireAttempts",[]];
+        private _priorAttemptActors=if (count _priorAttempts == 3 && {(_priorAttempts select 0) == (_clearHold select 0)}) then {
+            _priorAttempts select 2
+        } else {[]};
+        private _holdJob=createHashMapFromArray [["group",_group],["nativeHoldPositions",createHashMapFromArray (_clearHold select 4)]];
         {
-            if (local _x && {group _x == _group} && {!isPlayer _x} && {currentCommand _x == "STOP"}
+            if (local _x && {group _x == _group} && {!isPlayer _x} && {currentCommand _x == "STOP"} && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned}
                 && {isNull objectParent _x} && {isNull remoteControlled _x}
                 && {[_x] call CBE_fnc_CortexCombatEffective}
+                && {simulationEnabled _x} && {!isObjectHidden _x} && {!fleeing _x}
+                && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                 && {!([_group,true,_x] call CBE_fnc_CortexExternalTakeover)}
                 && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
-                && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}) then {
+                && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+                && {!(_x in _priorAttemptActors)}) then {
+                _issuedClear pushBackUnique _x;
                 _x doFollow _anchor;
             };
+            if (local _x && {group _x == _group} && {alive _x} && {!isPlayer _x}
+                && {[_x,_holdJob] call CBE_fnc_BuildingActorHoldOwned}
+                && {!([_group,true,_x] call CBE_fnc_CortexExternalTakeover)}) then {
+                _deferredClear pushBackUnique _x;
+            };
         } forEach (_clearHold select 3);
+        if (_deferredClear isNotEqualTo []) then {
+            private _retainedHold=+_clearHold;
+            _retainedHold set [3,_deferredClear];
+            _retainedHold set [4,(_clearHold select 4) select {(_x select 0) in (_deferredClear apply {netId _x})}];
+            _group setVariable ["CBE_Cortex_ClearHold",_retainedHold,true];
+            private _window=_group getVariable ["CBE_Cortex_ClearHoldRetire",[]];
+            if (!(count _window == 4 && {(_window select [0,2]) isEqualTo (_clearHold select [0,2])}
+                && {(_window select 3) == clientOwner})) then {
+                private _retireUntil=serverTime+30;
+                if (_window isEqualType [] && {count _window == 4}
+                    && {(_window select 2) isEqualType 0} && {finite (_window select 2)}) then {
+                    _retireUntil=_retireUntil min (_window select 2);
+                };
+                _group setVariable ["CBE_Cortex_ClearHoldRetire",[_clearHold select 0,_clearHold select 1,_retireUntil,clientOwner],true];
+            };
+            private _activeWindow=_group getVariable ["CBE_Cortex_ClearHoldRetire",[]];
+            private _oldAttempts=_group getVariable ["CBE_Cortex_ClearHoldRetireAttempts",[]];
+            private _attempts=if (count _oldAttempts == 3
+                && {(_oldAttempts select [0,2]) isEqualTo [_clearHold select 0,_activeWindow select 2]}) then {
+                +(_oldAttempts select 2)
+            } else {[]};
+            {_attempts pushBackUnique _x} forEach _issuedClear;
+            _group setVariable ["CBE_Cortex_ClearHoldRetireAttempts",[_clearHold select 0,_activeWindow select 2,_attempts],true];
+        };
     };
 };
 // New curator intent invalidates pending operation work even when no common record
@@ -128,7 +194,8 @@ if (local _group && {count _operation > 0}) then {
     [_group,_operation getOrDefault ["generation",-1],_reason] call CBE_fnc_OperationCancel;
 };
 if ((_state getOrDefault ["navalOperation",[]]) isNotEqualTo []
-    || {(_group getVariable ["CBE_Cortex_NavalOperation",[]]) isNotEqualTo []}) then {
+    || {(_group getVariable ["CBE_Cortex_NavalOperation",[]]) isNotEqualTo []}
+    || {(_group getVariable ["CBE_Cortex_NavalGroundElement",[]]) isNotEqualTo []}) then {
     [_group,_state] call CBE_fnc_CortexNavalRelease;
 };
 // Defence in depth for every caller, including a release delivered after locality migration. The
@@ -198,25 +265,6 @@ if (local _group) then {
         };
     } forEach +(_group getVariable ["CBE_Cortex_UnloadPolicyVehicles",[]]);
 };
-// Release an interrupted cross-group dismount without stranding the vehicle at forced speed zero.
-private _releasedVehicles=[];
-{
-    private _vehicle=vehicle _x;
-    if (_vehicle != _x && {!(_vehicle in _releasedVehicles)}
-        && {local _vehicle} && {effectiveCommander _vehicle in units _group}) then {
-        _releasedVehicles pushBack _vehicle;
-        private _saved=_vehicle getVariable ["CBE_Cortex_DismountForcedSpeed",[]];
-        private _ownedStop=_saved param [1,-2];
-        if (!_externalTakeover && {_saved isNotEqualTo []} && {_ownedStop >= 0}
-            && {abs ((getForcedSpeed _vehicle)-_ownedStop) <= 0.1}) then {
-            _vehicle forceSpeed (_saved param [0,-1]);
-        };
-        _vehicle setVariable ["CBE_Cortex_DismountForcedSpeed",nil];
-        _vehicle setVariable ["CBE_Cortex_DismountStopOrder",nil,true];
-        _vehicle setVariable ["CBE_Cortex_DismountStopRequest",nil,true];
-        _vehicle setVariable ["CBE_Cortex_OnboardDanger",nil,true];
-    };
-} forEach units _group;
 _group setVariable ["CBE_AIPass_State", nil];
 if (_forget) then {
     _group setVariable ["CBE_AIPass_Managed",nil];

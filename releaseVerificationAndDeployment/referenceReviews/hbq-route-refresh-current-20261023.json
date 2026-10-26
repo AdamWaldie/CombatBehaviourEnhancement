@@ -1,0 +1,115 @@
+{
+  "date": "2026-10-23",
+  "baseline": "ac53f617",
+  "scope": "HBQ route refresh and intentional waiting compared with CBE recovery admission and exact reverse handback; not whole-HBQ parity",
+  "upstream": [
+    {
+      "path": "functions/fn_refreshRoute.sqf",
+      "sha256": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8"
+    },
+    {
+      "path": "functions/fn_routeWaiting.sqf",
+      "sha256": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de"
+    }
+  ],
+  "sourceIntent": [
+    "routeWaiting preserves HOLD, inactive synchronized triggers, positive timeout or non-true condition within completion radius plus 50m; distant vehicles may still be considered stuck.",
+    "refreshRoute has a three-second group throttle. Commanded vehicles reselect the current waypoint and doMove the effective commander. Other vehicles may end a fixed path, snapshot and delete/recreate the current waypoint with copied properties, then follow eligible mounted crew and enable PATH/MOVE. This aims to wake native planning after relocation or crew changes."
+  ],
+  "currentImplementation": [
+    "DrivingAssistStart nativeWaiting adds stationary and unitReady requirements; its separate recovery-order admission uses DrivingRouteGoal, which rejects scripted, timed, attached or synchronized waypoint work even when distant. It does not execute arbitrary condition code.",
+    "Leader recovery escalates finite REFRESH/REVERSE/FINAL/EXHAUSTED stages under the same hardDeadline; native goal receipts are distinct from authored waypoints. No delete/recreate waypoint, enableAI reset, fuel creation, repair or teleport is introduced.",
+    "DrivingRecoveryRelease proves exact route, seats, native command and cap provenance before retiring rear movement. SIMPLE_BACK waits for actual STOP/motion observation. A native-return request remains observation-only until acknowledgement; issued requests are not travel proof."
+  ],
+  "confirmedFix": "First late cleanup previously bypassed releaseExpired unless releasePending already existed; authored-route STOP/doMove could then occur beyond the original recovery hard deadline. releaseExpired now applies to every resume under its existing exact-ownership call sites, marks pending/unresolved on expiry, and the existing zero-cap hold no longer requires a pre-existing pending marker. No new deadline or retry is granted.",
+  "deliberateDepartures": [
+    "Preserve authored waypoint identity and mission gates instead of cloning waypoint scripts and synchronization.",
+    "Preserve mission-disabled AI features and native protected crew tasks.",
+    "Retain unresolved issued-command proof rather than treating timeout as rejected movement or successful restoration."
+  ],
+  "limits": [
+    "No native stuck-case physical comparison has run in this checkpoint. Plain-MOVE wake-up effectiveness, reverse travel, forward route resumption and performance remain unverified.",
+    "This does not establish full HBQ route-memory, crew, gate, traffic or recovery parity; historical index hash drift remains separate."
+  ],
+  "validation": {
+    "focusedTests": 10,
+    "fullOfflineTests": 1491,
+    "HEMTT": "408 SQF compiled, nine PBOs built",
+    "independentCandidate": ".qa/candidates/recovery-first-expiry-ac53f617",
+    "fingerprint": "b4765d0fa0b1f44d9da9166c298d254a76666a6de94810acbd69014fbfbaf887",
+    "status": "Unsigned dirty development snapshot including unrelated dirt; this comparison postdates build. Audits paused."
+  },
+  "currentHashes": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "d28e7bbcddae63d1279bdffdfe05e31a5ce7ecbabf9afa41dc5b60a734339562",
+    "addons/vehicles/functions/drivingRouteGoal.sqf": "2b96b048425e6b9a288830e4fd0817f60f6f173d06477770e47ea61067cf19ef",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "79c9d1377e462a60a60747b157a6ec21610bea536ca94aacddcdfaa1430cc736"
+  },
+  "combinedGroundRefreshFollowup": {
+    "baseline": "e6af5874",
+    "confirmedGap": "CombinedGroundStep spent its one stall retry by calling CortexGroupMove with the same destination/radius/type. The helper sameRequest branch deliberately adopted the existing waypoint without issuing movement, so this retry could not wake native planning.",
+    "implemented": "Optional refreshOwned BOOL defaults false in the existing waypoint helper. Explicit retry requires an unchanged owned current temporary waypoint, matching current operation generation and same request; current waypoint/generation/policy are rechecked in the existing atomic mutation path. It removes/recreates only that CBE node. The combined job spends its existing retry first and captures the returned waypoint and complete authored row receipt after success.",
+    "integration": "Original role expiry, one-stall retry, operation epoch, native order, progress and cancellation paths remain. Other callers keep same-destination idempotence. No doMove, fixed path, new movement owner, restored mission AI permission or authored-waypoint clone is added.",
+    "sourceDistinction": "HBQ refreshRoute recreates waypoint properties for some vehicles and uses a separate commander doMove path for commanded vehicles, particularly after fixed-path disruption. This CBE change uses only its owned temporary-waypoint mechanism and does not claim identical wake-up efficacy across those source cases.",
+    "cost": "No new worker, world query or periodic request. Existing native waypoint transaction runs once only after the current job spends its finite stall attempt. Normal helper calls retain the default reuse path.",
+    "validation": "610 focused operation checks;1491 full offline tests; HEMTT409SQF/9PBO; independent candidate verification passed. Candidate .qa/candidates/combined-ground-real-retry-e6af5874 fingerprint98de0b74d0bb14fe72848b1541388c4570bdc72121a59b09cd47cd7e5fc642e2, unsigned dirty development snapshot including unrelated dirt. Review/notes postdate build.",
+    "limits": "A new native waypoint request is not actual motion, arrival, fire effect or successful recovery. Commanded/uncommanded stuck cases, locality and Zeus interruptions, original-route restoration and performance remain physically unverified. Audits remain paused.",
+    "hashes": {
+      "addons/infantry/functions/cortexGroupMove.sqf": "5c596e7f5c0910b526aa1e3e323b1c1da04d71424f27919ad1be46e0964c9f65",
+      "addons/infantry/functions/cortexCombinedGroundStep.sqf": "c09a67383c23c74e3e83f436798f53aaf826ecee0e1453ff28ea23970d55a3a8"
+    }
+  },
+  "commandedFixedPathReconciliation20261023": {
+    "baseline": "90dbc49d",
+    "scope": "Selective static execution trace of authored-gate approach and temporary-path return; no runtime changes or renewed whole-HBQ review.",
+    "approachFinding": "No missing safety-cap admission found: mayIssueDriving uses the current route receipt, while nativeWaiting and plain-MOVE recoveryOrderFree are separate. Scripted/timed/synchronised waypoint identity does not by itself turn off approach safety caps. Do not remove protection of authored gates to solve an unproved approach failure.",
+    "sourceDifference": "HBQ refreshRoute explicitly avoids fixed paths for a vehicle whose effective commander differs from its driver, citing DoNotPlan/native planning trouble. CBE bypass FOLLOW, corridor CROSS and passing legs do issue setDriveOnPath with distinct seats after exact admission. Source testimony is a physical comparison requirement, not proof that CBE fails or grounds to remove those capabilities.",
+    "actualReturnPaths": [
+      "CorridorRelease checks exact current seats, route, destination and protected tasks; an owned doStop precedes authored commander doMove or eligible mounted-leader follow. It then deletes corridor work. Native-MOVE corridor return can instead update the existing original recovery parent request. No independent pending authored-corridor STOP/return observation is retained here.",
+      "BypassRelease has an explicit pending STOP lifecycle for QUEUE work. Ordinary authored return can update a matching unexpired recovery parent, but that is conditional on the original binding, cap and spent recovery. Convoy return and an authored return lacking that qualifying parent do not gain the same receipt merely because doMove was issued.",
+      "PassFinish already retains exact pending STOP, measured linear/angular rest and original-deadline return observation through DrivingRecoveryCleanup. Do not report that mechanism as absent or implement a second pass handback worker."
+    ],
+    "confirmedBuildGap": "Corridor authored-route retirement does not retain a distinct issued-return observation or report its eventual native acknowledgement. This is an observability/lifecycle gap, not evidence that the native cancellation/return command failed. True travel and separate-commander planning remain unverified.",
+    "nextImplementationBoundary": "Compose any required authored temporary-path return observation with the existing bounded cleanup service, preserving original seats/route/controller generation, native command and cap baseline, newer-order interruption and original deadline. No waypoint cloning, enableAI reset, path replay, new recurring movement owner or timeout-as-success. Determine whether separate STOP acknowledgement is required by actual command semantics before imposing an artificial stop/rest on every successful handback.",
+    "validation": "Read-only source trace and protected refreshRoute hash check. Production sources unchanged; no full build repeated. Last code candidate remains clear-entry-recovery-transfer-b0942bbd, unsigned dirty development snapshot; no physical or performance credit.",
+    "hashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "0f2e7bac266838958c6d6143dfd912da4d7e95d59bb93e733f1ecbc58819e924",
+      "addons/vehicles/functions/drivingRouteReceipt.sqf": "3cf86826cf2fc0b51ca495225186b3ab02e1fa408e3c9f332fafdd348cfb1930",
+      "addons/vehicles/functions/drivingRouteGoal.sqf": "2b96b048425e6b9a288830e4fd0817f60f6f173d06477770e47ea61067cf19ef",
+      "addons/vehicles/functions/drivingCorridorStep.sqf": "ea245ebae3e71d2feb33472ef107b5cec1d7332db2cc1be2c6636c751aea1853",
+      "addons/vehicles/functions/drivingCorridorRelease.sqf": "966a6ea75bb54a813a5d3b66027cb5422f23e222d25bf06f72e10feee6aa3336",
+      "addons/vehicles/functions/drivingBypassStep.sqf": "6318acb95c9071364e589c956135fbb78d05ff4d12600b5bee4410070970e07b",
+      "addons/vehicles/functions/drivingBypassRelease.sqf": "be835772be2a8b042848d30d8cc2452f71063cb3d7ea37e2d828ed2b522d24d2",
+      "addons/vehicles/functions/drivingPassStep.sqf": "60da1dfe4a4318945c7dd02f6d1821a2efa157eceeb914d7a6b0e521e8d03c6c",
+      "addons/vehicles/functions/drivingPassFinish.sqf": "5dd1bca26e31185a705d86e186624d0b8e11c03fe3c6057e484de726ef8342c1",
+      "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "eef1378ba062f55db15a60f064b85137025ec367c9400e5f79e14e6affe2db8c"
+    }
+  },
+  "authoredCorridorReturnImplementation20261023": {
+    "baseline": "24e0d68e",
+    "implemented": "Authored commander-MOVE return records its original corridor deadline, route, two seats, before-command frame, context and owner/controller identity separately from retiring work. DrivingRecoveryCleanup registers deduplicated CORRIDOR_RETURN tickets within its existing four-ticket callback. The internal observeOnly branch of DrivingCorridorRelease has no movement or cap commands and reuses DrivingRecoveryCommandState for both-seat original-goal acknowledgement. Results distinguish PENDING, ACKNOWLEDGED, LOST, EXPIRED and group OWNER_CHANGED.",
+    "authority": "Machine-local observation only; no new movement owner, public replay, settings restoration, stop/rest requirement, native MOVE request or deadline renewal. Current route, owner epoch/controller and successor corridor checks protect attribution. Lost vehicle locality drops the old service ticket without replay/adoption. Identical native orders remain indistinguishable.",
+    "cost": "One additional finite ticket per outstanding authored corridor return, sharing at most four serviced tickets per existing 0.25-second callback. Route/seat/command reads, no world scans or geometry. Runtime cost and latency under queue load remain unmeasured.",
+    "validation": {
+      "existingCorridorTests": 25,
+      "fullOfflineTests": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "build": ".qa/corridor-return-observation-build.log",
+      "candidate": ".qa/candidates/corridor-return-observation-24e0d68e",
+      "independent": ".qa/corridor-return-observation-independent.log",
+      "fingerprint": "6ac764f77e9846bed8da206f4b027d27dae86b3e93132f360495c66ee7b08d13"
+    },
+    "limits": [
+      "Acknowledgement is command identity only, not physical route travel or a solution to HBQ separate-commander planning concerns.",
+      "Follower-only formation handback and native-route corridor return retain their existing distinct paths; this does not add pending STOP recovery or guarantee eventual return.",
+      "Observation is machine-local and does not adopt on owner transfer. Missing native acknowledgement terminates unresolved without command replay.",
+      "Unsigned dirty development candidate includes pre-existing unrelated dirt. Review and continuation notes postdate package; no scores or whole-HBQ parity renewed. Audits paused."
+    ],
+    "hashes": {
+      "addons/vehicles/functions/drivingCorridorRelease.sqf": "6e9837d83bf2fadf8adf7c18303fc1c1c53ebba085447736cb605f7740410448",
+      "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "3765d2ec425ae8c53963c789d9c0cd2ead1ba4f0d51bdc9befdac76557056bb7",
+      "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "9a9dc7ee38259b178c34f4993ee9b312047aec36ee429b84cbdbd90eca1cc5e1",
+      "releaseVerificationAndDeployment/test_driving_corridor.py": "2d24eb4b2f38f2a5ea616586f51efa04ccae614905ed67bbb113600151cbf4c7"
+    }
+  }
+}

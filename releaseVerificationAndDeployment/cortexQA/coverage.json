@@ -200,7 +200,7 @@
       "id": "SKILL",
       "title": "AI skill rebalance",
       "setup": "Spawn eligible and filtered units before/after enabling; sample actual subskills, day/night variants and restoration.",
-      "expected": "Expected units receive configured skills once, variance remains stable, excluded/player units retain their values and stop restores captured values.",
+      "expected": "Skill profiles are opt-in; default startup preserves mission skills. Explicit profiles use original baselines without multiplier accumulation. Later native skill/aim edits or declared skill ownership yield the optional profile while preserving changed values, including through transfer/restart. Excluded/player units retain values and stop restores only unchanged owned settings.",
       "settings": [
         "CBE_AIRebalance_Enable",
         "CBE_AIRebalance_Profile",
@@ -228,7 +228,9 @@
         "addons/core/functions/aiRestoreProfile.sqf",
         "addons/core/functions/aiRebalanceInit.sqf",
         "addons/core/functions/aiRebalanceStop.sqf",
-        "addons/core/functions/AISkillAdjustmentSystem.sqf"
+        "addons/core/functions/AISkillAdjustmentSystem.sqf",
+        "addons/core/functions/aiProfileYield.sqf",
+        "addons/core/functions/aiProfileReceipt.sqf"
       ]
     },
     {
@@ -263,7 +265,7 @@
       "live_evidence": [
         "runtime-20260927-041916: all ten LAND checks passed; server zero findings."
       ],
-      "automation": "runLanding.sqf: malformed payload rejection without mutation, physical touchdown and hold, landing cancellation and real redirected flight. Passed server cases in runtime-20260927-041916. Terrain, boundary, JIP and ownership variants remain unverified.",
+      "automation": "runLanding.sqf: malformed payload rejection, physical touchdown/hold and cancelled-order redirection. Historical server checks passed in runtime-20260927-041916 on older source. New normal/server-owned successor-lease feature handover case is PREPARED_NOT_RUN: real controller admission, deferred cleanup, immutable deadline, exact acknowledgement and physical fresh-MOVE return. It does not establish Workshop-controller parity. Terrain, boundary, JIP and ownership variants remain unverified.",
       "executable_sources": [
         "runLanding.sqf"
       ],
@@ -273,6 +275,7 @@
         "addons/aircraft/functions/improvedHelicopterLandingExecuteLocal.sqf",
         "addons/aircraft/functions/improvedHelicopterLandingInit.sqf",
         "addons/aircraft/functions/improvedHelicopterLandingRestoreLocal.sqf",
+        "addons/aircraft/functions/improvedHelicopterLandingFeatureReleaseLocal.sqf",
         "addons/aircraft/functions/improvedHelicopterLandingSetting.sqf",
         "addons/aircraft/functions/improvedHelicopterLandingStep.sqf"
       ]
@@ -375,11 +378,12 @@
         "CBE_AIPass_StaticDeploy_Enable",
         "CBE_AIPass_DangerEvasion_Enable",
         "CBE_AIPass_DangerObservation_Enable",
-        "CBE_AIPass_DangerConcealment_Enable"
+        "CBE_AIPass_DangerConcealment_Enable",
+        "CBE_AIPass_CasualtyEquipment_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runContact.sqf first disables the live danger gate and detonates a real grenade beside an isolated soldier, requiring no CBE stance, cover, response or CONTACT ownership before re-enabling the feature. It proves a targetless explosion preserves explicit BLUE hold-fire without CONTACT, then exposes the same BLUE/STEALTH group to a naturally known hostile and requires awareness plus a finite weak low-profile stance without CBE movement, fire, artillery, reinforcement, combined-arms or manoeuvre ownership. A separate four-rifleman fixture holds an ordinary HOLD waypoint while naturally detecting and firing on a real hostile; it requires real shots, continued HOLD ownership, less than 20 metres dispersion and no CBE operation, drill, support reservation or replacement waypoint. It kills a real same-group actor to require native HIDE delivery while the survivor remains CALM and BLUE with no invented contact. A separate CARELESS soldier receives a real grenade stimulus and must preserve the authored state without an accepted group record or CONTACT transition. A real targetless grenade beside another isolated invulnerable soldier and a solid wall requires native engine-FSM submission, an observed physical crouch/prone reflex, an actual bounded move behind cover, exact authored-AUTO restoration, prompt CALM release, no acquired enemy and no SECURITY/SEARCH transition. A separated-wingman explosion requires exact-observer cover, at least two additional idle group members to receive finite generation-owned low-profile leases, exact stance restoration, and natural FSM completion with observer, mounted context, response and action identities physically gone. The same fixture then commits a real route through another explosion and requires physical progress without a forced-prone stall. A real hostile at 25 metres must produce native fire, end the immediate actor reflex after its fixed two-cycle budget and hand continuing contact back to native AI and the persistent group brain without reveal, target, fire or synthetic-danger injection. A separate soldier receives a native GET IN task before a real grenade and must physically board without an accepted group danger record, CBE response or CONTACT transition. runTacticalAssessment.sqf adds three real-contact selection cases: riflemen without anti-armour capability must record ARMOUR_OVERMATCH and create no CBE manoeuvre; the same vehicle contact under an authored forward MOVE must select ADVANCE and make physical progress; exposed infantry on a physical tower must record ELEVATED_FIRE_POSITION without a CBE-authored uphill rush. runVehicleDrills.sqf adds a three-person armoured crew facing a real hostile, requires mounted persistence to remain exclusive to the effective commander while vehicle gunnery is disabled, then enables the production vehicle layer and requires confirmed CONTACT, one exact-platform generation-scoped safe suppression response and real fire without audit-injected target commands. That immediate response changes no route, speed or waypoint. The production group step may issue cover movement only to an idle actor with no native command, active CBE operation, Zeus hold or specialist owner; casualty and scream evidence cannot authorise it, and exact-generation cleanup runs during ordinary and external handover. The remainder covers real wall occlusion, no hidden acquisition, enemy physical exposure, natural sighting, re-occlusion, sight ageing, reacquisition and post-contact interruption. Added, not live-verified. Active Zeus replacement now requires immediate danger cleanup plus physical replacement-waypoint arrival with no resurrection; active-response leader loss requires a living successor and ordinary-route continuation. External ownership and HC migration variants remain outstanding; runCombat.sqf is retained. The scheduler diagnostic uses a fresh ordinary MOVE squad and production discovery/listeners to measure wake latency, priority, expiry, no target reveal, route preservation, disabled rejection, listener cleanup and Zeus priority. Synthetic HIT submission remains scheduler-only diagnostics; real explosion and hostile-contact cases cover native engine delivery and finite response lifecycle. A saved static-support fixture places an empty armed friendly emplacement within 75 metres during natural contact and requires one nonleader to physically occupy its gunner seat while other squad members continue the engagement; disabled, failed-mount, contact-cleanup and Zeus-replacement cases must leave no stale assignment. A saved carried-support fixture requires a compatible two-person bag team to physically assemble its weapon, place the original carrier in the real gunner seat, fire the real weapon, natively disassemble it during post-contact security, recover both original bags and release exact ownership. None of the newly added assessment fixtures has been executed against the current package; failed assembly, failed bag recovery, renewed-contact interruption, Zeus interruption and locality migration remain explicit cases.",
+      "automation": "runContact.sqf first disables the live danger gate and detonates a real grenade beside an isolated soldier, requiring no CBE stance, cover, response or CONTACT ownership before re-enabling the feature. It proves a targetless explosion preserves explicit BLUE hold-fire without CONTACT, then exposes the same BLUE/STEALTH group to a naturally known hostile and requires awareness plus a finite weak low-profile stance without CBE movement, fire, artillery, reinforcement, combined-arms or manoeuvre ownership. A separate four-rifleman fixture holds an ordinary HOLD waypoint while naturally detecting and firing on a real hostile; it requires real shots, continued HOLD ownership, less than 20 metres dispersion and no CBE operation, drill, support reservation or replacement waypoint. It kills a real same-group actor to require native HIDE delivery while the survivor remains CALM and BLUE with no invented contact. A separate CARELESS soldier receives a real grenade stimulus and must preserve the authored state without an accepted group record or CONTACT transition. A real targetless grenade beside another isolated invulnerable soldier and a solid wall requires native engine-FSM submission, an observed physical crouch/prone reflex, an actual bounded move behind cover, exact authored-AUTO restoration, prompt CALM release, no acquired enemy and no SECURITY/SEARCH transition. A separated-wingman explosion requires exact-observer cover, at least two additional idle group members to receive finite generation-owned low-profile leases, exact stance restoration, and natural FSM completion with observer, mounted context, response and action identities physically gone. The same fixture then commits a real route through another explosion and requires physical progress without a forced-prone stall. A real hostile at 25 metres must produce native fire, end the immediate actor reflex after its fixed two-cycle budget and hand continuing contact back to native AI and the persistent group brain without reveal, target, fire or synthetic-danger injection. A separate soldier receives a native GET IN task before a real grenade and must physically board without an accepted group danger record, CBE response or CONTACT transition. runTacticalAssessment.sqf adds three real-contact selection cases: riflemen without anti-armour capability must record ARMOUR_OVERMATCH and create no CBE manoeuvre; the same vehicle contact under an authored forward MOVE must select ADVANCE and make physical progress; exposed infantry on a physical tower must record ELEVATED_FIRE_POSITION without a CBE-authored uphill rush. runVehicleDrills.sqf adds a three-person armoured crew facing a real hostile, requires mounted persistence to remain exclusive to the effective commander while vehicle gunnery is disabled, then enables the production vehicle layer and requires confirmed CONTACT, one exact-platform generation-scoped safe suppression response and real fire without audit-injected target commands. That immediate response changes no route, speed or waypoint. The production group step may issue cover movement only to an idle actor with no native command, active CBE operation, Zeus hold or specialist owner; casualty and scream evidence cannot authorise it, and exact-generation cleanup runs during ordinary and external handover. The remainder covers real wall occlusion, no hidden acquisition, enemy physical exposure, natural sighting, re-occlusion, sight ageing, reacquisition and post-contact interruption. Added, not live-verified. Active Zeus replacement now requires immediate danger cleanup plus physical replacement-waypoint arrival with no resurrection; active-response leader loss requires a living successor and ordinary-route continuation. External ownership and HC migration variants remain outstanding; runCombat.sqf is retained. The scheduler diagnostic uses a fresh ordinary MOVE squad and production discovery/listeners to measure wake latency, priority, expiry, no target reveal, route preservation, disabled rejection, listener cleanup and Zeus priority. Synthetic HIT submission remains scheduler-only diagnostics; real explosion and hostile-contact cases cover native engine delivery and finite response lifecycle. A saved static-support fixture places an empty armed friendly emplacement within 75 metres during natural contact and requires one nonleader to physically occupy its gunner seat while other squad members continue the engagement; disabled, failed-mount, contact-cleanup and Zeus-replacement cases must leave no stale assignment. A saved carried-support fixture requires a compatible two-person bag team to physically assemble its weapon, place the original carrier in the real gunner seat, fire the real weapon, natively disassemble it during post-contact security, recover both original bags and release exact ownership. None of the newly added assessment fixtures has been executed against the current package; failed assembly, failed bag recovery, renewed-contact interruption, Zeus interruption and locality migration remain explicit cases. Optional equipment recovery is unrun: physically visit identified own-group casualty, recover one loaded rifle/launcher into empty slot, require exact weapon-row receiver gain/source loss and unchanged occupied gear. No backpack clone, world loot search or verification from command alone.",
       "executable_sources": [
         "runContact.sqf",
         "runCombat.sqf",
@@ -393,6 +397,9 @@
         "addons/infantry/functions/dangerActionSelect.sqf",
         "addons/infantry/functions/dangerEngineCanContinue.sqf",
         "addons/infantry/functions/dangerEngineAct.sqf",
+        "addons/infantry/functions/dangerFlight.sqf",
+        "addons/infantry/functions/dangerRefugeSelect.sqf",
+        "addons/infantry/functions/dangerAttackPace.sqf",
         "addons/infantry/functions/dangerEngineRelease.sqf",
         "addons/infantry/functions/dangerEngineRecycle.sqf",
         "addons/infantry/functions/dangerVehicleProfile.sqf",
@@ -408,7 +415,13 @@
         "addons/infantry/functions/dangerReact.sqf",
         "addons/infantry/functions/cortexGroupAnchor.sqf",
         "addons/infantry/functions/cortexStaticSupport.sqf",
-        "addons/infantry/functions/cortexStaticDeployStep.sqf"
+        "addons/infantry/functions/cortexStaticDeployStep.sqf",
+        "addons/infantry/functions/pointActorOperation.sqf",
+        "addons/infantry/functions/casualtyObservationSelect.sqf",
+        "addons/infantry/functions/casualtyWeaponRecover.sqf",
+        "addons/infantry/functions/dangerPostureStep.sqf",
+        "addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf",
+        "addons/vehicles/functions/cortexDismountStop.sqf"
       ]
     },
     {
@@ -430,7 +443,10 @@
         "runMechanics.sqf",
         "runContact.sqf"
       ],
-      "production_sources": []
+      "production_sources": [
+        "addons/infantry/functions/cortexSearchMoveOwned.sqf",
+        "addons/infantry/functions/cortexSearchHoldRelease.sqf"
+      ]
     },
     {
       "id": "FLANK",
@@ -461,7 +477,9 @@
         "addons/infantry/functions/cortexFlankEnd.sqf",
         "addons/infantry/functions/cortexFlankStart.sqf",
         "addons/infantry/functions/cortexFlankStep.sqf",
-        "addons/infantry/functions/cortexSelectAvenue.sqf"
+        "addons/infantry/functions/cortexSelectAvenue.sqf",
+        "addons/infantry/functions/cortexHolderRecallOwned.sqf",
+        "addons/infantry/functions/cortexHolderRecallPending.sqf"
       ]
     },
     {
@@ -500,7 +518,8 @@
       ],
       "production_sources": [
         "addons/core/functions/cortexFireControl.sqf",
-        "addons/infantry/functions/cortexLineOfFireClear.sqf"
+        "addons/infantry/functions/cortexLineOfFireClear.sqf",
+        "addons/infantry/functions/cortexSuppressionAim.sqf"
       ]
     },
     {
@@ -636,12 +655,20 @@
       "production_sources": [
         "addons/aircraft/functions/cortexAircraftEligible.sqf",
         "addons/vehicles/functions/cortexNavalAssault.sqf",
+        "addons/vehicles/functions/cortexNavalEgressActor.sqf",
         "addons/vehicles/functions/cortexNavalRelease.sqf",
         "addons/vehicles/functions/cortexVehicles.sqf",
+        "addons/vehicles/functions/vehicleTacticalMoveStart.sqf",
+        "addons/vehicles/functions/vehicleTacticalMoveStep.sqf",
+        "addons/vehicles/functions/vehicleTacticalMoveRetire.sqf",
+        "addons/vehicles/functions/cortexVehicleCrewAvailable.sqf",
         "addons/vehicles/functions/cortexVehicleCrewRecover.sqf",
         "addons/vehicles/functions/cortexVehicleJink.sqf",
         "addons/vehicles/functions/cortexVehicleOrient.sqf",
-        "addons/vehicles/functions/cortexVehicleReverseStep.sqf"
+        "addons/vehicles/functions/cortexVehicleReverseStep.sqf",
+        "addons/vehicles/functions/cortexAAObserve.sqf",
+        "addons/vehicles/functions/cortexAARelocate.sqf",
+        "addons/vehicles/functions/vehicleArmourShot.sqf"
       ]
     },
     {
@@ -722,7 +749,8 @@
         "runCover.sqf"
       ],
       "production_sources": [
-        "addons/infantry/functions/cortexFindCover.sqf"
+        "addons/infantry/functions/cortexFindCover.sqf",
+        "addons/infantry/functions/cortexCoverScreened.sqf"
       ]
     },
     {
@@ -734,11 +762,14 @@
         "CBE_AIPass_DrivingAssist_Enable",
         "CBE_AIPass_DrivingAssist_Passing_Enable",
         "CBE_AIPass_DrivingAssist_MaxSpeed",
-        "CBE_AIPass_DrivingAssist_Recovery_Enable"
+        "CBE_AIPass_DrivingAssist_Recovery_Enable",
+        "CBE_AIPass_DrivingAssist_Queue_Enable",
+        "CBE_AIPass_DrivingAssist_CrewRecall_Enable",
+        "CBE_AIPass_DrivingAssist_CloseGates_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "Implemented source includes road/actual-track/native-path observations, forward and rear hull constraints, crossing prediction, authenticated canonical gate opening, finite corridor and static-bypass execution, public recovery/command journals, bounded traffic retries, close-static backoff and native driver casualty handover. These are not live acceptance. Prepared normal fixtures require real traffic approach, separated stop/restart, newer direct-MOVE preservation, actual driver replacement plus route progress, and protected unconscious/locked/assigned seats; they remain unrun. Finite convoy bypass/corridor integration exists under separate convoy ownership and is assessed by the convoy cases. Experimental default-off automatic road-pass admission now connects sustained traffic observation to finite geometry preparation and real owner consent on the shared scheduler; it is unrun. Cooperative head-on jam passing, queue cascade, feasible lateral corner recovery, unknown gate conventions and automatic gate closure remain incomplete or unsupported. Native command propagation, real steering/braking, blocked geometry, modded vehicles, repeated use, new orders, JIP, HC/split locality and the five-percent median/ten-percent p95 performance budget remain unverified. All driving acceptance stays partial; empty live evidence must not be read as success.",
+      "automation": "Implemented source includes road/actual-track/native-path observations, forward and rear hull constraints, crossing prediction, authenticated canonical gate opening, finite corridor and static-bypass execution, public recovery/command journals, bounded traffic retries, close-static backoff and native driver casualty handover. These are not live acceptance. Prepared normal fixtures require real traffic approach, separated stop/restart, newer direct-MOVE preservation, actual driver replacement plus route progress, and protected unconscious/locked/assigned seats; they remain unrun. Finite convoy bypass/corridor integration exists under separate convoy ownership and is assessed by the convoy cases. Experimental default-off automatic road-pass admission now connects sustained traffic observation to finite geometry preparation and real owner consent on the shared scheduler; it is unrun. Cooperative head-on jam passing, queue cascade, feasible lateral corner recovery, unknown gate conventions remain incomplete or unsupported. Native command propagation, real steering/braking, blocked geometry, modded vehicles, repeated use, new orders, JIP, HC/split locality and the five-percent median/ten-percent p95 performance budget remain unverified. All driving acceptance stays partial; empty live evidence must not be read as success. Canonical2..4participant head-on queue proposal discovery is staged after5s dwell and at most once/30s; it grants no consent or movement. Native hold/reverse/dependency/handback remains unimplemented. Distinct finite queue-role server broker/actual-owner acknowledgements are wired; consent never grants movement. Native hold/reverse/dependency/cleanup executor and physical protocol acceptance remain missing. Default-off gate closure now has a finite server observation executor. Physical aperture passage, full hull clearance, other traffic, interruption, normal/HC ownership changes, animation and repeat checks remain unrun. CLOSE_REQUESTED and CLOSED_OBSERVED are separate; neither is physical gate collision proof.",
       "executable_sources": [
         "runVehicleDrills.sqf",
         "runDrivingTraffic.sqf",
@@ -771,6 +802,8 @@
         "addons/vehicles/functions/moduleDrivingCorridor.sqf",
         "addons/vehicles/functions/drivingGeometryCap.sqf",
         "addons/vehicles/functions/drivingPathGeometry.sqf",
+        "addons/vehicles/functions/drivingBypassRoom.sqf",
+        "addons/vehicles/functions/drivingBypassApproach.sqf",
         "addons/vehicles/functions/drivingBypassPlan.sqf",
         "addons/vehicles/functions/drivingBypassObstacleAvailable.sqf",
         "addons/vehicles/functions/drivingPassPlan.sqf",
@@ -782,6 +815,8 @@
         "addons/vehicles/functions/drivingPassCanConsent.sqf",
         "addons/vehicles/functions/drivingPassAgreementRequest.sqf",
         "addons/vehicles/functions/drivingPassAgreementRelease.sqf",
+        "addons/vehicles/functions/drivingPassTokenClosed.sqf",
+        "addons/vehicles/functions/drivingPassNativeFrame.sqf",
         "addons/vehicles/functions/drivingPassBegin.sqf",
         "addons/vehicles/functions/drivingPassStep.sqf",
         "addons/vehicles/functions/drivingPassFinish.sqf",
@@ -790,11 +825,52 @@
         "addons/vehicles/functions/drivingPassAgreementServer.sqf",
         "addons/vehicles/functions/drivingPassAgreementOwner.sqf",
         "addons/vehicles/functions/drivingBypassStep.sqf",
+        "addons/vehicles/functions/drivingAbortHandback.sqf",
         "addons/vehicles/functions/drivingBypassRelease.sqf",
         "addons/vehicles/functions/drivingTurnTrack.sqf",
         "addons/vehicles/functions/drivingNativePathWatch.sqf",
         "addons/vehicles/functions/drivingRecoveryRelease.sqf",
-        "addons/vehicles/functions/drivingCrewStep.sqf"
+        "addons/vehicles/functions/drivingRecoveryCrewHandback.sqf",
+        "addons/vehicles/functions/drivingRecoveryCommandState.sqf",
+        "addons/vehicles/functions/drivingRecoveryCleanup.sqf",
+        "addons/vehicles/functions/drivingRecoveryAdopt.sqf",
+        "addons/vehicles/functions/drivingRecoveryCrewAdopt.sqf",
+        "addons/vehicles/functions/drivingCrewStep.sqf",
+        "addons/vehicles/functions/drivingCrewBoarding.sqf",
+        "addons/vehicles/functions/drivingQueueContext.sqf",
+        "addons/vehicles/functions/drivingQueueHold.sqf",
+        "addons/vehicles/functions/drivingQueuePairGeometry.sqf",
+        "addons/vehicles/functions/drivingQueueProposal.sqf",
+        "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
+        "addons/vehicles/functions/drivingQueueAgreementRequest.sqf",
+        "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+        "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+        "addons/vehicles/functions/drivingQueueAgreementRelease.sqf",
+        "addons/vehicles/functions/drivingQueueTokenClosed.sqf",
+        "addons/vehicles/functions/drivingDamageReceipt.sqf",
+        "addons/vehicles/functions/moduleDrivingCorridorMission.sqf",
+        "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
+        "addons/vehicles/functions/drivingOwnerReceipt.sqf",
+        "addons/vehicles/functions/drivingHullInterval.sqf",
+        "addons/vehicles/functions/drivingRearPlan.sqf",
+        "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
+        "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
+        "addons/vehicles/functions/drivingQueueParentRoom.sqf",
+        "addons/vehicles/functions/drivingQueueRearRequirements.sqf",
+        "addons/vehicles/functions/drivingQueueAutoStep.sqf",
+        "addons/vehicles/functions/drivingGateCloseServer.sqf",
+        "addons/vehicles/functions/drivingCapReleaseAdopt.sqf",
+        "addons/vehicles/functions/drivingCapReleaseOffer.sqf",
+        "addons/vehicles/functions/drivingRouteGoal.sqf",
+        "addons/vehicles/functions/drivingNativeRouteReceipt.sqf",
+        "addons/vehicles/functions/drivingGateOwnerCheck.sqf",
+        "addons/vehicles/functions/drivingGateOwnerEvidence.sqf",
+        "addons/vehicles/functions/drivingGateRouteMatches.sqf",
+        "addons/vehicles/functions/drivingNativeRecoveryAdopt.sqf",
+        "addons/vehicles/functions/vehicleCrewDestinationState.sqf",
+        "addons/vehicles/functions/edenDrivingCorridorPreview.sqf",
+        "addons/vehicles/functions/drivingAttributeApply.sqf",
+        "addons/vehicles/functions/drivingGateLegacyLeaves.sqf"
       ]
     },
     {
@@ -811,7 +887,7 @@
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runServer.sqf CNV-* and runConvoyMatrix.sqf CNVM-*; continuity and restart failures retained. Outside VR the matrix performs one bounded search across eight headings for its complete 1.8 km straight-and-corner route, requires at least 30 m of relief and rejects water, unsafe vehicle surface normals and grades above 0.8. Startup direction, lateral offset, vehicle order and restart-turn measurements are projected onto the selected route axes rather than hard-coded world X/Y. One bounded road walk per convoy every three seconds anticipates curves, junctions and grades; followers reuse predecessor trail geometry and speed changes are damped without replacing route or obstacle authority. The route watchdog stores only the final MOVE identity and may re-select it after premature engine completion when its type and position remain unchanged and the convoy is still over 75 m outside the completion radius. No source-specific external driving pause/restore adapter is present in the current executable convoy path. Generic external ownership markers can make CBE yield, but do not stop an undeclared controller. Dependency-loaded handover implementation and physical acceptance remain outstanding. Queued: native curator START/HOLD/RELEASE placement with CBA-only and optional-dialog batches; vary CBA defaults and confirm resulting authoritative convoy configuration, physical movement, unloading and release. No live acceptance claimed. Convoy lead corridor execution now shares the ordinary-driving corridor helpers (owned by VEH-DRIVING in this single-owner source inventory); followers retain predecessor trails. Physical convoy corridor passage, lead changes, HALT/resume, reconfiguration and HC handover remain unrun. Whole-column passage now retains per-vehicle ordered entry and full-hull exit evidence, with original finite tail deadlines and follower caps after lead handback. Lead completion alone cannot pass. Area/order/crew loss and timeout retain failure/cancellation. Physical tail flow remains unrun. Convoy bypass now composes the shared finite lead executor with predecessor-trail following, per-follower fresh committed-leg geometry, ordered whole-column checkpoint/tail receipts and revision-scoped cleanup. Physical mixed-column flow, interruption, repeatability and runtime performance remain unverified.",
+      "automation": "runServer.sqf CNV-* and runConvoyMatrix.sqf CNVM-*; continuity and restart failures retained. Outside VR the matrix performs one bounded search across eight headings for its complete 1.8 km straight-and-corner route, requires at least 30 m of relief and rejects water, unsafe vehicle surface normals and grades above 0.8. Startup direction, lateral offset, vehicle order and restart-turn measurements are projected onto the selected route axes rather than hard-coded world X/Y. One bounded road walk per convoy every three seconds anticipates curves, junctions and grades; followers reuse predecessor trail geometry and speed changes are damped without replacing route or obstacle authority. The route watchdog stores only the final MOVE identity and may re-select it after premature engine completion when its type and position remain unchanged and the convoy is still over 75 m outside the completion radius. No source-specific external driving pause/restore adapter is present in the current executable convoy path. Generic external ownership markers can make CBE yield, but do not stop an undeclared controller. Dependency-loaded handover implementation and physical acceptance remain outstanding. Queued: native curator START/HOLD/RELEASE placement with CBA-only and optional-dialog batches; vary CBA defaults and confirm resulting authoritative convoy configuration, physical movement, unloading and release. No live acceptance claimed. Convoy lead corridor execution now shares the ordinary-driving corridor helpers (owned by VEH-DRIVING in this single-owner source inventory); followers retain predecessor trails. Physical convoy corridor passage, lead changes, HALT/resume, reconfiguration and HC handover remain unrun. Whole-column passage now retains per-vehicle ordered entry and full-hull exit evidence, with original finite tail deadlines and follower caps after lead handback. Lead completion alone cannot pass. Area/order/crew loss and timeout retain failure/cancellation. Physical tail flow remains unrun. Convoy bypass now composes the shared finite lead executor with predecessor-trail following, per-follower fresh committed-leg geometry, ordered whole-column checkpoint/tail receipts and revision-scoped cleanup. Physical mixed-column flow, interruption, repeatability and runtime performance remain unverified. Prepared normal-only runConvoyNativeStop.sqf (focus convoynativestop) requires real native movement, operator STOP yield, total-motion rest, sampled unchanged intent and fresh native physical travel; isolated fixtures and no test-side cleanup/reset before outcomes. UNRUN; no new acceptance.",
       "executable_sources": [
         "runServer.sqf",
         "runConvoyMatrix.sqf"
@@ -826,7 +902,8 @@
         "addons/vehicles/functions/convoyHeadlessAdoptLocal.sqf",
         "addons/vehicles/functions/convoyUnloadPolicy.sqf",
         "addons/vehicles/functions/convoyCorridorStep.sqf",
-        "addons/vehicles/functions/convoyBypassStep.sqf"
+        "addons/vehicles/functions/convoyBypassStep.sqf",
+        "addons/vehicles/functions/convoyRetireMoveReceipt.sqf"
       ]
     },
     {
@@ -1028,7 +1105,18 @@
         "addons/support/functions/cortexArtilleryShot.sqf",
         "addons/support/functions/cortexSetArtilleryRole.sqf",
         "addons/infantry/functions/cortexSetSpotter.sqf",
-        "addons/infantry/functions/cortexSpotterFix.sqf"
+        "addons/infantry/functions/cortexSpotterFix.sqf",
+        "addons/support/functions/cortexArtilleryPosition.sqf",
+        "addons/support/functions/cortexArtilleryPositionReport.sqf",
+        "addons/support/functions/artilleryCrewMoveStart.sqf",
+        "addons/support/functions/artilleryCrewMoveStep.sqf",
+        "addons/support/functions/artilleryCrewMoveRetire.sqf",
+        "addons/support/functions/artilleryCrewMoveCurrent.sqf",
+        "addons/vehicles/functions/vehicleCrewNativeObservation.sqf",
+        "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf",
+        "addons/vehicles/functions/vehicleCrewMoveRetire.sqf",
+        "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf",
+        "addons/vehicles/functions/vehicleCrewMoveDeletionWatch.sqf"
       ]
     },
     {
@@ -1075,7 +1163,7 @@
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runAirborne.sqf: runtime 165401 normal and invalid-class fallback both deployed parachutes and landed alive with backpacks and operating crew retained. Normal post-landing movement passed (50.6/48.7 m). Fallback raw FAIL recorded 70.2/27.3 m travel with both inside the destination area: leader-relative destination made one route too short. Saved route now starts at least 65 m from every passenger; unexecuted. Automatic trigger, varied aircraft and owner/JIP variants remain open.",
+      "automation": "runAirborne.sqf: runtime 165401 normal and invalid-class fallback both deployed parachutes and landed alive with backpacks and operating crew retained. Normal post-landing movement passed (50.6/48.7 m). Fallback raw FAIL recorded 70.2/27.3 m travel with both inside the destination area: leader-relative destination made one route too short. Saved route now starts at least 65 m from every passenger; unexecuted. Automatic trigger, varied aircraft and owner/JIP variants remain open. Normal base fixture now uses a mixed operating crew/cargo group and observes automatic independent ground squad, crew route preservation and ground-brain startup before ordinary movement. This changed fixture is prepared only; earlier landing evidence does not validate the new handover. Native Zeus ModuleAirborne passenger/aircraft-bound dispatch is implemented offline only; no-ZEN module placement, seat/airframe changes, owner acknowledgement and actual drop remain unrun.",
       "executable_sources": [
         "runAirborne.sqf"
       ],
@@ -1083,7 +1171,13 @@
         "addons/aircraft/functions/cortexAirborneCheck.sqf",
         "addons/aircraft/functions/cortexAirborneDrop.sqf",
         "addons/aircraft/functions/cortexAirborneDropStep.sqf",
-        "addons/infantry/functions/cortexParachuteJump.sqf"
+        "addons/aircraft/functions/cortexAirborneGroundHandover.sqf",
+        "addons/infantry/functions/cortexParachuteJump.sqf",
+        "addons/infantry/functions/cortexParachuteProtectionRelease.sqf",
+        "addons/infantry/functions/cortexParachuteDeploy.sqf",
+        "addons/infantry/functions/cortexParachuteObserve.sqf",
+        "addons/infantry/functions/cortexParachutePublish.sqf",
+        "addons/aircraft/functions/moduleAirborne.sqf"
       ]
     },
     {
@@ -1108,7 +1202,8 @@
         "addons/infantry/functions/cortexGarrisonApplyLocal.sqf",
         "addons/infantry/functions/cortexGarrisonRelease.sqf",
         "addons/infantry/functions/cortexGarrisonRefill.sqf",
-        "addons/infantry/functions/cortexGarrisonArrived.sqf"
+        "addons/infantry/functions/cortexGarrisonArrived.sqf",
+        "addons/infantry/functions/cortexGarrisonSettings.sqf"
       ]
     },
     {
@@ -1200,7 +1295,10 @@
         "addons/infantry/functions/cortexAdvanceStart.sqf",
         "addons/infantry/functions/cortexTacticalStart.sqf",
         "addons/infantry/functions/cortexTacticalAssess.sqf",
-        "addons/infantry/functions/cortexTacticalReposition.sqf"
+        "addons/infantry/functions/cortexTacticalReposition.sqf",
+        "addons/infantry/functions/cortexPrimaryAmmoAvailable.sqf",
+        "addons/infantry/functions/combatElementSelect.sqf",
+        "addons/infantry/functions/combatPairElements.sqf"
       ]
     },
     {
@@ -1242,7 +1340,8 @@
         "addons/support/functions/cortexSupportStep.sqf",
         "addons/support/functions/supportRequestStart.sqf",
         "addons/support/functions/supportRequestQueue.sqf",
-        "addons/support/functions/supportRequestStep.sqf"
+        "addons/support/functions/supportRequestStep.sqf",
+        "addons/support/functions/cortexSupportStopOwned.sqf"
       ]
     },
     {
@@ -1260,7 +1359,8 @@
         "runReactions.sqf"
       ],
       "production_sources": [
-        "addons/infantry/functions/cortexStance.sqf"
+        "addons/infantry/functions/cortexStance.sqf",
+        "addons/infantry/functions/cortexStanceReceipt.sqf"
       ]
     },
     {
@@ -1290,17 +1390,26 @@
       "setup": "Present an armed vehicle with known AT infantry and other enemies at different ranges under each fire rule.",
       "expected": "Real shots/targets follow permitted priority and standoff movement without dismounting operating crew.",
       "settings": [
-        "CBE_AIPass_VehicleGunnery_Enable"
+        "CBE_AIPass_VehicleGunnery_Enable",
+        "CBE_AIPass_AAIntercept_Enable"
       ],
       "status": "implemented_partial",
       "live_evidence": [
         "runtime-20260927-040456: server suite zero findings; natural detection, actual AT-directed shots, hold-fire, disabled stationary control, physical +60 m standoff and crew retention passed. Client completion missing, broader owner/disable variants unverified."
       ],
-      "automation": "runGunnery.sqf: real projectile direction and AT target priority, BLUE hold-fire and cease-fire. Server cases passed in runtime-20260927-040456; remaining variants unverified. Transfer and feature-disable variants remain outstanding.",
+      "automation": "runGunnery.sqf: real projectile direction and AT target priority, BLUE hold-fire and cease-fire. Server cases passed in runtime-20260927-040456; remaining variants unverified. Transfer and feature-disable variants remain outstanding. Experimental point-defence aim/shot path is unrun: require real hostile native missile warning, actual bullet Fired receipts, alignment/lanes, original expiry and unchanged-lock handback. No hit/intercept credit from closest-pass telemetry. Local non-carrier missile effect requires exact native shot parents, armed bullet, observed interior closest pass within bounded model core and current owner; fuse command is not physical interception. Cross-owner/submunition cases must refuse effects. Stable measured miss calibration is unrun: require real per-round context, reject evasive/deviating tracks and demonstrate bounded correction/decay without skill or projectile edits. Same-group warning allocation is unrun: require native provenance, no original-expiry renewal, voice/radio delivery and jam interruption, available-platform distribution with urgent3D approach priority, and no independent retarget of active responses.",
       "executable_sources": [
         "runGunnery.sqf"
       ],
-      "production_sources": []
+      "production_sources": [
+        "addons/infantry/functions/cortexGroundReload.sqf",
+        "addons/vehicles/functions/cortexAAIntercept.sqf",
+        "addons/vehicles/functions/cortexAAInterceptEffect.sqf",
+        "addons/vehicles/functions/cortexAASpot.sqf",
+        "addons/vehicles/functions/cortexAAAllocate.sqf",
+        "addons/vehicles/functions/cortexAAWarningLink.sqf",
+        "addons/vehicles/functions/cortexAAThreat.sqf"
+      ]
     },
     {
       "id": "ART-SMOKE",
@@ -1373,7 +1482,7 @@
         "20260929-184640: only one of four room positions visited; clearance incomplete. Outside-start prerequisite also failed, so fresh-group cases are required.",
         "20261011-231043-192: 2/6-person clearance and handover pass; active 12-person native replacement order remains unaccepted."
       ],
-      "automation": "runBuildingComparison.sqf: original room visits preserved; fresh 2/6/12-soldier clearance, ordinary-waypoint physical handover, casualty replacement, door handling and natural native-known indoor-contact entry. Terrain buildings, blocked-room recovery and owner/interruption variants remain incomplete. The separate normal-only indooractors focus exercises the staged individual executor: independent physical entry, distinct destinations, same-actor repeat, stale/reserved/STOP refusals and an in-flight native movement replacement. These fixtures are unrun and do not establish automatic dispatch, HC or performance acceptance. Separate indooractorshc fixtures require two real-provider HCs, outside-approach transfer, destination-local cancellation proof, physical native movement, return-pointer retirement and a fresh physical investigation across the old deadline. These fixtures remain unrun.",
+      "automation": "runBuildingComparison.sqf: original room visits preserved; fresh 2/6/12-soldier clearance, ordinary-waypoint physical handover, casualty replacement, door handling and natural native-known indoor-contact entry. Terrain buildings, blocked-room recovery and owner/interruption variants remain incomplete. The separate normal-only indooractors focus exercises the staged individual executor: independent physical entry, distinct destinations, same-actor repeat, stale/reserved/STOP refusals and an in-flight native movement replacement. These fixtures are unrun and do not establish automatic dispatch, HC or performance acceptance. Separate indooractorshc fixtures require two real-provider HCs, outside-approach transfer, destination-local cancellation proof, physical native movement, return-pointer retirement and a fresh physical investigation across the old deadline. These fixtures remain unrun. Individual indoor dispatch rotates at most16 members across the full stable roster; full two-investigator occupancy freezes selection. Larger-group physical admission/fairness remains unrun.",
       "executable_sources": [
         "runBuildingComparison.sqf",
         "runIndoorActors.sqf",
@@ -1390,16 +1499,37 @@
         "addons/infantry/functions/buildingOperationStart.sqf",
         "addons/infantry/functions/buildingOperationQueue.sqf",
         "addons/infantry/functions/buildingOperationStep.sqf",
+        "addons/infantry/functions/buildingActorMotion.sqf",
+        "addons/infantry/functions/buildingLaneJournal.sqf",
+        "addons/infantry/functions/buildingStageJournal.sqf",
+        "addons/infantry/functions/buildingRoomJournal.sqf",
+        "addons/infantry/functions/buildingProducerContext.sqf",
+        "addons/infantry/functions/buildingEgressJournal.sqf",
+        "addons/infantry/functions/buildingFollowJournal.sqf",
+        "addons/infantry/functions/buildingEarlyExitJournal.sqf",
+        "addons/infantry/functions/buildingAdmissionJournal.sqf",
+        "addons/infantry/functions/buildingReliefJournal.sqf",
+        "addons/infantry/functions/buildingRoofTop.sqf",
         "addons/infantry/functions/buildingExteriorCandidate.sqf",
         "addons/infantry/functions/buildingExteriorProposal.sqf",
         "addons/infantry/functions/cortexClearRelease.sqf",
+        "addons/infantry/functions/cortexClearSettingsRelease.sqf",
+        "addons/core/functions/actorSettingsCleanupStep.sqf",
+        "addons/core/functions/clearHoldCleanupStep.sqf",
         "addons/core/functions/nativeOrderReceipt.sqf",
         "addons/infantry/functions/combatPairs.sqf",
+        "addons/infantry/functions/combatPairsPublish.sqf",
         "addons/infantry/functions/zenClearModule.sqf",
         "addons/core/functions/positionBucketAdmit.sqf",
         "addons/infantry/functions/indoorActorNativeContext.sqf",
         "addons/infantry/functions/indoorActorGroupAvailable.sqf",
-        "addons/infantry/functions/indoorActorDispatch.sqf"
+        "addons/infantry/functions/indoorActorDispatch.sqf",
+        "addons/infantry/functions/cortexClearSettingsApply.sqf",
+        "addons/infantry/functions/indoorObservationDispatch.sqf",
+        "addons/infantry/functions/cortexRouteDoors.sqf",
+        "addons/infantry/functions/buildingActorHoldOwned.sqf",
+        "addons/infantry/functions/indoorActorSample.sqf",
+        "addons/infantry/functions/indoorActorGroupContext.sqf"
       ]
     },
     {
@@ -1455,7 +1585,9 @@
         "addons/core/functions/operationStep.sqf",
         "addons/core/functions/operationCancel.sqf",
         "addons/core/functions/operationRelease.sqf",
-        "addons/core/functions/operationRestore.sqf"
+        "addons/core/functions/operationRestore.sqf",
+        "addons/core/functions/operationAttackPolicy.sqf",
+        "addons/core/functions/actorSettings.sqf"
       ]
     },
     {
@@ -1531,18 +1663,22 @@
       "setup": "Compare daylight and darkness with unaided AI, NVG-capable mod equipment, ordinary HMDs and active/inactive flashlights. Repeat equipment changes and ownership transfer. Use real opposing targets inside and outside the beam.",
       "expected": "Automatic lighting follows ambient conditions without compounded penalties; NVG capability is classname independent; flashlights do not grant omnidirectional vision. Record actual acquisition and shots independently of skill values.",
       "settings": [
-        "CBE_AIRebalance_Mode"
+        "CBE_AIRebalance_Mode",
+        "CBE_AIPass_Illumination_Enable"
       ],
       "status": "implemented_partial",
-      "automation": "runProfiles.sqf retains direct-application darkness/NVG/day restoration and repeat checks passed in runtime-20260927-115212. runLighting.sqf adds a dedicated dark fixture, dynamically discovered modded NVG and ordinary-HMD controls, HC adoption with original-skill preservation, physical flashlight activation, unchanged global skill, forward-cone acquisition/real fire and an equally distant rear-target control. Saved, not yet live-validated.",
+      "automation": "runProfiles.sqf retains direct-application darkness/NVG/day restoration and repeat checks passed in runtime-20260927-115212. runLighting.sqf adds a dedicated dark fixture, dynamically discovered modded NVG and ordinary-HMD controls, HC adoption with original-skill preservation, physical flashlight activation, unchanged global skill, forward-cone acquisition/real fire and an equally distant rear-target control. Saved, not yet live-validated. Experimental infantry UGL illumination is statically wired only; no physical flare fixture has passed. Separate normal-only illumination focus now checks disabled/native-contact/real projectile upward travel/ammo consumption/handback/live-disable mechanics; saved, not run. Controlled support-role actor, not full combat or light-effectiveness acceptance.",
       "live_evidence": [
         ".qa/pr-review-audit/runtime-20260927-115212/cortex-results.md"
       ],
       "executable_sources": [
         "runProfiles.sqf",
-        "runLighting.sqf"
+        "runLighting.sqf",
+        "runIllumination.sqf"
       ],
-      "production_sources": []
+      "production_sources": [
+        "addons/infantry/functions/cortexIlluminationStep.sqf"
+      ]
     },
     {
       "id": "DRILL-HANDOVER",
@@ -1606,6 +1742,7 @@
         "addons/infantry/functions/cortexCombinedRejectServer.sqf",
         "addons/infantry/functions/cortexCombinedGroundStep.sqf",
         "addons/infantry/functions/cortexGroundFireReady.sqf",
+        "addons/infantry/functions/cortexGroundSelectMuzzle.sqf",
         "addons/infantry/functions/cortexActorFireTaskAvailable.sqf"
       ]
     },

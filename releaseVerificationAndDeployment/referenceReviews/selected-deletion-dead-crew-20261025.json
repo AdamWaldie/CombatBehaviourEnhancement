@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "32e5259a222fc852b25feef9949aef9c644ee16f",
+  "scope": "Actual selected-platform deletion with both original operating crew objects present, local and dead",
+  "implementation": [
+    "One local episode-bound Deleted handler reads an explicit native callback frame [entity,event,handlerId]. Platform/group locality, private handler identity, exact producer journal/reference and both original actor objects present/local/dead are required. Missing/null actors are not death proof.",
+    "Selected artillery/tactical admission installs the observer after successful worker allocation. Shared retirement updates it on adoption and also observes unresolved original work without adopting native movement. The new observer may retain the original producer identity; all positive death evidence is still current owner-local.",
+    "Normal native retirement and passive return/dead-crew retirement remove the exact matching handler. Replacement removes old handler/marker before installation; actual lost group locality removes the old machine observer before its early return.",
+    "Actual platform deletion plus proved dead original movement actors retires only that old reference. Public lease cleanup requires the saved original owner and original hold expiry to remain unchanged. A newer/unknown public lease also protects private movement state and operation metadata.",
+    "The old tactical operation ends INCOMPLETE, never COMPLETE. No surviving original/new crew is adopted, no movement/physics command or additional polling/world observer is created. Unknown deletion cases remain reserved."
+  ],
+  "apiEvidence": [
+    {
+      "url": "https://community.bohemia.net/wiki/Arma_3%3A_Event_Handlers#Deleted",
+      "use": "Native Deleted event occurs before entity removal; this is API timing evidence, not a runtime test."
+    },
+    {
+      "url": "https://community.bohemia.net/wiki/addEventHandler",
+      "use": "Native callback entity parameters, event type and handler index; explicit payload at call boundary."
+    },
+    {
+      "url": "https://community.bohemia.net/wiki/removeEventHandler",
+      "use": "Exact locally registered handler ID removal for normal retirement/replacement."
+    }
+  ],
+  "validation": {
+    "focused": "13 existing artillery cases passed, existing scoped event/wiring contracts extended; no test count growth.",
+    "full": "1497 tests,430 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/deletion-watch-32e5259a",
+    "fingerprint": "259efb4238e39ccfbc15dc7b747b51b47bbddc0774a8ac3632436d8b4caa1640",
+    "finalBuildLog": ".qa/handovers/deletion-watch-final-build-3.log",
+    "development": "First full attempt exposed an existing listener-order assertion; moved observer cleanup after existing fragment cleanup and before actual locality return. Second attempt caught callback-local magic variables outside their compiler scope; native event payload is now explicit. Final build includes foreign public/private lease preservation."
+  },
+  "limits": [
+    "No native audit. Actual deletion callback ordering, corpse locality, repeated use, migration and performance are unverified; audits paused.",
+    "Living original crew, missing/deleted corpse objects, split ownership or absent/incoherent deletion context still refuse this recovery. No loss inferred from a null reference. Surviving/deleted-original-actor provenance and broader native supersession/handover remain unfinished.",
+    "This deletion proof does not certify foreign live-worker termination; it closes only the impossible-to-move original-actor case at actual platform deletion.",
+    "One object-local handler per active selected episode; bounded two-original-actor event checks and fixed metadata. No new recurring controller.5%median/10%p95 budget remains unmeasured."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/vehicleCrewMoveDeletionWatch.sqf": "e53f658f8b68d65e5714e59d9614c48a30a6180f18716e7191b691b89e7013e0",
+    "addons/support/functions/artilleryCrewMoveStart.sqf": "7aceb1265409593015da4706da5d58c22596589b72a670bc582b2daeb09aa3c9",
+    "addons/support/functions/artilleryCrewMoveStep.sqf": "fffd06fe58e2c8a601a96c97e9e698e08c64832614b4d767ff00e52812565701",
+    "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "98a60359392b592eb89b3f1b02bab936f2d854d44aa9029208a3b527b33ff8d7",
+    "addons/vehicles/functions/vehicleTacticalMoveStep.sqf": "18b29ee412c80788d74d2328077b2b548e5665f6093cefb79c39e0d2bc240c4e",
+    "addons/vehicles/functions/vehicleCrewMoveRetire.sqf": "d4fe78893ecbeaa5debf1ca30dfd5308c6443e80fa6de1ccfdf494f671048232",
+    "addons/core/functions/cortexLocality.sqf": "0376a81912535ad489f5cebcd0e796b0a93ecc59dc883e5fa2fa4f16450a4f34",
+    "addons/main/CfgFunctions.hpp": "fe396e129c25709dcc867dd22558069b3a06a1e1519bb5458e0cac72b9486e9c",
+    "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "0370e27764e419a9716b2be36329091fe1ed40bafe39b1fcdaca024c6d6a3ec4"
+  },
+  "crewProvenanceFollowup20261026": {
+    "review": "selected-deletion-crew-provenance-20261026.json",
+    "scope": "Private nonnull original-crew capture now permits subsequently deleted actors at actual platform deletion. Historical missing-corpse limitation is superseded only for that captured same-owner subset; physical validation and broader handover remain pending."
+  }
+}

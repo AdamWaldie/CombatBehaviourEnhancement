@@ -1,0 +1,27 @@
+{
+  "base": "bebceb06",
+  "status": "NEAR_SURFACE_BLAST_VETO_SOURCE_INTEGRATED",
+  "sourceIntent": {
+    "source": "E:/SteamLibrary/steamapps/workshop/content/107410/1858075458/addons/lambs_main.pbo",
+    "pboSHA256": "be8e6950b6b0f1541acf5e8d1a46c0566daa365662533ae3ee57d3079db21970",
+    "member": "functions/VehicleAction/fnc_doVehicleSuppress.sqf",
+    "memberSHA256": "4fcbcdf0a08deabf78a27c2edd1efd2792fa3dba82b599ae77af89174b5f898a",
+    "intent": "Reference vehicle suppression resolves a first surface before its friendly-proximity check. Its delayed useWeapon and unleased watch writes are not imported.",
+    "privateSnapshot": ".qa/lambs-main-installed-20261025-bebceb06/manifest.json"
+  },
+  "finding": "Existing loaded-ammo blast veto checked intended aimpoint only. Protected person beside a nearer wall could be outside the firing cone and far from target while near a possible explosive impact.",
+  "implementation": "Shared CortexLineOfFireClear keeps the intended aimpoint and adds the first FIRE/GEOM surface to blast exclusions. At most one ray only for loaded damaging explosive ammo. Existing single corridor query/64-candidate bound and ordinary bullet path retained. No native fire order or building-destruction permission added.",
+  "limits": [
+    "Straight-line surface is not actual ballistic impact, penetration, hull or future-motion proof.",
+    "Actual combined-arms destructive building fire remains a separate unimplemented intent; current direct object fire is not proof of that feature.",
+    "One added ray per explosive safety call needs physical overhead/balance verification."
+  ],
+  "validation": {
+    "build": ".qa/handovers/near-impact-blast-build.log",
+    "independent": ".qa/handovers/near-impact-blast-independent.log",
+    "candidate": ".qa/candidates/near-impact-blast-bebceb06",
+    "fingerprint": "707b0457f9844284b4c35d60e571e0595a69a59b38fc07a04443ed6fe420e448",
+    "physicalAcceptance": false
+  },
+  "audits": "paused"
+}

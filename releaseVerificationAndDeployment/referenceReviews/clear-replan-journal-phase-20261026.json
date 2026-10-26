@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "423167bda9149779e11b9be7483b89cc1a66b97b",
+  "status": "REPLAN_JOURNAL_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Existing clearance FSM retry phase must retain matching lane state",
+  "sourceTrace": [
+    "BuildingOperationStep sets private job phase REPLAN when retries change without new room progress, and publishes changed durable ClearOrder. The existing buildingOperation FSM has a Replan queue branch.",
+    "BuildingLaneJournal nevertheless admitted only ENTRY/SWEEP for SAVE/EXPORT/FROZEN/CHECK/ADOPT. SAVE returned false for REPLAN; an older published lane snapshot could remain while retry state changed. Current producer context also refused REPLAN.",
+    "Current discovery resumes ClearOrder directly through CortexClearBuilding, whose read-only lane CHECK and eventual ADOPT use BuildingLaneJournal. The missing phase enum affected the existing live journal/resume path, not only the new private capture."
+  ],
+  "implementation": [
+    "Admit REPLAN alongside ENTRY/SWEEP at lane phase admission and snapshot phase validation, with the unchanged13-field version1 schema. Adopt exact original routes, pending allocations, cursors, request ages and phase through existing validation; never create a fresh route or budget.",
+    "Admit REPLAN in shared producer context under the same original hard-deadline branch as ENTRY/SWEEP. Outgoing version5 capture retains REPLAN lanes and empty egress. No outer schema change or incoming consumer added.",
+    "All original exact visit/transform/node/roster/operation/epoch/native guards, bounded copying, changed-only writes and1.5second SAVE throttle remain. Phase change still invalidates the old phase sample as designed."
+  ],
+  "cost": "REPLAN now performs the existing bounded lane validation/copy at its existing phase-change/1.5second publication boundary instead of skipping it. No new worker, world scan, retry or timer. Added required work has no measured performance claim.",
+  "limits": [
+    "This removes a source-proven phase gap; no in-engine replication/order failure or successful migration is claimed.",
+    "Authentication cannot be derived from the server's private epoch or a mix of public journals. Full original-producer registration/seal/request replay remains unimplemented.",
+    "Original follow-through/early-exit/reserve, deleted actor identity, actor motion/settings/interruption/retirement domains and actual native incoming readiness remain incomplete.",
+    "Actual normal/HC locality, CQB flow/repeats/Zeus, balance and5percent median/10percent p95 remain unverified. Audits paused."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/buildingLaneJournal.sqf": "b2f6bf25daba47216b01de655e64e76ba77acff3bbddfdd0ba05912649686638",
+    "addons/infantry/functions/buildingProducerContext.sqf": "fe3c86beb7a906811cd82f12e9e34780f9432ccf00f23289cf8592c3bc326052",
+    "addons/infantry/functions/buildingOperationStep.sqf": "95b3dae7d5a83eb3608cb8d7549f910ef0a0a8e75a2821da7ce1006ba2980acb",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "f3534fb0a7938613338b186bdadcb3bb5c83f0813cdd9e7ce643396e65e10a52",
+    "addons/main/fsm/buildingOperation.fsm": "741a300b7f31a43a2def52ac84e67ef0ca579da2049eaa83d936aca13b91eba7"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "focusedExistingCases": 3,
+    "newCases": 0,
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 436,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-replan-journal-423167bd",
+    "fingerprint": "d4c7ff48bf5d6d26f932e39624a9464e852ca1234016378a631982beb847a39e",
+    "buildLog": ".qa/handovers/clear-replan-journal-build.log",
+    "independentLog": ".qa/handovers/clear-replan-journal-independent.log",
+    "sourceNote": "Built from implementation working tree after423167bd; runtime source unchanged between full build and checkpoint; review/handover metadata followed build."
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "workshopId": "3813369033",
+  "name": "PROTOCOL AI NAVY SEAL",
+  "date": "2026-10-20",
+  "source": {
+    "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3813369033\\addons\\prototcol_ai_navy_seal.pbo",
+    "sha256": "2518d8cf9e8d66c47b05734f0e7a34bb4e2304e7bc72be0b7a273a58c71dcd65",
+    "entries": [
+      {
+        "name": "bis_addoninfo.hpp",
+        "method": 0,
+        "originalSize": 0,
+        "size": 74,
+        "sha256": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215"
+      },
+      {
+        "name": "config.bin",
+        "method": 0,
+        "originalSize": 0,
+        "size": 492,
+        "sha256": "d6ae1d483f4137f012c117c50982219dc640497e3059bb7ddf8b23772b9dc2e5"
+      },
+      {
+        "name": "functions\\fn_navy_seal.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 56758,
+        "sha256": "4d706d5f31e18b08356a6e55777f77e2b64635a17ae6d64c393700ce9c99e363"
+      }
+    ]
+  },
+  "scope": "All1203lines fully read, including two spawned near-duplicate controllers. Truncated observations were followed by bounded rereads. Binary startup/dependencies/licence unverified.",
+  "intent": [
+    "Shoreline approach, passenger disembarkation and dry-ground movement, then supporting/assault elements and casualty protection."
+  ],
+  "existingCbe": [
+    "CortexGroupTick -> CortexNavalAssault -> CortexNavalRelease. Bounded shore comparison and finite native approach; separate passenger group and combined-group egress cases, operating crew retained, token/expiry/speed receipts. Ground combat continues through common finite infantry controllers."
+  ],
+  "sourceDefects": [
+    "Two independent spawned workers share naval flags and actors; no locality/Zeus/native/new-operation ownership.",
+    "First shallow test depth>=0.1 AND<=0.1 accepts only exact0.1m; second duplicate uses0.09..0.11m. Repeated nested shoreline queries remain narrow and potentially fail.",
+    "Approach waits until boat death/disembark condition without absolute abort; inner infantry loop lasts while any original actor alive and can block other groups indefinitely.",
+    "Global allUnits hostile oracle and live transforms, side inequality; no authored-waypoint use despite _hasWaypoint variable.",
+    "Repeated moveOut/unassignVehicle and lockCargo true override crew/cargo intent; leader selection and RED/COMBAT/FULL/WEDGE overrides have no restoration.",
+    "Second duplicate creates smoke inventory before forced fire; repeated selectBestPlaces peractor without route/physical arrival authority.",
+    "Land-return helper is defined but unused; no meaningful finite natural handover after threat loss."
+  ],
+  "remaining": "Actual shore/nav path quality, mixed cargo/crew locality, refusal/repeat/migration, landing-to-ground combat and performance need physical evidence. Do not call source duplication two separate desired features.",
+  "sourceProtection": "Original PBO and extracted readable files verified against inventory hashes; no raw source copied into product.",
+  "validation": "Source review, caller tracing, JSON parsing and archive/extract hash verification. No product edit or runtime test in this batch.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED",
+  "scoresChanged": false,
+  "followup20261023": {
+    "scope": "Focused dismount and same-group ground leadership comparison, not a new whole-source review.",
+    "verifiedSource": "functions/fn_navy_seal.sqf SHA256 4d706d5f31e18b08356a6e55777f77e2b64635a17ae6d64c393700ce9c99e363",
+    "sourceExecution": "Lines406-475 request exit, then repeatedly force moveOut and lockCargo. Lines487-523 obtain foot survivors, reset posture and replace a driver group leader with a foot soldier before forcing combat/speed/formation. This intends an independent fighting ground element rather than infantry regrouping on the driver.",
+    "implemented": "CBE87b71585 observes physical detach, retains original cargo membership, admits bounded finite foot moves through RecoveryStep and owns exact request/cleanup receipts. Original expiry, owner and newer-order vetoes remain. This replaces immediate mounted doMove and unsafe forced exit, not the entire naval source intent.",
+    "deliberateDepartures": [
+      "No forced moveOut, cargo lock or permanent WEDGE/RED/FULL override.",
+      "No unconditional selectLeader: mission leader selection must remain authoritative.",
+      "No duplicate persistent naval infantry controller; existing group scheduler and operation executor remain responsible."
+    ],
+    "materialGap": "Same-group crew/infantry ground command separation remains unresolved. Per-actor egress does not establish a ground-element leader or prove that native formation and later group operations will not pull foot actors back toward a boat leader. Do not count individual arrival as landing-to-ground combat parity. A scoped semantic ground-element handover needs design and implementation, preserving authored group/leader intent, casualties and owner migration; do not add an unowned selectLeader patch.",
+    "evidence": "Latest product candidate .qa/candidates/naval-egress-f64c886c independently verified54461f74d640f1f325d0b4217065c50d2d382814f0e0a1edab3f0f17deb283c9;1491 offline tests/410SQF/9PBOs. No physical or performance claim.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "groundCommandTrace20261023": {
+    "baseCommit": "c578655b",
+    "confirmedPaths": [
+      "CortexGroupTick calls CortexNavalAssault before state selection, then later CortexVehicles and CortexTacticalStart. The mounted native group leader remains the generic brain leader.",
+      "CortexTacticalAssess computes _hasCrew from actual driver/gunner/commander seats and returns VEHICLE_DOMAIN whenever operating crew coexist with infantry. This is an intentional defence against group destinations moving vehicles onto land, not missing native enemy knowledge.",
+      "CortexAssaultStart already builds _onFoot and separate assault/cover elements, creates no group waypoint and passes explicit participants/pairElements to OperationStart. CortexFlankStart separately refuses mounted group anchors.",
+      "CortexFlankStep uses CortexGroupAnchor in recovery/rally paths; that helper prefers an eligible native group leader. CortexFlankEnd also retains formation handback semantics. Reusing assault admission alone would leave boat-based recovery/handback.",
+      "OperationStep already tracks participantProgress separately and only uses leader fallback when participantsRequired is false. Changing its generic progress anchor alone would not resolve the tactical domain gate or recovery anchor."
+    ],
+    "nextImplementation": "Provide an explicit admitted ground-element context through existing tactical assessment, actor manoeuvre and recovery/cleanup. Keep vessel crew outside that element, preserve the original group/native mission route and new-order authority, and use a living current element member for rally/casualty succession. Do not remove the blanket mixed-group gate globally or redirect CortexGroupAnchor for unrelated operations. Avoid a duplicate permanent controller or unconditional native selectLeader/group split.",
+    "limits": "This trace narrows the required implementation. No runtime code changed, no parity credit, no physical acceptance and no extra full build of unchanged runtime."
+  },
+  "elementAnchorImplementation20261023": {
+    "scope": "Participant-local anchor foundation; not independent mixed-group tactical admission.",
+    "implementation": "CortexGroupAnchor optional explicit element selects only current local combat-effective on-foot group members from at most64 supplied actors. Explicit empty/unavailable rosters return objNull; native group leader can win only when in the supplied element. Default callers retain fast leader path and12-member fallback. CortexAssaultStart uses _onFoot; CortexFlankStep recovery uses surviving _main and defers on missing witness, retaining existing buddy/nearest-peer preference. No selectLeader, join or new controller.",
+    "remaining": "TacticalAssess mixed-crew VEHICLE_DOMAIN gate and full admitted ground-element context/cleanup remain unresolved; do not globally bypass them. Ordinary final formation handback remains native group semantics, not independent naval ground command.",
+    "validation": "1491 offline tests/410SQF/9PBO; independent candidate .qa/candidates/element-anchor-1808fc61 fingerprint2973b47cdb69a4156e267f5aee3a3913addab02365c3eef076e2a298588b58fd. No live/performance proof.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
+  },
+  "landedElementCloseAssault20261023": {
+    "baseCommit": "3611a5b6",
+    "implementation": "Successful same-group egress captures at most64 original cargo actors into a semantic handover using the existing45-second LANDED expiry. Owner epoch, boat plan token/group/phase and unchanged native route bind admission. Existing group job dispatches existing TacticalStart/Assess/AssaultStart with an explicit foot roster; native believed contact distances are measured from its foot anchor. Only close ASSAULT may pass; group flank/advance/reposition and fallback remain forbidden for this context. No new worker, FSM, native leader change or group split.",
+    "lifecycle": "Accepted assault consumes pending context and uses its ordinary finite operation/FSM. Original foot roster bounds casualty refill. Existing participant-local recovery anchors apply; scoped final follow requests target a surviving member rather than mounted group leader. Ordinary squad self-follow formation reset remains unchanged. Feature closure, takeover, changed native route/epoch or expiry retire pending context; generic CortexReleaseGroup now includes it even after naval operation retirement.",
+    "sourceIntent": "Progress toward a ground element that continues fighting after landing while operating crew stay aboard. Deliberately replaces unowned source selectLeader/RED/FULL/WEDGE and repeated force-exit loops with existing actor executor and ownership boundaries.",
+    "remaining": "Close-assault handover only. General independent long-range advance, CQB/urban continuation and durable ground command are not implemented by this change. Native subformation/follow acknowledgement, leader-anchor stopping/continuation, waves, casualties, refusal, owner changes, Zeus interruption and physical authored-order handback require in-engine observation. Do not count command issue as physical acceptance or declare naval parity.",
+    "officialCommandReference": "https://community.bistudio.com/wiki/doFollow (same-group formation leader; native self-follow formation reset preserved for ordinary drills).",
+    "validation": "1491 full offline tests,410SQF/9PBO, independent verification. Candidate .qa/candidates/naval-ground-element-final-3611a5b6 fingerprint f5b59869271aca46571873ba44bf4dd16217b85be38e5271880388edcdb1c092. Unsigned dirty development snapshot; review/notes postdate package. Earlier candidate naval-ground-element-3611a5b6 lacks final generic release integration and must not be substituted.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "elementScopeMigration20261023": {
+    "baseCommit": "5f5bf6d3",
+    "fault": "Standalone CortexCheckpoint uses a fixed drill payload field list. Omitted elementScoped/elementRoster would reconstruct the newly scoped assault as an ordinary drill on replacement owner, permitting wider refill and boat-leader formation return.",
+    "fix": "Serialize scope flag and original roster; skip redundant roster for ordinary false-scoped drills. CortexDrillResume validates boolean scope and nonempty object roster<=64 containing every saved participant before any settling lease or deferred callback. Missing/malformed/widened scoped intent refuses, rather than inferring whole-group authority. Legacy unscoped checkpoints retain normal semantics; native command proof and clocks unchanged.",
+    "validation": "1491 full offline tests/410SQF/9PBO and independent verify. Candidate .qa/candidates/element-scope-migration-5f5bf6d3 fingerprint4a61970414a7d0f47d036c57be8ed00262ba40edbb89094aeecc0875223e2b42. No physical HC migration or performance evidence.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
+  },
+  "landedElementAdvance20261023": {
+    "baseCommit": "64d99e83",
+    "implementation": "Optional explicit ground roster now reaches existing CortexAdvanceStart through TacticalAssess/Start. Assessment admits only scoped ASSAULT/ADVANCE, selecting advance only when already offered by the tactical decision; no FLANK/reposition/group fallback. Scoped advance uses a foot anchor, validates authored order type and requires fresh reported contact as objective instead of the boat route. Normal whole-squad authored-objective behaviour remains. Existing fire-team executor, finite bounds, ammunition/role/terrain/native gates, movement lease, cleanup and checkpoint scope are reused. No new worker/FSM/group split/native leader switch/waypoint.",
+    "reserveCorrection": "Both scoped assault and advance retain the original admitted element as reserve roster, not just actors available on the initial start. Current authority/task/health checks still govern actual refill; unrelated crew remain outside that original roster. Ordinary drills avoid unused duplicate element rosters.",
+    "remaining": "One finite landed-element manoeuvre, not sustained independent naval ground command. CQB continuation and physical behaviour, native subformation/handback, HC migration and performance remain unverified/incomplete. No whole-source parity claim.",
+    "validation": "1491 full offline tests/410SQF/9PBO and independent verifier. Candidate .qa/candidates/ground-element-advance-64d99e83 fingerprintef746c6f64c0687e4da51e404035a0169b9a9febeaaba1ce7748d71181ab20bb. Unsigned dirty development snapshot, notes/review postdate package.",
+    "physicalAcceptance": false,
+    "scoresChanged": false
+  },
+  "finiteGroundContinuation20261024": {
+    "base": "900b81c9",
+    "finding": "The landed mixed-group foot cohort was cleared immediately after the first successful TacticalStart, preventing another eligible child within the still-current landing handover. Scoped drill final return already uses a surviving foot anchor, not the boat leader.",
+    "change": "Retain original public foot cohort until its existing expiry/stale route/epoch/plan/cleanup boundary. Reoffer actor-only assault/advance only with no current drill or common operation. Read existing type feature/cooldown first and skip assessment when neither type is available. Child start does not write/renew original45second expiry, split the group, change leader or give boat a land route.",
+    "sourceIntent": "Builds on the previously reviewed landing-to-ground-combat intent while retaining finite CBE actor executors instead of unowned source leader/formation/force-exit loops. No fresh full upstream rereview or source-parity claim.",
+    "evidenceHashes": {
+      "addons\\vehicles\\functions\\cortexNavalAssault.sqf": "2d9302c42e15b016fe7745bd701fd38805b5938a2f8156021017a1e13e1572ca",
+      "addons\\infantry\\functions\\cortexFlankEnd.sqf": "c3862b375e9fb3bce4dd0724b2b1f80d4e22d4fd240a036dd99d9e5d5f61afb8",
+      "addons\\infantry\\functions\\cortexTacticalStart.sqf": "4e7ddfb89e208b05a20fa5ffe350402eda9afaff71a7f0ee622d56e42521c0de",
+      "addons\\infantry\\functions\\cortexCooldown.sqf": "ac96a59d0965178cbdc6b489c29c421bbfd24437b70c838c463aafb6e3b724f6"
+    },
+    "validation": {
+      "existingOperationCases": 610,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/naval-ground-continuation-900b81c9",
+    "fingerprint": "7fac10c189108f76cd5c957276f87ad55a284743ada1ad648089abc7ccf91ae3",
+    "logs": [
+      ".qa/naval-ground-continuation-focused.log",
+      ".qa/naval-ground-continuation-build.log",
+      ".qa/naval-ground-continuation-independent.log"
+    ],
+    "limits": "Finite original-window continuation only; no sustained independent ground command or scoped CQB. Actual second manoeuvre, physical anchor return, casualty/task handback, mixed crew/HC transfer and runtime balance/performance remain unverified. Unsigned dirty development includes unrelated dirt; review/handover postdate package. Scores unrenewed; audits PAUSED."
+  }
+}

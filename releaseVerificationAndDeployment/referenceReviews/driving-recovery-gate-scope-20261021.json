@@ -1,0 +1,113 @@
+{
+  "date": "2026-10-21",
+  "scope": "Recovery lifecycle and remaining gate passage/closure scope",
+  "source": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "readThisPass": "RoadAhead, SetCap, GateWanted, CloseGates around830..985; targeted recovery lookup only. Not another whole-source review."
+  },
+  "implementationHashes": {
+    "addons/vehicles/functions/drivingAssistStart.sqf": "ad2355ccb40095c32cac1957b6146d28ae0599428c28c201e2a2cbaaf28da04b",
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "5e3b5eef421e03dc373a74886f52b60e105512790885c760f2a4b04e1305edce",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "87392e5b280aa51cae3036ec72146318fd2889e461a8a2e139c9dfe7cd645f1e",
+    "addons/vehicles/functions/drivingGateRequest.sqf": "ed907587999ec7c344258c5b9a74b2394121528a2f3c117ec423f6adaa7f5e74",
+    "addons/vehicles/functions/drivingGateOpenServer.sqf": "3a87598ac7a1c44ed05f3271bcf7fd080a2defd8f005cf2f4e7984bfa6c30987"
+  },
+  "confirmedExistingContracts": [
+    "Ordinary recovery excludes waypoint zero and requires current plain MOVE without script/condition/timeout/synchronisation/attachment gates.",
+    "Recovery journal preserves original96s hard lifetime across stages and spent bypass budget.",
+    "Progress reset requires forward reduction beyond original stalled anchor; reverse displacement alone is insufficient.",
+    "Original native acknowledgement expiry survives pending observation; expiry grants no command replay.",
+    "Gate opening is server authenticated and bounded; original request/window/route/crew/pose/lock authority is rechecked."
+  ],
+  "materialRemainingGap": {
+    "gateClosure": "Source records opened gates and attempts closure after passage, checking nearby people/traffic and abandoning after600s. CBE opening explicitly implements no closure. Existing four-field ServerOpening is an opening-coalescing receipt, not proof that an identified vehicle or its tail passed the gate.",
+    "requiredImplementation": "A finite passage/closure executor must capture the opening vehicle and changed animation sources, confirm actual hull passage and other traffic clearance, preserve newer gate/mission/Zeus state and locks, and stop on its original deadline. Do not infer passage from opening or use request timeout as clearance.",
+    "scope": "Known HBQ feature gap; not resolved by current opening, convoy spacing, or static gates."
+  },
+  "decisions": [
+    "No further retry timing edits: this inspection establishes no new retry-budget defect.",
+    "Do not copy HBQ unconditional closure timer as authority or add a permanent gate worker.",
+    "Keep source-specific comparison in engineering records, not player documentation."
+  ],
+  "validation": {
+    "productChange": false,
+    "fullPipelineRepeated": false,
+    "reason": "Source review only; prior dc2af4ec product candidate remains unchanged.",
+    "physical": "Unrun; audits paused. No source parity or performance credit."
+  },
+  "passageClosureImplementation20261021": {
+    "status": "implemented opt-in; physical and performance unverified",
+    "sourceCallPath": "HBQ fn_driveAssist ClosedGates calls2203/2243/2708; opened gate records2641/2655/2820; shutdown worker2964..2984 read. Source may take closure responsibility for already-open gates and start a separate180s cleanup worker. Those ownership/worker choices were not copied.",
+    "selectedIntent": "Close leaves after passage with people/traffic clearance; retain gate and source identity.",
+    "implementation": "Authenticated GateOpenServer registers one finite server scheduler job, no group adoption. Default-off CBE_AIPass_DrivingAssist_CloseGates_Enable. <=8 outstanding jobs including overdue callbacks, <=8 leaves, <=16 nearby entities, original120s deadline. Observe aperture crossing plus current full-hull tail clearance; include dead entities via Arma2.18 area nearEntities. One closure request restores only leaves CBE opened; observe actual phase separately. Route, seats, owners, epoch/operation, gate pose/locks and newer native intent veto before closure. Read-only issued-animation observation may finish after vehicle departure. Explicit stop retires jobs and admission lifecycle, no gate command. Monotonic private server completed-cycle proof permits repeat opening in the same bounded route gate slot; public hints cannot authenticate it. Lost acknowledgements/multiple intervening cycles cannot turn one completion into repeated refills.",
+    "bounds": "At most one25m local entity query/sample, refuse above16 returned entities. Whole-hull projections may cost up to136 native model transforms in a dense closure sample; cost unmeasured. Two-second passage cadence, one-second closure observation. No dedicated PFH, sleeper, vehicle movement, collision mutation, network job replay or renewed deadline.",
+    "deliberateDepartures": [
+      "Preserve gates/leaves already open at admission instead of claiming their closure.",
+      "Do not issue closure after vehicle/route/owner authority is lost before command.",
+      "No independent shutdown closure worker; stop never commands a gate.",
+      "No timeout-derived passage. Crossing segments with >6s sample gap or >25m displacement refuse.",
+      "Opening geometry admission only supports bounded model apertures; unknown/moved/conflicting gates stay open."
+    ],
+    "limits": [
+      "Sampled clearance is not continuous collision safety or full swept gate-volume proof.",
+      "Same-value intervening gate edits are indistinguishable.",
+      "Normal/actual-provider HC, multiplayer timing, actual gate motion, repeated physical passages and frame-time budget unverified.",
+      "No complete directional passage arbiter or whole-HBQ parity claim."
+    ],
+    "implementationHashes": {
+      "addons/vehicles/functions/drivingGateCloseServer.sqf": "b96834451030481f79c5106dd68f779d6b8cfc490fbb42b60503a3e075a6a418",
+      "addons/vehicles/functions/drivingGateOpenServer.sqf": "11bd74bf849b52176e8b7634ade605a993e61bb884e4e63b727bab817fa6994b",
+      "addons/vehicles/functions/drivingGateRequest.sqf": "f90367e25506cb544479e29f43d5f51d0e899590a7955db545249b716387da1d",
+      "addons/core/functions/cortexStop.sqf": "675c14ce5a2e7f0c175bedb8139c9578a629822d3db1c3fe74828e87738c1356"
+    },
+    "validation": {
+      "tests": 1484,
+      "fullPipeline": ".qa/gate-passage-close-lifecycle-build.log",
+      "documentationRefresh": "Guide contradictions reconciled afterward; documentation_contract_checker/wiki_sync/reference-boundary tests passed; unchanged product source rebuilt/compiled/sealed with build_mod -SkipStaticChecks.",
+      "repackLog": ".qa/gate-passage-close-doc-repack.log",
+      "candidate": ".qa/candidates/gate-passage-close-16a1af53-final",
+      "fingerprint": "ecadd722ee571ef20c4cb8ab1eacaf67f374e89362edf62f8c24f4f2b3a34b95",
+      "independentLog": ".qa/gate-passage-close-final-independent.log",
+      "physical": "Unrun; audits paused."
+    }
+  },
+  "dualAxisProjection20261021": {
+    "status": "implemented and offline validated; runtime unmeasured",
+    "scope": "Shared DrivingHullInterval optional second unit axis retains original two-value default. One box/four native transforms yield both padded intervals. Gate constructor and parked-hull clearance reuse it; all other callers unchanged.",
+    "geometryEvidence": "Existing pass geometry regression extended: affine extrema compared against exhaustive eight-corner projection for identity, rotation, tilt, scale and asymmetric bounds across three unit axes. No new test case count.",
+    "cost": "Dense closure sample maximum falls from136 to72 native transforms; gate admission from12 to8. Same local entity query,16-entity cap, margins, cadence and refusal rules. No measured frame-time or5/10budget claim.",
+    "hashes": {
+      "addons/vehicles/functions/drivingHullInterval.sqf": "6b3cda84104f13efde9080289dfc0ccf1403b100a64dcdd094e9c1ed305adeba",
+      "addons/vehicles/functions/drivingGateCloseServer.sqf": "73bdac127c02cc29229b346aff5998fa0a51437406440d163fe52a031b7de4cf",
+      "addons/vehicles/functions/drivingGateOpenServer.sqf": "54b4c4a82f911d63a1d273182fac6ef72cb9780af26e18a47b862f0a81a526a1"
+    },
+    "validation": {
+      "tests": 1484,
+      "fullPipeline": ".qa/hull-dual-projection-build.log",
+      "independent": ".qa/hull-dual-projection-independent.log",
+      "candidate": ".qa/candidates/hull-dual-projection-22fe117d",
+      "fingerprint": "366f8c43b81b4b2fc15d10e2c60b1393c5c927d3fe59fad9f4fa2a1bc5964639",
+      "physical": "unrun; audits paused"
+    }
+  },
+  "routeWaitRestartRecheck20261021": {
+    "baseline": "c689cfd3",
+    "sourceScope": "routeWaiting and refreshRoute read in full; CBE current nativeWaiting/recoveryOrderFree, route receipt, recovery command classifier and release handback branches read. Not full driving-controller rereview.",
+    "confirmed": "Intentional HOLD/inactive trigger/timeout/nontrue condition is not stuck. CBE recovery requires current plain MOVE, no scripts/statements/attachments/synchronisation, independent of distance. Original route receipts and native crew command identity bind recovery and handback. No condition execution.",
+    "departures": "Do not recreate authored waypoint, enable disabled MOVE/PATH, force engine state or copy unconditional crew follow. CBE native handback uses current effective commander, only plain route, and refuses on-foot leader follow. SIMPLE_BACK STOP acknowledgement plus physical quiescence is retained before handback.",
+    "decision": "No new product defect established by this trace; no recovery retry/timing/controller edits. Physical commanded vehicle continuation and intentional-wait behaviour remain unverified.",
+    "hashes": {
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_routeWaiting.sqf": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+      ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_refreshRoute.sqf": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "ad2355ccb40095c32cac1957b6146d28ae0599428c28c201e2a2cbaaf28da04b",
+      "addons/vehicles/functions/drivingRecoveryRelease.sqf": "87392e5b280aa51cae3036ec72146318fd2889e461a8a2e139c9dfe7cd645f1e",
+      "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "5e3b5eef421e03dc373a74886f52b60e105512790885c760f2a4b04e1305edce",
+      "addons/vehicles/functions/drivingRouteReceipt.sqf": "a6dd1662abbe339a2d85ee87b38d5b4298804bedcd8eafee973502cf901e1642"
+    },
+    "indexReconciliation": "Before refresh sourceFiles, historicIndex and historicReviewPointers matched exactly; only missing readable pointer was this driving-recovery-gate-scope record. Preserve31 unresolved historic texts; refresh is navigation metadata only, no parity or score credit.",
+    "productChanged": false,
+    "fullBuildRepeated": false,
+    "audits": "PAUSED"
+  }
+}

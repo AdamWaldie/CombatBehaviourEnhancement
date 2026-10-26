@@ -1,0 +1,19 @@
+{
+  "base": "d8c8422e",
+  "status": "TACTICAL_ARRIVAL_POLICY_SOURCE_INTEGRATED",
+  "finding": "Selected standoff reused artillery native phase with a fixed25m arrival area; a stationary hull6..25m short could be marked HOLD/arrived at a selected screened point.",
+  "implementation": "Tactical producer records arrivalRadius5. Shared MOVING phase uses typed finite1..25m radius, defaults25 for artillery, and retains rest/vertical/native order checks. Invalid radius requests existing release/retirement instead of arrival. STOPPING/RETURNING do not depend on this policy. No new worker, query, clock or setting.",
+  "limits": [
+    "A tighter radius may expose native route refusal or stalling previously reported as arrival; those retain existing bounded incomplete/handback outcomes.",
+    "No physical normal/HC path precision or overhead acceptance.",
+    "This does not implement post-shot cover relocation, point-fire or external-controller completion handover."
+  ],
+  "validation": {
+    "build": ".qa/handovers/tactical-arrival-radius-build.log",
+    "independent": ".qa/handovers/tactical-arrival-radius-independent.log",
+    "candidate": ".qa/candidates/tactical-arrival-radius-d8c8422e",
+    "fingerprint": "415d2a06291b158dde1f1be1a729e2d97d2034c3e9daec97c76bdd44d9da199a",
+    "physicalAcceptance": false
+  },
+  "audits": "paused"
+}

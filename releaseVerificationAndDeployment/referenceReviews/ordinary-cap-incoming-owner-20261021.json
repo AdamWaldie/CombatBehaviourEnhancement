@@ -1,0 +1,72 @@
+{
+  "baseline": "0fda137d",
+  "scope": "Pending ordinary cap release across actual internal vehicle locality edges; no external-provider or cruising-cap handover claim",
+  "priorTrace": ".qa/ordinary-cap-incoming-owner-trace-20261021.json",
+  "sourceIntent": "Retain original speed baseline and exact ownership during interruption/locality transfer, rather than copying HBQ route refresh force-enable/reset shortcuts. Prior HBQ scoped source review remains hbq-ordinary-cap-handback-20261021.json, not whole-mod parity.",
+  "implementation": [
+    "Nine-field public fact carries original state, baseline, group, issuing epoch, original server deadline, driver, effective commander, immutable issuer identity and mutable custodian identity.",
+    "Actual XEH vehicle Local event alone stores a private five-second edge window. Existing bounded lookup calls reuse it, including temporarily missing group/receipt delivery; init and seat callbacks do not renew it.",
+    "Metadata adoption requires full typed receipt, original creation no later than edge, current actual vehicle/group/seat ownership, unchanged native cap, no player/Zeus/external/convoy/child-controller conflict and empty or exact private receipt slots.",
+    "Adoption changes custody and copies exact original private cleanup receipts only. No native cap/movement/route commands, tactical brain startup, group handler installation or enablement. Original epoch/issuer/baseline/deadline remain unchanged.",
+    "Cap-only release binds current owner/epoch/driving generation to custody. Existing final release authority guards and original deadline remain the native restoration boundary. Public retirement clears the same pending fact; successor private state remains protected.",
+    "Shared four-ticket cleanup and existing driving FSM cadence remain unchanged. No new worker or global scan. Existing regression extended; no extra test case count."
+  ],
+  "validation": {
+    "fullOffline": ".qa/cap-incoming-owner-build.log",
+    "tests": 1484,
+    "compiledSQF": 392,
+    "independent": ".qa/cap-incoming-owner-independent.log",
+    "candidate": ".qa/candidates/cap-incoming-owner-0fda137d",
+    "fingerprint": "6b060b09d6232424eae04b7d392b76516f60c847c57bd7e2a066fc5db8a24df6"
+  },
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingCapReleaseAdopt.sqf": "0150ffc1d0a4faeab929f1d21accd09e1043eb8809386a89d37aef3a470ca59f",
+    "addons/vehicles/functions/drivingAssistRelease.sqf": "802fa24299d37ac4fc5d126c9931713445f7766b12d1c6b5749ea4ecda20bb30",
+    "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "b99a3c9235e06fe9a97cfdd450660af1324937c0e61df249969afa1028769262",
+    "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "834725f72a48a0c0584707e777ec0ed22a72c9b5fc86b8c55e9393b1e90cfc6c",
+    "addons/vehicles/functions/drivingOperationStep.sqf": "aa96aedab1a440dde8dbdf6b50d93084753f63ff2ea76491ebb8be98822d7c94",
+    "addons/main/CfgFunctions.hpp": "6c76ae8e6b6d656d43416a52ac48210d22fab25a7aa66242d9861c87d2e2b36f"
+  },
+  "limits": [
+    "No Arma launch; audits paused. Physical HC transfer, delivery ordering, native acknowledgement and performance budget remain unverified.",
+    "Late or incompatible facts remain unresolved; no eventual handback guarantee after original finite deadline. Group/vehicle/seat arrival must satisfy the original five-second edge window.",
+    "Active ordinary cruising-cap provenance and old-machine private-state retirement beyond this pending fact remain separate unfinished work.",
+    "Public metadata is cooperative internal CBE provenance, not authenticated external provider quiescence, FSM liveness, JIP readiness or physical success.",
+    "No whole HBQ or LAMBS parity claim and no buildout percentage change."
+  ],
+  "nativeLocalDefaultRevalidation20261024": {
+    "base": "a15a3841",
+    "engineReference": "https://community.bistudio.com/wiki/forceSpeed",
+    "getterReference": "https://community.bistudio.com/wiki/getForcedSpeed",
+    "evidence": "forceSpeed requires local execution and reapplication after locality change; getForcedSpeed returns -1 when not set. Incoming release adoption explicitly requires exact old applied cap and refuses a defaulted incoming value. Ordinary handover is not complete merely because source metadata was published.",
+    "sourceHashes": {
+      "addons/vehicles/functions/drivingCapReleaseOffer.sqf": "378c0afbe3858c5376774e29ad3153443801b2c3a9ed5e10dfe1fe0512ddeddc",
+      "addons/vehicles/functions/drivingCapReleaseAdopt.sqf": "0722ef687ebaaf7a9b36ad173964ae518a88f904ab69e64217994afc7f586e41",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "c62d7a05edd70db32207fdec0817f873dfd7a39a0fec3354c8dbcb269cedd0af"
+    },
+    "currentScope": "Existing five-second Local-edge receipt collection and finite pending-release custody; not active cruising control migration. No runtime change made during this revalidation.",
+    "requiredNextStep": [
+      "Trace DrivingRecoveryAdopt and DrivingAssistRelease callers before introducing native effects into the currently metadata-only adopter",
+      "Use actual destination-owner observation to distinguish inherited native cap,defaulted local cap and a changed nondefault cap; a default by itself is not ownership",
+      "For a justified default-case handback, preserve original seats,issuer/custodian,actual Local edge,unchanged authored route,baseline and original deadline; never fabricate an applied-cap receipt for an unissued command",
+      "Keep fresh cruising policy separate from terminal release. Do not blindly replay the old dynamic speed cap or renew recovery/traffic clocks",
+      "Physically validate both directions,owner return,late receipt delivery,new native route,Zeus/mission/external replacement and exact baseline restoration when audits resume"
+    ],
+    "limits": "No claim that all Arma owner changes always reset the cap; actual incoming native values remain a physical test requirement. No general cruising-cap or provider-quiescence acceptance. Audits PAUSED."
+  },
+  "baselineAlreadyPresent20261024": {
+    "base": "6b9c6c68",
+    "implemented": "Actual incoming Local-edge custody can adopt the historical release receipt when native cap matches either original applied cap or saved baseline. Existing cleanup rereads native state; a baseline-present value needs no restoration and its stale receipt can retire. No synthetic applied value or new native cap is created by adoption.",
+    "command_boundary": "Release skips a redundant forceSpeed write when its original baseline is already present. Changed third values remain refused; arbitrary incoming -1 does not authorise a different positive baseline.",
+    "unchanged": "Original issuer/custodian,seats,group owner,Local-edge window,original expiry,child exclusion and Zeus/provider guards retained. No new worker,timer,CBA setting or cruising-policy migration.",
+    "validation": "Full1496 offline tests;413 compiled SQF;11 PBOs;static performance0 findings;independent package verify pass. Existing release contract tests pass on final tests; redundant predicate-model additions were removed, no test-count growth.",
+    "candidate": ".qa/candidates/driving-baseline-present-6b9c6c68",
+    "fingerprint": "786aa50f6cecf0f5b3f3160d754ea5aadcdb59d7c21e13b9c8e29fb934ec0018",
+    "limits": [
+      "Unsigned dirty development package; review/handover postdate build",
+      "Physical incoming Local timing,receipt retirement and fresh driving continuation remain unrun",
+      "Different positive-baseline handback over incoming native -1 and general cruising-cap/provider quiescence remain unresolved",
+      "Audits PAUSED; no launch/push/merge"
+    ]
+  }
+}

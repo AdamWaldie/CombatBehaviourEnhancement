@@ -1,0 +1,68 @@
+{
+  "date": "2026-10-22",
+  "baseline": "4338a82a",
+  "scope": "Authoritative local reference availability; no source parity or implementation percentage",
+  "unavailable_recorded_paths": [
+    "LOCAL_IMPLEMENTATION_LEDGER.md",
+    ".qa/workshop-comparison-20261014/WORKSHOP-COMPARISON.md",
+    ".qa/workshop-comparison-20261014/source-code-index.json",
+    ".qa/workshop-comparison-20261014/wait-code-index.json"
+  ],
+  "search_boundary": [
+    "Current CBE checkout and its single registered Git worktree",
+    "Known GitHub project directory names",
+    "Separate AI-Reference-Archives filenames for the named missing records"
+  ],
+  "recovery_status": "Original private ledger/comparison not recovered. Do not reconstruct their detailed requirements or original source counts from memory. A known backup or prior saved copy is required for exact recovery. No conclusion about deletion cause.",
+  "verified": {
+    "pinned_down_archive": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\PinnedDown\\20261013-013708",
+    "manifest_sha256": "95c18276b0b4c5ba0903e94bf8226aef329bbfb76f507bd44351e468210f956a",
+    "files": 320,
+    "failures": 0,
+    "limits": "Preserved extracted snapshots; this does not recover absent original installed PBOs/signatures.",
+    "hbq_source_root": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai",
+    "hbq_controller_sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "hbq_source_inventory": "Unchanged compared with prior tracked index; four new review pointers added, no removed review pointer or historic status change.",
+    "hbq_index_sha256": "9eed0cdfbc867f135e415bee9a3b51b98776024c99a4754d31d989e64dd3b678",
+    "lambs_reference_present": true
+  },
+  "source_protection": "Read-only archive/source checks; no protected originals modified, moved or pruned. No inferred fresh Workshop availability.",
+  "validation": "Archive manifest/hash check and refreshed HBQ index check passed. No runtime source or packaged candidate changed; unchanged full build not repeated.",
+  "audits": "PAUSED",
+  "buildoutEvidenceFreshness20261023": {
+    "baseline": "6cfd4048",
+    "stale_references": 235,
+    "unique_sources": 113,
+    "affected_family_count": 55,
+    "newline_only": 0,
+    "detail": ".qa/buildout-evidence-freshness-20261023.json",
+    "check_log": ".qa/buildout-evidence-freshness-check.log",
+    "result": "FAIL: Source changed; reassess build-out evidence: addons/infantry/functions/cortexSelectAvenue.sqf",
+    "change": "Existing build-out report visibly labelled historical. No ledger hash, score, denominator or assessment date renewed; no runtime edit. Existing evidence check remains strict and failing.",
+    "next": "Reassess affected capability execution and integration, beginning CORE/CONTACT/LIFECYCLE/SCHED then driving, against current source and retained reviews. Renew only reviewed references; do not blanket-refresh235 hashes. Missing private Workshop denominator remains separate.",
+    "limits": "Full runtime build candidate unchanged; no repeated full build for engineering freshness warning. Current estimates cannot be presented as verified-current build-out or physical acceptance."
+  },
+  "schedulerReassessment20261023": {
+    "baseline": "2a51c419",
+    "runtimeFinding": "Reconcile retains HOLD_CLEANUP and installs shared handler, but tick initial active-runtime gate omitted CBE_ClearHold_SchedulerActive. Hold-only work therefore returned before queue processing.",
+    "runtimeFix": "Include hold scheduler flag in initial gate. Existing pause exception, local group/epoch/deadline checks, budget and final-job reconciliation remain. Existing hold lifecycle regression extended.",
+    "reviewedScope": "SCHED three existing criteria reviewed: keyed due/wake/coalescing, pause/cached-distance/cooldown policy, enabled runtime/finite cleanup handler lifecycle. Added actual distance-policy evidence GroupTick/GroupBrainStep. No score, scope or weight change; confidence low, physical performance separate.",
+    "evidenceStatus": "SCHED hashes renewed only after review. Remaining233 stale references/111unique sources/54families; no other family or Workshop denominator renewed. Global buildout_progress.py --check still FAILS first at cortexSelectAvenue.sqf. Partial SCHED report section updated while historical warning retained.",
+    "detail": ".qa/buildout-evidence-freshness-20261023-scheduler.json",
+    "validation": "1491 tests/full local build/independent package verification passed; SCHED-only hashes verified. Global freshness failure logged .qa/buildout-evidence-freshness-scheduler-check.log.",
+    "candidate": ".qa/candidates/scheduler-hold-only-2a51c419",
+    "fingerprint": "1852574c50704bc59cbd1c68a5a222bf17c712b68db4cce17f304a9454180f8f",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. No physical shutdown/HC/JIP/cleanup or5%median/10%p95 proof; audits paused."
+  },
+  "corePartialReassessment20261023": {
+    "baseline": "af03e459",
+    "reviewed": [
+      "CORE Master/exclusion admission",
+      "CORE Danger and group FSM dispatch"
+    ],
+    "evidence": "Current eligibility/typed FeatureEnabled and owner/generation/exact-brain/live-FSM gates reviewed; danger-source expiry and existing-brain throttled wake trace retained. Per-criterion dates/commit and source hashes renewed only for these two paths.",
+    "notReviewed": "Larger CortexLocality delta and all-owner release/calm handback remain historical; whole CORE family not renewed. Existing partial all-owner score retained.",
+    "validation": "Reviewed hashes checked; no runtime edit or repeated full build. Global buildout_progress.py --check remains FAIL at cortexSelectAvenue.sqf. Remaining232 references/110unique sources/54families in .qa/buildout-evidence-freshness-20261023-core-partial.json.",
+    "limits": "No score/weight/scope increase, physical acceptance or Workshop parity inferred. Audits paused; missing private master-register backup question still pending."
+  }
+}

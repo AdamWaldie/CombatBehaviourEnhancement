@@ -1,0 +1,23 @@
+{
+  "status": "EXPLICIT_QUEUE_REAR_ENVELOPE_PRESERVED_PHYSICAL_UNVERIFIED",
+  "sourceIntent": "HBQ rearClear screens the requested rear distance; CBE queue coordination adds a selected explicit travel/clearance demand. Screening a shorter fallback cannot prove that demand.",
+  "finding": "DrivingRearPlan allowed explicit minimum8m-clearance/6m-travel requests to use ordinary3.5m/2m fallback. Queue VERIFY/COMMIT checked successful observation and target but not returned envelope equality.",
+  "implementation": [
+    "No explicit queue envelope may use ordinary short fallback.",
+    "Queue VERIFY/COMMIT compare the returned envelope with the original leaf requirement.",
+    "Ordinary recovery fallback and all geometry/authority/execution rechecks remain unchanged. No extra world query or controller."
+  ],
+  "sourceReference": ".qa/hbq-complete-source-20261025/functions/fn_rearClear.sqf",
+  "validation": {
+    "build": ".qa/handovers/queue-rear-envelope-build.log",
+    "independent": ".qa/handovers/queue-rear-envelope-independent.log",
+    "candidate": ".qa/candidates/queue-rear-envelope-88353664",
+    "fingerprint": "76051241d7b46640fb1f1291e790c6499574bfd4d8d09a2959382ea8ce8d384d",
+    "physicalAcceptance": false
+  },
+  "limits": [
+    "Admission correction only; actual native reverse direction/travel and cross-owner queue coordination require physical evidence.",
+    "Audits remain paused. HBQ whole-source parity and performance are not established."
+  ],
+  "sourceSHA256": "1b1935da7b23dfb6f04093e7f3601c1cd615e0b1c10c71137978c37dc2d067bc"
+}

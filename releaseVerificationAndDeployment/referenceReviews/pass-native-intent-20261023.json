@@ -1,0 +1,46 @@
+{
+  "baseline": "c82b7666",
+  "scope": "Private original-route consent and same-owner native passing intent foundation; native PASS admission remains disabled",
+  "finding": "Shared PassingContext already uses NativeOrderReceipt implicit [count,-1] plus owner/epoch/generation and no destinations. Actual owners privately captured native command frame, but no full original DrivingRouteReceipt. NativeRouteReceipt unconditionally refused every active passing work, and PassFinish recalled only a waypoint.",
+  "implementation": [
+    "OwnerOrders private record now has7 fields: token,context,handshake deadline,original expiry,serial,native frame,full owner-local route. VERIFY/RESULT/Begin/passive consent compare exact current route; token release removes matching7-field receipt. No native destination added to shared context.",
+    "Begin captures original nativeIntent=[full route,owner stamp,token,original expiry] only when it equals the private original route; captures both native task labels. Top-level CanConsent native PASS refusal retained.",
+    "NativeRouteReceipt recognises that separate same-owner intent only for exact current group/platform/seats/epoch/generation/token/expiry/route and native tasks/destinations, with no recovery/bypass/corridor overlap. Original identity may survive expiry for cleanup, never new lifetime or motion permission.",
+    "The existing exact CommandWriting marker permits own STOP identity during atomic path acquisition. It does not admit a changed MOVE/action or an unbound stop; ordinary observations still require exact current command frame.",
+    "Finish selects original captured native goal when its owned route is native, otherwise unchanged authored waypoint. Existing finite STOP/rest and both-seat return observer remain."
+  ],
+  "hashes": {
+    "addons/vehicles/functions/drivingPassAgreementOwner.sqf": "7962e801541920e9c58d3332d118af6c6bd697a53448a2fffd42167aea8c8632",
+    "addons/vehicles/functions/drivingPassAgreementRelease.sqf": "db5e5f84b487ea660357e26e0bfacb507d75ebe28b21d2adcfe6f6fbbd92d8e9",
+    "addons/vehicles/functions/drivingPassBegin.sqf": "323e4826a0469f294634bca36df768b414415266c3cda0904d136e3da23dd291",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "d28e7bbcddae63d1279bdffdfe05e31a5ce7ecbabf9afa41dc5b60a734339562",
+    "addons/vehicles/functions/drivingNativeRouteReceipt.sqf": "f1961c944418bc96aa01c07e37ede06b2419bf848f0a8eecb8d1065790365d59",
+    "addons/vehicles/functions/drivingPassFinish.sqf": "5dd1bca26e31185a705d86e186624d0b8e11c03fe3c6057e484de726ef8342c1"
+  },
+  "validation": {
+    "focusedExistingDrivingTests": 258,
+    "fullExistingTests": 1491,
+    "newCases": 0,
+    "focused": ".qa/pass-native-intent-focused.log",
+    "build": ".qa/pass-native-intent-build-current-guide.log",
+    "independent": ".qa/pass-native-intent-current-guide-independent.log",
+    "candidate": ".qa/candidates/pass-native-intent-current-guide-c82b7666",
+    "fingerprint": "a3cb6faf0f79d32f5d84b12c18c81c38fd030541a8dfb351f1515a5c017ddb4a"
+  },
+  "remaining": [
+    "Native PASS remains refused by DrivingPassCanConsent. Cross-owner cleanup must recognise exact native source original route at the real edge and rebind cleanup intent to current owner without fabricating a goal or adopting executable path. Current inherited helper requires unchanged route comparison and cannot yet identify foreign native temporary-path provenance.",
+    "Only after native handover/cleanup integration review may the PASS-specific refusal be removed; QUEUE support is separate and already default-off.",
+    "Actual native fixed-path STOP semantics, same-owner and inherited goal return, both operating actors, original-route travel, cancellation/new mission intent and overhead require physical normal/HC validation while audits paused."
+  ],
+  "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering notes afterward. Same-owner identity is not controller liveness, consent for new movement, whole-HBQ parity, physical behaviour acceptance or score renewal.",
+  "previousCandidate": {
+    "path": ".qa/candidates/pass-native-intent-c82b7666",
+    "fingerprint": "2eb102f8022a8f1a5b8fe8100b30e25f673ed9eaa4deb5631c4ed35f64f7049f",
+    "meaning": "Same runtime changes before removal of superseded staged-status guide paragraphs; retained for provenance, not latest candidate."
+  },
+  "guideCorrection": {
+    "sha256": "d45cceec10f401f388776828efcad3d4074efe379802e358714ac8d68ec63991",
+    "change": "Removed six superseded staged native-queue-disabled paragraphs and corrected two remaining outdated queue/handback claims. Current guide distinguishes implemented opt-in native queue, deferred authored passing and still-disabled native PASS. Engineering reviews retain history.",
+    "validation": "Full build and independent copied-package verification repeated for exact final guide package; runtime unchanged during guide correction."
+  }
+}

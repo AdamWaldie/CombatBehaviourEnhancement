@@ -1,0 +1,30 @@
+{
+  "baseline": "6210ccdd",
+  "scope": "Confirm attack-permission restore and prevent unresolved baseline recapture after operation retirement",
+  "implementation": [
+    "OperationRestore consumes groupAttack proof after confirmed restore or explicit supersession, not before the native write. Native readback must match original value before RESTORED.",
+    "One unconfirmed native write retains original restore entry and one separate public unresolved receipt [generation,epoch,original,applied,owner,serverTime]. Cancel/Release may retire operation movement without erasing this evidence.",
+    "Repeated restore with unresolved evidence does not repeat enableAttack. No automatic retry or worker: native write is synchronous and an immediate mission override may be intentional.",
+    "OperationAttackPolicy refuses acquisition while unresolved original restriction remains. Current local observation of original native value may retire typed metadata, even after ownership changes; no old command authority or original baseline is imported into a new receipt."
+  ],
+  "validation": {
+    "focused": ".qa/attack-restore-confirm-tests.log:15 existing operation checks passed before final repeated-write/metadata-only retirement refinement.",
+    "full": ".qa/attack-restore-confirm-build.log:1489 tests/401 SQF and complete offline gates passed.",
+    "candidate": ".qa/candidates/attack-restore-confirm-6210ccdd",
+    "fingerprint": "506dd976694273068cad6603cf2cb5f26c83e2c0b646def1e5870b1c6c75eb1a",
+    "independent": "Preserved candidate verify passed.",
+    "provenance": "Unsigned development candidate: baseline plus intended edits and retained unrelated dirt."
+  },
+  "limits": [
+    "No eventual-restoration claim when a mission/controller rejects the permission. That controller must relinquish/change the native permission before fresh acquisition proceeds. Unresolved metadata is bounded one per group, not active retry work.",
+    "Identical new permission writes cannot be distinguished by property snapshots.",
+    "Physical override/release/ownership transitions and performance unverified; audits PAUSED.",
+    "No whole tactical or production readiness claim."
+  ],
+  "source_sha256": {
+    "addons/core/functions/operationRestore.sqf": "d4b67fde4065deb747a1da71870f32456ee3d29afac420f1e00fe029531af8a8",
+    "addons/core/functions/operationAttackPolicy.sqf": "9f787717080287fd440757171ac2de14287ddaea20636c02d605cf8b5befe2c4",
+    "releaseVerificationAndDeployment/test_operation_retirement_commit.py": "800b2fefcbc19cdfd7964f00f71a722775abdedbf5138455787854185599d451",
+    "releaseVerificationAndDeployment/test_operation_attack_policy.py": "bbfb5307e9451ecfd6a81275a2be8307fd3b77f22124941550b3e27232ecbbe5"
+  }
+}

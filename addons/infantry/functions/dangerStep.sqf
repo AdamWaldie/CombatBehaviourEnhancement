@@ -1,7 +1,11 @@
 /*
  * Author: WaldoTheWarfighter
+ * Target identity respects native ignoreTarget policy; no ignore setting is changed.
+ * Response-deadline extension is independent of the group wake throttle. A stronger event
+ * inside that throttle retains the complete surviving response window without extra wakes.
  * Purpose: Assess current danger, publish one finite response context and wake the existing group tactics FSM without creating a second tactical owner.
  * Locality / Authority: owner-local; never reveals targets or sends movement commands.
+ * Unknown-body clues retain original server expiry for position-only indoor investigation.
  * Repeat/JIP: generation-checked response context is public for diagnostics; a new owner rebuilds it from fresh observations.
  * One strongest event is consumed per step. Other still-live causes remain queued, so an immediate
  * hit cannot erase a simultaneous confirmed contact. Lower-priority observations cannot shorten
@@ -150,7 +154,7 @@ if (_selected isEqualTo []) exitWith {
 private _selectedIndex=_events findIf {_x isEqualTo _selected};
 if (_selectedIndex >= 0) then {_events deleteAt _selectedIndex};
 private _remaining=_events select {
-    _x isEqualType [] && {count _x in [4,5,6,7]}
+    _x isEqualType [] && {count _x in [4,5,6,7,8]}
         && {(_x param [3,-1,[0]]) > time}
 };
 _group setVariable ["CBE_Danger_Events",_remaining];
@@ -160,8 +164,17 @@ private _source=_selected param [4,objNull,[objNull]];
 private _observer=_selected param [5,objNull,[objNull]];
 if (isNull _observer || {!alive _observer} || {!local _observer} || {group _observer != _group}) then {_observer=_actor};
 private _sourceObserver=_selected param [6,_observer,[objNull]];
-if (isNull _sourceObserver || {!alive _sourceObserver} || {!local _sourceObserver}
-    || {group _sourceObserver != _group}) then {_sourceObserver=_observer};
+private _sourceUntil=_selected param [7,_selected param [3,-1,[0]],[0]];
+// Do not substitute another observer when the retained identity witness is lost.
+// The affected actor can still react to the approximate event without a target identity.
+private _sourceKnown=finite _sourceUntil && {time < _sourceUntil} && {!isNull _source} && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")}
+    && {alive _source} && {!captive _source}
+    && {!(_source getVariable ["ace_captives_isSurrendering",false])}
+    && {!(_source getVariable ["ace_captives_isHandcuffed",false])}
+    && {(side _group) getFriend (side _source) < 0.6}
+    && {[_sourceObserver] call CBE_fnc_CortexCombatEffective} && {local _sourceObserver}
+    && {group _sourceObserver == _group} && {_sourceObserver knowsAbout _source > 0}
+    && {!((_sourceObserver targetKnowledge _source) param [7,false,[true]])};
 private _action=[_group,_selected] call CBE_fnc_DangerActionSelect;
 if (_action == "RELEASE") exitWith {
     // Refusal is not a new response or contact. Preserve an independent live response and
@@ -170,10 +183,8 @@ if (_action == "RELEASE") exitWith {
     if (_remaining isNotEqualTo [] || {count _live == 5 && {(_live select 4) == _generation}
         && {time < (_live select 3)}}) then {0.25} else {-1}
 };
-if (_action != "FORCED" && {!isNull _source} && {!(_source isKindOf "Logic")} && {!(_source isKindOf "HeadlessClient_F")} && {alive _source} && {!captive _source}
-    && {!(_source getVariable ["ace_captives_isSurrendering",false]) && {!(_source getVariable ["ace_captives_isHandcuffed",false])}} && {(side _group) getFriend (side _source) < 0.6}
-    && {_sourceObserver knowsAbout _source > 0}) then {
-    _group setVariable ["CBE_Danger_Contact",[_source,_observedAt,time+2,_generation],true];
+if (_action != "FORCED" && {_sourceKnown}) then {
+    _group setVariable ["CBE_Danger_Contact",[_source,_observedAt,(time+2) min _sourceUntil,_generation],true];
 };
 // A concrete native task is an ownership boundary, not a tactical response mode. The engine FSM may
 // record the event and perform its observation-only FORCED state, but the assessment layer must not
@@ -199,6 +210,21 @@ if (_action == "FORCED") exitWith {
     if (count _forcedBrain > 0) then {_forcedBrain deleteAt "responsiveUntil"};
     if (_remaining isNotEqualTo []) then {0.25} else {-1}
 };
+// Unknown-body observations can retain a short-lived suspicion about nearby buildings.
+// No hostile identity, building occupancy or incoming-fire geometry is inferred.
+if (_cause == "BODY_FOUND" && {_action == "HIDE"} && {_observedAt <= time}) then {
+    private _observedServer=serverTime-(time-_observedAt);
+    private _seen=_group getVariable ["CBE_Danger_BuildingClueSeen",[]];
+    private _repeat=_seen isEqualType [] && {count _seen == 2}
+        && {(_seen select 0) isEqualType []} && {count (_seen select 0) == 3}
+        && {(_seen select 0) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+        && {(_seen select 1) isEqualType 0} && {finite (_seen select 1)}
+        && {serverTime < (_seen select 1)} && {_position distance2D (_seen select 0) <= 3};
+    if (!_repeat && {_observedServer+20 > serverTime}) then {
+        _group setVariable ["CBE_Danger_BuildingClue",[+_position,_observedServer,_observedServer+20,_observer,_epoch],true];
+        _group setVariable ["CBE_Danger_BuildingClueSeen",[+_position,_observedServer+60],true];
+    };
+};
 // This is a finite handoff, not a target assignment or movement order. The group tactics FSM can
 // respond on its already-owned scheduler cycle while retaining route, operation and external ownership.
 private _responseDurations=createHashMapFromArray [["HIT",3],["EXPLOSION",2.5],["SUPPRESSED",2],["CASUALTY",2],["BODY_FOUND",1.5],["SCREAM",1.5],["PROXIMITY",1.5],["CANFIRE",1.5],["DETECTED",1.5],["GUNFIRE",1]];
@@ -215,7 +241,7 @@ if (_replace) then {
     // must not turn a still-live HIDE response into ENGAGE while diagnostics continue to report
     // the hit/explosion that caused it. Equal priority updates deliberately refresh the short
     // lease from the newest observation.
-    [_observer,_cause,_position,_action] call CBE_fnc_DangerReact;
+    [_observer,_cause,_position,_action,_response select 3] call CBE_fnc_DangerReact;
     _group setVariable ["CBE_Danger_Response",_response,true];
     _group setVariable ["CBE_Danger_ResponseEvent",+_selected];
     // Keep the responder beside the action lease. CBE_Danger_LastAssessment is intentionally the
@@ -228,7 +254,8 @@ if (_replace) then {
         // Retain the exact occupied vehicle and only the already validated native-known hostile.
         // Dedicated vehicle consumers can therefore distinguish a close threat at an emplacement
         // from approximate targetless damage without scanning for or manufacturing an enemy.
-        _group setVariable ["CBE_Danger_VehicleContext",[_profile,_vehicle,_cause,+_position,_observedAt,time+_responseLifetime,_generation,_source],true];
+        private _vehicleSource=if (_sourceKnown) then {_source} else {objNull};
+        _group setVariable ["CBE_Danger_VehicleContext",[_profile,_vehicle,_cause,+_position,_observedAt,time+_responseLifetime,_generation,_vehicleSource,_sourceUntil,_sourceObserver],true];
     } else {
         _group setVariable ["CBE_Danger_VehicleContext",nil,true];
     };
@@ -246,17 +273,19 @@ private _responsiveUntil=if (count _effectiveResponse == 5
     time+_responseLifetime
 };
 // A group retains one movement/decision owner. Events only shorten its existing deadline.
+// Startup reuses a live current generation or replaces stale/cancelled/ended work. This
+// readmission does not bypass the wake throttle; a newly created brain is already due now.
+[_group,false] call CBE_fnc_GroupBrainStart;
 private _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
-if (count _brain == 0) then {
-    [_group,true] call CBE_fnc_GroupBrainStart;
-    _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
-};
-if (count _brain > 0 && {(_brain getOrDefault ["ownerEpoch",-1]) == _epoch}
-    && {time >= (_group getVariable ["CBE_Danger_WakeAfter",0])}) then {
-    _group setVariable ["CBE_Danger_WakeAfter",time+0.5];
+if (count _brain > 0 && {(_brain getOrDefault ["ownerEpoch",-1]) == _epoch}) then {
+    // A throttled wake is not a shortened response. A newly accepted stronger event may
+    // outlive the previous window even though no second immediate wake is necessary.
     _brain set ["responsiveUntil",_responsiveUntil max (_brain getOrDefault ["responsiveUntil",0])];
-    _brain set ["wakeAt",time];
-    _brain set ["nextAt",time];
-    missionNamespace setVariable ["CBE_AIPass_NextJobDue",time];
+    if (time >= (_group getVariable ["CBE_Danger_WakeAfter",0])) then {
+        _group setVariable ["CBE_Danger_WakeAfter",time+0.5];
+        _brain set ["wakeAt",time];
+        _brain set ["nextAt",time];
+        missionNamespace setVariable ["CBE_AIPass_NextJobDue",time];
+    };
 };
 0.25

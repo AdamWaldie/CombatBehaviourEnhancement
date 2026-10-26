@@ -1,0 +1,33 @@
+{
+  "baseline": "85b7fb38",
+  "scope": "Bounded owner-machine queue closure prevents deferred consent readmission",
+  "source_sha256": {
+    "addons/vehicles/functions/drivingQueueTokenClosed.sqf": "927ff97cddaecae31cf42126487332edf433a545bdfb4d583c396c6e5a41c485",
+    "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "7e757ff7f2db5ca507ff9182e354007ad4f18a16243f3fe2c9da862230113003",
+    "addons/vehicles/functions/drivingQueueAgreementRelease.sqf": "640aeec1d1b8bf30b46d631f47ff7d7cf3b9fdceb4033e359e72b59b8ac51cb1",
+    "addons/vehicles/functions/drivingQueueAgreementRequest.sqf": "73c840b1e3f42b1ebf9e8f74af39a988f1ea0b85bfd01d8ea33f2230cf4826a7"
+  },
+  "implementation": [
+    "one machine-private64-token journal matching broker admissions",
+    "original expiry only; duplicate closure uses minimum",
+    "unknown/full journal refuses admission",
+    "terminal message records closure even after participant locality loss",
+    "exact-token cancellation, negative VERIFY, rejected AGREED and phase expiry close before later admission",
+    "no recurring worker, movement or public state"
+  ],
+  "validation": {
+    "tests": 1443,
+    "compiled_sqf": 334,
+    "pbos": 9,
+    "log": ".qa/cbe-queue-retirement-final-build.log",
+    "independent_verify": "25e0b3b820952d95bba9f539e8066bef1092d1194c9ef3bec3e331132b94e3a1",
+    "physical_acceptance": false
+  },
+  "remaining": [
+    "native queue COMMIT/HOLD under parent driving FSM",
+    "phase-specific receipts and settled READY",
+    "leaf-to-root reverse room",
+    "whole-hull crossing clearance",
+    "handback and physical/runtime-cost acceptance"
+  ]
+}

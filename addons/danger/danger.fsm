@@ -43,6 +43,7 @@ item38[] = {"Exit",4,218,175.000000,-175.000000,275.000000,-125.000000,2.000000,
 item39[] = {"End_Danger_1",1,250,175.000000,-50.000000,275.000000,0.000000,0.000000,"End Danger"};
 item40[] = {"End_Forced",1,250,1025.000000,925.000000,1125.000000,975.000000,0.000000,"End Forced"};
 item41[] = {"no_queue_and_for",4,218,850.000000,925.000000,950.000000,975.000000,4.000000,"no queue" \n "and forced"};
+item42[] = {"Released",4,218,350.000000,125.000000,450.000000,175.000000,6.000000,"Released"};
 version=1;
 class LayoutItems
 {
@@ -112,6 +113,8 @@ link42[] = {36,24};
 link43[] = {37,3};
 link44[] = {38,39};
 link45[] = {41,40};
+link46[] = {3,42};
+link47[] = {42,39};
 globals[] = {0.000000,0,0,0,0,640,480,1,67,6316128,1,-1051.298584,1485.311401,1723.900391,-657.740051,933,876,1};
 window[] = {2,-1,-1,-1,-1,811,52,1492,52,3,951};
 *//*%FSM</HEAD>*/
@@ -125,7 +128,7 @@ class FSM
                 {
                         name = "Start_Danger";
                         itemno = 0;
-                        init = /*%FSM<STATEINIT""">*/"_this setVariable [""CBE_Danger_EngineEntry"",[time,_dangerCause,_dangerPos,_dangerUntil,(_this getVariable [""CBE_Danger_EngineEntryCount"",0])+1]]; _this setVariable [""CBE_Danger_EngineEntryCount"",((_this getVariable [""CBE_Danger_EngineEntryCount"",0])+1) min 100000]; _queue=[[_dangerCause,_dangerPos,_dangerUntil,_dangerCausedBy]]+(_queue select [0,11]); _selected=[]; _mode=""ASSESS""; _accepted=false; _deadline=time;"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_this setVariable [""CBE_Danger_EngineEntry"",[time,_dangerCause,_dangerPos,_dangerUntil,(_this getVariable [""CBE_Danger_EngineEntryCount"",0])+1]]; _this setVariable [""CBE_Danger_EngineEntryCount"",((_this getVariable [""CBE_Danger_EngineEntryCount"",0])+1) min 100000]; _cbeEntryRecord=[_dangerCause,+_dangerPos,_dangerUntil,_dangerCausedBy]; _queue=[[_dangerCause,_dangerPos,_dangerUntil,_dangerCausedBy]]+(_queue select [((count _queue)-47) max 0,47]); _selected=[]; _mode=""ASSESS""; _accepted=false; _deadline=time;"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
@@ -159,10 +162,21 @@ class FSM
                 {
                         name = "Init";
                         itemno = 3;
-                        init = /*%FSM<STATEINIT""">*/"_records=+(_queue select [0,12]); _queue=[]; _selected=[_records] call CBE_fnc_DangerEngineSelect; _mode=[_this,_selected] call CBE_fnc_DangerEngineMode; _accepted=[_this,_records,_mode] call CBE_fnc_DangerEngineSubmit;"/*%FSM</STATEINIT""">*/;
+                        init = /*%FSM<STATEINIT""">*/"_recentLimit=48-([0,1] select (_cbeEntryRecord isNotEqualTo [])); _window=_queue select [((count _queue)-_recentLimit) max 0,_recentLimit]; if (_cbeEntryRecord isNotEqualTo []) then {_window pushBackUnique _cbeEntryRecord}; _selected=[_window] call CBE_fnc_DangerEngineSelect; _records=_window select [((count _window)-10) max 0,10]; if (_cbeEntryRecord isNotEqualTo []) then {_records pushBackUnique _cbeEntryRecord}; if (_selected isNotEqualTo []) then {_records pushBackUnique _selected}; _cbeEntryRecord=[]; _queue=_window-_records; _mode=[_this,_selected] call CBE_fnc_DangerEngineMode; _accepted=[_this,_records,_mode] call CBE_fnc_DangerEngineSubmit;"/*%FSM</STATEINIT""">*/;
                         precondition = /*%FSM<STATEPRECONDITION""">*/""/*%FSM</STATEPRECONDITION""">*/;
                         class Links
                         {
+                                /*%FSM<LINK "Released">*/
+                                class Released
+                                {
+                                        itemno = 42;
+                                        priority = 6.000000;
+                                        to="End_Danger_1";
+                                        precondition = /*%FSM<CONDPRECONDITION""">*/""/*%FSM</CONDPRECONDITION""">*/;
+                                        condition=/*%FSM<CONDITION""">*/"_mode == ""RELEASE"" || {!_accepted}"/*%FSM</CONDITION""">*/;
+                                        action=/*%FSM<ACTION""">*/""/*%FSM</ACTION""">*/;
+                                };
+                                /*%FSM</LINK>*/
                                 /*%FSM<LINK "Forced">*/
                                 class Forced
                                 {

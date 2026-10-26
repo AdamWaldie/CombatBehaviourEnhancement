@@ -1,0 +1,26 @@
+{
+  "baseline": "12384d65",
+  "scope": "Split-locality recovery cleanup before owner-local native reads",
+  "finding": "RecoveryRelease classified expectedDestination before confirming crew/group locality; the old late split-locality branch could not make those earlier reads valid.",
+  "implementation": [
+    "An early metadata-only split branch now precedes native-return and ordinary command classifiers. Exact issued reverse or native return may retain its current seat identities and local vehicle cap within the original hard deadline; no remote native destination/task reads or commands.",
+    "Changed seats/cap or a forward-only journal retire obsolete metadata without movement. Expiry marks UNRESOLVED_LOCALITY and stops automatic cleanup registration; no clock renewal.",
+    "Removed the unreachable late split branch. Fully local native command/cap/route/Zeus/provider authority checks remain unchanged."
+  ],
+  "validation": {
+    "focused_initial": ".qa/recovery-split-locality-tests.log:two stale assertions for cleanup semicolon/removed deadline-call count; updated existing cases to trace the early split boundary and original deadline. No new test count.",
+    "full": ".qa/recovery-split-locality-build.log:full offline build passed1486/399SQF.",
+    "candidate": ".qa/candidates/recovery-split-locality-12384d65",
+    "fingerprint": "389bde6e5adbbfade930fddc73343bd69048ab9eb6f0f5dc0829c24fc3951a44",
+    "independent": "Preserved candidate verify exit0.",
+    "provenance": "Baseline plus intended batch and preserved unrelated dirt; unsigned development candidate."
+  },
+  "remaining": [
+    "Native route issuer/epoch adoption after locality settles remains unimplemented. This retention alone does not restore movement authority or prove eventual handback.",
+    "Full authored/native physical transfer, native command replication timing and performance remain unverified. Audits paused.",
+    "No whole-mod completion or parity percentage claimed."
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "273cb1e5502dfa3900b82917ed637570ebc7c53d4b1eed4c97b34188109eb560"
+  }
+}

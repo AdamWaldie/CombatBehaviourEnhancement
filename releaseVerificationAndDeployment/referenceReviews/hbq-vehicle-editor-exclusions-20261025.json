@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "65fccad6",
+  "scope": "HBQ-inspired vehicle opt-out frontend for eight existing CBE driving gates; not full HBQ frontend or behavioural parity.",
+  "sourceReference": "hbq-config-worker-lifecycle-20261025.json",
+  "implementation": [
+    "Eight unchecked-by-default Eden checkboxes exclude individual driving aids. Unchecked restores inheritance, never forces global enable.",
+    "Server-only non-remote helper accepts LandVehicle excluding StaticWeapon and eight declared keys. Separate public editor-owned list preserves mission-script exclusions; repeated application is idempotent.",
+    "Existing feature resolver checks global and group policy first, then script and editor exclusions. Current/late owners consume metadata; no new controller, worker or scan.",
+    "Existing native-leg cleanup remains authoritative. These controls are not an immediate physical STOP or acknowledgement of handback."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingAttributeApply.sqf": "17f15222650d33d2a245702fb9a14a5119a7ae39ae9ec49854973ef903c98ccf",
+    "addons/infantry/functions/cortexFeatureEnabled.sqf": "a375a4cbec0c902ca3a891992acd650e31887d02f6d82f59c3c0092c5f7a5625",
+    "addons/main/config.cpp": "0512414c56e7974fcbaa592a719f8b926fab92f0fedb0b4c9197c91af6160cc2",
+    "addons/main/CfgFunctions.hpp": "4f7ec5bb04aaefe1d5a6ce77191b1224495de474572f2c8ee2874529d3ddadc6"
+  },
+  "validation": {
+    "fullBuild": "PASS attempt2",
+    "tests": 1497,
+    "compiledSQF": 421,
+    "PBOs": 11,
+    "independentVerification": "PASS",
+    "candidate": ".qa/candidates/driving-attributes-65fccad6",
+    "fingerprint": "2c78171d65793d53393b915ffbbfa436ce0d295030186da7710015430cb517ad",
+    "initialFailures": "Missing production coverage entry and upstream reference in player guide, corrected. Earlier direct unittest module invocation had import-path error; official pipeline resolves it.",
+    "physical": "UNRUN: Eden save/load and display, repeated attributes, JIP/migration, live disable/handback, frame-time budget. Audits paused."
+  },
+  "remaining": "No source numeric precision/ray-count overrides or force-enable policy ported. Full HBQ source branch reconciliation and physical parity remain incomplete. Existing broader buildout evidence freshness failures remain; no percentage increase."
+}

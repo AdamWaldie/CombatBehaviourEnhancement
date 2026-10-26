@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-18",
+  "scope": "Reverse fallback to shared temporary group routes",
+  "findings": [
+    "Generation argument tagged cleanup but did not enforce current operation",
+    "Fallback callers could adopt successor generation"
+  ],
+  "implementation": [
+    "Live generation/epoch gate",
+    "Atomic same-route adoption and replacement",
+    "Explicit original generation at both reverse fallback callers",
+    "Actual retired reverse record required"
+  ],
+  "validation": {
+    "tests": 1248,
+    "exit": 0,
+    "log": ".qa/cbe-group-move-generation-verified-build.log",
+    "physical": "unrun; audits paused"
+  },
+  "remaining": [
+    "Caller phase publication",
+    "Common operation cleanup retirement",
+    "Same-request live geometry/native route interleaving",
+    "Physical handover and cost"
+  ],
+  "acceptance": "partial"
+}

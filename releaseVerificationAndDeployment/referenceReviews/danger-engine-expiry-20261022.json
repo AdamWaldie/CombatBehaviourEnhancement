@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-22",
+  "baseline": "fb82a3d1",
+  "scope": "Original native danger geometry and identity lifetime through group intake",
+  "finding": "DangerEngineSubmit selected original expiries but discarded them at DangerRequest, which created fresh two-second windows.",
+  "changes": [
+    "Carry original geometry and independent source deadlines into group intake; supplied deadlines only shorten the existing two-second bound.",
+    "Reject expired geometry before cadence or group intake; expired records cannot bootstrap a group brain. Local reflex remains separate.",
+    "Validate supplied optional deadline types explicitly, avoiding params typed-default fallback to a fresh observation. Preserve earlier independently valid witness expiry."
+  ],
+  "validation": {
+    "tests": 1489,
+    "full": ".qa/danger-engine-expiry-build-final.log",
+    "result": "PASS full offline pipeline including HEMTT, FSM, SQF, config, documentation and package gates",
+    "candidate": ".qa/candidates/danger-engine-expiry-fb82a3d1",
+    "fingerprint": "bdfd577d85fbc75d80607640133ef9b0adbbdc11a72a44945322c910ba41fe74",
+    "independent": ".qa/danger-engine-expiry-independent-verify.log",
+    "provenance": "Unsigned fb82a3d1 plus intended runtime/test/guide edits and retained unrelated dirt. Engineering handover metadata added afterward. Not a clean signed release.",
+    "limits": "Static contracts and illustrative Python model do not execute SQF or prove physical response, locality or measured performance. Audits paused."
+  },
+  "cost": "Constant expiry/type comparisons within existing bounded intake. No new worker, world query or target reveal.",
+  "remaining": [
+    "Physical danger/FSM behaviour and performance remain unverified.",
+    "Mounted command semantics, real external handovers and broader production goal remain incomplete."
+  ],
+  "evidence": {
+    "addons/infantry/functions/dangerRequest.sqf": "cd53357e79d80b6c492367e745023c6db731923520510c34c5007987685f1ea6",
+    "addons/infantry/functions/dangerEngineSubmit.sqf": "1dbd69740b5b7f4295db183e42601f1a54dfcf68ed1e60d04f5d7de1ca518ebf",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "45737420d4b825c40c8de5c999707095904bc8db93075ff8208997e230c1dad3",
+    "docs/Smart-AI-Pass.md": "9f1474140baff40206eb3eebe5215afaee57527fc1c7eea872a3b7e88491817a"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "96b030726258fa522964f99d6b9b8bc993be12bc",
+  "scope": "Shared current-owner native crew-command observation, used by existing selected-gun admission/execution. Not ordinary armoured movement controller or full handover.",
+  "implementation": [
+    "VehicleCrewNativeObservation returns the unchanged four-slot command/expectedDestination schema for two supplied original control actors. It refuses absent/nonlocal actors; platform, seat, group, operation and native task authority remain in callers.",
+    "Capture occurs in one unscheduled helper. This prevents SQF script suspension between reads, not native engine planner changes, network ordering or whole-operation consistency. No observation is movement permission or completion proof.",
+    "Identical actors are read once; destination arrays, including nested native position arrays, are independently copied into both receipt slots. Distinct actors retain separate native reads. No controller, timer, handler, publication or world query.",
+    "ArtilleryCrewMoveStart captures its baseline through the helper and refuses an unavailable four-slot sample through its existing lease cleanup. ArtilleryCrewMoveStep uses it for normal or original-survivor observation and retains its existing unresolved/retired control-loss result on unavailable sampling. Existing phase/native/seat/deadline gates remain.",
+    "The production coverage registry assigns the helper to its actual artillery consumer and regenerates the report. No physical case, acceptance status, test count or source-parity score is added."
+  ],
+  "validation": {
+    "focused": "4 existing fire-session cases extended/passed; later610 existing operation/registry cases passed.",
+    "firstFull": "Failed missing production-source registry assignment.",
+    "secondFull": "Failed stale generated FEATURE_STATUS source count after assigning the helper. Regenerated the report; no gate weakened.",
+    "finalFull": "1497 tests,423 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/selected-native-observation-96b03072",
+    "fingerprint": "f40b64799d1a43f1c2f9071416378f1efa78d2710f5404dd83dfa7090ee2226f"
+  },
+  "nextRequired": "Selected-platform outward movement/actual acknowledgement/finite stop and original-order handback must be integrated through current owner-local lifecycle. Artillery fire-token and HOLD-session authority cannot be reused as tank-cover authority. Actual episode-scoped shot evidence is required only when post-shot behaviour is implemented with a real consumer.",
+  "limits": [
+    "No normal armoured selected-platform move, cover or post-shot relocation implemented by this helper. No complete producer checkpoint or owner-ready transport.",
+    "Native acknowledgement, casualty/seat/owner/new-order/Zeus handback and5%median/10%p95 performance remain physically unverified; audits paused.",
+    "One shared call and small array copies replace inline reads. Duplicate-seat native calls are reduced, but overall CPU savings/frame impact are not measured.",
+    "Workshop originals, prior archives, signing keys and unrelated baseline dirt remain untouched. Full production goal active/incomplete."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/vehicleCrewNativeObservation.sqf": "2508d36f216cdf1738ce882cb73842fefad87b00704637ba61bfaf0897b278f6",
+    "addons/support/functions/artilleryCrewMoveStart.sqf": "b13515c4afa44b9e651fc9137d62b9d4cd75cc72b0c3d95bb6c92163cf73407d",
+    "addons/support/functions/artilleryCrewMoveStep.sqf": "64b670c685bad20b1603cafafcec15e41f175bdb6547a435419610b4ad3a0afd",
+    "addons/main/CfgFunctions.hpp": "1813cbcbf35a5691c6a280dc68cd711020b0642f38a36d9b180fb2e556c7eee4",
+    "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "a92f85b05600ced4adec0f0cacaa466d26f939f1a4302c863bb504e4a4fa2b27",
+    "releaseVerificationAndDeployment/cortexQA/coverage.json": "4e1592e74cef77aa4b1a505020332a505d84a70482d659cdd49ca5ef304b6006",
+    "releaseVerificationAndDeployment/cortexQA/FEATURE_STATUS.md": "c04daea922e8e5bb69fb75adc9b3e00d3b9cb27c82c0c1dc9686b1a19cc26e80",
+    "docs/Smart-AI-Pass.md": "05715756288dee28e11ae2fdcc72f700730914bb4f8a4a508cc2b6c422c83b61"
+  }
+}

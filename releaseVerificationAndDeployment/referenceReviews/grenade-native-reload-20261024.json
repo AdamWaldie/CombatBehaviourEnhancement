@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-24",
+  "sourceCommit": "7bbbdd118e4e340e979e9337a6e8d878162e5226",
+  "scope": "Shared native smoke/fragmentation task cooperation with selected-weapon loading",
+  "reference": {
+    "path": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doSmoke.sqf",
+    "sha256": "56677056138867f70c4b43ef857b469708811fababad36053951eaeee9e40474",
+    "intent": "Use a carried compatible throwable after a brief target observation; source delayed forceWeaponFire has no native reload-state admission/release check.",
+    "disposition": "Retain carried-ammo intent under CBE finite ownership/cancellation policy, not the unguarded delayed source command."
+  },
+  "nativeContract": {
+    "url": "https://community.bistudio.com/wiki/weaponState",
+    "observed": "Official indexed command reference defines seven fields; round phase -1 means removed magazine; magazine phase0 is completed. Direct open403; indexed official text available.",
+    "policy": "Require complete typed finite selected state with magazine phase0 and round phase0, or exact empty0round/no-mag round phase-1. Unarmed identity strings may be empty; no guessed missing state."
+  },
+  "finding": "Existing shared throw gate checked FIREWEAPON/fleeing/ROE but not native loading, so admission/queued forceWeaponFire could replace a native reload task. No reproduced physical animation defect claimed.",
+  "change": "Existing transported fire policy now observes native selected loading at admission, queue commitment, queued retries and final release. Original1.5second window and cancellation semantics retained; no new timers/workers/settings, selection/reload commands, inventories or projectile changes.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/cortexThrowGrenade.sqf",
+      "sha256": "c68bbdc422f6a54098a3d6d0b2ac15ec3f36d8382b9c24e2b98e4a87228d60a4"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_cortex_operations.py",
+      "sha256": "d5ab79e244f8ea518e3684c4227dd61993824b5e9ef97fded4c7b4639985a7d0"
+    },
+    {
+      "path": "docs/ADDON-LIFECYCLE.md",
+      "sha256": "86bf0158db0675b376965780cf300844aaf1135c7b4ce7fe7511fdbec1ca13bb"
+    }
+  ],
+  "validation": {
+    "existingFocusedCase": true,
+    "tests": 1491,
+    "sqf": 412,
+    "pbos": 9,
+    "fullBuild": ".qa/grenade-native-reload-build.log",
+    "independent": ".qa/grenade-native-reload-independent.log",
+    "fingerprint": "eaa37fa91ecffb36bc398454113fbe8077c9bb36e16026cafc3890d60f10ce7b",
+    "candidate": ".qa/candidates/grenade-native-reload-7bbbdd11",
+    "initialInvocation": ".qa/grenade-native-reload-focused.log retained wrong test-class invocation; corrected actual class passes in final-focused.log",
+    "newCases": 0
+  },
+  "limits": "Unsigned dirty development package includes pre-existing unrelated dirt; review/notes postdate package. No physical reload/throw or modded-weapon animation, tactical usefulness, normal/HC, performance-budget or source-parity proof. Audits paused; no push/CI/merge/publish."
+}

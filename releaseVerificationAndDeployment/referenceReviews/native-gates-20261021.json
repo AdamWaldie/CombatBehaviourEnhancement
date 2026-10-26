@@ -1,0 +1,31 @@
+{
+  "baseline": "d5dffce4",
+  "scope": "Native MOVE gate route metadata plus existing owner intent exchange",
+  "implementation": [
+    "New stateless gate-route metadata reader validates native receipt shape, finite original goal, initial native frame types, exact primary vehicle/seats and current common owner. Local calls also require exact current route; remote server reads no native destinations and grants no intent permission.",
+    "Server gate opening admission/final mutation and closure use this metadata boundary. Existing authenticated fresh owner exchange remains mandatory for remote native intent; GateIntent now supports the current primary native MOVE goal.",
+    "Passing/queue consent explicitly refuses native mode independently of gate eligibility. Corridors, bypass, casualty replacement and native locality adoption remain separate gaps."
+  ],
+  "validation": {
+    "focused": ".qa/native-gate-route-tests.log:255 existing driving tests passed; extended existing native admission and gate contracts, no new test count.",
+    "full": ".qa/native-gate-route-build-final.log:1486 regression tests,399 SQF and full offline gates passed.",
+    "independent": "Preserved candidate verifier exit0.",
+    "candidate": ".qa/candidates/native-gates-d5dffce4",
+    "fingerprint": "1c9c7fe334d5be953f36df04ce040adf17937f0cb13a2a40110fdfad04abf201",
+    "repair": "First successful package contained incidental guide re-encoding. Restored unchanged text bytes from baseline and reapplied only two intended scope edits, then rebuilt final candidate.",
+    "provenance": "Baseline plus intended batch and preserved unrelated dirt; unsigned development candidate."
+  },
+  "limits": [
+    "No engine/network audit or physical native gate passage evidence. Audits remain paused.",
+    "No measured 5% median/10% p95 result or whole-mod completion/parity claim.",
+    "Owner exchange is bounded evidence, not cross-machine atomic command locking. Same-value orders and command changes in transit remain runtime limitations.",
+    "Native locality adoption, casualty replacement, fixed bypass, authored corridors, passing and queues remain unfinished."
+  ],
+  "source_sha256": {
+    "addons/vehicles/functions/drivingGateRouteMatches.sqf": "e2fd40b64e3b195f6dc2f06b8ec8f64e0741520a8a049909dfd566496795f63a",
+    "addons/vehicles/functions/drivingGateIntent.sqf": "440e8fb645b452a7426edf51d6344eb7c5c1c39582d8eb4e7bc1fd9e497bd994",
+    "addons/vehicles/functions/drivingGateOpenServer.sqf": "2c3fcd5d53353a8ae4bc9ab64c8f132874024fa4b511ca879621c988cbc333bd",
+    "addons/vehicles/functions/drivingGateCloseServer.sqf": "83be8d06648f1aadebb86aa189d3aeccf357b0aafff137fed7ccf917637afdcf",
+    "addons/vehicles/functions/drivingPassCanConsent.sqf": "5ceebbd0c57706f3c54845acee83bcd2a7bae8db4a8583f705a030cc28508b9a"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "reviewed": "2026-10-20",
+  "scope": "Engine danger FSM lifecycle during actor dormancy",
+  "finding": "CombatEffective concerns health/allegiance, not simulation or hidden state. Engine mode/act/wait gates previously admitted dormant actors; release could command weak stance while dormant.",
+  "implementation": [
+    "Mode, action and continuation reject hidden/simulation-disabled actors.",
+    "Release clears completed response marker but retains exact prior stance lease under ACTOR_DORMANT. Existing bounded pending cleanup may retry within original expiry plus30s; no new worker or renewal.",
+    "External owner and replacement operation still retire stale restoration authority before dormancy handling. No changes to CombatEffective, actor rosters or operation membership."
+  ],
+  "LAMBSComparison": "Reviewed installed danger FSM lifecycle as baseline; this is a CBE ownership/dormancy improvement, not proof of full functional parity.",
+  "validation": {
+    "focusedTests": 607,
+    "fullTests": 1477,
+    "fullBuild": "PASS",
+    "buildLog": ".qa/danger-dormancy-build.log",
+    "newTestCases": 0
+  },
+  "candidate": ".qa\\candidates\\danger-dormancy-147e3a48",
+  "fingerprint": "65255f4e973a5e6bf25e73174ba7ae1e99a886b5fbfa48eaedfad93521dd3495",
+  "limits": [
+    "Physical suspension/reactivation and stance restoration unverified; audits PAUSED.",
+    "No runtime overhead claim; existing gates gain two actor-state reads."
+  ]
+}

@@ -7,7 +7,9 @@
     "CBE_ModuleConvoyRelease",
     "CBE_ModuleGarrison",
     "CBE_ModuleDefend",
-    "CBE_ModuleDrivingCorridor"
+    "CBE_ModuleDrivingCorridor",
+    "CBE_ModuleDrivingCorridorMission",
+    "CBE_ModuleAirborne"
   ],
   "zen_labels": [
     "Create AI Convoy",
@@ -106,6 +108,42 @@
       "termination": "Area removal/transform change, finite deadline, new order/controller, HALT/release or actual lead crossing; followers retain predecessor trails",
       "guide": "docs/Smart-AI-Pass.md",
       "physical_acceptance": "unverified; dialog, editor ownership, repeated passage, mixed convoy, HC/JIP and performance acceptance pending"
+    },
+    {
+      "behaviour": "Pre-placed navigation corridor registration and trigger activation",
+      "target": "Explicit persistent Eden module; its rectangle and live world transform define the area",
+      "parameters": [
+        "rectangular half-width",
+        "rectangular half-length",
+        "module arrow/facing",
+        "task-speed selector",
+        "synchronized trigger activation"
+      ],
+      "handlers": [
+        "addons/vehicles/functions/moduleDrivingCorridorMission.sqf"
+      ],
+      "executor": "CBE_fnc_DrivingCorridorRegister",
+      "authority": "Trusted server module execution publishes revisioned passive definitions; current vehicle/convoy owner uses existing navigation executor. JIP does not replay setup or movement.",
+      "termination": "Trigger deactivation removes definition, reactivation uses authored parameters, area move/deletion invalidates matching navigation; original finite vehicle deadlines and newer orders remain authoritative.",
+      "guide": "docs/MODDING-AND-OPERATIONS.md",
+      "physical_acceptance": "unverified; Eden attribute rendering, trigger repeat/deactivation, explicit curator edits, multiplayer/HC/JIP and physical bridge passage pending"
+    },
+    {
+      "behaviour": "Immediate airborne insertion using the existing finite drop executor",
+      "target": "Explicit attached AI cargo or passenger-turret soldier, squad and current aircraft; no nearest fallback",
+      "parameters": [
+        "selected passenger",
+        "selected aircraft",
+        "squad"
+      ],
+      "handlers": [
+        "addons/aircraft/functions/moduleAirborne.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Server-authenticated curator request with original serial/deadline and current-owner passenger/airframe/cargo-seat revalidation before CortexAirborneDrop; no CBA setting mutation",
+      "termination": "Disposable frontend deletes on submission/refusal; existing finite insertion handles task refusal, native/Zeus replacement, owner/aircraft loss, original deadline and landed-squad handover without JIP command replay",
+      "guide": "docs/MODDING-AND-OPERATIONS.md",
+      "physical_acceptance": "unverified; native no-ZEN placement, changed seat/aircraft, actual jump/landing, repeated use, HC/JIP and performance remain unrun while audits paused"
     }
   ]
 }

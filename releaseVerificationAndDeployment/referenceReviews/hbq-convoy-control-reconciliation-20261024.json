@@ -1,0 +1,29 @@
+{
+  "baseline": "662d0c3b6043a5cbb37b1abbf071ce47de4ff00c",
+  "scope": "Current CBE convoy pacing/retained-path trace only, not a new whole-HBQ source review or physical validation. Related HBQ reference3812620045 remains broader than convoy spacing.",
+  "reviewedRanges": [
+    "convoyTick599..619 size-aware gap and slowest-platform cruise ceiling",
+    "convoyTick805..859 lead catch-up/actual-speed blend",
+    "convoyTick1019..1104 follower gap, mass-dependent closing cap, acceleration/smoothing and independent safety caps",
+    "convoyTick1289..1344 retained trail bend/grade cap"
+  ],
+  "findings": [
+    "Normal lower/upper gap-band transitions retain continuous proportional correction and zero-at-entry outer catch-up boost. Compression retains immediate braking.",
+    "Follower smoothing floor fades across the lower half-band; the raw closing cap remains independent. Actual reversing predecessor deliberately requests a hard hold.",
+    "Lead actual-speed pacing blends across the tolerance width above twice the target gap, rather than jumping directly to walking speed.",
+    "Retained path cap is18/25/35/cruise with grade ceilings18/25, not a stored spacing-induced zero; unchanged evidence does not justify removing it.",
+    "Native path acquisition, short committed destinations, gear/acceleration latency, safety caps and measured gap must be separated before assigning a present physical cause. Existing capture records these categories; old screenshots do not establish current candidate behaviour."
+  ],
+  "decision": "Do not widen spacing bands, relax braking or add speculative tracked-vehicle timers without fresh normal-client mixed-convoy evidence. Audits remain paused.",
+  "requiredNextEvidence": "When authorised, run current sealed runtime in focused normal-client mixed convoy capture, correlate actual velocity, requested cap and native path issue/arrival before tuning; keep HC batch separate.",
+  "runtimeChanged": false,
+  "fullBuildRepeated": false,
+  "reusedCandidate": ".qa/candidates/aa-camera-handover-8e9a4e3d",
+  "fingerprint": "5944fed38443d67ce2eb053825cb56a32132f452bbc1535893d20a986da7ca96",
+  "productionSHA256": "9e9b71c064e148ce4db131118b5b560c0fe4dd7da746647f5b19711f5745c790",
+  "limits": [
+    "Trace is static evidence, not proof the current convoy flows well",
+    "No source parity/build-out/acceptance percentage changed",
+    "Other HBQ execution gaps and historic missing review texts remain open"
+  ]
+}

@@ -19,7 +19,7 @@ class FollowThroughOccupancyTests(unittest.TestCase):
     def test_completed_queue_establishes_yieldable_hold_without_stopping_partner(self):
         source = (ROOT / 'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         block = source.split('if (_waitingForFloor || {_availableCandidates isEqualTo []}) then {',1)[1].split('if (_candidates isNotEqualTo []) then {',1)[0]
-        for gate in ['_waitingForFloor || {_completedWorker}', '>= (2 min count _positions)',
+        for gate in ['_floorWorker || {_completedWorker}', '>= (2 min count _positions)', '_waitingForFloor && {_visits isNotEqualTo []}',
                      'call _actorAvailable', 'call _actorTaskFree', 'call _mayIssueMovement',
                      '!([_waitingActor] call _activeOwnMove)',
                      'currentCommand _waitingActor in ["","STOP","FOLLOW"]',
@@ -41,11 +41,42 @@ class FollowThroughOccupancyTests(unittest.TestCase):
         self.assertNotIn('set ["deadline"',block)
         self.assertNotIn('call CBE_fnc_RecoveryStep',block)
         self.assertNotIn('_failedTargets pushBack',block)
-        self.assertIn('_yieldContext+[+_yielded]',block)
-        self.assertIn('(_yieldReceipt select [0,3]) isEqualTo _yieldContext',source)
+        self.assertIn('[+_yieldContext,+_yielded]',block)
+        self.assertIn('_job set ["yieldReceipt",_yieldCommitted]',block)
+        self.assertIn('"yieldReceipt",[]',source)
+        self.assertIn('private _yieldConsidered=!_yieldValid',source)
+        self.assertIn('_yieldPublished isNotEqualTo _yieldReceipt',source)
+        interior=source.split('private _yieldIndex=',1)[1].split('// One exterior selection',1)[0]
+        self.assertLess(interior.index('_job set ["yieldReceipt"'),interior.index('_blocker doMove'))
+        self.assertIn('isEqualTo _yieldReceipt',interior)
+        self.assertIn('if (_yieldRecorded && {count _exitTarget == 3}',source)
+        preparation=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
+        self.assertIn('_job set ["yieldReceipt",_yieldReceipt]',preparation)
+        self.assertIn('private _yieldReceipt=[+_visitContext,[]]',preparation)
+
+        self.assertIn('(_yieldReceipt select 0) isEqualTo _yieldContext',source)
+        self.assertIn('private _yieldConsidered=!_yieldValid || {_yieldPublished isNotEqualTo _yieldReceipt}',source)
+        self.assertIn('count _yielded >= 64',source)
+        self.assertIn('count (_yieldReceipt select 1) <= 64',source)
+        context=['house','transform',240,'visit-b']
+        old=[['house','transform',240,'visit-a'],['actor']]
+        self.assertNotEqual(old[0],context)
+        spent=[context,['actor']]
+        self.assertIn('actor',spent[1])
         arrival=source.split('if (_arrived isNotEqualTo []',1)[1].split('doStop _unit;',1)[0]
         self.assertIn('vectorDistance (AGLToASL (_positions select (_arrived select 0))) <= 1.5',arrival)
         self.assertIn('call _roomSegmentClear',arrival)
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class FloorQueueAuthorityTests(unittest.TestCase):
+    def test_queue_hold_preserves_native_replacement_and_publishes_receipt(self):
+        text=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
+        block=text.split('private _floorWorker=',1)[1].split('if (_candidates isNotEqualTo [])',1)[0]
+        for proof in ('isNil {','call _mayIssueMovement','call _roomCommandOwned','CBE_fnc_CortexZeusHeld',
+                      'hardDeadline','isNotEqualTo _pair','isNotEqualTo _waitingNative'):
+            self.assertLess(block.index(proof),block.index('doStop _waitingActor'))
+        self.assertIn('["HOLD",_waitingActor,_job,_holds get _key] call CBE_fnc_BuildingActorMotion',block)
+        self.assertIn('(_currentOperation getOrDefault ["phase",""]) != "CANCELLED"',text)

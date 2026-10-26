@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "7786590c6bc5a97a78372487a84f448d8f9de7ba",
+  "scope": "Current local physically settled WAIT/idle acknowledgement for existing finite native crew moves/returns. Not ordinary armoured selected-platform movement or full handover.",
+  "defect": "VehicleCrewDestinationState required both current commands to be MOVE. A short acknowledged move could have reached its retained exact goal and settled to WAIT before the callback; its changed endpoint/command could then classify LOST. Artillery REQUESTED preflight could retire that as replacement; finite driving child return could remain unacknowledged. This is a source execution case, not a reproduced Arma failure.",
+  "implementation": [
+    "Optional sixth argument is a caller-local arrival sample [PositionAGL,linear speed,angular speed]. All fields must be typed and finite; speeds nonnegative. Settled recognition needs distance<=2m, vertical difference<=0.75m, linear speed<0.278m/s and angular speed<0.01rad/s.",
+    "Both original expected destinations must still match the requested goal within0.25m. WAIT/idle may then acknowledge; STOP never receives this acknowledgement. Missing/invalid physical evidence leaves original MOVE-only policy intact.",
+    "Selected-gun REQUESTED/STOPPING supplies current original-platform samples, sharing the existing motion-speed reads. All three preflight/phase acknowledgement call sites receive the sample. Original outward reply deadline still gates OWNED admission; no original request or cleanup deadline is renewed.",
+    "Driving temporary child return supplies physical samples only while vehicle/driver/operator are local. Split-locality observation remains MOVE-only. Existing original seat, native task, parent/child route and caller command authority stay in force.",
+    "No native movement command, worker, publication, world scan or ready flag. Physics sample uses a current ASL-to-AGL conversion for the native endpoint coordinate domain."
+  ],
+  "primaryDocumentation": [
+    {
+      "url": "https://community.bohemia.net/wiki/expectedDestination",
+      "use": "Native destination is PositionAGL; official command documentation accessed25October2026. This is coordinate/API evidence, not engine behaviour acceptance."
+    }
+  ],
+  "validation": {
+    "focused": "14 existing native-admission/fire-session cases passed; existing source-contract cases extended, no test count increase.",
+    "full": "1497 tests,423 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/selected-settled-native-ack-7786590c",
+    "fingerprint": "45654d80925c858f0c272e4a060f11a9527a8730f6952fecfb99fe5d01ed4cb2"
+  },
+  "limits": [
+    "No actual short doMove/WAIT transition, native cleanup return, casualty/owner/Zeus/network ordering or5%median/10%p95 performance was physically tested; audits paused.",
+    "A same-value superseding native order cannot be distinguished by endpoint alone. Original caller token/epoch/seat/native-route/task safeguards remain required; this pure comparator grants no command authority or complete handover.",
+    "No ordinary armoured selected-platform outward/cover/post-shot controller is implemented by this repair. Producer checkpoints, missing-record delivery and full required controller handovers remain incomplete."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/vehicleCrewDestinationState.sqf": "716831555930c5088bfa790e6071395f84e27549493a07cc222c9e668f4de2c3",
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "f118e8296792173d1214203dcc16f0f03eb2e68c6f1a1640f82c5d329f21a60a",
+    "addons/support/functions/artilleryCrewMoveStep.sqf": "f36523d975d36dc796a2077bf19643600b49420b626aabbee29d2ea1244027fe",
+    "releaseVerificationAndDeployment/test_driving_native_admission.py": "355e1a627afad954c65fbeafee53f22f4dcd9184c82b343261ad40afd245f491",
+    "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "94e7355ff8e2d501b4e788fa69fce5f28e7e6a69a7e0a91c9b6552007d98e8e4",
+    "docs/Smart-AI-Pass.md": "bd2130b59fa53381610f71089a4f5933af91de7049e0f1aeee64aa10b70f8042"
+  }
+}

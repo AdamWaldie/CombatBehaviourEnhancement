@@ -1,0 +1,14 @@
+{
+  "baseline": "74cd0c54",
+  "scope": "Frequent native actor reflex eligibility allocation",
+  "finding": "CortexIsEligible called live ExternalTakeover, then built full living group roster and scanned it before selecting actorContext. Native Mode and Act both used this actor-local path, repeating unnecessary roster allocation/filtering.",
+  "implementation": "Keep preceding live ExternalTakeover and all group-wide player/remote/Zeus/group ownership gates. Build full living roster only for group callers; actor-context branch builds one-member roster with explicit alive/group membership checks. Per-unit faction/feature/vehicle filters unchanged. No cached authority, new worker, timer or scan.",
+  "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. Existing ownership regression extended to cover branch ordering and continued whole-group vetoes, no new cases.",
+  "candidate": ".qa/candidates/actor-eligibility-roster-cost-74cd0c54",
+  "fingerprint": "437e947598cc31c73a28bc048de0153062ef2a1808dab2daf020be9b9859cefd",
+  "logs": [
+    ".qa/actor-eligibility-roster-cost-build.log",
+    ".qa/actor-eligibility-roster-cost-independent.log"
+  ],
+  "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. ExternalTakeover still scans group for authority; this is not constant-time whole eligibility or a measured performance gain. Physical exclusion transitions/HC/JIP and5%median/10%p95 overhead remain unverified. No tracker score/hash renewal. Audits paused."
+}

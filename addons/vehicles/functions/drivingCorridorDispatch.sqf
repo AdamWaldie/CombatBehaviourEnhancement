@@ -7,6 +7,8 @@
  * Repeat/JIP: Per-curator sequence receipts coalesce duplicate delivery; requests expire after
  * at most 12 seconds. At most 64 live curator receipts and 32 registered areas are retained.
  * JIP receives passive area definitions, never historical creation or movement RPCs.
+ * Validation, sequence/budget checks, creation/removal and registry publication share a bounded
+ * unscheduled transaction, including trusted scheduled server callers.
  * Arguments: 0 named pairs <ARRAY, []>: mode CREATE/UPDATE/REMOVE, area OBJECT, position ATL
  * ARRAY, facing NUMBER, halfLength NUMBER (5..45), halfWidth NUMBER (2..20), speed NUMBER
  * (5..30 km/h), transform ARRAY (for edits), serial positive integer, expires serverTime NUMBER.
@@ -16,6 +18,11 @@
  * ["halfLength",25],["halfWidth",5],["speed",15]]] call CBE_fnc_DrivingCorridorDispatch;
  */
 params [["_pairs",[],[[]]]];
+private _applied=false;
+// Serialize trusted scheduled calls as well as remoteExecCall delivery. Registry/sequence
+// read-modify-write and task creation/removal must not suspend across another request.
+isNil {
+    _applied=call {
 if (!isServer) exitWith {[_pairs] remoteExecCall ["CBE_fnc_DrivingCorridorDispatch",2];true};
 private _sender=remoteExecutedOwner;
 if (isRemoteExecuted && {_sender <= 0}) exitWith {false};
@@ -76,7 +83,7 @@ if (_mode == "CREATE" && {!isNull _area || {count _position != 3}
     || {_position findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}}) exitWith {
     [false,"Select an explicit valid area position for a new corridor."] call _reply
 };
-if (_mode != "CREATE" && {isNull _area || {!(_area isKindOf "CBE_DrivingCorridorArea")}
+if (_mode != "CREATE" && {isNull _area || {!(_area isKindOf "CBE_DrivingCorridorArea" || {_area isKindOf "CBE_ModuleDrivingCorridorMission"})}
     || {_sender > 2 && {owner _area != _sender && {!(_area in curatorEditableObjects _curator)}}}
     || {[getPosWorld _area,vectorDir _area,vectorUp _area] isNotEqualTo _transform}}) exitWith {
     [false,"The selected corridor was removed, moved or is not editable. Reopen its task dialog."] call _reply
@@ -128,3 +135,7 @@ private _answer=[_result select 0,format ["%1: %2. Registration is not physical 
 _receipts set [_key,[_serial,_answer]];
 missionNamespace setVariable ["CBE_DrivingCorridor_Requests",_receipts];
 _answer call _reply
+    };
+    false
+};
+_applied

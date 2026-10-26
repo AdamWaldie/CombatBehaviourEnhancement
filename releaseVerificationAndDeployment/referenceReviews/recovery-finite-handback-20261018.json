@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTED_PARTIAL_OFFLINE_ONLY",
+  "finding": "Pending exact reverse handback could retain cleanup tickets indefinitely while mobility/simulation/locality blocked it; original hardDeadline did not terminate retry service.",
+  "implementation": [
+    "Check pending deadline after cap/seat/route/native-command ownership proof in both locality-retention and local-owned paths",
+    "Publish unresolved once and retain journal/cap/baseline without command or deadline renewal",
+    "Cleanup rejects new unresolved tickets and retires existing tickets after exact release reports unresolved",
+    "Ordinary assistance yields to unresolved receipt; changed native ownership still permits metadata retirement"
+  ],
+  "validation": {
+    "tests": 1420,
+    "compiled_sqf": 329,
+    "pbos": 9,
+    "log": ".qa/cbe-recovery-finite-handback-final-build.log",
+    "unsigned_fingerprint": "6228b3f51edda8cc4f4140e1abee764d7fbcc59c968852dd8196769fccd1e1a0",
+    "physical": false
+  },
+  "bounds": "Existing four-ticket/0.25s service only; unresolved removes service obligation instead of extending original lifetime. No new worker/world query.",
+  "remaining": [
+    "No resolution/reset workflow for unchanged unresolved receipt",
+    "Physical shutdown/locality expiry and native handback unverified",
+    "Performance unmeasured; audits paused",
+    "Queue execution and native reverse capability remain unfinished"
+  ]
+}

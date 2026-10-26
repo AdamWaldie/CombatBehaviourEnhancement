@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-23",
+  "baseCommit": "940c49d4",
+  "scope": "Shared persistent combat-element preference integrated into existing clearance casualty promotion",
+  "finding": "Clearance casualty replacement sorted its rotating candidate window by distance only. Assault/advance/refill already use CombatElementSelect to prefer receiving-team buddies and intact registered pairs. New clearance recruits could therefore separate an eligible registered buddy pair despite existing identity metadata.",
+  "implementation": "Filter the at-most16 promotion candidates to those still in the reserve roster, preserving distance/identity sorting. Apply the existing read-only CombatElementSelect with maximum2/minimum1 and the healthy receiving buddy, if present. Reorder the same candidate rows to put the preference first, then retain all remaining candidates. Existing failed actual-VIEW-probe rotation occurs afterward, before the unchanged promotion coverage gate. Actual promotion keeps exact native-task/pose/watch/observer/generation proof and updates common participants through existing atomic code.",
+  "authority": "Preference grants no movement, exit-cover, settings or admission rights. No pair registry is rewritten. A previously promoted first-slot actor cannot remain among candidates when supplied as second-slot incumbent. An unavailable/sole-exit-security buddy may refuse; other reserves remain eligible under existing fairness.",
+  "cost": "No additional world query, geometry, handler or worker. Bounded candidate membership checks against existing reserve list, at most16candidate/16registry selection rows and at most2 preferred-row lookups per vacant slot. Original one-VIEW promotion budget and clearance deadline unchanged; runtime cost unmeasured.",
+  "remaining": "Physical buddy reunion, concurrent entry, whole-pair replacement continuity, casualty relief, repeated normal/HC episodes and runtime performance remain unverified or incomplete. This does not complete the CLEAR family or renew stale master percentages.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "8128b882882d002890ce88fce5d0d9592261fda07521d95b724111104a71a822"
+    },
+    {
+      "path": "addons/infantry/functions/combatElementSelect.sqf",
+      "sha256": "887117f2454eabf198a5e16abb51143bc84e408f8c208c450cc362a7579ffa7f"
+    }
+  ],
+  "validation": {
+    "focused": 8,
+    "full": 1491,
+    "sqf": 411,
+    "pbos": 9,
+    "newCases": 0,
+    "independentVerification": true
+  },
+  "candidate": ".qa/candidates/clear-buddy-refill-940c49d4",
+  "fingerprint": "5a1dc2c7d49239b3427873740be04ceb3d0233574ce8bf1acba6eb1fb4efe011",
+  "logs": [
+    ".qa/clear-buddy-refill-build.log",
+    ".qa/clear-buddy-refill-independent.log"
+  ],
+  "provenance": "Unsigned dirty development snapshot based on940c49d4 plus implementation and unrelated pre-existing dirt. Private review/handover postdate package.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "audits": "PAUSED",
+  "incompleteLaneMetadata20261024": {
+    "base": "954ad375",
+    "finding": "After two lane workers become unavailable, first recruit may be promoted under the one-VIEW callback budget. Publishing [recruit,unavailable] immediately causes CombatPairsPublish to split the recruit from its intact reserve buddy. The next callback then cannot find that buddy through incumbent preference, defeating prior cohesion integration. Applies to dead or living-unavailable remaining slot.",
+    "change": "Within existing current-job atomic publication, pass only lanes whose members satisfy the same availability/unavailable predicate as casualty replacement to persistent pair metadata. Preserve the complete actual pair snapshot in common operation immediately, including each actual promotion. Existing registry merger retains out-of-scope reserve identity until viable lane reassignment. No hint journal, worker, geometry, timer, retry or route restart.",
+    "authority": "Metadata preference only. Candidate-window fairness, failed-probe rotation, sole VIEW budget, exit-security coverage, native-task/current episode checks and original hard deadline unchanged. If reserve buddy fails normal admission another candidate may still fill the slot.",
+    "validation": "Existing replacement-publication test models dead and living-unavailable second slots, prior destructive split and retained buddy pair; asserts actual common-operation snapshot remains immediate. Existing614 focused tests and full1491, SQF validator, HEMTT412 SQF/9 PBO/all build gates plus independent package verification passed. No new cases. Initial focused log retained import-path harness error; rerun with releaseVerificationAndDeployment on sys.path passed unchanged tests.",
+    "sourceHash": "bf5ba148479b7d3a06357e047e7565815514775f4d3f741e4be7cefe7ca53e8b",
+    "logs": [
+      ".qa/clear-refill-buddy-continuity-focused.log",
+      ".qa/clear-refill-buddy-continuity-final-focused.log",
+      ".qa/clear-refill-buddy-continuity-build.log",
+      ".qa/clear-refill-buddy-continuity-independent.log"
+    ],
+    "candidate": ".qa/candidates/clear-refill-buddy-continuity-954ad375",
+    "fingerprint": "f84f38a8faa13d13deff0ef9dbd3eee4fc2aff7e6282c9607e7eb9604a20da5a",
+    "limits": "Bounded per-lane read-only eligibility checks only on changed roster. Physical pair reunion/coherent entry/casualty relief/repeated use/normal-HC/performance/parity not proved. Whole-pair replacement intent is not complete by this metadata fix. Audits PAUSED. Unsigned dirty development candidate includes unrelated existing dirt; review/notes postdate package. No source score renewal."
+  }
+}

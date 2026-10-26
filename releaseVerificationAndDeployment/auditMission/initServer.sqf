@@ -49,10 +49,11 @@ _curator setVariable ["Addons",3,true];
 CBE_fnc_HeadlessMigrateGroup={
     params ["_group","_owner"];
     if (isNull _group || {_owner < 2}) exitWith {false};
-    if !(isNil "Waldo_fnc_HeadlessMigrateGroup") exitWith {[_group,_owner] call Waldo_fnc_HeadlessMigrateGroup};
-    // The fallback is an engine request, not proof of migration. Respect the fixture's
-    // exclusion contract and retain a failed return so acceptance cannot infer success.
+    // The fixture opt-out applies to both the real provider and engine-only fallback.
+    // The companion still validates its own Waldo_Headless_ExcludeGroup separately.
     if (_owner != 2 && {_group getVariable ["CBE_Headless_ExcludeGroup",false]}) exitWith {false};
+    if !(isNil "Waldo_fnc_HeadlessMigrateGroup") exitWith {[_group,_owner] call Waldo_fnc_HeadlessMigrateGroup};
+    // The fallback is an engine request, not migration acceptance.
     // Newly created groups may still report owner 0 in the creation frame. Wait only
     // for native initialization, never fabricate locality or retry a rejected transfer.
     if (groupOwner _group < 2 && {canSuspend}) then {

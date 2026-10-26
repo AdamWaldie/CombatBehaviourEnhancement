@@ -1,0 +1,51 @@
+{
+  "workshopId": "3815260246",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3815260246",
+  "name": "AEGIS-M - Integrated Air Defence Framework",
+  "author": "Snow(Dryden)",
+  "added": "2026-10-20",
+  "status": "FOCUSED_INTERCEPTION_MECHANISM_REVIEWED_FULL_SCOPE_PENDING",
+  "scope": "Selective AI anti-air improvements integrated into normal CBE behaviour without requiring placed/synced modules. Not a wholesale port or external addon dependency.",
+  "includedIntent": [
+    "Shoot down incoming munitions where supported by weapon/platform capabilities.",
+    "Coordinate multiple AA assets in a group as layered defence with complementary coverage and engagement allocation.",
+    "Human-feeling crews: bounded reaction, skill and temperament effects without omniscience or overwriting mission-authored skill.",
+    "Evaluate CIWS aim correction methods for useful intent, weapon feasibility, fairness and native firing authority.",
+    "Prioritise threats to the defended AA asset/network, including incoming threats; rank using observed threat, urgency and uncertainty."
+  ],
+  "excludedIntent": [
+    "Source module placement/synchronisation requirement, network construction workflow and general module suite.",
+    "Unrelated player-facing features, source-specific compatibility expansion and wholesale feature replication."
+  ],
+  "evaluationTopics": [
+    "Trace detection, track sharing, interception, target allocation, crew decision timing and aim correction across complete execution paths.",
+    "Use native/observed knowledge and finite track freshness; prevent perfect global detection and duplicate allocation.",
+    "Respect individual/group fire policy, locality, specialist ownership, ammunition and friendly safety.",
+    "Inspect whether correction changes turret aim or projectile physics; do not assume all source methods are suitable. Reject manufactured hits or unsafe ballistics changes.",
+    "Bound projectile/threat scans, scheduling and tracking work; compose existing CBE owner-local FSMs instead of competing fire controllers.",
+    "Revalidate group membership, asset loss, ammunition exhaustion, interrupted orders and repeated engagements."
+  ],
+  "identityEvidence": "Installed mod.cpp and meta.cpp confirm name, author and publishedid. Metadata describes radar/SAM/CIWS/CRAM networks and crew skill/temperament; individual capabilities requested by user remain unverified pending source review.",
+  "upstreamRepository": "https://github.com/Ollieollieolllie/AEGIS-M",
+  "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3815260246",
+  "files": {
+    "addons\\aegism_compat_pook.pbo": "a3441fa8ab24d25365b5bd5c2f85e06164146acc44b27f797982559d466bef37",
+    "addons\\aegism_detection.pbo": "0ff517a938bcabd3599c7aab870c2ff335ce52a376281b3164a4f9c2c566d1e9",
+    "addons\\aegism_intercept.pbo": "6e95c3634ca937d24bdb2d12c98a0eb3f45e65034e69fedbe503d7f26711055c",
+    "addons\\aegism_main.pbo": "4ac7052efb96161cc39aea20a80f375255f25d299bac83d49cd056fd8d3bfbd0",
+    "addons\\aegism_modules_network.pbo": "956e4c1783b6bd7e5a2aa8c479597b2cd6babace9104d10cc823930951eb304a",
+    "addons\\aegism_modules_system.pbo": "2a9edb405bd7c0663ed57af7757e7dcd4f0df8b41c11bbfbc94fa132df33975e",
+    "meta.cpp": "492c67b6b7032eacbceb3106133ebab094a16566c64a4100a04696ad6cc405ee",
+    "mod.cpp": "fc33e9dd9cefb44c61b70bf911552464015cafa829a1ccb518f8506792de4f4a"
+  },
+  "dependencies": "UNVERIFIED",
+  "licence": "UNVERIFIED; inspect before incorporating code.",
+  "sourceProtection": "Read installed originals only; preserve archives and provenance. Keep raw upstream material private and outside CBE packages.",
+  "masterLedger": "Historical LOCAL_IMPLEMENTATION_LEDGER.md absent; preserve addition separately for reconciliation.",
+  "acceptance": "No implementation, parity or physical validation claimed; audits PAUSED.",
+  "focusedReview": "aegism-interception-mechanism-20261020.json",
+  "captureAuthorityFollowup20261025": {
+    "review": "aa-shot-capture-authority-20261025.json",
+    "scope": "Current original AI authority at native Fired capture; offline validated, physical UNRUN. No whole-source status/percentage change."
+  }
+}

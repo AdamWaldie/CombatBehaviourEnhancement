@@ -27,7 +27,7 @@
 
 if !(isServer) exitWith {["ai", []] call CBE_fnc_AITweaksDiagnosticReport};
 private _groups = allGroups;
-private _enabled = missionNamespace getVariable ["CBE_AIRebalance_Enable", true];
+private _enabled = missionNamespace getVariable ["CBE_AIRebalance_Enable", false];
 private _hcOwners = (entities "HeadlessClient_F") apply {owner _x};
 private _hcGroups = _groups select {
     groupOwner _x in _hcOwners
@@ -304,11 +304,129 @@ private _convoyHandoffMissing=_convoyGroups select {
 private _navalGroups=_groups select {(_x getVariable ["CBE_Cortex_NavalStatus",[]]) isNotEqualTo []};
 private _turretPolicyLoaded=isClass (configFile >> "CfgPatches" >> "CBE_policy_turret_aiming");
 private _turretPolicyCeiling=getNumber (configFile >> "CfgBrains" >> "DefaultSoldierBrain" >> "Components" >> "AIBrainAimingErrorComponent" >> "maxAngularErrorTurrets");
+private _turretPolicyValues=[];
+private _turretPolicyMatches=isNumber (configFile >> "CfgBrains" >> "DefaultSoldierBrain" >> "Components" >> "AIBrainAimingErrorComponent" >> "maxAngularErrorTurrets")
+    && {abs (_turretPolicyCeiling-0.12) < 0.0001};
+if (_turretPolicyLoaded) then {
+    private _recordTurretPolicy={
+        params ["_weapon","_mode","_property","_expected"];
+        private _entry=configFile >> "CfgWeapons" >> _weapon;
+        if (_mode != "") then {_entry=_entry >> _mode};
+        _entry=_entry >> _property;
+        private _actual=getNumber _entry;
+        _turretPolicyValues pushBack [_weapon,_mode,_property,_actual];
+        if (!isNumber _entry || {abs (_actual-_expected) >= 0.0001}) then {_turretPolicyMatches=false};
+    };
+    {
+        private _weapon=_x;
+        [_weapon,"","aiDispersionCoefX",5] call _recordTurretPolicy;
+        [_weapon,"","aiDispersionCoefY",4] call _recordTurretPolicy;
+        {
+            [_weapon,_x,"aiDispersionCoefX",6] call _recordTurretPolicy;
+            [_weapon,_x,"aiDispersionCoefY",7] call _recordTurretPolicy;
+            [_weapon,_x,"aiBurstTerminable",1] call _recordTurretPolicy;
+        } forEach ["close","short","medium","far"];
+    } forEach ["LMG_RCWS","HMG_127","LMG_coax"];
+    ["autocannon_Base_F","","aiDispersionCoefX",6] call _recordTurretPolicy;
+    ["autocannon_Base_F","","aiDispersionCoefY",5] call _recordTurretPolicy;
+};
 private _turretPolicyState=if (!_turretPolicyLoaded) then {"DISABLED"} else {
-    ["ERROR","LOADED"] select (abs (_turretPolicyCeiling-0.12) < 0.0001)
+    ["ERROR","LOADED"] select _turretPolicyMatches
+};
+// Native policy reads are diagnostics only; no skill or suppression values are written.
+private _suppressionPolicyLoaded=isClass (configFile >> "CfgPatches" >> "CBE_policy_suppression");
+private _brainComponents=configFile >> "CfgBrains" >> "DefaultSoldierBrain" >> "Components";
+private _suppressionPolicyValues=[];
+private _suppressionPolicyMatches=true;
+{
+    _x params ["_component","_property","_expected"];
+    private _entry=_brainComponents >> _component >> _property;
+    private _actual=getNumber _entry;
+    _suppressionPolicyValues pushBack [_component,_property,_actual];
+    if (!isNumber _entry || {abs (_actual-_expected) >= 0.0001}) then {_suppressionPolicyMatches=false};
+} forEach [["AIBrainSuppressionComponent","worstDecreaseTime",25],
+    ["AIBrainSuppressionComponent","bestDecreaseTime",4],
+    ["AIBrainSuppressionComponent","causeExplosionWeight",1.5],
+    ["AIBrainAimingErrorComponent","worstDecreaseTime",3.5],
+    ["AIBrainAimingErrorComponent","bestDecreaseTime",0.6],
+    ["AIBrainAimingErrorComponent","turningInfluence",1.2]];
+private _suppressionPolicyState=if (!_suppressionPolicyLoaded) then {"DISABLED"} else {
+    ["ERROR","LOADED"] select _suppressionPolicyMatches
+};
+private _launcherPolicyLoaded=isClass (configFile >> "CfgPatches" >> "CBE_policy_launchers");
+private _launcherPolicyValues=[];
+private _launcherPolicyMatches=true;
+{
+    _x params ["_section","_class","_mode","_property","_expected"];
+    private _root=configFile >> _section >> _class;
+    if (_mode != "") then {_root=_root >> _mode};
+    private _entry=_root >> _property;
+    private _actual=getNumber _entry;
+    _launcherPolicyValues pushBack [_class,_mode,_property,_actual];
+    if (!isNumber _entry || {abs (_actual-_expected) >= 0.0001}) then {_launcherPolicyMatches=false};
+} forEach [
+    ["CfgWeapons","launch_RPG7_F","Single","aiDispersionCoefX",1.8],
+    ["CfgWeapons","launch_RPG7_F","Single","aiDispersionCoefY",2.4],
+    ["CfgWeapons","launch_RPG7_F","Single","aiRateOfFire",5],
+    ["CfgWeapons","launch_RPG7_F","Single","aiRateOfFireDispersion",5],
+    ["CfgWeapons","launch_RPG7_F","Single","aiRateOfFireDistance",450],
+    ["CfgWeapons","launch_RPG7_F","Single","maxRange",450],
+    ["CfgWeapons","launch_RPG7_F","Single","maxRangeProbab",1.8],
+    ["CfgWeapons","launch_RPG7_F","Single","midRange",200],
+    ["CfgWeapons","launch_RPG7_F","Single","midRangeProbab",2.5],
+    ["CfgWeapons","launch_RPG7_F","Single","minRange",5],
+    ["CfgWeapons","launch_RPG7_F","Single","minRangeProbab",0.6],
+    ["CfgWeapons","launch_RPG32_F","Single","aiDispersionCoefX",1.7],
+    ["CfgWeapons","launch_RPG32_F","Single","aiDispersionCoefY",2.2],
+    ["CfgWeapons","launch_RPG32_F","Single","aiRateOfFire",7],
+    ["CfgWeapons","launch_RPG32_F","Single","aiRateOfFireDispersion",3],
+    ["CfgWeapons","launch_RPG32_F","Single","aiRateOfFireDistance",400],
+    ["CfgWeapons","launch_RPG32_F","Single","maxRange",600],
+    ["CfgWeapons","launch_RPG32_F","Single","maxRangeProbab",1.5],
+    ["CfgWeapons","launch_RPG32_F","Single","midRange",40],
+    ["CfgWeapons","launch_RPG32_F","Single","midRangeProbab",1.1],
+    ["CfgWeapons","launch_RPG32_F","Single","minRange",10],
+    ["CfgWeapons","launch_RPG32_F","Single","minRangeProbab",0.2],
+    ["CfgWeapons","UGL_F","Single","aiDispersionCoefX",1.4],
+    ["CfgWeapons","UGL_F","Single","aiDispersionCoefY",2],
+    ["CfgWeapons","UGL_F","Single","aiRateOfFire",4],
+    ["CfgWeapons","UGL_F","Single","aiRateOfFireDispersion",1],
+    ["CfgWeapons","UGL_F","Single","aiRateOfFireDistance",400],
+    ["CfgWeapons","UGL_F","Single","minRange",50],
+    ["CfgWeapons","UGL_F","Single","minRangeProbab",1.05],
+    ["CfgWeapons","UGL_F","Single","midRange",200],
+    ["CfgWeapons","UGL_F","Single","midRangeProbab",1.05],
+    ["CfgWeapons","UGL_F","Single","maxRange",400],
+    ["CfgWeapons","UGL_F","Single","maxRangeProbab",1.05],
+    ["CfgWeapons","Throw","HandGrenadeMuzzle","aiRateOfFire",3],
+    ["CfgWeapons","Throw","HandGrenadeMuzzle","aiRateOfFireDispersion",2],
+    ["CfgWeapons","Throw","HandGrenadeMuzzle","aiRateOfFireDistance",60],
+    ["CfgWeapons","Throw","HandGrenadeMuzzle","minRange",20],
+    ["CfgWeapons","Throw","HandGrenadeMuzzle","minRangeProbab",1.015],
+    ["CfgWeapons","Throw","HandGrenadeMuzzle","midRangeProbab",1.015],
+    ["CfgWeapons","Throw","HandGrenadeMuzzle","maxRangeProbab",1.015],
+    ["CfgWeapons","Throw","MiniGrenadeMuzzle","aiRateOfFire",3],
+    ["CfgWeapons","Throw","MiniGrenadeMuzzle","aiRateOfFireDispersion",2],
+    ["CfgWeapons","Throw","MiniGrenadeMuzzle","aiRateOfFireDistance",60],
+    ["CfgWeapons","Throw","MiniGrenadeMuzzle","minRange",20],
+    ["CfgWeapons","Throw","MiniGrenadeMuzzle","minRangeProbab",1.015],
+    ["CfgWeapons","Throw","MiniGrenadeMuzzle","midRangeProbab",1.015],
+    ["CfgWeapons","Throw","MiniGrenadeMuzzle","maxRangeProbab",1.015],
+    ["CfgAmmo","R_PG7_F","","aiAmmoUsageFlags",960],
+    ["CfgAmmo","R_PG7_F","","allowAgainstInfantry",1],
+    ["CfgAmmo","M_SPG9_HEAT","","aiAmmoUsageFlags",704],
+    ["CfgAmmo","M_SPG9_HEAT","","allowAgainstInfantry",1],
+    ["CfgAmmo","R_PG32V_F","","aiAmmoUsageFlags",960],
+    ["CfgAmmo","R_PG32V_F","","allowAgainstInfantry",1],
+    ["CfgAmmo","R_MRAAWS_HEAT_F","","aiAmmoUsageFlags",704],
+    ["CfgAmmo","R_MRAAWS_HEAT_F","","allowAgainstInfantry",1]];
+private _launcherPolicyState=if (!_launcherPolicyLoaded) then {"DISABLED"} else {
+    ["ERROR","LOADED"] select _launcherPolicyMatches
 };
 private _checks = [
-    ["ai","engine-policy-turret-aiming",_turretPolicyState,format ["optionalLoaded=%1 effectiveCeilingRadians=%2 restartRequired=true. Runtime CBA gates cannot unload this configuration. A different effective ceiling while loaded indicates a configuration override; physical lethality and player precision require separate acceptance.",_turretPolicyLoaded,_turretPolicyCeiling]],
+    ["ai","engine-policy-launchers",_launcherPolicyState,format ["optionalLoaded=%1 effectiveProperties=%2 restartRequired=true. Native AI policy is global to affected launcher, UGL, fragmentation-muzzle and rocket-ammo classes, including actors excluded from CBE. Native grenade choices do not pass through the scripted throw safety gate. CBA switches cannot unload it. Different effective values indicate config overrides; engagement, ammunition economy and friendly safety require physical verification.",_launcherPolicyLoaded,_launcherPolicyValues]],
+    ["ai","engine-policy-suppression",_suppressionPolicyState,format ["optionalLoaded=%1 effectiveProperties=%2 restartRequired=true. Global native policy persists while CBA tactics are disabled; different values indicate a config override. Mission skills are unchanged. Balance and recovery timing require physical verification.",_suppressionPolicyLoaded,_suppressionPolicyValues]],
+    ["ai","engine-policy-turret-aiming",_turretPolicyState,format ["optionalLoaded=%1 effectiveCeilingRadians=%2 weaponValues=[weapon,mode,property,effective]=%3 restartRequired=true. Native base-class diagnostics include AI dispersion and terminable bursts, not every modded derivative. Runtime CBA gates cannot unload this configuration. ERROR indicates a missing or overridden value; physical balance and player precision require separate acceptance.",_turretPolicyLoaded,_turretPolicyCeiling,_turretPolicyValues]],
     ["ai", "cortex", _passState, format ["enabled=%1 serverActive=%2 serverJobs=%3 paused=%4 includedSides=%5. %6", _passEnabled, _passActive, _passJobs, [] call CBE_fnc_CortexIsPaused, missionNamespace getVariable ["CBE_AIPass_IncludedSides", []], _passHint]],
     ["ai", "cortex-scheduler", if (!_passEnabled) then {"DISABLED"} else {"LOADED"}, format ["sampledJobs=%1 callbackMs=%2 maxQueueLatency=%3 staleProgress=%4",count _schedulerQueue,_schedulerCallbackMs toFixed 3,_schedulerLatency toFixed 2,_schedulerStaleProgress]],
     ["ai", "cortex-regroup", if (_passEnabled && {_regroupEnabled}) then {"LOADED"} else {"DISABLED"}, format ["enabled=%1 serverRegroupsCompleted=%2 serverUnitsJoined=%3", _regroupEnabled, missionNamespace getVariable ["CBE_AIPass_RegroupsCompleted", 0], missionNamespace getVariable ["CBE_AIPass_RegroupJoined", 0]]],
@@ -352,7 +470,7 @@ private _checks = [
     ["ai","vehicle-passenger-ownership",if (_unloadPolicyInvalid isNotEqualTo []) then {"ERROR"} else {if (_unloadPolicyVehicles isEqualTo []) then {"LOADED"} else {"ACTIVE"}},format ["ordinaryUnloadLeases=%1 blockedExternalMutations=%2 invalidLeases=%3 samples=[%4]. Each lease belongs to the exact effective-command group and vehicle epoch, is separate from convoy control and restores only an unchanged CBE-applied value. The snapshot is on-demand and capped at 20 vehicles.",count _unloadPolicyVehicles,count _unloadPolicyBlocked,count _unloadPolicyInvalid,_unloadPolicySnapshot joinString "; "]],
     ["ai","convoy-driving",if (_convoyHandoffMissing isNotEqualTo []) then {"ERROR"} else {if (_convoyRegistry isEqualTo []) then {"LOADED"} else {"ACTIVE"}},format ["controlledGroups=%1 vehicles=%2 drivingAssist=%3 routeRecoveryEnabled=%4 recoveries=%5 missingHeadlessRestart=%6 brains=[%7]. CBE owns eligible convoy movement through one finite owner-local brain exposing cruise, spacing, contact, recovery, ordered hold, obstruction and arrival. Physical control remains one bounded shared-scheduler step; CBE never teleports, repairs or ignores a physical roadblock.",count _convoyGroups,count _convoyVehicles,missionNamespace getVariable ["CBE_Convoy_DrivingAssist_Enable",true],missionNamespace getVariable ["CBE_Convoy_RouteRecovery_Enable",true],_convoyRecoveries,count _convoyHandoffMissing,_convoyBrainSnapshot joinString "; "]],
     ["ai","cortex-naval",if !(missionNamespace getVariable ["CBE_AIPass_NavalAssault_Enable",true]) then {"DISABLED"} else {if (_navalGroups isEqualTo []) then {"LOADED"} else {"ACTIVE"}},format ["enabled=%1 activeGroups=%2 statuses=%3. CBE owns eligible naval delivery through the shared scheduler, a bounded shore comparison and one finite native approach; Zeus, player and neutral external-control ownership still take precedence.",missionNamespace getVariable ["CBE_AIPass_NavalAssault_Enable",true],count _navalGroups,_navalGroups apply {_x getVariable ["CBE_Cortex_NavalStatus",[]]}]],
-    ["ai","cortex-civilian-reactions",if !(missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Enable",true]) then {"DISABLED"} else {"LOADED"},format ["eligibleUnarmedCivilians=%1 reactingNow=%2 radius=%3 distance=%4 cooldown=%5. FiredNear, Explosion and Hit events create one priority-aware finite escape on the shared scheduler. Stronger danger may replace a weaker active route; duplicate noise cannot churn it. One stalled route retry is allowed. Player, Zeus and neutral external-control ownership still take precedence.",count _civilianActors,_civilianReactions,missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Radius",45],missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Distance",180],missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Cooldown",20]]],
+    ["ai","cortex-civilian-reactions",if !(missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Enable",true]) then {"DISABLED"} else {"LOADED"},format ["eligibleUnarmedCivilians=%1 reactingNow=%2 radius=%3 distance=%4 cooldown=%5. FiredNear, Explosion and Hit events create one priority-aware finite escape on the shared scheduler. Stronger danger may replace a weaker active route; duplicate noise cannot churn it. One stalled route retry is allowed only while native command, destination and authored route still match. Protected tasks or replacement movement retire escape work without automatic replay. Native behaviour, group pace and actor posture remain mission-owned; no temporary settings require restoration. Player, Zeus and neutral external-control ownership still take precedence.",count _civilianActors,_civilianReactions,missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Radius",45],missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Distance",180],missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Cooldown",20]]],
     ["ai", "ai-profile", if (_enabled) then {"ACTIVE"} else {"DISABLED"}, format ["profile=%1 mode=%2 serverActive=%3", missionNamespace getVariable ["CBE_AIRebalance_Profile", "LINE"], missionNamespace getVariable ["CBE_AIRebalance_Mode", "AUTO"], missionNamespace getVariable ["CBE_AI_RebalanceActive", false]]],
     ["ai", "ai-weapon-dispersion", if (!_enabled) then {"DISABLED"} else {"ACTIVE"}, format ["operatingCrew=%1 precisionExcluded=%2 infantry=%3 crewSkillMultiplier=%4 groundVehicle=%5 aircraft=%6 locallyAdjusted=%7. CBE applies the script coefficient only to eligible AI; the neutral precision-exclusion contract prevents stacking with independently owned weapon systems.",count _operatingCrew,count _precisionExcludedCrew,missionNamespace getVariable ["CBE_AI_InfantryDispersion",1.35],missionNamespace getVariable ["CBE_AI_VehicleCrewAimMultiplier",0.6],missionNamespace getVariable ["CBE_AI_VehicleCrewDispersion",3.5],missionNamespace getVariable ["CBE_AI_AirCrewDispersion",4.25],_crewAimAdjusted]],
     ["ai", "ai-headless-adoption", if (!_enabled) then {"DISABLED"} else {if (_missing isNotEqualTo [] || {_convoyHandoffMissing isNotEqualTo []}) then {"ERROR"} else {if (_hcGroups isNotEqualTo []) then {"ACTIVE"} else {"UNCONFIGURED"}}}, format ["connectedHCs=%1 hcOwnedGroups=%2 missingVerifiedAdoption=%3 activeConvoysMissingCompatibilityRestart=%4", count _hcOwners, count _hcGroups, count _missing, count _convoyHandoffMissing]],
@@ -500,6 +618,9 @@ _checks pushBack ["ai","aircraft-scheduler-health",_aircraftQueueState,format ["
 // Summarize the fixed owner-local ring on demand, never sort inside the frame callback.
 private _callbackSamples=+(missionNamespace getVariable ["CBE_AIPass_CallbackSamples",[]]);
 private _sampleCount=count _callbackSamples;
+private _scheduledSamples={count _x > 5 && {(_x select 5) isEqualTo true}} count _callbackSamples;
+private _unscheduledSamples={count _x > 5 && {(_x select 5) isEqualTo false}} count _callbackSamples;
+private _unknownContexts=_sampleCount-_scheduledSamples-_unscheduledSamples;
 private _sampleDurations=_callbackSamples apply {_x select 2};
 private _sampleLatencies=_callbackSamples apply {_x select 3};
 _sampleDurations sort true;_sampleLatencies sort true;
@@ -515,9 +636,9 @@ if (_sampleCount > 0) then {
     _ranked sort false;_slowestSamples=_ranked select [0,8];
 };
 _checks pushBack ["ai","cortex-callback-samples",["NOT_SAMPLED","MEASURED"] select (_sampleCount > 0),
-    format ["owner=%1 samples=%2 capacity=256 oldestAgeSeconds=%3 newestAgeSeconds=%4 callbackP50Ms=%5 callbackP95Ms=%6 queueLatencyP95Seconds=%7 slowest[ms,subsystem,key,latencySeconds,localTick]=%8. Executed callbacks only, including retired jobs; nearest-rank percentiles of a rolling mixed-workload sample. Server-local only; HC/client rings stay on their owner. This is not matched frame-time overhead or tactical acceptance.",
+    format ["owner=%1 samples=%2 capacity=256 oldestAgeSeconds=%3 newestAgeSeconds=%4 callbackP50Ms=%5 callbackP95Ms=%6 queueLatencyP95Seconds=%7 slowest[ms,subsystem,key,latencySeconds,localTick]=%8 context[scheduled,unscheduled,unknown]=[%9,%10,%11]. Executed callbacks only, including retired jobs; nearest-rank percentiles of a rolling mixed-workload sample. Server-local only; HC/client rings stay on their owner. This is not matched frame-time overhead or tactical acceptance.",
         clientOwner,_sampleCount,if (_sampleCount > 0) then {diag_tickTime-_sampleOldest} else {-1},
-        if (_sampleCount > 0) then {diag_tickTime-_sampleNewest} else {-1},_sampleP50,_sampleP95,_latencyP95,_slowestSamples]];
+        if (_sampleCount > 0) then {diag_tickTime-_sampleNewest} else {-1},_sampleP50,_sampleP95,_latencyP95,_slowestSamples,_scheduledSamples,_unscheduledSamples,_unknownContexts]];
 // Coordinated work is server-owned, so expose the lease/turn state which an HC-only
 // group snapshot cannot explain. This is calculated only for an on-demand report.
 private _supportRequests=missionNamespace getVariable ["CBE_AIPass_SupportRequests",createHashMap];

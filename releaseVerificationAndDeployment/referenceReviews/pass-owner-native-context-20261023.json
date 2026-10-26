@@ -1,0 +1,75 @@
+{
+  "baseline": "9bf44f6d",
+  "scope": "Shared cross-owner pass identity versus owner-local native command proof",
+  "source_sha256": {
+    "addons/vehicles/functions/drivingPassContext.sqf": "5ae1eefc03535c3f1b9b6aaf2128102a969caffc8dd2733c4a5bb6c7a6c5ffea",
+    "addons/vehicles/functions/drivingPassAgreementServer.sqf": "c9dbf8e19ecf10180de3862ef58c29180247bfdb1014ad925b016411859e5a05",
+    "addons/vehicles/functions/drivingPassAgreementOwner.sqf": "e0e1025d646f85b6e52a175248533e4cd8949e4367260c24f424dcf476fc7899",
+    "addons/vehicles/functions/drivingPassBegin.sqf": "c6f387e3cc4af7c5e6596c1d1b1e68c708be8c55cc7e9c0b882cf771eae4868a",
+    "addons/vehicles/functions/drivingPassStep.sqf": "537467acb8bf9dd03410e05dd1c01b82de62e7d9bc5aad06198098a1e677d146",
+    "addons/vehicles/functions/drivingPassAgreementRelease.sqf": "1a91f7cc066a87abd5cdd23a6ac060466488d57c25e4dec81af32021e9f01139",
+    "addons/vehicles/functions/drivingQueueContext.sqf": "bd1c6dd70a9197affbbd4cbae35a8b9a9aee6027b6de6ca512414220b0a0128a"
+  },
+  "findings": [
+    {
+      "status": "source-confirmed structural gap; physical impact unverified",
+      "path": "DrivingPassContext actor receipt captures currentCommand and expectedDestination for every actor without locality filtering. Proposing owner supplies both rows. Server topology deliberately compares fields0..6,9,10 and omits command/destination7,8; actual owner later compares entire row against proposing observer row. DrivingPassBegin and geometry/traffic preparation compare whole context; DrivingPassStep compares peerRow through the same observer reader.",
+      "impact": "Shared native destination is not independent current-owner evidence. Different observer results can refuse valid cross-owner consent or interpret peer changes from the wrong machine. Do not claim every cross-owner pass fails without a fresh physical trace.",
+      "comparison": "DrivingQueueContext explicitly leaves shared destination slot empty; actual owner captures private ownerOrders. That is the existing architectural reference, not permission to weaken pass checks."
+    }
+  ],
+  "required_implementation": [
+    "Use canonical shared authored route/seat/owner/epoch/generation identity independent of observer-native destination. Preserve schema consumers deliberately; do not merely blank the field.",
+    "Capture each consenting vehicle original native commands/destinations privately on its actual owner before ACK, bind full token/serial/context/original expiry, and compare that proof through RESULT/admission. Root preparation must retain local pre-command cancellation proof.",
+    "Maintain peer-owner consent revocation when its native task changes during the pass; root cannot replace this with remote expectedDestination. Trace existing driving callback for bounded revocation before adding a new worker. Root execution and return must retain their existing exact local journals.",
+    "Retire companion proof with exact token/epoch/generation, terminal result, original expiry, locality loss and shutdown without deleting successor proof. Preserve duplicate phases, token closure, broker callback bounds and all native-MOVE exclusions until separately implemented."
+  ],
+  "review_limits": "Recovery files were explored but no new handback defect established. Do not add classifier-locality guards solely on missing internal checks without proving a reachable caller path; current native route reader already requires actual local seats. Some broad outputs truncated; not a complete recovery review.",
+  "validation": "Read-only source review; no runtime change, new test, package rebuild or score renewal. Last successful runtime candidate remains pass-broker-admission-budget-595b17ba. Audits paused.",
+  "external_lookup": "Official expectedDestination page lookup returned403; no new command-specific documentation evidence obtained. Existing queue source contract establishes project locality intent; physical verification remains necessary.",
+  "implementation20261023": {
+    "baseline": "5d6d66ba",
+    "changes": [
+      "Shared destination slot empty; no expectedDestination in shared context reader. Existing native-command and authored identity fields retained.",
+      "Stateless DrivingPassNativeFrame refuses remote vehicle/group/control seats before native reads. Initiating proposal retains frame through planning and preparation; preparation freezes the original frame against caller refresh. Geometry/traffic recheck actual-owner frame before/after bounded observation; active step constructs fresh bounded local observation frames while retaining its own issued-command journal.",
+      "Each consenting owner captures private [token,context,deadline,expiry,serial,nativeFrame] before ACK; repeated VERIFY preserves original proof. RESULT and Begin compare it. Existing ordinary-driving callback revokes passive consent on local task/eligibility changes. No new worker or timer.",
+      "Exact-token release and owner refusal retire companion proof without clearing successor token/context; existing original-expiry callback and shutdown use that release. Owner-local proof is never replayed to JIP/new owner. Canonical topology plus broker ACK remain required; native-MOVE negotiations still excluded."
+    ],
+    "source_sha256": {
+      "drivingPassContext": "95c36988378c75afbfb77de44164c8f04057fc09d2666caecefeac787d7ba417",
+      "drivingPassNativeFrame": "a42c759b13cbc55286393bef692a6315a98ed91fe073ba5d0389f4ecd19b179f",
+      "drivingPassPlan": "47b2ec424520dfae30b0103e5d3ca1928593e06a9be9942bbe1453072161d4a6",
+      "drivingPassPrepare": "81ad933d20f1ec47b3eba92e736b4d23c75f21882f6232d23ac79bf896fdaa4c",
+      "drivingPassGeometry": "c41144a8c6e0bb17ef7747fa364ba3c545ff8876510441c356f6402e29e58b16",
+      "drivingPassTraffic": "0d909d4a2fadb18c7ca9f4f476ce61016d983d3a519449c4638b1d35416e428f",
+      "drivingPassAgreementOwner": "51dcfec1d84f1f7099ec1a749fd332d168811fe7340fb9ac7495363c81149dee",
+      "drivingPassAgreementRelease": "eae5d77268b01c88f7910a2f2488358e00805644244323fd3b034340958523da",
+      "drivingPassBegin": "7534cce9dcd406b751b189c1a683e500b84625055f77170f30f82e856217c581",
+      "drivingPassStep": "7f1fc6d834fa4b735bf4454342acf753a5e4d90dd6e6fe8a578d37f096e035a3",
+      "drivingAssistStart": "36e664bffc4cd7ed09d99ad7ea046e65f1a3544b683ea0f6fb72ad96aa1841d0"
+    },
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package gates and independent copied-package verification passed. Existing ownership regression extended, no new cases. First build failed old expectedDestination-in-shared-context assertion; reviewed passed; final pass includes frozen preparation frame and typed passive proof.",
+    "candidate": ".qa/candidates/pass-owner-native-proof-5d6d66ba",
+    "fingerprint": "56412b5efc0e1b341971107cef473fd8eee22cdcc0b4e52aefd9c2b6825fe507",
+    "logs": [
+      ".qa/pass-owner-native-proof-build.log",
+      ".qa/pass-owner-native-proof-build-reviewed.log",
+      ".qa/pass-owner-native-proof-build-final.log",
+      ".qa/pass-owner-native-proof-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering notes afterward. Actual cross-owner consent, passive revocation latency/transport, native path handback, locality transitions, traffic balance and 5%median/10%p95 overhead remain unverified. Ordinary callback revocation is not synchronous all-owner permission at each root steering instruction. No tracker renewal. Audits paused."
+  },
+  "consentRecoveryComposition20261023": {
+    "baseline": "5d47860e",
+    "finding": "Actual-owner passive proof could pass at the start of ordinary driving callback, then same callback could acquire corridor/bypass/recovery or fresh passing preparation. Passive consent has no active pass work, so existing work-only exclusions did not protect it.",
+    "implementation": "Shared mayRecoverRoute requires empty pass consent at each consuming boundary. Outstanding or unknown consent also defers automatic OBSERVE admission; existing preparation executor/active pass Step remain separate. Ordinary route following and safety caps continue; exact consent withdrawal/expiry reopens recovery. No worker, scan or deadline added.",
+    "validation": "1491 existing tests/full offline HEMTT/FSM/SQF/config/docs/package build and independent candidate verification passed. Existing exclusion regression extended; no new cases.",
+    "candidate": ".qa/candidates/pass-consent-recovery-exclusion-5d47860e",
+    "fingerprint": "acd1e6b1c6ad31be2a372e37a9211e444e8b03ea8482aa26eac00d3f7401e3c5",
+    "logs": [
+      ".qa/pass-consent-recovery-exclusion-build.log",
+      ".qa/pass-consent-recovery-exclusion-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Actual passive motion/revocation/expiry/recovery resumption and measured performance unverified. No tracker renewal. Audits paused."
+  }
+}

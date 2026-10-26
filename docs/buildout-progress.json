@@ -1,0 +1,4456 @@
+{
+  "schema": 1,
+  "meaning": "Capability build-out estimates, separate from physical acceptance, source parity and performance. Equal capability weights are explicit scope weights, not effort/time estimates.",
+  "score_scale": {
+    "0": "Absent execution capability",
+    "0.5": "Implemented subset with a named code/integration gap",
+    "1": "Scoped execution path implemented/integrated; physical verification may remain pending"
+  },
+  "overall_policy": "Explicit priority/scope weights by subsystem and within subsystem. These are transparent planning weights, not measured implementation effort. Registry families overlap; overall is a coarse build-scope index, not release readiness. All current product families must be assessed before calculating it.",
+  "families": [
+    {
+      "id": "TERRAIN",
+      "title": "Cross-cutting uneven-terrain movement and air attack",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Ground avenue rejection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Up to eight supplied avenues are ranked after water/slope/step rejection and sampled supporting-fire corridor admission; a start inside its own lane can depart laterally but not re-enter. Vehicle callers use stricter terrain thresholds and optional actual platform screening envelope. AdvanceStart consumes the selected legs before committing its operation. This is bounded proposal selection, not physical traversal or whole-terrain feasibility proof.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexSelectAvenue.sqf",
+              "sha256": "521a8507a09d6beaf3ad737334ab0cfbfc3e640ae5ee96a37f30f69e726ed4f8"
+            },
+            {
+              "path": "addons/infantry/functions/cortexAdvanceStart.sqf",
+              "sha256": "f430a804fa52828e97ee7ccdf4f9ee0b8a2387efa63df219ab5ea30446ce96d8"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb"
+        },
+        {
+          "capability": "Vehicle path/hull terrain checks",
+          "weight": 1,
+          "built": 1,
+          "implemented": "DrivingPathGeometry validates 2..24 ASL guide stations, segment bounds, static support, cross/longitudinal slope and three-height body rays; moving/vehicle support and body obstruction refuse. DrivingPassGeometry consumes the result before returning its path slice. This is discrete sampled proposal geometry, not continuous hull sweep, native steering feasibility or safe physical travel.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingPathGeometry.sqf",
+              "sha256": "b866e8a29960b2c6cbf2d0b89ecddfa032b9d6f0848bc3cbbe02d5479523d3de"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingPassGeometry.sqf",
+              "sha256": "c41144a8c6e0bb17ef7747fa364ba3c545ff8876510441c356f6402e29e58b16"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb"
+        },
+        {
+          "capability": "Aircraft relief-aware route planning",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "The air planner samples live join/ingress/attack/egress relief across three lateral lines, rejects an unsafe early join, applies a bounded uniform lift and publishes corrected stage heights/clearance. CortexAirAttack consumes those heights and terrain viability in its finite flight/delivery path.",
+          "remaining_build_gap": "The selected route may be rejected when required relief exceeds the lift envelope; no general alternative three-dimensional terrain-route search is implemented here. Existing native engine routing is not claimed as a scripted solution or measured clearance.",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/cortexAirAttackPlan.sqf",
+              "sha256": "64ec4845e41a0972f15e85f17c93271fb154cbe0909915a1c7f46f5bfdf316b1"
+            },
+            {
+              "path": "addons/aircraft/functions/cortexAirAttack.sqf",
+              "sha256": "2b1b5702d28172d5673c6bd329f6e41ddfd5d1035a6f422efd66ed167180e350"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb"
+        }
+      ],
+      "confidence": "medium",
+      "reviewed_at": "2026-10-23",
+      "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb"
+    },
+    {
+      "id": "TERRAIN-BATTLE",
+      "title": "Equal-force live battle on measured terrain",
+      "assessment": "acceptance_only",
+      "criteria": [],
+      "reason": "Equal-force live battle is a validation scenario, not an additional shipped behaviour. It supplies no build-out credit or penalty."
+    },
+    {
+      "id": "CORE",
+      "title": "Master, exclusions and ownership",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Master/exclusion admission",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Current shared eligibility retains group-wide player/remote/Zeus/declared ownership checks through ExternalTakeover. Actor reflex context then narrows per-unit specialist/faction/vehicle filters without allocating a second living roster; group command callers retain full membership filtering. FeatureEnabled remains byte-identical to its prior reviewed evidence. This is scoped admission, not provider handback.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexIsEligible.sqf",
+              "sha256": "0262517b13525442a95594d80006dae07d4de05e0611e24da8f799ffcea77b98"
+            },
+            {
+              "path": "addons/infantry/functions/cortexFeatureEnabled.sqf",
+              "sha256": "b0d7e26858bb56df0b0f65eabebe163457a0a80111d9a62a1ab9d34e83ce783c"
+            },
+            {
+              "path": "addons/compatibility/functions/cortexExternalTakeover.sqf",
+              "sha256": "4c3fb384f6d8b959048e9f0e5bf842728b7a543b5574b0396ba720aa2ae018fa"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb"
+        },
+        {
+          "capability": "Danger and group FSM dispatch",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Reviewed 2026-10-23 at af03e459: group steps require current local group, owner epoch, generation, exact brain identity and live executor; finite danger steps require current owner/generation and retain bounded source identity/expiry. Danger wakes the existing group brain through its throttled start/wake path instead of adding a second tactical movement owner. Detailed action parity and physical response remain separate.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/groupBrainStep.sqf",
+              "sha256": "272c0b6edf5a97b1b542ef0ad31dbc19e789bc28557ce650efddbf14ae9e5e17"
+            },
+            {
+              "path": "addons/infantry/functions/dangerStep.sqf",
+              "sha256": "5136ae73f03b5244c8c7f74612f473eff81d0c13f02d3aed6fa76a343f9e275b"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "af03e459"
+        },
+        {
+          "capability": "Owner epoch and actor reservations",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Reviewed 2026-10-23 at 1f08c452 plus locality-policy fix: locality retires machine-local executors/handlers, advances the owner epoch and resumes supported semantic intent only on the actual gained owner. Supported recovery/withdrawal journals retain original budgets and order fences. The actor reservation predicate is owner-local, admits empty or fully typed expired leases and preserves malformed/unknown markers. Complete native/provider handback remains a separate partial criterion. Reviewed 6ecf6f3c plus pending-flight fix: an unresolved native-flight journal blocks routine admission after its ordinary reservation expiry; only feature-owned reconciliation can retire it. This adds no movement authority.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/cortexLocality.sqf",
+              "sha256": "351a25d6813ae8ef4685557e654580b03f81bc2f4df4b38512f44907ed54d319"
+            },
+            {
+              "path": "addons/infantry/functions/cortexActorMoveReserved.sqf",
+              "sha256": "509767bbe967418c8772b733a1763e955e8627668b78ec223b52ece1bb7cb002"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "6ecf6f3c + pending-flight fix"
+        },
+        {
+          "capability": "All-owner handback integration",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Existing group/calm release remains byte-identical to its last reviewed evidence. Dismount-stop acquisition now refuses outstanding pass/queue consent and unfinished recovery, retires only plain ordinary caps before baseline capture, and rechecks the original crew/native order. Shutdown releases that proof before other driving cleanup and clears only matching local airborne episode state. Exact baseline readback is required; failed retirement records unresolved evidence rather than claiming restored motion.",
+          "remaining_build_gap": "Terminally refused or unconfirmed dismount stops may remain physically stopped; evidence grants no late restoration authority. Split locality, indistinguishable replacement native orders, exhausted cleanup windows and provider quiescence/resume handover remain incomplete. Current rappel source clears active markers before delayed damage writes; active-marker compatibility is not complete provider handback.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexReleaseGroup.sqf",
+              "sha256": "bf730c5ac8254400f54c21b15ebd4b0ac1f8cdd01fdb4023564b249ec345f165"
+            },
+            {
+              "path": "addons/infantry/functions/cortexRestoreCalm.sqf",
+              "sha256": "84ec29c944127125818a198ff355d5592c2ea93c3246d068cd7ede0e570c8713"
+            },
+            {
+              "path": "addons/vehicles/functions/cortexDismountStop.sqf",
+              "sha256": "082a42997e6d94d817394fab8feaba5882157251e0542f9f2851dd8b7c7ae881"
+            },
+            {
+              "path": "addons/vehicles/functions/cortexVehicles.sqf",
+              "sha256": "e3a69dfd495ccc4091fe19029f4a6c798c6c88067818ac8efb16df028950c91c"
+            },
+            {
+              "path": "addons/core/functions/cortexStop.sqf",
+              "sha256": "a29164454b31e270f1819834fdf873369422ce12055efeee2c514be0a9a32524"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb"
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-23",
+      "source_commit": "2839c2a9796749152fcfce1cc42814ddb9a8b9bb",
+      "review_note": "Four declared CORE criteria reassessed; handback remains0.5 despite shared dismount-stop proof fix. Terminal refusal, native ambiguity and provider handover remain named gaps. Scores/weights/scope unchanged; not physical acceptance or Workshop parity."
+    },
+    {
+      "id": "COMPAT",
+      "title": "Specialist ownership and alternative-controller handover",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Active specialist exclusion",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Existing read-only marker checks reject declared control, active/malformed rappel flags and specialist runtime/animation ownership. ExternalTakeover retains group-wide player, remote-control and Zeus vetoes, with optional actor-scoped specialist checks. This is mutation exclusion only, not provider completion or safe resume.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/compatibility/functions/compatibilityExternalControl.sqf",
+              "sha256": "2dc4c287b5dfa94724e5d58014b3ab680b5168c2eb59117d6931492741b9091d"
+            },
+            {
+              "path": "addons/compatibility/functions/cortexExternalTakeover.sqf",
+              "sha256": "4c3fb384f6d8b959048e9f0e5bf842728b7a543b5574b0396ba720aa2ae018fa"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "31c2fbe8 + movement-consent admission correction"
+        },
+        {
+          "capability": "Finite movement lease handover",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "The current actual-owner movement lease validates finite expiry and competing ownership, retires ordinary driving before acquisition, and refuses pending controlled-vehicle work plus queue/pass consent or agreement receipts. A receipt is never erased to publish its successor lease.",
+          "remaining_build_gap": "Provider-specific native quiescence, baseline restoration and migration are not all implemented; retiring local protocol metadata alone does not acknowledge a remote peer or native engine action.",
+          "evidence": [
+            {
+              "path": "addons/compatibility/functions/cortexOwnershipLease.sqf",
+              "sha256": "d9721c6e770f2e896c9b62ddb10293cf17aff09d7cc893ae62c0102a5add38ec"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "31c2fbe8 + movement-consent admission correction"
+        },
+        {
+          "capability": "HC provider bridge",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "The unchanged companion bridge listens once for its declared migration event and emits the neutral signal only on the confirmed destination-local owner. It never selects an HC or changes group ownership.",
+          "remaining_build_gap": "Real provider transfer ordering, destination setup and normal/HC runtime cases remain only partially integrated or unverified; this event bridge is not a complete ownership transition.",
+          "evidence": [
+            {
+              "path": "addons/compatibility/functions/compatibilityHeadlessBridge.sqf",
+              "sha256": "e8f1ce4c1849142dc7ad3863fa7309850b7e41f6cf1375f11eaa593e74846031"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "31c2fbe8 + movement-consent admission correction"
+        },
+        {
+          "capability": "Complete required specialist-controller adapters",
+          "weight": 1,
+          "built": 0,
+          "implemented": "Current boundary detects active specialist state but contains no complete provider-specific start/cancel/cleanup/resume adapter set. The rappel actor API currently clears active flags before delayed damage writes.",
+          "remaining_build_gap": "Required complete specialist-controller adapters remain unimplemented. Detection and exclusion must not receive full handback credit; controlled provider completion and mission-state preservation still need implementation.",
+          "evidence": [
+            {
+              "path": "addons/compatibility/functions/compatibilityExternalControl.sqf",
+              "sha256": "2dc4c287b5dfa94724e5d58014b3ab680b5168c2eb59117d6931492741b9091d"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "31c2fbe8 + movement-consent admission correction"
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-23",
+      "source_commit": "31c2fbe8 + movement-consent admission correction"
+    },
+    {
+      "id": "SCHED",
+      "title": "Scheduler and distance tiers",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Shared due-job queue and callback budget",
+          "weight": 1,
+          "built": 1,
+          "implemented": "2026-10-25 current-source reassessment: keyed admission preserves supplied group owner epoch, rejects non-finite initial delays and coalesces only matching key/group/generation/epoch live states. Tick rotates retained jobs, merges in-callback wakes and checks elapsed soft budget between jobs. Callback delay/deadline overflow signals finite-state cancellation rather than stranding pending work. Latest256 executed callbacks retain owner-local timing/context samples. Queue traversal and individual callback time are not hard-capped or pre-empted; no measured frame-overhead claim.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/cortexQueueJob.sqf",
+              "sha256": "88555522925667f76a8949f004275559f6fd5892dfea4bf00ecafd097f12773f"
+            },
+            {
+              "path": "addons/core/functions/cortexSchedulerTick.sqf",
+              "sha256": "bb82985f8c39a9b72ebeb57a19b0d8a405e45e41cef267e69701fadb7439478d"
+            }
+          ],
+          "reviewed_at": "2026-10-25",
+          "source_commit": "4fd3d13da6258f8323aa4352eacaa86dd34780d5"
+        },
+        {
+          "capability": "Pause/distance/cooldown policy",
+          "weight": 1,
+          "built": 1,
+          "implemented": "2026-10-25 scoped reassessment: cached-player near/mid/far4/8/20s defaults and finite native-danger/contact promotion feed the group FSM private wake. Non-urgent private delays now double below the existing owner FPS threshold; the current responsiveUntil danger lease bypasses backoff. Illumination1s and active COVER2s caps apply afterward. Finite delay/deadline rejection runs after scaling. ENDEX/SafeStart defer ordinary tactics; cleanup/safety categories retain narrow exceptions. Named cooldown new writes refuse non-finite durations/deadlines. These are implemented policy paths, not measured responsiveness or frame-overhead acceptance.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexCooldown.sqf",
+              "sha256": "bf0bfedd9a39afb9c4d90d60d97cebb5d1d49e165fdfd58c7905e0f4ff3bfea0"
+            },
+            {
+              "path": "addons/infantry/functions/cortexIsPaused.sqf",
+              "sha256": "3d6a18e8abe378497d33b3e6d1dc56cb685328f8e1b42102f1657b0fadde22c4"
+            },
+            {
+              "path": "addons/infantry/functions/cortexGroupTick.sqf",
+              "sha256": "c22c6cf12cfb89dbf78236f6770540b8d52415c5995b45a98b5beaf856445078"
+            },
+            {
+              "path": "addons/infantry/functions/groupBrainStep.sqf",
+              "sha256": "f8ab8285c660d541ea24480be3ce5f2f40666826f07825ef9533f1b2ff18fba3"
+            }
+          ],
+          "reviewed_at": "2026-10-25",
+          "source_commit": "67bfbf79 + group-private-backoff-67bfbf79 (exact runtime hashes)"
+        },
+        {
+          "capability": "Runtime reconciliation and retirement",
+          "weight": 1,
+          "built": 1,
+          "implemented": "2026-10-25 current-source reassessment: Reconcile retains enabled owner-local runtime categories and exact finite posture/settings/hold cleanup, includes retained wakeAt deadlines, installs one CBA handler and removes it when no runtime remains. Tick counts pending aircraft successors before retirement and reconciles terminal cleanup categories. No native restoration command belongs to the scheduler itself. Physical shutdown/migration and5percent median/10percent p95 frame overhead remain unverified.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/schedulerReconcile.sqf",
+              "sha256": "a90aed26ee4185b376ff0b7f607e175980f4221d42cf7258697f6ad209ee9c69"
+            },
+            {
+              "path": "addons/core/functions/cortexSchedulerTick.sqf",
+              "sha256": "bb82985f8c39a9b72ebeb57a19b0d8a405e45e41cef267e69701fadb7439478d"
+            }
+          ],
+          "reviewed_at": "2026-10-25",
+          "source_commit": "4fd3d13da6258f8323aa4352eacaa86dd34780d5"
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-23",
+      "source_commit": "a2f2c7ce; SCHED-only semantic review, including hold-only scheduler entry"
+    },
+    {
+      "id": "PROFILE",
+      "title": "Behaviour profiles and aggression",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Profile precedence and tuning",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Read-only behaviour profile resolves group override, leader faction, mission behaviour choice, enabled skill-profile choice, then LINE; PUBLIC/STANDARD aliases and per-key LINE/default fallback remain. Chance keys scale by global aggression. This helper never changes native skills or orders.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/cortexProfile.sqf",
+              "sha256": "53ce25139cd7c4d4c63f324b0e55ee27c429d9ae27a202f5b26e28b2c5e758ea"
+            }
+          ]
+        },
+        {
+          "capability": "Aggression selects eligible tactics",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Investigation preference controls proactive-search eligibility and range within existing order, movement-ownership, report, feature and cooldown gates. AssaultStart/FlankStep use assaultChance for optional grenade preparation; movement itself is selected from current contact geometry rather than legacy random flank/advance/coordinated keys. Morale and retreat consume their separate profile thresholds and scale. No tactical or balance acceptance inferred.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGroupTick.sqf",
+              "sha256": "81dea8cb721ee478ca6842cd260fd6f0f6242d8ce5280e153d925c6874295bb5"
+            },
+            {
+              "path": "addons/core/functions/cortexProfile.sqf",
+              "sha256": "53ce25139cd7c4d4c63f324b0e55ee27c429d9ae27a202f5b26e28b2c5e758ea"
+            }
+          ]
+        },
+        {
+          "capability": "Independent skill/profile application",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Optional owner-local skills are planned from original nine-subskill baseline, with faction/role/night/variance and crew precision layers. Typed original/applied receipts preserve observed mission edits and explicit skill ownership; final commit checks current owner/profile generation. Side/faction/class exclusion now releases unchanged prior CBE effects instead of leaving the old layer behind. Existing bounded lighting/seat worker and Local handler supply refresh; public receipt delivery and physical HC behaviour remain unverified.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/aiApplyProfile.sqf",
+              "sha256": "5bcc8c2d16b454024dd8814778c1a5b4402d2c2c0b9961d131db2bd7db0dccf7"
+            },
+            {
+              "path": "addons/core/functions/cortexProfile.sqf",
+              "sha256": "53ce25139cd7c4d4c63f324b0e55ee27c429d9ae27a202f5b26e28b2c5e758ea"
+            },
+            {
+              "path": "addons/core/functions/aiProfileYield.sqf",
+              "sha256": "411a80b4708316c47430f0cf052c60287bd6c20acdabe08fa1044c35a3278d75"
+            },
+            {
+              "path": "addons/core/functions/aiProfileReceipt.sqf",
+              "sha256": "0fbb3f1721d26c4cc0fc10a431e5d6783ac049053a80325c51ccf2684ed7d65d"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-23",
+      "source_commit": "d2ebab6d + reviewed profile-scope retirement fix"
+    },
+    {
+      "id": "SKILL",
+      "title": "AI skill rebalance",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Apply stable configured skill profile",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Explicitly enabled local application plans nine subskills from the immutable mission baseline, then faction/role/night/variance/crew layers; stable variance offsets follow the actor. Typed receipts and AIProfileYield preserve later differing mission edits or declared skill ownership. The final synchronous commit rechecks owner, profile and generation. Same-value external writes cannot be attributed; public receipt delivery is not an ordered handover protocol.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/aiApplyProfile.sqf",
+              "sha256": "5bcc8c2d16b454024dd8814778c1a5b4402d2c2c0b9961d131db2bd7db0dccf7"
+            },
+            {
+              "path": "addons/core/functions/aiProfileYield.sqf",
+              "sha256": "411a80b4708316c47430f0cf052c60287bd6c20acdabe08fa1044c35a3278d75"
+            },
+            {
+              "path": "addons/core/functions/aiProfileReceipt.sqf",
+              "sha256": "0fbb3f1721d26c4cc0fc10a431e5d6783ac049053a80325c51ccf2684ed7d65d"
+            }
+          ]
+        },
+        {
+          "capability": "Exclusions and owner-local refresh",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Init processes existing local AI according to ApplyMode, installs one CBA creation handler and per-unit Local handlers, and queues one generation-bound lighting/seat job. That job visits at most ten registered actors per callback, yields to human/specialist/declared skill owners and reapplies changed lighting/seat signatures. Side/faction/class lists are enforced on application; script changes require explicit refresh, not continuous filter monitoring. Excluded previously applied actors now enter exact owned restoration.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/aiRebalanceInit.sqf",
+              "sha256": "e18473fdbfa977680f66605e777dda0e180344d9082ddf209387c3063094f230"
+            },
+            {
+              "path": "addons/core/functions/aiApplyProfile.sqf",
+              "sha256": "5bcc8c2d16b454024dd8814778c1a5b4402d2c2c0b9961d131db2bd7db0dccf7"
+            },
+            {
+              "path": "addons/core/functions/aiLightingStep.sqf",
+              "sha256": "4e450dd6f55ac40ac005a2680bc86a909ba6f9feaa7491c9cb6e88af5bab305e"
+            },
+            {
+              "path": "addons/core/functions/aiTweaksSettingChanged.sqf",
+              "sha256": "1a9cda58b0ee22d230e0ed6244353c7a787551bd1c424a98ea40a76996afd88a"
+            }
+          ]
+        },
+        {
+          "capability": "Restore captured skill values",
+          "weight": 1,
+          "built": 1,
+          "implemented": "AIRestoreProfile restores each native skill or aim coefficient only while it still equals the recorded CBE application, preserving observed later edits. Complete typed pairs retire; malformed or incomplete pairs remain unresolved. Stop invalidates the skills generation and queue, optionally restores local allUnits according to RestoreOnStop, and clears the worker roster. No proof of ordered migration receipts, physical HC cleanup or runtime cost is inferred.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/aiRestoreProfile.sqf",
+              "sha256": "af466d06e82609e1ce4c9a09daaf59b15aeb25ea6e923e5845187478fb50a19a"
+            },
+            {
+              "path": "addons/core/functions/aiRebalanceStop.sqf",
+              "sha256": "356b2f7dfc3cbf82bc45f8b037b9945b806007ab2c05a9bb6163583fabe66c73"
+            },
+            {
+              "path": "addons/core/functions/aiProfileReceipt.sqf",
+              "sha256": "0fbb3f1721d26c4cc0fc10a431e5d6783ac049053a80325c51ccf2684ed7d65d"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-23",
+      "source_commit": "1d2706a9; SKILL application, refresh and restoration review"
+    },
+    {
+      "id": "LAND",
+      "title": "Helicopter landing",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Authenticated task and local flight owner",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/improvedHelicopterLandingConfigureServer.sqf",
+              "sha256": "73195730c789a66bd26ed44a6e3ec0746e2c4b251d5eef43947ea03e10d99b56"
+            },
+            {
+              "path": "addons/aircraft/functions/improvedHelicopterLandingExecuteLocal.sqf",
+              "sha256": "cda817fcfffffa4566ec4ef68733963713a8382e3999e643c99fa8bbc5a2b6f0"
+            }
+          ]
+        },
+        {
+          "capability": "Approach/touchdown/anchor phases",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/improvedHelicopterLandingStep.sqf",
+              "sha256": "2e16fd015fe05e92aa5cc9cff0fbcac08250e41f5e5f638243d70068ae78c896"
+            },
+            {
+              "path": "addons/aircraft/functions/improvedHelicopterLandingAnchorLocal.sqf",
+              "sha256": "c0f02d6cefccead4d4b7acacc9f1220999f746044b10f682ff8a0fb9360f7117"
+            }
+          ]
+        },
+        {
+          "capability": "Owned feature and flight restoration",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/improvedHelicopterLandingFeatureReleaseLocal.sqf",
+              "sha256": "d422524aac952962833bce981f27ca45138707a74951662f401c165107ee93a9"
+            },
+            {
+              "path": "addons/aircraft/functions/improvedHelicopterLandingRestoreLocal.sqf",
+              "sha256": "43c8d6cf310c70418168906faeaa9668425f9787fd443b79ab0d9b263177c834"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "DECEL",
+      "title": "Helicopter braking",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Envelope-gated correction",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Owner-local shared-scheduler sampling compares speed loss, ASL climb and nose-up attitude against configured speed/altitude thresholds. It refuses landing orders, active landing/attack/missile work, unavailable or controlled pilots, external group takeover, ground contact, sling load and unusable aircraft. The step launches a finite correction rather than a permanent per-aircraft sampling script.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/helicopterDecelerationStep.sqf",
+              "sha256": "33ca9afd617817caa32d137354c266a7834a0d1d226a37601404b70f9b6333e6"
+            }
+          ]
+        },
+        {
+          "capability": "Bounded local flight correction",
+          "weight": 1,
+          "built": 1,
+          "implemented": "A scheduled correction retains aircraft generation, pilot/group and waypoint signature, acquires priority-100 flight ownership and exits on timeout or lost eligibility. It applies mass-scaled addForce impulses with elapsed simulation time capped at 0.1 seconds, bounded acceleration and excess-climb removal; an approach-distance envelope may also brake horizontal travel. Terrain-height samples at 100/300/500 metres guard downward correction; they do not prove obstacle or swept-airframe clearance. No waypoint, flight height or attitude is replaced; physical safety and effectiveness remain unverified.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/helicopterDecelerationCorrectLocal.sqf",
+              "sha256": "34f992c9bbe2560f185a952f5ae3172cdb6073cfd255b02147a79e6ff5e2f5c1"
+            }
+          ]
+        },
+        {
+          "capability": "Shared scheduler and flight lease release",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Repeat-safe creation/locality handlers queue the existing shared AIRCRAFT job; generation changes retire old sampling and prevent old workers clearing successor active state. Exact controller/token/current-owner release cannot clear a different CBE flight lease. Higher-priority landing, attack and missile controllers can replace braking; correction checks its live lease before impulses. Lease release is bookkeeping, not proof that native flight motion or an external provider has become quiescent.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/helicopterDecelerationInit.sqf",
+              "sha256": "ef49af2a22c05e1890a54def08cb113c249cb81247504d7e2568668a01a767ba"
+            },
+            {
+              "path": "addons/aircraft/functions/flightLeaseRelease.sqf",
+              "sha256": "ec592b3c842a2554562a3975091533a8aea2e16a276b98af9c2fb009e9a14955"
+            },
+            {
+              "path": "addons/aircraft/functions/flightLeaseAcquire.sqf",
+              "sha256": "7518c078119d17119b6244d94863d678da1db8f5c8015b78b8bb4d8f3adc6005"
+            },
+            {
+              "path": "addons/aircraft/functions/flightLeaseValid.sqf",
+              "sha256": "1f82e03e9fb96f88604e308329a3f5eced747f671a489f8d90e7c5d6bc48cdb5"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-23",
+      "source_commit": "fa42c0b2; DECEL execution and exact flight lease review"
+    },
+    {
+      "id": "REGROUP",
+      "title": "Survivor regroup",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Casualty eligibility and host selection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "EntityKilled records owner-local peak strength and coalesces one settled remnant job, adopting the group epoch first. Evaluation requires a genuinely depleted eligible foot group; incapacitation, medical/equipment tasks and committed garrison/clear/defend work refuse opportunistic merging. Nearby Man discovery deduplicates same-side same-owner host groups and checks capable strength, capacity and host eligibility rather than scanning allGroups.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexRegroupOnKill.sqf",
+              "sha256": "cc60451081565b371e2e5ee4052539791b133f2124c4e9cb138113b674d6d8eb"
+            },
+            {
+              "path": "addons/infantry/functions/cortexRegroupStep.sqf",
+              "sha256": "556e177e81bca488e24a81824fddc6b550d3607889925a0ab894bfa85e99c9e2"
+            }
+          ]
+        },
+        {
+          "capability": "Physical approach and finite merge",
+          "weight": 1,
+          "built": 1,
+          "implemented": "The remnant requests native group movement to a living host anchor and joins only within the configured distance/capacity. Host movement may refresh the target and a stuck approach has one retry. One captured deadline now spans discovery, host replacement and movement, so returning to EVALUATE cannot renew the job. Terminal recall requires original epoch/order/generation plus a still-matching native MOVE destination; it preserves newer commands. Physical arrival/merge and deadline cleanup remain unverified.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexRegroupStep.sqf",
+              "sha256": "556e177e81bca488e24a81824fddc6b550d3607889925a0ab894bfa85e99c9e2"
+            }
+          ]
+        },
+        {
+          "capability": "Cross-operation survivor integration",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "A changed operation generation, native order receipt or current shared operation retires opportunistic regroup; cleanup excludes current operation participants and actors with protected movement or external control. This prevents competing remnant orders but does not implement complete survivor reassignment into coordinated withdrawal or shared rally.",
+          "remaining_build_gap": "Complete interaction with ongoing multi-squad withdrawal and shared rally remains unfinished.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexRegroupStep.sqf",
+              "sha256": "556e177e81bca488e24a81824fddc6b550d3607889925a0ab894bfa85e99c9e2"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-23",
+      "source_commit": "3ef70c91 + original regroup deadline fix"
+    },
+    {
+      "id": "MEDICAL",
+      "title": "Finite squad medical assistance",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Eligible local medic/patient selection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Calm/security aid selects a distinct local on-foot medic/patient pair by damage threshold, available medic trait and nearest three-dimensional range. Shared actor eligibility rejects human/external ownership plus fleeing, hidden, simulation-disabled and ACE-treatment-queued actors at admission and continuation. Active clear/garrison/defend or another operation prevents admission. Medic selection also requires carried native Medikit/FirstAidKit supply or config-derived replacement; role alone no longer starts an unequipped aid episode.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexMedicalStep.sqf",
+              "sha256": "eda2b357cc4071f1bcf69233cee0fa8117572ad19d11c543eea10b90c05c2143"
+            }
+          ]
+        },
+        {
+          "capability": "Finite approach and native treatment",
+          "weight": 1,
+          "built": 1,
+          "implemented": "One MEDICAL_AID generation requests native approach or HealSoldier, with vertical treatment-range checks, no-progress cancellation outside treatment range and a finite timeout. Damage below threshold records observed treatment success; stationary treatment does not falsely consume approach-progress recovery. No damage assignment or teleport is used. Native treatment effectiveness and repeated physical flow remain unverified. Each treatment reissue requires current supply; consuming the last FAK does not cancel an existing native healing action. No supply is created, removed or transferred by CBE.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexMedicalStep.sqf",
+              "sha256": "eda2b357cc4071f1bcf69233cee0fa8117572ad19d11c543eea10b90c05c2143"
+            }
+          ]
+        },
+        {
+          "capability": "Current-task cancellation and owned release",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Danger response, unavailable actors, competing service tasks, feature closure, changed operation generation/epoch and Zeus/external ownership cancel aid. Aid now captures the full native waypoint receipt, checks it before success and later commands, and rejects missing legacy proof. Authored travel refuses admission; HOLD/SENTRY allows only already-in-range aid and cancels if reach is lost. Shared release/cancel retires captured operation policy without renewing live danger expiry. Admission also preserves native MOVE/ATTACK/FIRE/SUPPRESS. During aid a patient MOVE, combat command or medic MOVE with a destination different from the last requested approach cancels before success or reissue; the existing aid record carries the approach target. Terminal cleanup now requests return to formation only for a still-owned medic MOVE matching the recorded approach, original native order, operation generation and epoch, and no actor reservation/external takeover. It does not cancel generic healing actions.",
+          "remaining_build_gap": "Generic ACTION/HEAL ownership and identical-destination external writes remain indistinguishable. Return-to-formation issuance is not engine acknowledgement or proof of native treatment/approach quiescence; physical treatment and per-unit handover still need validation. Do not report complete external-controller handover from these checks.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexMedicalStep.sqf",
+              "sha256": "eda2b357cc4071f1bcf69233cee0fa8117572ad19d11c543eea10b90c05c2143"
+            },
+            {
+              "path": "addons/core/functions/operationRelease.sqf",
+              "sha256": "e3fc1b86e096f76372ba842090a7384d9254ff5ceb94e42287948da6984a09d8"
+            },
+            {
+              "path": "addons/core/functions/nativeOrderReceipt.sqf",
+              "sha256": "d6395ce27511e41e3d059f82fe1978639309056b7aaaa1e03535447becb3f3d6"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-23",
+      "source_commit": "b7833c73 + native medical kit prerequisite and vehicle header contract repair"
+    },
+    {
+      "id": "CONTACT",
+      "title": "Contact detection",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Native danger cause intake/selection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/dangerSelect.sqf",
+              "sha256": "648b04327d2309d79c522dcb61206b26dc95d6d7c8c9aab31d8ac4ad430f9c2d"
+            },
+            {
+              "path": "addons/infantry/functions/dangerEngineSelect.sqf",
+              "sha256": "807ae67888c5f7665417358735846acb47f4ec54207199a6c8af3b817669df35"
+            }
+          ]
+        },
+        {
+          "capability": "No omniscient hostile acquisition",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexKnowledge.sqf",
+              "sha256": "a914a2a20aa7146206b536a5bc6a53ccd4c1965d54af8011316b49ce441a9adc"
+            },
+            {
+              "path": "addons/infantry/functions/dangerEngineSubmit.sqf",
+              "sha256": "9a8dd9b8b183d50004f8c017b66bdb20f105fb7fd998fb6585cd93577fabb2c2"
+            }
+          ]
+        },
+        {
+          "capability": "Mounted/foot subsystem handoff",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/dangerVehicleProfile.sqf",
+              "sha256": "0ca8454f447f22878ebff92173b01cc0e37918567cecc7a0e6fc129e5bc5cf81"
+            },
+            {
+              "path": "addons/infantry/functions/dangerReact.sqf",
+              "sha256": "9825c08e2c5c8263f8d6206de83bd9319ec3a4ab8b7c0210ffcc5b7bc792bc4f"
+            }
+          ]
+        },
+        {
+          "capability": "Complete tactical response composition",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Individual danger responses do not yet compose all intended squad/combined-operation behaviours.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGroupTick.sqf",
+              "sha256": "42157be0c2c54e9340a6b62d75b804c0814a87a3a124eeaad29ac60b4b2750d5"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "POST",
+      "title": "Post-contact search",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Contact/security/search phase dispatch",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGroupTick.sqf",
+              "sha256": "42157be0c2c54e9340a6b62d75b804c0814a87a3a124eeaad29ac60b4b2750d5"
+            }
+          ]
+        },
+        {
+          "capability": "Owned last-known-position movement",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexSearchMoveOwned.sqf",
+              "sha256": "f17b6631e30b7e67249f83adfe52969ed14e146b7639d6213df04043fc4cccbe"
+            },
+            {
+              "path": "addons/infantry/functions/cortexGroupMove.sqf",
+              "sha256": "2c0ea59f8235f6d8bd0ed5f79aac4717c74b9afbc346549b8a73045211437986"
+            }
+          ]
+        },
+        {
+          "capability": "Recontact and authored-route release",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGroupTick.sqf",
+              "sha256": "42157be0c2c54e9340a6b62d75b804c0814a87a3a124eeaad29ac60b4b2750d5"
+            },
+            {
+              "path": "addons/infantry/functions/cortexGroupMoveClear.sqf",
+              "sha256": "9c805e997901629d28d87f492d63b2a4026416b3458b742028b6c54511faadc2"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "FLANK",
+      "title": "Flanking bounds",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Avenue and successive bound route",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexSelectAvenue.sqf",
+              "sha256": "a6c65d2b6083096683928a12d832d28a70d2ce771683a598ab43a79ce338634b"
+            },
+            {
+              "path": "addons/infantry/functions/cortexFlankStart.sqf",
+              "sha256": "9f954bee17c5e4eeb70b04677bbadcb44b9d33a626b5189454a7b522b259bb5a"
+            }
+          ]
+        },
+        {
+          "capability": "Moving/covering pair execution",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexFlankStep.sqf",
+              "sha256": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
+            }
+          ]
+        },
+        {
+          "capability": "Recovery and final consolidation",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Straggler continuation and coherent final consolidation still need refinement.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexFlankStep.sqf",
+              "sha256": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0"
+            },
+            {
+              "path": "addons/infantry/functions/recoveryStep.sqf",
+              "sha256": "280f29aa4f290097f1cd68f46429459697a3747bd63e0b75329793486694a1f2"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "CROSS",
+      "title": "Road crossing",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Road edge/crossing route markers",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexPlanRoute.sqf",
+              "sha256": "baa76b19196cf57edf4a24ccbb9ab8260382bdc5bc1607f41d4598052df16be9"
+            }
+          ]
+        },
+        {
+          "capability": "Bounded smoke/preparation",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexThrowGrenade.sqf",
+              "sha256": "e2d98a7426009377394fe93657db3ae56319f479f34ae9861505805bf0f4e17c"
+            },
+            {
+              "path": "addons/infantry/functions/cortexFlankStep.sqf",
+              "sha256": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
+            }
+          ]
+        },
+        {
+          "capability": "Near/far movement under existing drill",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexFlankStep.sqf",
+              "sha256": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "FIRE",
+      "title": "Fire distribution and suppression",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Known-target assignment and ammunition",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/cortexFireControl.sqf",
+              "sha256": "2a39a4438917270a0f80d692b0db2a3597d257cf97c03d2c6ed9eb76203908ff"
+            }
+          ]
+        },
+        {
+          "capability": "Friendly/civilian lane checks",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexLineOfFireClear.sqf",
+              "sha256": "02993b3d46c0946df8abdd3881ce5bc5477a1da1bbe3ac2ce4c4e92e7f8beb26"
+            }
+          ]
+        },
+        {
+          "capability": "Native direct/suppressive fire and gating",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/cortexFireControl.sqf",
+              "sha256": "2a39a4438917270a0f80d692b0db2a3597d257cf97c03d2c6ed9eb76203908ff"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "b8ac7bae + native MOVE fire-control protection"
+    },
+    {
+      "id": "MORALE",
+      "title": "Morale and withdrawal",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Strength/profile morale assessment",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexMorale.sqf",
+              "sha256": "9ffa4058b4548f4cb74e3dafdc0d307340fe433c3355b2ef23a144b0f075943b"
+            }
+          ]
+        },
+        {
+          "capability": "Finite withdrawal instead of assault",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexRetreat.sqf",
+              "sha256": "a442662a58ea7afcc3c8ce7488b828578759c13ed677abf722c740033f58f3fb"
+            },
+            {
+              "path": "addons/infantry/functions/cortexGroupTick.sqf",
+              "sha256": "42157be0c2c54e9340a6b62d75b804c0814a87a3a124eeaad29ac60b4b2750d5"
+            }
+          ]
+        },
+        {
+          "capability": "Recovery and current-order preservation",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGroupTick.sqf",
+              "sha256": "42157be0c2c54e9340a6b62d75b804c0814a87a3a124eeaad29ac60b4b2750d5"
+            },
+            {
+              "path": "addons/infantry/functions/cortexRestoreCalm.sqf",
+              "sha256": "7ab28c03cabdae1045c5d224632db6f664a4772a53fdc8636750bf721a109309"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "SURRENDER",
+      "title": "Surrender",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Eligible survivor admission",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexSurrender.sqf",
+              "sha256": "f35d3ca9b5bdf6d6c108058822ab7519a407c66446caba72b0ea9bcd1c787855"
+            }
+          ]
+        },
+        {
+          "capability": "Native surrender/captive transition",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexSurrender.sqf",
+              "sha256": "f35d3ca9b5bdf6d6c108058822ab7519a407c66446caba72b0ea9bcd1c787855"
+            }
+          ]
+        },
+        {
+          "capability": "Owned task release and repeat guards",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexSurrender.sqf",
+              "sha256": "f35d3ca9b5bdf6d6c108058822ab7519a407c66446caba72b0ea9bcd1c787855"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "GRENADE",
+      "title": "Grenade avoidance",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Relevant danger detection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGrenadeCheck.sqf",
+              "sha256": "bf6b03be3b460d2243a2907422bad536baadb3858c9ba17889aa1dc3ca4dc5ec"
+            }
+          ]
+        },
+        {
+          "capability": "Finite native escape response",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGrenadeCheck.sqf",
+              "sha256": "bf6b03be3b460d2243a2907422bad536baadb3858c9ba17889aa1dc3ca4dc5ec"
+            },
+            {
+              "path": "addons/infantry/functions/dangerEngineAct.sqf",
+              "sha256": "67d7491f465b289212557abd36c965562aac72c4bbb774dc2ceb33bdfb32b1ae"
+            }
+          ]
+        },
+        {
+          "capability": "Current actor and ownership protection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGrenadeCheck.sqf",
+              "sha256": "bf6b03be3b460d2243a2907422bad536baadb3858c9ba17889aa1dc3ca4dc5ec"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "f5e54d0d + actor danger posture handover"
+    },
+    {
+      "id": "CIVILIAN",
+      "title": "Civilian danger response and external ownership",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Gunfire/hit event intake",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexCivilianSetup.sqf",
+              "sha256": "f5299a404e034ca51e7443f457e0dba29675ac12c34fd47e6b5f7acb17d50685"
+            }
+          ]
+        },
+        {
+          "capability": "Finite graded escape and one recovery",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexCivilianReact.sqf",
+              "sha256": "7fa82f766a540178aa250cbc333998ff161c977bfa3f776210ec3f086e457744"
+            },
+            {
+              "path": "addons/infantry/functions/cortexCivilianStep.sqf",
+              "sha256": "53d9826b8107495dcfc2bdd456eec1c478f0ee134db9a4ab47181516a7ec70df"
+            }
+          ]
+        },
+        {
+          "capability": "External/native interruption",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexCivilianStep.sqf",
+              "sha256": "53d9826b8107495dcfc2bdd456eec1c478f0ee134db9a4ab47181516a7ec70df"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "AT",
+      "title": "Anti-armour and ammunition roles",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Capable weapon/target selection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexAntiArmour.sqf",
+              "sha256": "afe2d07774ba1a29b87a88341dc6a0fd74ad5c0d3f440ba3461b3691e50f7e17"
+            }
+          ]
+        },
+        {
+          "capability": "Backblast and firing-lane checks",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexAntiArmour.sqf",
+              "sha256": "afe2d07774ba1a29b87a88341dc6a0fd74ad5c0d3f440ba3461b3691e50f7e17"
+            },
+            {
+              "path": "addons/infantry/functions/cortexLineOfFireClear.sqf",
+              "sha256": "02993b3d46c0946df8abdd3881ce5bc5477a1da1bbe3ac2ce4c4e92e7f8beb26"
+            }
+          ]
+        },
+        {
+          "capability": "No-AT threat response respects authored hold",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGroupTick.sqf",
+              "sha256": "42157be0c2c54e9340a6b62d75b804c0814a87a3a124eeaad29ac60b4b2750d5"
+            },
+            {
+              "path": "addons/infantry/functions/cortexRetreat.sqf",
+              "sha256": "a442662a58ea7afcc3c8ce7488b828578759c13ed677abf722c740033f58f3fb"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "VEH",
+      "title": "Vehicle engagement",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Mounted domain/crew response",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/cortexVehicles.sqf",
+              "sha256": "9c3d88f8b1abb0a9e650c30eb309bd6da79f58cfaf0a7d58d990c7c4714c68b8"
+            },
+            {
+              "path": "addons/vehicles/functions/cortexVehicleCrewRecover.sqf",
+              "sha256": "4b8b54766d4c21fd1cf634aaaf4808f2fedd6d19b5680213511ba9bdb6610a82"
+            }
+          ]
+        },
+        {
+          "capability": "Finite naval approach/unload/release",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/cortexNavalAssault.sqf",
+              "sha256": "649d1bbf4543af31c92a2b85fc6eac895ba7e0de9e26add4b62eaf12ffb3d8e5"
+            },
+            {
+              "path": "addons/vehicles/functions/cortexNavalRelease.sqf",
+              "sha256": "7c65ce9df182a209ce7fce28f19e7dfd34627e8ae7a329e54140efec7ac3d426"
+            }
+          ]
+        },
+        {
+          "capability": "Vehicle manoeuvre composition",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Standoff/withdrawal and combined-ground role transitions remain partially integrated.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/cortexVehicleJink.sqf",
+              "sha256": "5cff204c7f00a638e34c0b6d9abbb203829c059782986eea1d0dad5fb2e97dc0"
+            },
+            {
+              "path": "addons/vehicles/functions/cortexVehicleOrient.sqf",
+              "sha256": "8cb4aefafc943633f8bafe48fc6d823b6e05ed172836c80da8f4b4a19fce93f9"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "DISMOUNT",
+      "title": "Contact passenger dismount",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Safe passenger eligibility and crew exclusion",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf",
+              "sha256": "735f996a52adeaf2fec3bbaca220b861a10a5b73ce6d01e591f7c6779195cbcc"
+            }
+          ]
+        },
+        {
+          "capability": "Contact-driven native unloading",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexOnboardContact.sqf",
+              "sha256": "4a28581470dc5ef56d00e973bb9359c34659560965bf791525f304924cbab0e0"
+            }
+          ]
+        },
+        {
+          "capability": "Owner-scoped passenger safety",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexOnboardContact.sqf",
+              "sha256": "4a28581470dc5ef56d00e973bb9359c34659560965bf791525f304924cbab0e0"
+            },
+            {
+              "path": "addons/vehicles/functions/cortexPassengerReady.sqf",
+              "sha256": "3fa5dc94b7be004d48aa29d0aa2e8efbcedffcb970533d0903ee6148994f6dcb"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "REMOUNT",
+      "title": "Contact passenger remount",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Original capable passenger eligibility",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/cortexPassengerReady.sqf",
+              "sha256": "3fa5dc94b7be004d48aa29d0aa2e8efbcedffcb970533d0903ee6148994f6dcb"
+            }
+          ]
+        },
+        {
+          "capability": "Seat choice and native boarding",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexOnboardContact.sqf",
+              "sha256": "4a28581470dc5ef56d00e973bb9359c34659560965bf791525f304924cbab0e0"
+            }
+          ]
+        },
+        {
+          "capability": "Distributed simultaneous seat coordination",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Cross-owner simultaneous passenger selection/reservation remains incomplete.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexOnboardContact.sqf",
+              "sha256": "4a28581470dc5ef56d00e973bb9359c34659560965bf791525f304924cbab0e0"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "WITHDRAW",
+      "title": "Damaged vehicle withdrawal",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Damage/threat admission",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Current vehicle admission requires a locally commanded movable ground platform, known threat within800m, damage>=0.5 or a genuinely armed platform unable to fire, no previous completed withdrawal, an8s retry interval, and no on-foot group members before group movement. Five terrain-screened vehicle escape proposals precede lease/operation admission. This is task admission, not proof of successful escape.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/cortexVehicles.sqf",
+              "sha256": "b1f300bcc83c377bc0552e478ac5e3f442399fa63ded26643f52a97d47bb511b"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "aaf4f5b9",
+          "review_scope": "Withdrawal admission/execution and RETREAT phase consumers; not whole referenced-file parity or physical acceptance."
+        },
+        {
+          "capability": "Finite native withdrawal and smoke",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Vehicle withdrawal admits either its exact generation-owned reverse response or a confirmed temporary waypoint. Shared RETREAT checks the original120s episode before recovery/replanning, measures displacement along the original away-from-threat axis, bounds replans to4, and releases the matching infantry/vehicle operation and lease before regroup. Infantry supporting withdrawal uses one confirmed common attack-policy lease and opportunistic carried/artillery smoke; ownership resume avoids repeating smoke. Neither smoke requests nor route admission prove delivery, protection or physical travel.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexRetreat.sqf",
+              "sha256": "78ac7f68c18be4eec4907be85670fc392c8f81af62ab051d2d08107c053b8a1a"
+            },
+            {
+              "path": "addons/vehicles/functions/cortexVehicles.sqf",
+              "sha256": "b1f300bcc83c377bc0552e478ac5e3f442399fa63ded26643f52a97d47bb511b"
+            },
+            {
+              "path": "addons/infantry/functions/cortexGroupTick.sqf",
+              "sha256": "87bdfd5dc163986aba36e79fc92dd3d9c6d8ade99cf48855275bed0dc0e14271"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "1fe710270ccfa5553c2de0a4f6e21ea7e553e72ff3fc6b4e3bd331501b2ea9e1"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "aaf4f5b9",
+          "review_scope": "Withdrawal admission/execution and RETREAT phase consumers; not whole referenced-file parity or physical acceptance."
+        },
+        {
+          "capability": "Coordinated withdrawal integration",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Independent group withdrawal, source-aware route selection, finite straggler recovery and common policy/movement retirement are built components. The assault support coordinator is not a multi-squad withdrawal executor; independent episodes do not supply alternating squad cover or a shared rally.",
+          "remaining_build_gap": "A shared multi-squad withdrawal/rally lifecycle, complementary escape lanes and alternating cross-squad overwatch remain unimplemented. Physical reliability and the5%/10% performance target are separate unverified criteria.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexRetreat.sqf",
+              "sha256": "78ac7f68c18be4eec4907be85670fc392c8f81af62ab051d2d08107c053b8a1a"
+            },
+            {
+              "path": "addons/infantry/functions/cortexGroupTick.sqf",
+              "sha256": "87bdfd5dc163986aba36e79fc92dd3d9c6d8ade99cf48855275bed0dc0e14271"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "aaf4f5b9",
+          "review_scope": "Withdrawal admission/execution and RETREAT phase consumers; not whole referenced-file parity or physical acceptance."
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-23",
+      "source_commit": "aaf4f5b9"
+    },
+    {
+      "id": "COVER",
+      "title": "Cover selection and clearance",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Bounded candidate/clearance query",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexFindCover.sqf",
+              "sha256": "bf92c6d2cd4ee1b336516abb2925fc7132acf08cd035a58fdf0442375225f5ed"
+            }
+          ]
+        },
+        {
+          "capability": "Passable avenue and native movement integration",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexSelectAvenue.sqf",
+              "sha256": "a6c65d2b6083096683928a12d832d28a70d2ce771683a598ab43a79ce338634b"
+            },
+            {
+              "path": "addons/infantry/functions/dangerCoverStep.sqf",
+              "sha256": "f77bfbc6f833acc3563a687098c7435392f9a8a62d58440b8563f72fe0f70208"
+            }
+          ]
+        },
+        {
+          "capability": "Posture and owner protection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexStance.sqf",
+              "sha256": "cdb09a6652a0cb269a89a02bfd4ee1f1357e048a1426145229718ce290d6946c"
+            },
+            {
+              "path": "addons/infantry/functions/dangerCoverStep.sqf",
+              "sha256": "f77bfbc6f833acc3563a687098c7435392f9a8a62d58440b8563f72fe0f70208"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "f32bcf1f + native planning and shared admission"
+    },
+    {
+      "id": "VEH-DRIVING",
+      "title": "Ordinary vehicle route safety",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Owner-local driving FSM",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Route-scoped parent, scheduler execution and finite retirement are wired.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingOperationStart.sqf",
+              "sha256": "281a2482ea013f82f3b7f49a2c473f6029511577db1c70f5edff9a5b084ae9ca"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingOperationStep.sqf",
+              "sha256": "731efa14ff21c24d2062213859ab1712553e5bcb6c3227e69d8f4af3e4c07a91"
+            }
+          ]
+        },
+        {
+          "capability": "Route identity and speed policy",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Authored route, terrain and following caps are consumed by ordinary driving.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingRouteReceipt.sqf",
+              "sha256": "a6dd1662abbe339a2d85ee87b38d5b4298804bedcd8eafee973502cf901e1642"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingFollowingCap.sqf",
+              "sha256": "5633a8404e74b2b1d6597c5ec29af40ccf690283b8fed5bccb1db4307fdfcdf1"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingRoadCap.sqf",
+              "sha256": "7dc4e6b6fa415b84a21a0291059b34c0f0f1a7459ff914c279da5a5402e93521"
+            }
+          ]
+        },
+        {
+          "capability": "Predictive obstacle handling",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Bounded native-path and hull prediction exists.",
+          "remaining_build_gap": "Complete dynamic traffic resolution is unfinished.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingGeometryCap.sqf",
+              "sha256": "ea5bd3c413f805bee018e99c4367d1a2dc7faa8f0b2ace7aa94a4600eb34cc6d"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingPathGeometry.sqf",
+              "sha256": "b866e8a29960b2c6cbf2d0b89ecddfa032b9d6f0848bc3cbbe02d5479523d3de"
+            }
+          ]
+        },
+        {
+          "capability": "Gate interaction",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Indexed barrier detection and authenticated opening are wired.",
+          "remaining_build_gap": "Broader gate-action coverage and automatic closure remain incomplete or unsupported.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingGateCap.sqf",
+              "sha256": "12e6fe924cce4a1e19935cceaa803f8c529f8c3f0ba2dfa2261a84238dc82add"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingGateOpenServer.sqf",
+              "sha256": "3a87598ac7a1c44ed05f3271bcf7fd080a2defd8f005cf2f4e7984bfa6c30987"
+            }
+          ]
+        },
+        {
+          "capability": "Finite native rear recovery",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Native rear requests, live corridor/damage monitoring and exact owned release are wired. Finite linear and angular rest now gates stationary recovery and handback.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+              "sha256": "c5ff0bd3504386234edf0e91f4ecbfdde6e098067acf88dc62d92a431e98d305"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingRearClear.sqf",
+              "sha256": "69f07efc10aba1b5f7e59c7f5f5b8063d93a2ecb4c13abbac889bacc9e791c16"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+              "sha256": "5c69019e178d810c21056553c746a7a6a2c3af8d21e69d6a0a1c5b60b3bb5cfa"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingRearPlan.sqf",
+              "sha256": "a0844d25be80edcd7a490e2ecdbaf48678861c64d6dc41ffc547a68a89ab32f8"
+            }
+          ]
+        },
+        {
+          "capability": "Static bypass and corridor execution",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Finite owner-local approach/crossing/return executors exist.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingBypassStep.sqf",
+              "sha256": "f9a715e066a025d74a7276d99e21b6296e497bdefb8c52ea4619db97a5d8f5ec"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingCorridorStep.sqf",
+              "sha256": "55edf8c4b7555bfb301a5eafde651d0d62b7086b9c1c51a8685c1cc216c95a28"
+            }
+          ]
+        },
+        {
+          "capability": "Negotiated passing",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Consent and finite passing/return execution are wired.",
+          "remaining_build_gap": "Stopped-merge recovery and all native handover cases remain unfinished.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingPassAgreementOwner.sqf",
+              "sha256": "5c5f1487eddf075cca85302054881697036c0fbfc059a50a6e860a20d75b49b7"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingPassStep.sqf",
+              "sha256": "537467acb8bf9dd03410e05dd1c01b82de62e7d9bc5aad06198098a1e677d146"
+            }
+          ]
+        },
+        {
+          "capability": "Queue discovery and agreement",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Bounded dependency discovery and actual-owner consent are wired. A default-off CBA opt-in now offers one automatic head-on proposal from persistent traffic within the original retry episode, defers competing replans and services at most two authenticated root COMMIT requests.",
+          "remaining_build_gap": "Stationary crossing geometry between45and135degrees now has a bounded admission path. General stopped merges and unsupported crossing angles/recovery choices remain unfinished; unsupported native reverse crew arrangements refuse.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingQueueProposal.sqf",
+              "sha256": "1c176ef79b7e9bd85aa149a2fbdb60bc0b4d3c4b0be49a351113fbdf8ba12be5"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+              "sha256": "2d8f47809aca4927b4f9f8b1b70e80b7605e2cbbabca6556bbba0993800b1ada"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+              "sha256": "ba279736f533fe040dee237e7e62524842619304c5d088dba8a0a40404c51360"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueContext.sqf",
+              "sha256": "6e8e3773f107feee87e101916a6bab8148ed109f19bda3306e2a0b8573c1f86d"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueProposalCurrent.sqf",
+              "sha256": "968dc401831feb839188f0a7e52a4dda6a439f7aa26e4ca29352a0b17d0816e7"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+              "sha256": "c5ff0bd3504386234edf0e91f4ecbfdde6e098067acf88dc62d92a431e98d305"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueCrossingVehicle.sqf",
+              "sha256": "d4c6e17c0a2ef74fcd5f6afa4fd19196906be9f3261a32de860bdcbfbfdd538b"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueAutoStep.sqf",
+              "sha256": "04febe64ede4435be3bf62473fab2257ec95a7e2502ddfad1d20831dbcca176e"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueuePairGeometry.sqf",
+              "sha256": "6be1aa9d5edaa08e03ca7dbb652536b6446f46f4c56c27af7d851a239a046210"
+            }
+          ]
+        },
+        {
+          "capability": "Queue room-making execution",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Explicit internal COMMIT now reaches all-owner holds and preparation, finite reverse dependency phases, crossing planning/installation, zero-cap native path issue, all-owner published-path acknowledgement, root-only motion grant, physical checkpoint/tail observation and exact completion-receipt cleanup through the existing driving callback. Ordinary traffic constraints remain; only frozen held queue hulls delegate to validated path geometry. One original maximum90-second episode, no phase renewal. In-game outcomes remain unverified. Default-off automatic initiation now reaches this same executor through its existing callback, without a new worker or renewed episode.",
+          "remaining_build_gap": "Head-on and qualifying stationary crossing pairs share finite native room-making and checked crossing execution. General stopped merges, other angles and unsupported native reverse roles remain unfinished. Physical natural admission, route continuation, delayed replication, normal/HC interruption and overhead remain unverified.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingQueueAgreementOwner.sqf",
+              "sha256": "ba279736f533fe040dee237e7e62524842619304c5d088dba8a0a40404c51360"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingAssistStart.sqf",
+              "sha256": "c5ff0bd3504386234edf0e91f4ecbfdde6e098067acf88dc62d92a431e98d305"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueReverseCommit.sqf",
+              "sha256": "24e8a5a95ab24b714161eb937861d41dba8cd3532ab0658e42410d32f3649e1d"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueReverseCurrent.sqf",
+              "sha256": "1550ce64c5c75ac6de179eca1c1dd22cd9c7fccb75caf5b4952cbc8ac0665aa0"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueAgreementServer.sqf",
+              "sha256": "2d8f47809aca4927b4f9f8b1b70e80b7605e2cbbabca6556bbba0993800b1ada"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueParentRoom.sqf",
+              "sha256": "f976cfa9db07dec760b0cc7df679ec2c92f00ef6f0da6fe2981bad11993668c2"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueueAutoStep.sqf",
+              "sha256": "04febe64ede4435be3bf62473fab2257ec95a7e2502ddfad1d20831dbcca176e"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingQueuePairGeometry.sqf",
+              "sha256": "6be1aa9d5edaa08e03ca7dbb652536b6446f46f4c56c27af7d851a239a046210"
+            }
+          ]
+        },
+        {
+          "capability": "Crew handover",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Current seat and replacement-driver ownership paths exist.",
+          "remaining_build_gap": "Complete cross-owner crew transitions and native task preservation still need implementation review.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingCrewStep.sqf",
+              "sha256": "79aa85cd40c318151f6135466e843b90d76c4db88fcb03a0737289267d652ce3"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingRecoveryCrewAdopt.sqf",
+              "sha256": "bd19002cf593334771bc4ad8c279d253e013f37df4a3f824f4c0dbf724c84df8"
+            }
+          ]
+        },
+        {
+          "capability": "Native order and external handback",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Exact owned settings and changed routes are guarded.",
+          "remaining_build_gap": "Exact queue-abort STOP supports active/released-cap original-owner cleanup and controlled master-stop epoch adoption. Actual owner migration, missing STOP acknowledgement and repeated identical native commands remain incomplete or unresolved.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/drivingAssistRelease.sqf",
+              "sha256": "aaaa0c6c816e53fb6856d9dcce3422dfcc297e9d7c7f6a2fb646e2e464046e71"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingOperationFinish.sqf",
+              "sha256": "bce811c3534a8b9cc4cddc2b7f8a3b7cc6240a00cd937f63e36bc743dbe10918"
+            },
+            {
+              "path": "addons/vehicles/functions/drivingAbortHandback.sqf",
+              "sha256": "0b0d8832683629e7ab6a0920b839735c6ecb8b8f62ad4bb2001ede7b1cda8ecc"
+            }
+          ]
+        }
+      ],
+      "confidence": "medium",
+      "reviewed_at": "2026-10-20",
+      "source_commit": "3f56dd8b + default-off automatic queue initiation",
+      "review_note": "Reviewed default-off queue initiation/commit wiring and shared CBA catalogue additions; scoped build gaps remain and scores/weights unchanged. No physical acceptance or whole-source parity inferred."
+    },
+    {
+      "id": "CNV-MOVE",
+      "title": "Mixed convoy path and spacing",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Convoy operation lifecycle",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Public task, server revision and owner-local execution are wired.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/simpleAiConvoy.sqf",
+              "sha256": "d74b8e05ea683be77019dc6907777c93b02c3fbcce73e7630c057ee7af2f50e2"
+            },
+            {
+              "path": "addons/vehicles/functions/convoyOperationStep.sqf",
+              "sha256": "7de68606a5118148bced864e2873e29c2aba98488e686077abdc3edcc677e758"
+            },
+            {
+              "path": "addons/vehicles/functions/convoySync.sqf",
+              "sha256": "a7e25836448f96d1cb357469e8e174456cdf75b227e3eeb8fce5a5312d1624f9"
+            }
+          ]
+        },
+        {
+          "capability": "Predecessor trails and native goals",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Followers consume ordered predecessor travel with native goal continuity.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e8ce5f9f26cd83d2548c58661ea74bb7a1f2251653c4ac1a2dbf6b1caa6a289e"
+            }
+          ]
+        },
+        {
+          "capability": "Mixed-vehicle spacing control",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Gap correction, braking envelope and bounded acceleration are implemented.",
+          "remaining_build_gap": "Known mixed-column stop/start and gap convergence faults leave control/balance work open.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e8ce5f9f26cd83d2548c58661ea74bb7a1f2251653c4ac1a2dbf6b1caa6a289e"
+            }
+          ]
+        },
+        {
+          "capability": "Lead pacing",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Lead pacing responds to aligned follower stretch.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e8ce5f9f26cd83d2548c58661ea74bb7a1f2251653c4ac1a2dbf6b1caa6a289e"
+            }
+          ]
+        },
+        {
+          "capability": "Public halt and resume",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Revision-scoped halt/resume and applied-cap ownership paths exist.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyOperationStep.sqf",
+              "sha256": "7de68606a5118148bced864e2873e29c2aba98488e686077abdc3edcc677e758"
+            },
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e8ce5f9f26cd83d2548c58661ea74bb7a1f2251653c4ac1a2dbf6b1caa6a289e"
+            }
+          ]
+        },
+        {
+          "capability": "Replacement native orders",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Native MOVE identity and operator STOP yield are implemented.",
+          "remaining_build_gap": "Repeated identical STOP under fixed steering and separate crew-command cases remain open.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyRetireMoveReceipt.sqf",
+              "sha256": "f972c194154f701bec9ca0051209a3e759cbde20329d7614ee0bca0bb786a052"
+            },
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e8ce5f9f26cd83d2548c58661ea74bb7a1f2251653c4ac1a2dbf6b1caa6a289e"
+            }
+          ]
+        },
+        {
+          "capability": "Whole-column passages",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Lead passage and follower whole-hull/tail tracking are composed.",
+          "remaining_build_gap": "Stopped-merge recovery and complete interrupted-passage continuation remain unfinished.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyCorridorStep.sqf",
+              "sha256": "ac8f566e08f1eb964bce85f9cc6fedd812b910541a941318d37fbf32ef8a0aa6"
+            },
+            {
+              "path": "addons/vehicles/functions/convoyBypassStep.sqf",
+              "sha256": "7c438fa16e48370f1929f2f5802d2ad26af510197f0e145417ceb0d8ef31aae7"
+            }
+          ]
+        },
+        {
+          "capability": "Crew and cargo integration",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Crew/cargo policy and revision-scoped owner adoption are wired.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyUnloadPolicy.sqf",
+              "sha256": "d98b15ef554b344f8e85385e1fc9e556f0cc5573e3e2b03a0ababb4cac337859"
+            },
+            {
+              "path": "addons/vehicles/functions/convoyHeadlessAdoptLocal.sqf",
+              "sha256": "822c3ceb4786d66a229330061893a2f1c044e9d43783c84471c3bbcc30ec032a"
+            }
+          ]
+        }
+      ],
+      "confidence": "medium",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "CNV-FIRE",
+      "title": "Convoy weapon crew",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Permitted known threat selection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyThreat.sqf",
+              "sha256": "e7f177c251208b33d43183dc12035d46333f24b4431052f1397da4f30193efa7"
+            }
+          ]
+        },
+        {
+          "capability": "Gunner-only engagement",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyCrewLocal.sqf",
+              "sha256": "b4dce0db021fae07299471016b587001acdc82456b707f5841df2ba9bef273b1"
+            }
+          ]
+        },
+        {
+          "capability": "Driver movement/task preservation",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyCrewLocal.sqf",
+              "sha256": "b4dce0db021fae07299471016b587001acdc82456b707f5841df2ba9bef273b1"
+            },
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e8ce5f9f26cd83d2548c58661ea74bb7a1f2251653c4ac1a2dbf6b1caa6a289e"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "CNV-COVER",
+      "title": "Convoy dismount positions",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Available dismount cover selection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyDismountLocal.sqf",
+              "sha256": "cd19d6df3068434d2f5802b2607c86ed230b3434c683970c9bb08e6a841943ed"
+            },
+            {
+              "path": "addons/infantry/functions/cortexFindCover.sqf",
+              "sha256": "bf92c6d2cd4ee1b336516abb2925fc7132acf08cd035a58fdf0442375225f5ed"
+            }
+          ]
+        },
+        {
+          "capability": "Native passenger movement",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyDismountLocal.sqf",
+              "sha256": "cd19d6df3068434d2f5802b2607c86ed230b3434c683970c9bb08e6a841943ed"
+            }
+          ]
+        },
+        {
+          "capability": "Whole dismount/security integration",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Coherent exterior security and relief roles remain partial rather than isolated cover destinations.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyDismountLocal.sqf",
+              "sha256": "cd19d6df3068434d2f5802b2607c86ed230b3434c683970c9bb08e6a841943ed"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "CNV-AVOID",
+      "title": "Convoy infantry avoidance",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Short infantry corridor observation",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e8ce5f9f26cd83d2548c58661ea74bb7a1f2251653c4ac1a2dbf6b1caa6a289e"
+            }
+          ]
+        },
+        {
+          "capability": "Bounded stop/cap and clearance response",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e8ce5f9f26cd83d2548c58661ea74bb7a1f2251653c4ac1a2dbf6b1caa6a289e"
+            }
+          ]
+        },
+        {
+          "capability": "Owned cap release after clearance",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e8ce5f9f26cd83d2548c58661ea74bb7a1f2251653c4ac1a2dbf6b1caa6a289e"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "CNV-HALT",
+      "title": "Convoy contact drills",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Mobile/contact versus pinned policy",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyTick.sqf",
+              "sha256": "e8ce5f9f26cd83d2548c58661ea74bb7a1f2251653c4ac1a2dbf6b1caa6a289e"
+            }
+          ]
+        },
+        {
+          "capability": "Authoritative explicit halt",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyHaltServer.sqf",
+              "sha256": "1187a102bab3d5cfdf1bd436ad90a8ff1081040ae57f9f81f308b3ff8c321e22"
+            }
+          ]
+        },
+        {
+          "capability": "Revision-scoped resume",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/simpleAiConvoy.sqf",
+              "sha256": "d74b8e05ea683be77019dc6907777c93b02c3fbcce73e7630c057ee7af2f50e2"
+            },
+            {
+              "path": "addons/vehicles/functions/convoySync.sqf",
+              "sha256": "a7e25836448f96d1cb357469e8e174456cdf75b227e3eeb8fce5a5312d1624f9"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "CNV-UNLOAD",
+      "title": "Convoy cargo lifecycle",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Cargo/operating-crew separation",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyUnloadPolicy.sqf",
+              "sha256": "d98b15ef554b344f8e85385e1fc9e556f0cc5573e3e2b03a0ababb4cac337859"
+            }
+          ]
+        },
+        {
+          "capability": "Owner-local unload and seating controls",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyCrewLocal.sqf",
+              "sha256": "b4dce0db021fae07299471016b587001acdc82456b707f5841df2ba9bef273b1"
+            }
+          ]
+        },
+        {
+          "capability": "Release keeps replacement tasks",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/convoyReleaseLocal.sqf",
+              "sha256": "60578c194b38e72d32ee0b5da13fb767e82da2f8503603be4bcee5039a847857"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "HEARING",
+      "title": "Gunfire area reports",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Local gunfire area observation",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexHearingLocal.sqf",
+              "sha256": "611c75130fb3f9986adff04d56a679f44b32e6cf8179d1e13bf700065b817197"
+            }
+          ]
+        },
+        {
+          "capability": "Uncertainty/range retained",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexHearingLocal.sqf",
+              "sha256": "611c75130fb3f9986adff04d56a679f44b32e6cf8179d1e13bf700065b817197"
+            }
+          ]
+        },
+        {
+          "capability": "Gated investigation handoff",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexHearingLocal.sqf",
+              "sha256": "611c75130fb3f9986adff04d56a679f44b32e6cf8179d1e13bf700065b817197"
+            },
+            {
+              "path": "addons/infantry/functions/cortexGroupTick.sqf",
+              "sha256": "42157be0c2c54e9340a6b62d75b804c0814a87a3a124eeaad29ac60b4b2750d5"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "REPORT",
+      "title": "Contact sharing",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Actual transmitter and mutual radio eligibility",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGroupTransmitter.sqf",
+              "sha256": "fb04e47f8057a801a0b80912528326feacc43ef74400fc8bdf3e431a7cb181d9"
+            },
+            {
+              "path": "addons/infantry/functions/cortexCanTransmit.sqf",
+              "sha256": "bf1e55f765f9d1f67f0aaa0a0b3066c18c7815c936e71658cfeb80887fccb2a2"
+            }
+          ]
+        },
+        {
+          "capability": "Authenticated contact transport",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexReportLocal.sqf",
+              "sha256": "1ad4b5c291734cf962357e6c106e947dfd6319b0414143281641c8f56d72666e"
+            },
+            {
+              "path": "addons/infantry/functions/cortexReportServer.sqf",
+              "sha256": "e019d7dc54d9b77375f06b9ebfe2183370e55a343d130177da5952e5606a5176"
+            }
+          ]
+        },
+        {
+          "capability": "Original observation age/uncertainty",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexReportServer.sqf",
+              "sha256": "e019d7dc54d9b77375f06b9ebfe2183370e55a343d130177da5952e5606a5176"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "REINFORCE",
+      "title": "Reinforcement",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Eligible combat-effective responder selection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexReinforce.sqf",
+              "sha256": "2aada198d580d70a379058124ce8ca4b90c108883eccbc9469ee5b8cd25e68c5"
+            }
+          ]
+        },
+        {
+          "capability": "Finite request/reservation and movement",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexReinforce.sqf",
+              "sha256": "2aada198d580d70a379058124ce8ca4b90c108883eccbc9469ee5b8cd25e68c5"
+            },
+            {
+              "path": "addons/support/functions/cortexSupportLocal.sqf",
+              "sha256": "6020adaab753ffcbf886d2d75926f51659db5c3a04344f3d53659785b3679ec1"
+            }
+          ]
+        },
+        {
+          "capability": "Full replacement/relief integration",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Sustained casualty relief and dynamic combined-operation retasking remain unfinished.",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexReinforce.sqf",
+              "sha256": "2aada198d580d70a379058124ce8ca4b90c108883eccbc9469ee5b8cd25e68c5"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "ART",
+      "title": "Spotted artillery bursts",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Battery/observer role and ammo selection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexArtilleryRole.sqf",
+              "sha256": "e6c5ff8fc9c6447ac743c2d01b8a3252f3e7c7030f7f670f49007ae73d93aca4"
+            },
+            {
+              "path": "addons/support/functions/cortexArtilleryAmmo.sqf",
+              "sha256": "6821a1bba0c274e682045eb1287a08ef382268bee21c1a9f8f26f6a783d46bdb"
+            }
+          ]
+        },
+        {
+          "capability": "Observed ranging and finite bursts",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexArtilleryMissionStep.sqf",
+              "sha256": "2453f89866729f395ee2d95039814c54d5ef53c77ef240341eede4f371f9b0da"
+            },
+            {
+              "path": "addons/support/functions/cortexArtilleryObserve.sqf",
+              "sha256": "af7c4dc2c6f04fe1d7577fd9c35044c0eeea23effe5765c419e61fb2ddc3770d"
+            }
+          ]
+        },
+        {
+          "capability": "Impact safety and native release",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexArtilleryAim.sqf",
+              "sha256": "15d8962a82d8b9e16bdf4b01e9839a8e2cc3544831caed53a94111a2dcb8cdd4"
+            },
+            {
+              "path": "addons/support/functions/cortexArtilleryFire.sqf",
+              "sha256": "4826b4cc42f902551bfeec945e2a99a15111a20a62c8ffa51b278d4a1257224a"
+            }
+          ]
+        },
+        {
+          "capability": "Finite relocation and mission lifecycle",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexArtilleryScoot.sqf",
+              "sha256": "96f8615e8f063323c81839904e270fd363e673f2c35491d04799753c772350df"
+            },
+            {
+              "path": "addons/support/functions/artilleryMissionStep.sqf",
+              "sha256": "8c9d39d5bb6f6414c8ddb32b265040cfedb5e0ccd321758eca09b113c96ad238"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "CB",
+      "title": "Counter-battery",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Radar registration and acquisition",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexRegisterRadar.sqf",
+              "sha256": "9e29e33e9b6f5759e463780ffe2d9a33cb580e43aa80f6da3935bfbeb3977ae2"
+            },
+            {
+              "path": "addons/support/functions/cortexCounterBattery.sqf",
+              "sha256": "53f999f857715271e17be86f4a7216d4472c2b3201137d834e1f1abfed776091"
+            }
+          ]
+        },
+        {
+          "capability": "Non-radar qualified detection",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Qualified non-radar detection remains incomplete.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexCounterObserve.sqf",
+              "sha256": "0b207953c0c163725407fa8da385b084e38cd380d040a98ee5819ec3d66ce826"
+            }
+          ]
+        },
+        {
+          "capability": "Side-specific emission retargeting",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Global emission retargeting lacks complete side-specific detection qualification.",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexCounterBattery.sqf",
+              "sha256": "53f999f857715271e17be86f4a7216d4472c2b3201137d834e1f1abfed776091"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "AIRBORNE",
+      "title": "Parachute passengers",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Altitude/crew/passenger eligibility",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/cortexAirborneCheck.sqf",
+              "sha256": "58c3dc6f69baf3ad01131fd96e532dec8ad8f41d49b6d52d7a04533445370d0e"
+            }
+          ]
+        },
+        {
+          "capability": "Spaced native jump/deployment",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/cortexAirborneDropStep.sqf",
+              "sha256": "25f811d6efd253b2a705b09cc716b9f09ba4529db27324ef516ac23c6035fe74"
+            },
+            {
+              "path": "addons/infantry/functions/cortexParachuteJump.sqf",
+              "sha256": "401558c894a13c927571ea9ac076930552df1e8bae14cbd6e1f27a81383d3979"
+            },
+            {
+              "path": "addons/infantry/functions/cortexParachuteDeploy.sqf",
+              "sha256": "4e5bbba3768ea6b2858d945784dc85c399070bf4810b442bf0d40ba620fcc9ae"
+            }
+          ]
+        },
+        {
+          "capability": "Insertion episode and owned protection release",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/cortexAirborneDropStep.sqf",
+              "sha256": "25f811d6efd253b2a705b09cc716b9f09ba4529db27324ef516ac23c6035fe74"
+            },
+            {
+              "path": "addons/infantry/functions/cortexParachuteProtectionRelease.sqf",
+              "sha256": "b469d3526de5f634b182ff3bd90b3a2957ba90fe33c49f3207771ba825bbd77a"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "GARRISON",
+      "title": "Garrison and dynamic AO",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Runtime slots and walk/explicit teleport choice",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGarrison.sqf",
+              "sha256": "1e5abdbb20e7826da0655965173d0139bfa1612d130f3b87956204ef0517e183"
+            }
+          ]
+        },
+        {
+          "capability": "Owned slot/floor arrival and hold",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGarrisonApplyLocal.sqf",
+              "sha256": "9e4be2be8650b6f7600e8c99382ec3868b4764fd2ac6bde2e7d7b42787a0647b"
+            },
+            {
+              "path": "addons/infantry/functions/cortexGarrisonArrived.sqf",
+              "sha256": "3056437ee0b363322c7cf02ce5aaaafdadf8e70e4ce51dfe3bd73b0abf57dd79"
+            }
+          ]
+        },
+        {
+          "capability": "Dynamic refill and interrupted task integration",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Complete dynamic relief and unavailable-building-position recovery remain unfinished.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGarrisonRefill.sqf",
+              "sha256": "005087ff397352984fa710925d5ff37111be2646ae4a494409d4c576f265a401"
+            },
+            {
+              "path": "addons/infantry/functions/cortexGarrisonRelease.sqf",
+              "sha256": "5351a154c5b3e3c19606251c3775ff79e2e55c75bd03bff82701f596d2979364"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "FLARES",
+      "title": "Aircraft countermeasures",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Threat event and aircraft eligibility",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/cortexMissileDefenceStep.sqf",
+              "sha256": "3324b31d3fce4a4df553b2a936fdd41977ab5ed4e3e03cca845eebdef9b9770d"
+            }
+          ]
+        },
+        {
+          "capability": "Real finite countermeasure release",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexFireCountermeasure.sqf",
+              "sha256": "f2aab2e191c0500f74bda6d948bf9373c384045a29358ce3e90bc7a99b353eba"
+            }
+          ]
+        },
+        {
+          "capability": "Owner/feature cancellation",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/cortexMissileDefenceStep.sqf",
+              "sha256": "3324b31d3fce4a4df553b2a936fdd41977ab5ed4e3e03cca845eebdef9b9770d"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "INVESTIGATE",
+      "title": "Known-area investigation",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Reported-area native movement",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGroupMove.sqf",
+              "sha256": "2c0ea59f8235f6d8bd0ed5f79aac4717c74b9afbc346549b8a73045211437986"
+            }
+          ]
+        },
+        {
+          "capability": "Finite ownership and authored route",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGroupMove.sqf",
+              "sha256": "2c0ea59f8235f6d8bd0ed5f79aac4717c74b9afbc346549b8a73045211437986"
+            }
+          ]
+        },
+        {
+          "capability": "Interruption/cleanup",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGroupMoveClear.sqf",
+              "sha256": "9c805e997901629d28d87f492d63b2a4026416b3458b742028b6c54511faadc2"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "ASSAULT",
+      "title": "Final assault",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Fresh target and pair admission",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexAssaultStart.sqf",
+              "sha256": "c1ba09e05c5d2ec60297e8fa35cfb03744b6b19278a7f0e43d51143438b64ca7"
+            }
+          ]
+        },
+        {
+          "capability": "Preparation and native clear-through",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexFlankStep.sqf",
+              "sha256": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
+            }
+          ]
+        },
+        {
+          "capability": "Coherent follow-through/consolidation",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Pair flow and post-assault consolidation remain partially refined.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexFlankStep.sqf",
+              "sha256": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "ADVANCE",
+      "title": "Bounding advance",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Authored objective and tactical assessment",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexAdvanceStart.sqf",
+              "sha256": "c425b03e8c267a9976d777bf17007ee454b2174511c844773208bf5a96c53a1b"
+            },
+            {
+              "path": "addons/infantry/functions/cortexTacticalAssess.sqf",
+              "sha256": "3214f2c04dd08e1a7f0b4bc4c23b5f7e3a5b588fe184a8b05c5c30db74de6a01"
+            }
+          ]
+        },
+        {
+          "capability": "Finite moving/covering teams",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexFlankStep.sqf",
+              "sha256": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
+            }
+          ]
+        },
+        {
+          "capability": "Casualty/straggler continuation",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Complete continuation without stranded actors remains unfinished.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/rebalanceRoles.sqf",
+              "sha256": "75eb9ed44578369292f346403f5d1cdb5f247fbab0bd928f99ab1b22f304ebd4"
+            },
+            {
+              "path": "addons/infantry/functions/recoveryStep.sqf",
+              "sha256": "280f29aa4f290097f1cd68f46429459697a3747bd63e0b75329793486694a1f2"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "a498b71a + belief and depleted native engagement"
+    },
+    {
+      "id": "COORD",
+      "title": "Coordinated assault",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Communicated opportunity and owner ACK",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexCoordinatedAssault.sqf",
+              "sha256": "225a89c4a1d7c960437f137656d537970b19e072dcfe9ebe93dc2ee00c3c275e"
+            },
+            {
+              "path": "addons/support/functions/cortexSupportAck.sqf",
+              "sha256": "d88bf11d048944f15439ab60413e15aa43442be5247a0ea3f8b7f2bbf48b8795"
+            }
+          ]
+        },
+        {
+          "capability": "Separated lane allocation",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Full dynamic route complementarity and convergence resolution remain unfinished.",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexSupportCoordinateStep.sqf",
+              "sha256": "c82f121b353423845ba839c6903f810941ff6be30567f16c121f05e30816a497"
+            }
+          ]
+        },
+        {
+          "capability": "Finite local bounds/support roles",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexSupportBoundStart.sqf",
+              "sha256": "83e3cb814f9a3d43916eb1632ad0979a64afa2722ce08cffb6ccf8353e6ddc3f"
+            },
+            {
+              "path": "addons/support/functions/cortexSupportLocal.sqf",
+              "sha256": "6020adaab753ffcbf886d2d75926f51659db5c3a04344f3d53659785b3679ec1"
+            }
+          ]
+        },
+        {
+          "capability": "Responder replacement and composition",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Complete role transitions across casualty/operation changes remain unfinished.",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexSupportStep.sqf",
+              "sha256": "f8a91b5a043883b9279bd992278de354ba43bbbc60c21e30669e79297a1e3794"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "STANCE",
+      "title": "Cover stance",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Actual cover-based stance",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexStance.sqf",
+              "sha256": "cdb09a6652a0cb269a89a02bfd4ee1f1357e048a1426145229718ce290d6946c"
+            }
+          ]
+        },
+        {
+          "capability": "Task/reservation exclusions",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexStance.sqf",
+              "sha256": "cdb09a6652a0cb269a89a02bfd4ee1f1357e048a1426145229718ce290d6946c"
+            }
+          ]
+        },
+        {
+          "capability": "Exact owned posture restoration",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexStance.sqf",
+              "sha256": "cdb09a6652a0cb269a89a02bfd4ee1f1357e048a1426145229718ce290d6946c"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "AMMO",
+      "title": "Magazine sharing",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Compatible donor/recipient selection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexAmmoShare.sqf",
+              "sha256": "9553d1e7e7f7b77cd8e23c80988fe8f9bb487e2ce83ffab4b535e72cc9647165"
+            },
+            {
+              "path": "addons/infantry/functions/cortexCapabilities.sqf",
+              "sha256": "f34ee94ae2e865cc180ebcf09a13ec19864f38254a7b7491a1f32120ce58e1b9"
+            }
+          ]
+        },
+        {
+          "capability": "Conservative magazine transfer",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexAmmoShare.sqf",
+              "sha256": "9553d1e7e7f7b77cd8e23c80988fe8f9bb487e2ce83ffab4b535e72cc9647165"
+            }
+          ]
+        },
+        {
+          "capability": "Role/gate/current-actor protection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexAmmoShare.sqf",
+              "sha256": "9553d1e7e7f7b77cd8e23c80988fe8f9bb487e2ce83ffab4b535e72cc9647165"
+            },
+            {
+              "path": "addons/infantry/functions/cortexUnitRole.sqf",
+              "sha256": "b302ddfabecd6cbd6dad67ca47eff4b6f95cad0f63e86b7a1331fe9123409428"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "GUNNERY",
+      "title": "Vehicle threat priority",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Known threat/platform/ammo suitability",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/cortexVehicles.sqf",
+              "sha256": "9c3d88f8b1abb0a9e650c30eb309bd6da79f58cfaf0a7d58d990c7c4714c68b8"
+            },
+            {
+              "path": "addons/infantry/functions/cortexGroundFireReady.sqf",
+              "sha256": "47ffe2b948909616f4f4ac5c7e96f9e86a409631a647844c9a6184eb0be84e42"
+            }
+          ]
+        },
+        {
+          "capability": "Native gunner fire authority",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/cortexVehicles.sqf",
+              "sha256": "9c3d88f8b1abb0a9e650c30eb309bd6da79f58cfaf0a7d58d990c7c4714c68b8"
+            }
+          ]
+        },
+        {
+          "capability": "Standoff/combined-role composition",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Complete arbitration between routine standoff and coordinated ground roles remains partial.",
+          "evidence": [
+            {
+              "path": "addons/vehicles/functions/cortexVehicles.sqf",
+              "sha256": "9c3d88f8b1abb0a9e650c30eb309bd6da79f58cfaf0a7d58d990c7c4714c68b8"
+            },
+            {
+              "path": "addons/infantry/functions/cortexCombinedGroundStep.sqf",
+              "sha256": "72b25f037c85b5bae43a6ae42f2ea5b008c35404d52de9e5da055e882d62e3e0"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "ART-SMOKE",
+      "title": "Artillery smoke",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Strict smoke ammunition classification",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexArtilleryAmmo.sqf",
+              "sha256": "6821a1bba0c274e682045eb1287a08ef382268bee21c1a9f8f26f6a783d46bdb"
+            }
+          ]
+        },
+        {
+          "capability": "Finite screened mission dispatch",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexArtilleryFire.sqf",
+              "sha256": "4826b4cc42f902551bfeec945e2a99a15111a20a62c8ffa51b278d4a1257224a"
+            },
+            {
+              "path": "addons/infantry/functions/cortexRetreat.sqf",
+              "sha256": "a442662a58ea7afcc3c8ce7488b828578759c13ed677abf722c740033f58f3fb"
+            }
+          ]
+        },
+        {
+          "capability": "Battery mission safety/retirement",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexArtilleryMissionStep.sqf",
+              "sha256": "2453f89866729f395ee2d95039814c54d5ef53c77ef240341eede4f371f9b0da"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "BREAK",
+      "title": "Aircraft evasive break",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Actual threat and flight owner admission",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/cortexMissileDefenceStep.sqf",
+              "sha256": "3324b31d3fce4a4df553b2a936fdd41977ab5ed4e3e03cca845eebdef9b9770d"
+            }
+          ]
+        },
+        {
+          "capability": "Bounded break-away correction",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/cortexMissileDefenceStep.sqf",
+              "sha256": "3324b31d3fce4a4df553b2a936fdd41977ab5ed4e3e03cca845eebdef9b9770d"
+            }
+          ]
+        },
+        {
+          "capability": "Flight lease cleanup and native return",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/flightLeaseRelease.sqf",
+              "sha256": "a8dc5aec2bf3ea443f9767cf61b2e07eb4e21323c02c8f0028c8c2a651ced1aa"
+            },
+            {
+              "path": "addons/aircraft/functions/cortexMissileDefenceStep.sqf",
+              "sha256": "3324b31d3fce4a4df553b2a936fdd41977ab5ed4e3e03cca845eebdef9b9770d"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "DEFEND",
+      "title": "Defence orders",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Validated explicit defence task",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexDefend.sqf",
+              "sha256": "d9f6f19781680b53579d59880553974ca3f8b51025effaef5a00d914ba29b904"
+            }
+          ]
+        },
+        {
+          "capability": "Slot allocation and native arrival",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexDefendApplyLocal.sqf",
+              "sha256": "80b267741025af3325eaa0b4c2d497f1093e2340496d358388dbef7074a21303"
+            },
+            {
+              "path": "addons/infantry/functions/cortexDefendStep.sqf",
+              "sha256": "d68bfc14248f71ab45fd066c308509ea169097fb492847c02fded316a465a7f9"
+            }
+          ]
+        },
+        {
+          "capability": "Dynamic security/relief composition",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Full relief and cross-squad defence role composition remain unfinished.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexDefendStep.sqf",
+              "sha256": "d68bfc14248f71ab45fd066c308509ea169097fb492847c02fded316a465a7f9"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "CLEAR",
+      "title": "Building clearance",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Clear task and operation ownership",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Explicit owner-local CLEAR admission checks current generation/epoch, original native order, target transform and finite episode. Guarded preparation/startup and readback-confirmed group attack policy are integrated; matching roster history supplies identity rather than command authority.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+              "sha256": "6bc1d3b089655cce6fd8c4a0618c4791b234fe680a7973cf554d21dd7adb9b1b"
+            },
+            {
+              "path": "addons/infantry/functions/buildingOperationStart.sqf",
+              "sha256": "e09b06cf779d1e62568cb367d77aa54728299ef40625edce4ef85c15a81c42ec"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "1fe710270ccfa5553c2de0a4f6e21ea7e553e72ff3fc6b4e3bd331501b2ea9e1"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
+        },
+        {
+          "capability": "Dynamic building topology and access",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Runtime native building nodes/exits, floor-aware route ordering, geometry/body exclusions and bounded alternatives are integrated. The current source rejects oversize node sets and records failed attempts separately from physical visits.",
+          "remaining_build_gap": "General incidental through-building route planning and reliable access classification for arbitrary modded interior points are not implemented. Bounded attempts cannot prove an inaccessible node.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+              "sha256": "6bc1d3b089655cce6fd8c4a0618c4791b234fe680a7973cf554d21dd7adb9b1b"
+            },
+            {
+              "path": "addons/infantry/functions/indoorActorNodeSelect.sqf",
+              "sha256": "fbd2ce31fd66cb4e584dd3255e4d9acbf229d1c8f480566356e252d484699653"
+            },
+            {
+              "path": "addons/infantry/functions/buildingExteriorCandidate.sqf",
+              "sha256": "cd2d32b066729e8870631ddeeb7ea8dcfc3945b5007b151e3da304c44576b23d"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
+        },
+        {
+          "capability": "Individual native interior movement",
+          "weight": 1,
+          "built": 1,
+          "implemented": "The two-investigator finite native actor executor has current group/actor admission, disjoint participant checks, original deadlines, native destination observation, one owned alternative and exact cancellation/terminal command bounds. Buddy preference changes selection only.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/indoorActorOperation.sqf",
+              "sha256": "099aa2a9ec984ab6277ee29b0d2965dc69b6bede51841552dd79ca82a3809173"
+            },
+            {
+              "path": "addons/infantry/functions/indoorActorDispatch.sqf",
+              "sha256": "63fe67d939f2ff288011e5c82e351f520c64f6c7a284b650413aa257865be27c"
+            },
+            {
+              "path": "addons/infantry/functions/indoorActorGroupContext.sqf",
+              "sha256": "b54793a09624972bb1aaf4a929cfdcfed83666049d75cec5fb3a6e5f6a6833e8"
+            },
+            {
+              "path": "addons/infantry/functions/indoorActorGroupAvailable.sqf",
+              "sha256": "1e1d95967ba5930f6190b971d13f9f9e0b2ca547e0871e9624c34b9f2767c215"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
+        },
+        {
+          "capability": "Buddy and pair flow",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Concurrent pair lanes, separate connected entry proposals, actual individual visits, trailing/follow-through roles and bounded partner recovery are wired. True resume now gives matched lane pairs precedence over general buddy metadata.",
+          "remaining_build_gap": "A validated matching lane snapshot now retains entry/sweep routes, cursor, mover, original progress clocks and pending request ages. Missing, delayed or stale snapshots and changed rosters still lack a complete ordered owner-ready delivery contract; adoption does not establish native movement acknowledgement.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/combatPairs.sqf",
+              "sha256": "0f5c1976ecab6318af8b22c42a6bb936b4068c17d90ece9874f496a2255ef05a"
+            },
+            {
+              "path": "addons/infantry/functions/combatElementSelect.sqf",
+              "sha256": "887117f2454eabf198a5e16abb51143bc84e408f8c208c450cc362a7579ffa7f"
+            },
+            {
+              "path": "addons/infantry/functions/buildingOperationStep.sqf",
+              "sha256": "5af6f2f1ccf710798b7830322a51f2b58defef0c5c38b9a85606f2a8fcb6f3e9"
+            },
+            {
+              "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+              "sha256": "6bc1d3b089655cce6fd8c4a0618c4791b234fe680a7973cf554d21dd7adb9b1b"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
+        },
+        {
+          "capability": "Casualty replenishment",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Casualty promotion uses a rotating candidate window, receiving-buddy/intact-pair preference, failed VIEW-probe fairness and current substitute exit-cover proof. Atomic promotion updates pair/common participants; a surviving interior mover is not rallied outside.",
+          "remaining_build_gap": "Complete whole-pair entry/relief continuity remains unfinished. Matching lane snapshots retain existing lane state, but changed-roster adoption and casualty replacement across owner transfer are not fully resolved. No complete clearance reinforcement operation spans another squad.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/buildingOperationStep.sqf",
+              "sha256": "5af6f2f1ccf710798b7830322a51f2b58defef0c5c38b9a85606f2a8fcb6f3e9"
+            },
+            {
+              "path": "addons/infantry/functions/combatElementSelect.sqf",
+              "sha256": "887117f2454eabf198a5e16abb51143bc84e408f8c208c450cc362a7579ffa7f"
+            },
+            {
+              "path": "addons/infantry/functions/combatPairsPublish.sqf",
+              "sha256": "7308c4a9f92350d75890ef7fbd4717a34c3a69352b64382e43c4874ae6648b78"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
+        },
+        {
+          "capability": "Exterior isolation/security",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Native exit inventory drives bounded exterior post proposals. Actual settled view/heading proof and lane/body exclusions govern cover credit and casualty promotion. Duplicated posts can provide finite relief of known guard loss.",
+          "remaining_build_gap": "General contact-aware isolation across approaches/window threats and complete relief when no redundant capable reserve/post exists remain unfinished; selected native-exit coverage is not a full perimeter controller.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/buildingExteriorCandidate.sqf",
+              "sha256": "cd2d32b066729e8870631ddeeb7ea8dcfc3945b5007b151e3da304c44576b23d"
+            },
+            {
+              "path": "addons/infantry/functions/buildingExteriorProposal.sqf",
+              "sha256": "7745850ad797cf93789ef40a43f1b261b4cd507f6871f4bd988f1fc061e0c284"
+            },
+            {
+              "path": "addons/infantry/functions/buildingOperationStep.sqf",
+              "sha256": "5af6f2f1ccf710798b7830322a51f2b58defef0c5c38b9a85606f2a8fcb6f3e9"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
+        },
+        {
+          "capability": "Egress and consolidation",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Separated exterior exit slots, floor-aware actual settlement, checkpoint/one-retry logic, pending allocation budgets and exact diversion handling are integrated. Version-four exit journals retain server-time distance/motion evidence across owner transfer. Successful natural clear can continue only an unchanged plain MOVE.",
+          "remaining_build_gap": "Explicit completion remains a one-shot exterior hold; there is no complete finite post-clear perimeter/consolidation phase. Broader straggler and failed-exit handback remain partial.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/buildingOperationStep.sqf",
+              "sha256": "5af6f2f1ccf710798b7830322a51f2b58defef0c5c38b9a85606f2a8fcb6f3e9"
+            },
+            {
+              "path": "addons/infantry/functions/cortexClearBuilding.sqf",
+              "sha256": "6bc1d3b089655cce6fd8c4a0618c4791b234fe680a7973cf554d21dd7adb9b1b"
+            },
+            {
+              "path": "addons/infantry/functions/buildingExteriorProposal.sqf",
+              "sha256": "7745850ad797cf93789ef40a43f1b261b4cd507f6871f4bd988f1fc061e0c284"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
+        },
+        {
+          "capability": "Door handling",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Recognised unlocked doors use current operation/route/actor ownership, proximity and absolute floor/visibility checks, with a building cooldown. Native route-door handling uses the current plain MOVE and a rotating actor sample; no lock override or distant opening permission.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexBuildingDoor.sqf",
+              "sha256": "fa098c3df91815c62fd454709ed1e712070afb472a96a3d4e970aac1c7e646cb"
+            },
+            {
+              "path": "addons/infantry/functions/cortexRouteDoors.sqf",
+              "sha256": "5c155e9b78dc2a00d61f4f5b7ff3a4efff7f544c224297a8eca93afd2f05a2af"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
+        },
+        {
+          "capability": "Interruption, repeat and handback",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Generation-scoped interruption preserves newer native tasks and uses exact canonical setting receipts. Settings-only cleanup now survives tactical shutdown through the shared scheduler under its original finite window. Individual investigation terminal commands and exit progress adoption are bounded.",
+          "remaining_build_gap": "A completed ordered snapshot/replay contract across all public clearance journals is absent. Matching entry/sweep metadata can be adopted without issuing movement, but stale or missing delivery and native acknowledgement remain unresolved. Exhausted settings cleanup retains unresolved proof without guaranteed eventual native handback; complete post-clear/repeat security remains unfinished.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexClearRelease.sqf",
+              "sha256": "304c7e07504e2755e6d30b931890cec0f40454ced00e05557b874d3e52285552"
+            },
+            {
+              "path": "addons/infantry/functions/cortexClearSettingsRelease.sqf",
+              "sha256": "8474c1ab36b068ac0a3df5edfa02834a215e5ca6752aaa37851b106b66985c28"
+            },
+            {
+              "path": "addons/core/functions/actorSettingsCleanupStep.sqf",
+              "sha256": "9d16c8b227dc33f0efa53acfd8ad9488ef19beab6d3e99aa3bbcf611879e8668"
+            }
+          ],
+          "reviewed_at": "2026-10-23",
+          "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c"
+        }
+      ],
+      "confidence": "medium",
+      "reviewed_at": "2026-10-23",
+      "source_commit": "4c13c3de3b9bc541265ddf40641d75be3e53b32c",
+      "review_note": "Reassessed all nine CLEAR capability contracts and current scoped execution paths. Six of nine equally weighted build units retained (~67%); no score/weight increase from test or commit counts. Fixed implementations replace obsolete gap text, including shutdown-independent settings cleanup and exit progress/pair-identity transfer. Entry/sweep state, post-clear security, ordered snapshots and unresolved native handback remain concrete build gaps. Only CLEAR evidence renewed; no physical acceptance, source-parity or performance credit and no renewal of the historical overall index. Supplemental wording correction at1d08731c (2026-10-23): re-read BuildingOperationStep partner ClearEntryRecovery read/validate/merge/publish path against clear-entry-recovery-transfer-20261023.json. Corrected two obsolete remaining-gap statements only. Existing scores, dated source hashes and review boundary remain unrenewed; no whole-family reassessment or physical evidence."
+    },
+    {
+      "id": "UI",
+      "title": "CBA configuration and diagnostics",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "CBA typed settings and effective values",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/aiTweaksRegisterSettings.sqf",
+              "sha256": "330d9535e270314bd85031a5eda4bf91af7fc98a22346b769a4565d9e5c39569"
+            },
+            {
+              "path": "addons/core/functions/aiTweaksSettingChanged.sqf",
+              "sha256": "1a9cda58b0ee22d230e0ed6244353c7a787551bd1c424a98ea40a76996afd88a"
+            }
+          ]
+        },
+        {
+          "capability": "Diagnostics and notifications",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/aiGetDiagnostics.sqf",
+              "sha256": "9b7447fff895b629556816ecc08de5efd1b7311b5c7793d8e9fee5f03388fbec"
+            },
+            {
+              "path": "addons/core/functions/aiTweaksDiagnosticReport.sqf",
+              "sha256": "2f6ff5573e968bed4239f99ec72867df05cdf92dc6106c81e8c7c4fa475196d4"
+            }
+          ]
+        },
+        {
+          "capability": "Behaviour task dialogs/dispatch",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "The full selected-reference behaviour-module catalogue has not been reconciled or implemented.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/zenClearModule.sqf",
+              "sha256": "57b92ba8e9b902626f1a87d9d7044e7ef54bf371d8eb6bb8b385712a13801619"
+            },
+            {
+              "path": "addons/infantry/functions/zenDefendModule.sqf",
+              "sha256": "c5b75c2011c3b9f8971f0f8799682dc2abb32068f95bbdb0b498f58cd346e086"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "LIFECYCLE",
+      "title": "Transfer, disconnect and JIP",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Epoch/current-owner execution",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/cortexLocality.sqf",
+              "sha256": "6d19e9cf1131c4c365819450865281eaa9899c615fafb3ff9c0211da3524add2"
+            },
+            {
+              "path": "addons/core/functions/operationStep.sqf",
+              "sha256": "e77f278e7e9a547a37ff3dd42655270fc35ac9243434f98c71f154f97ca90ae9"
+            }
+          ]
+        },
+        {
+          "capability": "Authenticated task dispatch/results",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexOrderDispatch.sqf",
+              "sha256": "544283e51c39386441207465f3dcfb3f623296cddcf1d1aaaff6feba6416db8e"
+            },
+            {
+              "path": "addons/infantry/functions/cortexOrderLocal.sqf",
+              "sha256": "afca2ee2cd17ef61fe35d7b9535d861b919c7c5c643778d5c4ea81286099befe"
+            },
+            {
+              "path": "addons/infantry/functions/cortexOrderResult.sqf",
+              "sha256": "51dcc75caeb6c1aa5272f104268f0fad6e03594a995a75f1a985373994bcddb9"
+            }
+          ]
+        },
+        {
+          "capability": "Job and control restoration",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Task-specific exact handbacks and successor-control cases remain open.",
+          "evidence": [
+            {
+              "path": "addons/core/functions/operationRelease.sqf",
+              "sha256": "1b5ddff3de26cae60cdd7cbbfb25b53dd1d9a5e0106625ff5a4ecbdba01e33f6"
+            },
+            {
+              "path": "addons/core/functions/operationRestore.sqf",
+              "sha256": "293f11ff3a1bde37ff8615ecdc7788e4f6cb8d24f36213dc3beb74f1f793ad97"
+            }
+          ]
+        },
+        {
+          "capability": "Complete provider/JIP replay composition",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Cross-provider episode adoption and full side-effect replay remain partial.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexCheckpoint.sqf",
+              "sha256": "d3c8c92cecf1864db86d80a82fc2ca09f10487aed86d52502bd51fe0086f114e"
+            },
+            {
+              "path": "addons/core/functions/aiHeadlessAdoptLocal.sqf",
+              "sha256": "35a2fdb657bd55219af830aa930303bbe1d0be72d99cf99c75ca7013db27c618"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44",
+      "review_note": "Reassessed after settings-only clearance handback and finite metadata adoption on baselinef6d7185e plus working source; scores retained, no physical acceptance."
+    },
+    {
+      "id": "MULTI-FLANK",
+      "title": "Multi-squad flank cohesion",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Independent local manoeuvre executors",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexFlankStep.sqf",
+              "sha256": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
+            }
+          ]
+        },
+        {
+          "capability": "Complementary squad lanes",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Complete lane convergence and conflict resolution remain unfinished.",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexSupportCoordinateStep.sqf",
+              "sha256": "c82f121b353423845ba839c6903f810941ff6be30567f16c121f05e30816a497"
+            }
+          ]
+        },
+        {
+          "capability": "Cross-squad continuation/relief",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "All multi-squad casualty and retasking transitions are not implemented.",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexSupportMaintain.sqf",
+              "sha256": "0a6715eae5892d808c036e436d4006affe625fb737ce144e738f5c86e4a9ada2"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "MULTI-BOUND",
+      "title": "Squad and multi-squad bounding overwatch",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Within-squad pair movement/cover",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/combatPairs.sqf",
+              "sha256": "1a7b7b6111fe4b88d579507d7954cca3687f444091aa1b7fcfcd0401c4ca2eea"
+            },
+            {
+              "path": "addons/infantry/functions/cortexFlankStep.sqf",
+              "sha256": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
+            }
+          ]
+        },
+        {
+          "capability": "Cross-squad finite turn allocation",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexSupportCoordinateStep.sqf",
+              "sha256": "c82f121b353423845ba839c6903f810941ff6be30567f16c121f05e30816a497"
+            }
+          ]
+        },
+        {
+          "capability": "Complete role exchange/recovery composition",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Cross-squad readiness and casualty continuity remain partial.",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexSupportMaintain.sqf",
+              "sha256": "0a6715eae5892d808c036e436d4006affe625fb737ce144e738f5c86e4a9ada2"
+            },
+            {
+              "path": "addons/infantry/functions/recoveryStep.sqf",
+              "sha256": "280f29aa4f290097f1cd68f46429459697a3747bd63e0b75329793486694a1f2"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "MULTI-WITHDRAW",
+      "title": "Multi-squad screened withdrawal",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Individual squad withdrawal",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexRetreat.sqf",
+              "sha256": "a442662a58ea7afcc3c8ce7488b828578759c13ed677abf722c740033f58f3fb"
+            }
+          ]
+        },
+        {
+          "capability": "Multiple independent escape lanes",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "A shared screened withdrawal plan is not fully composed.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexRetreat.sqf",
+              "sha256": "a442662a58ea7afcc3c8ce7488b828578759c13ed677abf722c740033f58f3fb"
+            },
+            {
+              "path": "addons/infantry/functions/cortexSelectAvenue.sqf",
+              "sha256": "a6c65d2b6083096683928a12d832d28a70d2ce771683a598ab43a79ce338634b"
+            }
+          ]
+        },
+        {
+          "capability": "Alternating cross-squad overwatch and rally",
+          "weight": 1,
+          "built": 0,
+          "implemented": "Referenced components expose the boundary but do not implement this capability.",
+          "remaining_build_gap": "Independent withdrawal does not implement coordinated alternating overwatch and shared rally.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexRetreat.sqf",
+              "sha256": "a442662a58ea7afcc3c8ce7488b828578759c13ed677abf722c740033f58f3fb"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "TRANSITIONS",
+      "title": "Combat action transitions",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Explicit phase/stage and terminal outcomes",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexSetPhase.sqf",
+              "sha256": "f38124c96e917a0a91c81e24f92bd763822730829efbb0a03bcd2b8006763768"
+            },
+            {
+              "path": "addons/infantry/functions/cortexDrillSetStage.sqf",
+              "sha256": "00cb7d93efe262861b8b4ec096916e92b3b8aabab99b07650016e20c5a4997c5"
+            }
+          ]
+        },
+        {
+          "capability": "Generation-bound deferred effects",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexThrowGrenade.sqf",
+              "sha256": "e2d98a7426009377394fe93657db3ae56319f479f34ae9861505805bf0f4e17c"
+            },
+            {
+              "path": "addons/infantry/functions/cortexFlankStep.sqf",
+              "sha256": "696671f2967be4d33fcfe2928a35086e994bfb41d0dd9b8af9fb81fd29b9a3c0"
+            },
+            {
+              "path": "addons/core/functions/operationAttackPolicy.sqf",
+              "sha256": "544b283c9cc56c24cec0ff3b0361dd5e17f4826cf21f646dfe0918f7b428eb42"
+            }
+          ]
+        },
+        {
+          "capability": "Complete cross-operation chaining",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Broader combined-operation/subcontact retasking remains unfinished.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexGroupTick.sqf",
+              "sha256": "42157be0c2c54e9340a6b62d75b804c0814a87a3a124eeaad29ac60b4b2750d5"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "LIGHTING",
+      "title": "Automatic darkness, night vision and illumination",
+      "assessment": "scoped_source_reassessment",
+      "criteria": [
+        {
+          "capability": "Ambient/NVG/flashlight capability policy",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "Ambient darkness and assigned NVG capability select optional sensing/skill layers. No flashlight controller or flashlight contribution to sensing was found.",
+          "remaining_build_gap": "Implement a scoped flashlight capability policy; current ambient/NVG profiling alone does not fulfil this criterion.",
+          "evidence": [
+            {
+              "path": "addons/core/functions/aiApplyProfile.sqf",
+              "sha256": "5bcc8c2d16b454024dd8814778c1a5b4402d2c2c0b9961d131db2bd7db0dccf7"
+            },
+            {
+              "path": "addons/core/functions/aiLightingStep.sqf",
+              "sha256": "c1afccc59062ed560e5fb8cc1deee503d327543c4a0640f906121e4cd5a37f4f"
+            }
+          ]
+        },
+        {
+          "capability": "Stable skill refresh without compounding",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Recomputes supported skills from captured baselines; stable variance and typed original/applied receipts support exact unchanged-value restoration and yielding to observed mission edits.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/aiApplyProfile.sqf",
+              "sha256": "5bcc8c2d16b454024dd8814778c1a5b4402d2c2c0b9961d131db2bd7db0dccf7"
+            },
+            {
+              "path": "addons/core/functions/aiRestoreProfile.sqf",
+              "sha256": "af466d06e82609e1ce4c9a09daaf59b15aeb25ea6e923e5845187478fb50a19a"
+            },
+            {
+              "path": "addons/core/functions/aiProfileYield.sqf",
+              "sha256": "411a80b4708316c47430f0cf052c60287bd6c20acdabe08fa1044c35a3278d75"
+            },
+            {
+              "path": "addons/core/functions/aiProfileReceipt.sqf",
+              "sha256": "0fbb3f1721d26c4cc0fc10a431e5d6783ac049053a80325c51ccf2684ed7d65d"
+            }
+          ]
+        },
+        {
+          "capability": "Shared scheduler and specialist exclusion",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Generation-bound shared scheduler refreshes at most ten registered actors per callback; human, specialist and declared skill ownership block application and retain pending cleanup.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/core/functions/aiLightingStep.sqf",
+              "sha256": "c1afccc59062ed560e5fb8cc1deee503d327543c4a0640f906121e4cd5a37f4f"
+            },
+            {
+              "path": "addons/core/functions/aiRebalanceInit.sqf",
+              "sha256": "e18473fdbfa977680f66605e777dda0e180344d9082ddf209387c3063094f230"
+            }
+          ]
+        },
+        {
+          "capability": "Finite native UGL illumination and weapon handback",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Default-off owner-local group callback admits bounded idle grenadiers, uses existing compatible flare ammunition, respects native reload state, observes exact FiredMan release and retires or retains exact unresolved weapon-selection proof.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexIlluminationStep.sqf",
+              "sha256": "a506028d593f5adac5ed210500a3fd88c93cf1dc60333661043a860eee2345e3"
+            },
+            {
+              "path": "addons/infantry/functions/groupBrainStep.sqf",
+              "sha256": "272c0b6edf5a97b1b542ef0ad31dbc19e789bc28557ce650efddbf14ae9e5e17"
+            },
+            {
+              "path": "addons/core/functions/cortexLocality.sqf",
+              "sha256": "351a25d6813ae8ef4685557e654580b03f81bc2f4df4b38512f44907ed54d319"
+            },
+            {
+              "path": "addons/core/functions/operationStart.sqf",
+              "sha256": "9c872b680e90c0472988dbc5bd4fe318f77acdb96e93d778a7343f75a767e610"
+            },
+            {
+              "path": "addons/infantry/functions/cortexReleaseGroup.sqf",
+              "sha256": "3e7f544af495ec243e55db4621d2afeadacf16837f566b5d84b560f42c199aa5"
+            }
+          ]
+        }
+      ],
+      "confidence": "medium",
+      "reviewed_at": "2026-10-24",
+      "source_commit": "dfae5fd6047b53707304542617b60ce95e30c3ab"
+    },
+    {
+      "id": "DRILL-HANDOVER",
+      "title": "Moving flank and advance handed to Zeus",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "New order interrupts current drill",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexDrillInterrupt.sqf",
+              "sha256": "e565f69864dde3ad0e0c88d056c25b25b263d8b24b066439828ca31c7545173c"
+            }
+          ]
+        },
+        {
+          "capability": "Owned movement/settings retirement",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexFlankEnd.sqf",
+              "sha256": "cb1784f589c9c095388682f29c41e56c7b6f654c4df9fe24eddf47b18342682d"
+            }
+          ]
+        },
+        {
+          "capability": "Settled-holder delayed handback",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Standing/support holds and all nonlocal native-command cases remain incomplete.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexHolderRecallOwned.sqf",
+              "sha256": "df26f778de1115760cd1ef37af65ee3c2b7429c1149e719becc1477d6ef5d4cb"
+            },
+            {
+              "path": "addons/infantry/functions/cortexHolderRecallPending.sqf",
+              "sha256": "4f10661cce4af481271c1e5596cc2effa0b60b719d03a4fb1be5810fb0a5d20e"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "DRILL-RECOVERY",
+      "title": "Bound continuation and straggler rejoin",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Actual separated-actor observation",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/recoveryStep.sqf",
+              "sha256": "280f29aa4f290097f1cd68f46429459697a3747bd63e0b75329793486694a1f2"
+            }
+          ]
+        },
+        {
+          "capability": "Buddy/role-preserving reassignment",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/rebalanceRoles.sqf",
+              "sha256": "75eb9ed44578369292f346403f5d1cdb5f247fbab0bd928f99ab1b22f304ebd4"
+            }
+          ]
+        },
+        {
+          "capability": "Complete viable-bound rejoin",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Unresolved stragglers and final cohesion still need continuation refinements.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/recoveryStep.sqf",
+              "sha256": "280f29aa4f290097f1cd68f46429459697a3747bd63e0b75329793486694a1f2"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "COMBINED-ARMS",
+      "title": "Contact-led combined-arms opportunity",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Fresh contact and capability requests",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexCombinedArmsRequest.sqf",
+              "sha256": "c44830a26d8db73a4faeb7237fa6a433495c74de4541d9e0f4c1013d6b5a935a"
+            },
+            {
+              "path": "addons/infantry/functions/cortexCombinedArmsServer.sqf",
+              "sha256": "93574f051ae226f570a214e86a84840722ee0589824c83c1b2dfd507b28f6637"
+            }
+          ]
+        },
+        {
+          "capability": "Finite ground roles and actual fire readiness",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexCombinedGroundStep.sqf",
+              "sha256": "72b25f037c85b5bae43a6ae42f2ea5b008c35404d52de9e5da055e882d62e3e0"
+            },
+            {
+              "path": "addons/infantry/functions/cortexGroundFireReady.sqf",
+              "sha256": "47ffe2b948909616f4f4ac5c7e96f9e86a409631a647844c9a6184eb0be84e42"
+            }
+          ]
+        },
+        {
+          "capability": "Air request/fallback and owner release",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexCombinedAirFallbackServer.sqf",
+              "sha256": "c9da6bdedfea869d1fa1b6c47a6aee969d8119b2b73f9122a1b7c18ccfb3f154"
+            },
+            {
+              "path": "addons/infantry/functions/cortexCombinedArmsLocal.sqf",
+              "sha256": "91a2e98697f1519b22efd9b540179ec9dc159715dcef25ec30c5557b38d698d8"
+            }
+          ]
+        },
+        {
+          "capability": "All role replacement/retasking composition",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Complete operation-wide replacement and overlapping-contact arbitration remain unfinished.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexCombinedGroundFallbackServer.sqf",
+              "sha256": "73f134c77a1c2cec5e42b0ef991b29ec21ef40fa36b444e9125a2f13b01c3ce6"
+            },
+            {
+              "path": "addons/infantry/functions/cortexCombinedRejectServer.sqf",
+              "sha256": "250002c6817d0cc47cf990044c92a5ad0e8392554a9b82ef18b3ac0e511d16e1"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "COMBINED-OPERATION",
+      "title": "Dynamic multi-squad combined operation",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Existing contact-led support components",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexCombinedArmsServer.sqf",
+              "sha256": "93574f051ae226f570a214e86a84840722ee0589824c83c1b2dfd507b28f6637"
+            },
+            {
+              "path": "addons/support/functions/cortexSupportCoordinateStep.sqf",
+              "sha256": "c82f121b353423845ba839c6903f810941ff6be30567f16c121f05e30816a497"
+            }
+          ]
+        },
+        {
+          "capability": "Dynamic multi-squad/asset role composition",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "A complete operation-wide role lifecycle is not composed.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexCombinedArmsLocal.sqf",
+              "sha256": "91a2e98697f1519b22efd9b540179ec9dc159715dcef25ec30c5557b38d698d8"
+            },
+            {
+              "path": "addons/support/functions/cortexSupportMaintain.sqf",
+              "sha256": "0a6715eae5892d808c036e436d4006affe625fb737ce144e738f5c86e4a9ada2"
+            }
+          ]
+        },
+        {
+          "capability": "Independent subcontact allocation/retasking",
+          "weight": 1,
+          "built": 0,
+          "implemented": "Referenced components expose the boundary but do not implement this capability.",
+          "remaining_build_gap": "The full intended subcontact/operation hierarchy is not implemented.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexCombinedArmsServer.sqf",
+              "sha256": "93574f051ae226f570a214e86a84840722ee0589824c83c1b2dfd507b28f6637"
+            }
+          ]
+        },
+        {
+          "capability": "Screened transitions and operation handback",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Complete chained operation termination/relief remains unfinished.",
+          "evidence": [
+            {
+              "path": "addons/support/functions/cortexSupportStep.sqf",
+              "sha256": "f8a91b5a043883b9279bd992278de354ba43bbbc60c21e30669e79297a1e3794"
+            },
+            {
+              "path": "addons/core/functions/operationRelease.sqf",
+              "sha256": "1b5ddff3de26cae60cdd7cbbfb25b53dd1d9a5e0106625ff5a4ecbdba01e33f6"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "ATTACK-FLARES",
+      "title": "Attack-run approach and departure flares",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Approach/departure episode selection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexAttackRunFlares.sqf",
+              "sha256": "ed38930812a11ec9c725cd03078d71e11e7eae5876ac55de404ca135239e65ba"
+            }
+          ]
+        },
+        {
+          "capability": "Actual finite countermeasure requests",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexAttackRunFlares.sqf",
+              "sha256": "ed38930812a11ec9c725cd03078d71e11e7eae5876ac55de404ca135239e65ba"
+            },
+            {
+              "path": "addons/infantry/functions/cortexFireCountermeasure.sqf",
+              "sha256": "f2aab2e191c0500f74bda6d948bf9373c384045a29358ce3e90bc7a99b353eba"
+            }
+          ]
+        },
+        {
+          "capability": "Owner/feature/interruption protection",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexAttackRunFlares.sqf",
+              "sha256": "ed38930812a11ec9c725cd03078d71e11e7eae5876ac55de404ca135239e65ba"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    },
+    {
+      "id": "AIR-ATTACK",
+      "title": "Threat-aware finite aircraft attack patterns",
+      "assessment": "provisional_source_assessment",
+      "criteria": [
+        {
+          "capability": "Platform/threat/ammo pattern planning",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/cortexAirAttackPlan.sqf",
+              "sha256": "6b6307ed8484726b2755101e2f1eda7d1c0c53024fe3b1158859ea207b9b1b6a"
+            }
+          ]
+        },
+        {
+          "capability": "Finite ingress/attack/egress execution",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/airAttackOperationStep.sqf",
+              "sha256": "cd1b4281207b5b96449cb7c515139397a1477976de37ecd8b76f592aead0f8e2"
+            },
+            {
+              "path": "addons/aircraft/functions/cortexAirAttack.sqf",
+              "sha256": "2b1b5702d28172d5673c6bd329f6e41ddfd5d1035a6f422efd66ed167180e350"
+            }
+          ]
+        },
+        {
+          "capability": "Weapon operator and flight ownership",
+          "weight": 1,
+          "built": 1,
+          "implemented": "Scoped production path is wired in the referenced implementation.",
+          "remaining_build_gap": "",
+          "evidence": [
+            {
+              "path": "addons/aircraft/functions/cortexAirWeaponOperatorAvailable.sqf",
+              "sha256": "52c2ba1ba38f4db4a1d9266366b85e81bd92f9237eb69a7ec032afd6cfaf928d"
+            },
+            {
+              "path": "addons/aircraft/functions/flightLeaseValid.sqf",
+              "sha256": "d900c12feb57ffd8e5e9582991bdd06c82d6dc4d7786cc0a5e40887390f8c6b5"
+            }
+          ]
+        },
+        {
+          "capability": "Complete fallback and handback integration",
+          "weight": 1,
+          "built": 0.5,
+          "implemented": "An implemented subset exists; the named remainder is still open.",
+          "remaining_build_gap": "Cross-role flight controller restoration and all attack replacement paths remain partial.",
+          "evidence": [
+            {
+              "path": "addons/infantry/functions/cortexAirHandoverRestoreLocal.sqf",
+              "sha256": "375f0845e3c1707f2f283d1b7545f496cc5828384ded5b78538baaa4f756c4ce"
+            },
+            {
+              "path": "addons/aircraft/functions/cortexAirPilotFeatureRelease.sqf",
+              "sha256": "1f0a43d0a0738bca980ddf10c424c3e9b3dc0908f3c0f95e8efd771617f7f06e"
+            }
+          ]
+        }
+      ],
+      "confidence": "low",
+      "reviewed_at": "2026-10-19",
+      "source_commit": "8fa63881e466bb6599a6aff5a6b35815069e0e44"
+    }
+  ],
+  "assessment_limit": "The broad survey uses sampled production call paths and explicit registered intent. New rows are low-confidence provisional engineering estimates, not exhaustive semantic reviews or proof of working balance. The aggregate covers the current registered product plan; broader Workshop-source contributions are not fully reconciled and cannot be described as this percentage complete. No whole-source parity percentage is claimed.",
+  "areas": [
+    {
+      "name": "Foundations and FSM lifecycle",
+      "weight": 10,
+      "families": {
+        "CORE": 2,
+        "SCHED": 2,
+        "PROFILE": 1,
+        "SKILL": 1,
+        "UI": 2,
+        "LIFECYCLE": 3,
+        "TRANSITIONS": 2,
+        "LIGHTING": 1,
+        "TERRAIN": 2
+      }
+    },
+    {
+      "name": "Individual and squad infantry",
+      "weight": 15,
+      "families": {
+        "CONTACT": 3,
+        "POST": 1,
+        "FLANK": 2,
+        "CROSS": 1,
+        "FIRE": 1,
+        "MORALE": 1,
+        "SURRENDER": 1,
+        "GRENADE": 1,
+        "CIVILIAN": 1,
+        "AT": 1,
+        "COVER": 1,
+        "REGROUP": 1,
+        "MEDICAL": 1,
+        "STANCE": 1,
+        "AMMO": 1,
+        "INVESTIGATE": 1,
+        "ASSAULT": 2,
+        "ADVANCE": 2,
+        "DRILL-HANDOVER": 1,
+        "DRILL-RECOVERY": 2
+      }
+    },
+    {
+      "name": "CQB, garrison and defence",
+      "weight": 15,
+      "families": {
+        "CLEAR": 5,
+        "GARRISON": 2,
+        "DEFEND": 2
+      }
+    },
+    {
+      "name": "Coordination and combined operations",
+      "weight": 20,
+      "families": {
+        "COORD": 3,
+        "MULTI-FLANK": 2,
+        "MULTI-BOUND": 2,
+        "MULTI-WITHDRAW": 2,
+        "COMBINED-ARMS": 3,
+        "COMBINED-OPERATION": 5
+      }
+    },
+    {
+      "name": "Driving and convoy",
+      "weight": 20,
+      "families": {
+        "VEH-DRIVING": 5,
+        "CNV-MOVE": 5,
+        "CNV-FIRE": 1,
+        "CNV-COVER": 1,
+        "CNV-AVOID": 1,
+        "CNV-HALT": 1,
+        "CNV-UNLOAD": 1
+      }
+    },
+    {
+      "name": "Ground vehicles and passengers",
+      "weight": 5,
+      "families": {
+        "VEH": 2,
+        "DISMOUNT": 1,
+        "REMOUNT": 1,
+        "WITHDRAW": 1,
+        "GUNNERY": 2
+      }
+    },
+    {
+      "name": "Aircraft and airborne",
+      "weight": 8,
+      "families": {
+        "LAND": 3,
+        "DECEL": 1,
+        "AIRBORNE": 1,
+        "FLARES": 1,
+        "BREAK": 1,
+        "ATTACK-FLARES": 1,
+        "AIR-ATTACK": 4
+      }
+    },
+    {
+      "name": "Reports, reinforcement and artillery",
+      "weight": 5,
+      "families": {
+        "HEARING": 1,
+        "REPORT": 1,
+        "REINFORCE": 1,
+        "ART": 3,
+        "CB": 2,
+        "ART-SMOKE": 1
+      }
+    },
+    {
+      "name": "Compatibility handovers",
+      "weight": 2,
+      "families": {
+        "COMPAT": 1
+      }
+    }
+  ]
+}

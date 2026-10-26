@@ -1,0 +1,145 @@
+{
+  "workshopId": "3800081309",
+  "name": "PROTOCOL AI AIRBORNE",
+  "date": "2026-10-20",
+  "source": {
+    "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3800081309\\addons\\prototcol_ai_airborne.pbo",
+    "sha256": "9b484e9f8b48b59ee5355f8544f96f2a8668129df0aa73403c5becdc836bff1a",
+    "entries": [
+      {
+        "name": "bis_addoninfo.hpp",
+        "method": 0,
+        "originalSize": 0,
+        "size": 74,
+        "sha256": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215"
+      },
+      {
+        "name": "config.bin",
+        "method": 0,
+        "originalSize": 0,
+        "size": 648,
+        "sha256": "3ae0d82569a30c4a2e8208db965a3a0357b09bded3f8673f6f0b608fa1c05a5f"
+      },
+      {
+        "name": "functions\\fn_airborne.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 3359,
+        "sha256": "4bd72b47fad6cf35250fff1cbde9d01e225f8f236c35606546d8f3eee066d375"
+      },
+      {
+        "name": "XEH_preInit.sqf",
+        "method": 0,
+        "originalSize": 0,
+        "size": 2268,
+        "sha256": "6bb1b9e6c48b958973ce35715ae4228f2a57f4203378f4581ec71cd3d6aaf031"
+      }
+    ]
+  },
+  "scope": "Both readable SQFs fully read. Binary startup/dependency declaration/licence unverified.",
+  "intent": [
+    "Select a suitable existing aircraft, establish drop height, stagger cargo exits and retain gunner support."
+  ],
+  "existingCbe": [
+    "CortexAirborneCheck -> CortexAirborneDropStep -> CortexParachuteJump/Deploy/ProtectionRelease. Known hostile context, cargo/FFV versus operating crew, finite insertion episode and owner epoch; backpack preserved. Native planned landing/player pilot takes precedence."
+  ],
+  "sourceDefects": [
+    "Idle allGroups loop without delay or locality/Zeus/mission ownership.",
+    "Aircraft type exitWith gates inside nested if blocks do not return from the function. Both type flags false leave no filter.",
+    "CBA registers plane enable twice instead of registering general enabled key.",
+    "nearEntities plus side inequality reveals nearby enemy presence including non-hostile sides; no native knowledge gate.",
+    "addBackpack B_Parachute risks replacing equipment; height command is not verified actual safe exit altitude; dropDone permanent across reuse.",
+    "Spawned gunner support loop has no insertion completion/deadline or owner handback."
+  ],
+  "remaining": "Physical repeated insertion, exit/landing equipment safety, later flight-height intent and support handback remain unverified. Source perpetual gunner loop is not a required implementation.",
+  "sourceProtection": "Original PBO and extracted readable files verified against inventory hashes; no raw source copied into product.",
+  "validation": "Source review, caller tracing, JSON parsing and archive/extract hash verification. No product edit or runtime test in this batch.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "audits": "PAUSED",
+  "scoresChanged": false,
+  "climbFlightLease20261023": {
+    "baseline": "1d407e57",
+    "finding": "Automatic climb directly issued flyInHeight outside the shared aircraft mutation lease. A retained local climb flag prevented later completed-insertion reuse. Shutdown cleared aircraft drop hold without checking its insertion episode.",
+    "implementation": [
+      "One-shot AIRBORNE_CLIMB acquisition at priority50, below existing braking100/attack300/defence400/landing500. Validate current exact lease before flyInHeight, mark requested only inside that boundary, then immediately release. Refused acquisition leaves flag unset.",
+      "Exact current-owner insertion finish clears its own climb flag with aircraft hold. Shutdown checks nonempty exact job episode and actual aircraft locality before clearing hold/flag/episode; stale jobs cannot erase successor aircraft state.",
+      "No additional flight worker, persistent lease or guessed original altitude. Existing documented post-drop height remains until mission/controller supplies a later instruction."
+    ],
+    "hashes": {
+      "addons/aircraft/functions/cortexAirborneCheck.sqf": "d8426457fa0b5d1df7b57d0566d02598e35ea2a366efda52c9075499e8cd99be",
+      "addons/aircraft/functions/cortexAirborneDropStep.sqf": "a1a7906cde5344cb83edb3e2af1f6bba747313d69fb11e259aa1f2ebacde4224",
+      "addons/aircraft/functions/flightLeaseAcquire.sqf": "7518c078119d17119b6244d94863d678da1db8f5c8015b78b8bb4d8f3adc6005",
+      "addons/aircraft/functions/flightLeaseValid.sqf": "1f82e03e9fb96f88604e308329a3f5eced747f671a489f8d90e7c5d6bc48cdb5",
+      "addons/aircraft/functions/flightLeaseRelease.sqf": "ec592b3c842a2554562a3975091533a8aea2e16a276b98af9c2fb009e9a14955",
+      "addons/core/functions/cortexStop.sqf": "e061768c0cba7dff7570ba920ff2337fc60a1a2bc5a4500c366e6e6b557f4793"
+    },
+    "validation": {
+      "focusedExistingTests": 610,
+      "fullExistingTests": 1491,
+      "newCases": 0,
+      "build": ".qa/airborne-climb-lease-build.log",
+      "independent": ".qa/airborne-climb-lease-independent.log",
+      "candidate": ".qa/candidates/airborne-climb-lease-1d407e57",
+      "fingerprint": "7e71947a9720592c4cb78768c113bd7c9d221f0fac28ceedc9d7e894f50c874c",
+      "provenance": "Unsigned dirty development snapshot including preserved unrelated dirt; engineering notes afterward."
+    },
+    "limits": [
+      "Lease release proves only request-boundary retirement, not native altitude acknowledgement or restoration.",
+      "A climb request before an insertion that never starts still retains its one-shot flag; no unowned automatic height reset or new retry loop introduced.",
+      "Actual controller preemption, repeated drops, abort/locality timing and runtime overhead remain unverified. Audits paused; no launch or publishing."
+    ]
+  },
+  "climbContext20261023": {
+    "baseline": "6cbcef59",
+    "supersedes": "Permanent aircraft-local climb flag, including prior pre-insertion-never-started limitation. Existing one-shot shared flight lease remains.",
+    "implementation": "One existing group-state key airborneClimb stores the exact last requested airframe/pilot/commander/client/passenger epoch/pilot group+epoch/waypoint count+index+position+type/requested height context. Only changed context can request again. Native contact-belief drift is excluded. Refused flight ownership does not record success. No aircraft flag, worker, timeout refresh or new scan. Empty rider selection, exact current insertion finish and existing local shutdown remove metadata without height commands.",
+    "hashes": {
+      "addons/aircraft/functions/cortexAirborneCheck.sqf": "c22b7fde85282a7009d680c5d43d236c247ec6f0f0afb2fe9eb70ceb5c6aec2e",
+      "addons/aircraft/functions/cortexAirborneDropStep.sqf": "c0513f7c66024df2e17d4b965987ec46ad1366d5a9d094b774a7dc813857d7a5",
+      "addons/core/functions/cortexStop.sqf": "a29164454b31e270f1819834fdf873369422ce12055efeee2c514be0a9a32524"
+    },
+    "validation": {
+      "focusedExistingTests": 610,
+      "fullExistingTests": 1491,
+      "newCases": 0,
+      "build": ".qa/airborne-climb-context-build.log",
+      "independent": ".qa/airborne-climb-context-independent.log",
+      "candidate": ".qa/candidates/airborne-climb-context-6cbcef59",
+      "fingerprint": "b95846241d9ce855c489ee674f9fcfb572a3f3f4a219564b1d278420d707d054",
+      "provenance": "Unsigned dirty development snapshot preserving unrelated dirt; review/handover afterward."
+    },
+    "limits": [
+      "Receipt records a request, not current desired native height or physical climb. It is bounded metadata, not ongoing flight authority.",
+      "Mission-script height or native goal changes with unchanged captured authored route are not inferable from this receipt; no universal external-order detection or restoration claimed.",
+      "Actual repeated approach/drop/owner change/arbitration and runtime overhead remain unverified. Audits paused."
+    ]
+  },
+  "landingRosterScope20261024": {
+    "base": "82231d27",
+    "finding": "DROP captures cargo/FFV passengers and excludes operating crew, but LAND used every alive current group member. A same-group pilot remaining aboard prevented actual landed cargo from completing tracking. Whole-group fallback SAD also needs a stronger participant boundary because it retasks all members.",
+    "change": "LAND alive roster is original jumpers still alive in original group. An original airborne/aboard member remains pending until original deadline; departed actors are not recalled. Fallback SAD additionally requires every alive current group member to be in that landed cargo, retaining existing no-authored-waypoint and external-control gates. Mixed crew/cargo and later nonparticipant joins get no fallback. No eject, inventory, flight, sensing, deadline, worker or scheduler change.",
+    "sourceIntent": "Original Protocol selects cargo separately from gunners/pilot; CBE retains that roster distinction through landing and rejects whole-group ground orders over unrelated crew. No source copying or full parity claim.",
+    "remainingRequiredScope": "Independent landed-passenger ground-task handover inside a mixed aircrew/cargo group remains unimplemented; withholding a whole-group SAD is not that implementation. Actual insertion, landing/equipment, repeated reuse, HC/replication and overhead remain unverified.",
+    "validation": {
+      "focusedExistingCases": 4,
+      "fullTests": 1491,
+      "compiledSQF": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "models": "Landed cargo plus airborne same-group pilot; cargo-only group; later nonparticipant member; original cargo still airborne; no remaining survivors.",
+      "candidate": ".qa/candidates/airborne-landing-roster-82231d27",
+      "fingerprint": "88af27b80c2efb0660a1b033c6aec38d10a9a4ae1cce85f72ece0c5a5a5d1639",
+      "logs": [
+        ".qa/airborne-landing-roster-focused.log",
+        ".qa/airborne-landing-roster-build.log",
+        ".qa/airborne-landing-roster-independent.log"
+      ]
+    },
+    "sourceHashes": {
+      "addons/aircraft/functions/cortexAirborneDropStep.sqf": "4a8be64fa8b53f1d00db0c8e65f0c23e8903c1a6a53bd4ba7831d402a13b90cb",
+      "releaseVerificationAndDeployment/test_airborne_drop_fairness.py": "091a05946fcee96ed93ec6e120b058f8db8a8b66330525e54a9524faba57913d"
+    },
+    "limits": "Offline/source/model evidence only; no physical acceptance/performance/parity or percentage credit. Current group membership read only at potential completed landing; native cost remains unmeasured. Unsigned dirty candidate includes unrelated dirt; review/handover postdate package. Audits PAUSED."
+  }
+}

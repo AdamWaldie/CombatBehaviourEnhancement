@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-22",
+  "baseline": "7d07b3d3",
+  "scope": "Mounted danger to reactive static-mortar finite mission, not whole mounted-source parity",
+  "source": {
+    "path": ".qa/lambs-2621-review/danger/functions/fnc_brainVehicle.sqf",
+    "sha256": "9bf4f270de89c69a63b4fe3949d22d73cc90c207b5053183052b383df64b86f8",
+    "intent": "Effective commander uses native believed hostile position for an artillery/static response. Source may issue autonomous mortar rounds and delayed repeats. CBE uses one finite existing server/owner fire mission, with no blind repeated rounds."
+  },
+  "finding": "CBE sender supplied untimestamped raw danger geometry; server compared it against getPosATL of hidden enemy and queued mission lacked a short original danger-fix lifetime.",
+  "implementation": [
+    "Current owner validates original identity/witness expiry and current native belief, then reports that believed geometry with serverTime. No new enemy knowledge.",
+    "Authenticated server admission requires finite original observation no older than10s and no more than1s future tolerance; no real enemy transform comparison.",
+    "Fixed dangerUntil=observedAt+10 is stored once, checked by server mission and passed unchanged in shot signature. Existing owner session gate checks it before safety and atomic native fire. No renewed expiry or new worker.",
+    "Support/counter fire retain existing semantics; shot payload appends expiry without dropping any prior serial/generation field.",
+    "An expired already-issued shot remains uncertain; expiry is not proof the engine cancelled it."
+  ],
+  "validation": {
+    "tests": 1489,
+    "compiledSQF": 401,
+    "firstBuild": ".qa/mortar-belief-build.log (three expected payload-shape assertions failed)",
+    "finalBuild": ".qa/mortar-belief-build-final.log",
+    "independentLog": ".qa/mortar-belief-independent-verify.log",
+    "candidate": ".qa/candidates/mortar-belief-7d07b3d3",
+    "fingerprint": "1bbb74d5379cf780a82552b6ea9350dad1b45bfe6088358ab055ea4b555c6abe",
+    "provenance": "Unsigned development package from baseline+intended edits+retained unrelated dirty state; not a clean signed release."
+  },
+  "limits": [
+    "Physical mortar timing, moving/out-of-sight targets, HC delivery expiry and performance remain unverified.",
+    "Trusted owner snapshot is not atomic cross-machine state; final owner task, safety, token and generation checks remain required.",
+    "No new physical procedure run, full-source parity or percentage claim.",
+    "Audits PAUSED; no push/merge/publication; protected source untouched."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/cortexVehicles.sqf": "57ed5c75292e24ce2f2f57d73174012bcb3c345683abadc61a20f0c31e08e18c",
+    "addons/support/functions/cortexArtilleryFire.sqf": "eaed23dcf9878729cb2800df9dcf69d32c02a0c5f50815f18a672cd3fb3fdf1c",
+    "addons/support/functions/cortexArtilleryMissionStep.sqf": "efe456abe0c39352661e4f6422021592b520c3dc88f6bd07aebbd9e799d80b9b",
+    "addons/support/functions/cortexArtilleryShot.sqf": "712fd7b4bfd227634e575b11ec7f44bc1267656e07f93bb2c202c3e8fad5eb08"
+  }
+}

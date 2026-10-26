@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-24",
+  "base": "ac3b1bc8",
+  "scope": "Actual battery endpoint-screening integration in existing artillery positioning and shoot-and-scoot; selected Protocol mobility comparison, not whole mod parity.",
+  "reference": ".qa\\protocol-artillery-3801354927-review\\functions\\fn_artillery.sqf",
+  "referenceSHA256": "9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d",
+  "referenceRead": "Selected movement and displacement branches108..176: separate driver/commander doMove, randomized positions and wait loop. Not a renewed whole-source review.",
+  "finding": "Both existing CBE battery route selectors passed VEHICLE mobility without the actual platform, leaving shared scoring on infantry-height route probes. AA relocation, jink and vehicle escape already supplied their platform.",
+  "implementation": [
+    "Pass _battery to existing CortexSelectAvenue in pre-fire position and shoot-and-scoot.",
+    "Existing conservative horizontal radius/full model height and three endpoint screening probes now apply; unsupported or oversized bounds receive no cover credit.",
+    "Actual battery excluded from the material screening query; route sample count, mobility terrain policy, candidates, native commands, finite operation, READY, firing and cleanup unchanged."
+  ],
+  "limits": [
+    "Screening origin remains current battery origin, not an observed incoming-fire source. No claim of counterbattery protection or ballistic cover.",
+    "Sparse endpoint screening is not hull clearance, path reachability, future pose or stable firing position.",
+    "Mixed-group positioning and relocation still refused. Existing group HOLD/order receipt binds Position, PositionReport, MissionStep and Shot; changing only admission would break authority. A selected-platform movement/hold/return executor and matching validation are still required.",
+    "Actual large/modded gun movement, chosen endpoints, firing, repeat, HC/JIP and performance UNRUN; audits paused."
+  ],
+  "validation": {
+    "tests": 1497,
+    "focused": 610,
+    "build": ".qa/artillery-platform-screening-build.log",
+    "independent": ".qa/artillery-platform-screening-independent.log",
+    "candidate": ".qa/candidates/artillery-platform-screening-ac3b1bc8",
+    "fingerprint": "cefffac8024f21469a13d229241b5ced04d86c1b7dababd6991ef3ed63c3f240",
+    "unsignedDirtyDevelopment": true,
+    "scope": "Extended existing source contract; no test count increase and no physical completion claim."
+  },
+  "hashes": {
+    "addons/support/functions/cortexArtilleryPosition.sqf": "25b7c8326d24866dd1ccf32426e0e789c197e9d3706b6c045acae3f1b51ff0eb",
+    "addons/support/functions/cortexArtilleryScoot.sqf": "d47c023db7f31d466d785f001d5d498faed16e2ac6db10c8a024bffadc79eec1",
+    "addons/infantry/functions/cortexSelectAvenue.sqf": "521a8507a09d6beaf3ad737334ab0cfbfc3e640ae5ee96a37f30f69e726ed4f8",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "5a86d83d7050f146536dea038ebbc28537cc8326d1014b1733fe719efb44cf27"
+  },
+  "mobileSelectionAlignment": {
+    "base": "0fa3447e",
+    "finding": "Server _mayPosition lacked the waterDamaged guard already required by owner Position and Scoot. Server mobile fallback must not reserve a candidate the owner refuses for that same native flag.",
+    "change": "Check !waterDamaged only inside mobile-position eligibility. In-range _batteryCrewUsable firing and cleanup are unchanged. No claim that canMove always remains true after drowning or that an observed physical failure was caused by it.",
+    "validation": {
+      "tests": 1497,
+      "compiledSQF": 414,
+      "PBOs": 11,
+      "build": ".qa/artillery-mobile-selection-build.log",
+      "independent": ".qa/artillery-mobile-selection-independent.log",
+      "candidate": ".qa/candidates/artillery-mobile-selection-0fa3447e",
+      "fingerprint": "febf6d32d0d48197b7adfb3e81b961ac9a8ccb07b1c35dd89853aa429b9f2964",
+      "unsignedDirtyDevelopment": true
+    },
+    "hashes": {
+      "addons/support/functions/cortexArtilleryFire.sqf": "041248102fcc9cd1901ca02978a049560952c5ba6de6e485fc4800614eac8fb4",
+      "releaseVerificationAndDeployment/test_artillery_scoot_session.py": "a06e942cf6eea34f226a951e5dccd96a7db14f60f7f622a8777407bad82a567f"
+    },
+    "physical": "Native damage/alternative battery selection/stationary fire/HC/performance UNRUN; audits paused."
+  },
+  "selectedPlatformUserDecision": {
+    "decision": "Preserve group membership; move only selected gun crew. User answered asynchronous question2026-10-24.",
+    "implementation": "NOT YET IMPLEMENTED; current independent-group admission remains. Do not remove all-members-in-battery refusal to pretend support.",
+    "currentCoupling": [
+      "Server Fire._mayPosition uses whole group; Position and Scoot create group operations/waypoints and acquire group movement lease.",
+      "PositionReport, MissionStep and Shot validate group HOLD/generation/native receipt; readiness cannot be changed in isolation.",
+      "GroupTick assumes artillery movement owns a CBE waypoint and retires the operation otherwise; current locality replay resumes only the older Scoot contract.",
+      "DrivingRecoveryCrewHandback requires the exact live driving FSM, admitted NATIVE_MOVE route and actual reverse/native-return journal. It cannot be borrowed by fabricating a driving journal.",
+      "ActorMove reservations are finite local three-field markers; unresolved native flight/naval journals deliberately outlive markers. A new selected-crew mover must retain real pending stop/return evidence rather than expire into competing controller permission."
+    ],
+    "requiredExecution": "Selected driver/commander original native goal/order observations, exact vehicle/group/owner/epoch/token/session, actual move acknowledgment and arrival, stable fire hold, one finite stop/return observation and retirement. No group waypoint, group split, forced seats, teleport, fabricated ACK or broad native-order reset. Preserve newer orders, unrelated actors and original deadlines.",
+    "limits": "This is implementation direction and traced dependencies, not a completed executor or handover."
+  }
+}

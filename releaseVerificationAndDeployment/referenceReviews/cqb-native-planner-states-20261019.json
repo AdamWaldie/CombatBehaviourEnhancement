@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-19",
+  "scope": "Consistent native planner-state preservation through CQB and indoor admission",
+  "finding": "Clearance preserved exact PLANNING/BUSY native legs but omitted REPLAN, while indoor admission/observation omitted INIT. The engine documents REPLAN as retaining a plan while seeking another, and INIT as endpoint set before operative planning. These are not completed or idle paths. Existing BUSY waits were already finite, so no timing retune is justified by source inspection alone.",
+  "engineReference": {
+    "url": "https://community.bohemia.net/wiki/getUnitState",
+    "verified": "2026-10-19",
+    "evidence": "INIT and REPLAN are active planning transitions; BUSY has a ready valid operative plan. INITFAILED and DELAY represent different failure/retry states."
+  },
+  "referenceIntent": "Preserve an existing matching native approach rather than issuing competing destinations; current local source review of individual assault records that intent separately from whole-building clearance.",
+  "implementation": "Add INIT/REPLAN to existing exact-owned clearance planning sets; preserve INIT in indoor admission, escalation and approach wait. Clue dispatch excludes INIT actors from its idle roster. Original two-second acknowledgement grace, thirty-second exact request age, no-progress clocks, attempts and immutable operation deadline remain. No movement replay, synthetic arrival or new worker.",
+  "cost": "Only constant membership-set additions at existing native-state reads; no new query, state publication, handler or timer. Actual performance unmeasured.",
+  "validation": {
+    "focusedExistingTests": 659,
+    "focusedLog": ".qa/cbe-cqb-native-states-focused.log",
+    "newCases": 0,
+    "fullPipeline": "1477 existing tests and full sequential compiler/FSM/config/docs/parity/performance/package gates passed.",
+    "physical": "Unverified; audits paused.",
+    "fullLog": ".qa/cbe-cqb-native-states-final-build.log",
+    "independentLog": ".qa/cbe-cqb-native-states-final-independent.log",
+    "packageSource": "6ffdca5741f9e17b38537917a690a7ff522a81a9+dirty",
+    "packageFingerprint": "f3efb7726f8077ce4f6977c5276457c8923cf1e7c1b0c8c9cfab85045beed475"
+  },
+  "limits": "Timing remains provisional; these code inconsistencies are not proof of the cause of any historical screenshot. Native failed/delayed paths still use finite recovery. Complete pair entry, casualty flow, repeated traversal and modded-building access remain open.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "188938fbfc1428ba4d561b0a85b391dc1641d7fe2898c28e5ab87383214ab925"
+    },
+    {
+      "path": "addons/infantry/functions/indoorActorNativeContext.sqf",
+      "sha256": "9b88ceef5f96b5bd0a907c7d1ede981a14d78985eec2e06ffb7f08bf92e089ef"
+    },
+    {
+      "path": "addons/infantry/functions/indoorActorOperation.sqf",
+      "sha256": "e936e49c7aff5e6ccd89827e5f214684a5956814ec7a7e0406606c96a45008b3"
+    },
+    {
+      "path": "addons/infantry/functions/indoorObservationDispatch.sqf",
+      "sha256": "dfcda13b921204a912f437e507a6ef1472a12a448413481a5c34c0bd272fc51b"
+    }
+  ]
+}

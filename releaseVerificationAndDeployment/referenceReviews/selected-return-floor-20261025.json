@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "e39ba15040d04dfa9dcf0cdfe81e9bd373bb6814",
+  "scope": "Selected-gun final native-order return acknowledgement",
+  "finding": "RETURNING used getPosATL with only a 2m spherical bound for settled WAIT/idle, unlike the current AGL sample and explicit 0.75m vertical bound used for outward and stop acknowledgement. This is a source inconsistency, not a reproduced engine failure.",
+  "implementation": [
+    "Include RETURNING in the existing one-platform arrival sample.",
+    "Use that sample for completed return proximity and require vertical difference<=0.75m; MOVE remains native order acknowledgement rather than arrival.",
+    "Retain exact native endpoint, original actors, task/Zeus/control checks, retirement deadline, no additional commands or workers."
+  ],
+  "validation": {
+    "full": "1497 existing tests,423 SQF,11 PBOs; terminal0",
+    "independent": "terminal0, matching fingerprint",
+    "candidate": ".qa/candidates/selected-return-floor-e39ba150",
+    "fingerprint": "44c8e9aeb4c320a347658b47265fb1c1cb14db51af5e0b02cd1a139e244a1c38"
+  },
+  "limitations": [
+    "Audits paused. Actual native return, locality/casualty/repeat and performance remain unverified.",
+    "Not ordinary armoured selected-platform movement or full controller handover."
+  ],
+  "sourceHashes": {
+    "addons/support/functions/artilleryCrewMoveStep.sqf": "7f629d11e627e552193711a57ad97e233309d1ddb7da574f606faf87cf81b18a",
+    "releaseVerificationAndDeployment/test_artillery_fire_sessions.py": "c76693f5cee70d6f01cf8d1664e7c54c966df3f1c1e47bc481d934151d858651"
+  }
+}

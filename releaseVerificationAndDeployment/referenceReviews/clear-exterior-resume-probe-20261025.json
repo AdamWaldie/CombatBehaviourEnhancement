@@ -1,0 +1,29 @@
+{
+  "base": "d937923e",
+  "status": "EXTERIOR_SETTLED_MOVE_READONLY_RESUME_CHECK_INTEGRATED",
+  "finding": "Exterior stage resume CHECK required the new current generation/epoch reserve marker before the same preparation could create that marker. A settled WAIT leg with an original matching native-motion receipt could therefore be dropped during owner reconstruction. Stage/movement maps were also populated before final marker commit, even if that commit refused.",
+  "implementation": [
+    "Validated unchanged stage journal may supply one temporary private [visitContext,actor,target] proposal to BuildingActorMotion CHECK. Only original MOVE receipt of that actor/group/visit/target plus actual native MOVE or settled WAIT, endpoint/rest/floor and all operation/route/owner/eligibility checks can pass.",
+    "The private proposal is CHECK-only; it cannot authorize MOVE/HOLD publication or ADOPT/settings/commands. It is removed immediately after synchronous CHECK, before any marker commit. Stage journal must still equal the captured snapshot and contain at most64 rows.",
+    "Both staged and final preparation WAIT checks use this wrapper. Final live native/owner check establishes the new local reserve marker. Only an actual successful marker commit retains stage/movement maps; refusal does not occupy a new security slot. Historical known-casualty post evidence remains separate."
+  ],
+  "cost": "No scan, geometry ray, worker, timer or command. At most2 scoped checks per resumed settled exterior row, within the existing64-row loop. Each compares the captured phase journal (up to64 rows) and invokes existing native/context checks; this comparison/check cost is unmeasured. Ordinary active work has only the additional constant-size private CHECK proposal lookup.",
+  "validation": {
+    "tests": 1497,
+    "development": "Build1 failed an existing test that expected direct CHECK spelling; updated to verify the scoped wrapper and retained exact native CHECK. Build2 passed, then final review made role bookkeeping conditional on successful marker commit.",
+    "build": ".qa/handovers/clear-exterior-resume-probe-build-3.log",
+    "independent": ".qa/handovers/clear-exterior-resume-probe-independent.log",
+    "candidate": ".qa/candidates/clear-exterior-resume-probe-d937923e",
+    "fingerprint": "b590cb199d3327754803b459c0190e7f151e8f50a578b80a1d88bdcd4985a4d2",
+    "physicalAcceptance": false
+  },
+  "limitations": [
+    "This consumes a validated separately delivered phase journal, not a coherent authenticated full producer checkpoint. Missing/delayed journal distinctions, aggregate actor readiness and actual external/old-owner quiescence remain incomplete.",
+    "No receipt is fabricated for an unrecorded/unknown old move; changed native task/target and missing proof still refuse. Same-value new native orders remain observationally ambiguous.",
+    "No physical isolation/straggler/migration result or5%median/10%p95 overhead acceptance; normal and actual-provider HC audits remain paused."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/buildingActorMotion.sqf": "3155ab2b736290094017886d4413a5ef50777ac3ee4aa6a6291a281ec1c7dcea",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "38616f25b66696b5ae4e55e02ac84f8aadfe72909361d17a8a2f4c5d66439dfd"
+  }
+}

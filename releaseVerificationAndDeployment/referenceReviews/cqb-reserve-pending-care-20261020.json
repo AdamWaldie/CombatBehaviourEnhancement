@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-20",
+  "baseline": "8a7c7797",
+  "scope": "CQB reserve task ownership while medical care is pending",
+  "finding": "_reserveReady duplicated native task restrictions but omitted ace_medical_ai_healQueue. Existing _actorTaskFree checks queued care; reserve staging/hold/watch/casualty promotion could still qualify before native HEAL starts.",
+  "change": "Early shared _actorTaskFree check in _reserveReady; remove duplicate simulation/hidden/native task-list evaluation. Existing _reserveCommitReady invokes fresh reserve readiness, so command-boundary proof also reads care. Native receipt/reservation/epoch/coverage/promotion budgets unchanged.",
+  "limits": "Does not prove medical handover/native command quiescence, real isolation, casualty reinforcement or CQB physical flow. No audit or percentage change.",
+  "evidence": [
+    {
+      "path": "addons/infantry/functions/buildingOperationStep.sqf",
+      "sha256": "f35f660cb3021f6d9ee8dfbdc5b3a2749f995ad03647589b060de3dce79f39d4"
+    },
+    {
+      "path": "releaseVerificationAndDeployment/test_clear_reserve_roster.py",
+      "sha256": "95d9c4e8a35a0455f5124d14dd56a9d7735d469685e7ee31a533e052996279a1"
+    }
+  ],
+  "validation": "4 existing reserve roster tests/full1482 unit/static, HEMTT/SQF/config/FSM/docs/package gates pass .qa/cqb-reserve-care-build.log. Unsignedcandidate .qa/candidates/cqb-reserve-care-8a7c7797 independentlyverified fingerprint41d7944d87b015403ff7c91b6a2f3877eae6eb7d9b8c5d5672c0c93c64af74d1. No runtime claim."
+}

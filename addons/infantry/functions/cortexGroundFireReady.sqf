@@ -3,25 +3,34 @@
  * Purpose: Verify the selected ground gunner's actual station has a loaded damaging magazine
  * in a native station weapon/muzzle state. Reserve magazines or another turret cannot qualify it.
  * Work: at most16 station weapons,8 configured muzzles each and32 native weapon-state queries.
- * This checks loaded rounds, not completion of the native reload/firing cycle.
+ * Loaded target preferences may scan the full existing budget: armour AP/tandem HEAT,
+ * soft-vehicle explosives and infantry nonexplosive bullets. Ties retain station order;
+ * a merely suitable loaded fallback remains valid. This checks loaded rounds, not effects
+ * or completion of the native reload/firing cycle. Reserve-magazine loading remains native.
  * An optional target also requires configured ammunition intent for its actual platform class.
  * Missing usage flags retain a conservative legacy fallback; no targeting command is issued.
  * Locality/authority: Read-only on the gunner owner; vehicle locality may differ; callers retain ROE, safety and token checks.
  * Repeat/JIP: No world state, commands or handlers; rereads native station state at each boundary.
- * Optional caller-local observation is reset per call; reload evidence grants no firing permission.
+ * Optional observation also returns loadedWeapon/loadedMuzzle/loadedMagazine/loadedTurret for the qualifying
+ * actual station state. Outputs reset every call; reload or selection evidence grants no firing permission.
  * Arguments: 0 platform <OBJECT, objNull>; 1 selected gunner <OBJECT, objNull>;
  * 2 target <OBJECT, objNull>, omitted means the station-only ammunition check;
  * 3 observation <HASHMAP, empty>, receives reloadInProgress BOOL for queried matching muzzles;
  * 4 selection pass <BOOL, false>, permits completed failed-scan reuse in this local frame only.
+ * 5 bullet suppression <BOOL, false>, requires nonexplosive shotBullet and >=20 loaded rounds.
+ * 6 AA cannon <BOOL, false>, permits explosive shotBullet with >=20 loaded rounds; excludes missiles/shell simulation.
+ * Bullet suppression remains nonexplosive even if both policies are requested.
+ * Raw selection snapshots are reevaluated against this policy; they never cache permission.
  * Selection snapshots never authorize firing: the caller must repeat a fresh default check.
  * No native rows are collected or reused by default; optional rows remain caller-local and <=32.
  * Return Value: BOOL, station has usable damaging ammunition for the supplied target,
  * or any damaging ammunition when target is omitted; not proof of firing/effect.
- * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep and CortexVehicles.
+ * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep, CortexVehicles and CortexAAIntercept.
  * Example: [_vehicle,gunner _vehicle,_enemy] call CBE_fnc_CortexGroundFireReady;
  */
-params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]]];
+params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]],["_bulletSuppression",false,[true]],["_aaCannon",false,[true]]];
 _observation set ["reloadInProgress",false];
+{_observation deleteAt _x} forEach ["loadedWeapon","loadedMuzzle","loadedMagazine","loadedTurret","loadedPreference"];
 if (isNull _asset || {isNull _gunner} || {!local _gunner}
     || {!alive _asset} || {!(_asset isKindOf "LandVehicle")}
     || {gunner _asset != _gunner} || {vehicle _gunner != _asset}) exitWith {false};
@@ -45,18 +54,23 @@ private _targetSuitable={
     // Explicit infantry exclusion is authoritative even for older unflagged ammo.
     if (_targetFlag == 64 && {isNumber (_ammo >> "allowAgainstInfantry")}
         && {getNumber (_ammo >> "allowAgainstInfantry") == 0}) exitWith {false};
+    // Native airLock is an enum: 1 supports both domains, 2 is air-only.
+    // Target preference flags cannot turn an air-only round into ground ammunition.
+    private _airLock=getNumber (_ammo >> "airLock");
+    if (_targetFlag != 256 && {_airLock == 2}) exitWith {false};
     private _flags=getNumber (_ammo >> "aiAmmoUsageFlags");
     if (_flags > 0) exitWith {(floor (_flags/_targetFlag) mod 2) == 1};
     // Preserve legacy ordinary rounds against soft targets. Armour requires a
     // heavy shell/rocket/missile, consistent with the existing launcher fallback;
     // air needs an explicit air-lock capability. Config intent is not effect proof.
-    if (_targetFlag == 256) exitWith {getNumber (_ammo >> "airLock") > 0};
+    if (_targetFlag == 256) exitWith {_airLock > 0};
     if (_targetFlag == 512) exitWith {
         toLowerANSI getText (_ammo >> "simulation") in ["shotshell","shotrocket","shotmissile"]
-            && {getNumber (_ammo >> "hit") >= 100} && {getNumber (_ammo >> "airLock") <= 0}
+            && {getNumber (_ammo >> "hit") >= 100}
     };
-    getNumber (_ammo >> "airLock") <= 0
+    true
 };
+private _bestScore=-1;
 private _evaluateState={
     params ["_state","_weapon","_muzzle"];
     private _magazine=_state param [3,"",[""]];
@@ -64,15 +78,50 @@ private _evaluateState={
     private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
     private _suitable=_magazine != ""
         && {getNumber (_ammo >> "hit") > 0 || {getNumber (_ammo >> "indirectHit") > 0}}
-        && {[_ammo] call _targetSuitable};
-    private _reload=_state param [6,0,[0]];
-    if (count _state >= 7 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
-        && {_suitable} && {finite _reload} && {_reload > 0} && {_reload <= 1}) then {
-        _observation set ["reloadInProgress",true];
+        && {[_ammo] call _targetSuitable}
+        && {!(_bulletSuppression || _aaCannon) || {
+            toLowerANSI getText (_ammo >> "simulation") == "shotbullet"
+                && {!_bulletSuppression || {getNumber (_ammo >> "indirectHit") <= 0
+                    && {getNumber (_ammo >> "explosive") <= 0}}}
+                && {finite _rounds} && {_rounds >= 20}
+        }};
+    private _reload=_state param [6,1,[0]];
+    private _reloading=count _state >= 7 && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
+        && {_suitable} && {finite _reload} && {_reload > 0} && {_reload <= 1};
+    if (_bestScore < 0 && {_reloading}) then {_observation set ["reloadInProgress",true]};
+    // Loading is not readiness. Keep scanning for a completed alternative while a preferred
+    // muzzle reloads; retain the finite wait observation only when no ready muzzle wins.
+    private _usable=count _state >= 7 && {finite _reload} && {_reload == 0}
+        && {(_state select 0) == _weapon} && {(_state select 1) == _muzzle}
+        && {_magazine != ""} && {finite _rounds} && {_rounds > 0} && {_suitable};
+    private _score=-1;
+    if (_usable) then {
+        _score=2;
+        if (!_bulletSuppression && {_targetFlag in [64,128,512]}) then {
+            private _warhead=toUpperANSI getText (_ammo >> "warheadName");
+            _score=switch (_targetFlag) do {
+                case 512: {if (_warhead in ["AP","TANDEMHEAT"]) then {2} else {[0,1] select (_warhead == "HEAT")}};
+                case 128: {[0,2] select (_warhead in ["HE","HEAT","TANDEMHEAT"] || {getNumber (_ammo >> "indirectHit") > 0})};
+                default {
+                    if (toLowerANSI getText (_ammo >> "simulation") == "shotbullet"
+                        && {getNumber (_ammo >> "indirectHit") <= 0} && {getNumber (_ammo >> "explosive") <= 0}) then {2} else {
+                        [0,1] select (_warhead == "HE" || {getNumber (_ammo >> "indirectHit") > 0})
+                    }
+                };
+            };
+        };
     };
-    count _state >= 5 && {(_state select 0) == _weapon}
-        && {(_state select 1) == _muzzle}
-        && {_magazine != ""} && {finite _rounds} && {_rounds > 0} && {_suitable}
+    if (_score > _bestScore) then {
+        _bestScore=_score;
+        _observation set ["loadedPreference",_score];
+        _observation set ["reloadInProgress",_reloading];
+        _observation set ["loadedWeapon",_weapon];
+        _observation set ["loadedMuzzle",_muzzle];
+        _observation set ["loadedMagazine",_magazine];
+        _observation set ["loadedTurret",+_station];
+    };
+    // Continue only to improve a usable fallback. Ideal matches retain the early exit.
+    _usable && {_score >= 2}
 };
 private _cached=_observation getOrDefault ["stationSnapshot",[]];
 private _reuse=_selectionPass && {_cached isEqualType []} && {count _cached == 6}
@@ -85,13 +134,14 @@ private _reuse=_selectionPass && {_cached isEqualType []} && {count _cached == 6
             || {!((_x select 1) isEqualType "")} || {!((_x select 2) isEqualType [])}
     } < 0};
 if (_reuse) exitWith {
-    (_cached select 5) findIf {[_x select 2,_x select 0,_x select 1] call _evaluateState} >= 0
+    private _preferred=(_cached select 5) findIf {[_x select 2,_x select 0,_x select 1] call _evaluateState} >= 0;
+    _preferred || {_bestScore >= 0}
 };
 _observation deleteAt "stationSnapshot";
 // Inventory membership does not prove a magazine is loaded. Query each native
 // station muzzle directly, including an unselected coaxial/secondary weapon.
 private _queries=0;private _rows=[];private _frame=diag_frameNo;
-private _ready=(_weapons select [0,16]) findIf {
+private _preferredFound=(_weapons select [0,16]) findIf {
     private _weapon=_x;
     private _muzzles=getArray (configFile >> "CfgWeapons" >> _weapon >> "muzzles");
     if (_muzzles isEqualTo []) then {_muzzles=["this"]};
@@ -104,6 +154,7 @@ private _ready=(_weapons select [0,16]) findIf {
         [_state,_weapon,_muzzle] call _evaluateState
     } >= 0
 } >= 0;
+private _ready=_preferredFound || {_bestScore >= 0};
 // Success can short-circuit: only a completed failed scan contains every queried
 // muzzle in the supported budget. Never cache a partial successful station scan.
 if (_selectionPass && {!_ready} && {diag_frameNo == _frame}) then {

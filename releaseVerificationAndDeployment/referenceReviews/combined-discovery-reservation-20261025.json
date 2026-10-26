@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "57a370dd",
+  "scope": "Prevent groups already reserved by another combined-arms request from crowding the bounded ground fallback discovery pool; no general readiness/performance parity claim.",
+  "failure": "Discovery ranked same-side groups and truncated ground fallback to32 before checking their live CBE_Cortex_CombinedRole.40 armed nearby groups holding other unexpired tokens could occupy all slots while free assets existed behind them. Dispatch already rejected those reservations, leaving no useful retained fallback.",
+  "implementation": "After original requester/side filter, apply exact existing reservation availability predicate before transmitter/crew/magazine ranking: absent/unrecognised-size role, expired role or same token retains original admission semantics. A live7/8field role owned by a different token is excluded. Original late dispatch predicate remains unchanged to catch changes after discovery. No role mutation, new scan, timer, expiry renewal or group split.",
+  "cost": "One existing role-variable read/count/expiry/token comparison per same-side discovered group before heavier radio/crew/magazine work. Initial native spatial query, deduplication and sorting remain population-dependent. Other ineligible friendly groups may still crowd the fallback; no whole-discovery fixed-budget claim.",
+  "departure": "Availability is sampled at discovery. A filtered group that becomes free later is not inserted automatically into this request; later requests discover anew. No live reservation is cancelled or borrowed.",
+  "sourceHashes": {
+    "addons/infantry/functions/cortexCombinedArmsServer.sqf": "93098908129fa0dafe0744372c3ab5d334d4b954e07fde491079deeeae76347d",
+    "releaseVerificationAndDeployment/test_air_contact_geometry.py": "9b67b70066627a729200d30a5a5361549c72e9964ac53303a3337fe2059c238b"
+  },
+  "validation": {
+    "focused": "Existing5 air-contact/combined expiry tests PASS. Existing pool test extended with40busy groups then free/expired/same-token candidates; verifies retained late role guards. No case-count growth.",
+    "full": "1497 tests PASS;420compiledSQF/11PBO; full build terminal0.",
+    "independent": "Candidate verify terminal0.",
+    "candidate": ".qa/candidates/combined-reservation-filter-57a370dd",
+    "fingerprint": "36e6c91b42c6e9d27291cb8632994d32aa8456c0c3b5efc8889a512ad08ca41c",
+    "buildLog": ".qa/combined-reservation-filter-build-20261025-attempt1.log",
+    "independentLog": ".qa/combined-reservation-filter-independent-20261025.log",
+    "kind": "Unsigned dirty development. Source base plus runtime hashes identify covered source; notes postdate package."
+  },
+  "limits": "Source discovery/admission correction, not physical substitution/fire/manoeuvre/communications/Zeus/normal-HC/JIP or frame-budget proof. No new behaviour percentage. Full goal active/incomplete; audits PAUSED."
+}

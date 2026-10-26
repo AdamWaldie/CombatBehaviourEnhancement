@@ -1,0 +1,81 @@
+{
+  "base": "7b43fb98",
+  "scope": "Natural contact-led clearance mission-route handback after safe partial search",
+  "finding": "Terminal clearance correctly reports INCOMPLETE for inaccessible/unvisited rooms, but opt-in continuation also required full COMPLETE. Safely settled actors after a finite partial search could remain held on an unchanged authored MOVE solely because coverage was incomplete. This is source policy evidence, not a reproduced physical stop.",
+  "change": "Allow COMPLETE or INCOMPLETE under existing natural completion reason, continueRoute opt-in and nonfailed egress. Result/coverage publication unchanged. Exact original plain ungated MOVE/native receipt, current operation retirement, actor STOP/post availability, owner/generation, existing formation chain and external-control checks remain. Explicit CLEAR default continuation false unchanged.",
+  "intent": "Finite incidental clearance should relinquish its interruption of mission movement when actors safely exit; returning to original mission movement is not proof the house is safe. An inaccessible modded node must not itself grant permanent route ownership.",
+  "validation": {
+    "focusedExistingCases": 8,
+    "fullTests": 1491,
+    "compiledSQF": 412,
+    "pbos": 9,
+    "newCases": 0,
+    "counterexample": "4/5 physically visited nodes produce INCOMPLETE; safe opted-in handback now eligible, explicit/no-opt-in, failed egress and changed route still refuse.",
+    "candidate": ".qa/candidates/clear-partial-route-7b43fb98",
+    "fingerprint": "dc8124596db9af86b9baa84980cf5d740570cc2cf350200271700a99ba5eb1e0",
+    "logs": [
+      ".qa/clear-partial-route-focused.log",
+      ".qa/clear-partial-route-build.log",
+      ".qa/clear-partial-route-independent.log"
+    ]
+  },
+  "sourceHashes": {
+    "addons/infantry/functions/buildingOperationStep.sqf": "99ff2823ec029b0ad02b1aff9540fed45a97f323efc8036b29a65cb2c97edc18",
+    "addons/infantry/functions/cortexBuildingContact.sqf": "681c9c5b39f7b2cc110adb17c1f18b9a1d91add3019687e9ed3a919a4afddd36",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "97b365c9b20fda2014676c1acc27bb1b1c7c198dc5cb4636c59b95e125f31ec1",
+    "releaseVerificationAndDeployment/test_clear_egress_handover.py": "63505829725e309c419093cac8ce8ae7931f88627d6ab7656b221aefdc0a09dc"
+  },
+  "limits": "No actual inaccessible-building continuation, native acknowledgement/travel, threat response after return, repeat, normal/HC or performance proof. Existing no-replay native handback limitations remain. No claim this resolves historical sprawl/exit screenshots. Unsigned dirty candidate includes unrelated preexisting dirt; review/handover postdate package. No source-parity/build percentage credit.",
+  "audits": "PAUSED",
+  "physicalAcceptance": false,
+  "nativeContinuationAcknowledgement20261024": {
+    "base": "d118ed3b",
+    "finding": "Natural continuation appended actors to continued immediately after doMove/doFollow and subtracted them from the terminal hold receipt. A delayed native request still reporting the original STOP lost hold proof; this path also omitted the existing one-shot ClearRecall marker.",
+    "change": "Record the existing four-field generation/epoch/anchor/time+5 recall immediately before each actual leader MOVE or admitted native-chain FOLLOW. After requests, use existing BuildingActorHoldOwned with this finish actual post snapshot; retain requested actors still stopped at those posts plus unrequested actors. Changed command/pose is not owned hold proof. No new fields, command, observer, timer, deadline or replay introduced.",
+    "validation": {
+      "focusedExistingCases": 8,
+      "fullTests": 1491,
+      "compiledSQF": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "candidate": ".qa/candidates/clear-continuation-ack-d118ed3b",
+      "fingerprint": "61e0d4f46e3da1b06505ffbe72eac96a1933798f5225b7641ba5eb65fbae3509",
+      "logs": [
+        ".qa/clear-continuation-ack-focused.log",
+        ".qa/clear-continuation-ack-build.log",
+        ".qa/clear-continuation-ack-independent.log"
+      ]
+    },
+    "sourceHashes": {
+      "addons/infantry/functions/buildingOperationStep.sqf": "294b5704e7674b3fd9935ee4ea21a16b0ecea02f032f3f77f71cc13de7fa70e7",
+      "releaseVerificationAndDeployment/test_clear_egress_handover.py": "a7749e1affd0c47151572745384c11cb5dbba25d4654027aa31ec45ecaddf6eb"
+    },
+    "limits": "Source/model evidence only; actual delayed acknowledgement, native travel, local actor receipt migration, indefinitely unacknowledged requests and physical handback/performance remain unverified. Same-route hold metadata may remain until existing hold inspection; no new retry observer is claimed. Unsigned dirty development package includes unrelated dirt; review/handover postdate package. No parity or percentage credit. Audits PAUSED."
+  },
+  "formationCapacity20261024": {
+    "base": "c040aa13",
+    "finding": "Natural continuation admitted original formation rows for up to64 actors but truncated settled followers to16. Unchanged original route prevents ordinary changed-route hold recall, leaving actors beyond the subset held. Repeated16-pass rescans also bound deep chains independently of supported roster capacity.",
+    "change": "Index at most63 followers by admitted parent, then traverse a root-leader request queue for at most64 actors. Consume each private bucket once; exact admitted parent object identity must match before native FOLLOW. Missing/disconnected/cyclic/refused-anchor descendants retain their holds. Existing original-route, per-actor native STOP/post/owner/task checks and one-shot requests plus pending acknowledgement proof unchanged. No group flattening, new timer, task, world query, route or deadline.",
+    "cost": "At most63 parent-index entries,64 queue slots and63 inspected child edges per finish. This replaces repeated follower rescans. Up to64 admitted native requests may execute in one terminal callback; runtime callback cost and overhead not measured. Ambiguous shared/missing network IDs cannot redirect a child to a different anchor; consumed ambiguous buckets can leave actors held.",
+    "validation": {
+      "focusedExistingCases": 8,
+      "fullTests": 1491,
+      "compiledSQF": 412,
+      "pbos": 9,
+      "newCases": 0,
+      "models": "64-actor star (former17-actor total subset), reverse-ordered63-link chain, disconnected cycle and unavailable anchor descendants; source contracts keep actual mutation boundaries and one-shot evidence.",
+      "candidate": ".qa/candidates/clear-continuation-capacity-c040aa13",
+      "fingerprint": "7829e8a2ec2a52d37df6363ebf1109f397e22dbcf7cf389681f48311ec71652a",
+      "logs": [
+        ".qa/clear-continuation-capacity-focused.log",
+        ".qa/clear-continuation-capacity-build.log",
+        ".qa/clear-continuation-capacity-independent.log"
+      ]
+    },
+    "sourceHashes": {
+      "addons/infantry/functions/buildingOperationStep.sqf": "14c322a20c6b23b0024c38bea2a9f74cf7907be14d861b3843ac84be7c8a7e20",
+      "releaseVerificationAndDeployment/test_clear_egress_handover.py": "09df1b116e2bb673587c8876485152678f0e7830c3baab4512f004332dc15baf"
+    },
+    "limits": "Source/model/offline only, not physical64-actor route travel or ACK, formation quality, native-ID portability, HC/replication or5%/10% performance. No historical screenshot resolution, whole-source parity or percentage credit. Unsigned dirty candidate includes unrelated dirt; review/handover postdate package. Audits PAUSED."
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "sourceCheckpoint": "cabf37ec",
+  "scope": "Loaded foot launcher selection and forward lane/blast veto",
+  "problem": "Reserve-only or reloading preferred carriers could displace ready gunners; explicit anti-armour fire checked backblast but omitted the shared forward/blast veto.",
+  "implementation": [
+    "Loaded-only capability mode reads exact local secondary weapon state without reserve scanning; validates compatible magazine, positive ammunition and completed magazine reload.",
+    "Candidate ranking excludes unloaded/reloading launchers. Selected actor is observed again before fire.",
+    "Shared line-of-fire check receives actual loaded magazine and retained native target belief; existing backblast and live mission ammunition overrides remain."
+  ],
+  "primaryReference": "https://community.bistudio.com/wiki/weaponState",
+  "validation": {
+    "tests": 1491,
+    "compiledSQF": 412,
+    "buildExitCode": 0,
+    "independentVerification": "passed",
+    "candidate": ".qa/candidates/launcher-forward-safety-cabf37ec",
+    "fingerprint": "6bc499382608adea7e1750881a0d07f83a2f4511cd78cc52c3b24a0eee5a1e63"
+  },
+  "limitations": [
+    "Unsigned dirty development candidate includes pre-existing unrelated working-tree changes. Review and handover postdate package.",
+    "Snapshot veto cannot pin later native weapon choice or cancel existing native fire; no continuous safety, penetration or future-motion guarantee.",
+    "Actual firing, locality migration, balance and performance unverified. Audits remain paused.",
+    "LAMBS native launcher configuration parity remains incomplete; no whole-source percentage increase."
+  ],
+  "logs": [
+    ".qa/launcher-forward-safety-focused.log",
+    ".qa/launcher-forward-safety-modularity.log",
+    ".qa/launcher-forward-safety-build.log",
+    ".qa/launcher-forward-safety-independent.log"
+  ]
+}

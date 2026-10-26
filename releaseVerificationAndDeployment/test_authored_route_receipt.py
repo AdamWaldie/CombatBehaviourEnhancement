@@ -16,7 +16,7 @@ class AuthoredRouteTests(unittest.TestCase):
         s=(ROOT/'addons/aircraft/functions/cortexAirAttack.sqf').read_text()
         self.assertIn('private _routeSignature=[_group] call CBE_fnc_AuthoredRouteReceipt',s)
         self.assertIn('private _currentRoute=[_group,_ownedWaypointName] call CBE_fnc_AuthoredRouteReceipt',s)
-        self.assertLess(s.index('if (_currentRoute isNotEqualTo'),s.index('_aircraft limitSpeed (_stageSpeeds'))
+        self.assertLess(s.index('if (_currentRoute isNotEqualTo'),s.index('_aircraft forceSpeed _appliedSpeed;'))
         self.assertIn('["AUTHORED_ROUTE_CHANGED"] call _finish',s)
 if __name__=='__main__': unittest.main()
 
@@ -39,5 +39,19 @@ class AirCleanupReceiptTests(unittest.TestCase):
         self.assertLess(finish.index('private _preserveEditedLeg='),finish.index('deleteWaypoint _ownedWaypoint'))
         self.assertIn('[_finishGroup,_finishOwnedName,true] call CBE_fnc_AuthoredRouteReceipt',finish)
         self.assertIn('private _claimed=_preserveEditedLeg',finish)
-        self.assertIn('if (_resume && {!_preserveEditedLeg}',finish)
+        self.assertIn('if (_resume && {_ownsFlight} && {!_preserveEditedLeg}',finish)
         self.assertIn('if (!_preserveEditedLeg && {',finish)
+
+
+class ForcedBehaviourIdentityTests(unittest.TestCase):
+    def test_force_flag_is_appended_to_shared_identity_for_native_and_driving_guards(self):
+        receipt=(ROOT/'addons/core/functions/authoredRouteReceipt.sqf').read_text(encoding='utf-8')
+        executable=receipt.split('_authored apply {',1)[1]
+        self.assertIn('waypointForceBehaviour _waypoint',executable)
+        self.assertLess(executable.index('waypointLoiterAltitude _waypoint'),executable.index('waypointForceBehaviour _waypoint'))
+        self.assertEqual(executable.count('waypointForceBehaviour _waypoint'),1)
+        for path in ('addons/core/functions/nativeOrderReceipt.sqf',
+                     'addons/vehicles/functions/drivingRouteReceipt.sqf'):
+            self.assertIn('call CBE_fnc_AuthoredRouteReceipt',(ROOT/path).read_text(encoding='utf-8'))
+        for command in ('setWaypointForceBehaviour','setWaypointBehaviour','compile','execVM'):
+            self.assertNotIn(command,executable)

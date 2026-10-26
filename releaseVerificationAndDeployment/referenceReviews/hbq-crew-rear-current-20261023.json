@@ -1,0 +1,40 @@
+{
+  "baseline": "f2b7bf47",
+  "scope": "Complete listed HBQ helpers and CBE crew/rear helpers; CortexVehicles dismount caller selectively read. Not whole-HBQ parity.",
+  "hashes": {
+    ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_crewHold.sqf": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076",
+    ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_rearClear.sqf": "1b1935da7b23dfb6f04093e7f3601c1cd615e0b1c10c71137978c37dc2d067bc",
+    ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_damageInit.sqf": "0f18385e7dfd448b41501c2633f166c1fdedbc72b8850299c0f15917c1d9b081",
+    ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_protectBriefly.sqf": "a5968313440ea8292bd0e997547cc6ad10bf7e4f1cd402f75337889717092ba7",
+    "addons/vehicles/functions/drivingCrewStep.sqf": "410338623291efab2cbf10b4a7c802e5e1e01e237b346065950426e8f61933bd",
+    "addons/vehicles/functions/drivingCrewBoarding.sqf": "a656ff89b0d7aab9189f2100c24be49bfff8e2c9c930e865b99325f3674ec9de",
+    "addons/vehicles/functions/cortexVehicleCrewRecover.sqf": "eb115042e94d423734d2621c2c4adf024f87d8f5ec03d4fc8b0ce86549bc0c94",
+    "addons/vehicles/functions/drivingRearClear.sqf": "e3bd46019f9abd68c3d3aa035d055f2431c72f17fc81e694bb28ea9088c53a73",
+    "addons/vehicles/functions/drivingRearPlan.sqf": "efc53bba8a77066c189fa12ad5a0399007f5b12e0ee70d75b41634c58139b9a6"
+  },
+  "findings": [
+    {
+      "area": "crew recall",
+      "source": "GetOut callback waits0.5s then force-seats assigned operating crew; initial guard checks assignment, not actual renewed boarding permission.",
+      "current": "CBE own combat exits examined are passenger exits and explicitly unassign actors. They do not provide an operating-crew recall episode. DrivingCrewBoarding observes actual GET IN only, with original60s and12s motion limits. DrivingCrewStep replaces dead drivers with finite native seat actions and original-goal acknowledgement; it is not outside-crew recall.",
+      "remaining": "Automatic physical operating-crew recall remains unimplemented. Need a distinguishable current crew-task authority or explicit owner order; do not remove the actual GET IN condition or force-seat from assignment. No new module introduced merely to hide this autonomous gap."
+    },
+    {
+      "area": "rear obstacle observation",
+      "source": "HBQ checks rear-sector vehicle/person proximity and six low solid rays.",
+      "current": "CBE independently evaluates full projected actor hulls and two-second overlap intervals, static support/deck, supported destination and straight/turning solid rays. DrivingRearPlan allows at most two observations. Angular velocity is radians/s clockwise per native documentation; current yaw conversion and clockwise rotation equations are consistent. No sign correction warranted.",
+      "limits": "Discrete samples do not establish continuous swept clearance. Unknown future steering and acceleration remain unknown. Up to64 actors and109 rays for a long turning observation is a static upper bound, not measured cost or compliance with5%/10% budget. No tuning changed without physical evidence."
+    },
+    {
+      "area": "damage protection",
+      "source": "Collision HandleDamage suppression and timed allowDamage protection are distinct from physical navigation.",
+      "current": "CBE has no general collision-damage suppression; rejecting teleport/recreate does not implement this feature. Existing exact hitpoint monitoring only interrupts recovery on damage.",
+      "remaining": "Do not claim damage-policy parity. Broad invulnerability and overlapping independent restore timers remain rejected; any selected collision filter needs event-category and coexistence validation."
+    }
+  ],
+  "nativeSources": [
+    "https://community.bistudio.com/wiki/angularVelocityModelSpace",
+    "https://community.bistudio.com/wiki/velocityModelSpace"
+  ],
+  "validation": "No production edit, no repeated full build. Focused existing crew and reference-boundary checks only. Physical validation remains paused. No percentage or acceptance credit."
+}

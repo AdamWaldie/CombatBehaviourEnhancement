@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-20",
+  "scope": "CQB grenade interruption lifecycle",
+  "sourceCommit": "ed00a8d356ec5392e562037a39ff586eddeb2cf9",
+  "sourceHashes": {
+    "addons/infantry/functions/cortexGrenadeCheck.sqf": "81f3876b6f71fc969570cfa5df88d1d5c4b4b5e00ac4a30488a6306b72f9e67d",
+    "addons/infantry/functions/cortexActorMoveReserved.sqf": "d43e6feff6eaf0368fff3840517d720557c455b30ea17d0fad3ed4479e8d90c3",
+    "addons/infantry/functions/buildingActorMotion.sqf": "0cc11b7fe571ef32266ffc7bbe9ece48741a12b91296d07a89d783163c808167",
+    "addons/infantry/functions/buildingOperationStep.sqf": "365fba22411f21c795d960525cc577c9b9567eb0c5624c006e05788c039a54ae"
+  },
+  "findings": [
+    "BuildingOperationStep actorAvailable rejects live ActorMove reservations, including GRENADE_EVASION.",
+    "Replacement selection and its atomic commit both interpret actorAvailable refusal as a replacement condition. A temporary evader can therefore lose its original pair slot.",
+    "Both-unavailable lane handling returns the unfinished room claim to pending and advances the lane cursor.",
+    "Available-roster reconstruction can switch mover identity and reset entry state when the only entered actor is temporarily excluded.",
+    "BuildingActorMotion preserves a separate ClearMotion receipt; grenade movement changes the native destination, so retiring the grenade marker alone does not restore clear movement ownership."
+  ],
+  "implementationRequirements": [
+    "Distinguish an exact finite same-episode CBE evasion from casualty, specialist takeover and authored replacement.",
+    "Suspend affected lane issue and reserve promotion while the exact interruption is active; retain original absolute hard deadline, room claim and pair identity.",
+    "After interruption, require current group/epoch/clear generation/building transform/native route and actual grenade destination acknowledgement before replacing native motion.",
+    "Reissue only through existing clearance executor after fresh geometry/task checks; never replay a stale ClearMotion receipt as live authority.",
+    "Changed order, death, expiry of overall clearance or external ownership must retain existing cancellation/replacement semantics."
+  ],
+  "status": "Acknowledged live evasion retains lane; exact owner-local interrupted MOVE handback implemented, physical acceptance pending",
+  "physicalEvidence": false,
+  "audits": "PAUSED",
+  "implementation": {
+    "scope": "Roster, claim and lane-state retention only; no native command replay",
+    "gates": [
+      "Exact typed finite GRENADE_EVASION lease, remaining time at most six seconds",
+      "Native escape destination within 0.25m; ordinary actor authority and availability safeguards",
+      "Paused lane skipped before replacement and room-state mutation",
+      "Suspended actors retain assignments and capable-lane accounting but gain no visit credit",
+      "No premature empty-worker completion; original deadlines still terminate"
+    ],
+    "validation": "607 focused and full 1477 tests, HEMTT/FSM/build, independent candidate verification passed",
+    "candidate": ".qa/candidates/cqb-evasion-retention-ed00a8d3",
+    "fingerprint": "76c966c6dc26ccffe5006a21fe3ed1548b569fbf982e83623db4a1896344aff9",
+    "physicalAcceptance": false
+  },
+  "returnImplementation": {
+    "capture": "Before escape, only an acknowledged existing room MOVE matching current ClearMotion and visit context receives a local proposal.",
+    "proof": "Original ClearMotion unchanged, same visit context/owner epoch/operation/issuing client, expired evasion, unchanged actual escape destination, no replacement actor reservation.",
+    "executor": "Existing roomCommandOwned and atomic room mutation boundary select current target and issue; rememberMove consumes proposal. Exact motion retirement clears matching proposal.",
+    "limits": [
+      "No proposal transfer across locality/epoch changes",
+      "No handback for unacknowledged initial room orders or interrupted non-MOVE tasks",
+      "Original hard deadline, physical visit proof and geometry budgets unchanged",
+      "Native escape acknowledgement timing and repeated interruption remain unverified in engine"
+    ],
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verification passed",
+    "candidate": ".qa/candidates/cqb-evasion-return-e9542b20",
+    "fingerprint": "97ebf6aacd4ecc7a2ed3364dce2d28cb6496b5c774f70b4e59a03d27c8cedb5a"
+  },
+  "acknowledgementWindow": {
+    "finding": "Immediate escape destination acknowledgement was required for lane retention; asynchronous native acknowledgement could therefore trigger replacement first.",
+    "implementation": "Retain unchanged original room destination for first two seconds of the original six-second evasion lease, only with exact original ClearMotion, visit context, lease/escape/expiry, operation, epoch and issuing client. No native command or clock writes.",
+    "candidate": ".qa/candidates/cqb-evasion-ack-98bac596",
+    "fingerprint": "9ed16c710fd07b2dad5fee68a39cd701c71caf145d9b27d3383ca7df3b8465d7",
+    "validation": "1477 tests, HEMTT/FSM/full build and independent verification passed",
+    "limits": "Actual delayed acknowledgement/repeated evasion/migration and runtime overhead unverified; audits paused."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "585c1514",
+  "scope": "HBQ per-vehicle feature intent applied to existing CBE driving-aid scopes",
+  "referenceHashes": {
+    ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_feature.sqf": "ab58aaf35138921241af0f42813b0e14457f64c5820e758c927b874c0a415b06",
+    ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_enabled.sqf": "85376a43ee2e9b07a117a977dea91158da5633a1ad3a9e36b91001f4c898c598"
+  },
+  "originalsModified": false,
+  "sourceIntent": "An operator can disable a driving feature on one vehicle independently of other vehicles, layered over global defaults.",
+  "implementation": [
+    "Optional actual vehicle argument to shared feature helper reads CBE_Driving_DisabledFeatures; list/ALL can only exclude, never enable CBA/group-disabled features. Invalid container refuses the aid without mutation.",
+    "Actual vehicle is bound at ordinary assistance selection, startup candidates, native cap publication, recovery issue/retry, crew handling, bypass/corridor, passing preparation/consent, queue-owner recovery validation, server gate commit and deferred native path checks.",
+    "Convoy lead and each follower independently resolve optional driving/path aid. An excluded lead does not disable other followers; excluded followers discard retained optional path caps and clean path observers while convoy spacing/task remains.",
+    "Ordinary master exclusion uses existing exact-owner release. Recovery/automatic passing exclusions retain current issued-leg safety and pending-native handback policy; no forced stop or stale replay is introduced.",
+    "CBA remains global configuration. Published mission object exclusions are script controls, not a new Zeus settings module or force-enable UI."
+  ],
+  "departures": [
+    "HBQ per-vehicle force-enable over global disable is deliberately not copied.",
+    "Keys implement the five existing CBE ordinary/recovery/automatic-passing/convoy-assist/convoy-route-recovery scopes, not every distinct HBQ feature variable.",
+    "No Eden per-vehicle settings surface is added. Automatic passing exclusion does not revoke explicit manual task authority beyond the existing CBA semantics."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/cortexFeatureEnabled.sqf": "b0d7e26858bb56df0b0f65eabebe163457a0a80111d9a62a1ab9d34e83ce783c",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "6a1450d809929c2f593a2333ce6778120687927131bda8cb3029431ec0298658",
+    "addons/vehicles/functions/drivingOperationStart.sqf": "87ba5fbd8a170d4417a319fbf5633f870d7ee68a97f93318079d4d67e059c825",
+    "addons/vehicles/functions/drivingBypassStep.sqf": "a16bc4dbef424e63224319a64766d0db688cf65c1a833fda335c5f8ee4bd3ecb",
+    "addons/vehicles/functions/drivingCorridorStep.sqf": "39749208fa8e9f9d348d921c819173a083ddd2cb26ebef5e673c370b555fcb4b",
+    "addons/vehicles/functions/drivingCrewStep.sqf": "79aa85cd40c318151f6135466e843b90d76c4db88fcb03a0737289267d652ce3",
+    "addons/vehicles/functions/drivingGateOpenServer.sqf": "3a87598ac7a1c44ed05f3271bcf7fd080a2defd8f005cf2f4e7984bfa6c30987",
+    "addons/vehicles/functions/drivingNativePathWatch.sqf": "c8803fb34381aaa064f81b43970b0bfb5bf224dd8cdecdbe92fa97b63f5c3ceb",
+    "addons/vehicles/functions/drivingPassAdmission.sqf": "4047d926a95085c3e72a162de0067355780dae05c9ca1a6bd9206f47b2a38495",
+    "addons/vehicles/functions/drivingPassCanConsent.sqf": "2747d942cb9d01e7e14e10babbb58b5745f19b4563443458784f979069e1694f",
+    "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "dd1cf096dc375297f8e5636a676289d4861aecae4306b8330b83b3df394c31a8",
+    "addons/vehicles/functions/convoyTick.sqf": "d1b5c7085ebcffc53181919649ce71278cf4275daabbb051b9c6a94d4ad6d45b"
+  },
+  "validation": {
+    "compiler": ".qa/cbe-driving-vehicle-exclusions-initial-hemtt.log",
+    "drivingFocused": ".qa/cbe-driving-vehicle-exclusions-focused.log",
+    "lifecycleFocused": ".qa/cbe-driving-vehicle-exclusions-lifecycle.log",
+    "fullBuild": ".qa/cbe-driving-vehicle-exclusions-build.log",
+    "tests": 1476,
+    "independentVerify": ".qa/cbe-driving-vehicle-exclusions-independent.log",
+    "fingerprint": "456b153a5daae8daedf5990e18a336024953d6877422ae411c6afc7a92e18fac",
+    "source": "585c1514+dirty unsigned development; not a later clean commit package",
+    "retainedFocusedFindings": "Prior guard text changed; test now checks both vehicle exclusion and native destination-control authority. Passing retains its false CBA default; binding check accepts true/false rather than changing defaults.",
+    "buildoutEvidence": "passed; scores unchanged"
+  },
+  "newWorkers": 0,
+  "newHandlers": 0,
+  "newTestCases": 0,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "remaining": [
+    "No full-HBQ feature-variable parity or native queue execution claim.",
+    "Live per-vehicle exclusions, issued reverse/pass handback, independent mixed-column behavior and normal/HC/JIP delivery remain unverified.",
+    "No measured performance result for extra read-only per-vehicle gate reads."
+  ]
+}

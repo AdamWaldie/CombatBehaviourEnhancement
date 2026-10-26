@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "ff486829",
+  "scope": "Selected marked-corridor pitched support profile; not shallow-ford support, automatic grade following or whole-HBQ parity.",
+  "referenceIntent": "HBQ marked navigable area carries an otherwise unusable crossing and restores native route; useful task intent retained. CBE keeps measured dry/deck support and original finite owner lifecycle, not terrain-only/fixed-path assumptions.",
+  "reviewedReferences": [
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_moduleNavArea.sqf",
+      "sha256": "b544b431168d68cadc8e8d5e74e79c8df92149fba61c993668fc0c328d82de4e",
+      "scope": "Complete file read."
+    },
+    {
+      "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "scope": "Selected2380..2466 navigation-area admission/approach/cross/route-return branch, plus earlier selected support-ray context. Not whole controller re-review."
+    }
+  ],
+  "finding": "CBE permits module up.Z>=0.98 but flattened vectorDir before creating all guide stations at constant centre elevation. A supported moderately inclined selected crossing could therefore fall outside the vertical support search at its ends.",
+  "implementation": [
+    "Use captured transform direction: normalise its horizontal projection for unchanged length/width/projection, preserve longitudinal Z/horizontalLength as selected plane grade.",
+    "Guide XY and horizontal spacing unchanged; add along*axisGrade to each guide elevation. Flat module remains same profile, both entry directions reverse the same stations.",
+    "Keep finite tilt threshold, measured support/normal/cross/longitudinal slope/body clearance/water rejection and post-query transform validation. Degenerate horizontal axis refuses. No terrain-height fallback or vehicle transform correction.",
+    "Arithmetic only over existing bounded stations; one fewer repeated vectorDir read by using captured transform. No added world query, ray, path worker, setting or task payload. Same20 support stations/60support+171body=231ray proposal bound.",
+    "Existing corridor sampling test extended with pitch-8/0/+8, four bearings, both entry directions, plane residual, reversal, unchanged horizontal spacing/station/ray bounds. This analytical model plus source wiring is not engine execution."
+  ],
+  "validation": {
+    "focusedLog": ".qa/hbq-corridor-pitch-focused-20261025-attempt1.log",
+    "focusedTests": 25,
+    "status": "FULL_OFFLINE_BUILD_AND_INDEPENDENT_VERIFY_PASS",
+    "fullLog": ".qa/hbq-corridor-pitch-build-20261025-attempt1.log",
+    "tests": 1497,
+    "compiledSqf": 419,
+    "pboCount": 11,
+    "independentLog": ".qa/hbq-corridor-pitch-independent-20261025.log",
+    "candidate": ".qa/candidates/hbq-corridor-pitch-ff486829",
+    "fingerprint": "152eb840bd75e0e975591ea7be5b26dbf3f383c4124e6c55dcfb1bb554dfc7e4",
+    "provenance": "Unsigned dirty development package from baseff486829 plus recorded runtime hash. Engineering index/handover postdate package; no physical acceptance."
+  },
+  "remaining": [
+    "Marked module must be pitched to intended support plane; not automatic adaptation to arbitrary rolling terrain. No shallow-ford policy or waterline calibration added.",
+    "Physical ascent/descent/entry/exit, elevated decks/underpass rejection, convoy tail, repeat/Zeus/HC/JIP and5%median/10%p95 cost remain UNRUN. Audits PAUSED.",
+    "Sparse geometry remains a proposal, not swept hull/road-network/PhysX clearance proof. WholeHBQ and fullCBE production objective remain incomplete."
+  ],
+  "runtimeHashes": {
+    "addons/vehicles/functions/drivingCorridorGeometry.sqf": "f9ce326069040def241908c8824c7168c626fceb02bd254141e6291a022915c9"
+  },
+  "acceptance": false,
+  "scoresChanged": false,
+  "frontendScope": {
+    "Eden": "ModuleDrivingCorridorMission uses the persistent placed logic and registers its existing transform without flattening/recreation.",
+    "script": "DrivingCorridorRegister accepts an existing logic; its live orientation selects the profile.",
+    "Zeus": "Existing creation/edit dialogs expose heading, not a new pitch value. No new pitch UI/payload or setting claimed.",
+    "executor": "DrivingCorridorStep common geometry admission serves ordinary and convoy modes; captured transform and support stations remain in runtime checks."
+  }
+}

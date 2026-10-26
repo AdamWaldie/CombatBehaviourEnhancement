@@ -9,6 +9,9 @@
  *
  * Locality / Authority: execute where the civilian is local. The reaction marker is public so a
  * locality transfer cannot immediately duplicate the same response.
+ * Native tasks and actor reservations refuse new escape work. Native group pace, behaviour
+ * and actor posture remain unchanged; this route does not acquire settings ownership.
+ * The final write rechecks the observed command, destination and authored route atomically.
  * Repeat/JIP: reactions are generation owned and cooldown limited. A stronger danger may replace a
  * weaker active response; duplicate or weaker events cannot churn the route. JIP needs no replay.
  *
@@ -38,10 +41,31 @@ if (isNull _unit || {!local _unit} || {!([_unit] call CBE_fnc_CortexCombatEffect
     // convoy and aircraft work so an newer external ownership cannot be overwritten between
     // its event observation and this finite escape route.
     || {[group _unit] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
+private _group=group _unit;
+if (!local _group || {!simulationEnabled _unit} || {isObjectHidden _unit}
+    || {!isNull objectParent _unit} || {!(_unit checkAIFeature "MOVE")} || {!(_unit checkAIFeature "PATH")}
+    || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])} || {[] call CBE_fnc_CortexIsPaused}
+    || {[_unit] call CBE_fnc_CortexActorMoveReserved}
+    || {fleeing _unit}
+    || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}) exitWith {false};
+private _commandBefore=currentCommand _unit;
+private _goalBefore=+(expectedDestination _unit);
+private _orderBefore=[_group] call CBE_fnc_NativeOrderReceipt;
 private _cooldown=missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Cooldown",20];
 private _active=_unit getVariable ["CBE_Cortex_CivilianReaction",[]];
 if (_active isNotEqualTo [] && {serverTime < (_active param [0,0,[0]])}
     && {_priority <= (_active param [1,0,[0]])}) exitWith {false};
+// Ordinary native MOVE is mission ownership unless this exact active escape still owns its goal.
+private _ownMove=_commandBefore == "MOVE" && {count _active == 6}
+    && {serverTime < (_active param [0,0,[0]])}
+    && {(_active param [2,-1,[0]]) == (_unit getVariable ["CBE_Cortex_CivilianGeneration",-2])}
+    && {(_active param [5,[],[[]]]) isEqualTo _orderBefore}
+    && {private _goal=_goalBefore param [0,[],[[]]];
+        count _goal == 3 && {count (_active param [4,[],[[]]]) == 3}
+            && {_goal findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {(_active select 4) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+            && {_goal distance (_active select 4) <= 6}};
+if (!(_commandBefore in ["","WAIT","FOLLOW"]) && {!_ownMove}) exitWith {false};
 private _threatPos=if (_threat isEqualType objNull) then {
     if (isNull _threat) then {getPosATL _unit vectorAdd [sin (random 360),cos (random 360),0]} else {getPosATL _threat}
 } else {+_threat};
@@ -61,24 +85,33 @@ private _routeDestination=+(_route select 0);
 private _safeDestination=[_routeDestination,0,35,3,0,0.35,0,[],[_routeDestination,_routeDestination]] call BIS_fnc_findSafePos;
 private _safeRoute=[_origin,[[_safeDestination]],_threatPos,[],_threatObject,"INFANTRY"] call CBE_fnc_CortexSelectAvenue;
 private _destination=if (_safeRoute isEqualTo []) then {_routeDestination} else {+(_safeRoute select 0)};
-if ([group _unit] call CBE_fnc_CortexExternalTakeover) exitWith {false};
+private _issued=false;
+isNil {
+if (!local _unit || {!local _group} || {group _unit != _group}
+    || {!simulationEnabled _unit} || {isObjectHidden _unit} || {!isNull objectParent _unit}
+    || {!([_unit] call CBE_fnc_CortexCombatEffective)}
+    || {!(_unit checkAIFeature "MOVE")} || {!(_unit checkAIFeature "PATH")}
+    || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])} || {[] call CBE_fnc_CortexIsPaused}
+    || {[_unit] call CBE_fnc_CortexActorMoveReserved}
+    || {fleeing _unit}
+    || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+    || {(_unit getVariable ["CBE_Cortex_CivilianReaction",[]]) isNotEqualTo _active}
+    || {currentCommand _unit != _commandBefore} || {(expectedDestination _unit) isNotEqualTo _goalBefore}
+    || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _orderBefore}
+    || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {};
 private _generation=(_unit getVariable ["CBE_Cortex_CivilianGeneration",0])+1;
 private _until=serverTime+(_cooldown max 2);
-// A stronger event may replace an active route, but it inherits the values captured before CBE's
-// first generation. Otherwise an Explosion replacing FiredNear would "restore" CARELESS/FULL/UP.
-private _restore=if (_active isNotEqualTo []) then {
-    _active param [5,[behaviour _unit,speedMode group _unit,unitPos _unit],[[]]]
-} else {[behaviour _unit,speedMode group _unit,unitPos _unit]};
+// Stronger danger replaces only its own route. Native behaviour, group pace,
+// posture and skill settings remain mission-owned throughout the escape.
 _unit setVariable ["CBE_Cortex_CivilianGeneration",_generation,true];
 _unit setVariable ["CBE_Cortex_CivilianReactionUntil",_until,true];
-_unit setVariable ["CBE_Cortex_CivilianReaction",[_until,_priority,_generation,toUpperANSI _cause,_destination,_restore],true];
-_unit setBehaviour "CARELESS";
-_unit setSpeedMode "FULL";
-_unit setUnitPos "UP";
+_unit setVariable ["CBE_Cortex_CivilianReaction",[_until,_priority,_generation,toUpperANSI _cause,_destination,+_orderBefore],true];
 _unit doMove _destination;
 [CBE_fnc_CortexCivilianStep,createHashMapFromArray [
     ["group",group _unit],["unit",_unit],["generation",_generation],["destination",_destination],
-    ["until",_until],["restore",_restore],["lastPosition",_origin],["lastProgressAt",serverTime],
+    ["until",_until],["nativeOrder",+_orderBefore],["lastPosition",_origin],["lastProgressAt",serverTime],
     ["reissued",false],["subsystem","TACTICS"]
 ],2,"CBE_CIVILIAN_"+netId _unit] call CBE_fnc_CortexQueueJob;
-true
+_issued=true;
+};
+_issued

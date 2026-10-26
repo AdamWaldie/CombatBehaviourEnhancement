@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "fcf3c299",
+  "scope": "CALM/post-contact point search admission and exact completed-hold transfer",
+  "finding": [
+    "Known-contact search published planned roster/phase/cooldown even after all actor move guards refused; STOP/FOLLOW were admissible as idle.",
+    "Area-report search consumed its clue and changed phase even when GroupMove returned no waypoint.",
+    "Post-contact SECURITY search uses a separate STOP/FOLLOW path; cannot blindly reject all STOP because completed CBE manoeuvre holds need a real transfer."
+  ],
+  "implementation": [
+    "CALM nearby individual policy selects idle non-planning unreserved riflemen, repeats native idle/planning guard at command boundary, records only issued roster.",
+    "Selected individual policy does not fall back to a whole group route on admission refusal.",
+    "Actual actor issue or valid group waypoint gates phase/cooldown/posture/counter publication. Refused area waypoint leaves original report expiry unchanged.",
+    "Post-contact selection preserves planning/protected tasks and different follow targets; plain formation FOLLOW toward current leader remains admissible. STOP needs exact HolderRecallOwned proof.",
+    "Completed CBE hold transfers to fresh search token under existing atomic issue boundary. Ordinary holder reunion membership is removed; immutable native hold position/route and new issuer proof remain checkpointed. Optional fourth search receipt field binds cleanup to this successor token.",
+    "SearchMoveOwned allows only matching transferred STOP through existing exact holder proof, not arbitrary STOP. Metadata-only SearchHoldRelease retires matching issuer at contact/search/calm terminal transitions; no native commands.",
+    "Post-contact published roster derives from issued receipts, and no issue transitions to REGROUP/NO_SEARCH_ISSUED rather than SEARCH_TEAM_SENT."
+  ],
+  "sourceHashes": {
+    "addons/main/CfgFunctions.hpp": "0a602f2d59b5318b3c33ade1e9592935c4ab92d41b8b80fe71c4150ad9931275",
+    "addons/infantry/functions/cortexGroupTick.sqf": "05a35ada92f0fe2700e2b4849e4bd95060bb62947196c563c9f91f7b3c3eaa21",
+    "addons/infantry/functions/cortexSearchMoveOwned.sqf": "f17b6631e30b7e67249f83adfe52969ed14e146b7639d6213df04043fc4cccbe",
+    "addons/infantry/functions/cortexSearchHoldRelease.sqf": "7962f33a90c6132020f748d4b2942662714097fdb851ca8b6aa55c6f203292c2",
+    "addons/infantry/functions/cortexRestoreCalm.sqf": "7ab28c03cabdae1045c5d224632db6f664a4772a53fdc8636750bf721a109309",
+    "docs/Smart-AI-Pass.md": "76b4360b12db29c07400002493eeec827d57a6dab5955718773d1a044f05d418"
+  },
+  "validation": {
+    "compiler": ".qa/cbe-search-point-admission-final-hemtt.log",
+    "focused": ".qa/cbe-search-point-admission-focused.log",
+    "existingCases": 611,
+    "firstHoldFocused": ".qa/cbe-search-hold-transfer-focused.log",
+    "firstHoldFinding": "New helper missing from source register; added to existing search family with acceptance unchanged."
+  },
+  "newWorkers": 0,
+  "newGeometryQueries": 0,
+  "newTestCases": 0,
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "fullBuild": {
+    "log": ".qa/cbe-search-point-hold-batch-final-build.log",
+    "tests": 1476,
+    "compiledSQF": 342,
+    "independentVerify": ".qa/cbe-search-point-hold-independent.log",
+    "fingerprint": "a8df07b7413dca1f12ba6fb172b8b52f054c3d57a0b8b2afc1f4258aac624a47",
+    "source": "fcf3c299+dirty development; unsigned; not a clean post-commit package",
+    "buildoutEvidenceCheck": "passed; scores unchanged"
+  },
+  "audits": "PAUSED",
+  "remaining": [
+    "Native same-leader FOLLOW or same-value STOP replacements cannot reveal command origin; ownership declarations/new values still preempt.",
+    "Actual point-search travel, CBE HOLD-to-MOVE acknowledgement and handback under normal/HC remain unverified.",
+    "Body-check task and portable generic actor-point execution are still not implemented by this fix.",
+    "Support gaze cleanup and measured runtime cost remain unverified."
+  ]
+}

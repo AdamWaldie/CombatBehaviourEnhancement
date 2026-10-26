@@ -1,0 +1,62 @@
+{
+  "base": "380b5084",
+  "finding": "Participant elements lacked early type/duplicate/size validation before owner adoption and outgoing attack-pace cleanup. Non-object entries could reach native local/getVariable commands; duplicate/oversized arrays could multiply progress work.",
+  "change": "Reject more than64 requested actors, non-object entries or duplicate objects before owner adoption/cleanup; copy accepted participant array and validated optional pair-element rows. Null/dead objects retain downstream eligibility filtering. Empty actor operations remain valid. Production caller trace uses unit/crew/selected actor lists or empty arrays.",
+  "evidence": {
+    "addons/core/functions/operationStart.sqf": "d37465fa236f8a9c3efb39b36f2bb548fd1c1233986b81212eea630b0db2fd17"
+  },
+  "validation": {
+    "focusedExistingCases": 610,
+    "existingFullCases": 1491,
+    "compiledSQF": 412,
+    "PBOs": 9,
+    "independentVerification": true,
+    "newCases": 0
+  },
+  "candidate": ".qa/candidates/operation-participant-admission-380b5084",
+  "fingerprint": "ecce08063955e8647f3aa8a9dc526ade29214b1de4008a6042f3707bcfb11ad3",
+  "limits": "Offline validation/admission correction, not native execution or measured frame-budget proof. Unsigned dirty development includes unrelated dirt; private review/guidance/notes postdate package. Audits PAUSED.",
+  "boundedArraysFollowup20261024": {
+    "base": "17c7f3d8",
+    "finding": "Optional partition rows scanned membership before size refusal; geometry arrays copied before route/objective size rejection. Actor bound alone did not bound these costs.",
+    "change": "Each of at most2 element rows must fit admitted participant count before membership scan/append. Route rejects more than512points and array objective rejects sizes outside0/2/3 before geometry copies. Existing finite-coordinate validation remains. No silent truncation, new worker/query, command, timer or lifetime renewal.",
+    "sourceHash": "ddd8105ff7ae523ee3e57c5688013abdf0e59d7dddf3a84afb738c3aec608fc8",
+    "validation": {
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/operation-bounded-admission-17c7f3d8",
+    "fingerprint": "a6ae3d5a37e1ed0b950054046b8e9d80380cb5f3971dc602ecc5953ad18ee83d",
+    "limits": "Admission bounds only, not measured runtime overhead or physical lifecycle proof.512route bound matches existing maximum clearance topology. Unsigned dirty development includes unrelated dirt; private review/notes postdate package. Audits PAUSED."
+  },
+  "groupScopedPaceCleanup20261024": {
+    "base": "5a9cfdae",
+    "finding": "Requested foreign-group actors were filtered from final operation participants but processed earlier by DangerAttackPace RELEASE; their receipts could also block this group operation. The helper permits local exact receipt retirement and therefore did not enforce the caller group boundary.",
+    "change": "Build bounded nonnull same-group pace actor list inside the existing unscheduled transaction; use it for both release and pending check. Preserve final eligibility filtering, exact restoration and original finite cleanup. No new worker, query, timer or native animation.",
+    "sourceHash": "9c872b680e90c0472988dbc5bd4fe318f77acdb96e93d778a7343f75a767e610",
+    "validation": {
+      "focusedExistingCases": 610,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/operation-pace-group-scope-5a9cfdae",
+    "fingerprint": "afe8b5784d33ad7851508f40682d73ab9ae794fa58a39132ea5c51b98ae04d78",
+    "limits": "Source authority correction; cross-group physical behaviour and measured performance remain unverified. Unsigned dirty development includes unrelated dirt; review and handover postdate package. Audits PAUSED. No animation distortion reproduced or fixed."
+  },
+  "groupScopedPaceRuntimeProcedure20261024": {
+    "base": "0e2823d3",
+    "scope": "Prepared cleanup-isolation runtime procedure in existing runScheduler, not executed while audits are paused. Cancellation/release source trace confirms original operation, generation and owner-epoch retirement gates; no new cancellation defect established.",
+    "method": "Fresh foreign group obtains native SPEED1 through real OperationStart/ActorSettings. Explicit synthetic pace envelope uses that exact context solely to exercise cleanup authority, not to fabricate native danger or combat completion. Mixed requested actor list must admit only target group actors and preserve foreign native cap, setting receipt, pace envelope and operation. Explicit actual-owner DangerAttackPace RELEASE must restore captured baseline. Prerequisite failure cannot pass preservation or release.",
+    "sourceHash": "1d72a74b135877cf22cc9aff21191d84c809d53f1c853bcf39e4497aa0879163",
+    "validation": "610 existing focused and1491 full offline cases,412 compiled SQF,9PBO,independent package pass. Three targeted assertions in existing runtime procedure; no added Python cases. In-engine procedure UNRUN.",
+    "candidate": ".qa/candidates/operation-pace-runtime-procedure-0e2823d3",
+    "fingerprint": "4c4fdf75c852f3de0167554d99b0c61079fa9c6da1fc9a3ba0a89a69c02a8783",
+    "limits": "Unsigned dirty development includes unrelated dirt; metadata postdates package. No physical/animation/performance/parity/score credit. Audits PAUSED."
+  }
+}

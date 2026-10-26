@@ -1,0 +1,22 @@
+{
+  "base": "ca778db2",
+  "scope": "Convoy operating-turret explicit fire admission; existing position-based cone and explosive blast veto",
+  "finding": "ConvoyCrewLocal called CortexLineOfFireClear without magazine argument, bypassing its existing configured explosive aimpoint-blast exclusion. The same helper already supports actual loaded magazine metadata for other ground-vehicle fire.",
+  "change": "One native weaponState query on the exact fullCrew turretPath after hostile selection. Complete typed nonempty station state, positive loaded rounds, finite nonnegative round phase and completed magazine reload required. Pass current magazine to the existing shared veto. No weapon switching, inventory change, new worker or movement command. Existing exact target retirement remains.",
+  "counterexample": "At100m aimpoint, a friendly15m to the side is outside the10.7m cone but inside the20m configured exclusion for indirectHitRange5. Old cone-only invocation admits; magazine-aware invocation refuses. Ordinary bullet receives no invented blast radius.",
+  "engineReference": "https://community.bistudio.com/wiki/weaponState",
+  "sourceHashes": {
+    "addons/vehicles/functions/convoyCrewLocal.sqf": "68fd124b2ef2c81738008b0c16bd385d74e295b0e3225e447082ac397b8d46db",
+    "addons/infantry/functions/cortexLineOfFireClear.sqf": "b2738cda671bbd9d198c0c3b353502bcd4722d9d3d8da9476f14ca0b977349b0"
+  },
+  "validation": {
+    "focused": "2 existing convoy fire-lane cases passed; existing case extended, no new count",
+    "fullBuildLog": ".qa/convoy-station-blast-build.log",
+    "independentLog": ".qa/convoy-station-blast-independent.log",
+    "candidate": ".qa/candidates/convoy-station-blast-ca778db2",
+    "fingerprint": "bb6ba4015025ed92fc0ae05d04528c6d1f5f0e94c9a920c56f1e377272781a86"
+  },
+  "limits": "Request-time snapshot only. Native automatic weapon switching afterward, already active bursts, future motion, actual impact/penetration, physical convoy fire, mixed turret/HC and5%/10% overhead remain unverified. Unsigned dirty development includes unrelated preexisting dirt. Review and handover postdate package. No source-parity or build percentage change.",
+  "audits": "PAUSED",
+  "physicalAcceptance": false
+}

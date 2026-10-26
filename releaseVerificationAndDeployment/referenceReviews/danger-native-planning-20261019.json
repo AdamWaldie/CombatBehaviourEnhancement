@@ -1,0 +1,51 @@
+{
+  "baseline": "f32bcf1f",
+  "scope": "Native planning preservation and shared finite admission across cover, indoor actors and tactical reposition",
+  "reference": {
+    "workshop_id": "1858075458",
+    "version": "2.6.2.1",
+    "embedded_git": "711f433c57fe3a53a114919d16308f3eaf1f8648",
+    "danger_pbo_sha256": "252066f2c36108f55cbfea3506543f9583345d74e1351028f6269bdf2a7a0269",
+    "review_copy": ".qa/lambs-2621-review",
+    "originals_modified": false,
+    "runtime_dependency": false
+  },
+  "source_sha256": {
+    ".qa/lambs-2621-review/danger/functions/fnc_brain.sqf": "bc943d13c02dd2c8bbc5017530942854ef1f4442d2de537bc01a557802f3d9f2",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainEngage.sqf": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
+    ".qa/lambs-2621-review/danger/functions/fnc_brainReact.sqf": "c9bdec3da39c0010c806419606a7fb94f5861cf5d0b1ce72e47185d969a50e4c",
+    ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssault.sqf": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+    "addons/infantry/functions/dangerEngineAct.sqf": "627a8551ac4cf7e0a62baaf803712bd9222fb92b69bcc091456df9674dc58a9c",
+    "addons/infantry/functions/dangerCoverStep.sqf": "f77bfbc6f833acc3563a687098c7435392f9a8a62d58440b8563f72fe0f70208",
+    "addons/infantry/functions/dangerEngineSubmit.sqf": "dbd19dd998e83a2977ed365ee7701a4e49b2638f9d90bf65b99bfa18850e214d",
+    "addons/infantry/functions/cortexTacticalStart.sqf": "9f7436ec9ec9889f45982d63e2560e0b77e0c95dabe5f41a44e1b684584d6508",
+    "addons/infantry/functions/indoorActorDispatch.sqf": "1773c34127c15741063bb274708ead8015337c5b469cc1aada7be5eb31b6b51a",
+    "addons/infantry/functions/indoorActorOperation.sqf": "33442bdb9a6308c245165c294d05cfabd2884d108555428f37691fb8535ded5c",
+    "addons/infantry/functions/indoorActorNativeContext.sqf": "da311cce8f5b05bf8cade7cf2413b30800112a0d7be4b64c82d28e79b29d73bd",
+    "addons/infantry/functions/cortexTacticalReposition.sqf": "655960e71ed5e5b581580922b3f927fccba5c9023cee3426d9e67faf759b6e42",
+    "addons/core/functions/cortexFireControl.sqf": "9dbe58e017af8cde0241e16347f8e0066df5bbfb1a259f9027bff112790b7150",
+    "addons/infantry/functions/cortexGroupTick.sqf": "ea08353ebc39fe61301fc46ca5250ee5058fb74e26572ce7c784eb306c6ca35c"
+  },
+  "finding": "Reference brainEngage refuses action while getUnitState is PLANNING. CBE danger cover could select/issue a new destination while stationary native planning was pending.",
+  "implementation": "Cheap actor-state guard before geometry and at native issue boundary. Existing owned-cover continuation remains earlier; no new worker/cache/loop. Indoor dispatch and START now use the shared reservation predicate; tactical reposition removes its duplicated implementation. Existing indoor journal/brain and native context still refuse replacement.",
+  "functional_trace": [
+    "Reference brain classifies immediate, hide, engage and assess; CBE has corresponding engine classification and group submission. This is structural correspondence only.",
+    "Reference brainEngage directly calls close assault and distant suppression. CBE immediate action deliberately owns weak posture, while tactical and fire-control work is delegated. End-to-end equivalent behaviour remains to be established, especially individual close combat without a viable group drill.",
+    "Reference brainReact uses cover or dodge. CBE uses weak stance/native evasion plus finite group cover selection. Physical responsiveness and tactical outcome remain unverified.",
+    "CONTACT invokes whole-group building admission, then individual IndoorActorDispatch, then tactical manoeuvre. Individual START preserves PLANNING, busy same-contact paths and native target identity through IndoorActorNativeContext.",
+    "CortexFireControl implements close-threat target/fire for unreserved stationary actors and a CANFIRE-driven suppression opportunity. It preserves moving actors and applies ammunition, muzzle, suppression and line-of-fire guards. This is production-path evidence, not physical equivalence."
+  ],
+  "validation": {
+    "tests": 1476,
+    "sqf": 340,
+    "pbos": 9,
+    "full_log": ".qa/cbe-indoor-shared-admission-build.log",
+    "independent_verify": true,
+    "fingerprint": "a8327bf9f23f3a1cbaefce52b7aae92adc3624c735efa725687bd15db85f795c",
+    "manifest": "f32bcf1f + dirty native planning/shared admission",
+    "physical_acceptance": false
+  },
+  "next": "Examine standalone engagement and group tactical fallback behaviour, especially singleton/depleted actors and CANFIRE target selection; use existing execution paths rather than another controller.",
+  "audit_policy": "PAUSED",
+  "parity": "Not established by this partial source review."
+}

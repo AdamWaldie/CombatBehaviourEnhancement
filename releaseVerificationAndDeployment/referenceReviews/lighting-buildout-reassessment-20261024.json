@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-24",
+  "sourceCommit": "dfae5fd6047b53707304542617b60ce95e30c3ab",
+  "scope": "LIGHTING only; existing ambient/NVG/flashlight, refresh and scheduling contracts plus omitted native illumination execution",
+  "buildUnits": 3.5,
+  "scopeUnits": 4,
+  "percent": 88,
+  "correction": "Prior full flashlight credit was unsupported. Native UGL illumination existed but was omitted from the denominator. No runtime change.",
+  "otherFamiliesAndMetadataUnchanged": true,
+  "evidenceHashesMatch": true,
+  "remaining": [
+    "Scoped flashlight capability policy absent.",
+    "Ordered public receipt delivery and physical handback are not established by typed receipt structure.",
+    "Physical flare release, useful light, repeatability, normal/HC and performance remain unverified."
+  ],
+  "validation": "Scoped JSON/report/hash assertions and git diff --check passed. Whole-ledger checker failed on retained stale cortexAdvanceStart.sqf evidence; log .qa/lighting-buildout-whole-ledger-check.log. No full build repeated for documentation-only changes.",
+  "limits": "Not whole-source parity, overall mod percentage or physical acceptance. Audits paused."
+}

@@ -1,0 +1,44 @@
+{
+  "baseline": "2bfbb11c",
+  "scope": "owned native convoy straight-leg continuity",
+  "source_reference": {
+    "workshop_id": "3812620045",
+    "file": ".qa\\source-refresh-20261011\\inventory\\3812620045\\hbq_advanced_driving_ai\\functions\\fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "lines": [
+      2390,
+      2431,
+      2446,
+      2462
+    ],
+    "intent": "Finite APPROACH task is issued at state entry and retained until CROSS/retirement; this is a navigation-area controller, not convoy parity."
+  },
+  "defect": "Material candidate advance alone retasked a still-valid native destination; native recovery left the old extended target in current-goal metadata.",
+  "implementation": [
+    "same route/driver/operator/native destination required for retention",
+    "straight forward advancement and moving predecessor",
+    "existing reaction/deceleration/body-clearance envelope",
+    "peak observed motion retained for current leg",
+    "native recovery journals its actual target",
+    "bends/retractions/completed short-leg paths retained",
+    "capture-only CONTINUE observations"
+  ],
+  "validation": {
+    "tests": 1433,
+    "sqf": 331,
+    "pbos": 9,
+    "build_exit": 0,
+    "independent_verify": true,
+    "log": ".qa/cbe-convoy-native-continuity-final-build.log",
+    "fingerprint": "bcabaa980d764d64c10932f1ad5cbe634d7ba5d72f0af0500b1dc99bb5c6d55c"
+  },
+  "production_sha256": "83d38f8c65510946808404d74402c6c01d98a28b90e34ca19d4ccb7f80d5f365",
+  "remaining": [
+    "physical native tracked/mixed cadence and step-off",
+    "bends and grade/height variants",
+    "phase-specific native STOP ownership across corridor/bypass/pass/recovery",
+    "separate HC handover",
+    "5 percent median/10 percent p95 overhead"
+  ],
+  "acceptance": "offline only; all feature families partial"
+}

@@ -1,0 +1,49 @@
+{
+  "base": "d71af144",
+  "scope": "Complete40line HBQ rearClear helper and current CBE actor-overlap/prediction path; not renewed whole geometry/controller review.",
+  "reference": {
+    "path": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_rearClear.sqf",
+    "sha256": "1b1935da7b23dfb6f04093e7f3601c1cd615e0b1c10c71137978c37dc2d067bc",
+    "intent": "Rear-sector vehicle/person observation plus knee/bumper rays before recovery; source does not project future whole-body actor entry. CBE keeps physical recovery rather than source push/teleport."
+  },
+  "finding": "For straight motion, CBE current/predicted actor Y bounds ended at rear+0.5. Relative translation could bring an actor into the front/middle of the body within2s without that actor reaching the rear band. Blindly expanding current occupancy would also prohibit backing away from front contact.",
+  "counterexamples": {
+    "frame": "Metres in starting vehicle frame, own rear-3/front3, rear travel8, width+-1.3; interval math only, not engine evidence.",
+    "approachingFront": "ActorY3.5..4.5, relativeY-2: rear band-11..-2.5 misses2s; body band to3 admits new entry at0.25s.",
+    "crossingSide": "ActorX2.5..3.1,Y0..1,relative[-2,2,0]: new body entry overlaps within2s; rear band misses.",
+    "separatingFrontContact": "ActorY3..4,relativeY+2: added body interval begins0, so supplies no new veto; original rear policy unchanged."
+  },
+  "change": "Retain original rear interval result. Only when it is false and motion is straight, test additional full-body front extent and veto only positive future entry time. Turning retains existing expanded veto. Pure same three-axis interval helper reused; discovery radius includes new front extent and preserves250m refusal. No existing rear veto removed.",
+  "cost": "Same2 actor queries,64actor bound, four affine transform pairs per hull, existing geometry/support ray limits. At most2 three-axis interval tests per candidate; no new cache, worker, native command, physics, timer or lifetime. Extra arithmetic/call cost remains unmeasured.",
+  "hashes": {
+    "addons/vehicles/functions/drivingRearClear.sqf": "30d2173422e4a534b0c2635915b2d5d7c592537bba4c67d30e538a0e05f0247b",
+    "releaseVerificationAndDeployment/test_driving_rear_monitor.py": "3062809d8b5ac8076ea99b1f73a48378ebd5f083de6b7bf11410d9781a8f1092",
+    "releaseVerificationAndDeployment/test_rear_hull_projection.py": "591afbf1630edb9f0a77e5a96cc653a6357d43d288fe096a4b8d15afddfbe22e"
+  },
+  "validation": {
+    "focusedExistingCases": 23,
+    "existingFullCases": 1491,
+    "compiledSQF": 412,
+    "PBOs": 9,
+    "independentVerification": true,
+    "newCases": 0
+  },
+  "candidate": ".qa/candidates/rear-full-body-entry-d71af144",
+  "fingerprint": "a7ef2ee9e230172c37980d4875c5e29d990dc9697294fdd41ace39d356cc3010",
+  "limits": "Constant-velocity/source interval correction only. Existing front overlap is not declared safe; original rear/turn/solid/support policies remain. Future acceleration/steering, native braking, pedestrian avoidance, contact escape, normalHC and5/10performance unverified. Unsigned dirty development includes unrelated dirt; review/notes postdate package. Audits PAUSED; no parity/percentage/physical credit.",
+  "consumerTrace20261024": {
+    "base": "65686862",
+    "finding": "No new runtime bypass established in selected admission and active-leg paths.",
+    "plan": "At most two observations. Extended refusal falls back to ordinary; ordinary refusal can use short. Both call the same full-body two-second prediction; shorter rear distance does not shorten its front extent or horizon. Long queue demand has no short fallback.",
+    "ordinary": "Admission gates native reverse on returned clearance; active rear stage resamples DrivingRearClear before speed policy, applying zero traffic cap on refusal. Existing rear path rejection and original recovery deadlines remain.",
+    "withdrawal": "Each eligible reverse callback observes DrivingRearClear before START/active command logic; refusal invokes existing guarded release and FALLBACK. Commit checks observation/pose freshness, seats, native command receipts and ownership. Progress can refresh only dwell, not original hard deadline.",
+    "hashes": {
+      "addons/vehicles/functions/drivingRearPlan.sqf": "efc53bba8a77066c189fa12ad5a0399007f5b12e0ee70d75b41634c58139b9a6",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "f76c8f7249d46b831c8adf6e4a2a97c05a737d6dc552e86bca86335221312417",
+      "addons/vehicles/functions/cortexVehicleReverseStep.sqf": "ea1e43e71cc39e6c15b7662a2047f9bb530d4575aa37fb27883ae74d9d46040a",
+      "releaseVerificationAndDeployment/test_driving_rear_monitor.py": "5292dc0f5d81b46079509eef42f4a51452485e7fe7a8d74699fb2c602d7f178e"
+    },
+    "validation": "15 existing driving rear monitor tests pass in .qa/rear-consumer-trace-focused.log. Existing prediction regression extended with rear distances3.5/8/12/26; no new test cases. Python interval model does not execute SQF or native braking.",
+    "limits": "No physical collision avoidance, native stop acknowledgement, steering/acceleration prediction or performance proof. Runtime unchanged; prior package remains the runtime checkpoint."
+  }
+}

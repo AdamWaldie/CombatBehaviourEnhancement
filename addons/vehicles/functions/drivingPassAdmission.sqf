@@ -1,12 +1,15 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Observe sustained ordinary-road obstruction and prepare an opt-in automatic pass.
- * Locality/authority: Internal current driving owner only. OBSERVE reads the existing traffic
+ * Locality/authority: OBSERVE/STEP require the current driving owner. Brain-bound CANCEL
+ * retires only original machine-private metadata after locality loss. OBSERVE reads existing traffic
  * sample; STEP runs finite geometry/consent work on the shared scheduler. No movement or speed
  * writes: successful preparation enters DrivingPassBegin and the existing operation FSM.
  * Repeat/JIP: One two-second preparation per owner, eight-second observation and 60-second
  * context cooldown. Original deadlines never renew; owner/route/crew changes cancel. Private
  * jobs never migrate or replay. Late replies require the still-current request serial/context.
+ * CANCEL with a supplied brain retires only matching preparation/observation generations,
+ * including after locality loss. Empty-brain group/subsystem cancellation remains available.
  * Arguments: 0 mode <STRING>, OBSERVE/STEP/CANCEL; 1 group <GROUP>, grpNull;
  * 2 vehicle <OBJECT>, objNull; 3 driving brain <HASHMAP>, empty;
  * 4 traffic observation <ARRAY>, []; 5 proposed m/s <NUMBER>, 0;
@@ -56,20 +59,39 @@ private _finish={
     -1
 };
 if (_mode == "CANCEL") exitWith {
-    _job=_vehicle getVariable ["CBE_DrivingPass_Admission",createHashMap];
-    if (count _job > 0 && {!isNull _group} && {(_job get "group") != _group}) exitWith {false};
-    if (count _job > 0) then {["CANCELLED"] call _finish};
-    private _seen=_vehicle getVariable ["CBE_DrivingPass_AutoSeen",[]];
-    if (count _seen == 3 && {isNull _group || {((_seen select 0) select 0) == _group}}) then {
-        _vehicle setVariable ["CBE_DrivingPass_AutoSeen",nil];
+    private _cancelledMetadata=false;
+    isNil {
+        _cancelledMetadata=call {
+            if (isNull _vehicle) exitWith {false};
+            _job=_vehicle getVariable ["CBE_DrivingPass_Admission",createHashMap];
+            if (count _job > 0 && {!isNull _group} && {(_job get "group") != _group}) exitWith {false};
+            // A retiring brain can cancel after locality loss, but cannot cancel
+            // another generation's preparation, even in the same group.
+            private _bound=count _brain > 0;
+            private _generation=_brain getOrDefault ["generation",-1];
+            private _epoch=_brain getOrDefault ["ownerEpoch",-1];
+            if (_bound && {count _job > 0} && {
+                (_job getOrDefault ["brain",createHashMap]) isNotEqualTo _brain
+                || {(_job getOrDefault ["generation",-2]) != _generation}
+                || {(_job getOrDefault ["ownerEpoch",-2]) != _epoch}}) exitWith {false};
+            if (count _job > 0) then {["CANCELLED"] call _finish};
+            private _seen=_vehicle getVariable ["CBE_DrivingPass_AutoSeen",[]];
+            if (count _seen == 3 && {isNull _group || {((_seen select 0) select 0) == _group}}
+                && {!_bound || {((_seen select 0) select [0,3]) isEqualTo [_group,_generation,_epoch]}}) then {
+                _vehicle setVariable ["CBE_DrivingPass_AutoSeen",nil];
+            };
+            private _cruise=_vehicle getVariable ["CBE_DrivingPass_AutoCruise",[]];
+            if (count _cruise == 3 && {isNull _group || {((_cruise select 0) select 0) == _group}}
+                && {!_bound || {((_cruise select 0) select [0,3]) isEqualTo [_group,_epoch,_generation]}}) then {
+                _vehicle setVariable ["CBE_DrivingPass_AutoCruise",nil];
+            };
+            true
+        };
     };
-    private _cruise=_vehicle getVariable ["CBE_DrivingPass_AutoCruise",[]];
-    if (count _cruise == 3 && {isNull _group || {((_cruise select 0) select 0) == _group}}) then {
-        _vehicle setVariable ["CBE_DrivingPass_AutoCruise",nil];
-    };true
+    _cancelledMetadata
 };
 if !(_mode in ["OBSERVE","STEP"]) exitWith {false};
-private _enabled=[_group,"CBE_AIPass_DrivingAssist_Passing_Enable",false] call CBE_fnc_CortexFeatureEnabled;
+private _enabled=[_group,"CBE_AIPass_DrivingAssist_Passing_Enable",false,_vehicle] call CBE_fnc_CortexFeatureEnabled;
 if (_mode == "OBSERVE" && {!_enabled} && {isNil {_vehicle getVariable "CBE_DrivingPass_Admission"}}
     && {isNil {_vehicle getVariable "CBE_DrivingPass_AutoSeen"}}) exitWith {1e6};
 private _current=_enabled && {!isNull _group} && {local _group} && {!isNull _vehicle} && {local _vehicle}

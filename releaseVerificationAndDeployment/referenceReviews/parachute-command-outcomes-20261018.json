@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-18",
+  "scope": "Parachute dismount result and delayed boarding authority",
+  "source": "addons/infantry/functions/cortexParachuteJump.sqf",
+  "sha256": "cab061adc83e490b77fcf552f0e9b016eeac6279650a95e5f7594aed42d856aa",
+  "prior_source_review": "hbq-damage-protection-20261018.json",
+  "finding": "Previously applied exit pose and velocity after moveOut without observing on-foot outcome; delayed boarding retained only locality/vehicle/token checks.",
+  "implementation": [
+    "Require actual local on-foot outcome before applying exit pose/velocity.",
+    "Queue acquired protection cleanup even when dismount fails; return false and queue no chute.",
+    "Recheck readiness, simulation, visibility, reservation, player/remote/external ownership and exact exit identity in unscheduled delayed boarding block."
+  ],
+  "validation": {
+    "log": ".qa/cbe-parachute-command-outcomes-build.log",
+    "tests": 1130,
+    "sqf_compiled": 314,
+    "pbos": 9,
+    "exit_code": 0,
+    "fingerprint": "5752f2d400d70d2e54c2d6dec7515d67e42e55b46cecedc1baa817c39eefaae5",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "remaining": [
+    "Durable actual chute-phase locality migration",
+    "Late protection receipt observation after native Local/init",
+    "Same-value external protection requires cooperation",
+    "Physical failed dismount, takeover, delayed boarding and performance acceptance"
+  ]
+}

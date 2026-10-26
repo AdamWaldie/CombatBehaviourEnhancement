@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-22",
+  "baseline": "39b0a78d",
+  "scope": "Cheap native danger continuation feature-gate type contract",
+  "finding": "Shared CortexFeatureEnabled already refuses non-Boolean settings and non-array exclusion containers. DangerEngineCanContinue directly negated the danger switch and performed membership on exclusions without first checking those types, allowing malformed mission data to fault instead of cleanly refusing the engine response.",
+  "changes": [
+    "Read the danger enable value once and require Boolean type before negation.",
+    "Require an array exclusion container before ALL/feature membership. Valid true/false and normal exclusion behaviour remain unchanged.",
+    "Keep the cheap actor/group/parent gate path; no full group feature-helper call, squad scan, world query, actor command, state write or new worker. Existing exact FSM release owns cleanup after refusal."
+  ],
+  "validation": {
+    "full": ".qa/danger-cheap-gate-types-build.log",
+    "tests": 1489,
+    "result": "PASS including HEMTT/FSM/config/SQF/documentation/package gates. Existing regression asserts guard ordering and illustrative enable/exclusion type policy; no new test cases.",
+    "candidate": ".qa/candidates/danger-cheap-gate-types-39b0a78d",
+    "fingerprint": "733a03cdd934c9b3a3940fa16833f1388202f16fae46d91e143f8be722a2481c",
+    "independent": ".qa/danger-cheap-gate-types-independent-verify.log",
+    "provenance": "Unsigned39b0a78d plus intended source/doc edits and retained unrelated working-tree dirt. Later engineering metadata not product source. Not a clean signed release.",
+    "limits": "Source checks/Python policy model do not execute native SQF, prove actual script-error recovery or establish physical FSM interruption/stance restoration/locality/performance. Audits paused."
+  },
+  "cost": "One existing namespace read retained; additional constant type comparisons in the cheap gate. No new squad/world scan. Frame-time cost unmeasured.",
+  "remaining": [
+    "This addresses only the danger switch and exclusion-container contract, not arbitrary malformed mission state.",
+    "Native danger response, forced escape behaviour, mounted command assumptions, tactical efficacy and5%median/10%p95 performance remain unverified or incomplete.",
+    "Full production goal and real external-provider handovers remain incomplete."
+  ],
+  "evidence": {
+    "addons/infantry/functions/dangerEngineCanContinue.sqf": "71a009cc758ddb4d5fd79061e929450c28cd0f5a422df52b6bb73b34e1c5739e",
+    "addons/infantry/functions/cortexFeatureEnabled.sqf": "b0d7e26858bb56df0b0f65eabebe163457a0a80111d9a62a1ab9d34e83ce783c",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "12140e64c598ec11f964ca41ec27afd798dad8948a3ef9e76a6b8dec1fbba204",
+    "docs/Smart-AI-Pass.md": "2c9bf5d41d2aeb35ca849adf19fe4beb85a9935d2fcc0fee60f0c74395a3886e"
+  },
+  "intent": "Shared ownership/settings refusal foundation; not a LAMBS parity score or new tactical behaviour claim."
+}

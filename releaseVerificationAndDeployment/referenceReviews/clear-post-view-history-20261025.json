@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-25",
+  "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "CQB exterior post obstruction history",
+  "sourceFindings": [
+    "Exterior reserves already receive explicit native approach/hold roles; formation fallback was not established as the current screenshot cause.",
+    "reserveStageViewChecks was private-only and not reconstructed from the exterior stage journal after ownership migration.",
+    "A new post retained the same actor-keyed previous blockedSince, allowing an old obstruction to consume the new posts transient grace."
+  ],
+  "implementation": [
+    "Existing stage budget row gains optional exact post/watch/next-due/blocked-since receipt for a currently ARRIVED blocked post.",
+    "Resume restores history only after exact role/native marker commit and validation of coordinates, finite original timestamps and original episode bounds.",
+    "First blockage/clear transitions mark the existing journal dirty; unchanged periodic view checks do not publish.",
+    "Only a successfully committed different stage leg deletes the old private view check. Search/leg/task budgets are unchanged.",
+    "No new ray, scan, timer, worker, forced movement, complete-isolation claim or physical acceptance."
+  ],
+  "limitations": [
+    "Full ordered authenticated producer checkpoint/replay and aggregate actor readiness remain incomplete.",
+    "Visibility itself never replays; current actual eye ray and current operation/actor/native authority remain required.",
+    "Two-second next-due is captured at published transitions rather than every ray, so transfer can produce an earlier single bounded check. Original blockedSince is retained.",
+    "Audits remain paused; migration, transient blockage and physical perimeter coverage unverified."
+  ],
+  "changedFiles": [
+    "addons/infantry/functions/buildingOperationStep.sqf",
+    "addons/infantry/functions/cortexClearBuilding.sqf"
+  ],
+  "physicalAcceptance": false,
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 432,
+    "PBOs": 11,
+    "build": ".qa/handovers/clear-post-view-history-build-2.log",
+    "independent": ".qa/handovers/clear-post-view-history-independent.log",
+    "candidate": ".qa/candidates/clear-post-view-history-8f928027",
+    "fingerprint": "5a09a4d971a3bbda52265134b58ef36e77c4f641966d7e87276c65360ef165ba",
+    "development": "First full run found one stale source-test branch delimiter after the new view-history gate; updated only the delimiter, retaining all original casualty/no-command checks. Second complete build passed."
+  },
+  "sourceHashes": {
+    "addons/infantry/functions/buildingOperationStep.sqf": "e49eca2180fe860f1cfe52339ef2da3096bbd5bd61d41e558a6a341b502671b6",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "4ea94829f5221fff96deb286d3604d816afde8b58d739a56b5d73f3810a9bb30"
+  }
+}

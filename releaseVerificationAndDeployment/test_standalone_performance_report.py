@@ -11,13 +11,14 @@ class StandalonePerformanceReportTests(unittest.TestCase):
         folder.mkdir()
         (folder/'server').mkdir()
         manifest=dict(focus='standaloneperformance',world='VR',batch_mode='normal',headless_provider=None,native_baseline=not loaded,resolution=[3840,2160],
-                      headlessClients=0,performance_composition='infantry',dependencySources=['cba'],package=dict(dirty=False,fingerprint='a'*64),
+                      headlessClients=0,enginePolicies=[],performance_composition='infantry',dependencySources=['cba'],package=dict(dirty=False,fingerprint='a'*64),
                       mission_files={'mission.sqm':'b'*64,'cortexQAStandalonePerformance.sqf':'c'*64})
         (folder/'audit-manifest.json').write_text(json.dumps(manifest))
         identity=[loaded,'z/cbe/addons/danger/danger.fsm' if loaded else 'native.fsm',50,300,'INFANTRY_PATROL',2]
         result=[loaded,True,1000,10,20,30,50,300,50,1,True]
         text='CBE STANDALONE PERF IDENTITY: '+json.dumps(identity)+'\n'
         text+='CBE STANDALONE PERF COMPOSITION: [50,50,0,0,0,0]\n'
+        text+='CBE STANDALONE PERF ENGINE: [222,150000,"Stable","Windows","x64",""]\n'
         text+='CBE STANDALONE PERF RESULT: '+json.dumps(result)+'\nCBE STANDALONE PERF COMPLETE\n'
         (folder/'server/run.rpt').write_text(text)
         return read_run(folder)
@@ -123,7 +124,8 @@ class StandalonePerformanceReportTests(unittest.TestCase):
                        {'mission_files':{}},{'mission_files':{'mission.sqm':'same'}},
                        {'mission_files':{'auditIdentity.sqf':'a'*64}},
                        {'mission_files':{'mission.sqm':'a'*64}},
-                       {'native_baseline':1}]
+                       {'native_baseline':1},{'enginePolicies':None},{'enginePolicies':['unknown']},
+                       {'enginePolicies':['turret_aiming']},{'enginePolicies':[True]}]
             for mutation in mutations:
                 changed=copy.deepcopy(original);changed.update(mutation)
                 path.write_text(json.dumps(changed))
@@ -138,6 +140,7 @@ class StandalonePerformanceReportTests(unittest.TestCase):
             marker='CBE STANDALONE PERF RESULT: '
             row=json.loads(next(line.split(marker)[1] for line in original.splitlines() if marker in line))
             invalid=[None,{},'not a result']
+            changed=copy.deepcopy(row);changed[10]=1;invalid.append(changed)
             for index in (2,3,4,5,6,7,8,9):
                 changed=copy.deepcopy(row);changed[index]=True;invalid.append(changed)
             for result in invalid:
@@ -145,3 +148,35 @@ class StandalonePerformanceReportTests(unittest.TestCase):
                 path.write_text(text)
                 with self.subTest(result=result), self.assertRaises(ValueError):
                     read_run(folder)
+
+    def test_engine_mismatch_and_policy_scope_cannot_be_hidden(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            native=self.fixture(root/'native',False)
+            cbe=self.fixture(root/'cbe',True)
+            for index,value in ((0,224),(1,150001),(2,'Profile'),(3,'Linux'),(4,'x86'),(5,'profiling')):
+                changed=copy.deepcopy(cbe);changed['engine'][index]=value
+                with self.subTest(index=index),self.assertRaises(ValueError):compare(native,changed)
+            cbe['manifest']['enginePolicies']=['turret_aiming']
+            self.assertEqual(compare(native,cbe)['engine_policies'],['turret_aiming'])
+            cbe['manifest']['enginePolicies']=['suppression','turret_aiming']
+            self.assertEqual(compare(native,cbe)['engine_policies'],['suppression','turret_aiming'])
+            manifest_path=root/'cbe/audit-manifest.json'
+            manifest=json.loads(manifest_path.read_text())
+            manifest['enginePolicies']=['suppression']
+            manifest_path.write_text(json.dumps(manifest))
+            self.assertEqual(read_run(root/'cbe')['manifest']['enginePolicies'],['suppression'])
+            path=root/'cbe/server/run.rpt'
+            original=path.read_text()
+            marker='CBE STANDALONE PERF ENGINE: '
+            for invalid in (None,[],[True,150000,'Stable','Windows','x64',''],
+                            [222,150000,'Stable','Windows','','']):
+                path.write_text('\n'.join(marker+json.dumps(invalid) if marker in line else line
+                                          for line in original.splitlines()))
+                with self.subTest(engine=invalid),self.assertRaises(ValueError):read_run(root/'cbe')
+            escaped=json.dumps(cbe['engine']).replace('"','""')+'"'
+            path.write_text('\n'.join(marker+escaped if marker in line else line
+                                      for line in original.splitlines()))
+            self.assertEqual(read_run(root/'cbe')['engine'],cbe['engine'])
+            path.write_text(original.replace('CBE STANDALONE PERF ENGINE:', 'MISSING ENGINE:'))
+            with self.assertRaises(ValueError):read_run(root/'cbe')

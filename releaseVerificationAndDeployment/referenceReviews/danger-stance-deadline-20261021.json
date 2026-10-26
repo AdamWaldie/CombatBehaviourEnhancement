@@ -1,0 +1,17 @@
+{
+  "baseline": "c762964a",
+  "scope": "Shared danger stance release hard deadline",
+  "finding": "Deferred worker enforced original expiry+30 but direct release callers could bypass it and issue native stance restoration later.",
+  "change": "After exact applied stance observation, validate finite numeric expiry and refuse native restoration at/after original expiry+30. Retain original proof; no new retry or renewal.",
+  "validation": {
+    "focused": "609 existing tests passed",
+    "full": ".qa/danger-stance-deadline-build.log",
+    "independent": ".qa/danger-stance-deadline-independent.log",
+    "candidate": ".qa/candidates/danger-stance-deadline-c762964a",
+    "fingerprint": "e3bf8c307d11a29d1bee5d2b033484d190d76e6575fd234074381ae7e64c76a6"
+  },
+  "limits": [
+    "Audits paused; native timing and physical restoration unverified.",
+    "Expired retained proof does not guarantee eventual restoration. No whole-mod parity or performance claim."
+  ]
+}

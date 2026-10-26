@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-22",
+  "baseline": "9041124f",
+  "scope": "Finite same-owner post-clear STOP retirement after master shutdown",
+  "finding": "Shutdown discarded unchanged hold proof when medical queues, native flight, dormancy or movement reservations vetoed immediate native handback; the tactical brain was then retired.",
+  "implementation": [
+    "Retain exact same-floor STOP actors and original positions after immediate release. Share original episode attempts with the deferred callback, preventing repeated native follow writes.",
+    "Carry only this same-machine shutdown epoch edge and original30s server expiry into a keyed HOLD_CLEANUP scheduler job. Existing deadline can only shorten; new completed physical hold resets retired episode metadata.",
+    "Rotate one of at most16 recorded actors per callback. Require exact hold/generation/epoch/issuer, local effective actor and leader, native task availability and no external takeover. Changed commands or pose retire stale actor proof.",
+    "One follow request per actor; command readback is acknowledgement only. Expiry publishes UNRESOLVED and retains hold evidence while ending retries. New operation/order prevents cleanup writes.",
+    "Separate finite scheduler category can outlive tactical shutdown/pause. Reconcile removes its scheduler when no jobs remain; no tactical restart, route rebuilding, world scan or per-actor worker."
+  ],
+  "validation": {
+    "tests": 1490,
+    "full": ".qa/clear-hold-retirement-build-final.log",
+    "result": "PASS full offline pipeline including HEMTT/FSM/config/SQF/docs/coverage/package gates",
+    "candidate": ".qa/candidates/clear-hold-retirement-9041124f",
+    "independent": ".qa/clear-hold-retirement-independent.log",
+    "fingerprint": "89d48990a659595491c84ca49239a789524a92e9a33aa83ee5026b82dcf73465",
+    "provenance": "Unsigned9041124f plus intended source/test/guide/registry edits and unrelated retained dirt. Engineering metadata added afterward. Not a clean signed release.",
+    "limits": "No Arma run. Python policy/source checks do not prove actual native STOP/FOLLOW acknowledgement, post-treatment travel, pause/shutdown timing, locality transfer or measured performance."
+  },
+  "material_remaining": [
+    "This job has no cross-owner command-authority adoption; stale owner/epoch refuses, retaining hold evidence. Actual HC handback remains incomplete/unverified.",
+    "More than16 hold actors refuse this cleanup path; no claim of arbitrary-scale shutdown coverage.",
+    "Same-valued replacement STOP at the same pose is indistinguishable with current native proof.",
+    "Queued-job broad doFollow fallbacks identified in clear-hold-shutdown-20261022.json remain to trace and correct from actual producer/receipt contracts.",
+    "Full tactical/combined-arms/external handover and5%median/10%p95 physical goal remains incomplete."
+  ],
+  "evidence": {
+    "addons/core/functions/clearHoldCleanupStep.sqf": "937799674542c96de3dccc9a6169d52c60233d9f7a4cd0ec4855205b8d73f612",
+    "addons/core/functions/cortexStop.sqf": "d5f2741c9f256751d99125ac37827783d0b54a0ca3d550756a7660e22e5ac347",
+    "addons/core/functions/cortexSchedulerTick.sqf": "cfa5542269204966701611c2bec4874b8e55a0046352ef93e42379161954bb6a",
+    "addons/core/functions/schedulerReconcile.sqf": "a90aed26ee4185b376ff0b7f607e175980f4221d42cf7258697f6ad209ee9c69",
+    "addons/infantry/functions/cortexReleaseGroup.sqf": "b8c79baec6d3ea2930ff65f6561c62d0cf01d9c7d1021798fcb83f9f32931b71",
+    "addons/infantry/functions/buildingOperationStep.sqf": "8eac01fcbdbb4176d8612204ea5912f1fe6207741d44e6a51633b9be2171a593",
+    "addons/main/CfgFunctions.hpp": "9d9ba3d0d071a45db4249a5e73502c49c8ae9773c9e8aba5a861463ac095c5d8",
+    "releaseVerificationAndDeployment/cortexQA/coverage.json": "d29ccfcb0ab65d26c366771013e0b41caddcbfb20bba70fd05428283b3950369",
+    "releaseVerificationAndDeployment/test_cortex_operations.py": "3433736589efc01325fe4d25800a54cafb91da438899a4927da738637ae2f086",
+    "docs/Smart-AI-Pass.md": "c2755494828f1fa3f73fd350a8d367424c8119b664badf5006575b3f755bd904"
+  }
+}

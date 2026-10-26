@@ -1,0 +1,36 @@
+{
+  "baseline": "2f79c14d",
+  "scope": "Authored passing exact deferred STOP/return lifecycle, using existing owner callback and bounded cleanup service",
+  "implementation": [
+    "PassFinish captures original reason/resume, original deadline, exact ordinary cap/baseline and post-request command receipts; issues STOP once and lowers only its unchanged owned cap to zero.",
+    "Both local operating actors must acknowledge STOP and finite linear/angular rest before original authored-goal return. Full work/brain/route/actor/Zeus/provider/cap proof remains required.",
+    "Pending STOP retains original passing work and deadline. Existing four-ticket Cleanup registers exact PASS_STOP token/epoch/generation/route/seats/native command/cap signature; repeats observe only. Expiry marks handbackUnresolved and stops tickets without treating time as success.",
+    "One return creates kind PASS_RETURN/nativeReturn/passReturn in existing recovery observer, preserving original expiry and cap/baseline. CommandState requires both operating actors acknowledge MOVE to original goal; cleanup cannot convert it into fresh ordinary FINAL recovery.",
+    "PassStep returns active zero-cap intent while stop or newly issued return is pending; AssistRelease retains pending passing cap before baseline restoration. No new timer/worker/function or waypoint reconstruction."
+  ],
+  "hashes": {
+    "addons/vehicles/functions/drivingPassFinish.sqf": "7f84aa3802ca93dea56c6e11e88566720c1268334466237f7137801056c8a091",
+    "addons/vehicles/functions/drivingPassStep.sqf": "9ddfe904bf870175cd69b0fadbfc885de46b8560540c104c91977ff54b5032a0",
+    "addons/vehicles/functions/drivingAssistRelease.sqf": "ec0795c101b845b223e9d928e83e2481dcd6846687944c68fef1ceda6eda90a9",
+    "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "601d8196851648bfcee7a37421bf2a35deaf5816114efcddb6d4483e479c9c1c",
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "0d561cda38708b29ad16ebf7084117a784f4b613b8b93cda0374cd79581fe067",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "bdbdbe87f34f29a6991714028b23e194c0fb5bbabd27ef3a6a48fd8773e88b8d"
+  },
+  "validation": {
+    "focusedExistingDrivingTests": 258,
+    "fullExistingTests": 1491,
+    "build": ".qa/pass-deferred-handback-build.log",
+    "focused": ".qa/pass-deferred-handback-focused.log",
+    "independent": ".qa/pass-deferred-handback-independent.log",
+    "candidate": ".qa/candidates/pass-deferred-handback-2f79c14d",
+    "fingerprint": "16c0893d1bec31866ea9f0e05e00cbe357874d8772583f6d9b84d15678dc4060",
+    "newCases": 0
+  },
+  "remaining": [
+    "Original deadline may expire before STOP/rest or return ACK; retained unresolved status is not successful handback. No renewed deadline is granted.",
+    "Native passing remains disabled: distinct original-native-route provenance/temporary-path recognition still needed before admission.",
+    "Pending passing work is owner-local; inherited public leg retirement remains its separate existing path. Review migration/end-of-owner cleanup and late native command classification, do not infer automatic safe adoption.",
+    "Physical OUT/drop-back/merge/STOP/return and real authored-route travel, shutdown/new orders/Zeus/medical/successor cap and measured performance remain unverified."
+  ],
+  "limits": "Unsigned dirty development snapshot including unrelated dirt; engineering notes afterward. Static/package validation is not physical behaviour acceptance, complete HBQ parity or score renewal. Audits paused."
+}

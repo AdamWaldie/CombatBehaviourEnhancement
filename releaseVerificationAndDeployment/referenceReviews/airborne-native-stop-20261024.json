@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-24",
+  "base_commit": "18fe01d0",
+  "requirement": "Landing handoff preserves native holds and newer mission authority",
+  "fault": "Ground cargo readiness excluded protected tasks but accepted STOP. Cargo-only SAD fallback and post-join mixed-squad SAD also lacked STOP refusal; expired Zeus hold metadata alone could not preserve a continuing native STOP.",
+  "change": "STOP defers original cargo transfer within original deadline. Recheck joined actors before SAD/ground brain to respect join-time handlers. Cargo-only fallback SAD refuses if an original live passenger is stopped.",
+  "boundaries": "No STOP clear,formation recall,extra join,retry timer or deadline renewal. Landing completion is separate from ground-task assignment;partial joins retain actual group and diagnostic receipt.",
+  "checks": "1496 tests;413 compiled SQF;11 PBOs;155 settings;zero static performance findings;full offline and independent package verify pass. Existing airborne regression strengthened;no new test cases.",
+  "candidate": ".qa/candidates/airborne-native-stop-18fe01d0",
+  "fingerprint": "6ff8356dcafa1c0e8ff5f988f77c78900701d49db33533f137084ce616231819",
+  "limits": "Unsigned dirty development. Native MOVE replacement remains distinguishability-sensitive and is not solved by this STOP-specific guard. Physical join/order/normal-HC and performance UNRUN;audits PAUSED.",
+  "creationOrderBoundary": {
+    "base_commit": "e6d1b147",
+    "fault": "Synchronous GroupCreated handlers could issue new passenger MOVE/destination/formation orders without changing readiness or external ownership. Later join would consume that new intent.",
+    "change": "Snapshot <=64 original cargo command/expectedDestination/formLeader before createGroup; compare freshly inside existing pre-join gate. Any changed footprint refuses join and retains one-shot partial result; no rollback or rejoin loop.",
+    "cost": "Two bounded native observations per passenger across one group creation;no world scan,worker,retained permission or clock.",
+    "checks": "1496-test full offline build;413 compiled SQF;11 PBOs;155 settings;static performance zero;independent package verify pass. Existing airborne regression extended without count growth.",
+    "candidate": ".qa/candidates/airborne-create-order-boundary-e6d1b147",
+    "fingerprint": "555f775030412938988c3f41cc15de78c49c3d2646393bb884249af953c030a5",
+    "limits": "Unsigned dirty development. Protects observed creation-time changes only;not same-value undeclared commands or all later join-time MOVE/mission-waypoint cases. Physical handover and performance UNRUN;audits PAUSED."
+  },
+  "groundRouteHandover": {
+    "base_commit": "12b9dbf6",
+    "reference": "https://community.bohemia.net/wiki/setCurrentWaypoint",
+    "gap": "A mission handler could supply a ground-group route and explicit CBE values, but handoff appended/selected SAD and unconditionally inherited source group values/posture",
+    "change": "Preserve destination variables already set. Inherit source native posture only without an authored ground route. Afterjoin, count>1 route uses HANDED_OVER if allcargojoined, without adding/selecting SAD; ordinary eligible ground brain may start. LAND accepts HANDED_OVER as ground assignment,not movement/combat proof.",
+    "convention": "Uses existing NativeOrderReceipt convention: index0 implicit/count<=1 no added authored route. Real engine waypoint topology afterjoin must still be validated; in-place edits of index0 are not classified.",
+    "checks": "1496-test full offline build;413 compiled SQF;11 PBOs;155 settings;static performance zero;independent package verify pass. Existing airborne case extended;no new test cases.",
+    "candidate": ".qa/candidates/airborne-ground-route-handover-12b9dbf6",
+    "fingerprint": "032080dabf152df597a3ec93ce5a9fd4bbdcc37208c84df467e1085b9fdc2b03",
+    "limits": "Unsigned dirty development. Physical waypoint/activation/normal-HC behaviour and frame cost UNRUN;audits PAUSED. Not a general proof of every native MOVE,implicit-waypoint edit or undeclared owner handover."
+  }
+}

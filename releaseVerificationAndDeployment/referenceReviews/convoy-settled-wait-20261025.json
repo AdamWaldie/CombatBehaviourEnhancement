@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-25",
+  "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Convoy exact completed native leg observed as WAIT",
+  "findings": [
+    "Native pending MOVE acknowledgement accepted idle/MOVE but not an exact physically settled WAIT.",
+    "The >3m stopped-endpoint continuation also excluded WAIT, leaving that path closed until a larger destination advance could trigger ordinary refresh.",
+    "Native STOP remains a deliberate revision-yield case; no unitReady-based STOP completion introduced."
+  ],
+  "implementation": [
+    "Shared existing total-motion rest helper moved before native receipt observation; no additional controller or helper file.",
+    "Original native endpoint geometry checked before WAIT readiness/proximity/rest sampling.",
+    "Settled acknowledgement requires ready original movement operator, actual endpoint<=3m horizontal/1.5m vertical and finite total rest. Existing driver receipt/order checks run first.",
+    "Finished native leg accepts WAIT within all existing two-seat full destination receipts, physical rest/endpoint and >3m advance checks.",
+    "Existing physical endpoint fixture accepts recorded WAIT without injecting actor state or movement."
+  ],
+  "changedFiles": [
+    "addons/vehicles/functions/convoyTick.sqf",
+    "releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf"
+  ],
+  "cost": "No new worker/timer/scan. One additional velocity/angular-velocity sample only for a pending exact WAIT after cheap endpoint/proximity admission; existing finished-leg rest sampling is unchanged.",
+  "limitations": [
+    "Audits paused; no physical convoy improvement claimed.",
+    "Actual native WAIT/readiness timing, mixed tracked/wheeled continuation and same-owner/HC handover need physical evidence.",
+    "Identical replacement native orders remain observationally indistinguishable.",
+    "Original request/operation clocks and native STOP/foreign-task authority retained.",
+    "No measured frame-time acceptance."
+  ],
+  "physicalAcceptance": false,
+  "referenceContext": {
+    "workshopId": "3812620045",
+    "source": ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf",
+    "meaning": "Existing HBQ/native convoy comparison context. This fixes CBE endpoint admission, not a new whole-source parity claim."
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 432,
+    "PBOs": 11,
+    "build": ".qa/handovers/convoy-settled-wait-build.log",
+    "independent": ".qa/handovers/convoy-settled-wait-independent.log",
+    "candidate": ".qa/candidates/convoy-settled-wait-017572e7",
+    "fingerprint": "95c5c07225f731865d9226a4046cf044398981735332788ab9fa9595d76d241f",
+    "physicalAcceptance": false
+  },
+  "sourceHashes": {
+    "addons/vehicles/functions/convoyTick.sqf": "97d26c44ec6f59a0db6d414e91233dbc12e1ca49f1ab188a9f8b4aa2b63abe04",
+    "releaseVerificationAndDeployment/cortexQA/runConvoyMatrix.sqf": "45805bb5f58dee7f164d51c148bbeb58a338b8a52299f5bd8a842613801bc604"
+  }
+}

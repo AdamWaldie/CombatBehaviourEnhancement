@@ -49,7 +49,7 @@ if (_name == "") then {
 };
 if (_name == "") then {_name = missionNamespace getVariable ["CBE_AIPass_BehaviourProfile", ""]};
 if (_name == "") then {
-    _name = if (missionNamespace getVariable ["CBE_AIRebalance_Enable", true]) then {
+    _name = if (missionNamespace getVariable ["CBE_AIRebalance_Enable", false]) then {
         missionNamespace getVariable ["CBE_AIRebalance_Profile", "LINE"]
     } else {"LINE"};
 };

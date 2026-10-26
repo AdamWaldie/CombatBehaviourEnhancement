@@ -1,0 +1,215 @@
+{
+  "date": "2026-10-18",
+  "status": "IMPLEMENTATION_CONTRACT_NOT_EXECUTABLE_NOT_ACCEPTED",
+  "scope": "Native negotiated queue room-making and rear-to-front dependency execution",
+  "sources": {
+    "addons/vehicles/functions/drivingOperationStep.sqf": "63e6b844679b46eaeb0035212d62be4c00e1d914e7890118a71178ccd6ffd950",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "aa4bc4d2d17349b5670f7161c62885437d20117344372c784c336c64603da985",
+    "addons/vehicles/functions/drivingAssistRelease.sqf": "e1324383d511abd64410af01893fe9656f7d1240d9dcb66cec434efcb5358ff4",
+    "addons/vehicles/functions/drivingOperationFinish.sqf": "9742f96263d2ff43e81977b9c47b0b1c6762248914c8fea380e6c14e081feeab",
+    "addons/vehicles/functions/drivingPassContext.sqf": "3efe9903f79961c1ba2f6f5667aa8343e6edd1c2dd75fa31768e5ce589991cc7",
+    "addons/vehicles/functions/drivingPassAgreementServer.sqf": "d3f4733b4df4a9e0287fdde53d979db6c89bd1fac914ee16586ae50bb2a65dfe",
+    "addons/vehicles/functions/drivingPassAgreementOwner.sqf": "5c5f1487eddf075cca85302054881697036c0fbfc059a50a6e860a20d75b49b7",
+    "addons/vehicles/functions/drivingRearClear.sqf": "fa14f0ea245b08cd031eb79fb2207734d3ab9def5838516696cec6041cb07c71",
+    "addons/vehicles/functions/drivingQueueProposal.sqf": "8ce95123173598feb2c1755665f51350f223bd49e628f94ada0e07526e2e3010",
+    "addons/vehicles/functions/drivingQueueContext.sqf": "6f20f135b2b4f76b9b945cfc81a15374a7eb044068a710c814f87f5073cc4c6b",
+    "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "e3118ab46f2bd67e8eb113eceae09f5fc7505cd9a2224227e2af68338ffc1313",
+    "addons/vehicles/functions/drivingQueueAgreementRequest.sqf": "19b031c6db177b3fbe2b7c86a091cd574c39eaa5b7fab545d440d5d62dfd7cd5",
+    "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "e82fe5a09fbd42156b675722657c2e000a288529942793c990d3d98bcefd3b89",
+    "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "7e757ff7f2db5ca507ff9182e354007ad4f18a16243f3fe2c9da862230113003",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "937c1fcf81b3b3e49094671331b457cf15a1c98dc8d668890f9029e81ea2e4ea",
+    "addons/vehicles/functions/drivingPassCanConsent.sqf": "7d2a45be485837975ac94312a47228cf795e882e7a408d53a321c13c922dae6c",
+    "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "e8b0b1a6ddf8a9e31b19d7b9a43e5d188b23268b41e9dcc1992107ebe9c834f3",
+    "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "3dfd95237866632fb252d432d7f3ea04397383e30b6a2318c56f4481ae3adfce",
+    "addons/vehicles/functions/cortexVehicleReverseStep.sqf": "ea1e43e71cc39e6c15b7662a2047f9bb530d4575aa37fb27883ae74d9d46040a"
+  },
+  "findings": [
+    "DrivingOperationStep/AssistStart already own finite owner callbacks and sole ordinary speed writer. Queue work must integrate there, not spawn another movement controller.",
+    "Current pass context returns observing-client owner plus exactly two participant rows. Its broker and request serial are passing-specific; using passing ACK as queue consent would misrepresent intent and omit chain membership.",
+    "DrivingOperationFinish and AssistRelease are required teardown hooks; pending queue cleanup must run before restoring exact speed baseline.",
+    "DrivingRearClear supplies bounded physical/approach observations, not participant consent, support geometry or native reverse success.",
+    "Public recovery journal and actor/group locality may split. A queue episode must cancel on owner changes without replaying reverse; exact cleanup identity must survive until actual owner can retire it."
+  ],
+  "protocol": {
+    "version": "QUEUE_V1",
+    "limits": {
+      "participants": 4,
+      "active_server_episodes": 32,
+      "owner_handshake_seconds": 2,
+      "episode_seconds": 30,
+      "native_reverse_leg_metres": 5,
+      "native_reverse_leg_seconds": 5,
+      "observation_callback_seconds": 1,
+      "discovery_budget": "Use current limiting traffic contact; one bounded rear-chain discovery, at most64 candidates. Refuse overflow, no selected-prefix safety."
+    },
+    "binding": [
+      "server-generated token",
+      "request serial and initiating owner",
+      "canonical ordered participant vehicle rows, excluding observing clientOwner",
+      "each role: HOLD_CROSSING, YIELD_ROOT or REAR_ROOM",
+      "dependency indices, acyclic and inside participant roster",
+      "vehicle/driver/commander/group ownership, group epoch and driving generation",
+      "original native command types/destinations, complete authored MOVE route receipt",
+      "original snapshot poses and approved bounded rear target per reverse leg",
+      "original handshake/episode deadlines, no renewal"
+    ],
+    "messages": {
+      "BEGIN": "Authenticated current initiator owner submits proposal and original receipts, not movement permission. Server verifies live topology, limits, no overlaps/cycles, and exact role/dependency payload.",
+      "VERIFY": "Server sends same immutable token/roles/roster/deadlines to every required owner.",
+      "ACK": "Only expected current owners may accept their own exact local rows and roles. Missing, refused, late or duplicate conflicting replies cannot commit.",
+      "COMMIT": "After every owner consents, exact original episode installs locally. No initial ACK grants movement.",
+      "READY": "Existing owner callback applies its own hold through sole cap writer and observes actual stationary pose; sends token/participant/phase-bound readiness.",
+      "ROOM_OBSERVED": "Executing rear participant reports measured displacement/hull room with exact native command/pose/phase; recipient independently rechecks local room before its leg.",
+      "RELEASE": "Either original participant owner or server invalidation may retire exact episode; newer orders/episodes remain protected."
+    },
+    "states": [
+      "OBSERVE_DWELL",
+      "PROPOSE_CHAIN",
+      "OWNER_CONSENT",
+      "HOLD_AND_READY",
+      "REAR_CLEARANCE",
+      "REVERSE_ISSUED",
+      "OBSERVE_ROOM",
+      "DEPENDENCY_ADVANCE",
+      "HOLD_CROSSING",
+      "HAND_BACK",
+      "FAILED_OR_CANCELLED"
+    ],
+    "execution_rules": [
+      "No automatic priority to drive through another hull. Deterministic tie-breaking chooses proposed roles only; every actual owner must consent.",
+      "Observe both roots stationary for continuous5s with anchored poses; do not reinterpret authored STOP/HOLD, service, tactical reservations, players or external controllers as a jam to override.",
+      "Check whole roster before any command; issue only one dependency leaf reverse leg at a time. Moving rear traffic, missing support or any obstacle refuses.",
+      "Use native AI movement only. Native reverse is not proved by a negative forceSpeed, command acceptance, elapsed time or changed desired destination.",
+      "Observe negative forward velocity, rear displacement within approved corridor, bounded heading change, full-hull clearance and no damage. Abort a native U-turn or unsupported rear request.",
+      "Fresh rear/body/traffic checks retain authority throughout each native leg. Front movement cancels further backing; stop only exact owned leg and preserve safe route handback.",
+      "Do not release upstream dependency on report/timer alone; it independently observes sufficient physical room.",
+      "Interruption, feature disable, participant death/deletion/locality change, unrelated native commands, expired consent or changed role topology end execution. No reverse replay on migration.",
+      "Cleanup must retain exact deferred native-command and cap-baseline ownership; do not repeat known whole-subsystem-off lost-observer gap.",
+      "Cycles, fifth participant, dense discovery or unavailable consent retain ordinary safe waiting and explicit failure; never push, teleport, alter collision or ignore traffic."
+    ]
+  },
+  "native_command_research": {
+    "forceSpeed": {
+      "url": "https://community.bohemia.net/wiki/forceSpeed",
+      "verified": "Official command describes a speed limit; negative value restores default. Not a reverse primitive."
+    },
+    "sendSimpleCommand": {
+      "url": "https://community.bohemia.net/wiki/sendSimpleCommand",
+      "verified": "BACK exists, but documentation warns driver-as-effective-commander can refuse drive commands. Native-only applicability must be proven per crew configuration; do not change commanders solely to make probe pass."
+    },
+    "setDriveOnPath": {
+      "url": "https://community.bohemia.net/wiki/setDriveOnPath",
+      "verification": "Direct official fetch returned403; no verified negative-speed/reverse guarantee. Do not assume one."
+    }
+  },
+  "required_physical_cases": [
+    "Two stationary oncoming roots, server-owned and separate actual-provider HC-owned; real rear room then authored travel for both.",
+    "Three/four participant rear dependency chain, blocked tail, moving rear traffic, and dense overflow.",
+    "Single-driver and driver/commander native reverse capability; wheels/tracks/mixed mass; measured slope/support.",
+    "Intentional native STOP/HOLD, personal GETOUT/FOLLOW/MOVE and convoy/external owner exclusion.",
+    "New waypoint and Zeus interruption in every phase, real replacement-order travel and repeated use.",
+    "Participant death, vehicle deletion, split locality, owner disconnect, subsystem disable with deferred handback.",
+    "Duplicate/out-of-order/forged ACK/progress/release, clock/epoch changes, expired messages and topology replacement.",
+    "No damage/continuous hull clearance plus actual before/after queue throughput.",
+    "Normal/providerHC batches separate; matched overhead<=5%median/10%p95 including dense and many-queue cases."
+  ],
+  "acceptance": "No queue behaviour implementation or parity credit from this contract. Existing route retries are separate. Audits paused, all65 feature families partial.",
+  "current_state_update": {
+    "date": "2026-10-18",
+    "review": "hbq-queue-execution-gap-20261018.json",
+    "consent": "Distinct QUEUE proposal and actual-owner agreement now exist; original passing-only current-state finding is superseded.",
+    "execution": "Still absent: HOLD/READY, native dependency execution and exact executed-command handback.",
+    "audit_authority": "User explicitly keeps audits paused; continue implementation."
+  },
+  "verified_native_command_constraints_20261019": {
+    "references": [
+      "https://community.bistudio.com/wiki/sendSimpleCommand",
+      "https://community.bistudio.com/wiki/vehicleMoveInfo"
+    ],
+    "documentation": "sendSimpleCommand BACK is a vehicle-driver command; documentation warns that driver==effectiveCommander refuses driving commands and requires another effective commander. Air vehicles ignore it. STOPTURNING is required to cancel a preceding LEFT/RIGHT command. This is documentation, not verified engine capability.",
+    "observable": "vehicleMoveInfo exposes BACK/STOP and turn state. BACK is an execution-state observation only; actual negative longitudinal velocity, measured rear displacement, hull clearance and bounded heading remain required.",
+    "current_cbe_path": {
+      "entry": "DrivingOperationStep calls DrivingAssistStart through the existing owner-local driving brain. AssistStart queue block only submits proposal/request. No queue execution branch exists.",
+      "rear_attempt": "DrivingAssistStart recovery stage1 calls movementOperator doMove rear, then records a finite REVERSE journal. This can turn the vehicle and is not a guaranteed reverse command.",
+      "handover": "DrivingRecoveryRelease binds crew, authored route, cap and both native destination receipts. It has no simple-command mode/vehicleMoveInfo receipt or STOP cleanup. Reusing it unchanged for BACK would lose command ownership proof.",
+      "consent": "DrivingQueueAgreementOwner AGREED remains negotiated eligibility. DrivingPassCanConsent refuses its live queue receipt; no blanket ignore or movement authority is added."
+    },
+    "implementation_order": [
+      "Add explicit command-mode ownership to the existing recovery journal and release/adoption lifecycle before issuing BACK. Preserve ordinary doMove history as its distinct mode.",
+      "Only consider BACK for a current local separate commander and driver, with existing actor/route/feature authority. Do not reassign commander, add crew, toggle steering, or apply physics to manufacture capability.",
+      "Bind original vehicleMoveInfo and post-issue acknowledgement to the immutable execution episode. A newer simple-command mode revokes cleanup authority; do not overwrite it with STOP.",
+      "Use the existing driving callback and sole speed-cap writer for finite HOLD/physical READY, then one leaf rear leg and independent physical dependency clearance. The stationary proposal validator cannot serve as the moving-episode validator.",
+      "Refuse unsupported crew arrangements without retaining a 30-second movement hold. Full implementation and later engine validation are still required."
+    ],
+    "status": "DESIGN_CONSTRAINT_VERIFIED_NO_EXECUTOR_ADDED_NO_PARITY_CREDIT",
+    "audits": "PAUSED"
+  },
+  "command_mode_foundation_20261019": "Recovery journal now explicitly records DESTINATION. Active assistance yields unknown modes; release refuses them before native cleanup; deferred cleanup signatures include mode and only destination work registers; adoption/late lookup refuse other modes. Missing field retains existing destination interpretation. This does not implement BACK, COMMIT, HOLD or READY. Full offline .qa/cbe-recovery-command-mode-build.log/independent verify passed; fingerprint6092e29ecd63628dc8db80c776a9c4e4270917cc513390f5e06f259898c8ce59, manifestd6ff65a4+dirtydevelopment. No new tests/workers/scores or physical acceptance.",
+  "outer_cap_release_20261019": "DrivingAssistRelease refuses unknown recovery command modes before cap-state adoption/helper cleanup and in final cap restoration/deletion transaction. This closes fallthrough after DrivingRecoveryRelease mode refusal. No native BACK/queue executor added. Full .qa/cbe-command-mode-cap-release-build.log/independent verify passed, fingerprintf5ecf8bcee54a156c651b207c1f6a5feeb0004559b05379a81d248c570673e29, manifeste646da37+dirtydevelopment; no new tests/workers/scores or physical acceptance.",
+  "existing_tactical_path_clarification": "cortexVehicleReverseStep already uses native BACK/turn/STOP for tactical tracked VEHICLE_WITHDRAW with distinct effective commander and common operation ownership. Ordinary driving recovery does not share that operation contract; do not start a common operation merely to steal the driving parent. Native queue execution remains missing. Current tactical helper now yields explicit forward modes and snapshots move/turn across geometry.",
+  "ordinary_native_back_update_20261019": {
+    "implementation": "Ordinary recovery now has a distinct SIMPLE_BACK mode for unchanged separate driver/effective commander and no active native turn. One BACK, native mode acknowledgement, original finite rear geometry/damage/deadline, six-metre observed endpoint, acknowledged STOP before final route retry, and mode-aware existing shutdown/locality cleanup.",
+    "remaining": "Queue COMMIT/HOLD/physical READY/dependency execution remains absent. Single-driver arrangements retain monitored rear doMove, not native BACK parity. Physical and performance evidence absent; audits paused.",
+    "sourceHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "b00556d4afdcfc5a050b957a5b8e721c5aaa20becc8daad8422406130a707e06",
+      "addons/vehicles/functions/drivingAssistRelease.sqf": "282fc0661677e90a27babfcf5211376b2661aac0332fde0471a92b81f9f5ad93",
+      "addons/vehicles/functions/drivingRecoveryRelease.sqf": "e449808a8edb4335f5c290bf1d242b3338bc294e5ac2437268d35f04fa37b06e",
+      "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "25874ba1114af89ac47872fb88deda5e13b4472a438bd9c07261abbac477d3d4",
+      "addons/vehicles/functions/drivingRecoveryAdopt.sqf": "ba6ed9ca2ade445d501bbc009e8694a372e57a373635a9a4091c5f8706944a75"
+    },
+    "noNewWorkers": true,
+    "noNewTestCases": true,
+    "physicalAcceptance": false,
+    "validation": {
+      "focusedExistingCases": 251,
+      "wholeSuiteAddedCases": 0,
+      "fullBuild": ".qa/cbe-ordinary-native-back-build.log",
+      "compilerCheck": ".qa/cbe-native-back-hemtt-check.log",
+      "independentPackageFingerprint": "06789b444d57f2cab66376e209257ed28e18adbe90101bb89866f83e5f6104b1",
+      "manifestSource": "09189e42 plus dirty development source",
+      "physicalAcceptance": false
+    },
+    "limitations": [
+      "Native BACK and STOP modes are acknowledgements, not measured physical motion or braking.",
+      "Original six-second leg and original hard deadline remain; scheduler latency is unmeasured.",
+      "While expired native STOP acknowledgement is pending, retain exact journal and zero safety cap; hard expiry marks unresolved without renewing movement authority.",
+      "Single-driver or active-turn configurations retain the monitored destination fallback, which can turn.",
+      "New same-value native BACK/STOP inputs remain indistinguishable without cooperative authority.",
+      "Queue execution and actual engine/HC/performance evidence remain absent."
+    ],
+    "references": [
+      "https://community.bistudio.com/wiki/sendSimpleCommand",
+      "https://community.bistudio.com/wiki/vehicleMoveInfo"
+    ]
+  },
+  "queue_runtime_admission_update_20261019": {
+    "finding": "Automatic discovery requested consent that no physical executor consumed. Live consent blocks passing for up to30seconds, so the prepared negotiation could worsen an actual jam. Crew/pose context also omitted independent native vehicle input.",
+    "implementation": "Removed automatic query/request from ordinary driving; preserved finite ordinary traffic retries and internal proposal/broker APIs. Queue context now carries six-field rows including native move/turn input; actual owners compare it before ACK/results, while remote observation does not count as ownership. Passing/queue local admission refuses independent native drive/turn/fixed-path commands. Exact-token release accepts the new row shape.",
+    "remaining": "Reintegrate automatic discovery only with real COMMIT/HOLD/settled READY/rear-first dependency execution and exact handback. Full goal unchanged; no queue movement credit.",
+    "sourceHashes": {
+      "addons/vehicles/functions/drivingAssistStart.sqf": "7e80753d42de48e5774e7cb330e1e8af6ef01e603e7bab78b660ec8aa2b17218",
+      "addons/vehicles/functions/drivingPassCanConsent.sqf": "5b179c0b4a8f9d08d54763459734469602e1ec0bf85139a6dddb0d1883c8dcb2",
+      "addons/vehicles/functions/drivingQueueContext.sqf": "5edd88423be2b3d2427567a1a8e9063032df17ce4db0df1ff1e9c31af0bcf317",
+      "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "71579d75be1aa22ae74eeee72f6344a9bc192036387bc28ed754b971559f0ccd",
+      "addons/vehicles/functions/drivingQueueProposal.sqf": "77be04281df14f7710b915b0b7181caf01c3e753821d1ca8827b5bf99505efae",
+      "addons/vehicles/functions/drivingQueueAgreementRequest.sqf": "9f54160e6b1473eb5c5c6e76c3ff758fde7cc637e944d0014fe063ebd49d2d6c",
+      "addons/vehicles/functions/drivingQueueAgreementRelease.sqf": "8bdc80b23a55cb0416f95f0a1d6b9d3748adbf92db250433e0b5ca8de647d158"
+    },
+    "buildoutReassessment": "Queue discovery/agreement criterion lowered from1 to0.5 (the ledger uses0/0.5/1) for missing automatic integration, not lack of physical acceptance.",
+    "physicalAcceptance": false,
+    "audits": "PAUSED",
+    "rawSourcesModified": false,
+    "validation": {
+      "fullPipeline": ".qa/cbe-queue-runtime-admission-build.log",
+      "initialLedgerFinding": "0.75 is unsupported; corrected to the defined0.5 partial score. Initial rendered report was stale and was not accepted.",
+      "correctedDocGates": "buildout render/check, documentation contracts and wiki check passed.",
+      "finalPackage": ".qa/cbe-queue-runtime-admission-final-package.log",
+      "finalPackageScope": "Production source unchanged since successful full pipeline; only corrected ledger/report changed before repackage with already-passed static checks retained.",
+      "independentFingerprint": "0636834604a90650fbe3e6620fc3d180406bc6b350852eca7f3c9d275ee8091d",
+      "manifestCommit": "4cdf93df56e95bf05f348c93f0eecc31fed5eba4",
+      "manifestDirty": true,
+      "newTestCases": 0,
+      "physicalAcceptance": false
+    }
+  }
+}

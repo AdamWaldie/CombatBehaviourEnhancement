@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "73202b7f",
+  "workshopId": "3812620045",
+  "scope": "Bounded dense-traffic admission within the current following observer; not full HBQ traffic or gameplay acceptance.",
+  "finding": "Raw native discovery above64 previously refused before hull relevance.65..256 slow, wholly non-occupying hulls could hold the vehicle even when none could affect the existing current-lane/prediction model.",
+  "implementation": [
+    "Retain exact affine padded box projection. Dense unscheduled samples project at most256 discovered candidates, discarding only finite horizontal speed<=0.8 hulls whose complete current projection is behind, off-lane or vertically separated.",
+    "The same0.8m/s threshold already gates crossing prediction. Every moving or unknown-speed candidate remains admitted; long/rotated occupied hulls remain admitted.",
+    "At most64 retained candidates reach motion prediction; overflow still returns zero cap. More than256 raw candidates still refuse. Scheduled direct callers retain original64 raw refusal.",
+    "No new worker, cache, ray, native discovery query or controller. Source owner and consumer permissions unchanged. Native query cost remains engine-dependent."
+  ],
+  "cost": "Dense callbacks can now project more hulls before refusal than before. The256 projection bound is distinct from64 prediction bound. Neither frame-time savings nor compliance with5% median/10% p95 is established.",
+  "sourceHashes": {
+    "addons/vehicles/functions/drivingFollowingCap.sqf": "9cb72f1d0e44385c471a1e3952d98d8ced7577801b686d74855d7158d4da87c1",
+    "releaseVerificationAndDeployment/test_driving_traffic.py": "50f8386de638d7da71fc16d10ea7acbef2595810fb62abe5c1d85badb945df7f"
+  },
+  "validation": {
+    "focused": "20 existing traffic tests PASS; extended geometric admission fixture covers100 irrelevant stationary hulls,1 intruder,65 retained conflicts, moving crossing candidate and unknown speed. This is an offline mathematical/source contract, not SQF engine execution.",
+    "fullBuild": "PASS attempt1",
+    "tests": 1497,
+    "compiledSQF": 422,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/dense-traffic-admission-73202b7f",
+    "fingerprint": "7e1154568c38a24657922a6bf4c869a65ea2003a441a4cc272c34bbfa58e901f",
+    "logs": [
+      ".qa/handovers/dense-traffic-build-20261025-attempt1.log",
+      ".qa/handovers/dense-traffic-independent-20261025.log"
+    ]
+  },
+  "references": [
+    "https://community.bohemia.net/wiki/modelToWorldWorld",
+    "https://community.bohemia.net/wiki/worldToModel",
+    "https://community.bohemia.net/wiki/getObjectScale?useskin=vector"
+  ],
+  "limits": "Physical65..256 vehicle scenes, scaled/tilted models, dense callbacks, scheduling, normal/HC/JIP and full performance budget remain unverified.>256 raw or>64 retained can still stop conservatively. No parity percentage increase. Audits paused; full goal incomplete."
+}

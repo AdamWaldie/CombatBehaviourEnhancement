@@ -1,0 +1,21 @@
+{
+  "baseline": "00737b2a",
+  "scope": "Exact temporary-posture handoff before danger cover movement",
+  "finding": "Cover route admission could issue doMove while the same actor still carried CBE weak prone/crouch proof, relying on later engine FSM cleanup.",
+  "implementation": [
+    "Before committing cover movement, release engine stance through existing exact helper; nonempty unresolved receipt refuses POSTURE_HANDOFF.",
+    "Then release only that actor from group hide through its existing exact helper. This matches IndoorActorOperation handoff order, avoiding group restoration while an engine overlay remains.",
+    "No new stance policy, timeout, worker or retry. Existing native task/order/epoch/reservation checks precede handoff and unresolved proof remains."
+  ],
+  "validation": {
+    "focused": "609 existing operations tests passed before final handoff ordering adjustment; final full includes adjustment",
+    "full": ".qa/cover-posture-handoff-build.log all1484/394SQF and full offline gates passed",
+    "independent": ".qa/cover-posture-handoff-independent.log",
+    "candidate": ".qa/candidates/cover-posture-handoff-00737b2a",
+    "fingerprint": "60ee54d1f6cb284082dcc6170a795ba1b8276615ed3b3cef9ae34110b6fd957f"
+  },
+  "limits": [
+    "Audits paused; physical stance/readback timing, actual step-off, repeated hazards, HC and performance unverified.",
+    "An unresolved expired stance may continue to refuse CBE cover admission; native behaviour remains available. Exact handback is not eventual restoration or animation proof."
+  ]
+}

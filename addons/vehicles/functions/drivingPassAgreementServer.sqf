@@ -5,7 +5,8 @@
  * counts only its actual expected owner. Server checks live seats/epochs/authored routes;
  * owners check their own native commands/destinations before replying.
  * Repeat/JIP: Bounded private registry (32 pairs), one active pair per vehicle, fixed deadlines,
- * idempotent acknowledgements. Authenticated BEGIN prunes expired/replaced records; ACK
+ * At most64 admitted episodes per50-second window, one per root vehicle; release cannot
+ * replenish this callback budget. Idempotent acknowledgements. Authenticated BEGIN prunes expired/replaced records; ACK
  * rechecks only its own pair. Registry and token sequence use private localNamespace; no recurring scan.
  * No public priority, movement, ownership transfer or JIP command. AGREED is consent only.
  * Arguments: 0 mode <STRING>, empty, BEGIN, ACK or RELEASE; 1 payload <ARRAY>, empty.
@@ -34,8 +35,9 @@ private _topologyCurrent={
         {
             private _ar=_a select _x;private _er=_e select _x;
             if (!(_er isEqualType []) || {count _ar != count _er}) exitWith {_valid=false};
-            if (_ar isNotEqualTo [] && {count _ar != 10 || {(_ar select [0,7]) isNotEqualTo (_er select [0,7])}
-                || {(_ar select 9) isNotEqualTo (_er select 9)}}) exitWith {_valid=false};
+            if (_ar isNotEqualTo [] && {count _ar != 11 || {(_ar select [0,7]) isNotEqualTo (_er select [0,7])}
+                || {(_ar select 9) isNotEqualTo (_er select 9)}
+                || {(_ar select 10) isNotEqualTo (_er select 10)}}) exitWith {_valid=false};
         } forEach [2,3];
     };
     _valid
@@ -60,6 +62,17 @@ if (_mode == "BEGIN") exitWith {
     if (owner _vehicle != _sender || {isNull driver _vehicle} || {owner driver _vehicle != _sender}
         || {groupOwner group driver _vehicle != _sender}) exitWith {false};
     if !([_vehicles,_context] call _topologyCurrent) exitWith {false};
+    // Bound accepted episode/expiry-callback churn independently of local cooldowns.
+    private _admissions=localNamespace getVariable ["CBE_DrivingPass_Admissions",createHashMap];
+    if (!(_admissions isEqualType createHashMap) || {count _admissions > 64}) exitWith {false};
+    private _admissionKey=netId _vehicle;
+    private _validAdmissions=true;
+    {private _until=_admissions get _x;
+        if (!(_until isEqualType 0) || {!finite _until}) exitWith {_validAdmissions=false};
+    } forEach keys _admissions;
+    if (!_validAdmissions || {_admissionKey == ""}) exitWith {false};
+    {if (serverTime >= (_admissions get _x)) then {_admissions deleteAt _x}} forEach keys _admissions;
+
     // Only authenticated new-pair admission pays the bounded registry sweep.
     {
         private _record=_registry get _x;
@@ -73,6 +86,7 @@ if (_mode == "BEGIN") exitWith {
             && {(_old get "context") isEqualTo _context}
     };
     if (_duplicate >= 0) exitWith {true};
+    if (serverTime < (_admissions getOrDefault [_admissionKey,-1]) || {count _admissions >= 64}) exitWith {false};
     if (count _registry >= 32 || {keys _registry findIf {
         private _pair=(_registry get _x) get "vehicles";
         (_vehicles select 0) in _pair || {(_vehicles select 1) in _pair}
@@ -85,6 +99,8 @@ if (_mode == "BEGIN") exitWith {
     private _record=createHashMapFromArray [["token",_token],["serial",_serial],["vehicles",_vehicles],
         ["context",_context],["deadline",_deadline],["expires",_expires],["owners",_owners],["acks",[]],["phase","PENDING"]];
     _registry set [_token,_record];
+    _admissions set [_admissionKey,serverTime+50];
+    localNamespace setVariable ["CBE_DrivingPass_Admissions",_admissions];
     {["VERIFY",[_token,_vehicles,_context,_deadline,_expires,_serial]] remoteExecCall ["CBE_fnc_DrivingPassAgreementOwner",_x]} forEach _owners;
     true
 };

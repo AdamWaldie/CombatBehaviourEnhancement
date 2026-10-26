@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-18",
+  "scope": "CQB partner alternate-entry mutation boundary; no whole-CQB/LAMBS parity claim",
+  "source_reference": {
+    "path": ".qa/source-refresh-20261011/inventory/1858075458/lambs_main/functions/UnitAction/fnc_doAssault.sqf",
+    "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+    "read_scope": "Complete fnc_doAssault.sqf; current buildingOperationStep partner entry and movement ownership paths",
+    "intent": "LAMBS preserves an appropriate BUSY native destination and avoids unnecessary reissue. Preserve useful native execution rather than overwrite newer tasks. No upstream code copied."
+  },
+  "finding": "CBE alternate entry ranked candidates in scheduled execution then published attempt/shared target and issued doMove without final atomic revalidation.",
+  "implementation": [
+    "Capture native command, full expected destination, formation leader, pose and prior alternative receipt before ranking",
+    "Keep bounded24 visited-node ranking outside unscheduled section",
+    "Atomically recheck live group/brain/epoch/generation/operation/native route/building transform, actor eligibility, Zeus hold, original deadlines, native snapshot and prior attempt",
+    "Require current idle or exact CBE-owned movement; reject individual STOP/unrelated MOVE",
+    "Publish attempt and issue/remember native leg only after current proof; no teleport, fabricated visit or deadline extension"
+  ],
+  "remaining": [
+    "Other CQB mutation boundaries still need review",
+    "No physical proof that this was the cause of observed stragglers",
+    "Coherent pair entry, exterior isolation, inaccessible nodes, casualty refill and post-clear flow remain unaccepted",
+    "Durable late driving receipt notification remains unresolved; bounded adoption is partial only"
+  ],
+  "validation": {
+    "log": ".qa/cbe-cqb-partner-entry-commit-build.log",
+    "tests": 1203,
+    "sqf": 323,
+    "pbos": 9,
+    "exit": 0,
+    "fingerprint": "9b239e80df22c9fd21c6abc18102f23aaddc7f5302dfd048151ced24752838ac"
+  },
+  "audits": "PAUSED; physical and performance acceptance unchanged"
+}

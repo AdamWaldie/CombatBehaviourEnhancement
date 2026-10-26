@@ -20,5 +20,4 @@ private _drill=_state getOrDefault ["drill",createHashMap];
 if ((_drill getOrDefault ["token",""]) != _token) exitWith {false};
 // This one-shot cleanup must not wait behind a delayed tactical job. FlankEnd restores
 // only matching owned overrides; ZEUS prohibits doFollow or replacement movement.
-[_group,_state,_reason] call CBE_fnc_CortexFlankEnd;
-true
+[_group,_state,_reason,_token] call CBE_fnc_CortexFlankEnd

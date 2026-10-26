@@ -1,0 +1,307 @@
+{
+  "baseline": "faf385fe",
+  "scope": "Group danger posture native task footprint",
+  "implementation": [
+    "Check every living member before group-wide danger behaviour/combat-mode application and exact restoration. Mounted, nonlocal, player, care, flight, captive/incapacitated, stealth/careless and held-fire members refuse the write.",
+    "Ordinary travel and CBE manoeuvre remain eligible. Maximum64 members; larger groups refuse instead of sampling. No new worker or native command.",
+    "Pending restoration retains its original receipt and expiry; changed native components retire without an unnecessary footprint check."
+  ],
+  "validation": {
+    "focused": "10 existing retirement tests passed",
+    "fullOffline": ".qa/danger-group-footprint-build.log",
+    "independent": ".qa/danger-group-footprint-independent.log",
+    "candidate": ".qa/candidates/danger-group-footprint-faf385fe",
+    "fingerprint": "0d756b2e28272b319d06c080f519952918abd3a3bba179eda01b44e8fc43a286"
+  },
+  "limits": [
+    "Audits paused; no Arma launch. Physical native timing, mixed-role behaviour, HC and performance unverified.",
+    "This covers DangerReact group-mode writes, not every group writer or per-member baseline restoration.",
+    "No source parity or buildout percentage rescore. Protected sources and unrelated dirt preserved."
+  ],
+  "normalContactFollowup20261022": {
+    "baseline": "f51bb7a1",
+    "finding": "CortexGroupTick beginContact used an incomplete local native-task predicate before group setBehaviour COMBAT. Unlike DangerReact, fresh native contact could bypass fleeing, per-member hold-fire, mounted/nonlocal or other protected domains.",
+    "implementation": "Replace the duplicate predicate with existing CortexGroupPostureTaskAvailable; keep the established nativeTaskActive/assault guard and contact information path. The shared complete <=64 living-member footprint controls normal contact escalation too. No new worker or setting.",
+    "cost": "One existing first-contact roster check replaced by shared bounded roster check, rather than a second scan or global query. Runtime cost unmeasured.",
+    "validation": {
+      "fullOffline": ".qa/contact-posture-footprint-build.log",
+      "tests": 1491,
+      "focusedFinal": ".qa/contact-posture-footprint-focused.log",
+      "focusedTests": 610,
+      "detail": "Full local HEMTT/FSM/SQF/config/docs/package passed. Afterward removed only a newly added redundant Python boolean example; meaningful source wiring checks remain and final610-file-suite tests passed. Production source unchanged after full build.",
+      "independent": ".qa/contact-posture-footprint-independent.log",
+      "candidate": ".qa/candidates/contact-posture-footprint-f51bb7a1",
+      "fingerprint": "c0f26868f4d3dc4c92fd53d7316f4aae1f08b743ff1c090086f6eea2bf7b6e68",
+      "provenance": "Unsigned dirty development snapshot with retained unrelated dirt; engineering metadata follows packaging."
+    },
+    "limits": [
+      "No live native flight/contact, mixed-crew, HC/JIP, baseline handback or performance proof.",
+      "Scoped normal contact posture write, not proof that every group writer respects native ownership.",
+      "Audits PAUSED; no push/merge/CI/release/Steam, no percentage rescore."
+    ],
+    "hashes": {
+      "addons/infantry/functions/cortexGroupTick.sqf": "7949eff46c7ad93313836116429239d8f0aa59fc41e56a005cc4e4d48389b738",
+      "addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf": "9495c5322f35c0402da8b757e036c8441c23ca6dd69392d9c2fdbb132c61605b"
+    }
+  },
+  "terminalCalmFollowup20261022": {
+    "baseline": "6ee96e4e",
+    "finding": "CortexRestoreCalm still restored group behaviour, retreat combat mode and retreat speed through separate exact-value-only writes. Native fleeing, service/medical work and other protected members could begin after application and be overwritten by teardown. Unconfirmed writes then lost their original pairs when state cleared.",
+    "implementation": "Combine these three restoration decisions into one short isNil commit before remount admission. Reuse the existing complete <=64-member native posture footprint once. Preserve legacy exact-value/changed-state conditions, SAFE-to-AWARE contact semantics and external-yield rules. Native-blocked or unconfirmed components retain original prior/applied pairs in CBE_Cortex_CalmPolicyUnresolved with server time, current epoch/generation and reason. No automatic retry, queue or late-write permission. Later empty cleanup leaves the latest unresolved evidence intact.",
+    "validation": {
+      "result": "Full1491 offline/HEMTT/FSM/SQF/config/docs/package and independent verification passed. Existing contact ownership regression extended in-place; no added test cases.",
+      "pipeline": ".qa/calm-policy-native-footprint-build.log",
+      "independent": ".qa/calm-policy-native-footprint-independent.log",
+      "candidate": ".qa/candidates/calm-policy-native-footprint-6ee96e4e",
+      "fingerprint": "6106b29780f3b38cd81f0685296996e2e27d09135a2585a825711e7bd5b495ad",
+      "provenance": "Unsigned dirty development snapshot with unrelated retained dirt; later review/handover metadata excluded."
+    },
+    "cost": "One bounded roster check for the grouped native policy commit; no global scan, geometry, timer or worker. Runtime timing unmeasured.",
+    "limits": [
+      "Latest unresolved receipt is evidence, not proof of current ownership or an instruction to retry automatically. Same-valued superseding policy remains ambiguous.",
+      "No demonstrated eventual native settings handback, per-member baseline restoration, all-writer coverage, HC/JIP or performance proof.",
+      "Audits remain PAUSED. Previously staged nativeflight mission contains an earlier product candidate and must be restaged for a future authorised run.",
+      "No push/merge/CI/release/Steam or source/feature percentage rescore."
+    ],
+    "hashes": {
+      "addons/infantry/functions/cortexRestoreCalm.sqf": "84ec29c944127125818a198ff355d5592c2ea93c3246d068cd7ede0e570c8713",
+      "addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf": "a111c8333976fe32c4ce4d95e0c00a5b0123af8522963c2e92ad2b8cddb042fb"
+    }
+  },
+  "withdrawalApplicationFollowup20261022": {
+    "baseline": "aa891f7e",
+    "findings": [
+      "Withdrawal startup checked native command labels but omitted queued care and native fleeing. Its group behaviour/combat/speed writes did not share the complete posture footprint and recorded pairs before native confirmation.",
+      "Withdrawal and support maintenance cleared the legacy PATH marker before checking its ownership and enabled PATH for bare holder-list entries. Recall could replace newer movement or actor work."
+    ],
+    "implementation": [
+      "Startup retains its concrete native-task boundary and adds queued care/native flight before geometry or support teardown. It deliberately does not use the broader posture gate for movement admission: an incapacitated nonparticipant alone must not prevent healthy survivors withdrawing.",
+      "Group behaviour/combat/speed application uses one atomic current operation/epoch/state/leader/owner/complete posture-footprint check. Original values are sampled before the write; new restoration flags/pairs commit only after native readback confirms application.",
+      "Both legacy support PATH handback sites require the actual marker, clear it after confirmed PATH enablement, and withhold follow for native fleeing, queued care, unavailable/immobile actors, live reservations and concrete replacement commands. Modern holds retain their existing exact receipt executor; bare lists grant no PATH/recall authority."
+    ],
+    "validation": {
+      "pipeline": ".qa/withdrawal-native-policy-build-reviewed.log",
+      "tests": 1491,
+      "independent": ".qa/withdrawal-native-policy-independent.log",
+      "candidate": ".qa/candidates/withdrawal-native-policy-aa891f7e",
+      "fingerprint": "082cc704891f8df1ede133981e23bf9bfbe6cbe606cb125885e86e36cde5fc9d",
+      "result": "Full local offline/HEMTT/FSM/SQF/config/docs/package and independent verification passed. Existing regressions extended, no added cases. Initial old spelling assertion for behaviour capture failed; updated to verify prior capture before command and proof after acknowledgement. A reviewed intermediate overbroad movement-admission gate was corrected before final validation to preserve wounded-survivor capability.",
+      "provenance": "Unsigned dirty development snapshot, retained unrelated dirt included; later evidence/handover metadata excluded."
+    },
+    "cost": "Existing startup roster check gains two native predicates; group policy uses one bounded posture scan. Marker/recall checks replace unconditional writes. No worker/timer/global discovery added; runtime cost unmeasured.",
+    "limits": [
+      "No physical withdrawal, wounded survivor, legacy support handback, native acknowledgement timing, HC/JIP or measured performance proof.",
+      "Same-valued superseding legacy PATH/STOP policy remains ambiguous; this is not every hold or group writer audit.",
+      "Late protected tasks veto group policy writes after route acceptance; common operation/task ownership still requires physical validation.",
+      "Audits PAUSED; no launch/push/merge/CI/release/Steam or percentage rescore. Previously staged nativeflight mission has an older product package."
+    ],
+    "hashes": {
+      "addons/infantry/functions/cortexRetreat.sqf": "8862cf88b0ab7ecb8798d3419a8dba759395d7fd6006652ba73adbba6e01b98f",
+      "addons/support/functions/cortexSupportMaintain.sqf": "780eaf27715529f3cb0418ec577ca172e296ef87347fd3c15e99a39696d9861d",
+      "addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf": "f184c554b47aa6378f62909bf4f31fcc7844b94f04175a4dbfc582354dbfa4ba"
+    }
+  },
+  "withdrawalOriginalDeadline20261022": {
+    "baseline": "6e7c19fb",
+    "change": "Infantry resumption and shared movement leases preserve the original absolute deadline; reject malformed or expired acquisition before driving handback. No minimum three-second or one-second extension. Release remains independent of expiry.",
+    "validation": "1491 tests plus full local build and independent package verification passed. Existing cases extended.",
+    "candidate": ".qa/candidates/withdrawal-original-deadline-6e7c19fb",
+    "fingerprint": "8909aad37c2451e541db392bd1313f53e9ea21a9d89f43ce19480ba2478becc2",
+    "limitations": [
+      "Unsigned dirty development snapshot; retained unrelated changes.",
+      "No in-engine, HC/JIP or measured performance validation; audits paused.",
+      "Infantry locality resumption native-order receipt coverage remains a separate unresolved trace; do not claim complete handover parity."
+    ]
+  },
+  "withdrawalNativeOrderAdoption20261022": {
+    "baseline": "5bd02b67",
+    "finding": "Infantry locality withdrawal resumption lacked the vehicle path native waypoint replacement guard.",
+    "implementation": "Publish infantry native receipt after successful route creation; update either withdrawal kind only after successful replan; require matching pre-cleanup receipt for both kinds on locality adoption. Existing calm cleanup removes the obsolete receipt.",
+    "validation": "Full1491 local tests, compilation/FSM/config/docs/SQF/package gates and independent package verification passed. Existing regression cases extended.",
+    "candidate": ".qa/candidates/withdrawal-order-adoption-5bd02b67",
+    "fingerprint": "63d347f1c151aa41a646b78178c5a500059a447b72dcf136f75fe01d20b6f6e9",
+    "limitations": [
+      "Unsigned dirty development snapshot including retained unrelated dirt; engineering metadata afterward.",
+      "No physical movement, HC/JIP, same-valued native order identity or measured performance proof. Audits paused."
+    ]
+  },
+  "withdrawalRouteInterruption20261022": {
+    "baseline": "c85ba8e1",
+    "change": "Validate native route receipt before withdrawal recovery/surrender/replanning. Cancel only matching withdrawal generation; external-yield cleanup suppresses remount/formation recall. Completed native route hands back to successor task.",
+    "validation": "1491 tests and full local build plus independent package verification passed. No physical audit.",
+    "candidate": ".qa/candidates/withdrawal-route-interruption-c85ba8e1",
+    "fingerprint": "68244158f86230e0a36e32e8be5b358920a10804257f539dad0ce23c49ee7647",
+    "limits": "Unsigned dirty snapshot; physical/HC/JIP/performance and same-valued command identity unverified."
+  },
+  "drillPolicyFootprint20261022": {
+    "baseline": "36570401",
+    "sourceComparison": "LAMBS brainForced ATTACK invokes doAssaultSpeed with actor suppression/leadership/range-dependent forceSpeed; CBE native attack has no equivalent individual speed lease. Existing CBE tactical bound group FULL speed is separate, not parity.",
+    "sourceHashes": {
+      ".qa\\lambs-2621-review\\danger\\functions\\fnc_brainForced.sqf": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
+      ".qa\\lambs-2621-review\\main\\functions\\UnitAction\\fnc_doAssaultSpeed.sqf": "0004608370622dcdc5c33628fe94ca6b321ea556be545876bdb8872bb932c105"
+    },
+    "change": "FlankStep group combat/speed application uses complete native-task posture footprint and records only native-confirmed writes. Existing finite step defers without new worker. FlankEnd checks same footprint and retains up to two blocked/unconfirmed policy pairs as historical CBE_Cortex_DrillPolicyUnresolved, not retry authority.",
+    "validation": "1491 tests and full local build plus independent package verification passed; initial product-doc upstream reference boundary finding corrected. Existing tests extended.",
+    "candidate": ".qa/candidates/drill-policy-footprint-36570401",
+    "fingerprint": "0eece597c0fb2577b00fb701d668ef5f87435466f2a30c9307140a247d9e8a1f",
+    "limits": [
+      "Individual assault-speed parity remains unimplemented; no raw upstream copy.",
+      "Native physical handback, same-valued policy identity, locality overlap and measured performance remain unverified.",
+      "Unsigned dirty development snapshot with unrelated dirt; metadata afterward. Audits paused."
+    ]
+  },
+  "drillPolicyMovementSeparation20261022": {
+    "baseline": "6055e904",
+    "finding": "Previous native policy guard deferred the entire bound whenever footprint unavailable, incorrectly turning posture permission into movement permission.",
+    "correction": "Default policy readiness true; unavailable footprint skips group writes without stalling healthy per-actor movement. Only attempted/unconfirmed native writes or RED/YELLOW settling defer one finite step.",
+    "validation": "1491 tests plus full local build and independent verification passed; existing regression extended.",
+    "candidate": ".qa/candidates/drill-policy-movement-separation-6055e904",
+    "fingerprint": "202fb942c22a0d00c9bca3c6733538dde776306a61ab6dd111e85a786bffe4f2",
+    "limits": "Unsigned dirty development snapshot. No physical/HC/JIP/performance proof; audits paused. Supersedes prior whole-step deferral description."
+  },
+  "actorSpeedMissionCap20261022": {
+    "baseline": "8207c4d6",
+    "finding": "ActorSettings already provides finite owner/issuer/epoch/deadline stance and speed leases to clearance and garrison, but its requested SPEED could exceed an authored original forcedSpeed, including zero.",
+    "change": "Clamp SPEED to original baseline when baseline>=0 and request unlimited or faster. Repeated updates use original pair baseline; only adjusted request maps are copied, caller maps remain unchanged. Existing changed-native/context/release guards retained. No new actor controller.",
+    "sourceRelation": "LAMBS doAssaultSpeed uses native ATTACK pacing; CBE still lacks that individual behaviour. Existing ActorSettings supports common-operation/garrison scopes, not arbitrary native ATTACK. Do not fabricate a common operation or claim parity.",
+    "validation": "1491 tests and full local build plus independent package verification passed. Existing settings regression extended.",
+    "candidate": ".qa/candidates/actor-speed-mission-cap-8207c4d6",
+    "fingerprint": "cb46aa56c50f220155c5d3d2303bab7d5317da4590540221426a50d89a1665cb",
+    "limits": "Unsigned dirty snapshot with retained unrelated dirt. No physical native speed/cleanup, HC/JIP or performance validation; audits paused."
+  },
+  "clearancePaceIntegration20261022": {
+    "baseline": "dab5d3e3",
+    "finding": "Clearance already had 4/2 m/s distance pacing through ActorSettings; its 2D distance treated overhead floor destinations as close.",
+    "sourceContribution": "Retain suppression-sensitive pacing intent from reviewed doAssaultSpeed, integrated into existing CBE room execution rather than a new native ATTACK speed controller. No claim of complete native assault parity.",
+    "implementation": "Near-arrival uses actual ASL three-dimensional separation<5m, request2m/s. Outside: request3m/s at suppression>=0.2, otherwise4m/s. Existing settings/native task/operation/mission-cap guards and cleanup unchanged. Threshold is gameplay policy, not doctrine or measured optimum.",
+    "validation": "1491 tests/full local build/independent package verify passed; existing clearance settings test extended.",
+    "candidate": ".qa/candidates/clearance-pace-dab5d3e3",
+    "fingerprint": "eced8ca41cbddf0f5d37116bcfb47845c2af0d3d9b3444b703e2a6247e354f98",
+    "limits": "Unsigned dirty development snapshot; source metadata afterward. Physical entry/stairs/flow, speed ACK, HC/JIP, balance and performance unverified. Audits paused."
+  },
+  "moraleEffectiveStrength20261022": {
+    "baseline": "e1ee99ec",
+    "finding": "Morale used alive roster headcount as current strength, so unconscious/incapacitated/captive members could dilute casualty/outnumbering pressure. Contact leadership loss required death plus a replacement leader.",
+    "change": "Keep peak living roster denominator, count combat-effective fighters as current strength, average courage/wounds/suppression over fighters and treat unavailable contact leader as leadership pressure. Conscious wounded soldiers remain fighters. Native treatment work/fleeing alone does not change combat fitness. No effective fighter returns no new tactical action. Existing weights/profiles/hysteresis/authority unchanged.",
+    "roleTrace": "Active FlankStep already filters queued care/flight/reservations and repairs buddy roles before RebalanceRoles; do not duplicate CQB repair through that helper. RebalanceRoles actual production caller is FlankStep, despite broad historical header.",
+    "validation": "1491 tests/full local build and independent verification passed. Existing morale regression extended; no new case count.",
+    "candidate": ".qa/candidates/morale-effective-strength-e1ee99ec",
+    "fingerprint": "a4c49598d60690bdf4b74d884f6ebf66b4e640aa1b7a6497ec9779d524c386f7",
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; metadata afterward. No physical casualty flow, surrender/balance, HC/JIP or measured performance proof. Audits paused."
+  },
+  "flankStrengthReadiness20261022": {
+    "baseline": "e3a7dfe2",
+    "finding": "Flank casualty-strength ratio counted only immediately task-eligible infantry, conflating temporary protected work with casualties even when minimum-ready/firepower requirements could be met. Reinforce already used effective health strength.",
+    "implementation": "Build combat-effective infantry strength once, derive current local task-ready roster from it, use physical effective infantry count for casualty ratio and retain current minimum-ready/mobility/native-task/owned-hold and live-ammunition/cover checks. No new helper, worker, task takeover or profile-weight change.",
+    "validation": "1491 tests/full local build/independent package verification passed. Existing roster contract now checks composed health and task admission; existing morale case also checks separate flank ratios.",
+    "candidate": ".qa/candidates/flank-strength-readiness-e3a7dfe2",
+    "fingerprint": "f87cd94c74b8e26b12af5d803c005536649081634cb6bd4c767ff03df5f75efc",
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; metadata afterward. Physical manoeuvre capacity, balance, task overlap, HC/JIP and measured overhead unverified. Audits paused."
+  },
+  "contactIdentityReview20261022": {
+    "baseline": "0993543a",
+    "scope": "Read-only trace of enemy strength/contact identity after friendly effective-strength fixes.",
+    "evidence": [
+      "dangerSetup replaces observed-cache rows by exact target object identity, retaining at most eight.",
+      "CortexKnowledge starts from native targets and adds observed identities with pushBackUnique; detailed output retains target identity and native believed geometry, at most eight contacts.",
+      "CortexMorale recent enemy count counts contact rows; armour checks use vehicle target and boolean pressure, not additive armour count."
+    ],
+    "finding": "Distinct crew and carrier identities are not collapsed into one platform. Whether native targets plus EnemyDetected produce these simultaneous rows in representative scenarios is not established by this static trace. Same-object duplicate inflation is not demonstrated.",
+    "decision": "No runtime edit. Do not blindly collapse all mounted contacts using current vehicle membership: that would change manpower semantics and could expose a mount/dismount transition not present in the observer belief. Do not claim armour pressure is multiplied; it is boolean.",
+    "next": "Resolve the hostile-strength policy and inspect existing native target/event evidence for crew/carrier co-occurrence before changing the bounded shortlist or morale denominator. Preserve per-target native knowledge and believed positions; do not add world scans.",
+    "validation": "Review JSON parsed; runtime unchanged from validated 0993543a checkpoint. No rebuild warranted for engineering notes.",
+    "limits": "No live evidence, tactical parity increment or build-out percentage change. Audits paused."
+  },
+  "surrenderContactFreshness20261023": {
+    "baseline": "b4527536",
+    "finding": "Broken on-foot squad surrender admission used contact distance alone, permitting an arbitrarily stale native-belief contact within60m to authorise a terminal action. Existing pressure count already used30seconds.",
+    "implementation": "Require same contact row age<=30seconds and believed distance<60m. Reuses current bounded knowledge list; no new sensing, scan, worker, profile threshold or setting. Existing finite withdrawal fallback and friendly-support check unchanged.",
+    "validation": "1491 tests and complete local build passed; preserved candidate independently verified. Existing morale surrender test extended, no case-count increase. Setting tooltip/reference updated.",
+    "candidate": ".qa/candidates/surrender-contact-freshness-b4527536",
+    "fingerprint": "146cd9c8e9b9b4d07c0737c30db4efa4104184d5fec74f5354a82f755d144a9d",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Contact age uses native lastSeen/lastThreat semantics, not guaranteed current visual contact. Physical balance/HC/JIP/performance remain unverified. Audits paused."
+  },
+  "surrenderServiceHandover20261023": {
+    "baseline": "1e8b32c3",
+    "finding": "Surrender checked group eligibility and health/locality, but did not protect queued treatment or native service tasks before releasing group orders and disarming survivors.",
+    "implementation": "A read-only native service check defers the whole surrender before cleanup when a local combat-effective foot survivor is busy. Rechecked before each disarm. Covers pending ACE care and existing protected service command vocabulary. Native flight is deliberately allowed; ordinary CBE reservations still release through existing cleanup. No new worker, sensing or settings.",
+    "validation": "1491 tests/full build plus independent package verification passed. Existing surrender lifecycle case extended; no new cases.",
+    "candidate": ".qa/candidates/surrender-service-handover-1e8b32c3",
+    "fingerprint": "32f1a6e063e61147da8149b3d3232e61f0b30bddae39bcacbc7d3dba4679b95d",
+    "limits": "Unsigned dirty development snapshot with retained unrelated dirt, notes afterward. Not proof of physical task/captive handover, complete command identity, balance, HC/JIP or overhead. Audits paused."
+  },
+  "clearanceFloorMembership20261023": {
+    "baseline": "89739921",
+    "finding": "Changed floor-wave coverage recomputed _cleared+_unreachable and performed linear array membership for every room, producing repeated allocations and quadratic membership work in an unscheduled clearance callback.",
+    "implementation": "Build one numeric room-index HashMap from cleared and unreachable indices per coverage refresh, then use key membership in the existing room pass. Original coverage-count cache, lowest-floor geometry, pair flow, pending claims and deadlines unchanged. No new scan, controller or setting.",
+    "validation": "Existing1491 tests/full local build and independent package verification passed. No additional source-shape test or synthetic engine-performance claim.",
+    "candidate": ".qa/candidates/clearance-floor-membership-89739921",
+    "fingerprint": "f498a05894c5c306d4522637361e4e142d0a14c31f386d2608abf6f0939d6702",
+    "limits": "Unsigned dirty snapshot with unrelated dirt; engineering notes afterward. Removes repeated source-level allocation/search, not measured frame-time proof or a physical clearance-flow fix. Audits paused; 5%median/10%p95 budget unverified."
+  },
+  "moraleAlliedSupport20261023": {
+    "baseline": "718d6935",
+    "finding": "Surrender nearby-support test required identical side, so combat-effective allied squads from a different side were ignored despite the mission friendship matrix.",
+    "implementation": "Use directional group-side getFriend(candidate group side)>=0.6, consistent with the hostile contact boundary. Existing300m nearby Man query, other-group, combat-effective and non-fleeing requirements remain; no new scans or tuning.",
+    "validation": "1491 tests/full build/independent verification passed; existing morale support regression extended.",
+    "candidate": ".qa/candidates/morale-allied-support-718d6935",
+    "fingerprint": "a88c4d9736bfb6570ae6959f2b0f0839f0ae6413f859ccaf7a469814908da851",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt, engineering notes afterward. No physical alliance/balance or measured overhead proof. Audits paused. Native ATTACK speed parity remains open; current ActorSettings permits only real OPERATION/GARRISON scopes, never fabricate operation authority."
+  },
+  "localityPolicyFootprint20261023": {
+    "baseline": "1f08c452",
+    "finding": "Locality restored checkpoint group combat/speed modes from group eligibility and value matches alone, without the complete protected native-task footprint. Resumed search also promoted SAFE to AWARE and recorded ownership without native confirmation.",
+    "implementation": "Shared CortexGroupPostureTaskAvailable gates group combat/speed restoration only; per-actor cleanup/movement remain separately admitted. Search SAFE->AWARE checks same footprint and records behaviourChanged only after native readback. Footprint/eligibility/Zeus rechecks and native policy writes are non-suspending for the documented scheduled OperationStart adoption caller. No new movement owner, worker or retry.",
+    "scope": "Posture permission only; existing enableAttack restoration has its distinct authority contract. No full migration-handback completion claim.",
+    "validation": "1491 tests/full final build/independent verification passed; existing posture regression extended. Intermediate build passed before scheduled-caller atomicity review; final source revalidated.",
+    "candidate": ".qa/candidates/locality-group-policy-1f08c452",
+    "fingerprint": "11452dd28959d95a0d21a316449ae7617fdd4d3bbd80526904ea396b443a8a3e",
+    "logs": [
+      ".qa/locality-group-policy-build.log",
+      ".qa/locality-group-policy-build-final.log",
+      ".qa/locality-group-policy-independent.log"
+    ],
+    "tracker": "Renewed only CORE Owner epoch and actor reservations after locality delta review; scores unchanged, complete all-owner handback remains partial. Current230 stale references/109unique sources elsewhere; strict global check still fails.",
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering tracker/metadata afterward. Blocked/unconfirmed policy handback may retain unresolved evidence; no physical migration/native restore/HC/JIP/balance/performance proof. Audits paused."
+  },
+  "grenadeOwnedPathHandover20261023": {
+    "baseline": "24c8503a",
+    "finding": "Grenade evasion treated historical supportHeld list membership as authority to enable PATH, although current support cover uses native doStop and legacy cleanup elsewhere requires CBE_Cortex_SupportPathHold. Native fleeing was also omitted from admission and delayed recall, allowing evasion/formation commands over that native response.",
+    "implementation": "Only current PATH or support-list membership plus exact boolean legacy marker admits the actor. Owned PATH reset skips no-op writes, retires marker only on native readback and refuses escape when PATH remains disabled. Current native STOP needs no feature reset. Admission and delayed recall yield native fleeing. Existing evasion lease,16-actor query, six-second regroup, support/coordinated/clearance ownership and original route/epoch/generation checks remain. No new worker/scan/deadline.",
+    "validation": "1491 existing tests/full offline HEMTT/config/SQF/FSM/docs/package and independent copied-candidate verification passed. Existing grenade ownership regressions extended, no new case.",
+    "candidate": ".qa/candidates/grenade-owned-path-handover-24c8503a",
+    "fingerprint": "91628afe83cec25652f9072daffa3b8094eefd8cdacd2060f72451d893faf6b8",
+    "logs": [
+      ".qa/grenade-owned-path-handover-build.log",
+      ".qa/grenade-owned-path-handover-independent.log"
+    ],
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering notes afterward. Physical grenade escape, authored PATH/refused restoration, fleeing native response and support/CQB repeat handover/HC/JIP/performance unverified. Audits paused; no percentage/parity or automatic-success claim."
+  },
+  "grenadeNativeFirePolicy20261023": {
+    "baseline": "d0c77a25",
+    "finding": "ThrowGrenade had actor/medical/epoch/native-service/Zeus checks but no explicit FIREWEAPON or native-fleeing gate, and a queued fragmentation throw did not retain current individual/group hold-fire policy. Earlier tactical admission could not cover later0.25s aim callbacks.",
+    "implementation": "Stateless explicitly transported policy checks FIREWEAPON and native fleeing for both kinds at selection, atomic queue commit and each delayed callback before facing/release. FRAG additionally requires both unitCombatMode and group combatMode YELLOW/RED. SMOKE retains separate non-lethal policy. Existing cancellation token allows assault to continue without refused frag. No added function/controller/worker/setting/scan/deadline. Current callbacks are CBA unscheduled; no invented intra-callback suspension guard added.",
+    "validation": "1491 existing tests/full reviewed offline HEMTT/config/SQF/FSM/docs/package and independent copied-candidate verification passed. Existing grenade and callback-context regressions updated; no new cases. Initial build failed old callback argument-shape assertion; extended expected payload retains original context plus explicit fire policy.",
+    "candidate": ".qa/candidates/grenade-native-fire-policy-d0c77a25",
+    "fingerprint": "15e21ef61cce3df2bb819182f7dce72916c45401bb413115ca9de7cf2e032e65",
+    "logs": [
+      ".qa/grenade-native-fire-policy-build.log",
+      ".qa/grenade-native-fire-policy-build-reviewed.log",
+      ".qa/grenade-native-fire-policy-independent.log"
+    ],
+    "limits": "Unsigned dirty snapshot retaining unrelated dirt; engineering notes afterward. Native release after already accepted forceWeaponFire, physical hold-fire/flight transitions, repeated assault continuation, HC/JIP and performance unverified. No projectile cancellation/control claim, complete parity or percentage increase. Audits paused."
+  },
+  "searchRecallMovementFeatures20261023": {
+    "baseline": "c2c28896",
+    "finding": "CortexHolderRecallOwned checked MOVE/PATH, but CortexSearchMoveOwned could return ownership for an exact old search MOVE after either native feature was disabled. CortexRestoreCalm could then issue follow over the authored disabled-feature state. Search never owns those feature switches.",
+    "implementation": "Read-only search ownership predicate now requires both native MOVE and PATH before receipt/destination work. Existing local/group/Zeus/native-task/fleeing/care/reservation/route proofs remain. No feature enable, native command, new job, scan, retry or deadline added.",
+    "validation": "1491 existing tests/full offline HEMTT/config/SQF/FSM/docs/package and independent copied-candidate verification passed. Existing search-ownership regression extended; no new case.",
+    "candidate": ".qa/candidates/search-recall-movement-features-c2c28896",
+    "fingerprint": "f16d13235af38971a1b0e94db8959d87a9d49af79e975d7239f0e7f2bf78c429",
+    "logs": [
+      ".qa/search-recall-movement-features-build.log",
+      ".qa/search-recall-movement-features-independent.log"
+    ],
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering notes afterward. Native follow/disabled-feature transitions, physical authored-order continuation, HC/JIP and performance remain unverified. No eventual handback, complete parity or percentage claim. Audits paused."
+  }
+}

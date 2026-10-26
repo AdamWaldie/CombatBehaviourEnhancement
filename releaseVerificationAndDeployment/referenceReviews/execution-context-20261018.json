@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-18",
+  "scope": "Correction to normal scheduler execution-context assumptions; not runtime acceptance",
+  "sources": {
+    "addons/core/functions/schedulerReconcile.sqf": "fcd7ec6a6f6e6a06d3d73452907622718b37fbf7e17b916077f51b5bdcac5e1c",
+    "addons/core/functions/cortexSchedulerTick.sqf": "e45cd0675bb7a67865cf043a7d24121f6070b6e05b29348682eb6069427b5ecf",
+    "addons/core/functions/cortexQueueJob.sqf": "77659db6ce256310eaaa32abe447bde5e95d9462eca393b1e6c035044b1265df",
+    "addons/core/functions/aiGetDiagnostics.sqf": "b06d65d09a93b02da2edcd10429fa356917f3e7e44cbd895a931de6b435a0a78",
+    "releaseVerificationAndDeployment/cortexQA/runPerformanceOwner.sqf": "d0feb783ac0bb55afdb14b41225a46ed89ff985e0eef3ac9b26eb4a2b8403559"
+  },
+  "upstreamEvidence": [
+    {
+      "url": "https://github.com/CBATeam/CBA_A3/blob/master/addons/common/XEH_postInit.sqf",
+      "observation": "EachFrame mission handler directly calls common onFrame."
+    },
+    {
+      "url": "https://github.com/CBATeam/CBA_A3/blob/master/addons/common/init_perFrameHandler.sqf",
+      "observation": "onFrame calls registered PFH CODE directly; next-frame/wait-and-execute callbacks are separate deferred calls."
+    }
+  ],
+  "normalPath": "SchedulerReconcile registers CortexSchedulerTick in CBA PFH; SchedulerTick directly calls each job. Normal callbacks are unscheduled and the soft time budget is checked between jobs, not inside geometry or helper calls. Existing source headers already documented no running-job pre-emption.",
+  "correction": "Earlier reviews/commentary describing geometry as scheduled or assuming ordinary scheduler suspension within normal PFH job calls were overbroad. No intra-call race is demonstrated by those source guards/tests. Distinguish stale queued input, actual deferred CBA callbacks, scheduled direct callers and evidenced synchronous re-entry.",
+  "retainedFindings": [
+    "SQF dynamic-scope type shadowing, retry/fixed-deadline semantics, shared row aliasing, refusal versus absence and original deferred throw context are distinct source issues; the scheduler correction does not by itself invalidate them.",
+    "Identity checks may protect direct calls or synchronous re-entry, but each claimed interleaving needs its actual caller/native-event evidence.",
+    "Do not remove guards blindly or equate adding isNil with measured safety/performance. Trace/reduce redundant hot-path checks against real execution paths and matched runtime measurements."
+  ],
+  "telemetry": "Append actual canSuspend boolean to existing256-row local callback ring and retain it on job state. On-demand diagnostics count scheduled/unscheduled/unknown; missing legacy fields remain unknown. Existing duration/latency fields and indices remain. No new world query, worker or per-frame sort.",
+  "limitations": [
+    "No Arma run: expected normal context is source-derived, not runtime-observed.",
+    "Installed CBA runtime version has not been independently matched to fetched upstream source in this turn.",
+    "Callbacks can exceed frame budget; extra validation/copy/hull work needs measured per-callback and matched frame-time comparison.",
+    "FSM/direct execution context and each proposed synchronous re-entry still need tracing."
+  ],
+  "validation": {
+    "tests": 1365,
+    "log": ".qa/cbe-distributed-context-schema-build.log",
+    "exitCode": 0,
+    "packageFingerprint": "ed1cb5c3fa323879da5fae8f6001054c43df8285fe0e8c16e7e9ae24c3961cbf"
+  },
+  "physicalAcceptance": false,
+  "performanceAccepted": false,
+  "distributedSchema": {
+    "finding": "Owner sampler required exactly5fields and would ignore all new6-field context samples.",
+    "implementation": "Accept5/6fields with finite nonnegative timing and matching local tick window. Six-field typed bool gives observed context; legacy/malformed context stays unknown. Existing diagnostic first6fields retained; append presence flags [unscheduled,scheduled,unknown]. Missing observed callback duration/latency stays-1.",
+    "limits": "Presence flags are not unique counts; repeated rolling snapshots/ring overwrite do not prove full-run coverage. No runtime run or matched-overhead result."
+  }
+}

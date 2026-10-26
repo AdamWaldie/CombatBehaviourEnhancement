@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-18",
+  "scope": "Airborne passenger fairness and pending execution",
+  "source": "addons/aircraft/functions/cortexAirborneDropStep.sqf",
+  "sha256": "25f811d6efd253b2a705b09cc716b9f09ba4529db27324ef516ac23c6035fe74",
+  "findings": [
+    "First eligible passenger was always selected; a refused dismount could monopolise attempts.",
+    "Empty current eligibility prematurely entered LAND despite original passengers remaining aboard.",
+    "ParachuteJump return was ignored while aircraft hold was refreshed."
+  ],
+  "implementation": [
+    "Rotate original roster cursor after every attempt, not just accepted exits.",
+    "Only original-group passengers aboard remain pending; unavailable passengers wait within unchanged deadline.",
+    "Pilot/commander/group takeover checks precede temporary wait.",
+    "Store bounded job-local lastExit and refresh hold only on accepted exit."
+  ],
+  "validation": {
+    "log": ".qa/cbe-airborne-roster-authority-build.log",
+    "tests": 1136,
+    "sqf": 315,
+    "pbos": 9,
+    "exit_code": 0,
+    "fingerprint": "d3d1ed5693538ba59b146ad70839e921d09c6228c1b4c7e287a120729722681c",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "remaining": [
+    "Physical refused dismount, temporary reservations, casualties and split-owner passengers.",
+    "Aircraft hold cross-owner arbitration and insertion owner migration.",
+    "Late receipt adoption and physical chute deployment remain unaccepted.",
+    "No measured median/p95 runtime performance."
+  ],
+  "source_context": "CBE airborne operation execution review, following parachute-deployment-adoption-20261018.json. No upstream code copied and no whole-HBQ parity claim."
+}

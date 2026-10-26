@@ -1,0 +1,26 @@
+{
+  "baseline": "edf3177a",
+  "scope": "Finite scheduler failure contract, not gameplay acceptance",
+  "finding": "Callback nil/non-number delay removed queue entry while pending FSM state remained; non-finite delay could be retained as unreachable due time. Initial delay also lacked finite deadline validation.",
+  "implementation": [
+    "Queue rejects non-finite input/overflow before owner stamping or publication and records cancellation on supplied state. Stale rejection also notifies finite cancelled-only consumers.",
+    "Callback nil/non-number/non-finite delays notify existing state with INVALID_JOB_DELAY, pending=false/completed=true when present, retaining an existing cancellation reason.",
+    "Non-finite computed retry deadline also retires and reconciles finite cleanup subsystems. Normal negative completion and finite retry semantics retained.",
+    "No native settings/movement cleanup in scheduler; finite FSM cancellation links retain exact-owner cleanup responsibility. No new worker, retry or timer."
+  ],
+  "validation": {
+    "focusedTests": 7,
+    "fullTests": 1493,
+    "compiledSQF": 412,
+    "PBOs": 10,
+    "buildExitCode": 0,
+    "independent": "passed",
+    "candidate": ".qa/candidates/scheduler-invalid-delay-edf3177a",
+    "fingerprint": "7d9cc4bad2d8c18b26d18b8773a8a95f5c8562023bf8129f1ec00c5879f8e551"
+  },
+  "limits": [
+    "Regression models and compiled source boundaries are offline evidence; runtime malformed callbacks/FSM cleanup/native quiescence and performance unverified.",
+    "No runtime invalid-return frequency or historical gameplay failure attribution claimed.",
+    "Unsigned dirty development candidate includes pre-existing unrelated changes. Review/handover postdate package. Audits paused."
+  ]
+}

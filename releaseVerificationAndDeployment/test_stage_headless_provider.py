@@ -30,4 +30,14 @@ class HeadlessProviderStagingTests(unittest.TestCase):
             self.assertIn('private _result=_this call CBE_QA_NativeRegisterOriginal;',loader)
             self.assertIn('_observed < 30',loader)
             self.assertEqual(evidence['scope'],'EXPLICIT_NATIVE_TRANSFERS_ONLY')
+            repo=Path(__file__).resolve().parents[1]
+            audit=(repo/'releaseVerificationAndDeployment/auditMission/initServer.sqf').read_text()
+            wrapper=audit.split('CBE_fnc_HeadlessMigrateGroup={',1)[1]
+            self.assertLess(wrapper.index('CBE_Headless_ExcludeGroup'),
+                            wrapper.index('call Waldo_fnc_HeadlessMigrateGroup'))
+            heli=(repo/'addons/aircraft/functions/improvedHelicopterLandingInit.sqf').read_text()
+            ground=(repo/'addons/aircraft/functions/cortexAirborneGroundHandover.sqf').read_text()
+            self.assertIn('"Waldo_Headless_ExcludeGroup", true, true',heli)
+            self.assertNotIn('"CBE_Headless_ExcludeGroup"',heli)
+            self.assertIn('"Waldo_Headless_ExcludeGroup"',ground)
             with self.assertRaises(ValueError): stage_provider(root/'repo',mission)

@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "918ca148",
+  "workshopId": "3812620045",
+  "scope": "Complete semantic read of five previously omitted HBQ diagnostic/editor functions; compare intent, lifecycle and cost with current CBE. No runtime parity claim.",
+  "sourceHashes": {
+    "functions/fn_perfMonitor.sqf": "43e1a678a218c7c58960ae0b56a3dd48c3ef0e48d9f1c427eb7fcda962a031dd",
+    "functions/fn_debugText.sqf": "591fd3f58fe286a7ea46b7102e006fb7e0255b8b98e719c79138d96c5736640d",
+    "functions/fn_debugTextClient.sqf": "a4e28240e01801419d1b268fdd4d7c0b4c9138c1436260be7cc770a3f7f6bb34",
+    "functions/fn_driveAssistDebug.sqf": "3019209c0705906ad6ff31e89127bd0f01b32ec1400059005bb668b29758f4c4",
+    "functions/fn_edenDraw.sqf": "e1702c464e969d8e88c4a4cdaa243190329a09372d926320da41fd31e8b42ac8"
+  },
+  "dispositions": [
+    {
+      "source": "functions/fn_perfMonitor.sqf",
+      "intent": "Owner-local FPS, scheduler wake delay, active scripts, driven vehicles and ray rate; optional server publication while a client renews demand.",
+      "findings": "Permanent scheduled worker sleeps one second even when disabled. Enabled sampling wakes every0.1s for two seconds; server demand expires after10s. Stats include controller milliseconds but formatted display omits that field. These samples cannot establish matched frame-time overhead or p95 performance budget.",
+      "decision": "Retain CBE existing bounded256 owner-local callback ring and on-demand nearest-rank duration/queue-latency summaries. Do not add permanent sleeping monitor, public namespace demand timestamp or hintSilent UI. Aggregate sensing/ray workload counters and authenticated opt-in remote owner diagnostics remain unimplemented; evaluate with actual profiling rather than calling callback time a frame-overhead result.",
+      "cbeEvidence": [
+        "addons/core/functions/cortexSchedulerTick.sqf",
+        "addons/core/functions/aiGetDiagnostics.sqf"
+      ]
+    },
+    {
+      "source": "functions/fn_debugText.sqf",
+      "intent": "Per-object numbered messages, identical-text10s coalescing; viewers measure duration locally instead of comparing server/client clocks.",
+      "findings": "Public object list prunes nulls only when another message is issued; per-object sequence is not an ownership epoch. HBQAD_DbgLast is also used by driveAssistDebug for a different path/obstacle tuple, so the text throttle and geometry cache can overwrite each other on a machine running both.",
+      "decision": "Select clock-independent expiry and coalescing as diagnostic intent. Any CBE implementation needs separate typed keys, bounded retained objects, owner/episode provenance and explicit disable/deletion cleanup. Do not copy shared keys or global broadcast list."
+    },
+    {
+      "source": "functions/fn_debugTextClient.sqf",
+      "intent": "Interface-only Draw3D overlay gated by enabled/debug and camera distance800m; draw above current visual object bounds.",
+      "findings": "Registration is idempotent by global EH sentinel, but the EH remains installed. Every enabled frame traverses full shared object list; per-client first visibility starts message duration even for old retained publications, including JIP.",
+      "decision": "Useful observer-local presentation intent only. New messages need bounded freshness in addition to local display duration; disable should release handlers and retained state. No tactical acceptance credit for rendered labels."
+    },
+    {
+      "source": "functions/fn_driveAssistDebug.sqf",
+      "intent": "Render vehicle-relative obstacle/traffic rays, nav corridor direction, helper geometry and planned path/obstacle spheres.",
+      "findings": "Draw3D is setting gated; separate untracked sphere worker runs every0.25s without enabled/debug gate. Local sphere objects persist while vehicles remain in DebugVehs. Ground path spheres force ATL z0.6, losing bridge/grade route height. Nav outline uses terrain height, not selected corridor plane. Per-frame lists are uncapped.",
+      "decision": "Select read-only rays/current obstacle/route and corridor-direction visualisation intent. Do not port sphere objects or permanent worker. Diagnostic geometry must use actual accepted route/support coordinates and cannot become movement targets. Current CBE corridor pitch/support is implemented; equivalent HBQ observer visualisation remains a code gap, not required background simulation."
+    },
+    {
+      "source": "functions/fn_edenDraw.sqf",
+      "intent": "Editor-only live rectangle and travel arrow for every navigation-area module, following current size/rotation/movement.",
+      "findings": "Walks all Eden logics each Draw3D frame, ignores pitch in axis and projects corners onto terrain+0.6. No explicit EH removal path in this function.",
+      "decision": "Select meaningful corridor preview as editor usability work. CBE task currently registers runtime corridor and pitch validation; do not claim custom preview parity from module registration. A future preview must follow selected corridor plane and distinguish proposal from accepted safe route, with bounded module cache/refresh and editor lifecycle cleanup."
+    }
+  ],
+  "validation": "All five complete function bodies read. Source hashes recorded against untouched complete private snapshot. CBE scheduler and diagnostic consumers inspected. Local HBQ exact-membership/hash index regenerated and checked. Engineering-only review: no runtime changes, new tests, redundant build or audit.",
+  "remaining": "XEH_preInit settings/config semantic review and full controller branch reconciliation remain. Five reviewed functions do not prove whole-HBQ parity. Runtime tactical behaviour and5percent median/10percent p95 overhead unverified; audits PAUSED."
+}

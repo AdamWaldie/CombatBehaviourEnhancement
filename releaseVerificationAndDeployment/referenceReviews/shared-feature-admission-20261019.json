@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-19",
+  "sourceParent": "417508f0",
+  "scope": "Shared live feature/ownership admission and HBQ execution review",
+  "findings": [
+    "Indoor node failure cache already records only NO_PROGRESS, not DEADLINE/cancellation/owner change; no change made to that correct distinction.",
+    "HBQ queue consent still lacks sole-writer hold/physical READY/leaf reverse/parent full-hull clearance execution; automatic negotiation remains inactive. No consent flag promoted to movement authority.",
+    "Shared feature helper assumed boolean settings and array exclusions; malformed mission values could throw at boolean/in operations. Shared ownership helper likewise assumed boolean declarations."
+  ],
+  "implementation": [
+    "Empty setting name/non-boolean setting and non-array group exclusion container refuse the feature. Missing values retain typed documented fallbacks.",
+    "Explicit ALL/feature exclusions return before the existing ownership marker call; global disable remains authoritative. No force-enable or per-vehicle filter added.",
+    "Malformed subject/group ownership declaration conservatively returns external-control true; helpers do not mutate mission values. Existing specialist markers and animation predicates remain unchanged."
+  ],
+  "performanceCorrection": "Group CompatibilityExternalControl path is one marker read, not a squad scan. An earlier commentary assumption of an expensive scan was corrected after source inspection. No measured performance gain claimed.",
+  "sourceHashes": {
+    "addons/infantry/functions/cortexFeatureEnabled.sqf": "36e083560cde0629205bf81feaa32059ce92ed2cbfa305a2d258183575d19a43",
+    "addons/compatibility/functions/compatibilityExternalControl.sqf": "6c52a733f5808f89bbea512fac44e0db6d8121c3dbbe1e91203a8bb58c542dad"
+  },
+  "validation": {
+    "focused": ".qa/cbe-live-feature-gate-focused.log",
+    "compiler": ".qa/cbe-live-feature-gate-hemtt.log",
+    "fullBuild": ".qa/cbe-live-feature-gate-build.log",
+    "tests": 1476,
+    "independentVerify": ".qa/cbe-live-feature-gate-independent.log",
+    "fingerprint": "9cc18b1d08413e2f7ee2d29a0b683827b1d18e1c3b812f1c5aba2b973b880ce0",
+    "source": "417508f0+dirty unsigned development; not a later clean commit package",
+    "buildoutEvidence": "passed; scores unchanged"
+  },
+  "newWorkers": 0,
+  "newQueries": 0,
+  "newTestCases": 0,
+  "physicalAcceptance": false,
+  "compatibilityExpansion": false,
+  "audits": "PAUSED",
+  "remaining": [
+    "Direct mission-variable reads outside these two shared helpers are not covered by this fix.",
+    "Malformed state recovery/live toggles and normal/HC ownership behavior remain unverified in-engine.",
+    "HBQ per-vehicle feature overrides and queue physical execution remain incomplete.",
+    "No whole-HBQ or runtime performance-budget claim."
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Selected-platform deletion after original crew object deletion",
+  "finding": "The existing native platform Deleted callback refused any null original crew member. A corpse removed before the platform therefore left the selected reference reserved even though that original movement actor no longer existed. The prior watcher did not preserve private original-actor provenance.",
+  "implementation": [
+    "Capture a private copy of both typed nonnull original crew references when installing the existing handler. A repeat installation keeps its original snapshot and refuses a changed crew journal.",
+    "At the genuine native platform-deletion callback require the exact work reference/group/owner and private crew snapshot. Each original must be deleted or local and dead. Living originals, remote existing actors, missing initial objects and replaced journals refuse.",
+    "Retain exact original lease cleanup and protection of newer/unknown public and private reservations. Publish GONE when an original object was deleted; retain DEAD for two present dead originals. Tactical operation termination remains INCOMPLETE.",
+    "Group locality-loss cleanup recognises the extended private watcher shape. No cross-owner reconstruction from already-missing actors."
+  ],
+  "nativeSemantics": {
+    "url": "https://community.bistudio.com/wiki/deleteVehicle",
+    "finding": "Actual deletion turns an object reference into objNull on the next frame. This supports retaining original references before disappearance; it does not prove event ordering or MP behaviour in CBE."
+  },
+  "sourceIntent": "Preserve finite selected-platform crew scope and original group membership; no source relocation loop, teleport, crew replacement or new controller is copied. Historical selected source comparison remains in artillery-casualty-retirement-gap-20261025.json and armour-selected-standoff-20261025.json.",
+  "cost": "Copy two object references once per admitted watcher installation. Existing one local Deleted handler and fixed two-actor event checks; no additional listener, scan, timer or recurring callback. Runtime overhead unmeasured.",
+  "limits": [
+    "Living original crew, split actor ownership, a missing initial capture, already-missing actors on a new owner and absent genuine platform deletion still refuse.",
+    "Does not certify foreign live-worker termination or general native supersession.",
+    "Native event ordering, repeated use, normal/HC migration and performance budget remain unverified. Audits paused."
+  ],
+  "sourceHashes": {
+    "addons/vehicles/functions/vehicleCrewMoveDeletionWatch.sqf": "314d274bb26b574ac9b3afe909d32b20060a97b6948e861e10c1970c2fff4397",
+    "addons/core/functions/cortexLocality.sqf": "fb10c6f701c1d1b5dd4e9e209f93ac46aaa60fc225259d93bb25536451aab015"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "focusedExistingArtilleryCases": 4,
+    "result": "PASS",
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 432,
+    "PBOs": 11,
+    "candidate": ".qa/candidates/selected-deletion-provenance-b915e654",
+    "fingerprint": "ea185441e7437a1bd5d572134e2d38c5eff55a9ad76fd3d825d8e3c15957a025",
+    "buildLog": ".qa/handovers/selected-deletion-provenance-build.log",
+    "independentLog": ".qa/handovers/selected-deletion-provenance-independent.log",
+    "independent": "PASS"
+  }
+}

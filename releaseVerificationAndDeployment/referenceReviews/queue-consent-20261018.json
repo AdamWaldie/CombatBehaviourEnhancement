@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-18",
+  "scope": "Distinct finite authenticated queue-role consent, wired from natural jam proposal",
+  "status": "CONSENT_ONLY_NO_NATIVE_EXECUTION",
+  "sources": {
+    "addons/vehicles/functions/drivingQueueProposalCurrent.sqf": "8faeae4902839aa496ff6fc96d51af98b26c4f505a4ef5ecf0eb31f2a126ff71",
+    "addons/vehicles/functions/drivingQueueAgreementRequest.sqf": "19b031c6db177b3fbe2b7c86a091cd574c39eaa5b7fab545d440d5d62dfd7cd5",
+    "addons/vehicles/functions/drivingQueueAgreementServer.sqf": "162d42f95cfa146d570fb6cbfed901c26c1271bab0d60324493e9da9e51607e3",
+    "addons/vehicles/functions/drivingQueueAgreementOwner.sqf": "a3ca4ed36d2382f539a7084e21f84a119bb6d2136dc498f4068a49dfb01bf2f4",
+    "addons/vehicles/functions/drivingQueueProposal.sqf": "8ce95123173598feb2c1755665f51350f223bd49e628f94ada0e07526e2e3010",
+    "addons/vehicles/functions/drivingQueueContext.sqf": "6f20f135b2b4f76b9b945cfc81a15374a7eb044068a710c814f87f5073cc4c6b",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "f4f9cab41ed80391a857475a6155fbfbfea84bb65cb70a69dc0e1dc764bd51bd"
+  },
+  "implementation": [
+    "Canonical ordered role/dependency chain checks; roster2..4, distinct groups, current public identity and normalized near-original poses.",
+    "Private server32episode registry with no overlapping vehicles; authenticated initiator vehicle/driver/group owner, separately authenticated expected owner ACKs.",
+    "Each actual owner checks full local native rows, live driving brain generation, recovery feature, ordinary-route/task eligibility, competing live passing consent and known ownership exclusions.",
+    "Original2s handshake/<=30s consent bounded by original retry deadline; same canonical native topology/retry episode cannot renew an attempt.",
+    "Atomic local request/check/publish/send; distinct queue namespace/tokens, not passing agreement.",
+    "Exact request serial/context cancellation and matching-token result retirement; duplicate agreement does not replay or renew; deleted peer does not prevent terminal token cleanup.",
+    "Natural proposal hook submits negotiation; all role acknowledgement remains private observation/consent and no speed/reservation/native/physics command is issued."
+  ],
+  "validation": {
+    "tests": 1197,
+    "sqf": 321,
+    "pbos": 9,
+    "exit_code": 0,
+    "log": ".qa/cbe-queue-consent-eligibility-build.log",
+    "fingerprint": "826052f12d1e1a55825f1b0be43fe40bea7de9f13d41c75766c91a24e760bb68",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "receipt": "Parent5e15c3bd plus tracked/new source/config/docs, dirty Build; not signed Release.",
+    "prior_gates": "Initial consent1196, atomic/expired-receipt1197 and final recovery-gate1197 builds passed before final observed-eligibility tightening. Logs retained."
+  },
+  "remaining": [
+    "Actual HOLD/READY, broker COMMIT/execution phase, owner-local native reverse FSM and physical-room dependency advancement.",
+    "Do not apply stationary proposal pose checks to an executing leg: broker needs a distinct committed structural identity and token/phase-bound progress before movement integration.",
+    "Queue-specific native command/cap ownership and teardown/migration/shutdown deferred cleanup; current consent does not own these.",
+    "Fresh support/body/rear/approaching-traffic observation and original-deadline failure handling during native execution, using sole existing speed writer.",
+    "Actual normal and separate-providerHC protocol/reverse/interruption/repeatability and5%median/10%p95 performance acceptance."
+  ],
+  "limits": [
+    "Shared DrivingPassCanConsent is used only as a read-only ordinary-route eligibility predicate; no passing ACK/token/geometry is substituted.",
+    "No network delivery, rejection replay, latency or participant-loss behavior is physically proven.",
+    "No queue movement or resolution, whole-HBQ parity or family completion credit. All65 families partial."
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-24",
+  "source_base": "4b6da45e",
+  "confirmed_gap": "Naval disembark speed baseline used a machine-local two-value variable while its landing plan and token were public. A replacement owner could see the stopped boat without the saved baseline. Release also published group-state retirement without requiring current group locality or comparing successor tokens.",
+  "changes": [
+    "Stop receipt now publicly carries original cap,applied zero,landing token,crew group before the single stop command",
+    "APPROACH and DISEMBARK wait for matching receipt and boat locality within original expiry; a changed cap is not reasserted",
+    "Completion/cancel restore only exact current zero with matching token/group and finite original cap; receipt retirement is public and token-bound",
+    "Departed group owner cannot execute naval release; stale landing release preserves successor public operation/status/ground-element records"
+  ],
+  "unchanged": [
+    "No new timer,worker,deadline extension,group split,teleport or boarding shortcut",
+    "Existing real boat-stop/cargo/egress authority and common generation-owned route cleanup retained",
+    "Same-value writes from an undeclared external writer remain indistinguishable; no claim of complete provider quiescence"
+  ],
+  "validation": {
+    "full_offline": "1496 tests pass;413 compiled SQF;11 PBOs;static performance0 findings",
+    "independent_verify": "pass",
+    "candidate": ".qa/candidates/naval-stop-handover-4b6da45e",
+    "fingerprint": "35841227b2d1415144196ba1f9d2cf68ae3afa3d6f2b6f27a6606fe7a0651476",
+    "initial_failure": "Existing test required the old unqualified restore guard; updated to assert token/public/current-owner protections. Initial focused log retained."
+  },
+  "limits": [
+    "Unsigned dirty development candidate; unrelated working-tree changes preserved",
+    "No real server/HC vehicle/group migration or public-receipt transport timing validation",
+    "No proven sustained independent naval ground command or scoped CQB completion",
+    "Audits PAUSED; physical handover/speed restore/Zeus/performance remain unmet"
+  ]
+}

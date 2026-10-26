@@ -1,10 +1,14 @@
 /*
  * Author: WaldoTheWarfighter
+ * Target identity respects native ignoreTarget policy; no ignore setting is changed.
+ * Native EnemyDetected selects personal knownByUnit witnesses within its rotating twelve-member
+ * sample; group-only knowledge is an approximate fallback, never personal sight proof.
  * Purpose: Maintain the bounded group contact observer that complements the engine danger FSM.
  * Locality / Authority: Group-owner local. The engine FSM supplies immediate causes; this observer
  * retains only engine-confirmed target identity without revealing targets or issuing movement.
  * Repeat/JIP: Repeat-safe. Machine-local handler identifiers are removed on disable or locality
  * handover, and the new owner rebuilds the observer from fresh native contact events.
+ * Existing bounded discovery also reconciles pending owner-local flight requests without reissuing them.
  * Arguments: 0: group <GROUP>, grpNull; 1: cleanup <BOOL>, false.
  * Return Value: Nothing.
  * Current callers: CBE discovery, locality reconciliation and shutdown.
@@ -61,10 +65,12 @@ if (!_enabled) exitWith {
     // immediately so a fresh owner-local observation can start the replacement generation rather
     // than coalescing into a brain that has already lost authority.
     _group setVariable ["CBE_Danger_FSM",nil];
+    _group setVariable ["CBE_Danger_FSMFailure",nil];
     _group setVariable ["CBE_Danger_Events",nil];
     _group setVariable ["CBE_Danger_EventCadence",nil];
     _group setVariable ["CBE_Danger_EngineStats",nil];
     _group setVariable ["CBE_Danger_ObservedContacts",nil];
+    _group setVariable ["CBE_Danger_SpotterCursor",nil];
     _group setVariable ["CBE_Danger_LastAssessment",nil];
     _group setVariable ["CBE_Danger_WakeAfter",nil];
     _group setVariable ["CBE_Danger_SmokeLease",nil,true];
@@ -83,6 +89,29 @@ if (!_enabled) exitWith {
         if (local _x) then {[_x] call CBE_fnc_DangerEngineRelease; _x setVariable ["CBE_Danger_EventCadence",nil]};
     } forEach units _group;
 };
+// Use the same typed lifetime gate as the engine waiter. Discovery cannot bless an old
+// epoch/operation merely because a returning owner still has the old local response variable.
+// Joined actors carry their own old-group receipt; no separate public actor index is needed.
+// Discovery already owns this bounded group footprint; no world scan or new worker is added.
+private _paceActors=(units _group) select [0,64];
+if (_paceActors isNotEqualTo []) then {
+    {
+        if (local _x && {(_x getVariable ["CBE_Danger_AttackPace",[]]) isNotEqualTo []}
+            && {!( ["CHECK",_x] call CBE_fnc_DangerAttackPace)}) then {
+            ["RELEASE",_x] call CBE_fnc_DangerAttackPace;
+        };
+        if (local _x && {(_x getVariable ["CBE_Cortex_NavalEgressMove",[]]) isNotEqualTo []}) then {
+            ["REAP",_x] call CBE_fnc_CortexNavalEgressActor;
+        };
+        private _flightProof=_x getVariable ["CBE_Danger_FlightLease",[]];
+        if (local _x && {_flightProof isEqualType []} && {count _flightProof == 8}
+            && {(_flightProof select 1) isEqualType 0} && {finite (_flightProof select 1)}
+            && {time >= (_flightProof select 1)
+                || {(_x getVariable ["CBE_Danger_EngineResponse",[]]) isEqualTo []}}) then {
+            ["RELEASE",_x] call CBE_fnc_DangerFlight;
+        };
+    } forEach (_paceActors select [0,64]);
+};
 if (_groupHandlers isNotEqualTo []) exitWith {};
 
 private _handler=_group addEventHandler ["EnemyDetected",{
@@ -93,16 +122,46 @@ private _handler=_group addEventHandler ["EnemyDetected",{
     // EnemyDetected can report a man or a vehicle. A vehicle object has no useful direct `group`,
     // so compare the target object's actual side or armoured/air contacts lose their identity here.
     private _friendly=(side _observingGroup) getFriend (side _target) >= 0.6;
-    private _spotters=(units _observingGroup) select {[_x] call CBE_fnc_CortexCombatEffective && {local _x} && {!isPlayer _x}};
-    _spotters resize ((count _spotters) min 12);
-    private _knowerIndex=_spotters findIf {_x knowsAbout _target >= 1};
-    if (_friendly || {_knowerIndex < 0}) exitWith {};
+    if (_friendly) exitWith {};
+    // Bound qualification itself, rather than filtering the entire group before truncation.
+    // Rotate only on real native observations; no timer or retry is created for missed witnesses.
+    private _members=units _observingGroup;
+    private _memberCount=count _members;
+    if (_memberCount == 0) exitWith {};
+    private _sampleStart=(_observingGroup getVariable ["CBE_Danger_SpotterCursor",0]) mod _memberCount;
+    private _sampleCount=_memberCount min 12;
+    private _spotters=[];
+    for "_sampleIndex" from 0 to (_sampleCount-1) do {
+        private _member=_members select ((_sampleStart+_sampleIndex) mod _memberCount);
+        if (local _member && {!isPlayer _member} && {[_member] call CBE_fnc_CortexCombatEffective}) then {
+            _spotters pushBack _member;
+        };
+    };
+    _observingGroup setVariable ["CBE_Danger_SpotterCursor",(_sampleStart+_sampleCount) mod _memberCount];
+    // knowsAbout can be shared group knowledge. Prefer a real personal native witness,
+    // sampled within the same twelve-member bound, rather than an unseeing leader.
+    if (_observingGroup knowsAbout _target < 1) exitWith {};
+    private _observer=objNull;
+    private _fallback=objNull;
+    private _personalSeen=-1;
+    private _ignored=false;
     private _leader=leader _observingGroup;
-    // Prefer the leader only when the leader actually owns native knowledge of this target. A
-    // wingman can trigger EnemyDetected while the leader is behind cover; asking that unknowing
-    // leader for getHideFrom returns no usable geometry and used to discard the immediate wake.
-    private _observer=if (!isNull _leader && {alive _leader} && {local _leader}
-        && {_leader knowsAbout _target >= 1}) then {_leader} else {_spotters select _knowerIndex};
+    {
+        private _knowledge=_x targetKnowledge _target;
+        if (_knowledge param [7,false,[true]]) then {_ignored=true};
+        if (_knowledge param [0,false,[true]]) then {
+            if (isNull _fallback || {_x == _leader}) then {_fallback=_x};
+            private _seenAt=(_knowledge param [2,-1,[0]]) max (_knowledge param [3,-1,[0]]);
+            if (_knowledge param [1,false,[true]] && {finite _seenAt} && {_seenAt > _personalSeen}) then {
+                _observer=_x;_personalSeen=_seenAt;
+            };
+        };
+    } forEach _spotters;
+    if (_ignored) exitWith {};
+    // Shared native belief remains a valid approximate alert when no sampled personal
+    // witness is available; it is not promoted into a new visual observation.
+    if (isNull _observer) then {_observer=_fallback};
+    if (isNull _observer) exitWith {};
     private _contacts=_observingGroup getVariable ["CBE_Danger_ObservedContacts",[]];
     _contacts=(_contacts select [((count _contacts)-8) max 0,8]) select {
         _x isEqualType [] && {count _x in [2,3]} && {(_x select 0) isEqualType objNull} && {(_x select 1) isEqualType 0}

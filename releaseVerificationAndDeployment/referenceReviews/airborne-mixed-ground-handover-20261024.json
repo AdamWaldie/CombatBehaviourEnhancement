@@ -1,0 +1,41 @@
+{
+  "baseline": "6215cd1d",
+  "scope": "Mixed aircraft crew/cargo landing-to-ground task implementation trace",
+  "sourceHashes": {
+    ".qa/protocol-airborne-3800081309-review/functions/fn_airborne.sqf": "4bd72b47fad6cf35250fff1cbde9d01e225f8f236c35606546d8f3eee066d375",
+    "addons/aircraft/functions/cortexAirborneDropStep.sqf": "4a8be64fa8b53f1d00db0c8e65f0c23e8903c1a6a53bd4ba7831d402a13b90cb",
+    "addons/infantry/functions/indoorActorOperation.sqf": "c818ad1d6ae2118690133cfebadf2ca53da42d33d7a90269fd65f8ff6d1b9bd0",
+    "addons/infantry/functions/cortexIsEligible.sqf": "0262517b13525442a95594d80006dae07d4de05e0611e24da8f799ffcea77b98",
+    "addons/infantry/functions/indoorActorGroupContext.sqf": "b54793a09624972bb1aaf4a929cfdcfed83666049d75cec5fb3a6e5f6a6833e8"
+  },
+  "findings": [
+    {
+      "source": "Protocol fn_airborne",
+      "evidence": "Cargo selection reads crew vehicle and assignedVehicleRole cargo; ejection loop ends after backpack/eject. No landing wait, ground waypoint, group separation or post-landing ground executor. It also does not restrict cargo to original group.",
+      "consequence": "Post-landing ground task is required CBE extension, not an unimplemented source-provided handover. Preserve independent passenger roster/group authority; do not copy all-crew ejection."
+    },
+    {
+      "source": "CBE CortexAirborneDropStep LAND",
+      "evidence": "Tracks original cargo still in group. Fallback SAD only if every living current member belongs to landed original cargo; no waypoints may remain.",
+      "consequence": "Mixed group correctly receives no group waypoint but lacks actual landed infantry ground task. Withholding unsafe task is not implementation."
+    },
+    {
+      "source": "CBE IndoorActorOperation/GroupContext",
+      "evidence": "START requires building/belief context and indoor objective selection; disjoint roster admission is not general ground movement or a separate commander.",
+      "consequence": "Cannot reuse this executor by fabricating a building, visit or indoor task. Mixed crew/cargo ground work needs a genuine bounded actor ground executor or deliberate task-level ground-group formation."
+    },
+    {
+      "source": "CBE CortexIsEligible groundPass",
+      "evidence": "Ground pass rejects a group containing a living member aboard Air; actor-context exception is for native reflexes.",
+      "consequence": "Removing group aircraft exclusion would expose pilots to infantry group movement. Preserve domain boundary; new landed task must explicitly own only original grounded cargo."
+    }
+  ],
+  "requiredImplementation": [
+    "Retain original cargo identity, group/epoch/insertion identity and landed proof; exclude pilot, crew, new arrivals and departed actors.",
+    "Use actual selected-actor ground-task ownership with finite movement/progress/arrival, native order takeover and interruption, or explicit semantically chosen formation of a ground group. Do not silently split mission-authored groups.",
+    "Do not label issued doMove or expiry as successful tactical handover. Avoid doFollow to an airborne leader as completed ground task.",
+    "No fabricated indoor context, group waypoint over crew, forced animation/teleport or competing permanent controller.",
+    "Actual landing-to-ground cohesion, repeat/locality and performance require later physical evidence."
+  ],
+  "validation": "Source/caller trace only. No runtime source changes, no repeated full build, no new test or acceptance/parity/percentage claim. Last complete runtime checkpoint6215cd1d retained. Audits paused."
+}

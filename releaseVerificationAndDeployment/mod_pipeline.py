@@ -65,8 +65,8 @@ def supported_focuses(root=ROOT):
     return sorted(values)
 
 def stage(package, destination, focus, root=ROOT, native_baseline=False, performance_composition="infantry", headless_provider=None, batch_mode="normal", world="VR"):
-    if world not in ('VR', 'Altis') or (world != 'VR' and focus not in ('nativebuildings','roadpassing')):
-        raise ValueError('Altis supports only nativebuildings or roadpassing')
+    if world not in ('VR', 'Altis') or (world != 'VR' and focus not in ('nativebuildings','roadpassing','convoynativestop','naval','navalhc')):
+        raise ValueError('Altis requires a terrain-aware nativebuildings, roadpassing, convoynativestop or naval focus')
     if focus == 'roadpassing' and (world != 'Altis' or batch_mode != 'normal'):
         raise ValueError('Road passing requires Altis and a separate normal batch')
     if focus not in supported_focuses(root):
@@ -79,10 +79,26 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
         raise ValueError('Unknown performance composition')
     if batch_mode not in ('normal', 'headless'):
         raise ValueError('Unsupported audit batch mode')
+    if focus in ('naval','navalhc') and world != 'Altis':
+        raise ValueError('Focused naval fixtures require Altis coastline')
+    if focus == 'naval' and batch_mode != 'normal':
+        raise ValueError('Normal naval fixtures require a separate normal batch')
+    if focus == 'navalhc' and (batch_mode != 'headless' or not headless_provider):
+        raise ValueError('Naval HC handover requires a headless batch and real provider')
+    if focus == 'aa' and batch_mode != 'normal':
+        raise ValueError('Native AA warning/fire fixture requires a separate normal batch')
     if focus == 'indooractorshc' and (batch_mode != 'headless' or not headless_provider):
         raise ValueError('Individual indoor HC fixtures require a dedicated headless batch and real provider')
     if focus in ('indooractors','indoornatural') and batch_mode != 'normal':
         raise ValueError('Individual indoor normal fixtures require a separate batch from HC migration')
+    if focus == 'staticsolo' and batch_mode != 'normal':
+        raise ValueError('Single-carrier static mechanics require a separate normal batch')
+    if focus == 'nativeflight' and batch_mode != 'normal':
+        raise ValueError('Native fleeing mechanics require a separate normal batch')
+    if focus == 'illumination' and batch_mode != 'normal':
+        raise ValueError('Infantry illumination mechanics require a separate normal batch')
+    if focus == 'convoynativestop' and batch_mode != 'normal':
+        raise ValueError('Native convoy STOP handover requires a separate normal batch')
     if headless_provider and batch_mode != 'headless':
         raise ValueError('Headless providers require a dedicated headless batch')
     if headless_provider and focus == 'standaloneperformance':
@@ -126,7 +142,7 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
         server_init.write_text(server_init.read_text().replace('cortexQAStandalonePerformance.sqf', 'cortexQANativeBuildings.sqf'), encoding='utf-8')
         with (mission/'initPlayerLocal.sqf').open('a') as client_init:
             client_init.write('\nplayer setCaptive true;\n[] execVM "cortexQAGuide.sqf";\ndiag_log "CBE CORTEX QA CLIENT COMPLETE: 0 finding(s) []";\n')
-    if focus == 'roadpassing':
+    if focus in ('roadpassing','convoynativestop','naval'):
         # A normal observer mission has no HC slots; keep the addon-dependent audit initializers.
         shutil.copyfile(root/'releaseVerificationAndDeployment/standalonePerformance/mission.sqm',mission/'mission.sqm')
     if world == 'Altis':
@@ -134,7 +150,7 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
         sqm.write_text(sqm.read_text(encoding='utf-8').replace('A3_Map_VR','A3_Map_Altis').replace('position[]={5800,0,5800}','position[]={16600,0,12800}'),encoding='utf-8')
         identity=mission/'auditIdentity.sqf'
         identity.write_text(identity.read_text(encoding='utf-8').replace('A3_Map_VR','A3_Map_Altis'),encoding='utf-8')
-        if focus == 'roadpassing':
+        if focus in ('roadpassing','convoynativestop','naval','navalhc'):
             server_init=mission/'initServer.sqf'
             server_init.write_text(server_init.read_text(encoding='utf-8').replace('[5800,5800,0]','[16600,12800,0]'),encoding='utf-8')
     provider_evidence = None
@@ -169,6 +185,10 @@ call compile preprocessFileLineNumbers "compatibilityHeadlessProvider\init.sqf";
 def release_gate(package, evidence):
     record = verify(package)
     report = json.loads(evidence.read_text())
+    if report.get('focus') in ('naval','navalhc'):
+        raise ValueError('Focused naval fixtures cannot accept a CBE release')
+    if report.get('focus') == 'aa':
+        raise ValueError('Focused AA warning/fire fixture cannot accept a CBE release')
     if report.get('focus') == 'nativebuildings':
         raise ValueError('Native building diagnostics cannot accept a CBE release')
     if report.get('focus') in ('indooractors','indooractorshc','indoornatural'):

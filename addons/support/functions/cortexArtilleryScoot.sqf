@@ -1,5 +1,16 @@
 /*
  * Author: WaldoTheWarfighter
+ * Avenue ranking uses this battery's existing full-height conservative endpoint envelope,
+ * rather than infantry-height cover probes. Sparse screening is not hull clearance or
+ * protection from incoming artillery; the origin is only the existing scoring reference.
+ * Water-damaged engines refuse mobility admission; exact session cleanup remains independent.
+ * The fire request's original movement-group and authored-order receipt remain authoritative
+ * through delayed admission; owner migration cannot rebase onto a newer mission route.
+ * Both actual AI movement seats must remain local, available and free of treatment,
+ * protected tasks, direct native STOP and non-route MOVE commands before planning and issue.
+ * Geometry cannot grant authority over changed crew or authored route metadata.
+ * The current group-waypoint executor is restricted to a single occupied platform.
+ * Mixed groups are refused until selected-vehicle displacement and handback are implemented.
  * Moves a mobile battery after the last shell flight and warning interval have elapsed. If another
  * Cortex movement owner is active, the relocation waits in five-second steps for at most two minutes
  * instead of replacing that route. Once acquired, the shared movement lease prevents contact,
@@ -10,31 +21,141 @@
  * screening and roads; Arma remains responsible for the actual route. The public purpose selects the
  * owning support/counter-battery feature and live scoot switch; closing either cancels the delayed
  * relocation. The physical move is not replayed after completion.
- * Arguments: 0: battery <OBJECT>, default objNull; 1: mission token <STRING>, default "".
+ * The pending session retains its original per-purpose generation and deadline through retries;
+ * stale cleanup cannot clear a successor. Geometry precedes atomic session/lease/move admission.
+ * Arguments: 0: battery <OBJECT>, default objNull; 1: mission token <STRING>, default "";
+ * 2 session <ARRAY, [] reads public receipt> [token, purpose generation, counter generation,
+ * original server deadline, purpose, [original movement group, authored route], original driver/commander pair]. Server dispatch and delayed retries carry the exact session.
  * Return Value: Boolean - true when relocation started or remains pending.
- * Current callers: ArtilleryMissionStep and CortexLocality.
+ * Mixed groups use the selected driver/effective-commander FSM without group waypoints or
+ * membership changes. A pending prefire native handback keeps the original admission deadline.
+ * Started selected relocation retains its session until observed native retirement. Duplicate
+ * or new-owner calls cannot replay outward travel; unknown cleanup remains reserved.
+ * Current callers: ArtilleryMissionStep, CortexLocality and finite pending retries.
  * Example: [_gun,_token] remoteExecCall ["CBE_fnc_CortexArtilleryScoot", owner _gun];
  */
-params [["_battery", objNull, [objNull]],["_token","",[""]]];
+params [["_battery", objNull, [objNull]],["_token","",[""]],["_session",[],[[]]]];
 if (isNull _battery || {_token == ""} || {_battery getVariable ["CBE_Cortex_ArtilleryScootToken",""] != _token}
     || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {false};
 if (!local _battery) exitWith {false};
+if (_session isEqualTo []) then {_session=+(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]])};
+if (count _session != 7 || {(_session select 0) != _token}
+    || {!((_session select 4) in ["SUPPORT","COUNTER"])}
+    || {!((_session select 6) isEqualType [])} || {count (_session select 6) != 2}
+    || {(_session select 6) findIf {!(_x isEqualType objNull)} >= 0}
+    || {[1,2,3] findIf {!((_session select _x) isEqualType 0) || {!finite (_session select _x)}} >= 0}) exitWith {false};
 private _clear = {
-    _battery setVariable ["CBE_Cortex_ArtilleryScootToken",nil,true];
-    _battery setVariable ["CBE_Cortex_ArtilleryScootDeadline",nil,true];
-    _battery setVariable ["CBE_Cortex_ArtilleryScootPurpose",nil,true];
+    // Old retries may observe a successor while planning. Retire only this exact receipt.
+    isNil {
+        if ((_battery getVariable ["CBE_Cortex_ArtilleryScootToken",""]) == _token
+            && {(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]]) isEqualTo _session}) then {
+            _battery setVariable ["CBE_Cortex_ArtilleryScootToken",nil,true];
+            _battery setVariable ["CBE_Cortex_ArtilleryScootDeadline",nil,true];
+            _battery setVariable ["CBE_Cortex_ArtilleryScootPurpose",nil,true];
+            _battery setVariable ["CBE_Cortex_ArtilleryScootSession",nil,true];
+        };
+    };
 };
-private _purpose=_battery getVariable ["CBE_Cortex_ArtilleryScootPurpose",""];
+// Both server messages may arrive before remote HOLD cleanup. Retire this exact
+// preceding positioning operation locally before inspecting the original authored route.
+// Never rebase the request onto the HOLD or another mission's movement.
+private _positionWork=_battery getVariable ["CBE_ArtilleryPosition_Work",createHashMap];
+if ((_positionWork getOrDefault ["token",""]) == _token) then {
+    [_battery,_token,_positionWork get "session",true] call CBE_fnc_CortexArtilleryPosition;
+};
+private _movementOrder=_session select 5;
+if (!(_movementOrder isEqualType []) || {count _movementOrder != 2}
+    || {!((_movementOrder select 0) isEqualType grpNull)} || {isNull (_movementOrder select 0)}
+    || {!((_movementOrder select 1) isEqualType [])} || {(_movementOrder select 1) isEqualTo []}) exitWith {call _clear;false};
+private _crewWork=_battery getVariable ["CBE_ArtilleryCrew_Work",createHashMap];
+if ((_crewWork getOrDefault ["kind",""]) == "SCOOT"
+    && {(_crewWork getOrDefault ["token",""]) == _token}
+    && {(_crewWork getOrDefault ["session",[]]) isEqualTo _session}) exitWith {
+    if ((_crewWork getOrDefault ["phase",""]) in ["UNRESOLVED","RETIRED"]) exitWith {false};
+    private _executor=_battery getVariable ["CBE_ArtilleryCrew_FSM",[]];
+    private _live=count _executor == 5 && {(_executor select 0) == (_crewWork get "serial")}
+        && {(_executor select 2) == clientOwner}
+        && {(_executor select 3) == ((_crewWork get "group") getVariable ["CBE_AIPass_Epoch",-1])}
+        && {(_executor select 1) isEqualType 0} && {finite (_executor select 1)}
+        && {(_executor select 1) >= 0} && {!completedFSM (_executor select 1)};
+    if (_live) exitWith {true};
+    [_battery,_token,_crewWork get "serial"] call CBE_fnc_ArtilleryCrewMoveRetire
+};
+private _purpose=_session select 4;
 private _counter=_purpose == "COUNTER";
 private _feature=["CBE_AIPass_Artillery_Enable","CBE_AIPass_CounterBattery_Enable"] select _counter;
 private _scootSetting=["CBE_AIPass_Artillery_ShootAndScoot","CBE_AIPass_CounterBattery_ShootAndScoot"] select _counter;
-if (!canMove _battery || {isNull driver _battery} || {!([group driver _battery] call CBE_fnc_CortexIsEligible)}
+private _scootGenerationName=["CBE_ArtilleryScoot_SupportGeneration","CBE_ArtilleryScoot_CounterGeneration"] select _counter;
+private _sessionCurrent={
+    local _battery && {(_battery getVariable ["CBE_Cortex_ArtilleryScootToken",""]) == _token}
+        && {(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]]) isEqualTo _session}
+        && {serverTime < (_session select 3)}
+        && {group driver _battery == (_movementOrder select 0)}
+        && {private _seats=[driver _battery,effectiveCommander _battery];
+            if (isNull (_seats select 1)) then {_seats set [1,_seats select 0]};
+            (_session select 6) isEqualTo _seats}
+        && {([_movementOrder select 0] call CBE_fnc_NativeOrderReceipt) isEqualTo (_movementOrder select 1)}
+        && {(_session select 1) == (missionNamespace getVariable [_scootGenerationName,0])}
+        && {!_counter || {(_session select 2) == (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])}}
+        && {missionNamespace getVariable [_scootSetting,true]}
+        && {[group driver _battery,_feature,false] call CBE_fnc_CortexFeatureEnabled}
+        && {missionNamespace getVariable ["CBE_AIPass_Active",false]} && {!([] call CBE_fnc_CortexIsPaused)}
+};
+if !(call _sessionCurrent) exitWith {call _clear;false};
+if (!canMove _battery || {waterDamaged _battery} || {isNull driver _battery} || {!([group driver _battery] call CBE_fnc_CortexIsEligible)}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active", false])} || {[] call CBE_fnc_CortexIsPaused}) exitWith {call _clear; false};
 if !(_purpose in ["SUPPORT","COUNTER"]
     && {missionNamespace getVariable [_scootSetting,true]}
     && {[group driver _battery,_feature,false] call CBE_fnc_CortexFeatureEnabled}) exitWith {call _clear; false};
 private _group = group driver _battery;
 private _state = [_group] call CBE_fnc_CortexGroupState;
+// Prefire native retirement must finish before a relocation acquires movement. This retry
+// keeps the original server admission deadline and never issues a new outward command.
+private _crewReference=_group getVariable ["CBE_ArtilleryCrew_Reference",[]];
+if (_crewReference isNotEqualTo []) exitWith {
+    if ((_crewWork getOrDefault ["kind",""]) != "POSITION"
+        || {(_crewWork getOrDefault ["token",""]) != _token}
+        || {(_crewWork getOrDefault ["phase",""]) in ["UNRESOLVED","RETIRED"]}) exitWith {call _clear;false};
+    [_battery,_token,_crewWork get "serial"] call CBE_fnc_ArtilleryCrewMoveRetire;
+    if (serverTime < (_session select 3)) then {
+        [{_this call CBE_fnc_CortexArtilleryScoot},[_battery,_token,+_session],5] call CBA_fnc_waitAndExecute;
+        true
+    } else {call _clear;false}
+};
+private _crewOnly=vehicle leader _group != _battery
+    || {(units _group) findIf {alive _x && {vehicle _x != _battery}} >= 0};
+private _driver=driver _battery;
+private _operator=effectiveCommander _battery;
+if (isNull _operator) then {_operator=_driver};
+private _crewReady={
+    local _group && {local _battery} && {!waterDamaged _battery} && {simulationEnabled _battery} && {!isObjectHidden _battery}
+        && {count units _group <= 64}
+        && {_crewOnly || {vehicle leader _group == _battery
+            && {(units _group) findIf {alive _x && {vehicle _x != _battery}} < 0}}}
+        && {driver _battery == _driver} && {(effectiveCommander _battery) in [_operator,objNull]}
+        && {[_driver,_operator] findIf {
+            isNull _x || {!local _x} || {group _x != _group} || {vehicle _x != _battery}
+            || {!([_x] call CBE_fnc_CortexCombatEffective)} || {isPlayer _x}
+            || {!simulationEnabled _x} || {isObjectHidden _x} || {!isNull remoteControlled _x}
+            || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+            || {[_x] call CBE_fnc_CortexExternalOwner != ""}
+            || {[_x] call CBE_fnc_CompatibilityExternalControl}
+            || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}
+            || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
+            || {!(currentCommand _x in ["","MOVE","WAIT"])}
+        } < 0}
+        && {[_group] call CBE_fnc_NativeOrderReceipt isEqualTo _nativeOrder}
+        && {[_driver,_operator] findIf {
+            currentCommand _x == "MOVE" && {
+                private _index=currentWaypoint _group;
+                private _destination=(expectedDestination _x) param [0,[]];
+                _index <= 0 || {_index >= count waypoints _group} || {count _destination != 3}
+                    || {_destination vectorDistance (waypointPosition [_group,_index]) > 3}
+            }
+        } < 0}
+};
+private _nativeOrder=+(_movementOrder select 1);
+if !(call _crewReady) exitWith {call _clear;false};
 private _activeWaypoint = (waypoints _group) findIf {
     (_x select 1) >= currentWaypoint _group && {waypointDescription _x == "CBE AI PASS"}
 } >= 0;
@@ -44,8 +165,8 @@ private _busy = _activeWaypoint || {count (_state getOrDefault ["drill",createHa
     || {(_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo []}
     || {_group getVariable ["CBE_AIPass_ClearBuilding",false]};
 if (_busy) exitWith {
-    if (serverTime < (_battery getVariable ["CBE_Cortex_ArtilleryScootDeadline",0])) then {
-        [{_this call CBE_fnc_CortexArtilleryScoot},[_battery,_token],5] call CBA_fnc_waitAndExecute;
+    if (serverTime < (_session select 3)) then {
+        [{_this call CBE_fnc_CortexArtilleryScoot},[_battery,_token,+_session],5] call CBA_fnc_waitAndExecute;
         true
     } else {call _clear; false}
 };
@@ -54,12 +175,21 @@ private _candidates=[];
 for "_attempt" from 0 to 5 do {
     _candidates pushBack [_origin getPos [200+random 150,random 360]];
 };
-private _selected=[_origin,_candidates,_origin,[],objNull,"VEHICLE"] call CBE_fnc_CortexSelectAvenue;
+private _selected=[_origin,_candidates,_origin,[],objNull,"VEHICLE",_battery] call CBE_fnc_CortexSelectAvenue;
 private _spot=if (_selected isEqualTo []) then {[]} else {_selected select ((count _selected)-1)};
 if (_spot isEqualTo []) exitWith {call _clear; false};
+private _started=false;
+isNil {
+    _started=call {
+        if (!(call _sessionCurrent) || {!(call _crewReady)} || {group driver _battery != _group}
+            || {!([_group] call CBE_fnc_CortexIsEligible)}) exitWith {call _clear;false};
+        if (_crewOnly) exitWith {
+            if ([_battery,_token,_session,_spot,"SCOOT"] call CBE_fnc_ArtilleryCrewMoveStart) exitWith {true};
+            call _clear;false
+        };
 if !([_group,"ARTILLERY_SCOOT",true,serverTime+120] call CBE_fnc_CortexOwnershipLease) exitWith {
-    if (serverTime < (_battery getVariable ["CBE_Cortex_ArtilleryScootDeadline",0])) then {
-        [{_this call CBE_fnc_CortexArtilleryScoot},[_battery,_token],5] call CBA_fnc_waitAndExecute;
+    if (serverTime < (_session select 3)) then {
+        [{_this call CBE_fnc_CortexArtilleryScoot},[_battery,_token,+_session],5] call CBA_fnc_waitAndExecute;
         true
     } else {call _clear; false}
 };
@@ -70,6 +200,10 @@ if (count _operation == 0) exitWith {
     false
 };
 private _generation=_operation get "generation";
+// Active relocation keeps the session after its pending token is retired. The ordinary
+// group callback can cancel only this generation when a live feature/session closes.
+_operation set ["artilleryScootSession",[_battery,+_session]];
+_group setVariable ["CBE_Operation",_operation,true];
 private _waypoint=[_group,_spot,30,"MOVE",_generation] call CBE_fnc_CortexGroupMove;
 if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0]]) < 0}) exitWith {
     [_group,_generation,"INCOMPLETE","MOVEMENT_REJECTED"] call CBE_fnc_OperationRelease;
@@ -81,3 +215,7 @@ _state set ["movementLease",["ARTILLERY_SCOOT",time+120]];
 _state set ["artilleryScootOperationGeneration",_operation get "generation"];
 call _clear;
 true
+    };
+    false
+};
+_started

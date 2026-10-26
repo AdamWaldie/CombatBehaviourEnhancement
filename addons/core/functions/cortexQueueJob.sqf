@@ -13,7 +13,8 @@
  * Arguments:
  * 0: job <CODE> - receives [state] and returns the next delay in seconds or -1
  * 1: state <HASHMAP> - job-owned state carried between runs
- * 2: delay <NUMBER> - seconds before the first run (optional, default: 0)
+ * 2: delay <NUMBER> - finite seconds before the first run (optional, default: 0).
+ * Invalid delay retires the supplied finite state without publishing a queue entry.
  * 3: jobKey <STRING> - optional owner-local key. A later job with this key updates and wakes the existing callback instead of appending a competing callback.
  *
  * Return Value:
@@ -23,25 +24,31 @@
  * [CBE_fnc_CortexRegroupStep, createHashMapFromArray [["group", _group]], 5] call CBE_fnc_CortexQueueJob;
  * Result: the regroup step runs on this machine about five seconds later.
  *
- * Current callers: CBE_fnc_CortexRegroupOnKill.
+ * Current callers: group/indoor/building/driving/convoy/air/support FSM queue adapters,
+ * discovery, finite tactical reactions, aircraft observers and skill-lighting initialization.
  */
 
 params [["_job", {}, [{}]], ["_state", createHashMap, [createHashMap]], ["_delay", 0, [0]], ["_jobKey", "", [""]]];
 private _group = _state getOrDefault ["group", grpNull];
 private _rejectFiniteBrain={
+    params [["_queueReason","STALE_QUEUE_OWNER",[""]]];
+    _state set ["cancelled",true];
+    _state set ["cancelReason",_queueReason];
     if ("pending" in _state && {"completed" in _state}) then {
         _state set ["pending",false];
         _state set ["completed",true];
         _state set ["cancelled",true];
-        _state set ["cancelReason","STALE_QUEUE_OWNER"];
+        _state set ["cancelReason",_queueReason];
     };
 };
-if ("group" in _state && {isNull _group}) exitWith {call _rejectFiniteBrain};
+// Reject invalid scheduling before owner metadata or queue publication changes.
+if (!finite _delay || {!finite (time + (_delay max 0))}) exitWith {["INVALID_JOB_DELAY"] call _rejectFiniteBrain};
+if ("group" in _state && {isNull _group}) exitWith {[] call _rejectFiniteBrain};
 // A queue is not an ownership-adoption boundary. Preserve supplied authority proof:
 // stamping today's epoch onto an old brain would make stale work appear current.
 if (!isNull _group && {!local _group
     || {(_state getOrDefault ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]])
-        != (_group getVariable ["CBE_AIPass_Epoch",0])}}) exitWith {call _rejectFiniteBrain};
+        != (_group getVariable ["CBE_AIPass_Epoch",0])}}) exitWith {[] call _rejectFiniteBrain};
 if (!isNull _group) then {_state set ["ownerEpoch", _group getVariable ["CBE_AIPass_Epoch", 0]]};
 if (_jobKey == "") then {_jobKey = _state getOrDefault ["jobKey", ""]};
 if (_jobKey != "") then {_state set ["jobKey", _jobKey]};
@@ -52,19 +59,24 @@ private _dueAt = time + (_delay max 0);
 private _existingState = createHashMap;
 private _found = false;
 if (_jobKey != "") then {
+    // Search existing arrays in priority order without copying the complete queue for
+    // every keyed wake. Neither search mutates a queue; publication follows below.
     {
-        private _candidateState = _x param [2, createHashMap, [createHashMap]];
-        if ((_candidateState getOrDefault ["jobKey", ""]) == _jobKey
-            && {!(_candidateState getOrDefault ["cancelled",false])}
-            && {!(_candidateState getOrDefault ["finished",false])}
-            && {!(_candidateState getOrDefault ["done",false])}
-            && {(_candidateState getOrDefault ["generation",-1]) == (_state getOrDefault ["generation",-1])}
-            && {(_candidateState getOrDefault ["group",grpNull]) == _group}
-            && {isNull _group || {(_candidateState getOrDefault ["ownerEpoch",-1]) == (_state get "ownerEpoch")}}) exitWith {
-            _existingState = _candidateState;
-            _found = true;
-        };
-    } forEach ((missionNamespace getVariable ["CBE_AIPass_Jobs", []]) + (missionNamespace getVariable ["CBE_AIPass_PendingJobs", []]));
+        {
+            private _candidateState = _x param [2, createHashMap, [createHashMap]];
+            if ((_candidateState getOrDefault ["jobKey", ""]) == _jobKey
+                && {!(_candidateState getOrDefault ["cancelled",false])}
+                && {!(_candidateState getOrDefault ["finished",false])}
+                && {!(_candidateState getOrDefault ["done",false])}
+                && {(_candidateState getOrDefault ["generation",-1]) == (_state getOrDefault ["generation",-1])}
+                && {(_candidateState getOrDefault ["group",grpNull]) == _group}
+                && {isNull _group || {(_candidateState getOrDefault ["ownerEpoch",-1]) == (_state get "ownerEpoch")}}) exitWith {
+                _existingState = _candidateState;
+                _found = true;
+            };
+        } forEach (missionNamespace getVariable [_x, []]);
+        if (_found) exitWith {};
+    } forEach ["CBE_AIPass_Jobs", "CBE_AIPass_PendingJobs"];
 };
 // Function-scope return: an exit inside the key-search block would still append a duplicate.
 if (_found) exitWith {

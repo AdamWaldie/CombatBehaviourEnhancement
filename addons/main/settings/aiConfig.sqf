@@ -107,10 +107,11 @@
  * - CBE_AIPass_VehicleJink_Enable (MISSION MAKER): One short terrain-checked escape for an intact crewed fighting vehicle under close or severe danger. Default true.
  * - CBE_AIPass_CoverValidation_Enable (MISSION MAKER): Bounded footprint, slope and geometry validation for cover candidates. Default true.
  * - CBE_AIPass_Danger_Enable (MISSION MAKER): Enables CBE's bounded local danger reflex and tactical group handoff. Disabled means the configured FSM exits without issuing CBE commands. Default true.
- * - CBE_AIPass_DangerEvasion_Enable (MISSION MAKER): Enables finite native prone evasion; committed movement and external/native tasks yield. Default true.
+ * - CBE_AIPass_DangerEvasion_Enable (MISSION MAKER): Enables finite native prone/upright evasion; committed movement and external/native tasks yield. Default true.
  * - CBE_AIPass_DangerObservation_Enable (MISSION MAKER): Enables position-only body/scream glances for idle infantry. Requires danger response. Default true.
  * - CBE_AIPass_DangerConcealment_Enable (MISSION MAKER): Allows visual screening fallback after failed solid cover. Default true.
  * - CBE_AIPass_DangerSmoke_Enable (MISSION MAKER): Allows one carried smoke screen during severe finite danger without holding the current operation. Default true.
+ * - CBE_AIPass_Illumination_Enable (MISSION MAKER): Experimental finite carried UGL illumination in darkness. Default false.
  * - CBE_AIPass_StaticSupport_Enable (MISSION MAKER): Allows one uncommitted soldier to physically occupy a nearby useful empty static weapon during confirmed contact. Default true.
  * - CBE_AIPass_StaticDeploy_Enable (MISSION MAKER): Allows a compatible two-person bag team to physically assemble and occupy its carried static weapon. Default true.
  * - CBE_AIPass_Hearing_Enable (MISSION MAKER): Coarse nearby-gunfire reports for eligible squad leaders; requires investigation. Default true.
@@ -265,7 +266,7 @@ createHashMapFromArray [
     ["shared", [
         ["CBE_AIPass_AmmoCapabilityOverrides", createHashMap], // MAP: magazine class to ["AT"] / ["AA"] / ["AT","AA"] role overrides.
         // MISSION MAKER: AI population, profile and filtering policy.
-        ["CBE_AIRebalance_Enable", true],          // BOOL: true applies CBE skill profiles to eligible AI.
+        ["CBE_AIRebalance_Enable", false],         // BOOL: opt in to CBE skill profiles; mission skills are preserved by default.
         ["CBE_AIRebalance_Profile", "LINE"],      // STRING: MILITIA, LINE, VETERAN or ELITE.
         ["CBE_AIRebalance_Mode", "AUTO"],          // STRING: AUTO ambient-darkness/NVG aware; DAY override; NIGHT legacy variant.
         ["CBE_AI_ApplyMode", "BOTH"],             // STRING: EXISTING, NEW or BOTH AI populations.
@@ -394,17 +395,21 @@ createHashMapFromArray [
         ["CBE_Convoy_ContactHalt_Enable", true], // Automatic ambush halt using push-through and pinned rules. Route arrival and explicit stop remain available.
         ["CBE_Convoy_Unload_Enable", true], // Allows CBE passenger unloading on halt. Operating crews remain aboard.
         ["CBE_AIPass_Danger_Enable", true], // Bounded danger events; one shared decision owner.
-        ["CBE_AIPass_DangerEvasion_Enable", true], // Finite native idle prone evasion.
+        ["CBE_AIPass_DangerEvasion_Enable", true], // Finite native idle prone/upright evasion.
         ["CBE_AIPass_DangerObservation_Enable", true], // Position-only idle alert observation.
         ["CBE_AIPass_DangerConcealment_Enable", true], // Separately budgeted visual screening fallback.
         ["CBE_AIPass_DangerSmoke_Enable", true], // One generation-scoped carried smoke response; movement does not wait.
+        ["CBE_AIPass_Illumination_Enable", false], // Opt-in until physical illumination/handback validation.
         ["CBE_AIPass_StaticSupport_Enable", true], // One actor may occupy a nearby empty friendly static without holding squad movement.
         ["CBE_AIPass_StaticDeploy_Enable", true], // A compatible pair may physically assemble a carried static without holding squad movement.
         ["CBE_AIPass_Hearing_Enable", true], // Nearby gunfire area reports, never target reveals.
         ["CBE_AIPass_Vehicles_Enable", true], // BOOL: dismount under fire; damaged vehicles smoke and withdraw.
         ["CBE_AIPass_DrivingAssist_Enable", true], // Sparse terrain-grade speed cap for ordinary AI ground vehicles; preserves native routes.
         ["CBE_AIPass_DrivingAssist_Passing_Enable", false], // Experimental finite automatic admission; physical/performance acceptance pending.
+        ["CBE_AIPass_DrivingAssist_Queue_Enable", false], // Opt-in cooperative head-on jam initiation; physical/performance acceptance pending.
         ["CBE_AIPass_DrivingAssist_MaxSpeed", 70], // General driving cap in km/h; terrain and lower authored caps still apply.
+        ["CBE_AIPass_DrivingAssist_CrewRecall_Enable", false], // Optional ordinary reboarding; never force-seat.
+        ["CBE_AIPass_DrivingAssist_CloseGates_Enable", false], // Finite passage observation and sampled-clear gate closure; opt-in.
         ["CBE_AIPass_DrivingAssist_Recovery_Enable", true], // Allows new finite recovery attempts; does not cancel a native leg already issued.
         ["CBE_AIPass_NavalAssault_Enable", true], // BOOL: finite coastal approach and passenger landing; yields to player, Zeus and neutral external-control ownership.
         ["CBE_AIPass_ContactReports_Enable", true], // BOOL: share sightings by radio (jammable) or voice.
@@ -470,8 +475,10 @@ createHashMapFromArray [
         ["CBE_AIPass_CoordinatedAssault_Enable", true], // BOOL: reinforcing squads assault together while the first squad fires.
         ["CBE_AIPass_CoordinatedAssault_MaxMovers", 2], // Per-operation concurrent mover cap; safe distinct corridors remain required.
         ["CBE_AIPass_Stance_Enable", true], // BOOL: stance chosen from the height of the cover in front.
+        ["CBE_AIPass_CasualtyEquipment_Enable", false], // BOOL: recover one loaded casualty weapon into an empty slot at an actual visit.
         ["CBE_AIPass_AmmoShare_Enable", true], // BOOL: soldiers low on magazines get one from a squad-mate.
         ["CBE_AIPass_AmmoShare_Distance", 10], // METRES: how close the squad-mate must be.
+        ["CBE_AIPass_AAIntercept_Enable", false], // BOOL: experimental finite native-warning main-turret response; measured same-owner direct-pass fuse only.
         ["CBE_AIPass_VehicleGunnery_Enable", true], // BOOL: gunners prioritise AT soldiers; armour keeps away from them.
         ["CBE_AIPass_Vehicles_StandoffDistance", 250], // METRES: distance armour keeps from known AT soldiers.
         ["CBE_AIPass_ArtillerySmoke_Enable", true], // BOOL: a retreating squad gets an artillery smoke screen (needs Artillery).

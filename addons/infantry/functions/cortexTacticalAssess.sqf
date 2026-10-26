@@ -1,7 +1,25 @@
 /*
  * Author: WaldoTheWarfighter
+ * Hidden, simulation-disabled and FIREWEAPON-disabled actors do not supply tactical fire capacity.
+ * Physical _foot strength stays separate; an unavailable roster yields existing task handoff.
+ * Current rifle capacity also requires loaded or spare main-muzzle ammunition;
+ * an underbarrel reserve cannot substitute for an empty primary rifle.
+ * Current rifle/AT/AA capacity uses the shared protected-task/reservation predicate;
+ * no available actor leaves existing work in control, without a group fallback request.
  * Purpose: Select one bounded group-level combat intent from existing native knowledge, force capability, terrain and mission orders.
  * Locality / Authority: Read-only on the current group owner. It never reveals targets, issues commands or acquires movement ownership.
+ * Close infantry assessment includes the executor's two/three-person element support;
+ * actual actor/role/native-task admission remains with CortexAssaultStart.
+ * A lone rifleman facing one fresh close infantry contact retains native engagement rather than
+ * receiving a group reposition solely from low headcount. Other low-firepower cases still reposition.
+ * Fresh uncountered armour takes priority over an opportunistic close infantry assault.
+ * Old armour memory alone does not veto that fresh close engagement; ordinary overmatch remains.
+ * Authored forward-order policy remains unchanged; actor-only elements never gain a group retreat.
+ * Elevation uses the supplied native believed position; no live hostile height is queried.
+ * New autonomous offensive manoeuvres wait while the local command anchor has suppression >=0.2.
+ * This immediate readiness gate does not cancel existing work, defensive repositioning or native orders.
+ * Optional argument6 is an explicit ground element: only its actors count and only actor-only
+ * assault/advance may be proposed. Group route/flank/reposition alternatives remain unavailable.
  * Repeat/JIP: Pure assessment. The caller stores the result for diagnostics and starts any operation through the normal generation owner.
  * Arguments: 0: group <GROUP>; 1: state <HASHMAP>; 2: known enemies <ARRAY>; 3: flank enabled <BOOL>; 4: advance enabled <BOOL>; 5: assault enabled <BOOL>.
  * Return Value: HashMap with intent, reason, selected index, candidate order and bounded evidence.
@@ -15,15 +33,18 @@ params [
     ["_enemies",[],[[]]],
     ["_flankEnabled",true,[true]],
     ["_advanceEnabled",true,[true]],
-    ["_assaultEnabled",true,[true]]
+    ["_assaultEnabled",true,[true]],
+    ["_element",[],[[]]]
 ];
+private _elementScoped=count _this > 6;
 private _result=createHashMapFromArray [
     ["intent","HOLD"],["reason","NO_VIABLE_CONTACT"],["targetIndex",-1],
     ["candidates",[]],["evidence",[]]
 ];
-if (isNull _group || {!local _group} || {_enemies isEqualTo []}) exitWith {_result};
-private _leader=[_group] call CBE_fnc_CortexGroupAnchor;
-if (isNull _leader) then {_leader=leader _group};
+if (isNull _group || {!local _group} || {_enemies isEqualTo []} || {_elementScoped && {count _element > 64}}) exitWith {_result};
+private _leader=if (_elementScoped) then {[_group,_element] call CBE_fnc_CortexGroupAnchor}
+    else {[_group] call CBE_fnc_CortexGroupAnchor};
+if (isNull _leader && {!_elementScoped}) then {_leader=leader _group};
 if (isNull _leader || {!alive _leader}) exitWith {_result};
 // Group manoeuvres issue group destinations. A fully mounted group or operating crew mixed with
 // foot soldiers must retain the vehicle domain; zero infantry rifles is not lost vehicle firepower.
@@ -34,12 +55,13 @@ private _hasCrew=_members findIf {
     alive _x && {!isNull _platform}
         && {_x in [driver _platform,gunner _platform,commander _platform]}
 } >= 0;
-if (!_hasFoot || {_hasCrew}) exitWith {
+if (!_hasFoot || {_hasCrew && {!_elementScoped}}) exitWith {
     _result set ["reason","VEHICLE_DOMAIN"];
     _result set ["evidence",[_hasFoot,_hasCrew]];
     _result
 };
 private _moraleState=_state getOrDefault ["moraleState","STEADY"];
+if (_elementScoped && {_moraleState != "STEADY"}) exitWith {_result set ["reason","MORALE_NOT_STEADY"];_result};
 if (_moraleState == "BROKEN") exitWith {
     _result set ["reason","MORALE_NOT_STEADY"];
     _result
@@ -54,15 +76,46 @@ if (_moraleState == "SHAKEN") exitWith {
 };
 
 private _waypointIndex=currentWaypoint _group;
-private _forwardOrder=_waypointIndex < count waypoints _group
+private _forwardOrder=!_elementScoped && {_waypointIndex < count waypoints _group}
     && {waypointDescription [_group,_waypointIndex] != "CBE AI PASS"}
     && {waypointType [_group,_waypointIndex] in ["MOVE","SAD","DESTROY"]}
     && {_leader distance2D waypointPosition [_group,_waypointIndex] > 80};
 private _foot=(units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {isNull objectParent _x}
+        && {!_elementScoped || {_x in _element}}
 };
-private _armedFoot=_foot select {primaryWeapon _x != ""};
+// Current tactical capacity excludes protected tasks and independently leased actors.
+// Physical squad strength remains separate in _foot for diagnostics and other layers.
+private _availableFoot=_foot select {
+    simulationEnabled _x && {!isObjectHidden _x} && {_x checkAIFeature "FIREWEAPON"}
+        && {unitCombatMode _x in ["YELLOW","RED"]}
+        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
+};
+if (_availableFoot isEqualTo []) exitWith {
+    _result set ["reason","ACTOR_TASKS_BUSY"];
+    _result set ["evidence",[count _foot,0]];
+    _result
+};
+private _armedFoot=_availableFoot select {primaryWeapon _x != "" && {[_x] call CBE_fnc_CortexPrimaryAmmoAvailable}};
+if (_elementScoped && {count _armedFoot < 2}) exitWith {_result set ["reason","ACTOR_TASKS_BUSY"];_result};
 if (count _armedFoot < 2) exitWith {
+    // A single fresh infantry opponent at immediate firing range is not, by itself,
+    // a reason to turn a surviving rifleman away. Keep native engagement/mission movement;
+    // this grants no assault route and does not bypass earlier morale or vehicle decisions.
+    private _contact=_enemies param [0,[],[[]]];
+    private _target=_contact param [0,objNull,[objNull]];
+    if (count _armedFoot == 1 && {count _enemies == 1}
+        && {!isNull _target} && {alive _target} && {!captive _target}
+        && {_target isKindOf "CAManBase"} && {isNull objectParent _target}
+        && {(side _group) getFriend (side _target) < 0.6}
+        && {!(_target getVariable ["ace_captives_isSurrendering",false])}
+        && {!(_target getVariable ["ace_captives_isHandcuffed",false])}
+        && {(_contact param [2,1e9,[0]]) <= 5}
+        && {(_contact param [3,1e9,[0]]) <= 20}) exitWith {
+        _result set ["reason","NATIVE_CLOSE_CONTACT"];
+        _result set ["evidence",[count _foot,count _armedFoot]];
+        _result
+    };
     _result set ["intent","REPOSITION"];
     _result set ["reason","INSUFFICIENT_FIREPOWER"];
     _result set ["targetIndex",0];
@@ -70,8 +123,8 @@ if (count _armedFoot < 2) exitWith {
     _result set ["evidence",[count _foot,count _armedFoot]];
     _result
 };
-private _capableAT=_foot findIf {"AT" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
-private _capableAA=_foot findIf {"AA" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
+private _capableAT=_availableFoot findIf {"AT" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
+private _capableAA=_availableFoot findIf {"AA" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
 private _houses=(getPosATL _leader) getEnvSoundController "houses";
 private _trees=(getPosATL _leader) getEnvSoundController "trees";
 private _forest=(getPosATL _leader) getEnvSoundController "forest";
@@ -79,6 +132,7 @@ private _concealment=(_houses+_trees+(_forest*0.5)) min 1;
 private _closeRange=(missionNamespace getVariable ["CBE_AIPass_Assault_Range",80]) min 60;
 private _manoeuvre=[];
 private _armourIndex=-1;
+private _freshArmourIndex=-1;
 private _airIndex=-1;
 private _elevatedIndex=-1;
 private _fortifiedIndex=-1;
@@ -89,16 +143,24 @@ private _fortifiedIndex=-1;
     private _distance=_x param [3,1e9,[0]];
     if (!isNull _target && {alive _target}) then {
         private _platform=vehicle _target;
-        if (_armourIndex < 0 && {_distance <= 450}
-            && {_platform isKindOf "Tank" || {_platform isKindOf "Wheeled_APC_F"}}) then {_armourIndex=_forEachIndex};
+        if (_distance <= 450
+            && {_platform isKindOf "Tank" || {_platform isKindOf "Wheeled_APC_F"}}) then {
+            if (_armourIndex < 0) then {_armourIndex=_forEachIndex};
+            // Native knowledge retains remembered contacts. Only a fresh observation may
+            // override a fresh close infantry opportunity; an older nearer tank cannot mask it.
+            if (_freshArmourIndex < 0 && {_age >= 0} && {_age <= 10}) then {_freshArmourIndex=_forEachIndex};
+        };
         if (_airIndex < 0 && {_distance <= 1200} && {_platform isKindOf "Air"}
             && {isEngineOn _platform || {speed _platform > 5}}) then {_airIndex=_forEachIndex};
         if (_target isKindOf "CAManBase" && {isNull objectParent _target}
             || {_platform isKindOf "StaticWeapon"}) then {
             _manoeuvre pushBack _forEachIndex;
-            if (_elevatedIndex < 0 && {_distance > 300}
-                && {((getPosASL _target) select 2) > (((eyePos _leader) select 2)+15)}
-                && {_age <= 30}) then {_elevatedIndex=_forEachIndex};
+            // Elevation is part of the observed belief, not permission to read an unseen
+            // enemy's current floor. Invalid/missing height cannot establish an elevated threat.
+            if (_elevatedIndex < 0 && {_distance > 300} && {_age <= 30}
+                && {count _position == 3}
+                && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                && {((AGLToASL _position) select 2) > (((eyePos _leader) select 2)+15)}) then {_elevatedIndex=_forEachIndex};
             if (_fortifiedIndex < 0 && {_distance > 220 || {_platform isKindOf "StaticWeapon"}
                 || {_houses > 0.35}}) then {_fortifiedIndex=_forEachIndex};
         };
@@ -121,7 +183,13 @@ private _freshPosition=_manoeuvre findIf {
     private _record=_enemies select _x;
     (_record param [3,0,[0]]) >= 60 && {(_record param [2,1e9,[0]]) <= 10}
 };
-if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 4}) then {
+// Match the finite assault executor: two/three available actors are supported elements.
+// Assessment proposes only; the executor still validates actual roles, native tasks and avenue.
+// A nearby rifle contact must not mask known armour the squad cannot counter.
+// Preserve the existing authored-forward policy and use the existing screened reposition.
+private _uncounteredArmour=!_forwardOrder && {_armourIndex >= 0} && {!_capableAT};
+private _freshUncounteredArmour=_uncounteredArmour && {_freshArmourIndex >= 0};
+if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 2} && {!_freshUncounteredArmour}) then {
     _selected=_manoeuvre select _closePosition;
     _intent="ASSAULT";
     _reason="FRESH_CLOSE_INFANTRY";
@@ -141,8 +209,8 @@ if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 4}) then {
             if (_flankEnabled) then {_candidates pushBack "FLANK"};
         };
     } else {
-        if (_armourIndex >= 0 && {!_capableAT}) then {
-            _selected=_armourIndex;
+        if (_uncounteredArmour) then {
+            _selected=[_armourIndex,_freshArmourIndex] select _freshUncounteredArmour;
             _intent="REPOSITION";
             _reason="ARMOUR_OVERMATCH";
             _candidates=["REPOSITION"];
@@ -202,6 +270,25 @@ if (_assaultEnabled && {_closePosition >= 0} && {count _armedFoot >= 4}) then {
             };
         };
     };
+};
+// Only executors carrying the explicit actor roster may cross the mixed-crew boundary.
+// A proposed flank may offer advance as its safe alternative; never substitute reposition.
+if (_elementScoped) then {
+    if (_intent != "ASSAULT" && {"ADVANCE" in _candidates}) then {
+        _intent="ADVANCE";_reason="ELEMENT_CONTACT_ADVANCE";
+    };
+    _candidates=_candidates select {_x == _intent && {_x in ["ASSAULT","ADVANCE"]}};
+};
+if (_elementScoped && {_candidates isEqualTo []}) exitWith {
+    _result set ["reason","ELEMENT_NO_SAFE_MANOEUVRE"];_result
+};
+// Smoothed group morale cannot establish immediate command readiness. Defer only a new
+// offensive proposal; leave protective repositioning and ordinary engine orders untouched.
+private _leaderSuppression=getSuppression _leader;
+if (_intent in ["ASSAULT","ADVANCE","FLANK"] && {_leaderSuppression >= 0.2}) exitWith {
+    _result set ["reason","LEADER_SUPPRESSED"];
+    _result set ["evidence",[_leaderSuppression,_intent,_reason]];
+    _result
 };
 _result set ["intent",_intent];
 _result set ["reason",_reason];

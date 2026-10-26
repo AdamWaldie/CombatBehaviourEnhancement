@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "40e960b1efa4d55526a623033cfa2879b33c7c04",
+  "status": "FOLLOW_COMPONENT_OFFLINE_VERIFIED_TRANSPORT_PENDING",
+  "topic": "Shared original follow-through state and spent search history",
+  "sourceTrace": [
+    "Follow-through keeps private eight-field records with original local-time progress and motion clocks; the existing public five-field budget retained failed room indices and exhausted actor membership only. Outgoing capture had no follow-through component.",
+    "Original publication regenerated exhausted IDs from current object references and truncated failure keys to64. Deleted historical references cannot supply their original key. Current source records the key when exhaustion actually occurs instead.",
+    "The follow-through maps were attached to the private job at loop tail. They now attach before the first leg/transition, using the same objects and moving the existing assignments rather than another map pass."
+  ],
+  "implementation": [
+    "Pure BuildingFollowJournal returns[1,visitContext,legRows,publicBudget]. It copies original leg index/distance/recovery and yield flags/access point/motion pose and represents original local clocks as serverTime-(time-originalStamp), without creating a new observation or grace period.",
+    "The existing five-field public budget and outgoing private snapshot share this serializer. Failed indices remain unique and bounded by the exact room count, with at most three failures per key. Maps and original spent/exhausted keys are capped at64; malformed/overflow data refuses instead of truncating or filling defaults.",
+    "Private followThroughExhaustedKeys is initialized with existing domains and retained from valid budget adoption. Exhaustion appends its original actor key when it occurs, with the matching failure entry. Later serialization does not need to recover that historical key from a deleted object. Live object entries must still match recorded spent membership.",
+    "Initialize all four private domains at preparation and attach loop maps/spent array before first follow-through mutation. Existing eligibility, doMove/rememberMove and actor/grenade/native/recovery/deadline checks remain unchanged.",
+    "Outer machine-private capture version7/thirteen fields appends the four-field follow snapshot. It still requires valid lane-or-egress, stage and room components; no receiver consumes it and no native replay/readiness is granted."
+  ],
+  "cost": "Existing changed-budget publication now validates/copies at most64 leg/failure rows as well as existing budget rows. Original changed-state cadence retained; one additional pure follow copy at actual locality loss. No new world query, recurring worker/timer, native command or network channel. Actual5percent median/10percent p95 remains unmeasured.",
+  "limits": [
+    "Full follow-through state is available only in source capture; legacy incoming resume still reads the original five-field budget and does not consume/replay the new leg records.",
+    "Early-exit, reserve admission/yield and other actor motion/settings/interruption/retirement domains still need a coherent source contract.",
+    "Authenticated producer registration/final seal/request replay, actual incoming native-ready aggregation and proof of all old writers ending remain incomplete.",
+    "Normal/HC/Zeus locality, actual flow, casualty replacement/repeated use, balance and performance remain unverified; audits paused."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/buildingFollowJournal.sqf": "d6fff83f733c7982475e488063d4adf3cd391314de799f943de65d03449161a2",
+    "addons/infantry/functions/buildingOperationStep.sqf": "a6d3a90131058325f4ee9756449afac1101b3004cc98f8e96d4d502e3d73b0d3",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "48d01b9a8af4601bf7d955e10aaa51c745ecd91b5b34bfb90ff4c5904e47d295",
+    "addons/core/functions/cortexLocality.sqf": "b637997ca08e1277ef15ae869865d2048e91628fe6dca17fd17a698674a40f79",
+    "addons/main/CfgFunctions.hpp": "d0422b9d0f35dd240153351384a4b04c0ec87eccd51959e64ed6f24e43ff1dad"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "focusedExistingCases": 7,
+    "newCases": 0,
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 437,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-follow-producer-40e960b1",
+    "fingerprint": "d4db81f2f6921cb3b7c10fbf8efc78a7a70561be089e8840d8e7d7b09d215533",
+    "buildLog": ".qa/handovers/clear-follow-producer-build.log",
+    "independentLog": ".qa/handovers/clear-follow-producer-independent.log",
+    "sourceNote": "Full build from implementation working tree after40e960b1; runtime unchanged between full build and checkpoint; review/handover metadata followed build."
+  },
+  "yieldLedgerFollowup": {
+    "review": "clear-yield-attempt-ledger-20261026.json",
+    "scope": "Follow component version2 adds original private yield receipt as field4;[] explicitly means unknown. Budget publication remains independent; source capture requires known yield state. Outer capture version9, fourteen fields."
+  }
+}

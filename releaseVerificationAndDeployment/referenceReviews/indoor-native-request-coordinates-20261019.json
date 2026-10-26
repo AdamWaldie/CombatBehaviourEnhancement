@@ -1,0 +1,111 @@
+{
+  "date": "2026-10-19",
+  "scope": "Individual indoor investigation request acknowledgement and physical coordinate consistency",
+  "findings": [
+    "APPROACH could cancel a newly issued native doMove on its first callback while expectedDestination still held the original target. Explicit clearance already has a finite acknowledgement policy.",
+    "Investigation progress/arrival and reserved/failed node separation used ATL distances across different terrain cells, unlike existing absolute floor/body checks."
+  ],
+  "implementation": [
+    "Capture native command/full destination/form leader and original server issue time immediately before actual doMove. Wait at most2seconds only for the unchanged original state or MOVE transition; no command replay, deadline renewal, visit or cleanup rights.",
+    "Measure all investigation progress and arrival in ASL; compare preconverted reserved/failed candidate positions in ASL. Native destinations and identity receipts remain ATL.",
+    "Existing ownership, contact, ignore-target, building-transform, actor availability and deadline checks remain ahead of the acknowledgement wait."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/indoorActorOperation.sqf": "8143b8c7b5f765067bd20edfcf5d1e287c22099487207335fc0120a79d723564",
+    "addons/infantry/functions/indoorActorNodeSelect.sqf": "b30fd0d06e2e4f7b978c5ca4bef136438504471e0a14b4ed235f1a4a4122d72f"
+  },
+  "sourceIntent": "Preserve useful native indoor movement while retaining bounded failed-point observations; no upstream code imported and no addon dependency added.",
+  "focused": ".qa/cbe-indoor-ack-focused.log (31 existing cases); .qa/cbe-indoor-ack-hemtt.log",
+  "newTestCases": 0,
+  "newWorkers": 0,
+  "newGeometryQueries": 0,
+  "scoresChanged": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "remaining": [
+    "Native acknowledgement timing and actual repeated entry/exit remain unverified.",
+    "Read-only native positions/roof tests do not prove reachability of modded building nodes.",
+    "Full normal/actual-provider HC and measured overhead evidence remain missing."
+  ],
+  "checkpoint": {
+    "fullBuild": ".qa/cbe-indoor-native-request-build.log",
+    "independentFingerprint": "9fd2213e824d88a6935f5d25d61489a4fc09204312ec9f077c639689ed85e3b4",
+    "manifestCommit": "86fb9f46af55aee5c45f4590c3d61351779d7377",
+    "manifestDirty": true,
+    "physicalAcceptance": false
+  },
+  "terminalAuthority20261023": {
+    "baseCommit": "cb723373",
+    "finding": "CortexDiscover REAP can invoke FINISH after the worker FSM ends. FINISH validates the original native leg and saved finite deadline but previously did not use that deadline to bound a later doMove/doFollow return command. A matching native destination could therefore grant command authority long after the investigation episode.",
+    "implementation": "Native cleanup command authority now ends at the saved original server deadline plus30seconds, consistent with the finite naval-egress retirement window. All previous exact destination, group operation, actor and external-owner checks remain. Metadata retirement remains available after the cutoff; no new timer, worker, deadline renewal or native command is added.",
+    "limitations": "No native return-command acknowledgement protocol. An already-running unchanged native leg may remain after late metadata retirement. Does not prove smooth exit, formation or reliable physical handback. Whole clearance already uses separate exterior settlement and optional unchanged-route continuation; no broad claim of resolving historical wedge screenshots.",
+    "validation": "32 focused/1491 full offline cases pass,411SQF compiled,9PBOs built; independent candidate verification passed. Existing test extended; no new cases.",
+    "candidate": ".qa/candidates/indoor-retirement-cb723373",
+    "fingerprint": "c83bc966a686e4651b73541824ba2db6885db43c6283b5e6780ad44b513b205a",
+    "logs": [
+      ".qa/indoor-retirement-build.log",
+      ".qa/indoor-retirement-independent.log"
+    ],
+    "provenance": "Unsigned dirty development snapshot from cb723373 plus implementation and unrelated pre-existing dirt; private review and handover postdate build.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "durableSubformation20261023": {
+    "baseline": "1274fef7",
+    "gap": "Individual indoor FINISH could run with the public order alone after owner/local-brain retirement, but its nine-field order omitted the original native formation leader. Cleanup defaulted to group leader; requestBefore was local and per-leg, insufficient as a durable original formation receipt.",
+    "implementation": "Append one typed OBJECT formation leader to the existing public order at START, retain it in the local brain, and preserve it through target/issued/disjoint-operation updates. FINISH parses the ten-field journal even without local brain and requires unchanged current formation identity before existing owned-leg cleanup. It returns to the saved eligible same-group formation, with existing group leader fallback for dead/departed/ineffective anchors. Group leader authored MOVE is resumed only for an original self-led formation. SELECT rechecks the original formation immediately before movement. Explicit-clear preflight and peer-target reservations read the same ten-field order.",
+    "bounds": "Existing generation, group, operation, native route, actor reservation, protected tasks, original deadline+30 and defensive-position retention remain. No fresh admission, replay, new callback/group/pair controller or alternate movement authority. Unknown old/malformed order shape grants no cleanup command. Leader-self return is permitted.",
+    "cost": "One additional object reference per public order and constant formation checks. No new messages beyond existing order publication, geometry, world scan or worker. Replication and runtime cost remain unmeasured.",
+    "validation": {
+      "existingIndoorChecks": 32,
+      "fullOfflineTests": 1491,
+      "compiledSQF": 411,
+      "PBOs": 9,
+      "build": ".qa/indoor-subformation-build.log",
+      "candidate": ".qa/candidates/indoor-subformation-1274fef7",
+      "independent": ".qa/indoor-subformation-independent.log",
+      "fingerprint": "d369d81dd501edf5f021175b97701ee09449d75ef4f397084231cd25a720f390"
+    },
+    "remaining": [
+      "Current code retains the receipt across journal-only cleanup, not an ordered snapshot or owner-ready acknowledgement protocol. Missing/malformed delivery cannot be upgraded to proof.",
+      "Actual native formation identity during doMove, owner migration, follow acknowledgement, physical reunion, repeated investigation/CQB flow and performance remain unverified.",
+      "No claim that complete whole-building CLEAR or every infantry executor now preserves native subformations.",
+      "Unsigned dirty development snapshot includes unrelated pre-existing dirt; notes/review postdate package. Audits paused; no scores or acceptance renewed."
+    ],
+    "hashes": {
+      "addons/infantry/functions/indoorActorOperation.sqf": "3acce317d27151c93fbf6cb1f099a2eb128732dd768b059685c7a250eafb1b73",
+      "addons/infantry/functions/cortexClearBuilding.sqf": "117b435d861e1d18d8e8868a76a88c79bdf4e5747775d4944774d8d576091aa2",
+      "releaseVerificationAndDeployment/test_indoor_actor_lifecycle.py": "4cccf2f5ef16ba4f2ad2cfc82da9c2e7affafe1874e980aa605c61d74a114fd6"
+    }
+  },
+  "nativePlannerDataWait20261024": {
+    "base": "6bc77f0d",
+    "finding": "Individual indoor native-context admission, observation dispatch, search-leg retry/escalation and approach wait still treated INITFAILED/DELAY as available or ended. The whole-clear planning allowances were corrected separately; the same documented state meaning applies to these executor paths.",
+    "primarySource": "https://community.bistudio.com/wiki/getUnitState",
+    "change": "Add INITFAILED/DELAY to existing planner-ownership exclusions in IndoorActorNativeContext, IndoorActorOperation and IndoorObservationDispatch plus CortexGroupTick indoor observation candidate selection. Existing original operation deadline bounds waiting; no new allowance, worker, engine/world query, attempt or state schema.",
+    "boundary": "No blanket native-state controller or unrelated stance/AT/tactical-route change. Exterior watch already admits new watch writes only for idle/STOP actors; its later native engagement effect remains an engine question, not a demonstrated source defect.",
+    "evidenceHashes": {
+      "addons\\infantry\\functions\\indoorActorNativeContext.sqf": "49b7bc55c625b2d795c8dde7d2294d8e52d256239b99cddf789925df1178d3a1",
+      "addons\\infantry\\functions\\indoorActorOperation.sqf": "c818ad1d6ae2118690133cfebadf2ca53da42d33d7a90269fd65f8ff6d1b9bd0",
+      "addons\\infantry\\functions\\indoorObservationDispatch.sqf": "e36d17c5065117117c9b110ed3a76b82e691d2fd5959e1a6ee21536caecb022e",
+      "addons\\infantry\\functions\\cortexGroupTick.sqf": "ede8ff21f7d2521fa88610230ca4e070e7ab7155eeeb4e6a7630d3ad1d5baa21"
+    },
+    "validation": {
+      "existingFocusedCases": 32,
+      "existingFullCases": 1491,
+      "compiledSQF": 412,
+      "PBOs": 9,
+      "independentVerification": true,
+      "newCases": 0
+    },
+    "candidate": ".qa/candidates/indoor-native-data-wait-6bc77f0d",
+    "fingerprint": "74f1ef34c8744b1bc29392c19e1f0c145ff86107add05354637f3b01163fad8e",
+    "logs": [
+      ".qa/indoor-native-data-wait-focused.log",
+      ".qa/indoor-native-data-wait-build.log",
+      ".qa/indoor-native-data-wait-independent.log"
+    ],
+    "limits": "No physical indoor routing/clearance/parity or measured performance acceptance. Native planning can still time out. Unsigned dirty development includes unrelated pre-existing dirt; private review/handover postdate package. Scores unrenewed; audits PAUSED."
+  }
+}

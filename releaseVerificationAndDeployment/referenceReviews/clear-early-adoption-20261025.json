@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-25",
+  "sourceBase": "75e966cd",
+  "scope": "Correct existing early-exit replay before sealed producer transport integration.",
+  "defects": [
+    "Exterior exit selection supports a preferred entrance from securityEntries (up to16), while resume accepted only membership of entries (four assault entrances). This could silently omit a legitimate journal row.",
+    "A completed original exit MOVE observed as WAIT failed both the MOVE and stopped-arrival branches and became DIVERTED despite a valid same-visit native receipt."
+  ],
+  "implementation": [
+    "Validate the recorded exterior entrance against the already discovered full securityEntries list; retain the four-entry assault concurrency bound. No new building scan.",
+    "A WAIT arrival requires read-only BuildingActorMotion CHECK (exact operation, visit, native endpoint, measured rest and same-floor position) plus an exact receipt target equal to the journal target. The existing one-metre arrival test still applies.",
+    "Preserve the original row deadline, retry-used bit, selected entry/watch and physical/native authority checks. No movement order, visit completion, new retry, deadline renewal or new worker."
+  ],
+  "validation": {
+    "focused": "6 existing early-exit tests passed; expanded the existing adoption case for entrance beyond the assault subset and retained retry/deadline under native replacement.",
+    "full": "1497 tests, 422 SQF, 11 PBOs, exit0",
+    "independent": "exit0, matching fingerprint",
+    "candidate": ".qa/candidates/clear-early-adoption-75e966cd",
+    "fingerprint": "3bc590df0f46af3d356263a8b8b53ae8ee1743af33ad0336b511260914c3b94e"
+  },
+  "limits": [
+    "Audits paused; physical occupancy, normal/HC migration and performance unverified.",
+    "No aggregate readiness, authenticated producer seal or request/replay implemented.",
+    "Additional WAIT-only proof uses existing bounded eight-row adoption; cost not measured."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/cortexClearBuilding.sqf": "206f0c26d793a1d3406d4a67bde53ccc6c3cdc662ad2c80a2bdf141e26496844",
+    "releaseVerificationAndDeployment/test_clear_early_exit.py": "6c877af1b11aea3b408db0394a433d961dc8209ae536761d117fa2f454f747d8"
+  }
+}

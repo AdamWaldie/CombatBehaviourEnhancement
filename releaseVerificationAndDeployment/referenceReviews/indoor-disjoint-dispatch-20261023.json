@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-23",
+  "baseCommit": "9e6c0a1b",
+  "scope": "Integrate existing finite per-actor indoor work with explicitly disjoint tactical ownership; preserve exclusive whole-group movement.",
+  "reference": {
+    "source": ".qa/lambs-2621-review/main/functions/UnitAction/fnc_doAssaultCQB.sqf",
+    "sha256": "309bdcfb8a3cae817263aa78107a3743d706b3e4327235a6f3c03d4510f8aff1",
+    "review": "Selected function fully read and hash verified; not a new whole-mod review. Actor-level building-to-building movement and native task checks are relevant intent. Raw source remains protected."
+  },
+  "sourceDeparture": "Retain CBE actor journals, bounded authority, native beliefs, physical visit accounting and one finite movement executor. Do not import duplicate doMove/setDestination ownership, random removal of building positions, unconditional forceMove/posture or recursive unbounded task lifetime.",
+  "confirmedFaults": [
+    "CortexGroupTick blanket movement-owner gate prevented IndoorActorDispatch from consulting its existing explicit disjoint-roster admission boundary.",
+    "CortexVehicles false return could overwrite a still-valid movement owner already recognized by the same group tick."
+  ],
+  "implementation": [
+    "Vehicle movement return is ORed with existing finite group ownership, preventing later whole-group planners from treating it as free.",
+    "IndoorActorDispatch is considered under the existing contact, fire-policy, authored-task and building-clearance gates even if another movement layer exists. IndoorActorGroupAvailable remains decisive: actual group waypoints, unsupported/ambiguous common operations, current drill/support participants, malformed rosters and actor reservations/tasks refuse.",
+    "No new worker, shared operation class or command authority. Existing two-investigator capacity, rotating16-member sample,8-second selection cooldown,8 beliefs and bounded roof queries remain. Additional bounded availability checks are now reachable under movement ownership; no measured speedup is claimed."
+  ],
+  "validation": {
+    "tests": 1491,
+    "compiledSqf": 410,
+    "pboCount": 9,
+    "candidate": ".qa/candidates/indoor-disjoint-dispatch-9e6c0a1b",
+    "fingerprint": "cced7692fb9d69da030b3be5285ef9364fd374c12ec3f2ae977360f8bd359d58",
+    "logs": [
+      ".qa/indoor-disjoint-dispatch-build.log",
+      ".qa/indoor-disjoint-dispatch-independent.log"
+    ],
+    "qualification": "Unsigned dirty development snapshot; private comparison and notes postdate package."
+  },
+  "remaining": "Complementary individual investigation only, not full clearance or complete naval CQB continuation. Physical disjoint movement/fire, actual entry, interruption/handback and5/10-percent performance budget remain unverified. Audits paused.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "sharedPreflight20261023": {
+    "baseCommit": "a6e8c3ed",
+    "confirmedCost": "Candidate filtering could call IndoorActorGroupAvailable for up to16 sampled actors; each call revalidated the same at-most64 common participants and group restrictions. This is repeated preflight validation, separate from actual command-boundary checks.",
+    "implementation": "New read-only IndoorActorGroupContext factors existing group restriction/typed roster checks into one ephemeral same-callback snapshot. Contact and body-clue dispatch sample first, exit immediately for full capacity/empty sample, then share one snapshot across candidates. GroupAvailable without optional snapshot always obtains fresh group authority; all actual actor START/STEP and door call sites retain that default. Identity/epoch/generation and typed bounded exclusion arrays are checked in preflight. No worker, timer, network state, persistent cache or command authority added.",
+    "costBound": "Shared participant locality/group validation at most64 per candidate-filtering callback instead of up to16*64. Actor health/native task/reservation checks and fresh command validations remain; this is not a claim about total frame time or a measured speedup. Existing investigator capacity, cursors, selection cooldown and geometry budgets unchanged.",
+    "validation": "1491 full offline tests/411SQF/9PBOs and independent verification passed. Final candidate .qa/candidates/indoor-group-context-final-a6e8c3ed fingerprint9d06035667c719e83c38371d2b282065ffe845263dbc05d531d5ea94893f46df. Logs .qa/indoor-group-context-final-build.log and .qa/indoor-group-context-final-independent.log. Unsigned dirty development snapshot; review/notes postdate packaging. Earlier indoor-group-context-a6e8c3ed candidate is intermediate.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "unscopedMovementAdmission20261023": {
+    "baseCommit": "5e81f3f7",
+    "finding": "CortexDrillResume reserves TACTICAL_DRILL movement for a deferred five-second locality-settling interval before reconstructing the common operation. Empty-operation indoor preflight previously treated this interval as free.",
+    "implementation": "When no common operation exists, refuse nonempty drills, responding/assaulting claims and active or malformed nonempty local/public movement leases. Local movementLease uses time; public CBE_Cortex_MovementLease uses serverTime. Expired typed leases alone do not refuse. Valid current explicit disjoint operations retain existing admission. Read-only, no timer, lease renewal, new worker or movement writes.",
+    "validation": "32 focused and1491 full offline cases passed;411SQF compiled and9PBOs built. Independent package verification passed. No new test cases added.",
+    "candidate": ".qa/candidates/indoor-unscoped-5e81f3f7",
+    "fingerprint": "3557b543f1f288234c8481183bb527bd77c7b509bc64d1e44304f2742b71ffcc",
+    "logs": [
+      ".qa/indoor-unscoped-build.log",
+      ".qa/indoor-unscoped-independent.log"
+    ],
+    "qualification": "Unsigned dirty development snapshot based on5e81f3f7 with working implementation and unrelated pre-existing changes. Review and handover postdate package.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  }
+}

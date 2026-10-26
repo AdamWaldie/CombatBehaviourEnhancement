@@ -1,3 +1,7 @@
+## Build-out and acceptance are separate
+
+See [Build-out progress](BUILDOUT-PROGRESS.md) for capability-scored implementation estimates and explicit remaining build gaps. Its ledger retains all65 feature families; unassessed scope is unknown, not zero. The acceptance register and historical evidence below remain separate. Physical failures guide further implementation but missing acceptance alone earns no build-out penalty.
+
 ## Corrected module scope
 
 The ordinary-driving enable/release/inspect native and ZEN modules, their settings transport and
@@ -828,3 +832,6 @@ The withdrawal trace places native waypoint completion about 51 metres from its 
 - An operation whose entire capable roster is in fresh bounded recovery now remains ACTIVE only while a valid recovery observation window is open. It does not renew aggregate physical-progress timestamps or mask another stationary element. Failed/stale retries still quarantine the actor and return STALLED. Scheduler QA checks the fresh window before its retained real away-travel failure case. Physical execution remains queued.
 
 - Aircraft release guidance now retains an existing native missile target or nonzero native target point. Only missing guidance receives a normal seeker-constrained object request; an unaccepted ground request may use one ATL point only when the actual ammo declares manualControl. Diagnostics distinguish retained guidance, seeker acceptance/refusal and manual-point request without treating any as a hit. Laser, countermeasure, moving-target and physical delivery acceptance remain pending.
+
+
+Immediate danger evasion also supports idle standing/crouched riflemen through a short native lateral tactical action. Existing movement/task ownership and cooldown remain; two side-segment casts can refuse an obstructed direction. Successful lateral actions retain mobile crouch instead of an immediate hard-cover prone request. Forward/back source dodges are not implemented here. Physical action, footing, collision clearance, balance and runtime cost remain unverified. No build-out percentage changes.

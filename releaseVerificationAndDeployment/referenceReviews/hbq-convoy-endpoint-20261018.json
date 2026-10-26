@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-18",
+  "scope": "HBQ traffic hold intent compared with native convoy endpoint admission",
+  "reference": {
+    "workshop_id": "3812620045",
+    "file": ".qa/source-refresh-20261011/inventory/3812620045/hbq_advanced_driving_ai/functions/fn_driveAssist.sqf",
+    "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "inspected_ranges": [
+      "standalone convoy exclusion near line80",
+      "traffic stop-distance and state hysteresis1172-1236",
+      "traffic hold/release1344-1401",
+      "traffic execution and hard occupancy1534-1589"
+    ],
+    "limitations": "Selected branches only, not whole-function or whole-HBQ review."
+  },
+  "findings": [
+    "HBQ standalone explicitly disables convoy handling; it cannot establish convoy pacing parity.",
+    "Traffic stopping hysteresis separates hold state and physical collision room. Unsafe ignore/push/relocation methods remain outside this implementation.",
+    "CBE already has continuous spacing and smoothing. Native endpoint refresh comment allowed stopped legs conceptually, but actual predicate required over8m endpoint advance even after physical endpoint completion."
+  ],
+  "implementation": {
+    "source": "addons/vehicles/functions/convoyTick.sqf",
+    "sha256": "218379128f82b9c58fdcb93946b37a70f3bceddf6441da421309e02f4aef12c9",
+    "change": "Finished native leg can accept over3m endpoint advance at rest within3m and1.5m vertical of exact previous endpoint; requires ready local operator, MOVE/idle command and unchanged seat/destination receipts. Moving legs retain8m threshold, all speed/safety caps remain unchanged.",
+    "provenance": "Independent CBE execution repair; no raw upstream code/assets copied and no new HBQ convoy parity claim."
+  },
+  "validation": {
+    "tests": 1138,
+    "sqf": 315,
+    "pbos": 9,
+    "log": ".qa/cbe-convoy-native-endpoint-verified-build.log",
+    "exit_code": 0,
+    "fingerprint": "9cfc0f3daf6c63cfa04ee34136dbb2fa3457ee3dca76fb63b79b69c62f6e434a",
+    "retained_failure": ".qa/cbe-convoy-native-endpoint-build.log: upstream comparison sentence placed in packaged guide; moved to engineering review without weakening boundary test.",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "remaining": [
+    "Actual native readiness/expectedDestination semantics on endpoint completion.",
+    "Slow mixed tracked/wheeled step-off, stop/start, curves, bridges and explicit STOP/changed seat/destination physical cases.",
+    "Configured spacing and mass-adjusted braking are provisional, not measured guarantees.",
+    "Median/p95 performance budget and whole-HBQ parity remain unaccepted."
+  ],
+  "settledWaitFollowup20261025": {
+    "review": "convoy-settled-wait-20261025.json",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "scope": "Native pending acknowledgement and short-leg continuation now admit exact ready/rested same-floor WAIT with original two-seat receipts. Physical semantics, mixed-vehicle pacing and performance remain unverified."
+  }
+}

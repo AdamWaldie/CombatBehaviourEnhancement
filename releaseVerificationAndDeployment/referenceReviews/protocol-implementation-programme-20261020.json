@@ -1,0 +1,381 @@
+{
+  "updated": "2026-10-25",
+  "userPriority": [
+    "Foundations and FSM lifecycle: LAMBS functional parity and improvement",
+    "Complete Protocol AI collection: implement, fix and improve"
+  ],
+  "localProtocolSources": [
+    {
+      "workshopId": "3799391254",
+      "name": "PROTOCOL AI CQB",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3799391254",
+      "metadataSHA256": "846f9babd613d165c243b429b32aee87ca9c52322234464edd39386853172f04",
+      "status": "READABLE_SCRIPTS_REVIEWED_INTENT_PATHS_EXIST_PHYSICAL_PENDING",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-cqb-3799391254-20261020.json",
+      "remaining": "Binary startup/dependencies/licence; physical flow/handback/performance; safe doorway-specific fragmentation unproven.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      },
+      "postViewHistory20261025": {
+        "review": "clear-post-view-history-20261025.json",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+        "scope": "Exterior post obstruction history is bound to exact post/watch and retained across qualified migration; original search/leg/task budgets and actual current eye-ray authority remain required.",
+        "physicalAcceptance": false
+      },
+      "exteriorIdleResume20261026": {
+        "review": "clear-exterior-idle-resume-20261026.json",
+        "scope": "Completed exterior approach idle/WAIT both use existing exact-context motion CHECK. Current interior reconciliation aggregation already exists. No full checkpoint delivery, physical CQB or whole-source parity claim."
+      },
+      "producerLaneExport20261026": {
+        "review": "clear-lane-producer-export-20261026.json",
+        "scope": "Pure current-owner lane serializer output is available for producer checkpoint construction. No final seal, replay transport, actor readiness or physical handover acceptance."
+      },
+      "outgoingLaneCapture20261026": {
+        "review": "clear-outgoing-lane-capture-20261026.json",
+        "scope": "Actual outgoing private lane state is captured after the source writer fence and before pointer/epoch retirement. No full transfer seal, authenticated replay, incoming readiness or physical handover acceptance."
+      },
+      "exteriorProducerSnapshot20261026": {
+        "review": "clear-stage-producer-snapshot-20261026.json",
+        "scope": "Normal publication and outgoing source capture share a pure bounded stage serializer preserving spent searches and blocked-view history. Partial snapshot component only; full checkpoint transport/native readiness and physical acceptance remain incomplete."
+      },
+      "roomProducerSnapshot20261026": {
+        "review": "clear-room-producer-boundary-20261026.json",
+        "followup": "clear-actor-visit-capture-20261026.json",
+        "scope": "Original shared room progress and exact per-actor physical visit histories now accompany outgoing lane/exterior capture. Partial ENTRY/SWEEP source component only; egress, deleted original identity, complete seal/replay and actual native readiness remain unfinished. No physical or whole-source parity claim."
+      },
+      "egressProducerSnapshot20261026": {
+        "review": "clear-egress-producer-capture-20261026.json",
+        "scope": "Shared original source predicate and pure14-field final-egress serializer now support outgoing EGRESS capture with unchanged original exit clocks. No native replay, final seal, incoming readiness, REPLAN completeness, full-source parity or physical acceptance."
+      },
+      "replanJournal20261026": {
+        "review": "clear-replan-journal-phase-20261026.json",
+        "scope": "Existing clearance REPLAN FSM phase now saves/checks/adopts exact lane metadata and may export its original producer state. No new route, retry credit, deadline, consumer or physical parity claim."
+      },
+      "originalVisitIdentity20261026": {
+        "review": "clear-original-visit-identity-20261026.json",
+        "scope": "Original physical entrant identities retained before deletion for truthful historical producer capture. No replacement visit credit, native replay, complete casualty handover or physical parity claim."
+      },
+      "followProducerSnapshot20261026": {
+        "review": "clear-follow-producer-capture-20261026.json",
+        "scope": "Original follow-through legs/progress clocks and failed/exhausted search history share pure live/capture encoding. No incoming leg replay, native readiness, complete transfer or physical parity claim."
+      },
+      "earlyExitProducerSnapshot20261026": {
+        "review": "clear-early-producer-capture-20261026.json",
+        "scope": "Shared current early-exit row encoding and original motion/view/cursor source capture. No incoming observation replay, complete native readiness/transfer or physical parity claim; legacy truncated-row admission remains a named gap."
+      },
+      "earlyResumeAdmission20261026": {
+        "review": "clear-early-resume-admission-20261026.json",
+        "scope": "Strict shared seven-field early-exit preflight; admitted-receipt adoption with no missing retry default; unadoptable work remains failed. No authenticated replay/native readiness or physical parity claim."
+      },
+      "yieldAttemptLedger20261026": {
+        "review": "clear-yield-attempt-ledger-20261026.json",
+        "scope": "Private original yield membership, explicit fresh zero-spent receipt and spend-before-native-move ordering; capture retains known receipt. No physical success or complete authenticated handover claim."
+      },
+      "reserveAdmissionCapture20261026": {
+        "review": "clear-reserve-admission-capture-20261026.json",
+        "scope": "Shared strict original reserve baseline admission and typed keyed source capture; no authenticated incoming native readiness or physical parity claim."
+      },
+      "reliefAttemptLedger20261026": {
+        "review": "clear-relief-attempt-ledger-20261026.json",
+        "scope": "Original private finite casualty-relief ledger, strict preflight/new-attempt encoding and outgoing source capture. No current casualty/native ownership proof, complete authenticated handover or physical parity claim."
+      }
+    },
+    {
+      "workshopId": "3800081309",
+      "name": "PROTOCOL AI AIRBORNE",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3800081309",
+      "metadataSHA256": "3f482dc167f0ae6a940b124dcf018e7f98f591be6613de0c66f006b84a4aa25e",
+      "status": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-airborne-3800081309-20261020.json",
+      "remaining": "Physical repeated insertion, exit/landing equipment safety, later flight-height intent and support handback remain unverified. Source perpetual gunner loop is not a required implementation.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      }
+    },
+    {
+      "workshopId": "3801354927",
+      "name": "PROTOCOL AI ARTILLERY: RELOCATE & COUNTER-BATTERY",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3801354927",
+      "metadataSHA256": "dbdb56d83277b38c0e3296ead7314260f1680bcb798fa03a3e2356178d2cccdc",
+      "status": "SELECTED_PREFIRE_AND_POSTFIRE_CREW_FSM_INTEGRATED_OFFLINE_PHYSICAL_PENDING",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-artillery-3801354927-20261020.json",
+      "remaining": "Selected mixed-group pre/postfire movement source is integrated; true same-group peer concurrency, terminal unknown/casualty and original idle/formation continuation remain code/evidence gaps. Physical firing/scoot/counter-battery, normal/HC/JIP/Zeus and performance remain unverified. Reuse licensing remains separate.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      },
+      "movementScopeReconciliation20261024": {
+        "review": "protocol-artillery-3801354927-20261020.json#selectedBatteryMovement20261024",
+        "requiredCodeGap": "Selected-battery pre/postfire movement rather than whole-group waypoints; actual source movement loops only selected vehicle driver/commander. Mixed-group support remains unimplemented. Existing single-platform positioning/scoot does not close this scope.",
+        "productChanged": false,
+        "physicalAcceptance": false,
+        "scoresChanged": false
+      },
+      "movementScopeReconciliation20261025": {
+        "reviews": [
+          "artillery-selected-crew-20261025.json",
+          "artillery-selected-scoot-20261025.json",
+          "artillery-gun-only-handover-20261025.json"
+        ],
+        "sourceCommits": [
+          "26f0ccf3",
+          "2ee13634",
+          "ff486829"
+        ],
+        "current": "Selected original gun crew uses finite owner-local native move/ACK/hold/return. Independent all-in-gun groups retain legacy group path. Authored group route/membership preserved; no peer-controller retirement. Gun-only authored driving admission uses real tracked/current vehicle scope, not a native-only route slot.",
+        "limitations": "Not full artillery parity or physical acceptance; group reservation still pauses other CBE manoeuvres/driving, peer concurrency and unknown native recovery remain open. Dated20261024 gap remains historical, superseded only for selected mixed movement source.",
+        "physicalAcceptance": false,
+        "scoresChanged": false
+      },
+      "selectedNativeStop20261025": {
+        "review": "selected-native-stop-retirement-20261025.json",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+        "scope": "Exact completed original selected-crew worker can retire unresolved metadata on newer active native STOP and measured rest; no return command, group split, replacement crew adoption or completion claim. Newer same-label lease deadline is protected.",
+        "physicalAcceptance": false
+      },
+      "selectedDeletionProvenance20261026": {
+        "review": "selected-deletion-crew-provenance-20261026.json",
+        "scope": "Original actors captured privately while present may later be deleted before the genuine platform-deletion event. Exact journal/lease checks remain; living originals, missing initial capture and unknown cross-owner provenance refuse. Physical acceptance and general handover remain incomplete."
+      },
+      "dismountedOriginalStop20261026": {
+        "review": "selected-dismounted-stop-retirement-20261026.json",
+        "scope": "Passive exact-worker retirement permits dismounted original survivors with newer native STOP and individual rest. No command, replacement adoption or group split; general supersession and physical acceptance remain incomplete."
+      }
+    },
+    {
+      "workshopId": "3802121807",
+      "name": "PROTOCOL AI PAIRS",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3802121807",
+      "metadataSHA256": "75bb5e4bc28cce88c69c8cbaa2cc2e4775617c0b6b08d195367b60b9bc72428f",
+      "status": "SYNCHRONISED_BUDDY_ROLES_INTEGRATED_PHYSICAL_PENDING",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-pairs-3802121807-20261020.json",
+      "remaining": "Synchronised opposite buddy roles are integrated through the finite advance FSM, with casualty/next-bound allocation and ownership checkpoint. Actual cover/arrival/recovery/migration/performance and licensing remain unverified. Independently timed pair waves are an optional CBE extension, not an arrival-driven feature supplied by the reference. See protocol-pairs-3802121807-20261020.json intentScopeReconciliation20261023.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      },
+      "currentExactSource20261025": {
+        "snapshot": ".qa/protocol-pairs-installed-20261025-d756b1cb",
+        "memberSha256": "fe29f98ea2341dc2cc753293cf8549fa0d298d2290eef978ed9cb3339a0b5284",
+        "review": "protocol-pairs-3802121807-20261020.json",
+        "scope": "Exact original source privately recovered and current executed synchronous buddy-role path rechecked. No new runtime behaviour or parity/percentage acceptance."
+      }
+    },
+    {
+      "workshopId": "3803702313",
+      "name": "PROTOCOL AI CITY TACTICS",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3803702313",
+      "metadataSHA256": "5c21e866c56a1069523b445f4548e33a8caa7fa882a8eccadb848b33b6e14470",
+      "status": "READABLE_SCRIPTS_REVIEWED_INTENT_PATHS_EXIST_PHYSICAL_PENDING",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-city-3803702313-20261020.json",
+      "remaining": "Binary startup/dependencies/licence and physical cover/smoke/flow/performance validation.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      }
+    },
+    {
+      "workshopId": "3809708209",
+      "name": "PROTOCOL AI ANTI-AIR: RELOCATE AND ANTI-MISSILE",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3809708209",
+      "metadataSHA256": "6f8b7b24a8515ad74d09a6dd009efd92d210de542cb1f679decb74b51b952d0d",
+      "status": "SCOPED_NATIVE_AA_AND_EXPERIMENTAL_POINT_DEFENCE_CODE_INTEGRATED_PHYSICAL_PENDING",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-aa-3809708209-20261020.json",
+      "remaining": "Native-AA idle relocation, same-group native-warning allocation and default-off finite main-turret point-defence aim/shot/local-direct-pass-fuse/calibration code paths exist. Physical interception, balance and performance are unverified. Cross-owner projectile effects, payload/submunition handling, broader weapon/station layers, mixed/custom-AA relocation and authored-route cases remain unsupported or incomplete. Binary registration/declarations are reviewed; runtime dependencies and licensing remain separate.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      },
+      "currentCodeEvidence20261021": {
+        "baseline": "adbe73a9",
+        "reviewSections": [
+          "protocol-aa-3809708209-20261020.json#sameGroupWarningAllocation20261021",
+          "aegism-interception-mechanism-20261020.json#finiteAimShotImplementation20261021",
+          "aegism-interception-mechanism-20261020.json#localDirectPassFuse20261021",
+          "aegism-interception-mechanism-20261020.json#measuredAimCalibration20261021",
+          "aegism-interception-mechanism-20261020.json#exactAdmittedMuzzleRead20261021"
+        ],
+        "default": "CBE_AIPass_AAIntercept_Enable=false",
+        "hashes": {
+          "addons/vehicles/functions/cortexAAObserve.sqf": "bb912774b6275ddc7b7bee489ee486af7fd2d9631a9a47bc06ca341a84335bb4",
+          "addons/vehicles/functions/cortexAAAllocate.sqf": "5f4b8081eb0133a42899ec8846fa1d72c3dfc009f695f7623a06e203646a4ee9",
+          "addons/vehicles/functions/cortexAAWarningLink.sqf": "4790a21b94adc4efa7ac8ec7e7964fb441f8a2e1fe6148e0280f0f4842047efb",
+          "addons/vehicles/functions/cortexAAIntercept.sqf": "fa47c0420a1d5c0f265c6cd6241b7cac6eb7e7a04708d0ee767ee2148ccb5c61",
+          "addons/vehicles/functions/cortexAAInterceptEffect.sqf": "2dc3782312a931215085199285bac1f8c49c6e2d2e48dfd4bef0737c8aea9896",
+          "addons/vehicles/functions/cortexAASpot.sqf": "acb39bfce7f1e7291c5ac0201a9a6123fe95a923facd593f6218e0ff5b69c309",
+          "addons/vehicles/functions/cortexAARelocate.sqf": "6a732377b0a236cf4acb633ad10134ec1a1ad6df97ef4940a62e5f2c03553c78"
+        },
+        "limits": "Code presence and bounded intended execution only. START/fire/fuse requests are not physical arrival, firing, destruction, balance or performance proof. No source parity or percentage credit."
+      },
+      "liveAllocationCoverage20261025": {
+        "review": "aa-live-allocation-coverage-20261025.json",
+        "scope": "Finished or replaced original-gunner/fire-lease state is not counted as current reservation coverage. Existing one-start callback and original warning budgets unchanged.",
+        "physicalAcceptance": false
+      },
+      "warheadCollateralSafety20261025": {
+        "review": "aa-fuse-collateral-20261025.json",
+        "scope": "Same-owner scripted fuse checks actual incoming-warhead radius against protected entities, including aircraft/ship occupants. Default-off/native-fire/cross-owner limits retained.",
+        "physicalAcceptance": false
+      },
+      "launchProvenance20261025": {
+        "review": "aa-launch-provenance-20261025.json",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+        "scope": "Native first-warning projectile/parent/affiliation receipt survives subsequent launcher crew loss or deletion for bounded allocation and ordinary interception; scripted fuse still requires a non-null matching source.",
+        "physicalAcceptance": false
+      }
+    },
+    {
+      "workshopId": "3813369033",
+      "name": "PROTOCOL AI NAVY SEAL",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3813369033",
+      "metadataSHA256": "669f58ea7edb6273dcd11a57f4f7f8baaff7cda3042b31693fc64a4265c3179e",
+      "status": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-navy-3813369033-20261020.json",
+      "remaining": "Actual shore/nav path quality, mixed cargo/crew locality, refusal/repeat/migration, landing-to-ground combat and performance need physical evidence. Do not call source duplication two separate desired features.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      }
+    },
+    {
+      "workshopId": "3819636004",
+      "name": "PROTOCOL AI RAPPELING",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3819636004",
+      "metadataSHA256": "d23ec6ce05b28d2737e45e65bfec96144f47e69d1c7829b4912d879302ba8d64",
+      "status": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "protocol-rappel-3819636004-20261020.json",
+      "remaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      },
+      "providerHandoverFinding": "Both installed actor APIs clear active markers before delayed unconditional damage restoration and provide no completion receipt. Current marker compatibility is not complete handback. Controlled finite rope execution or a corrected provider API is still required; see protocol-rappel-3819636004-20261020.json providerQuiescenceContract20261023. Feature remains required and unimplemented."
+    },
+    {
+      "workshopId": "3822504009",
+      "name": "PROTOCOL AI ARMORED FORCE",
+      "localPath": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3822504009",
+      "metadataSHA256": "10ae57c96a4b30f8c79ed7dc2685719a85f1d75420f883adc48aae15abb80628",
+      "status": "SCOPED_STATION_AND_SELECTED_MOVEMENT_CODE_INTEGRATED_PHYSICAL_PENDING",
+      "priority": "After foundations and FSM lifecycle",
+      "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
+      "review": "workshop-intake-3822504009.json",
+      "remaining": "Actual main-cannon Fired capture and one finite screened post-shot move are now integrated through the selected-crew FSM, limited to idle tanks/APCs/main-turret shells. Broader suitable ATGM, mission-route/mixed/custom-platform cases and proven supersession/deleted-platform cleanup remain incomplete. Actual loading/firing, native travel/handback, repeated use, owner migration, combat balance and performance remain unverified; dependencies/licensing remain separate. See armour-post-shot-cover-20261025.json.",
+      "binaryConfiguration": {
+        "review": "protocol-binary-configuration-20261021.json",
+        "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      },
+      "currentCodeEvidence20261021": {
+        "baseline": "792dde29",
+        "review": "workshop-intake-3822504009.json",
+        "sections": [
+          "vehicleHornClassification20261021",
+          "jinkCrewOwnership20261021"
+        ],
+        "physicalAcceptance": false,
+        "performanceMeasured": false
+      },
+      "currentCodeEvidence20261025": {
+        "base": "ba154972",
+        "review": "armour-legacy-missile-reserve-20261025.json",
+        "scope": "Unlabelled legacy ground-missile reserve fallback only; not whole-mod parity",
+        "physicalAcceptance": false,
+        "performanceMeasured": false
+      },
+      "coverRelocationExecution20261025": {
+        "review": "armour-cover-relocation-execution-20261025.json",
+        "status": "HISTORICAL_EXECUTION_GAP_PARTLY_SUPERSEDED",
+        "runtimeImplementationAdded": false,
+        "finding": "Source fire-cycle counts requests; manoeuvre/reverse workers do not wait for native movement to finish. Current CBE standoff is group-scoped, not a drop-in selected-platform cover executor.",
+        "next": "Robust proven-supersession/deleted-platform recovery, then actual episode-scoped Fired evidence and finite cover/post-shot manoeuvre triggers. Existing selected standoff is integrated but physically unverified.",
+        "currentFollowup": "armour-selected-standoff-20261025.json"
+      },
+      "selectedMovementFoundation20261025": {
+        "review": "armour-selected-standoff-20261025.json",
+        "status": "SELECTED_STANDOFF_NATIVE_FSM_INTEGRATED_PHYSICAL_UNVERIFIED",
+        "scope": "Selected-platform standoff uses shared native observation/phases/finite retirement and original-crew orders. Idle mixed groups preserve membership and waypoints. Actual main-cannon shot receipts can now request one short screened move through that same FSM. Broader authority handovers, platform coverage and physical acceptance remain incomplete.",
+        "nativeAcknowledgementRepair": {
+          "review": "selected-settled-native-ack-20261025.json",
+          "scope": "Existing settled WAIT/idle proof in artillery/driving remains; current selected-standoff integration is tracked by armour-selected-standoff-20261025.json, not inferred from this earlier repair.",
+          "physicalAcceptance": false
+        },
+        "observationReview": "selected-native-observation-20261025.json",
+        "lateRecordedReturn": {
+          "review": "selected-late-native-return-20261025.json",
+          "status": "ENDED_LOCAL_WORKER_POSITIVE_NATIVE_RETURN_INTEGRATED",
+          "scope": "Read-only late recorded-original-return proof can retire its matching reservation; unchanged current owner epoch and tactical generation required. Broader supersession/deleted-platform/foreign-owner cleanup remain unfinished.",
+          "physicalAcceptance": false
+        },
+        "actualDeletionDeadCrew": {
+          "review": "selected-deletion-dead-crew-20261025.json",
+          "status": "SCOPED_NATIVE_DELETION_DEAD_LOCAL_ORIGINAL_CREW_CLEANUP_INTEGRATED",
+          "scope": "Actual deletion callback plus present/local/dead original actors can retire exact old reservation. Newer/unknown public and private leases preserved. Living/missing/nonlocal crew and wider deletion recovery remain unfinished.",
+          "physicalAcceptance": false
+        },
+        "mixedGroupStandoff": {
+          "review": "mixed-group-standoff-20261025.json",
+          "status": "MIXED_GROUP_SELECTED_CREW_ADMISSION_INTEGRATED",
+          "physicalAcceptance": false
+        },
+        "tacticalArrival": {
+          "review": "tactical-arrival-radius-20261025.json",
+          "scope": "Standoff5m rested arrival, legacy artillery25m area retained; invalid policy retires through existing native lifecycle.",
+          "physicalAcceptance": false
+        },
+        "postShotCover": {
+          "review": "armour-post-shot-cover-20261025.json",
+          "status": "ACTUAL_CANNON_SHOT_SCREENED_REPOSITION_SOURCE_INTEGRATED",
+          "physicalAcceptance": false
+        }
+      },
+      "selectedNativeStop20261025": {
+        "review": "selected-native-stop-retirement-20261025.json",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+        "scope": "Exact completed original selected-crew worker can retire unresolved metadata on newer active native STOP and measured rest; no return command, group split, replacement crew adoption or completion claim. Newer same-label lease deadline is protected.",
+        "physicalAcceptance": false
+      },
+      "selectedDeletionProvenance20261026": {
+        "review": "selected-deletion-crew-provenance-20261026.json",
+        "scope": "Original actors captured privately while present may later be deleted before the genuine platform-deletion event. Exact journal/lease checks remain; living originals, missing initial capture and unknown cross-owner provenance refuse. Physical acceptance and general handover remain incomplete."
+      },
+      "dismountedOriginalStop20261026": {
+        "review": "selected-dismounted-stop-retirement-20261026.json",
+        "scope": "Passive exact-worker retirement permits dismounted original survivors with newer native STOP and individual rest. No command, replacement adoption or group split; general supersession and physical acceptance remain incomplete."
+      }
+    }
+  ],
+  "inventoryLimits": "Nine locally installed Protocol-named mod metadata records. Not proof of complete Workshop collection discovery or source implementation. Earlier reviews must be reconciled before repeating work.",
+  "auditState": "PAUSED",
+  "sourceProtection": "Originals read-only; licence review before incorporating implementation; raw source excluded from product.",
+  "readableReviewCheckpoint": "All nine locally inventoried Protocol items now have readable-source review pointers. This is not complete Workshop collection discovery, binary config/startup/dependency/licence review, implementation or physical parity.",
+  "binaryConfigurationReview": "protocol-binary-configuration-20261021.json",
+  "binaryReviewLimits": "Binary config startup/declarations now inspected for all nine recorded local sources. Older binary-startup-pending notes are superseded by protocol-binary-configuration-20261021.json only for that scope. Runtime guards/provider dependencies, licensing, missing behaviour and physical/performance proof remain separate.",
+  "reconciliation20261021": {
+    "baseline": "792dde29",
+    "scope": "Reconcile current AA and armour implementation records with current source; not a new source review or whole-collection discovery. Existing binaryConfigurationReview is authoritative only for registration/declarations; old remaining strings mentioning pending binary inspection are historical and do not supersede it.",
+    "changed": "AA no longer described as wholly absent; experimental default-off scope, unsupported cases and absent physical proof explicit. Armour links current horn/control-seat foundation changes. No statuses or percentages inferred from counts.",
+    "productChanged": false,
+    "audits": "PAUSED",
+    "physicalAcceptance": false,
+    "performanceMeasured": false
+  },
+  "updateScope20261025": "Artillery selected-crew build-path reconciliation only. Other source rows retain their dated evidence; no whole-collection freshness/parity or percentage claim."
+}

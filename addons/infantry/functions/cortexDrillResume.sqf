@@ -1,9 +1,19 @@
 /*
  * Author: WaldoTheWarfighter
+ * Explicit ground-element intent retains its original roster across owner migration. Missing,
+ * malformed or widened scoped rosters refuse before acquiring a movement lease; ordinary legacy
+ * drill checkpoints without a scope flag retain their existing whole-group semantics.
  * Purpose: Reconstructs an unfinished standalone flank, advance or assault on its new owner.
  * Locality/authority: Current group owner only, after CortexLocality releases previous-owner leases.
  * Repeat/JIP: Source generation is consumed once. JIP observes checkpoints without starting work.
  * Committed route, actor destinations and absolute deadline survive; local commands and FSM handles do not.
+ * Full original authored waypoint metadata must still match before inspect or resume admission.
+ * Only matching passive source HOLD proof can admit native STOP after actual actor locality settles.
+ * No source MOVE or acknowledgement grace is replayed; reserved/unavailable/service actors stay excluded.
+ * Resumed fire-team partitions seed pair repair; buddy-bound identity stays across the roles.
+ * Neither mode renews the original movement deadline.
+ * Hidden or simulation-disabled actors and medics with queued treatment stay in the living roster
+ * but cannot be recruited into the resumed movement operation; treatment queues are never changed.
  * Arguments: 0 group <GROUP, grpNull>; 1 checkpoint <ARRAY, []>; 2 retry deadline <NUMBER, -1>; 3 inspect only <BOOL, false>.
  * Return Value: BOOL - resumed or queued for bounded actor-locality settling; false when refused.
  * Current callers: CortexLocality and its finite shared-scheduler locality-settling callback.
@@ -34,6 +44,14 @@ if (_gate == "" || {!([_group,_gate,true] call CBE_fnc_CortexFeatureEnabled)}
 private _points=_drill getOrDefault ["points",[]];
 private _index=_drill getOrDefault ["index",-1];
 private _units=_drill getOrDefault ["units",[]];
+// Scope is semantic intent, not owner-local movement proof. Validate before a settling lease
+// or deferred resume callback can be created, and never infer a wider replacement roster.
+private _elementScoped=_drill getOrDefault ["elementScoped",false];
+if (!(_elementScoped isEqualType true)) exitWith {false};
+private _elementRoster=_drill getOrDefault ["elementRoster",[]];
+if (_elementScoped && {!(_units isEqualType []) || {!(_elementRoster isEqualType [])} || {count _elementRoster == 0}
+    || {count _elementRoster > 64} || {_elementRoster findIf {!(_x isEqualType objNull)} >= 0}
+    || {_units findIf {!(_x in _elementRoster)} >= 0}}) exitWith {false};
 private _savedStage=_drill getOrDefault ["stage",""];
 if (count _points == 0 || {count _points > 64} || {_index < 0} || {_index >= count _points}
     || {count _units > 64} || {_savedStage in ["START","MOVE"] && {_deadline >= 0 && {serverTime >= _deadline}}}) exitWith {false};
@@ -41,6 +59,10 @@ private _waypoint=_drill getOrDefault ["boundWaypoint",[]];
 if (count _waypoint == 2 && {currentWaypoint _group != (_waypoint select 0)
     || {waypointPosition [_group,_waypoint select 0] isNotEqualTo (_waypoint select 1)}}) exitWith {false};
 if (_waypoint isEqualTo [] && {currentWaypoint _group < count waypoints _group}) exitWith {false};
+private _authoredOrder=_drill getOrDefault ["authoredOrder",[]];
+if (_authoredOrder isEqualTo [] || {
+    _authoredOrder isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)
+}) exitWith {false};
 if (_inspectOnly) exitWith {true};
 // A group Local event may precede its members' Local events. Wait at most five seconds in the
 // existing scheduler, retaining the source generation and deadline; never adopt a partial roster.
@@ -73,16 +95,51 @@ if (_living findIf {!local _x} >= 0) exitWith {
         format ["DRILL_ADOPT:%1",netId _group]] call CBE_fnc_CortexQueueJob;
     true
 };
+// Old passive holds require current actual-owner proof; a checkpoint alone cannot
+// recruit a stopped actor. The source token/generation must match this exact intent.
+private _resumeCommands=createHashMap;
+private _holdRows=_drill getOrDefault ["resumeNativeHolds",[]];
+private _holdIssuer=_drill getOrDefault ["resumeHoldIssuer",[]];
+private _holdIssuerValid=_holdIssuer isEqualType [] && {count _holdIssuer == 4}
+    && {(_holdIssuer select 0) isEqualTo _sourceToken} && {_sourceToken != ""}
+    && {(_holdIssuer select 3) isEqualTo _sourceGeneration}
+    && {[1,2] findIf {private _n=_holdIssuer select _x;
+        !(_n isEqualType 0) || {!finite _n} || {_n != floor _n} || {_n < 0}} < 0}
+    && {(_holdIssuer select 1) > 0};
+if (_holdIssuerValid && {_holdRows isEqualType []} && {count _holdRows <= 64}) then {
+    {
+        if (_x isEqualType [] && {count _x == 3} && {(_x select 0) isEqualType objNull}
+            && {(_x select 1) isEqualType []} && {count (_x select 1) == 3}
+            && {(_x select 2) isEqualType objNull}) then {
+            _x params ["_heldActor","_heldNative","_heldLeader"];
+            if (_heldActor in _living && {local _heldActor} && {currentCommand _heldActor == "STOP"}
+                && {(expectedDestination _heldActor) isEqualTo _heldNative}
+                && {formLeader _heldActor == _heldLeader}) then {
+                _resumeCommands set [netId _heldActor,[_heldActor,"HOLD",+_heldNative,_heldLeader,-1,[],[]]];
+            };
+        };
+    } forEach _holdRows;
+};
+private _resumeUnavailable=_drill getOrDefault ["resumeUnavailable",[]];
 private _capable=_living select {
-    [_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}
+    simulationEnabled _x && {!isObjectHidden _x}
+        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+        && {[_x] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _x}
         && {!isPlayer _x} && {isNull remoteControlled _x}
         && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
+        && {!(_x in _resumeUnavailable)} && {_x checkAIFeature "MOVE"} && {_x checkAIFeature "PATH"}
+        && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
+        && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+        && {currentCommand _x != "STOP" || {netId _x in _resumeCommands}}
 };
 if (count _capable < 2) exitWith {false};
 if !([_group,"TACTICAL_DRILL",true,serverTime+90] call CBE_fnc_CortexOwnershipLease) exitWith {false};
 private _operationPhase=["MANOEUVRE","ASSAULT"] select (_type == "ASSAULT" || {_drill getOrDefault ["assaulting",false]});
-private _operation=[_group,_type,_target,_capable,_points apply {_x select 0},_operationPhase] call CBE_fnc_OperationStart;
+private _pairElements=(_drill getOrDefault ["teams",[]]) apply {_x select {_x in _capable}};
+// Two advance actors retain one buddy identity across the singleton movement roles.
+if (_type == "ADVANCE" && {count _capable == 2 || {(_drill getOrDefault ["buddyBounds",false]) isEqualTo true}}) then {_pairElements=[]};
+private _operation=[_group,_type,_target,_capable,_points apply {_x select 0},_operationPhase,_pairElements] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {[_group,"TACTICAL_DRILL",false] call CBE_fnc_CortexOwnershipLease; false};
 _operation set ["unavailable",_drill getOrDefault ["resumeUnavailable",[]]];
 _operation set ["recoveryAttempts",createHashMapFromArray (_drill getOrDefault ["resumeAttempts",[]])];
@@ -101,6 +158,11 @@ _drill set ["token",_token];
 _drill set ["operationGeneration",_operation get "generation"];
 _drill set ["ownerEpoch",_operation get "ownerEpoch"];
 _drill set ["units",_capable];
+{if (!(((_resumeCommands get _x) select 0) in _capable)) then {_resumeCommands deleteAt _x}} forEach (keys _resumeCommands);
+_drill set ["nativeAdmissionChecked",true];
+_drill set ["nativeCommands",_resumeCommands];
+_drill deleteAt "resumeNativeHolds";
+_drill deleteAt "resumeHoldIssuer";
 _drill set ["disabled",[]];
 _drill set ["spots",[]];
 _drill set ["started",time];
@@ -118,5 +180,5 @@ _state set ["movementLease",["TACTICAL_DRILL",time+90]];
 [_group,_drill,if (_stage in ["PAUSE","HOLD"]) then {_stage} else {"START"},"OWNERSHIP_RESUME"] call CBE_fnc_CortexDrillSetStage;
 [_group] call CBE_fnc_CortexCheckpoint;
 _group setVariable ["CBE_Cortex_DrillMigration",[_sourceToken,_token,_sourceGeneration,_operation get "generation",serverTime,_index,_deadline],true];
-[_group,_token] call CBE_fnc_CortexDrillStart;
+if !([_group,_token] call CBE_fnc_CortexDrillStart) exitWith {false};
 true

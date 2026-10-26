@@ -11,6 +11,7 @@
  * been proved. An executor must obtain owner agreement, validate geometry and retain safety caps.
  * Bounds: 32 road transitions, at most 16 connections per piece, 350 m travel. Junctions,
  * bridges, pedestrian roads, loops, sharp turns and invalid endpoint geometry refuse.
+ * Native orders need enough longitudinal room to their original goal for the full pass.
  * Road endpoints retain their ASL elevation. No terrain flattening or physics shortcut.
  * At most 128 stations sample the centreline at <=5 m, ramp out from the current lane and return over
  * the final 30 m. Each lane offset uses its own road endpoints; insufficient pull-out
@@ -28,6 +29,8 @@ if (!finite _speedKmh || {_speedKmh < 5} || {_speedKmh > 120}) exitWith {["INVAL
 if (group driver _vehicle == group driver _front) exitWith {["SAME_GROUP"] call _fail};
 private _context=[[_vehicle,_front]] call CBE_fnc_DrivingPassContext;
 if (_context isEqualTo []) exitWith {["INVALID_CONTEXT"] call _fail};
+private _ownerFrame=[_vehicle] call CBE_fnc_DrivingPassNativeFrame;
+if (_ownerFrame isEqualTo []) exitWith {["OWNER_UNAVAILABLE"] call _fail};
 private _forward=velocityModelSpace _front select 1;
 if (_forward < -0.1 || {(velocityModelSpace _vehicle select 1) < -0.1}) exitWith {["REVERSING"] call _fail};
 private _relative=_speedKmh/3.6-(_forward max 0);
@@ -45,6 +48,13 @@ private _frontHalfWidth=(abs ((_frontBounds select 0) select 0)) max (abs ((_fro
 private _seconds=(_gap+_ownHalfLength+_frontHalfLength+7)/(_relative*0.8)+2.5;
 private _passTravel=(_speedKmh/3.6)*_seconds;
 private _needed=_passTravel+30;
+// Do not carry a short native relocation beyond its original goal merely to pass.
+// This is a conservative longitudinal budget, not a new route or clearance grant.
+private _originalRoute=[group driver _vehicle] call CBE_fnc_DrivingRouteReceipt;
+if ((_originalRoute param [0,"",[""]]) == "NATIVE_MOVE") then {
+    private _goal=(_originalRoute select 6) vectorDiff (getPosASL _vehicle);
+    if ((_goal vectorDotProduct [sin _heading,cos _heading,0]) < _needed+_ownHalfLength) then {_needed=1e9};
+};
 if (_seconds > 24 || {_needed > 350}) exitWith {["PASS_BUDGET"] call _fail};
 private _road=roadAt _vehicle;
 if (isNull _road) exitWith {["NO_ROAD"] call _fail};
@@ -140,8 +150,9 @@ for "_index" from 0 to 31 do {
 if (_reason != "") exitWith {[_reason] call _fail};
 if (_returnIndex < 2 || {_returnIndex >= count _guide-1}) exitWith {["PASS_LEG_BUDGET"] call _fail};
 if !(_frontRoad in _visited) exitWith {["PEER_OFF_CORRIDOR"] call _fail};
-if (([[_vehicle,_front]] call CBE_fnc_DrivingPassContext) isNotEqualTo _context) exitWith {["CONTEXT_CHANGED"] call _fail};
+if (([[_vehicle,_front]] call CBE_fnc_DrivingPassContext) isNotEqualTo _context
+    || {([_vehicle] call CBE_fnc_DrivingPassNativeFrame) isNotEqualTo _ownerFrame}) exitWith {["CONTEXT_CHANGED"] call _fail};
 createHashMapFromArray [["status","PROPOSAL"],["reason","GEOMETRY_AND_AGREEMENT_REQUIRED"],
-    ["context",_context],["returnIndex",_returnIndex],["guideASL",_guide],["requiredTravel",_needed],["estimatedSeconds",_seconds],
+    ["context",_context],["ownerFrame",_ownerFrame],["returnIndex",_returnIndex],["guideASL",_guide],["requiredTravel",_needed],["estimatedSeconds",_seconds],
     ["maximumSeconds",_seconds*1.8+5],["observedAt",serverTime],["vehicles",[_vehicle,_front]],
     ["transforms",[_vehicle,_front] apply {[getPosWorld _x,vectorDir _x,vectorUp _x]}]]

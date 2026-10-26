@@ -12,10 +12,15 @@
  * independently of production visit receipts; proximity/audio interior alone cannot pass.
  * Native door diagnostics retry each method/model's first physically missed node with all unlocked
  * doors open; original failures remain, and no production clearance receives door assistance.
+ * Normal-owner authored handover matrix requires real active/completed clearance, both actors
+ * physically travelling, and retained HOLD/gated-MOVE metadata before cleanup. It injects no
+ * hold record or movement reset. These prepared cases do not count as engine acceptance.
  * Repeat/JIP: disposable actors and houses are removed; observer state is public for joining clients.
  * Normal-owner clearance records at most 24 native path events per actor, eight seconds apart,
  * with at most 24 path points plus the final point. Local diagnostic handlers are removed before
  * actor cleanup; they issue no movement and are not evidence of physical arrival.
+ * First native interior-node MOVE/destination observations are recorded separately from independently observed
+ * physical entry times; missing requests stay empty and never count as entry or a timing pass.
  * Existing bounded actor samples include native movement failure/completion and canMove flags;
  * none grants a physical visit or changes a retry budget.
  * Exterior reserve observation requires live physical arrival, heading within 75 degrees of
@@ -32,6 +37,14 @@
  * Optional sixth argument: transformOnly <BOOL>, false; focused moved-building cancellation/reorder.
  * Optional seventh argument: largeOnly <BOOL>, false; run the same four/twelve-person Big02
  * fixtures and original assertions only. This diagnostic does not replace full CLEAR acceptance.
+ * Normal-only exit-relief acceptance waits for natural readiness, introduces one real casualty,
+ * then requires independent exterior observation overlap and physical promoted-reserve entry.
+ * Missing readiness fails; no role/visit/assignment injection or HC acceptance is inferred.
+ * A separate normal-owner variant kills the still-observing guard only during real relief
+ * travel, then requires sustained replacement exit observation under the original deadline.
+ * A separate normal-owner security-loss case removes only naturally established exterior
+ * guards, then requires real spare travel, sustained vacant-exit observation, retained source
+ * coverage and unchanged original search/episode budgets. Readiness cannot be injected.
  * Return: Nothing. Current callers: cortexQA/runServer.sqf.
  * Example: [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQABuildings.sqf";
  */
@@ -800,7 +813,7 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
             } forEach _members;
             private _journal=_group getVariable ["CBE_Cortex_ClearEgress",[]];
             private _inside=false;
-            if (count _journal in [10,13]) then {
+            if (count _journal == 14) then {
                 private _bounds=boundingBoxReal _house;
                 {
                     private _actor=_x select 0;
@@ -814,7 +827,7 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
                 } forEach (_journal select 3);
                 // Pending-only egress is a real migration boundary too. Observe the actual
                 // actor inside the house; no fixture timer or injected movement creates it.
-                if (count _journal == 13 && {(_journal select 10) == 2}
+                if (count _journal == 14 && {(_journal select 10) == 5}
                     && {(_journal select 11) isNotEqualTo []}) then {
                     {
                         private _actor=_x select 0;
@@ -830,8 +843,8 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
             };
             _inside || {((_group getVariable ["CBE_Cortex_ClearResult",[]]) param [0,""]) in ["COMPLETE","INCOMPLETE","CANCELLED"]}
         },300] call _wait;
-        ["HC-CLEAR-EGRESS-physical-mid-exit",_midExit && {count _before in [10,13]},str [_before,_visits]] call _check;
-        if (count _before in [10,13]) then {
+        ["HC-CLEAR-EGRESS-physical-mid-exit",_midExit && {count _before == 14},str [_before,_visits]] call _check;
+        if (count _before == 14) then {
             private _pendingBefore=+(_before select 11);
             private _expectedActors=((_before select 3)+_pendingBefore) apply {_x select 0};
             private _rosterComplete=count _expectedActors == count _members
@@ -855,11 +868,12 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
             private _seenReplay=false;
             private _terminal=[{
                 private _journal=_group getVariable ["CBE_Cortex_ClearEgress",[]];
-                if (count _journal in [10,13] && {groupOwner _group == _owner}) then {
+                if (count _journal == 14 && {groupOwner _group == _owner}) then {
                     _seenReplay=true;
                     if ((_journal select 7) != (_before select 7) || {(_journal select 6) != (_before select 6)}
-                        || {(_journal select 5) isNotEqualTo (_before select 5)}) then {_preserved=false};
-                    private _pending=if (count _journal == 13) then {_journal select 11} else {[]};
+                        || {(_journal select 5) isNotEqualTo (_before select 5)}
+                        || {(_journal select 13) isNotEqualTo (_before select 13)}) then {_preserved=false};
+                    private _pending=if (count _journal == 14) then {_journal select 11} else {[]};
                     private _currentActors=((_journal select 3)+_pending) apply {_x select 0};
                     if (count _currentActors != count _expectedActors
                         || {count (_currentActors arrayIntersect _currentActors) != count _expectedActors}
@@ -974,6 +988,7 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
     // Reuse the existing independent physical visit collector; add no geometry queries.
     private _entryTimingStart=diag_tickTime;
     private _memberFirstVisit=_clearingMembers apply {-1};
+    private _memberFirstRequest=_clearingMembers apply {[]};
     private _reserveStageVisits=[];
     private _reserveObservationVisits=[];
     private _originalAttack=attackEnabled leader _group;
@@ -1122,7 +1137,7 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
             };
         } forEach _members;
         private _exit=_group getVariable ["CBE_Cortex_ClearEgress",[]];
-        if (count _exit in [4,10,13] && {(_exit select 0) == "EGRESS"}) then {
+        if (count _exit in [4,10,13,14] && {(_exit select 0) == "EGRESS"}) then {
             {
                 private _actor=_x select 0;
                 if (_egressAssignments findIf {(_x select 0) == _actor} < 0) then {
@@ -1145,9 +1160,25 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
             _entryOwnerStable=false;
         };
         {private _room=_x; private _roomIndex=_forEachIndex; if (_clearingMembers findIf {[_x,_house,_room] call _observedRoomVisit} >= 0) then {_visits set [_roomIndex,true]}} forEach _rooms;
+        private _entryTimingJob=(_group getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+        private _entryTimingTargets=_entryTimingJob getOrDefault ["movementTargets",createHashMap];
         {
             private _worker=_x;
             private _workerIndex=_forEachIndex;
+            // Native request timing explains admission versus path delay; it never grants a visit.
+            // Observe actual MOVE to a known fixture interior node, not a provisional exterior
+            // entrance waypoint or merely the production target map.
+            private _nativeEntry=(expectedDestination _worker) param [0,[],[[]]];
+            private _issuedEntry=_entryTimingTargets getOrDefault [netId _worker,[]];
+            if ((_memberFirstRequest select _workerIndex) isEqualTo []
+                && {(_entryTimingJob getOrDefault ["generation",-2]) == (_admissionJob getOrDefault ["generation",-1])}
+                && {currentCommand _worker == "MOVE"} && {count _issuedEntry == 3} && {count _nativeEntry == 3}
+                && {_nativeEntry vectorDistance _issuedEntry <= 0.25}
+                && {_rooms findIf {_nativeEntry vectorDistance _x <= 0.25} >= 0}) then {
+                private _request=[diag_tickTime-_entryTimingStart,+_nativeEntry,getPosASL _worker];
+                _memberFirstRequest set [_workerIndex,_request];
+                diag_log format ["CBE CLEAR FIRST NATIVE ENTRY REQUEST: %1",[_size,netId _worker,_request]];
+            };
             private _seen=_memberVisits select _workerIndex;
             {if ([_worker,_house,_x] call _observedRoomVisit) then {_seen pushBackUnique _forEachIndex}} forEach _rooms;
             if (_seen isNotEqualTo [] && {(_memberFirstVisit select _workerIndex) < 0}) then {
@@ -1237,7 +1268,7 @@ if (!_largeOnly && {missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",f
     private _entryTiming=_clearingMembers apply {
         private _index=_clearingMembers find _x;
         [netId _x,_memberFirstVisit select _index,count (_memberVisits select _index),
-            _x in _admittedMembers,-1,alive _x]
+            _x in _admittedMembers,-1,alive _x,+(_memberFirstRequest select _index)]
     };
     // Pair membership uses an explicit outer actor to avoid nested iterator shadowing.
     {
@@ -1454,15 +1485,47 @@ for "_i" from 0 to 1 do {
 missionNamespace setVariable ["CBE_CortexQA_Actors",_transformActors,true];
 ["Clearance: building movement","A real clearance starts, then its target house moves and rotates. CBE must cancel BUILDING_MOVED before stale room orders continue. A fresh explicit order must physically enter the new location; actors are not relocated.",getPosATL _movedHouse] call _phase;
 private _transformAccepted=[_transformGroup,_movedHouse] call CBE_fnc_CortexClearBuilding;
-private _transformStarted=[{
+private _originalRooms=_movedHouse buildingPos -1;
+private _transformOriginalGeneration=-1;
+private _transformStarted=_transformAccepted && {[{
     private _brain=_transformGroup getVariable ["CBE_BuildingBrain",createHashMap];
     private _job=_brain getOrDefault ["job",createHashMap];
-    (_job getOrDefault ["buildingTransform",[]]) isNotEqualTo []
-},15] call _wait;
-["CLEAR-transform-operation-started",_transformAccepted && {_transformStarted}] call _check;
+    private _order=_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]];
+    private _priorVisit=_transformActors findIf {
+        private _actor=_x;
+        _originalRooms findIf {[_actor,_movedHouse,_x] call _observedRoomVisit} >= 0
+    } >= 0;
+    private _started=(_job getOrDefault ["buildingTransform",[]]) isNotEqualTo []
+        && {_transformGroup getVariable ["CBE_AIPass_ClearBuilding",false]}
+        && {count (_order param [1,[]]) > 0} && {_priorVisit};
+    if (_started) then {_transformOriginalGeneration=_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1]};
+    _started
+},120] call _wait};
+private _originalBuildingBrain=_transformGroup getVariable ["CBE_BuildingBrain",createHashMap];
+private _originalBuildingJob=_originalBuildingBrain getOrDefault ["job",createHashMap];
+private _duplicateStart=false;
+private _duplicateWorkerPreserved=false;
+isNil {
+    private _liveHandle=_transformGroup getVariable ["CBE_BuildingBrain_FSM",-1];
+    _duplicateStart=[_originalBuildingJob] call CBE_fnc_BuildingOperationStart;
+    _duplicateWorkerPreserved=(_transformGroup getVariable ["CBE_BuildingBrain",createHashMap]) isEqualTo _originalBuildingBrain
+        && {(_transformGroup getVariable ["CBE_BuildingBrain_FSM",-2]) isEqualTo _liveHandle}
+        && {!(_originalBuildingBrain getOrDefault ["cancelled",false])};
+};
+["CLEAR-transform-duplicate-worker-preserved",_transformStarted && {_duplicateStart}
+    && {_duplicateWorkerPreserved}] call _check;
+private _originalResumeOrder=+(_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]]);
 private _movedPosition=(getPosATL _movedHouse) vectorAdd [30,0,0];
-_movedHouse setDir 90;
-_movedHouse setPosATL _movedPosition;
+private _moveApplied=false;
+isNil {
+    if (_transformStarted && {_transformGroup getVariable ["CBE_AIPass_ClearBuilding",false]}
+        && {(_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1]) == _transformOriginalGeneration}) then {
+        _movedHouse setDir 90;
+        _movedHouse setPosATL _movedPosition;
+        _moveApplied=true;
+    };
+};
+["CLEAR-transform-operation-started",_transformAccepted && {_transformStarted} && {_moveApplied}] call _check;
 private _transformCancelled=[{
     private _result=_transformGroup getVariable ["CBE_OperationResult",[]];
     (_result param [1,""]) == "CANCELLED" && {(_result param [4,""]) == "BUILDING_MOVED"}
@@ -1470,17 +1533,58 @@ private _transformCancelled=[{
 },15] call _wait;
 ["CLEAR-transform-stale-operation-cancelled",_transformStarted && {_transformCancelled},
     str (_transformGroup getVariable ["CBE_OperationResult",[]])] call _check;
+// Replay only an actual previous production snapshot; never manufacture a durable order.
+private _cancelledResumeAccepted=true;
+private _cancelledResumeStayedRetired=false;
+private _cancelledWorkerStarted=true;
+isNil {
+    _cancelledResumeAccepted=[_transformGroup,_movedHouse,createHashMapFromArray [
+        ["resume",true],["resumeOrder",_originalResumeOrder],["resumeGeneration",_transformOriginalGeneration]
+    ]] call CBE_fnc_CortexClearBuilding;
+    _cancelledWorkerStarted=[_originalBuildingJob] call CBE_fnc_BuildingOperationStart;
+    _cancelledResumeStayedRetired=(_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []
+        && {!(_transformGroup getVariable ["CBE_AIPass_ClearBuilding",false])};
+};
+["CLEAR-transform-cancelled-resume-refused",_transformCancelled && {!_cancelledResumeAccepted}
+    && {!_cancelledWorkerStarted} && {_cancelledResumeStayedRetired},str (_transformGroup getVariable ["CBE_Cortex_ClearAdmissionFailure",[]])] call _check;
 private _transformReordered=[_transformGroup,_movedHouse] call CBE_fnc_CortexClearBuilding;
-["CLEAR-transform-fresh-order-accepted",_transformCancelled && {_transformReordered}] call _check;
+["CLEAR-transform-fresh-order-accepted",_transformCancelled && {_transformReordered},
+    str (_transformGroup getVariable ["CBE_Cortex_ClearAdmissionFailure",[]])] call _check;
+private _freshOrder=_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]];
+private _freshCoverage=_transformReordered && {(_freshOrder param [1,[]]) isEqualTo []}
+    && {(_freshOrder param [13,[]]) isEqualTo [getPosWorld _movedHouse,vectorDir _movedHouse,vectorUp _movedHouse]}
+    && {(_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1]) > _transformOriginalGeneration};
+["CLEAR-transform-fresh-coverage-reset",_transformCancelled && {_freshCoverage},str _freshOrder] call _check;
+private _replacedResumeAccepted=true;
+private _replacementPreserved=false;
+private _replacedWorkerStarted=true;
+isNil {
+    private _liveOrder=+(_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]]);
+    private _liveGeneration=_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1];
+    _replacedResumeAccepted=[_transformGroup,_movedHouse,createHashMapFromArray [
+        ["resume",true],["resumeOrder",_originalResumeOrder],["resumeGeneration",_transformOriginalGeneration]
+    ]] call CBE_fnc_CortexClearBuilding;
+    _replacedWorkerStarted=[_originalBuildingJob] call CBE_fnc_BuildingOperationStart;
+    _replacementPreserved=_liveOrder isNotEqualTo []
+        && {(_transformGroup getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo _liveOrder}
+        && {(_transformGroup getVariable ["CBE_AIPass_ClearGeneration",-1]) == _liveGeneration}
+        && {_transformGroup getVariable ["CBE_AIPass_ClearBuilding",false]};
+};
+["CLEAR-transform-replaced-resume-refused",_freshCoverage && {!_replacedResumeAccepted}
+    && {!_replacedWorkerStarted} && {_replacementPreserved},str (_transformGroup getVariable ["CBE_Cortex_ClearAdmissionFailure",[]])] call _check;
+private _transformEntries=_transformActors apply {false};
 private _movedRooms=_movedHouse buildingPos -1;
 private _transformEntry=[{
-    _transformActors findIf {
+    {
         private _actor=_x;
-        _movedRooms findIf {(getPosASL _actor) vectorDistance (AGLToASL _x) <= 1.5} >= 0
-    } >= 0
-},90] call _wait;
-["CLEAR-transform-reorder-physical-entry",_transformCancelled && {_transformReordered} && {_transformEntry},
-    str [_movedPosition,_movedRooms,_transformActors apply {getPosASL _x}]] call _check;
+        if (_movedRooms findIf {[_actor,_movedHouse,_x] call _observedRoomVisit} >= 0) then {
+            _transformEntries set [_forEachIndex,true];
+        };
+    } forEach _transformActors;
+    _transformEntries findIf {!_x} < 0
+},120] call _wait;
+["CLEAR-transform-reorder-physical-entry",_transformCancelled && {_freshCoverage} && {_replacementPreserved} && {_transformEntry},
+    str [_movedPosition,_movedRooms,_transformEntries,_transformActors apply {getPosASL _x}]] call _check;
 [_transformGroup] call CBE_fnc_CortexClearRelease;
 missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach _transformActors;
@@ -1513,15 +1617,23 @@ private _jobStarted=[{_casualtyGroup getVariable ["CBE_AIPass_ClearBuilding",fal
 ["CLEAR-casualty-job-started",_jobStarted] call _check;
 private _initialOperation=_casualtyGroup getVariable ["CBE_Operation",createHashMap];
 private _initialParticipants=+(_initialOperation getOrDefault ["participants",[]]);
+private _casualtyGeneration=_initialOperation getOrDefault ["generation",-1];
+private _casualtyJob=(_casualtyGroup getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+private _casualtyHardDeadline=_casualtyJob getOrDefault ["hardDeadline",-1];
 private _casualty=_initialParticipants param [0,objNull];
 private _reservePool=_casualtyMembers select {!(_x in _initialParticipants)};
 private _reserveStarts=_reservePool apply {getPosATL _x};
 private _reserve=objNull;
 private _reserveStart=[];
-["CLEAR-casualty-entry-and-reserve-fixture",!isNull _casualty && {_reservePool isNotEqualTo []},
+private _casualtyFixture=_casualtyAccepted && {_jobStarted} && {!isNull _casualty}
+    && {alive _casualty} && {_reservePool isNotEqualTo []}
+    && {_casualtyGeneration >= 0} && {_casualtyHardDeadline > serverTime};
+["CLEAR-casualty-entry-and-reserve-fixture",_casualtyFixture,
     str [_initialParticipants,_reservePool]] call _check;
 private _evidenceBefore=count (_casualtyGroup getVariable ["CBE_Cortex_ClearReinforcements",[]]);
-_casualty setDamage 1;
+if (_casualtyFixture) then {_casualty setDamage 1};
+// Failed admission or ineffective fault injection cannot earn replacement credit.
+private _casualtyLost=_casualtyFixture && {!alive _casualty};
 private _reinforced=[{
     private _evidence=_casualtyGroup getVariable ["CBE_Cortex_ClearReinforcements",[]];
     private _replacementIndex=_evidence findIf {(_x param [1,""]) == netId _casualty};
@@ -1533,11 +1645,14 @@ private _reinforced=[{
             _reserveStart=_reserveStarts select _poolIndex;
         };
     };
-    !isNull _reserve
+    _casualtyLost && {!isNull _reserve}
 },30] call _wait;
 ["CLEAR-casualty-reserve-assigned",_reinforced,str (_casualtyGroup getVariable ["CBE_Cortex_ClearReinforcements",[]])] call _check;
 private _reserveOperation=_casualtyGroup getVariable ["CBE_Operation",createHashMap];
+private _reserveJob=(_casualtyGroup getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
 ["CLEAR-casualty-shared-progress-roster",_reinforced
+    && {(_reserveOperation getOrDefault ["generation",-2]) == _casualtyGeneration}
+    && {(_reserveJob getOrDefault ["hardDeadline",-2]) == _casualtyHardDeadline}
     && {_reserve in (_reserveOperation getOrDefault ["participants",[]])}
     && {!(_casualty in (_reserveOperation getOrDefault ["participants",[]]))}
     && {(_reserveOperation getOrDefault ["participantProgress",[]]) findIf {(_x select 0) == _reserve} >= 0},
@@ -1589,6 +1704,287 @@ missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach _casualtyMembers;
 deleteGroup _casualtyGroup;
 deleteVehicle _casualtyHouse;
+
+// Exit-relief acceptance uses only ordinary clearance and a real casualty. Readiness
+// must arise physically; the fixture never injects pairs, room visits or stage assignments.
+{
+private _observerLoss=_x;
+private _reliefPrefix=["CLEAR-relief","CLEAR-relief-observer-loss"] select _observerLoss;
+private _reliefSite=[7350,5800+([0,180] select _observerLoss),0];
+private _reliefHouse=createVehicle ["Land_i_House_Big_01_V1_F",_reliefSite,[],0,"NONE"];
+_reliefHouse enableSimulationGlobal true;
+[_reliefHouse,"exit-relief"] call _validateNewFixturePlacement;
+private _reliefGroup=createGroup [east,true];
+_reliefGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
+_reliefGroup setVariable ["acex_headless_blacklist",true,true];
+private _reliefMembers=[];
+for "_i" from 0 to 11 do {
+    private _unit=_reliefGroup createUnit ["O_Soldier_F",_reliefSite vectorAdd [-20+(_i mod 4)*4,-35-floor(_i/4)*4,0],[],0,"NONE"];
+    _unit setVariable ["acex_headless_blacklist",true,true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["CQB EXIT RELIEF / %1",_i+1],true];
+    _reliefMembers pushBack _unit;
+};
+missionNamespace setVariable ["CBE_CortexQA_Actors",_reliefMembers,true];
+[["CQB exit relief","CQB relief observer loss"] select _observerLoss,"Normal owner only. Ordinary clearance must produce progressed idle interior workers and physically established reserve observers before a casualty is introduced. The original exit observer must stay until relief physically arrives and faces a clear view; that observer must then enter independently. The loss variant kills the observer only during independently observed relief travel and requires replacement exit observation. No room/stage/role state is injected.",_reliefSite] call _phase;
+private _reliefAccepted=[_reliefGroup,_reliefHouse] call CBE_fnc_CortexClearBuilding;
+[_reliefPrefix+"-order-accepted",_reliefAccepted] call _check;
+private _reliefVisits=createHashMap;
+private _reliefRooms=_reliefHouse buildingPos -1;
+private _observeReliefVisits={
+    {
+        private _actor=_x;
+        private _visits=_reliefVisits getOrDefault [netId _actor,[]];
+        {
+            if ([_actor,_reliefHouse,_x] call _observedRoomVisit) then {_visits pushBackUnique _forEachIndex};
+        } forEach _reliefRooms;
+        _reliefVisits set [netId _actor,_visits];
+    } forEach _reliefMembers;
+};
+private _observedReliefPost={
+    params ["_actor","_post","_watch"];
+    if (isNull _actor || {!alive _actor} || {!simulationEnabled _actor} || {isObjectHidden _actor}
+        || {count _post != 3} || {count _watch != 3}) exitWith {false};
+    [_actor,_reliefHouse,_post] call _observedExit
+        && {abs (((getDir _actor-(_actor getDir _watch)+540) mod 360)-180) <= 75}
+        && {!terrainIntersectASL [eyePos _actor,AGLToASL _watch]}
+        && {(lineIntersectsSurfaces [eyePos _actor,AGLToASL _watch,_actor,objNull,true,1,"VIEW","NONE"]) isEqualTo []}
+};
+private _reliefCasualty=objNull;
+private _reliefFixture=[{
+    call _observeReliefVisits;
+    private _job=(_reliefGroup getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+    private _participants=_job getOrDefault ["team",[]];
+    private _reserves=_reliefMembers select {alive _x && {!(_x in _participants)}};
+    private _stages=_job getOrDefault ["reserveStages",createHashMap];
+    private _allPosts=_reserves isNotEqualTo [] && {_reserves findIf {
+        private _stage=_stages getOrDefault [netId _x,[]];
+        (_stage param [2,""]) != "ARRIVED"
+            || {!([_x,_stage param [0,[]],_stage param [4,[]]] call _observedReliefPost)}
+    } < 0};
+    private _postExits=_reserves apply {+((_stages getOrDefault [netId _x,[]]) param [5,[]])};
+    private _uniquePosts=count (_postExits arrayIntersect _postExits) == count _reserves;
+    private _idle=_participants select {
+        private _idleActor=_x;
+        alive _x && {currentCommand _x in ["","STOP"]}
+            && {_reliefRooms findIf {[_idleActor,_reliefHouse,_x] call _observedRoomVisit} >= 0}
+            && {count (_reliefVisits getOrDefault [netId _x,[]]) >= (2 min count _reliefRooms)}
+            && {private _claim=(_job getOrDefault ["assigned",[]]) param [_participants find _x,[]];
+                _claim isEqualTo [] || {(_claim param [0,-1]) in ((_job getOrDefault ["cleared",[]])+(_job getOrDefault ["unreachable",[]]))}}
+    };
+    if (_allPosts && {_uniquePosts} && {_idle isNotEqualTo []}
+        && {count (_job getOrDefault ["earlyExits",createHashMap]) == 0}) then {
+        _reliefCasualty=(_participants select {alive _x && {!(_x in _idle)}}) param [0,objNull];
+    };
+    !isNull _reliefCasualty && {_reliefGroup getVariable ["CBE_AIPass_ClearBuilding",false]}
+},120] call _wait;
+[_reliefPrefix+"-natural-fixture-ready",_reliefFixture,
+    "Readiness requires live reserve posts and independent interior visits; no fallback state is injected."] call _check;
+private _reliefRequest=[];
+private _reliefStart=[];
+private _observerKilled=false;
+private _replacementSeenAt=-1;
+private _replacementHeld=false;
+private _reliefDeadlineUnchanged=true;
+private _reliefObserver=objNull;
+private _reliefWorker=objNull;
+private _reliefOriginalPost=[];
+private _reliefOriginalWatch=[];
+private _reliefContinuous=true;
+private _reliefOverlap=false;
+private _reliefEntered=false;
+if (_reliefFixture) then {
+    _reliefCasualty setDamage 1;
+    [{
+        private _attempts=(_reliefGroup getVariable ["CBE_Cortex_ClearRelief",[]]) param [1,[]];
+        private _job=(_reliefGroup getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+        if (_reliefRequest isEqualTo [] && {_attempts isNotEqualTo []}) then {
+            _reliefRequest=+(_attempts select 0);
+            _reliefWorker=objectFromNetId (_reliefRequest select 0);
+            _reliefStart=getPosATL _reliefWorker;
+            _reliefObserver=objectFromNetId (_reliefRequest select 1);
+            private _originalStage=(_job getOrDefault ["reserveStages",createHashMap]) getOrDefault [netId _reliefObserver,[]];
+            _reliefOriginalPost=+(_originalStage param [0,[]]);
+            _reliefOriginalWatch=+(_originalStage param [4,[]]);
+        };
+        if (!isNull _reliefWorker && {!isNull _reliefObserver} && {count _reliefOriginalPost == 3}) then {
+            private _row=(_job getOrDefault ["earlyExits",createHashMap]) getOrDefault [netId _reliefWorker,[]];
+            private _originalStillHere=[_reliefObserver,_reliefOriginalPost,_reliefOriginalWatch] call _observedReliefPost;
+            private _substituteHere=[_reliefWorker,_row param [1,[]],_row param [6,[]]] call _observedReliefPost;
+            if (_observerLoss) then {
+                // Loss is introduced only after actual relief travel, before exterior arrival.
+                // Native command/path acceptance alone cannot trigger this second casualty.
+                if (!_observerKilled && {alive _reliefObserver} && {_originalStillHere}
+                    && {(_row param [3,""]) == "MOVING"}
+                    && {!_substituteHere} && {_reliefWorker distance2D _reliefStart > 1}
+                    && {_reliefWorker distance2D (_row select 1) > 3}
+                    && {serverTime < (_reliefRequest select 3)}) then {
+                    _reliefObserver setDamage 1;
+                    _observerKilled=true;
+                };
+                if (_observerKilled) then {
+                    _reliefDeadlineUnchanged=_reliefDeadlineUnchanged
+                        && {count _row >= 7} && {(_row select 2) == (_reliefRequest select 3)};
+                    if (_substituteHere && {_replacementSeenAt < 0}
+                        && {serverTime <= (_reliefRequest select 3)}) then {_replacementSeenAt=serverTime};
+                    if (!_substituteHere) then {_replacementSeenAt=-1};
+                    _replacementHeld=_replacementSeenAt >= 0 && {serverTime-_replacementSeenAt >= 3};
+                };
+            } else {
+                if (!_reliefOverlap) then {
+                    if (_originalStillHere && {_substituteHere}) then {_reliefOverlap=true};
+                    if (!_originalStillHere) then {_reliefContinuous=false};
+                };
+                if (_reliefOverlap && {!_substituteHere} && {!_reliefEntered}) then {_reliefContinuous=false};
+                _reliefEntered=_reliefEntered || {_reliefRooms findIf {
+                    [_reliefObserver,_reliefHouse,_x] call _observedRoomVisit
+                } >= 0};
+            };
+        };
+        [_reliefOverlap && {_reliefEntered},_replacementHeld] select _observerLoss
+    },120] call _wait;
+};
+if (_observerLoss) then {
+    [_reliefPrefix+"-casualty-during-physical-travel",_reliefFixture && {_observerKilled},str _reliefRequest] call _check;
+    [_reliefPrefix+"-replacement-exit-observed",_observerKilled && {_replacementHeld},str [netId _reliefWorker,_replacementSeenAt]] call _check;
+    [_reliefPrefix+"-original-deadline-retained",_observerKilled && {_replacementHeld} && {_reliefDeadlineUnchanged},str _reliefRequest] call _check;
+} else {
+    [_reliefPrefix+"-physical-observation-overlap",_reliefFixture && {_reliefOverlap} && {_reliefContinuous},str _reliefRequest] call _check;
+    [_reliefPrefix+"-reserve-physical-entry",_reliefFixture && {_reliefOverlap} && {_reliefEntered},str [netId _reliefWorker,netId _reliefObserver]] call _check;
+};
+[_reliefGroup] call CBE_fnc_CortexClearRelease;
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
+{deleteVehicle _x} forEach _reliefMembers;
+deleteGroup _reliefGroup;
+deleteVehicle _reliefHouse;
+} forEach [false,true];
+
+// Proactive exit-security case: no interior casualty or pending relief is supplied.
+// Normal owner only. All posts and replacement movement must arise from ordinary CLEAR.
+private _securitySite=[7350,6200,0];
+private _securityHouse=createVehicle ["Land_i_House_Big_01_V1_F",_securitySite,[],0,"NONE"];
+_securityHouse enableSimulationGlobal true;
+[_securityHouse,"security-rebalance"] call _validateNewFixturePlacement;
+private _securityGroup=createGroup [east,true];
+_securityGroup setVariable ["CBE_Headless_ExcludeGroup",true,true];
+_securityGroup setVariable ["acex_headless_blacklist",true,true];
+private _securityMembers=[];
+for "_i" from 0 to 11 do {
+    private _unit=_securityGroup createUnit ["O_Soldier_F",_securitySite vectorAdd [-20+(_i mod 4)*4,-35-floor(_i/4)*4,0],[],0,"NONE"];
+    _unit setVariable ["acex_headless_blacklist",true,true];
+    _unit setVariable ["CBE_CortexQA_Label",format ["CQB SECURITY REBALANCE / %1",_i+1],true];
+    _securityMembers pushBack _unit;
+};
+missionNamespace setVariable ["CBE_CortexQA_Actors",_securityMembers,true];
+["CQB proactive exit security","Normal owner only. Ordinary clearance must establish observers on distinct exits, including a duplicated post. A real casualty removes the guards on one exit. A spare must physically leave a still-covered post and establish observation at the vacant exit. No interior casualty, role assignment, movement or completion is injected.",_securitySite] call _phase;
+private _securityAccepted=[_securityGroup,_securityHouse] call CBE_fnc_CortexClearBuilding;
+["CLEAR-security-order-accepted",_securityAccepted] call _check;
+private _observedSecurityPost={
+    params ["_actor","_post","_watch"];
+    !isNull _actor && {alive _actor} && {simulationEnabled _actor} && {!isObjectHidden _actor}
+        && {count _post == 3} && {count _watch == 3}
+        && {[_actor,_securityHouse,_post] call _observedExit}
+        && {abs (((getDir _actor-(_actor getDir _watch)+540) mod 360)-180) <= 75}
+        && {!terrainIntersectASL [eyePos _actor,AGLToASL _watch]}
+        && {(lineIntersectsSurfaces [eyePos _actor,AGLToASL _watch,_actor,objNull,true,1,"VIEW","NONE"]) isEqualTo []}
+};
+private _securityPosts=[];private _securityLostExit=[];private _securityCasualties=[];
+private _securityBaseline=[];
+private _securityReady=[{
+    private _job=(_securityGroup getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+    private _team=_job getOrDefault ["team",[]];
+    private _stages=_job getOrDefault ["reserveStages",createHashMap];
+    private _counts=_job getOrDefault ["reserveStageSearchCounts",createHashMap];
+    private _posts=[];
+    {
+        private _stage=_stages getOrDefault [netId _x,[]];
+        if (!(_x in _team) && {(_stage param [2,""]) == "ARRIVED"}
+            && {count (_stage param [5,[]]) == 3}
+            && {[_x,_stage param [0,[]],_stage param [4,[]]] call _observedSecurityPost}) then {
+            _posts pushBack [_x,+(_stage select 0),+(_stage select 4),+(_stage select 5),
+                _counts getOrDefault [netId _x,0],getPosASL _x];
+        };
+    } forEach _securityMembers;
+    private _entries=(_posts apply {+(_x select 3)}) arrayIntersect (_posts apply {+(_x select 3)});
+    private _lost=[];private _victims=[];
+    {
+        private _exit=_x;
+        private _others=_posts select {(_x select 3) isNotEqualTo _exit};
+        private _spare=_others findIf {
+            private _sourceExit=_x select 3;
+            (_x select 4) < 3 && {{(_x select 3) isEqualTo _sourceExit} count _others >= 2}
+        } >= 0;
+        if (_spare) exitWith {
+            _lost=+_exit;_victims=(_posts select {(_x select 3) isEqualTo _exit}) apply {_x select 0};
+        };
+    } forEach _entries;
+    private _reserves=_securityMembers select {alive _x && {!(_x in _team)}};
+    private _ready=_lost isNotEqualTo [] && {count _posts == count _reserves}
+        && {count (_job getOrDefault ["earlyExits",createHashMap]) == 0}
+        && {_securityGroup getVariable ["CBE_AIPass_ClearBuilding",false]};
+    if (_ready) then {
+        _securityPosts=_posts;_securityLostExit=_lost;_securityCasualties=_victims;
+        _securityBaseline=[_job get "generation",_job get "hardDeadline"];
+    };
+    _ready
+},120] call _wait;
+["CLEAR-security-natural-fixture-ready",_securityReady,
+    "Missing real distinct-exit/duplicate-post readiness fails without fixture assistance."] call _check;
+private _securityReplacement=objNull;private _securityTravel=false;
+private _securitySourceContinuous=true;private _securityBudgetRetained=true;
+private _securityObservedAt=-1;private _securityCovered=false;
+if (_securityReady) then {
+    {_x setDamage 1} forEach _securityCasualties;
+    private _survivingPosts=_securityPosts select {!((_x select 0) in _securityCasualties)};
+    private _sourceExits=(_survivingPosts apply {+(_x select 3)}) arrayIntersect (_survivingPosts apply {+(_x select 3)});
+    [{
+        private _job=(_securityGroup getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+        private _stages=_job getOrDefault ["reserveStages",createHashMap];
+        private _counts=_job getOrDefault ["reserveStageSearchCounts",createHashMap];
+        _securityBudgetRetained=_securityBudgetRetained && {
+            [_job getOrDefault ["generation",-1],_job getOrDefault ["hardDeadline",-1]] isEqualTo _securityBaseline}
+            && {(_job getOrDefault ["deadline",1e12]) <= (_securityBaseline select 1)};
+        private _securityHere=false;
+        {
+            private _exit=_x;
+            if (_survivingPosts findIf {(_x select 3) isEqualTo _exit
+                && {[_x select 0,_x select 1,_x select 2] call _observedSecurityPost}} < 0) then {
+                _securitySourceContinuous=false;
+            };
+        } forEach _sourceExits;
+        {
+            private _actor=_x select 0;
+            private _stage=_stages getOrDefault [netId _actor,[]];
+            if ((_stage param [5,[]]) isEqualTo _securityLostExit
+                && {(_stage param [2,""]) in ["APPROACH","ARRIVED"]}) then {
+                if (isNull _securityReplacement) then {_securityReplacement=_actor};
+                if (_actor == _securityReplacement) then {
+                    _securityTravel=_securityTravel || {(getPosASL _actor) vectorDistance (_x select 5) > 1};
+                    _securityBudgetRetained=_securityBudgetRetained
+                        && {(_counts getOrDefault [netId _actor,0]) >= (_x select 4)+1}
+                        && {(_counts getOrDefault [netId _actor,0]) <= 3};
+                    _securityHere=[_actor,_stage param [0,[]],_stage param [4,[]]] call _observedSecurityPost;
+                };
+            };
+            _securityBudgetRetained=_securityBudgetRetained
+                && {(_counts getOrDefault [netId _actor,0]) >= (_x select 4)}
+                && {(_counts getOrDefault [netId _actor,0]) <= 3};
+        } forEach _survivingPosts;
+        if (!_securityHere) then {_securityObservedAt=-1} else {
+            if (_securityObservedAt < 0) then {_securityObservedAt=serverTime};
+            _securityCovered=serverTime-_securityObservedAt >= 3;
+        };
+        _securityCovered || {!(_securityGroup getVariable ["CBE_AIPass_ClearBuilding",false])}
+    },120] call _wait;
+};
+["CLEAR-security-independent-travel",_securityReady && {_securityTravel} && {!isNull _securityReplacement}] call _check;
+["CLEAR-security-vacant-exit-observed",_securityReady && {_securityCovered},str [netId _securityReplacement,_securityLostExit]] call _check;
+["CLEAR-security-source-cover-retained",_securityReady && {_securityCovered} && {_securitySourceContinuous}] call _check;
+["CLEAR-security-original-budget-retained",_securityReady && {_securityCovered} && {_securityBudgetRetained}] call _check;
+[_securityGroup] call CBE_fnc_CortexClearRelease;
+missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
+{deleteVehicle _x} forEach _securityMembers;
+deleteGroup _securityGroup;
+deleteVehicle _securityHouse;
 
 // Whole-lane loss after real entry must not let exterior reserves inherit entry evidence.
 private _pairLossSite=[7150,6000,0];
@@ -2171,3 +2567,106 @@ missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
 {deleteVehicle _x} forEach _overrideMembers;
 deleteGroup _overrideGroup;
 deleteVehicle _overrideHouse;
+
+// Native waypoint handover matrix: real clearance prerequisites, never fabricated holds.
+if (!(missionNamespace getVariable ["CBE_CortexQA_HeadlessBatch",false])) then {
+    private _handoverCase=0;
+    {
+        private _postClear=_x;
+        {
+            private _task=_x;
+            private _prefix=format ["CLEAR-native-%1-%2",["ACTIVE","POST"] select _postClear,_task];
+            private _site=[8050+(_handoverCase*200),6100,0];
+            _handoverCase=_handoverCase+1;
+            private _house=createVehicle ["Land_i_House_Small_01_V1_F",_site,[],0,"NONE"];
+            [_house,_prefix] call _validateNewFixturePlacement;
+            private _group=createGroup [east,true];
+            _group setVariable ["CBE_Headless_ExcludeGroup",true,true];
+            _group setVariable ["acex_headless_blacklist",true,true];
+            private _members=[];
+            for "_i" from 0 to 1 do {
+                private _actor=_group createUnit ["O_Soldier_F",_site vectorAdd [_i*3,-30,0],[],0,"NONE"];
+                _actor setVariable ["CBE_CortexQA_Label",format ["%1 %2",_prefix,_i+1],true];
+                _members pushBack _actor;
+            };
+            missionNamespace setVariable ["CBE_CortexQA_Actors",_members,true];
+            [_prefix,"A real clearance supplies its own movement or final STOP holds. A new authored HOLD or condition-gated MOVE must take over natively. Both soldiers must physically travel; waypoint type, condition and current index must remain unchanged. No test-side follow, stop, teleport or completion is injected.",getPosATL _house] call _phase;
+            private _rooms=(_house buildingPos -1) select {
+                private _asl=AGLToASL _x;
+                private _roof=lineIntersectsSurfaces [_asl vectorAdd [0,0,0.5],_asl vectorAdd [0,0,10],objNull,objNull,true,1,"GEOM","NONE"];
+                _roof isNotEqualTo [] && {((_roof select 0) select 2) == _house || {((_roof select 0) select 3) == _house}}
+            };
+            private _visits=_rooms apply {false};
+            private _entered=[];
+            private _observe={
+                {
+                    private _room=_x;private _roomIndex=_forEachIndex;
+                    {
+                        if ([_x,_house,_room] call _observedRoomVisit) then {
+                            _visits set [_roomIndex,true];_entered pushBackUnique _x;
+                        };
+                    } forEach _members;
+                } forEach _rooms;
+            };
+            private _starts=_members apply {getPosATL _x};
+            private _accepted=[_group,_house] call CBE_fnc_CortexClearBuilding;
+            private _ready=[{
+                call _observe;
+                if (_postClear) then {
+                    ((_group getVariable ["CBE_Cortex_ClearResult",[]]) param [0,""]) == "COMPLETE"
+                        && {count _entered == count _members} && {_visits isNotEqualTo []}
+                        && {_visits findIf {!_x} < 0}
+                        && {count (_group getVariable ["CBE_Cortex_ClearHold",[]]) == 4}
+                        && {_members findIf {currentCommand _x != "STOP"} < 0}
+                } else {
+                    private _leader=leader _group;
+                    private _job=(_group getVariable ["CBE_BuildingBrain",createHashMap]) getOrDefault ["job",createHashMap];
+                    private _leaderIndex=_members find _leader;
+                    _leaderIndex >= 0 && {netId _leader in (_job getOrDefault ["movementTargets",createHashMap])}
+                        && {currentCommand _leader == "MOVE"} && {_leader distance2D (_starts select _leaderIndex) >= 2}
+                }
+            },[25,180] select _postClear] call _wait;
+            [_prefix+"-real-clearance-prerequisite",_accepted && {_ready},
+                str [_group getVariable ["CBE_Cortex_ClearResult",[]],_entered,_visits]] call _check;
+            private _travelled=false;private _retained=false;private _retired=false;
+            if (_accepted && {_ready}) then {
+                private _origins=_members apply {getPosATL _x};
+                private _destination=_site vectorAdd [75,-25,0];
+                private _waypoint=_group addWaypoint [_destination,0];
+                _waypoint setWaypointType (["MOVE","HOLD"] select (_task == "HOLD"));
+                _waypoint setWaypointSpeed "NORMAL";
+                if (_task == "GATED_MOVE") then {_waypoint setWaypointStatements ["false",""]};
+                _group setCurrentWaypoint _waypoint;
+                private _receipt=[_group] call CBE_fnc_NativeOrderReceipt;
+                _travelled=[{
+                    _members findIf {
+                        private _origin=_origins select (_members find _x);
+                        !alive _x || {!simulationEnabled _x} || {isObjectHidden _x}
+                            || {!isNull objectParent _x} || {_x distance2D _origin < 15}
+                            || {(_origin distance2D _destination)-(_x distance2D _destination) < 10}
+                    } < 0 && {(leader _group) distance2D _destination <= 15}
+                },75] call _wait;
+                private _stableUntil=diag_tickTime+8;
+                _retained=true;
+                waitUntil {
+                    if (([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _receipt
+                        || {currentWaypoint _group != (_waypoint select 1)}
+                        || {!alive leader _group} || {(leader _group) distance2D _destination > 20}) then {_retained=false};
+                    sleep 0.5;diag_tickTime >= _stableUntil
+                };
+                _retired=!(_group getVariable ["CBE_AIPass_ClearBuilding",false])
+                    && {(_group getVariable ["CBE_AIPass_ClearOrder",[]]) isEqualTo []}
+                    && {(_group getVariable ["CBE_Cortex_ClearHold",[]]) isEqualTo []};
+            };
+            [_prefix+"-physical-travel",_accepted && {_ready} && {_travelled},
+                str (_members apply {[getPosATL _x,currentCommand _x,expectedDestination _x]})] call _check;
+            [_prefix+"-native-waypoint-retained",_ready && {_travelled} && {_retained}] call _check;
+            [_prefix+"-old-clearance-retired",_ready && {_retired}] call _check;
+            // Cleanup occurs only after every independent handover observation above.
+            [_group] call CBE_fnc_CortexClearRelease;
+            missionNamespace setVariable ["CBE_CortexQA_Actors",[],true];
+            {deleteVehicle _x} forEach _members;
+            deleteGroup _group;deleteVehicle _house;
+        } forEach ["HOLD","GATED_MOVE"];
+    } forEach [false,true];
+};

@@ -1,0 +1,195 @@
+{
+  "baseline": "9afb6843",
+  "scope": "Native-MOVE queue execution boundaries, beyond admission guards",
+  "source_sha256": {
+    "drivingQueueAutoStep": "c4bf9e98181d9aec015f41f53edff8c7276b5bba228807f06dd1ba49d2ce50eb",
+    "drivingQueueProposal": "1c176ef79b7e9bd85aa149a2fbdb60bc0b4d3c4b0be49a351113fbdf8ba12be5",
+    "drivingQueueContext": "bd1c6dd70a9197affbbd4cbae35a8b9a9aee6027b6de6ca512414220b0a0128a",
+    "drivingQueueReverseCurrent": "90fd684723aedf8df77f3e44cbcd74ab9e97b636d341a987c110cdd25392c954",
+    "drivingQueueReverseCommit": "ec173345eea7eb7ae21e8315eafcb1d613dd70286d40c17bf95de22c5809889b",
+    "drivingPassCanConsent": "42d31db92301d92bc35132ea0046d244110e392b517458b49f76725ff17087f0",
+    "drivingNativeRouteReceipt": "1c589c80d9c4e3a7e6a65ca18b74f84370cc89748c2223ba2390b5d2f2449421",
+    "drivingBypassStep": "e46ae8441e4c8276ef41a698ea75eb23339c2286deb2f4994fc6958404d39b96",
+    "drivingBypassRelease": "3d167a37b845124b827548d32c2d796bae28f71959a59724b94da86515a7c4bb",
+    "drivingOwnerReceipt": "3eb10f581675f8b8dac3bd69c33ef1637eeffa812c72609e3354f93e1a0894d6"
+  },
+  "confirmed_boundaries": [
+    {
+      "boundary": "Automatic and observed admission",
+      "sources": [
+        "DrivingQueueAutoStep native route refusal",
+        "DrivingQueueProposal observedEligible valid plain MOVE waypoint requirement",
+        "DrivingPassCanConsent shared QUEUE path native route refusal"
+      ],
+      "required": "Explicit native intent alternative with unchanged full current-owner command/route proof; preserve plain authored gate policy."
+    },
+    {
+      "boundary": "Shared cross-owner identity",
+      "sources": [
+        "DrivingQueueContext route slot uses DrivingRouteReceipt",
+        "DrivingNativeRouteReceipt returns[] for remote group",
+        "DrivingOwnerReceipt exposes owner/epoch/generation, not native goal"
+      ],
+      "required": "Canonical shared native-intent identity independent of remote destinations, matched against private actual-owner route/commands before ACK and every consuming phase. Public observation must not become movement authority."
+    },
+    {
+      "boundary": "Current reverse proof already implemented",
+      "sources": [
+        "DrivingQueueReverseCurrent rebuilds local row slot9 from expectedDestination only after local vehicle and private ownerOrders validation",
+        "Original slot9 restored from ownerOrders for comparison"
+      ],
+      "required": "Do not misdiagnose empty shared destination slots as a current reverse bug. Preserve this existing reconstruction; no patch justified there."
+    },
+    {
+      "boundary": "Crossing root provenance",
+      "sources": [
+        "DrivingBypassStep rejects NATIVE_MOVE for non-ORDINARY controller",
+        "NativeRouteReceipt requires existing ordinary recovery parent for temporary child",
+        "DrivingBypassRelease nativeParentCurrent requires !queue and original REFRESH/FINAL parent"
+      ],
+      "required": "A native queue crossing needs its own original-intent/token/phase/expiry-bound provenance, safe native route-reader recognition without recursion, and exact pending stop/return cleanup. A queue grant cannot borrow unrelated ordinary recovery ownership."
+    }
+  ],
+  "implementation_batch_contract": [
+    "Keep shared canonical identity separate from actual-owner full route/native destination proof. Existing broker phase/consent and original expiry remain mandatory.",
+    "Extend actual-owner admission and private consent route capture together with context/plan consumers; do not enable auto admission until all executor/cleanup paths support the schema.",
+    "Root crossing and yielded participant return must preserve original native goal and both operating crew tasks; maintain exact pending acknowledgement/expired unresolved proof through same deadline without route replay.",
+    "Maintain no second worker, no mission waypoint creation/deletion, no crew reassignment, no physics shortcut; one original jam attempt/budget survives cancellation and owner changes.",
+    "Validate ordinary authored queues unchanged and native queues through owner loss, split crew locality, refusal, explicit cancellation, blocked geometry and original-goal handback. Physical acceptance remains paused."
+  ],
+  "limits": "Read-only bounded source trace; no runtime changes, new tests or unchanged full build. Several broad command outputs were truncated; this is a boundary trace, not a full implementation or whole-HBQ review. Last runtime candidate remains actor-eligibility-roster-cost-74cd0c54. No percentage/acceptance claim.",
+  "identityFoundation20261023": {
+    "baseline": "3b4781dd",
+    "implementation": "Shared QueueContext native identity is[NATIVE_MOVE,group,platform,driver,operator,owner,epoch,generation], without native destination read. Authored routes retain existing receipt. Actual owner consent captures separate full ownerRoute before ACK and stationary proposal checks require exact route match alongside ownerOrders. Same consent map handles exact release/expiry, no extra marker/worker/timer/function.",
+    "source_sha256": {
+      "drivingQueueContext": "78c885e026017854a2905ae010bfcffd1c918464d186fb373058940e09080545",
+      "drivingQueueAgreementOwner": "f0b0db0aa61b561d596c7990b3b89ba8d7fd784e2972710530f148c7320b3731",
+      "drivingQueueProposalCurrent": "5b60c910fc317b6b62dc702ddf7417cf3b16a0781d9d102c0c4e110985382191"
+    },
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. Existing canonical context regression extended to check private route capture/consumption and retained native admission refusal. No new cases.",
+    "candidate": ".qa/candidates/queue-native-identity-foundation-3b4781dd",
+    "fingerprint": "b59322a2fad90b96e2eef32a5120280a47aacb55dae7da59f4009cb2e4b18143",
+    "logs": [
+      ".qa/queue-native-identity-foundation-build.log",
+      ".qa/queue-native-identity-foundation-independent.log"
+    ],
+    "remaining": "Native admission guards deliberately retained. Moving-phase canonical/native route matching, root crossing provenance without ordinary recovery parent, native route-reader recognition and original-goal pending handback still required before enabling. Shared native tag is only a candidate no-waypoint intent identity, not proof of actual native MOVE or live executor. Actual owner must establish both.",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. No native queue movement delivered or physical authored-queue regression/performance proof. No tracker score renewal. Audits paused."
+  },
+  "movingRouteProof20261023": {
+    "baseline": "e6095892",
+    "implementation": "QueueReverseCurrent separates canonical/native provenance matching from actual-owner authority. Native shared8 fields match full9 route group/platform/seats/epoch/issuer plus current DrivingOwnerReceipt generation, with finite goal validation; authored routes retain exact nonempty equality. Local rows validate private pre-consent ownerRoute against shared identity; local crossing/reverse work must exactly equal that private full route. Existing ownerOrders/native task/cap/phase/geometry guards remain. No new function, worker, timer, native command or remote destination read.",
+    "source_sha256": "e707be886d76639c4543d2dd9661889932989deed4f5702af2b5529cf6015c94",
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. Existing moving queue regression extended; no new cases.",
+    "candidate": ".qa/candidates/queue-native-moving-route-proof-e6095892",
+    "fingerprint": "0450175d616f43808a3e5da8b465d565997f38a21c7db15f191fae85472b3a68",
+    "logs": [
+      ".qa/queue-native-moving-route-proof-build.log",
+      ".qa/queue-native-moving-route-proof-independent.log"
+    ],
+    "remaining": "Native admission exclusions remain. Need queue-specific original route provenance through root crossing, NativeRouteReceipt recognition without ordinary recovery parent, exact pending stop/original-goal return cleanup before enabling. Shared metadata match is not a current native command ACK.",
+    "limits": "Unsigned dirty development snapshot with retained unrelated dirt; notes afterward. No native queue execution delivered or physical authored-queue regression/performance proof. No tracker score renewal. Audits paused."
+  },
+  "crossingOriginalIntent20261023": {
+    "baseline": "976f5821",
+    "implementation": "Queue bypass journal can capture queueNativeIntent=[full original route,current owner identity,crossing binding] from exact private ownerRoute. NativeRouteReceipt recognises queue-owned PLAN/FOLLOW original intent only with exact group/platform/seats/goal/epoch/issuer, three-field current owner stamp, binding/expiry/journal route and both current native tasks/destinations; rejects simultaneous ordinary recovery/corridor. Does not recurse into queue/route validators or issue commands. Exact identity can outlive live consent/brain cancellation for cleanup only; it neither extends expiry nor authorizes movement.",
+    "source_sha256": {
+      "drivingBypassStep": "f5a7c53d08fe4222bf00e799300d72e4f08da9e19302b3c31e3fd9fff254ff9c",
+      "drivingNativeRouteReceipt": "d3c7ddc033ecdabd1da40d22ceb45e06cc4551587833ed4afb522f0fbfa99d5d"
+    },
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. Initial build passed; final pass additionally requires typed nonempty owner stamp and removes inappropriate live-brain dependency from cleanup identity. Existing moving queue case extended, no new cases.",
+    "candidate": ".qa/candidates/queue-native-crossing-intent-976f5821",
+    "fingerprint": "28201a4d73d940a60a50490e60a230bfcd27204d4a54edded8c23fc20101ff7b",
+    "logs": [
+      ".qa/queue-native-crossing-intent-build.log",
+      ".qa/queue-native-crossing-intent-build-final.log",
+      ".qa/queue-native-crossing-intent-independent.log"
+    ],
+    "remaining": "Capture/recognition infrastructure only: native non-ORDINARY bypass entry guard remains, so normal current protocol cannot yet create a native queue crossing. Integrate acquisition against private consent original route instead of ordinary parent, plus stop/original-goal return pending acknowledgement and exact deadline cleanup before enabling native proposal/consent/auto guards.",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. No native queue execution or physical cleanup/locality/performance acceptance. Read-only route identity is not a crossing/stop/return grant. No tracker score renewal. Audits paused."
+  },
+  "crossingAcquisition20261023": {
+    "baseline": "0906a1fa",
+    "implementation": "Internal BypassStep native controller types limited to ORDINARY/QUEUE. Queue native acquisition requires exact private consent ownerRoute, four-field crossing binding and current all-owner queue validator; may use that provenance instead of ordinary recovery parent. Ordinary native routes still require original parent and spent-budget checks. No new worker/timer/native command.",
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. Initial pipeline failed old universal native-nonORDINARY refusal assertion; existing native admission case now verifies separate queue proof plus retained ordinary parent. Moving queue case checks native top-level exclusions remain. No new cases.",
+    "candidate": ".qa/candidates/queue-native-crossing-acquisition-0906a1fa",
+    "fingerprint": "c2ff93c7a82234bf29c1ca27b07141d208e226fa5093ead8e4f9a31e0c927e55",
+    "logs": [
+      ".qa/queue-native-crossing-acquisition-build.log",
+      ".qa/queue-native-crossing-acquisition-build-reviewed.log",
+      ".qa/queue-native-crossing-acquisition-independent.log"
+    ],
+    "remaining": "Native top-level proposal/consent/auto exclusions still prevent executable native queue negotiation. BypassRelease requires ordinary native parent; queue native stop/return needs original-intent proof, exact pending command acknowledgement, original deadline and owner-local cleanup. Do not enable before integrating that path.",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Internal acquisition support is not delivered native queue behaviour. No physical authored-queue regression/native queue/HC/JIP/performance proof. No tracker score renewal. Audits paused."
+  },
+  "nativeReturnJournal20261023": {
+    "baseline": "49c15ae9",
+    "implementation": "BypassRelease recognises exact queueNativeIntent independently of ordinary recovery parent. After existing explicit completion and two-seat STOP observations, native goal return records kind QUEUE_RETURN in existing recovery observation service with original queue deadline, both operating actors, exact cap, original goal/pre-request native frame and queue binding. CommandState requires both original-goal MOVE acknowledgements for queueReturn as for native bypassReturn. Pending/expired return is observed without replay; unresolved proof retains original deadline. Successful queue-return observation retires instead of converting into a new FINAL ordinary recovery allowance. Cleanup signature includes queueReturn binding to fence successor tokens. No new function/worker/timer or invented ordinary parent.",
+    "validation": "1491 existing tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. Initial build passed; cleanup token-signature extension then failed old source assertion, updated existing assertion retains all original signature fields plus queueReturn; reviewed build passed. Existing moving/cleanup cases extended, no new cases.",
+    "candidate": ".qa/candidates/queue-native-return-journal-49c15ae9",
+    "fingerprint": "f4d360f32def3286cad4a1977e124419984c805616dc71b1357c781a1c8f10e9",
+    "logs": [
+      ".qa/queue-native-return-journal-build.log",
+      ".qa/queue-native-return-journal-build-final.log",
+      ".qa/queue-native-return-journal-build-reviewed.log",
+      ".qa/queue-native-return-journal-independent.log"
+    ],
+    "remaining": "Native top-level proposal/consent/auto exclusions remain. Unacknowledged initial doStop must retain exact path/stop journal rather than retire it. Aborted queue STOP/original-goal safety handback remains authored-only in DrivingAbortHandback; integrate native receipt recognition and pending return there before enabling. Audit split locality/adoption and cap restoration.",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Command acknowledgement is not physical travel. Driver FOLLOW->native MOVE propagation, stop timing, pending/late native return and overhead unverified. No native queue feature completion or score renewal. Audits paused."
+  },
+  "pendingStopLifecycle20261023": {
+    "baseline": "e21617aa",
+    "implementation": "Queue release retains exact STOP_PENDING crossing journal when either operating actor has not acknowledged STOP. Existing driving callback observes the original recorded release request without replaying doStop or extending the original deadline. Native route reader recognises unchanged original tasks or STOP alongside exact destinations and original queue provenance. Expired pending stop remains explicitly unresolved; existing sole cap writer receives zero-cap intent while ownership remains available.",
+    "validation": "1491 existing tests and full HEMTT/FSM/SQF/config/docs/package gates passed. Independent verification of copied package passed. Existing moving queue regression extended; no new test cases.",
+    "candidate": ".qa/candidates/queue-pending-stop-lifecycle-e21617aa",
+    "fingerprint": "3de0cace815753dd115c7f42163e79dd5caa744bcc1d3efdd218165090eae1ed",
+    "logs": [
+      ".qa/queue-pending-stop-lifecycle-build.log",
+      ".qa/queue-pending-stop-lifecycle-independent.log"
+    ],
+    "remaining": "Native queue admission remains disabled. DrivingAbortHandback is still authored-only; integrate original native goal and pending return recognition before enabling. STOP observation after original deadline does not authorize a late native goal return. Validate native stop destination semantics, owner migration, actual handback travel and cap restoration in engine when audits authorized.",
+    "limits": "Unsigned dirty development snapshot preserving unrelated dirt; engineering notes afterward. No physical or performance acceptance, no whole-mod parity claim or tracker score renewal. Audits paused."
+  },
+  "nativeAbortHandback20261023": {
+    "baseline": "6c781016",
+    "implementation": "Native queue-abort STOP holds now keep original queue expiry rather than authored +15s allowance. NativeRouteReceipt recognises exact original route/group/platform/seats/owner/epoch/binding and both STOP destinations/form leaders after crossing work retires, without granting movement or adopting native locality. AbortHandback retains existing clear traffic/gate/solid, physical rest, cap, actor and authority guards; chooses captured native goal instead of waypoint; consumes hold before one native issue and records kind QUEUE_RETURN with both seats/pre-request frame/cap/binding/original deadline. Existing recovery service observes both-seat goal acknowledgement, pending/expired return and successor commands without replay or FINAL ordinary budget conversion.",
+    "validation": "31 focused existing bypass tests passed, then 1491 existing tests and complete HEMTT/FSM/SQF/config/docs/package gates passed. Independent copied-package verification passed. Existing queue-abort test extended, no new cases.",
+    "candidate": ".qa/candidates/queue-native-abort-handback-6c781016",
+    "fingerprint": "63d3792f2f05905ce9ec58a251057eae8733cbc7cb8427f34b1862ad9a288b6b",
+    "logs": [
+      ".qa/queue-native-abort-handback-build.log",
+      ".qa/queue-native-abort-handback-independent.log"
+    ],
+    "remaining": "Native proposal/consent/auto exclusions remain. Review full native queue lifecycle composition before admission: queued crossing ownership, pending STOP service after tactical worker shutdown, expired STOP cap/provenance, native goal return and locality loss. Native hold does not adopt a different owner/epoch. Physical traffic crossing, two-seat return propagation, original-order travel and cap restoration remain unverified.",
+    "limits": "Unsigned dirty development snapshot including unrelated dirt; engineering notes afterward. No physical acceptance, performance measurement, feature completion claim or tracker score renewal. Audits paused."
+  },
+  "pendingStopShutdown20261023": {
+    "baseline": "831666f5",
+    "finding": "AssistRelease could restore the cap after BypassRelease created STOP_PENDING or a new native return after its earlier recovery pass. Pending STOP relied on the tactical callback remaining alive.",
+    "implementation": "Queue pending stop captures original ordinary cap/baseline. Exact original route/crew/task and unchanged cap proof permits lowering owned positive cap to zero; successor cap revokes native cleanup. Retained STOP_PENDING registers deduplicated QUEUE_STOP in existing four-ticket recovery service using exact route/seats/controller/deadline/native command/binding/request/cap/baseline signature. Service observes stored request through BypassRelease without stop replay, then routes retired work through AssistRelease. Original expiry marks unresolved and stops tickets. AssistRelease final guard retains pending queue stop or newly issued native-return cap proof before baseline restoration. No new timer/controller/function. Unchanged unresolved work is not republished on each observation.",
+    "validation": "3 existing focused deferred-cap tests and1491 full tests/HEMTT/FSM/SQF/config/docs/package passed. Independent copied-package verification passed. Existing regression extended, no new cases.",
+    "candidate": ".qa/candidates/queue-stop-shutdown-cleanup-831666f5",
+    "fingerprint": "a03a1a32bf2fd8b1e591d0c43088a099a954daf0038321af4cc42302fb310a4e",
+    "logs": [
+      ".qa/queue-stop-shutdown-cleanup-build.log",
+      ".qa/queue-stop-shutdown-cleanup-independent.log"
+    ],
+    "remaining": "Native queue top-level exclusions retained. Review live protocol admission and all-owner route snapshot composition before removing. STOP expectedDestination semantics, native FOLLOW/MOVE acknowledgement propagation, shutdown/locality loss, successor caps and actual original-order travel require physical validation when audits authorized.",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; engineering notes afterward. Static observations do not prove physical stop/handback or performance budget. No score renewal. Audits paused."
+  },
+  "nativeAdmission20261023": {
+    "baseline": "0d03aa05",
+    "implementation": "Removed native-only refusal from AutoStep while retaining existing default-off initiation, live local FSM, original jam lifetime, one attempt and bounded commit sends. Proposal no-waypoint branch permits observed two-seat MOVE only with no authored route; reads no remote destination. PassCanConsent permits native routes only for QUEUE after actual-owner route/live executor/GateIntent checks; PASS retains authored-only boundary. Existing shared native identity, private full ownerRoute/ownerOrders, all-owner consent and exact crossing/stop/abort/return journals now compose. Native reversing participant return tags queueReturn and kind QUEUE_RETURN so existing CommandState requires both operating actors at original goal and successful cleanup cannot create new FINAL ordinary recovery budget.",
+    "validation": "9 focused queue and10 existing native admission cases passed. First full build failed old universal native CanConsent refusal assertion; reviewed build found second old AutoStep exclusion assertion; both updated existing case to retain PASS refusal and default-off QUEUE gate. Final1491 tests/full HEMTT/FSM/SQF/config/docs/package and independent copied-package verification passed. No new cases.",
+    "candidate": ".qa/candidates/queue-native-admission-0d03aa05",
+    "fingerprint": "ab236e32f58d45d4895b69cbb18b91cf6aca9e176a5f6164307197e67668835a",
+    "logs": [
+      ".qa/queue-native-admission-build.log",
+      ".qa/queue-native-admission-build-reviewed.log",
+      ".qa/queue-native-admission-build-final.log",
+      ".qa/queue-native-admission-independent.log"
+    ],
+    "remaining": "Native QUEUE admission is implemented through existing opt-in setting, not physically accepted. Normal-client native and authored/mixed queue regression needs actual passage, both crew goal return, original order travel, cancellation/new task/successor cap, original expiry and shutdown. Separate HC/locality pass and median/p95 performance required when audits authorized. Native abort does not infer owner adoption.",
+    "limits": "Unsigned dirty development snapshot retaining unrelated dirt; notes afterward. Native labels and command ACK are not travel. No physical reliability, feature completion, whole-mod parity or tracker score renewal. Audits paused."
+  }
+}

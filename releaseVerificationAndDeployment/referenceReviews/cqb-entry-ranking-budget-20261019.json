@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-19",
+  "scope": "Initial buddy interior target preference cost",
+  "sourceIntent": "LAMBS doAssault preserves useful native movement and uses occupancy-aware destinations; it is an individual assault helper, not a coordinated building-clearance protocol. CBE retains separate paired interior targets and finite native path attempts.",
+  "finding": "Initial buddy straight-line connectivity preference could run up to24 geometry queries per pair outside the room callback budget. This was preference only: fallback already attempted a native node when rays were blocked.",
+  "implementation": "At most4 preference probes per pair, consuming the existing16 room geometry budget only while more than8 remain. Native distinct-node fallback is unchanged; no extra worker, movement command, authority or visit credit.",
+  "validation": {
+    "focusedExistingTests": 629,
+    "physical": "Unverified; audits paused.",
+    "fullPipeline": "1477 tests and sequential compiler/FSM/config/docs/parity/performance/package gates passed",
+    "fullLog": ".qa/cbe-entry-budget-final-build.log",
+    "independentLog": ".qa/cbe-entry-budget-final-independent.log",
+    "packageSource": "0ee1435a+dirty",
+    "packageFingerprint": "15cf7e1c5240fa29ff37d4e5bec47070b677eb9d04b95468f567a4179e2b258c"
+  },
+  "limits": [
+    "No historical entry delay root cause established.",
+    "Physical observation budget can still be exhausted by its own bounded consumers; this change prevents optional ranking spending its reserved remainder.",
+    "No whole-mod LAMBS parity or measured runtime budget claim."
+  ],
+  "sourcePath": ".qa/source-refresh-20261011/inventory/1858075458/lambs_main/functions/UnitAction/fnc_doAssault.sqf"
+}

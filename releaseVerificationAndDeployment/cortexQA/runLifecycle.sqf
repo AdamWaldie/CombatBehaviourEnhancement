@@ -410,10 +410,41 @@ if (_owners isNotEqualTo []) then {
     private _searchIntentAfter=+(_searchGroup getVariable ["CBE_Cortex_TransitionIntent",[]]);
     ["LIFE-search-deadline-preserved",_searchAdopted && {count _searchIntentAfter == 6}
         && {abs ((_searchIntentAfter select 3)-_searchDeadline) < 0.25},str [_searchDeadline,_searchIntentAfter]] call _recordCheck;
+    // Read the existing owner's published checkpoint, never inject arrival or completion state.
+    // Retain its destinations before REGROUP legitimately retires the live search receipts.
+    private _searchReceiptReady=[{
+        private _snapshot=createHashMapFromArray (_searchGroup getVariable ["CBE_AIPass_Checkpoint",[]]);
+        private _rows=_snapshot getOrDefault ["searchMoveReceipts",[]];
+        _rows isEqualType [] && {count _rows > 0} && {count _rows <= 16}
+            && {_searchTeam findIf {private _actor=_x; _rows findIf {
+                _x isEqualType [] && {count _x in [3,4]} && {(_x select 0) == _actor}
+                    && {(_x select 1) isEqualType []} && {count (_x select 1) == 3}
+            } < 0} < 0}
+    },5] call _wait;
+    private _searchReceiptSnapshot=createHashMapFromArray (_searchGroup getVariable ["CBE_AIPass_Checkpoint",[]]);
+    private _searchArrivalRows=+(_searchReceiptSnapshot getOrDefault ["searchMoveReceipts",[]]);
+    _searchArrivalRows=_searchArrivalRows select {
+        _x isEqualType [] && {count _x in [3,4]} && {(_x select 0) isEqualType objNull}
+            && {(_x select 1) isEqualType []} && {count (_x select 1) == 3}
+            && {(_x select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+    };
+    ["LIFE-search-resumed-receipts",_searchAdopted && {_searchReceiptReady},str _searchArrivalRows] call _recordCheck;
     private _searchTravel=[{
         _searchTeam findIf {private _index=_searchTeam find _x; !alive _x || {_x distance2D (_searchStarts select _index) < 8}} < 0
     },40] call _wait;
     ["LIFE-search-physical-continuation",_searchAdopted && {_searchTravel},str [_searchTarget,_searchTeam apply {getPosATL _x}]] call _recordCheck;
+    private _searchTransition=_searchGroup getVariable ["CBE_Cortex_PhaseTransition",[]];
+    private _searchCompleted=count _searchTransition == 5 && {(_searchTransition select 3) == "SEARCH_COMPLETE"};
+    private _searchPremature=_searchCompleted && {_searchArrivalRows isEqualTo [] || {
+        _searchArrivalRows findIf {
+            private _actor=_x select 0;private _goal=_x select 1;
+            !alive _actor || {_actor distance2D _goal > 2}
+                || {abs (((getPosATL _actor) select 2)-(_goal select 2)) > 1.5}
+        } >= 0
+    }};
+    ["LIFE-search-no-premature-completion",_searchReceiptReady && {!_searchPremature},
+        str [_searchTransition,_searchArrivalRows apply {[_x select 0,getPosATL (_x select 0),_x select 1]}]] call _recordCheck;
+    // Retain the existing early Zeus interruption; no arrival state or completion is forced.
     [_searchGroup,true] call CBE_fnc_CortexZeusMark;
     private _searchReleased=[{
         (_searchGroup getVariable ["CBE_AIPass_PublicPhase",""]) == "CALM"

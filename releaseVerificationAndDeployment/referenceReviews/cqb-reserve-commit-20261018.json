@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-18",
+  "scope": "Exterior reserve native commits and expired idle post retirement",
+  "findings": [
+    "Scheduled post geometry/visibility could be separated from initial hold, native leg, arrival hold, watch removal/install and timeout native writes",
+    "Staged STOP was accepted at arbitrary position instead of proving actual post occupancy",
+    "Reserve predicate lacked current group equality after a scheduled roster snapshot",
+    "Timeout required current MOVE, so an expired owned native leg that became idle could retain APPROACH indefinitely",
+    "Migration-stage snapshot publication did not repeat operation authority after scheduled snapshot construction"
+  ],
+  "implementation": [
+    "Shared read-only reserveCommitReady requires current building operation/actor/native task, Zeus and original soft/hard deadlines",
+    "Atomic initial hold, post dispatch, arrival, watch removal/install and timeout; post dispatch binds native snapshot, existing staging receipt and <=1m planning pose drift",
+    "Visibility rays stay scheduled; watch writes bind current native snapshot and <=0.25m drift from actual current-callback eye ray",
+    "Staged STOP requires finite original post and physical2m/0.75m floor occupancy; current group equality required",
+    "Exact reserveLegOwned binds MOVE-or-idle command, generation/epoch, private staging post, native destination and issued target within0.25m in3D",
+    "Expired exact idle leg may stop/retire as REJECTED or EXHAUSTED; no fabricated ARRIVED or renewed3search budget",
+    "Migration rows built scheduled, current operation rechecked atomically before public publication"
+  ],
+  "validation": {
+    "log": ".qa/cbe-cqb-reserve-membership-verified-build.log",
+    "tests": 1218,
+    "sqf": 323,
+    "pbos": 9,
+    "exit": 0,
+    "fingerprint": "92268e1dd16d834a9aa0bba3a9f658a03b6f7035dca4215103f2eefff62ec31e",
+    "earlier_logs": [
+      ".qa/cbe-cqb-reserve-commit-build.log",
+      ".qa/cbe-cqb-reserve-commit-verified-build.log",
+      ".qa/cbe-cqb-reserve-commit-final-build.log",
+      ".qa/cbe-cqb-reserve-commit-final-verified-build.log"
+    ],
+    "contract_changes": "Prior permissive STOP and MOVE-only timeout source contracts now require physical STOP ownership/exact MOVE-or-idle staging proof. New proposal contract scope corrected to actual reserve branch; all prior lifecycle/attempt/deadline assertions retained."
+  },
+  "remaining": [
+    "Post arrival, effective isolation, new commands/group transfer, casualties/repeat/HC/JIP and runtime overhead unrun",
+    "Other direct entry/egress/promotion native boundaries remain under review",
+    "Same-value undeclared native ownership remains indistinguishable",
+    "Late driving receipt notification, native queue execution, complete HBQ/full goal acceptance remain open"
+  ],
+  "audits": "PAUSED; all65 feature families partial"
+}

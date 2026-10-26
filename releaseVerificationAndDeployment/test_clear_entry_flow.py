@@ -3,6 +3,55 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class ClearEntryFlowTests(unittest.TestCase):
+    def test_yielded_room_recovery_does_not_reset_its_progress_clock(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        branch=s.split('if (_recovery in ["RECOVERING","YIELDED"]) then {',1)[1].split('private _failedCheckpoint=',1)[0]
+        issued=branch.split('if (_recovery == "RECOVERING") then {',1)[1].split('};',1)[0]
+        self.assertIn('_lastProgress=_now',issued)
+        self.assertIn('_lastPositions=_pair apply',issued)
+        after=branch.split('};',1)[1]
+        self.assertNotIn('_lastProgress=',after)
+        self.assertNotIn('_lastPositions=',after)
+        self.assertIn('_retries=[0,3] select (_recovery == "YIELDED")',after)
+
+    def test_partner_recovery_preserves_exact_native_planning_without_new_receipt(self):
+        s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        observation=s.split('private _nativeMoveAwaited={',1)[1].split('// Keep building authority',1)[0]
+        for guard in ('movementRequestTimes','(_planningRequest select 0) isNotEqualTo _target','_requestAge < 30',
+                      '[_actor] call _ownsCurrentMove','getUnitState _actor in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY","BUSY"]','_requestAge < 2'):
+            self.assertIn(guard,observation)
+        self.assertNotIn(' set [',observation)
+        self.assertNotIn('doMove',observation)
+        # Planner transitions do not restart the original issue age or grant ownership.
+        planner_states=('INIT','INITFAILED','PLANNING','REPLAN','DELAY','BUSY')
+        def awaited(age,owned,state):
+            return age>=0 and (age<2 or (age<30 and owned and state in planner_states))
+        for state in planner_states:
+            self.assertTrue(awaited(29,True,state))
+            self.assertFalse(awaited(30,True,state))
+            self.assertFalse(awaited(10,False,state))
+        for state in ('STOPPED','OK'):
+            self.assertFalse(awaited(10,True,state))
+        # The unchanged-request acknowledgement grace is finite, not planner authority.
+        self.assertTrue(awaited(1,False,'STOPPED'))
+        self.assertFalse(awaited(2,False,'STOPPED'))
+        self.assertFalse(awaited(-1,True,'REPLAN'))
+
+        recovery=s.split('private _recoverClearActor={',1)[1].split('// Before exterior actors commit',1)[0]
+        self.assertLess(recovery.index('call _nativeMoveAwaited'),recovery.index('call CBE_fnc_RecoveryStep'))
+        self.assertIn('private _result="YIELDED"',recovery)
+        alternate=s.split('if ((_receipt select 2) && {serverTime-(_receipt select 1) >= 24}',1)[1].split('private _pose=',1)[0]
+        self.assertIn('!([_partner,_entryTarget] call _nativeMoveAwaited)',alternate)
+        # Retained observations carry the original actor/episode budget across resume.
+        entry=s.split('private _entryRecovery=_job getOrDefault',1)[1].split('// Persist retirement',1)[0]
+        for proof in ('CBE_Cortex_ClearEntryRecovery','(_savedEntry select 0) isEqualTo _group',
+                      '(_savedEntry select 1) isEqualTo _entryContext','if (_savedCurrent && {!_savedValid})',
+                      'if (_savedValid && {_savedRecord select 2}) then {_receipt set [2,true]}'):
+            self.assertIn(proof,entry)
+        self.assertIn('_entryRecovery getOrDefault [_key,_entryBaseline]',entry)
+        self.assertIn('_partner setVariable ["CBE_Cortex_ClearEntryRecovery",_entrySnapshot,true]',entry)
+        self.assertNotIn('_receipt set [1,_now]',entry)
+
     def test_provisional_recovery_target_does_not_preempt_distinct_support_selection(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         recovery=s.split('// Partner entry recovery is independent',1)[1].split('private _entryRecovery=',1)[0]
@@ -10,21 +59,84 @@ class ClearEntryFlowTests(unittest.TestCase):
         self.assertIn('_job set ["pairEntryTargets",_entryTargets]',recovery)
         self.assertNotIn('_entryTargets set [_entryKey',recovery)
         support=s.split('// Commit both actors at initial entry.',1)[1].split('if (_supportTarget isEqualTo (_positions',1)[0]
-        for gate in ('_supportTarget isEqualTo []','distance2D _anchor >= 1.2','_distance >= 2.5','distance2D _anchor <= 8','min 24','lineIntersectsSurfaces'):
+        for gate in ('_supportTarget isEqualTo []','distance2D _anchor >= 1.2','_distance >= 2.5','distance2D _anchor <= 8','min 24','lineIntersectsSurfaces','_entryProbes >= 4','_roomGeometryBudget <= 8','_roomGeometryBudget=_roomGeometryBudget-1'):
             self.assertIn(gate,support)
+        candidates=support.split('private _candidates=[];',1)[1].split('private _occupied=',1)[0]
+        for gate in ('_forEachIndex in _unreachable','_supportPairId in (_failedBy select _forEachIndex)',
+                     'forEach _positions','_anchorHeight','_candidates pushBack _x'):
+            self.assertIn(gate,candidates)
+        self.assertNotIn('doMove',candidates)
+        self.assertNotIn('set [',candidates)
         self.assertIn('_entryTargets set [_entryKey,+_supportTarget]',support)
+        # Proposal ranking cannot spend the final eight physical-observation probes.
+        for initial in range(17):
+            budget=initial
+            for _pair in range(4):
+                for _probe in range(4):
+                    if budget <= 8:
+                        break
+                    budget-=1
+            self.assertEqual(budget,min(initial,8))
+
     def test_new_destinations_prefer_live_unoccupied_nodes_without_reserving_queue(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         helper=s.split('private _occupiedRoomTargets={',1)[1].split('// Callback-local geometry',1)[0]
-        for gate in ('select [0,8]','call _actorAvailable','call _ownsCurrentMove','getPosASL _actor','simulationEnabled','isObjectHidden'):
+        for gate in ('select [0,8]','call _actorAvailable','call _ownsCurrentMove','_occupied pushBack (getPosATL _actor)','simulationEnabled','isObjectHidden'):
             self.assertIn(gate,helper)
+        body=helper.split('if (!isNull _actor',1)[1].split('_occupied pushBack (getPosATL _actor)',1)[0]
+        self.assertNotIn('call _actorAvailable',body)
+        self.assertIn('isNull objectParent _actor',body)
+        future=helper.split('if (count _issued == 3',1)[1].split('_occupied pushBack (+_issued)',1)[0]
+        self.assertIn('call _actorAvailable',future)
+        # Native tasks remove destination ownership, not the soldier standing there.
+        def occupancy(available, mounted=False, simulated=True, hidden=False):
+            body=not mounted and simulated and not hidden
+            return (body, body and available)
+        self.assertEqual(occupancy(False),(True,False))
+        self.assertEqual(occupancy(True),(True,True))
+        self.assertEqual(occupancy(False,mounted=True),(False,False))
+        self.assertEqual(occupancy(True,hidden=True),(False,False))
+        self.assertEqual(occupancy(True,simulated=False),(False,False))
         self.assertNotIn('doMove',helper)
         claim=s.split('// Prefer free room destinations',1)[1].split('private _point=',1)[0]
         self.assertIn('if (_freeCandidates isNotEqualTo [])',claim)
         self.assertNotIn('deleteAt',claim)
         support=s.split('// Commit both actors at initial entry.',1)[1].split('if (_supportTarget isEqualTo (_positions',1)[0]
-        self.assertIn('private _ranked=_freeRanks+_busyRanks',support)
+        self.assertIn('private _ranked=if (_freeRanks isNotEqualTo []) then {_freeRanks} else {_busyRanks}',support)
         self.assertIn('if (_supportTarget isEqualTo [])',support)
+        cached=support.split('// A saved proposal is not live occupancy evidence.',1)[1].split('if (_supportTarget isEqualTo [])',1)[0]
+        for guard in ('call _actorAvailable','call _actorTaskFree',
+                      '!([_partner] call _ownsCurrentMove)',
+                      '[_partner,_entryRequest param [0,[],[[]]]] call _nativeMoveAwaited',
+                      '[_supportTarget,_entryOccupancy] call _roomTargetOccupied',
+                      '_entryTargets deleteAt _entryKey'):
+            self.assertIn(guard,cached)
+        self.assertNotIn('doMove',cached)
+        self.assertNotIn('serverTime+',cached)
+        self.assertIn('private _occupied=if (_entryOccupancySampled) then {_entryOccupancy}',support)
+        # A changed body/reservation may invalidate only an uncommitted proposal.
+        # Existing native movement and its original acknowledgement window win.
+        def reselect(occupied,owned=False,pending=False,available=True,task_free=True):
+            return occupied and not owned and not pending and available and task_free
+        self.assertTrue(reselect(True))
+        self.assertFalse(reselect(False))
+        self.assertFalse(reselect(True,owned=True))
+        self.assertFalse(reselect(True,pending=True))
+        self.assertFalse(reselect(True,available=False))
+        self.assertFalse(reselect(True,task_free=False))
+        self.assertIn('"movementRequestTimes"',cached)
+        self.assertNotIn('[_partner,_supportTarget] call _nativeMoveAwaited',cached)
+        # A geometrically adjusted issued point must retain the original pending
+        # protection even when it differs from the cached native-node proposal.
+        proposal=[1,2,0];issued=[1.4,2,0]
+        self.assertNotEqual(proposal,issued)
+        request=(issued,100)
+        def awaiting(target,request,now):
+            return target==request[0] and 0<=now-request[1]<2
+        self.assertFalse(awaiting(proposal,request,101))
+        self.assertTrue(reselect(True,pending=awaiting(proposal,request,101)))
+        self.assertTrue(awaiting(request[0],request,101))
+        self.assertFalse(reselect(True,pending=awaiting(request[0],request,101)))
         # Distinct lead claims alone cannot prevent two buddies choosing the midpoint.
         points=[(0,0),(6,0),(3,0),(3,4)]
         def ranked(anchor,occupied):
@@ -41,11 +153,26 @@ class ClearEntryFlowTests(unittest.TestCase):
             self.assertIn('(AGLToASL '+target+') select 2',s)
         self.assertNotIn('abs (((getPosATL _unit) select 2)',s)
         self.assertNotIn('abs (((getPosATL _entryMover) select 2)',s)
-        self.assertIn('abs (((AGLToASL _x) select 2)-((AGLToASL _anchor) select 2))',s)
+        self.assertIn('private _anchorHeight=(AGLToASL _anchor) select 2;',s)
+        self.assertIn('abs (((AGLToASL _x) select 2)-_anchorHeight)',s)
         # Same absolute floor, different terrain cells: old relative-height test rejects it.
         floor=20; terrain_actor=16; terrain_target=18
         self.assertGreater(abs((floor-terrain_actor)-(floor-terrain_target)),1.5)
         self.assertEqual(abs(floor-floor),0)
+        for comparison in ('(getPosASL _point) vectorDistance (AGLToASL _target)',
+                           '(getPosASL _point) vectorDistance (ATLToASL _moverPrevious)',
+                           '(getPosASL _x) vectorDistance (ATLToASL _old)',
+                           '(getPosASL _unit) vectorDistance (AGLToASL _progressTarget)',
+                           '(getPosASL _unit) vectorDistance (AGLToASL _retryTarget)'):
+            self.assertIn(comparison,s)
+        admission=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
+        self.assertIn('(getPosASL _actor) vectorDistance (AGLToASL _routeTarget)',admission)
+        self.assertNotIn('abs (((getPosATL _actor) select 2)-(_target select 2))',admission)
+        # Crossing terrain cells can fake a metre of movement while the body moves only20cm.
+        relative_motion=(0.2**2+((floor-terrain_actor)-(floor-terrain_target))**2)**0.5
+        absolute_motion=(0.2**2+(floor-floor)**2)**0.5
+        self.assertGreater(relative_motion,1)
+        self.assertLess(absolute_motion,1)
         # Equal relative heights can conceal genuinely different absolute floors.
         relative_height=1
         self.assertEqual(abs(relative_height-relative_height),0)
@@ -150,7 +277,7 @@ class ClearReplacementOccupancyTests(unittest.TestCase):
 class ClearPairSlotIdentityTests(unittest.TestCase):
     def test_filtered_pair_maps_mover_and_motion_back_to_durable_actor_slots(self):
         source=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text()
-        worker=source.split('private _laneRoster=+_x;',1)[1].split('private _allWorkersEntered=',1)[0]
+        worker=source.split('private _laneRoster=+(_pairs select _pairIndex);',1)[1].split('private _allWorkersEntered=',1)[0]
         for guard in ('_pair=_laneRoster select',
                       '_previousMover=_laneRoster select (_moverIndex mod count _laneRoster)',
                       '_moverIndex=_pair find _previousMover',
@@ -158,12 +285,45 @@ class ClearPairSlotIdentityTests(unittest.TestCase):
                       'private _activeSlot=_pair find _x',
                       '_laneRoster find (_pair select (_moverIndex mod count _pair))'):
             self.assertIn(guard,worker)
+        order=source.split('private _laneCount=count _pairs;',1)[1].split('private _laneRoster=',1)[0]
+        self.assertIn('roomLaneCursor',order)
+        self.assertIn('private _pairIndex=_x',order)
+        self.assertIn('(_laneCursor+_offset) mod _laneCount',order)
+        self.assertIn('} forEach _laneOrder;',worker)
+        self.assertNotIn('_pairs set',order)
+        for count in range(1,5):
+            starts=[]
+            for cursor in range(count):
+                indices=[(cursor+offset)%count for offset in range(count)]
+                self.assertEqual(sorted(indices),list(range(count)))
+                starts.append(indices[0])
+            self.assertEqual(starts,list(range(count)))
         self.assertEqual(worker.count('_state set [7,call _laneMoverSlot]'),2)
         self.assertIn('_state set [2,call _laneMotion]',worker)
         motion=worker.split('private _laneMotion={',1)[1].split('if (_now >= _startAt)',1)[0]
         self.assertNotIn('_forEachIndex',motion)
         self.assertNotIn('_state set [7,_moverIndex]',worker)
         self.assertNotIn('_state set [2,_lastPositions]',worker)
+        entry_motion=worker.split('if (_approachingEntry && {!_moved}) then {',1)[1].split('if (_moved)',1)[0]
+        self.assertIn('_lastPositions param [_pair find _x,getPosATL _x]',entry_motion)
+        self.assertNotIn('_forEachIndex',entry_motion)
+        from sqf_validator import UNINDEXED_ITERATION_PATTERN, strip_comments_and_strings
+        for command in ('apply','findIf','select'):
+            bad=f'_pair {command} {{_lastPositions param [_forEachIndex,getPosATL _x]}}'
+            self.assertIsNotNone(UNINDEXED_ITERATION_PATTERN.search(strip_comments_and_strings(bad)))
+        for good in ('_pair findIf {_lastPositions param [_pair find _x,getPosATL _x]}',
+                     '{_lastPositions param [_forEachIndex,getPosATL _x]} forEach _pair',
+                     '_pair findIf {_lastPositions param [_outerIndex,getPosATL _x]}',
+                     '// _pair findIf {_forEachIndex > 0}',
+                     'diag_log "_pair findIf {_forEachIndex > 0}"'):
+            self.assertIsNone(UNINDEXED_ITERATION_PATTERN.search(strip_comments_and_strings(good)))
+        from math import dist
+        previous={'lead':(0,0,0),'buddy':(10,0,0)}
+        actual=dict(previous)
+        self.assertFalse(any(dist(actual[actor],previous[actor]) >= 1 for actor in actual))
+        self.assertTrue(any(dist(actual[actor],previous['lead']) >= 1 for actor in actual))
+        actual['buddy']=(11,0,0)
+        self.assertTrue(any(dist(actual[actor],previous[actor]) >= 1 for actor in actual))
         switch=worker.split('if (_moverIndex < 0) then {',1)[1].split('private _laneMoverSlot=',1)[0]
         self.assertIn('_lastTarget=-1',switch)
         self.assertIn('_state set [13,1e12]',switch)

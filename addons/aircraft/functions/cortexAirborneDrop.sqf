@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
- * Repeat/JIP: Repeat calls recompute or update the same bounded state; public state is replayable to JIP where this function publishes it.
+ * Repeat/JIP: Delegates to the current finite insertion episode and its aircraft cooldown.
+ * Old explicit orders are not replayed for JIP; current-owner admission rejects duplicate or stale work.
  * Orders an AI squad riding as cargo in an AI-flown aircraft to parachute out now.
  *
  * The scripted and Zeus equivalent of the automatic airborne insertion: it does not wait for a known
@@ -20,7 +21,8 @@
  * [group this] call CBE_fnc_CortexAirborneDrop;
  * Result: from a trigger or a waypoint's On Activation, the squad in the helicopter jumps.
  *
- * Current callers: mission triggers and scripts, and the AI Orders ZEN module.
+ * Current callers: mission triggers/scripts and authenticated CortexOrderLocal airborne tasks,
+ * including the native ModuleAirborne frontend.
  */
 
 params [["_group", grpNull, [grpNull, objNull]]];

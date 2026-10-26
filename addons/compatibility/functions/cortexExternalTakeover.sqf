@@ -6,6 +6,8 @@
  * Locality / Authority: Read-only and callable on any machine; callers still issue commands only
  * on the current group owner.
  * Repeat/JIP: Re-evaluates live ownership markers on every call and changes no public state.
+ * Current occupied platforms share declared ownership with their crew. One local per-call set
+ * deduplicates platforms; no assigned-vehicle inheritance, world query or retained permission.
  * Arguments:
  * 0: group <GROUP>, default grpNull.
  * 1: ignore temporary Zeus hold <BOOL>, default false. Direct remote control and all other
@@ -27,12 +29,25 @@ private _members=units _group;
 if (!isNull _actorContext && {group _actorContext != _group}) exitWith {true};
 private _specialistSubjects=if (isNull _actorContext) then {_members} else {[_actorContext]};
 
-(_members findIf {isPlayer _x} >= 0)
+// One cheap group footprint pass precedes the scoped specialist/platform pass.
+// Keep these fresh per call: a cached result is not command authority.
+private _directTakeover=_members findIf {
+    isPlayer _x || {!isNull (remoteControlled _x)}
+        || {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
+} >= 0;
+_directTakeover
 || {!_ignoreZeusHold && {[_group] call CBE_fnc_CortexZeusHeld}}
-|| {_members findIf {!isNull (remoteControlled _x)} >= 0}
-|| {_members findIf {!isNull (_x getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])} >= 0}
-|| {_specialistSubjects findIf {
-    (_x getVariable ["zen_ai_garrisoned",false]) || {_x getVariable ["zen_ai_isSuppressing",false]}
-} >= 0}
-|| {_specialistSubjects findIf {[_x] call CBE_fnc_CortexExternalOwner != ""} >= 0}
+|| {
+    private _checkedPlatforms=[];
+    _specialistSubjects findIf {
+        if ((_x getVariable ["zen_ai_garrisoned",false])
+            || {_x getVariable ["zen_ai_isSuppressing",false]}
+            || {[_x] call CBE_fnc_CortexExternalOwner != ""}) exitWith {true};
+        // Current occupancy only; actor-scoped calls retain their narrow footprint.
+        private _platform=objectParent _x;
+        if (isNull _platform || {_platform in _checkedPlatforms}) exitWith {false};
+        _checkedPlatforms pushBack _platform;
+        [_platform] call CBE_fnc_CompatibilityExternalControl
+    } >= 0
+}
 || {[_group] call CBE_fnc_CompatibilityExternalControl}
