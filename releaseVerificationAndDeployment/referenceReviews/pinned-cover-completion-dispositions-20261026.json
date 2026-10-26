@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "workshopId": "3775025723",
+  "scope": "Selected MoveToCover completion, hold, return and cleanup branches. Not a complete FSM or source-tree review. Some long inspection outputs were truncated; no full-file review credit.",
+  "source": {
+    "path": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\PinnedDown\\20261013-013708\\3775025723\\extracted-20261011\\pd_cover_concealment\\MoveToCover.fsm",
+    "sha256": "abbacdb15729795f735a707424a8aa21e1733073bc3ece7d3848d6f29232476e",
+    "executed": false,
+    "modified": false
+  },
+  "dispositions": [
+    {
+      "branch": "setaction_ and timeout",
+      "intent": "Retain useful cover while suppressed; distinguish reached, nearby and failed movement.",
+      "observed": "Reached cover forceSpeed0; nominal hold is capped15 seconds, but timeout requires suppression at or below skill for reached ordinary cover. Defensive reached cover has a separate leave predicate.",
+      "decision": "Retain suppression-sensitive tactical intent, but do not import an unbounded speed hold. CBE danger cover currently releases its finite movement marker on arrival without adding a forced hold.",
+      "remaining": "Trace CBE suppression and defensive-position owners before deciding whether a finite tactical hold is missing; no new controller is justified by this selected comparison alone."
+    },
+    {
+      "branch": "completed and goback",
+      "intent": "Resume original movement when cover episode ends, while yielding to medical ownership.",
+      "observed": "Return branch compares waypoint indices and can issue doMove to saved GoPos if cycle and eligibility match.",
+      "decision": "Do not equate unchanged waypoint index with unchanged mission authority. CBE uses original route receipt, operation/epoch and actor goal checks; failed-approach return now retains the original formation anchor."
+    },
+    {
+      "branch": "Exit and nil_exit",
+      "intent": "Reject stale episode cleanup and release movement/targeting modifications.",
+      "observed": "Cycle guard protects many writes, but cleanup resets forceSpeed and enables targeting/suppression/autocombat features rather than restoring individual saved feature baselines.",
+      "decision": "Retain episode identity and single cleanup ownership; do not import unconditional feature enablement or remembered-target replay over newer authority.",
+      "remaining": "Review all selected CBE cover/stance/target writers together before extending restoration. No runtime changes made by this review."
+    },
+    {
+      "branch": "findalt",
+      "intent": "Avoid no-destination deadlock.",
+      "observed": "After repeated missing destinations, chooses a random position near leader.",
+      "decision": "Do not call an arbitrary fallback point cover. Required safe fallback remains subject to geometry, reachability and mission authority; failure may retire the finite attempt."
+    }
+  ],
+  "nextWork": "Complete untruncated startup/move/cleanup inspection and actual callers, then compare suppression/defence ownership across CBE before selecting further runtime changes. Do not repeat the already committed anchor fix.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "callerTrace": {
+    "source": "functions/fn_findCover.sqf",
+    "ranges": [
+      "146-207: eligibility and running-FSM exclusion",
+      "1841-1930: defensive assignment, doFSM dispatch and subsequent buddy writes"
+    ],
+    "limits": "Selected caller regions only. Whole findCover function and buddy lifecycle not fully reviewed. Source startup/move and nil-exit blocks were read with quoted FSM strings decoded as text, never executed."
+  },
+  "cbeFinding": {
+    "issue": "DangerSetup explicit cleanup invoked cover helper in normal service mode before generation invalidation. A still-enabled current cover lease could be retained rather than retired.",
+    "fix": "Pass existing releaseOnly=true. Existing helper then suppresses adoption, retention and failed-approach follow, removes only exact owned movement metadata, and retires matching pending assessment. No movement cancellation/teleport/AI-feature writes added.",
+    "validation": {
+      "tests": 1497,
+      "compiledSqf": 443,
+      "pbos": 11,
+      "physicalAcceptance": false,
+      "candidate": ".qa/candidates/danger-cover-shutdown-90fe7a60",
+      "fingerprint": "d20455d1ba73264eb6a4ec3961a53a213d03fef216d9b716b3f39d379e9d9ea2",
+      "buildLog": ".qa/handovers/danger-cover-shutdown-build.log",
+      "independentLog": ".qa/handovers/danger-cover-shutdown-independent.log"
+    },
+    "sourceHashes": {
+      "addons\\infantry\\functions\\dangerSetup.sqf": "b92d771878cac36ea24563d13447802b8948d12f42fefcb839dafad9f68d994e",
+      "addons\\infantry\\functions\\dangerCoverStep.sqf": "3902324b29d34adb24811c4e6f7c28f89a98cb4242b3a7421c25bda5f90eae9c"
+    }
+  }
+}

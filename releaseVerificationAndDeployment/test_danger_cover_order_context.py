@@ -39,6 +39,13 @@ class CoverOrderContextTests(unittest.TestCase):
         self.assertLess(cleanup.index('!fleeing _leasedActor'),cleanup.index('_leasedActor doFollow'))
         self.assertNotIn('addWaypoint',source)
         self.assertNotIn('setCurrentWaypoint',source)
+        setup=(ROOT/'addons/infantry/functions/dangerSetup.sqf').read_text(encoding='utf-8')
+        shutdown=setup.split('if (!_enabled) exitWith {',1)[1].split('CBE_Danger_Generation',1)[0]
+        self.assertIn('[_group,_dangerCoverLease select 0,[],_dangerCoverLease select 1,true] call CBE_fnc_DangerCoverStep',shutdown)
+        self.assertIn('if (_releaseOnly) exitWith {["RELEASED"] call _clearLease}',source)
+        # Shutdown must not enter adoption, retention or failed-approach follow.
+        self.assertEqual(source.count('if (!_releaseOnly && {_leaseContextCurrent}'),3)
+
     def test_flight_has_one_original_deadline_and_exact_order_cleanup(self):
         flight=(ROOT/'addons/infantry/functions/dangerFlight.sqf').read_text(encoding='utf-8')
         act=(ROOT/'addons/infantry/functions/dangerEngineAct.sqf').read_text(encoding='utf-8')

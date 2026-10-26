@@ -43,11 +43,12 @@ if (!_enabled && {_groupHandlers isNotEqualTo []}) then {
 if (!_enabled) exitWith {
     [_group,-1,false,""] call CBE_fnc_DangerGroupHideStep;
     // Retire the finite cover lease before invalidating its generation. The helper removes only
-    // CBE's exact actor move; on Zeus or specialist takeover it deliberately does not issue a
+    // CBE's exact actor move. Release-only also prevents explicit cleanup while still enabled
+    // from retaining a live lease. On Zeus or specialist takeover it deliberately does not issue a
     // follow command or restore movement over the new owner.
     private _dangerCoverLease=_group getVariable ["CBE_Danger_CoverLease",[]];
     if (local _group && {count _dangerCoverLease >= 2}) then {
-        [_group,_dangerCoverLease select 0,[],_dangerCoverLease select 1] call CBE_fnc_DangerCoverStep;
+        [_group,_dangerCoverLease select 0,[],_dangerCoverLease select 1,true] call CBE_fnc_DangerCoverStep;
     } else {
         _group setVariable ["CBE_Danger_CoverLease",nil];
     };
