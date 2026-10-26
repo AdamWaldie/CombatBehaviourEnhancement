@@ -1807,3 +1807,27 @@ required. STOP remains a distinct hold; an absent motion receipt does not qualif
 No new destination, settings application, post search, visit credit or deadline is
 created by this admission. Coherent producer checkpoint delivery and full exterior
 readiness remain unfinished; this change does not certify cross-owner continuity.
+
+
+### Current producer lane export
+
+`BuildingLaneJournal` supports an internal `EXPORT` mode for the current local
+ENTRY/SWEEP producer. It returns the same validated 13-field lane format used by
+SAVE directly from the job, independently of the public lane journal and its
+1.5-second publication throttle. The exact current CLEAR operation and live private
+building brain/job, epoch, generation, visit identity, transform and original hard
+deadline must still match. Refusal returns an empty array. Other phases are not lane
+exports.
+
+EXPORT changes no job field, publication budget, native order or deadline. Nested
+transform vectors, routes, progress rows, request targets and buddy proposals are
+copied so the result cannot mutate the producer through those arrays. Original local
+progress/start clocks are encoded as server times using the existing SAVE conversion.
+SAVE keeps its existing throttle and shares the same serialization path.
+
+This is a snapshot component, not enabled ownership transport. It refuses after
+locality loss and does not capture all egress, exterior, settings or interruption
+state. Producer registration, a final fenced seal, authenticated replay and actual
+incoming-actor reconciliation remain required. No new periodic export, network
+message, worker or readiness flag is added. Physical handover and runtime overhead
+remain unverified while audits are paused.

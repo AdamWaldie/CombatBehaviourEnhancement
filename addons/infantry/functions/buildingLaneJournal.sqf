@@ -1,8 +1,10 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Save/adopt one coherent clearance lane allocation and progress observation.
+ * Purpose: Save/adopt a clearance lane journal or export current producer lane data without publication.
  * Locality/authority: Current group owner and current CLEAR generation/epoch. CHECK validates
- * prospective resume data before an operation exists; SAVE/ADOPT also require its exact operation.
+ * prospective resume data before an operation exists; SAVE/ADOPT/EXPORT require its exact operation.
+ * EXPORT additionally requires this machine's current uncancelled building brain/job. It is
+ * current-owner-only, not a final seal after Local loss or a network/replay interface.
  * Adoption retains lane-bound buddy destination proposals as well as request ages and progress.
  * It changes job metadata, never native commands, visits, settings or deadlines.
  * Repeat/JIP: Episode/transform and exact node/roster identity bind the public snapshot.
@@ -13,19 +15,25 @@
  * on the existing job and phase, including refused samples; a phase transition or committed
  * lane-roster change invalidates that sample. The new phase must not retain an old-phase snapshot.
  * Changed-only publication. No worker, world query or retry renewal.
- * Arguments: 0 mode STRING SAVE/ADOPT/CHECK; 1 job HASHMAP empty.
+ * Arguments: 0 mode STRING SAVE/ADOPT/CHECK/EXPORT; 1 job HASHMAP empty.
  * Return: BOOL - CHECK validity without mutation, latest SAVE result or metadata adopted;
- * throttling retains the prior SAVE result. CHECK never publishes or changes job metadata.
+ * throttling retains the prior SAVE result. EXPORT returns an independently copied13-field
+ * ARRAY or [] on refusal, bypassing SAVE throttling without changing its budgets. CHECK and
+ * EXPORT never publish or change job metadata. Exported clocks use original server time.
  * Never native acknowledgement, valid-current-snapshot proof or physical continuity.
- * Callers: CortexClearBuilding and BuildingOperationStep existing callback tail.
+ * Callers: CortexClearBuilding and BuildingOperationStep SAVE/ADOPT/CHECK; internal producer
+ * checkpoint preparation may call EXPORT while it still owns this exact live job.
  * Example: ["SAVE",_job] call CBE_fnc_BuildingLaneJournal;
  */
 params [["_mode","SAVE",[""]],["_job",createHashMap,[createHashMap]]];
-if (!(_mode in ["SAVE","ADOPT","CHECK"]) || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {false};
+private _export=_mode == "EXPORT";
+private _encoding=_mode in ["SAVE","EXPORT"];
+private _refused=if (_export) then {[]} else {false};
+if (!(_mode in ["SAVE","ADOPT","CHECK","EXPORT"]) || {remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}}) exitWith {_refused};
 private _group=_job getOrDefault ["group",grpNull];
-if (isNull _group || {!local _group}) exitWith {false};
+if (isNull _group || {!local _group}) exitWith {_refused};
 private _phase=_job getOrDefault ["phase","ENTRY"];
-if (!(_phase in ["ENTRY","SWEEP"])) exitWith {_mode == "ADOPT"};
+if (!(_phase in ["ENTRY","SWEEP"])) exitWith {if (_mode == "EXPORT") then {[]} else {_mode == "ADOPT"}};
 if (_mode == "SAVE" && {serverTime < (_job getOrDefault ["laneJournalAfter",-1])}
     && {_phase isEqualTo (_job getOrDefault ["laneJournalPhase",""])}) exitWith {_job getOrDefault ["laneJournalLastResult",false]};
 private _result=false;
@@ -34,7 +42,8 @@ _result=call {
     private _operation=_group getVariable ["CBE_Operation",createHashMap];
     private _context=_job getOrDefault ["visitContext",[]];
     private _building=_job getOrDefault ["building",objNull];
-    if (!local _group || {count _context != 4} || {isNull _building} || {!alive _building}
+    if (!local _group || {!(_context isEqualType [])} || {count _context != 4}
+        || {!((_context select 3) isEqualType "")} || {(_context select 3) == ""} || {isNull _building} || {!alive _building}
         || {_context isNotEqualTo (_group getVariable ["CBE_Cortex_ClearVisitContext",[]])}
         || {(_context select 0) isNotEqualTo _building}
         || {(_context select 1) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
@@ -55,6 +64,14 @@ _result=call {
         _job set ["laneJournalPhase",_phase];
         _job set ["laneJournalLastResult",false];
     };
+    if (_export && {
+        private _brain=_group getVariable ["CBE_BuildingBrain",createHashMap];
+        !(_brain isEqualType createHashMap)
+            || {(_brain getOrDefault ["job",createHashMap]) isNotEqualTo _job}
+            || {(_brain getOrDefault ["ownerEpoch",-1]) != (_job getOrDefault ["ownerEpoch",-2])}
+            || {(_brain getOrDefault ["generation",-1]) != (_job getOrDefault ["generation",-2])}
+            || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}
+    }) exitWith {false};
     private _positions=_job getOrDefault ["positions",[]];
     private _pairs=_job getOrDefault ["pairs",[]];
     private _routes=_job getOrDefault ["pairRoutes",[]];
@@ -62,7 +79,7 @@ _result=call {
     private _pending=_job getOrDefault ["pending",[]];
     private _entryNodes=_job getOrDefault ["entries",[]];
     private _entryGoal=_job getOrDefault ["entry",[]];
-    private _snapshot=_group getVariable ["CBE_Cortex_ClearLanes",[]];
+    private _snapshot=if (_export) then {[]} else {_group getVariable ["CBE_Cortex_ClearLanes",[]]};
     if (_mode == "CHECK" && {_snapshot isNotEqualTo (_job getOrDefault ["expectedSnapshot",[]])}) exitWith {false};
     if (_mode in ["ADOPT","CHECK"]) then {
         if (!(_snapshot isEqualType []) || {count _snapshot != 13}
@@ -125,7 +142,7 @@ _result=call {
             || {[5,8] findIf {(_row select _x) != -1 && {!((_row select _x) call _nodeValid)}} >= 0}
             || {(_row select 14) isNotEqualTo [] && {!((_row select 14) call _vectorValid)}}) exitWith {_valid=false};
         _row set [2,(_row select 2) apply {+_x}];_row set [10,+(_row select 10)];_row set [14,+(_row select 14)];
-        if (_mode == "SAVE") then {
+        if (_encoding) then {
             _row set [3,serverTime-(time-(_row select 3))];
             _row set [6,serverTime+((_row select 6)-time)];
         } else {
@@ -157,7 +174,7 @@ _result=call {
     // rebuilding it while retaining the old native request age and recovery budget.
     // This is a proposal cache only, not an owned MOVE or physical entry receipt.
     private _entryTargets=[];
-    if (_mode == "SAVE") then {
+    if (_encoding) then {
         private _targets=_job getOrDefault ["pairEntryTargets",createHashMap];
         if (!(_targets isEqualType createHashMap) || {count _targets > _laneCount}) exitWith {_valid=false};
         for "_slot" from 0 to (_laneCount-1) do {
@@ -180,7 +197,7 @@ _result=call {
     // Keep request age with the matching lane allocation. This map never supplies an
     // owned MOVE target: BuildingActorMotion still needs actual native acknowledgement.
     private _requests=[];
-    if (_mode == "SAVE") then {
+    if (_encoding) then {
         private _requestTimes=_job getOrDefault ["movementRequestTimes",createHashMap];
         {
             private _request=_requestTimes getOrDefault [netId _x,[]];
@@ -210,13 +227,16 @@ _result=call {
         _job set ["pending",+_pending];_job set ["phase",_phase];
         _job set ["entries",_entryNodes apply {+_x}];_job set ["entry",+_entryGoal];true
     };
-    private _journal=[1,_group,+_context,_positions apply {+_x},_pairs apply {+_x},_copyRoutes,_copyStates,+_pending,_phase,_entryNodes apply {+_x},+_entryGoal,
+    // Export must not alias the producer's nested building-transform vectors.
+    private _contextCopy=[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3];
+    private _journal=[1,_group,_contextCopy,_positions apply {+_x},_pairs apply {+_x},_copyRoutes,_copyStates,+_pending,_phase,_entryNodes apply {+_x},+_entryGoal,
         _requests apply {[_x select 0,[+((_x select 1) select 0),(_x select 1) select 1]]},
         _entryTargets apply {[_x select 0,+(_x select 1)]}];
+    if (_export) exitWith {_journal};
     _job set ["laneJournalLastResult",true];
     if (_snapshot isNotEqualTo _journal) then {_group setVariable ["CBE_Cortex_ClearLanes",_journal,true]};
     true
 };
 false
 };
-_result
+if (_export && {!(_result isEqualType [])}) then {[]} else {_result}

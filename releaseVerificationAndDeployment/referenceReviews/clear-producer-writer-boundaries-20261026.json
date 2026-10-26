@@ -172,5 +172,9 @@
   },
   "physicalAcceptance": false,
   "runtimeCandidateUnchanged": ".qa/candidates/clear-exterior-idle-598279ba",
-  "runtimeFingerprint": "dd5808006e53508321fcde6ad57d2bb46f48cf44bf0dd44539cb194d7546405a"
+  "runtimeFingerprint": "dd5808006e53508321fcde6ad57d2bb46f48cf44bf0dd44539cb194d7546405a",
+  "laneExportComponentFollowup": {
+    "review": "clear-lane-producer-export-20261026.json",
+    "scope": "Shared pure lane serialization component now exposed as current-owner EXPORT, with independent nested arrays and unchanged SAVE schema/throttle. Final fenced post-loss producer capture, other phase domains and transport remain unimplemented. Earlier source hashes remain the dated boundary trace."
+  }
 }

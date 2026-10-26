@@ -28,6 +28,10 @@
       "exteriorIdleResume20261026": {
         "review": "clear-exterior-idle-resume-20261026.json",
         "scope": "Completed exterior approach idle/WAIT both use existing exact-context motion CHECK. Current interior reconciliation aggregation already exists. No full checkpoint delivery, physical CQB or whole-source parity claim."
+      },
+      "producerLaneExport20261026": {
+        "review": "clear-lane-producer-export-20261026.json",
+        "scope": "Pure current-owner lane serializer output is available for producer checkpoint construction. No final seal, replay transport, actor readiness or physical handover acceptance."
       }
     },
     {

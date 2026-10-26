@@ -110,6 +110,40 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertLess(journal.index('if (_mode != "CHECK" && {'),journal.index('_job set ["laneJournalAfter"'))
         self.assertLess(journal.index('_job set ["laneJournalAfter"'),journal.index('private _positions='))
         self.assertIn('exitWith {_job getOrDefault ["laneJournalLastResult",false]}',journal)
+        # EXPORT uses the same validated live-job serializer as SAVE, but may not
+        # consume its publication throttle, read old public lanes or mutate the job.
+        self.assertIn('private _export=_mode == "EXPORT"',journal)
+        self.assertIn('private _refused=if (_export) then {[]} else {false}',journal)
+        self.assertIn('private _snapshot=if (_export) then {[]} else {',journal)
+        self.assertIn('private _encoding=_mode in ["SAVE","EXPORT"]',journal)
+        self.assertEqual(journal.count('if (_encoding) then {'),3)
+        producer=journal.split('if (_export && {',1)[1].split('private _positions=',1)[0]
+        for guard in ('"CBE_BuildingBrain"','"job",createHashMap','isNotEqualTo _job',
+                      '"ownerEpoch"','"generation"','"cancelled"','"finished"'):
+            self.assertIn(guard,producer)
+        self.assertNotIn('setVariable',producer)
+        tail=journal.split('private _journal=',1)[1]
+        self.assertLess(tail.index('if (_export) exitWith {_journal}'),tail.index('_job set'))
+        self.assertLess(tail.index('if (_export) exitWith {_journal}'),tail.index('setVariable'))
+        self.assertIn('if (_export && {!(_result isEqualType [])}) then {[]} else {_result}',journal)
+        self.assertIn('(_context select 1) apply {+_x}',journal)
+        self.assertIn('_contextCopy,_positions apply {+_x}',journal)
+        # Export advances no source clock; changing a nested returned transform or
+        # request target must leave the private producer data untouched.
+        import copy
+        job={'context':['house',[[1,2,3],[0,1,0],[0,0,1]],90,'episode'],
+             'requests':[['actor',[[4,5,6],7]]], 'publish_after':99}
+        before=copy.deepcopy(job)
+        exported={'context':[job['context'][0], [list(v) for v in job['context'][1]],
+                             job['context'][2],job['context'][3]],
+                  'requests':[[r[0],[list(r[1][0]),r[1][1]]] for r in job['requests']]}
+        exported['context'][1][0][0]=99
+        exported['requests'][0][1][0][0]=99
+        self.assertEqual(job,before)
+        def encoded_clock(local_observation,local_now,server_now):
+            return server_now-(local_now-local_observation)
+        self.assertEqual(encoded_clock(25,30,100),95)
+        self.assertEqual(encoded_clock(25,40,110),95)  # Same source time, later capture.
         self.assertLess(journal.index('_job set ["laneJournalLastResult",false]'),journal.index('private _positions='))
         self.assertLess(text.index('if (!_laneAdopted) exitWith'),text.index('call CBE_fnc_BuildingOperationStart'))
         preflight=text.split('private _resumeLanePending=false;',1)[1].split('private _generation=-1;',1)[0]
