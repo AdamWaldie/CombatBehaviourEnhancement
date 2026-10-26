@@ -65,7 +65,7 @@
       "path": "functions/fnc_contact.sqf",
       "sha256": "8c22ca9070c08e8709b2cfad3b44656ff0191b2be094dd45ecb8e6c524691f0f",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Current readable source not semantically reconciled",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected CBE mapping, descendants open",
       "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
     },
     {
@@ -100,21 +100,21 @@
       "path": "functions/fnc_tactics.sqf",
       "sha256": "5be7f059257f9173eae92d9d1d32a65e09085c44d0df94968189ace056dd3ee5",
       "area": "Tactical group layer",
-      "reviewStatus": "Current readable source not semantically reconciled",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected CBE mapping, descendants open",
       "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
     },
     {
       "path": "functions/fnc_tacticsAssault.sqf",
       "sha256": "d61ab3ff72730cc113372f5bc0bee1005c4de2c6add18b401d002efbb856418c",
       "area": "Tactical group layer",
-      "reviewStatus": "Current readable source not semantically reconciled",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; execution dependencies and physical integration open",
       "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
     },
     {
       "path": "functions/fnc_tacticsAssess.sqf",
       "sha256": "77b708a13bc888a1e1e0aa4a9e044d4455e5c8aa6847c394f3c671136427dc93",
       "area": "Tactical group layer",
-      "reviewStatus": "Historical selected review; installed bytes match",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected assessment mapping, execution descendants open",
       "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
     },
     {
@@ -156,7 +156,7 @@
       "path": "functions/fnc_tacticsHold.sqf",
       "sha256": "3da8e86db4c590253d57cfedf2f46fcf23377c80bccca0fcd1f17eb005ec4570",
       "area": "Tactical group layer",
-      "reviewStatus": "Current readable source not semantically reconciled",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected assessment mapping, execution descendants open",
       "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
     },
     {
@@ -177,7 +177,7 @@
       "path": "functions/fnc_tacticsSuppress.sqf",
       "sha256": "a2acf7e1fa141a43e4d3addb18dd8448e3ec20df213bb7ecc2427cec190d1bf2",
       "area": "Tactical group layer",
-      "reviewStatus": "Current readable source not semantically reconciled",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; execution dependencies and physical integration open",
       "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
     },
     {

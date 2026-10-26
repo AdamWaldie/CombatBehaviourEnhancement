@@ -448,5 +448,99 @@
     ],
     "runtimeChange": "None; this review does not justify another animation/tactical controller.",
     "remaining": "Full civilian FSM and group tactics descendants; physical behaviour and median/p95 performance remain unverified."
+  },
+  "groupDispatchReview20261026": {
+    "scope": "Complete readable tactics/contact bodies. tacticsAssess descendants and effective compiled graph remain separate; selected CBE group-phase ownership/call sites only.",
+    "hashes": {
+      "fnc_tactics.sqf": "5be7f059257f9173eae92d9d1d32a65e09085c44d0df94968189ace056dd3ee5",
+      "fnc_contact.sqf": "8c22ca9070c08e8709b2cfad3b44656ff0191b2be094dd45ecb8e6c524691f0f"
+    },
+    "dispatcher": [
+      "Group disable flag refuses; expired contact timestamp enters contact helper; otherwise nonplayer leader assesses.",
+      "FormationCQB dispatch and tacticsProfiles invocation are commented out. Inventory/presence is not active implementation."
+    ],
+    "contactIntent": "Initial contact should orient the group, coordinate native attack/manoeuvre, communicate and take useful low-profile/refuge actions without scattering out of current task authority.",
+    "sourceMethods": [
+      "No-enemy path sets shortcontact delay and random formDir; enemy contact sets600secondcontact timestamp and changes groupattack/formation/formDir.",
+      "Delayed freeze/point/callout and knowledge-share callbacks capture actor/enemy without a current task/epoch/route receipt.",
+      "Stealth/indoor contact seeds nearby building positions; weak stance applies to eligibleAUTO positions.",
+      "Leader cover move is selected from nearby terrain when expectedDestination label isDoNotPlan. Source helper guard comment saysleader but predicate accepts nativeleader OR livingactor; actual caller restriction matters."
+    ],
+    "decisions": [
+      "Do not implement disabledCQB/profilehooks solely to match filenames. Select actual behaviour with finite owners.",
+      "Do not import random orientation, unconditional attack/formation changes or unleased callbacks over newer mission/Zeus orders.",
+      "DoNotPlan does not grant CBE movement authority; preserve concrete nativeholds/planning context.",
+      "CBE CONTACT/SECURITY/SEARCH transition and coordinated/building/individual dispatch must retain one operation owner and existing restoration; source contact cooldown alone is not task identity."
+    ],
+    "cbeEvidence": [
+      "addons/infantry/functions/cortexGroupTick.sqf:CONTACT state, OperationStep/owned dispatch",
+      "addons/infantry/functions/dangerActionSelect.sqf:validated hostile evidence and MAINTAIN existingoperation",
+      "addons/infantry/functions/dangerReact.sqf:original expiring groupbehaviour/combat lease"
+    ],
+    "runtimeChange": "None. No complete source-to-CBE contact equivalence or functionality increase claimed.",
+    "remaining": "Complete tacticsAssess and selected tactic execution/restoration descendants, authentic sharing/callout cadence and physical contact transition/coordination. Audits paused."
+  },
+  "groupAssessHoldReview20261026": {
+    "scope": "Complete readable tacticsAssess/tacticsHold bodies, including all plan selection and delayed dispatch. Selected CBE TacticalAssess header/nativeforce/domain/order branches; source support/tactic descendants not complete.",
+    "hashes": {
+      "fnc_tacticsAssess.sqf": "77b708a13bc888a1e1e0aa4a9e044d4455e5c8aa6847c394f3c671136427dc93",
+      "fnc_tacticsHold.sqf": "3da8e86db4c590253d57cfedf2f46fcf23377c80bccca0fcd1f17eb005ec4570"
+    },
+    "selectedFunctionality": [
+      "Environment-adjusted native target gathering, nearest-contact ordering and information sharing.",
+      "Tank danger favours concealment unlessFULL; loadedAT enables near vehicle attack; nearby indoor targets favour assault.",
+      "Known distant/higher or fortified targets bias suppression/hide/flank; HOLD waypoint nearleader favours hide. RED/YELLOW/FULL influence weighted plan choice.",
+      "Ready units may illuminate atnight, man or deploy static weapons, and request artillery against distant infantry with a friendly-proximity check.",
+      "No viable plan enters temporaryhold; group casualties/suppression/damage can trigger concealment when not advancing."
+    ],
+    "sourceMethodsToRedesign": [
+      "Assessment sets executing/attack/contact state before helper execution; source completion relies on descendant callbacks. Delayed1-30second tactic dispatch carries group/point but no original route/epoch/operation receipt.",
+      "Hold schedules groupattack/state restoration after45seconds without checking that the original tactic still owns them; later mission/controller changes could be overwritten.",
+      "Weapon/binocular selection and random formDir are not necessary to implement tactical decision quality.",
+      "Plan branches/supportdescent must be traced before counting capability. Declared GARRISON case is not proof any current selection reaches it."
+    ],
+    "cbeMapping": "Existing CortexTacticalAssess read-only force/nativebelief assessment keeps mountedcrew domain, explicit groundelement and suppression readiness separate. Executors, operation leases and existing scheduler must revalidate nativeorders and exactstate at issue/restoration; do not implement source delay as task authority.",
+    "remaining": "Reconcile each selected plan with actual current executor and supporthelper, including HOLD behaviour, artillery reservation, static/flare ownership and new-order cancellation. No tactical/parity percentage renewed.",
+    "runtimeChange": "None; this review establishes selected source decision scope, not complete CBE implementation.",
+    "cbeAssessmentHash": "47d99d4ed6d28c0779dc5847a176584872b335f9c013692c526ec4e9b2ac33eb",
+    "physicalAcceptance": false,
+    "authoredHoldTrace": {
+      "scope": "Current CortexGroupTick authoredStationary gate, CONTACT movement callers, AssaultStart/AdvanceStart nativeobjective checks, selected TacticalStart/FlankStart/reposition admission. Not every explicitZeus/script entrypoint or active-order mutation path.",
+      "finding": "Normal scheduler HOLD/SENTRY blocks autonomous manoeuvre/coordination/building entry/search/remount while fire-control/antiarmour remain available. Assault/advance starters refuse other authored objective types.",
+      "decision": "Keep existing defence/fire without a duplicate hold timer or groupattack restorecallback. Source tacticsHold delay is not needed to establish hold ownership.",
+      "verification": "2 existing authoredHOLD/SENTRY and assaulttarget regression tests PASS; static scope only.",
+      "hashes": {
+        "addons/infantry/functions/cortexGroupTick.sqf": "93437a096693d2c7b2f3b31763e7798851b8a071a23d1bec0f070bbc420e9327",
+        "addons/infantry/functions/cortexAssaultStart.sqf": "eac18a6e5b32fe59caa6f737c9528e8f0add5c680aec7efae2f388f5b17065ee",
+        "addons/infantry/functions/cortexAdvanceStart.sqf": "664c1abcd9bf22e976b102afbecf4f830a194fb767bb2dabc0ae90d1f7c5095d",
+        "addons/infantry/functions/cortexTacticalStart.sqf": "8677faa0c9992df0e9da93cd4be2b46d79dca462d5f960470b4fabc389c00690"
+      },
+      "remaining": "NewHOLD during active manoeuvre, multiple actors/nativeorders and explicitbehaviour module priority still require complete entrypoint trace and physical evidence."
+    }
+  },
+  "assaultSuppressionExecutorReview20261026": {
+    "scope": "Complete readable tacticsAssault/tacticsSuppress bodies. Called ready-roster/vehicle/overwatch/smoke/UGL/group-suppression helpers retain separate scope. No compiled runtime/caller-equivalence claim.",
+    "hashes": {
+      "fnc_tacticsAssault.sqf": "d61ab3ff72730cc113372f5bc0bee1005c4de2c6add18b401d002efbb856418c",
+      "fnc_tacticsSuppress.sqf": "a2acf7e1fa141a43e4d3addb18dd8448e3ec20df213bb7ecc2427cec190d1bf2"
+    },
+    "assaultIntent": [
+      "Aggressive selected infantry movement toward contact/building area; seed up to25building memory nodes.",
+      "Place ready vehicles at supporting overwatch; smoke, optionalUGL smoke and reload preparation."
+    ],
+    "suppressionIntent": [
+      "Check ability to suppress; choose alternate flank if unavailable.",
+      "Collect target-area building/vegetation/belief positions and armed vehicles; delegate finite tactical episode to recursive group suppression."
+    ],
+    "sourceMethodsToRedesign": [
+      "Assault changes groupattack/speed/formation before confirming ready infantry and later85second callback follows all currentgroup members/restores forceSpeed/settings. Do not let original task cleanup acquire laterjoiners or newer state.",
+      "Suppression watches shared isExecutingTactic flag then restores attack/formation and follows every currentmember. A new episode reusing sameflag must not inherit stale callback/aimlist.",
+      "Assault vehicle doWatch chooses random building list member even when list may beempty; do not invent targets or count empty-list setup as working combinedarms.",
+      "TargetZ flattening, allmember destination convergence and unbound reload/laser/weapon preparation are not adequate coherentCQB ownership."
+    ],
+    "cbeMapping": "Existing CortexAssaultStart/AdvanceStart/FlankStep and BuildingOperationStep separate manoeuvre and roomprogress ownership. Existing fire-control/currentobjective and vehicle/combinedarms owners retain specific target/actor/lease evidence. Source intent still requires complete executor comparison; matching filenames or safer refusal are not parity.",
+    "remaining": "Full doGroupSuppress recursion, readyroster/vehicle/overwatch/smoke dependencies, then role flow/casualtyreplacement/return against actual CBE executors. Physical combinedarms and suppression quality remain unverified.",
+    "runtimeChange": "None; no proven additional controller required.",
+    "physicalAcceptance": false
   }
 }
