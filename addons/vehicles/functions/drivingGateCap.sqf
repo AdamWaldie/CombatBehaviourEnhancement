@@ -1,14 +1,14 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Returns the gate-only view of the shared forward geometry observation.
+ * Purpose: Returns the gate-only view of the shared direction-qualified geometry observation.
  * Locality / Authority: Read-only vehicle owner, or trusted server recheck; no world mutation.
  * Repeat/JIP: Fresh observation only, no handlers/cache or passability replay. Animation/damage
  * never substitutes for physical geometry. Shared observer owns the 27-ray/108-hit turning bound (nine rays when straight).
  * Arguments: 0 vehicle <OBJECT, objNull>; 1 requested cap m/s <NUMBER, 20>;
- * 2 authoritative server recheck <BOOL, false> permits remote-vehicle geometry on server.
+ * 2 authoritative server recheck <BOOL, false> permits remote-vehicle geometry on server; 3 direction NUMBER1, +1/-1.
  * Return Value: ARRAY [cap m/s, gate OBJECT, hull gap m, sampledAt, rays]. No gate is objNull.
  * Current callers: DrivingGateOpenServer; other executors consume both shared observations directly.
  * Example: private _gate=[truck1,15] call CBE_fnc_DrivingGateCap;
  */
-params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_serverCheck",false,[true]]];
-([_vehicle,_requested,_serverCheck] call CBE_fnc_DrivingGeometryCap) select 0
+params [["_vehicle",objNull,[objNull]],["_requested",20,[0]],["_serverCheck",false,[true]],["_travelDirection",1,[0]]];
+([_vehicle,_requested,_serverCheck,[],false,_travelDirection] call CBE_fnc_DrivingGeometryCap) select 0

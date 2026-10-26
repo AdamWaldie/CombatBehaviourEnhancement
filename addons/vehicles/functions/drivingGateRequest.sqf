@@ -14,16 +14,17 @@
  * Opening receipt is diagnostic only. Existing geometry cap owns approach/wait and never times out
  * into clearance. Server retains a finite per-route attempt budget across owner migration.
  * Arguments: 0 group <GROUP, grpNull>; 1 vehicle <OBJECT, objNull>; 2 observation <ARRAY, []>
- * from DrivingGateCap; 3 convoy revision <NUMBER, -1> (-1 ordinary driving).
+ * from DrivingGateCap; 3 convoy revision <NUMBER, -1> (-1 ordinary driving); 4 direction NUMBER1, +1/-1 (reverse ordinary only).
  * Return Value: BOOL - request sent, not opening, passability or physical passage confirmation.
  * Current callers: DrivingAssistStart and ConvoyTick after their live command-authority checks.
  * Example: [_group,_vehicle,_gateObservation] call CBE_fnc_DrivingGateRequest;
  */
-params [["_group",grpNull,[grpNull]],["_vehicle",objNull,[objNull]],["_observation",[],[[]]],["_revision",-1,[0]]];
+params [["_group",grpNull,[grpNull]],["_vehicle",objNull,[objNull]],["_observation",[],[[]]],["_revision",-1,[0]],["_travelDirection",1,[0]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {false};
 // Reject malformed/nonfinite observations before comparisons, object reads or public writes.
 if (count _observation != 5 || {!((_observation select 1) isEqualType objNull)}
     || {[0,2,3,4] findIf {!((_observation select _x) isEqualType 0) || {!finite (_observation select _x)}} >= 0}
+    || {!(_travelDirection in [-1,1])} || {_travelDirection == -1 && {_revision >= 0}}
     || {!finite _revision} || {_revision < -1} || {_revision != floor _revision}) exitWith {false};
 if (isNull _group || {isNull _vehicle} || {!local _group} || {!local _vehicle}
     || {isNull driver _vehicle} || {!local driver _vehicle} || {group driver _vehicle != _group}
@@ -34,6 +35,7 @@ if (isNull _group || {isNull _vehicle} || {!local _group} || {!local _vehicle}
     || {abs speed _vehicle > 8} || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
 private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
 if (_route isEqualTo [] || {_revision < 0 && {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent)}}) exitWith {false};
+if (_travelDirection == -1 && {([_group,_vehicle,_route,_revision,[],[],_travelDirection] call CBE_fnc_DrivingGateOwnerCheck) isEqualTo []}) exitWith {false};
 private _gate=_observation select 1;
 private _driver=driver _vehicle;
 private _commander=effectiveCommander _vehicle;
@@ -81,7 +83,7 @@ if (_attempts >= 2) exitWith {
 // The current seats bind this request too; a queued request cannot borrow a successor driver.
 private _payload=[["group",_group],["vehicle",_vehicle],["gate",_gate],["route",_route],
     ["transform",_transform],["driver",_driver],["commander",_commander],
-    ["convoyRevision",_revision],["expires",serverTime+5],["unlockReceipt",_unlockReceipt]];
+    ["convoyRevision",_revision],["expires",serverTime+5],["unlockReceipt",_unlockReceipt],["travelDirection",_travelDirection]];
 _vehicle setVariable ["CBE_DrivingGate_Pending",[_context,serverTime+5,_attempts+1],true];
 _vehicle setVariable ["CBE_DrivingGate_RequestState",[_context,"AWAITING_SERVER",serverTime+5]];
 if (isServer) then {[_payload] call CBE_fnc_DrivingGateOpenServer}

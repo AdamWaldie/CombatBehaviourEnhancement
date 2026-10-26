@@ -4,13 +4,13 @@
  * Locality/authority: Owner-local read only; never opens gates or commands vehicles.
  * Repeat/JIP: Stateless snapshot, no timer, cache, replay or movement authority.
  * Arguments: 0 group GROUP grpNull; 1 vehicle OBJECT objNull; 2 route ARRAY [];
- * 3 convoy revision NUMBER -1; 4 prior native destinations ARRAY []; 5 prior tasks ARRAY [].
+ * 3 convoy revision NUMBER -1; 4 prior native destinations ARRAY []; 5 prior tasks ARRAY []; 6 opening direction NUMBER1, +1/-1 (ordinary only).
  * Return: ARRAY [native destinations,tasks], or[] when intent cannot be proved.
  * Current callers: DrivingGateOwnerEvidence owner probe and local server gate checks.
  * Example: private _proof=[group driver truck1,truck1,_route,-1] call CBE_fnc_DrivingGateOwnerCheck;
  */
 params [["_gateGroup",grpNull,[grpNull]],["_gateVehicle",objNull,[objNull]],
-    ["_gateRoute",[],[[]]],["_gateRevision",-1,[0]],["_gateBefore",[],[[]]],["_gateTasksBefore",[],[[]]]];
+    ["_gateRoute",[],[[]]],["_gateRevision",-1,[0]],["_gateBefore",[],[[]]],["_gateTasksBefore",[],[[]]],["_gateDirection",1,[0]]];
 if (isNull _gateGroup || {isNull _gateVehicle} || {!local _gateGroup} || {!local _gateVehicle}
     || {!alive _gateVehicle} || {!simulationEnabled _gateVehicle} || {isObjectHidden _gateVehicle}
     || {[_gateGroup] call CBE_fnc_CortexZeusHeld} || {[_gateGroup] call CBE_fnc_CortexExternalTakeover}
@@ -24,6 +24,45 @@ if ([_gateDriver,_gateCommander] findIf {isNull _x || {!local _x} || {!alive _x}
     || {!simulationEnabled _x} || {isObjectHidden _x}
     || {!([_x] call CBE_fnc_CortexCombatEffective)}
     || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}} >= 0) exitWith {[]};
+// Rear opening needs current owner-local observation, not a caller direction flag.
+// Exact cap/brain/task/route identity survives only this ordinary native leg.
+if (!(_gateDirection in [-1,1]) || {_gateDirection == -1 && {_gateRevision >= 0}}) exitWith {[]};
+if (_gateDirection == -1) then {
+    private _directionBrain=_gateGroup getVariable ["CBE_Driving_Brain",createHashMap];
+    private _directionContext=[_gateGroup,clientOwner,_directionBrain getOrDefault ["ownerEpoch",-1],
+        _directionBrain getOrDefault ["generation",-1],_gateRoute,_gateDriver,_gateCommander];
+    private _directionFrame=[_gateDriver,_gateCommander] apply {
+        private _command=toUpperANSI currentCommand _x;
+        if (_command in ["","MOVE","WAIT"]) then {_command="TRAVEL"};
+        [_command,+((expectedDestination _x) param [0,[],[[]]]),formLeader _x]
+    };
+    private _directionObservation=_gateVehicle getVariable ["CBE_DrivingDirection_Observation",[]];
+    private _directionCap=_gateVehicle getVariable ["CBE_DrivingAssist_State",[]];
+    private _directionVelocity=(velocity _gateVehicle) vectorDotProduct (vectorNormalized vectorDir _gateVehicle);
+    private _directionPathAt=(_gateVehicle getVariable ["CBE_DrivingNativePath_Segment",[]]) param [1,-1,[0]];
+    private _directionMode=toUpperANSI ((vehicleMoveInfo _gateVehicle) param [0,"",[""]]);
+    private _reverseCurrent=count _directionBrain > 0
+        && {!(_directionBrain getOrDefault ["cancelled",false])} && {!(_directionBrain getOrDefault ["finished",false])}
+        && {(_directionBrain getOrDefault ["ownerEpoch",-1]) == (_gateGroup getVariable ["CBE_AIPass_Epoch",0])}
+        && {count _directionObservation == 4}
+        && {(_directionObservation select 0) isEqualTo _directionContext}
+        && {(_directionObservation select 1) isEqualTo _directionFrame}
+        && {(_directionObservation select 2) isEqualTo -1}
+        && {(_directionObservation select 3) isEqualType 0} && {finite (_directionObservation select 3)}
+        && {count _directionCap == 12} && {(_directionCap select 3) == _gateGroup}
+        && {(_directionCap select 9) isEqualTo _gateRoute}
+        && {(_directionCap select 10) isEqualTo false}
+        && {time >= (_directionCap select 2)} && {time-(_directionCap select 2) <= 6}
+        && {abs ((getForcedSpeed _gateVehicle)-(_directionCap select 0)) <= 0.1}
+        && {finite _directionVelocity} && {_directionVelocity <= 0.15}
+        && {!(_directionMode in ["FORWARD","FAST","SLOW"])}
+        && {_directionVelocity < -0.15 || {finite _directionPathAt
+            && {_directionPathAt <= (_directionObservation select 3)}}}
+        && {["CBE_DrivingPass_Work","CBE_DrivingBypass_Work","CBE_DrivingCorridor_Work"]
+            findIf {!isNil {_gateVehicle getVariable _x}} < 0};
+    if (!_reverseCurrent) then {_gateDirection=0};
+};
+if (_gateDirection == 0) exitWith {[]};
 private _gateNative=[+(expectedDestination _gateDriver),+(expectedDestination _gateCommander)];
 private _gateTasks=[currentCommand _gateDriver,currentCommand _gateCommander];
 if (_gateTasks findIf {!(_x in ["","MOVE","FOLLOW","WAIT","STOP"])} >= 0) exitWith {[]};

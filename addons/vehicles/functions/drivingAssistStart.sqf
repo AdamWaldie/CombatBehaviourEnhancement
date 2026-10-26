@@ -1047,8 +1047,8 @@ _brain set ["geometryTracks",_geometryTracks];
                 // Admission/application refusal or unconfirmed queue STOP cannot advance recovery.
                 // Preserve the last confirmed receipt; never invent zero-cap ownership or clean a successor.
             } else {
-            if (_travelDirection == 1 && {_gateObservation isNotEqualTo []} && {call _mayIssueDriving}) then {
-                [_group,_vehicle,_gateObservation] call CBE_fnc_DrivingGateRequest;
+            if (_travelDirection in [-1,1] && {_gateObservation isNotEqualTo []} && {call _mayIssueDriving}) then {
+                [_group,_vehicle,_gateObservation,-1,_travelDirection] call CBE_fnc_DrivingGateRequest;
             };
             _vehicle setVariable ["CBE_DrivingAssist_Traffic",_traffic];
             if (!_queueNativeActive && {!_queueCrossing} && {!_queueHold} && {!_crewBoardingHold}

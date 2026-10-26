@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Serialise one finite, current-owner request to open a recognised unlocked gate.
  * Locality/authority: Server only. Authenticating the vehicle/group owner is followed by live
- * route, driver, feature, gate-transform, lock and forward-geometry validation before mutation.
+ * route, driver, feature, gate-transform, lock and direction-qualified geometry validation before mutation.
  * Ordinary native route intent is rechecked at admission and mutation; owned alternate STOP
  * requires its unchanged finite journal. Convoy gate requests retain their registry contract.
  * animateSource has global effect; native animation state supplies JIP, without replay commands.
@@ -19,7 +19,7 @@
  * Initial phases are retained; already-open gates are untouched. A refused/expired request
  * grants no passage and never disables the geometry cap. Live lock changes remain authoritative.
  * Arguments: 0 payload <ARRAY, []> of named pairs: group GROUP, vehicle OBJECT, gate OBJECT,
- * route ARRAY, transform ARRAY, driver OBJECT, commander OBJECT, convoyRevision NUMBER (-1 for ordinary), expires NUMBER serverTime, unlockReceipt NUMBER (-1 or original LOCKED result timestamp).
+ * route ARRAY, transform ARRAY, driver OBJECT, commander OBJECT, convoyRevision NUMBER (-1 for ordinary), expires NUMBER serverTime, unlockReceipt NUMBER (-1 or original LOCKED result timestamp), travelDirection NUMBER +1/-1.
  * Return Value: BOOL - an opening was commanded or an existing opening was shared; not passability.
  * Exact indexed Door/Gate_N sources, or source-empty paired legacy action/model channels, N=1..8.
  * At most64 definitions and8 initial native phase reads; one preferred source per leaf, sound before plain.
@@ -28,11 +28,11 @@
  * Example: [_payload] remoteExecCall ["CBE_fnc_DrivingGateOpenServer",2];
  */
 params [["_payload",[],[[]]],["_ownerToken","",[""]]];
-if (!isServer || {count _payload != 10} || {_payload findIf {!(_x isEqualType []) || {count _x != 2} || {!((_x select 0) isEqualType "")}} >= 0}) exitWith {false};
+if (!isServer || {count _payload != 11} || {_payload findIf {!(_x isEqualType []) || {count _x != 2} || {!((_x select 0) isEqualType "")}} >= 0}) exitWith {false};
 private _values=createHashMapFromArray _payload;
 // Named transport must contain each documented key exactly once. A duplicate must
 // not silently replace one authority field while a default supplies the missing field.
-private _payloadKeys=["group","vehicle","gate","route","transform","driver","commander","convoyRevision","expires","unlockReceipt"];
+private _payloadKeys=["group","vehicle","gate","route","transform","driver","commander","convoyRevision","expires","unlockReceipt","travelDirection"];
 if (count _values != count _payloadKeys || {_payloadKeys findIf {isNil {_values get _x}} >= 0}) exitWith {false};
 private _group=_values getOrDefault ["group",grpNull];
 private _vehicle=_values getOrDefault ["vehicle",objNull];
@@ -43,8 +43,11 @@ private _route=_values getOrDefault ["route",[]];
 private _transform=_values getOrDefault ["transform",[]];
 private _revision=_values getOrDefault ["convoyRevision",-1];
 private _expires=_values getOrDefault ["expires",-1];
+private _travelDirection=_values getOrDefault ["travelDirection",0];
 private _unlockReceipt=_values getOrDefault ["unlockReceipt",-1];
-if (!(_group isEqualType grpNull) || {!(_vehicle isEqualType objNull)} || {!(_gate isEqualType objNull)}
+if (!(_travelDirection isEqualType 0) || {!(_travelDirection in [-1,1])}
+    || {_travelDirection == -1 && {_revision isEqualType 0} && {_revision >= 0}}
+    || !(_group isEqualType grpNull) || {!(_vehicle isEqualType objNull)} || {!(_gate isEqualType objNull)}
     || {!(_requestedDriver isEqualType objNull)} || {!(_requestedCommander isEqualType objNull)}
     || {!(_route isEqualType [])} || {!(_transform isEqualType [])} || {!(_revision isEqualType 0)}
     || {!finite _revision} || {_revision != floor _revision} || {_revision < -1}
@@ -89,16 +92,17 @@ if (_ownerToken == "" && {!local _group || {!local _vehicle} || {!local _driver}
     if (_sender != groupOwner _group || {_sender != owner _vehicle} || {_sender != owner _driver}
         || {_sender != owner _commander}) exitWith {false};
     private _context=createHashMapFromArray [["action","OPEN"],["group",_group],["vehicle",_vehicle],
-        ["gate",_gate],["route",+_route],["revision",_revision],["until",_expires],["payload",+_payload]];
+        ["gate",_gate],["route",+_route],["revision",_revision],["until",_expires],["direction",_travelDirection],["payload",+_payload]];
     // Leave the remote call context before the server creates its private challenge.
     [{params ["_gateContext"];["REQUEST",[_gateContext]] call CBE_fnc_DrivingGateOwnerEvidence},[_context]] call CBA_fnc_execNextFrame;
     true
 };
-if (_gateFrame isEqualTo []) then {_gateFrame=[_group,_vehicle,_route,_revision] call CBE_fnc_DrivingGateOwnerCheck};
+if (_gateFrame isEqualTo []) then {_gateFrame=[_group,_vehicle,_route,_revision,[],[],_travelDirection] call CBE_fnc_DrivingGateOwnerCheck};
 if (count _gateFrame != 2) exitWith {false};
 private _gateIntentCurrent={
     if (local _group && {local _vehicle} && {local _driver} && {local _commander}) then {
         [_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent
+            && {_travelDirection == 1 || {([_group,_vehicle,_route,_revision,[],[],_travelDirection] call CBE_fnc_DrivingGateOwnerCheck) isNotEqualTo []}}
     } else {_ownerToken != "" && {serverTime < _expires}}
 };
 if ((_gateFrame select 1) findIf {_x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]
@@ -167,7 +171,7 @@ if (_attemptIndex >= 0 && {!_retryUnlock} && {!_retryPassage}) exitWith {
     false
 };
 if (!_retryUnlock && {!_retryPassage} && {count _attempts >= 16}) exitWith {["ROUTE_GATE_BUDGET",serverTime] call _publishResult;false};
-private _observed=[_vehicle,0,true] call CBE_fnc_DrivingGateCap;
+private _observed=[_vehicle,0,true,_travelDirection] call CBE_fnc_DrivingGateCap;
 if ((_observed select 1) != _gate || {(_observed select 2) > 12} || {(_observed select 2) < 0}) exitWith {false};
 if (_retryUnlock) then {
     _attempts set [_attemptIndex,[_gate,+_transform,"VALIDATING",serverTime+5,1,_passageCycle]];

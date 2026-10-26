@@ -56,5 +56,6 @@
     "Audits paused. Normal and HC repeats and median/p95 performance remain unverified."
   ],
   "wholeHBQParity": false,
-  "physicalAcceptance": false
+  "physicalAcceptance": false,
+  "followup": "hbq-rear-gate-20261026.json implements authenticated ordinary rear opening; original no-rear-opening limitation above is historical. Physical and performance proof remain pending."
 }

@@ -627,7 +627,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-native-backing-observation-20261026.json",
-      "sha256": "3e37f89553508872e919d2fdbb03371297ccc350e8c6a89e5cce8e5bd583627c",
+      "sha256": "c4b8b4500d4f28e75407b7130cf030101f0bc1d5d91b2f4cb8af36d8121582df",
       "scope": "Ordinary native reverse traffic and solid observation; no new movement controller or whole-HBQ parity claim.",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -721,6 +721,15 @@
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf",
         "functions/fn_push.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-rear-gate-20261026.json",
+      "sha256": "8fca0cf782d7f9521a0b89141c4a0f00330e2f4d9308a4484600989f2b4ec115",
+      "scope": "Ordinary native reverse opening through existing finite owner challenge and server geometry. Not whole HBQ parity.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
