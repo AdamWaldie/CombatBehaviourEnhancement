@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "08903b22640b18a5e7126ae41e850f4788cdeab1",
+  "status": "ROOM_COMPONENT_OFFLINE_VERIFIED_TRANSPORT_PENDING",
+  "topic": "Room progress must accompany outgoing lane and exterior state",
+  "findings": [
+    {
+      "source": "addons/core/functions/cortexLocality.sqf",
+      "boundary": "outgoing frozen capture",
+      "evidence": "Current version2 capture contains lane and exterior stage journals only; no room-progress component is retained."
+    },
+    {
+      "source": "addons/infantry/functions/buildingLaneJournal.sqf",
+      "boundary": "encoding and ADOPT",
+      "evidence": "Encoding uses private cleared+unreachable to interpret retired route nodes. The13-field journal carries positions, rosters, routes, lane states, pending, phase, entries and requests, but not cleared/unreachable/retryCounts/failedBy/deadline/lastProgressAt. ADOPT does not restore these six fields."
+    },
+    {
+      "source": "addons/infantry/functions/buildingOperationStep.sqf",
+      "boundary": "room transition -> public durable order -> lane SAVE",
+      "evidence": "Room transitions mutate the private job arrays. Changed progress/retry publishes the14-field CBE_AIPass_ClearOrder at the room loop tail; lane SAVE occurs later at the callback tail. The terminal ClearEvidence write is separate. These are not one authenticated transfer envelope."
+    },
+    {
+      "source": "addons/infantry/functions/cortexClearBuilding.sqf",
+      "boundary": "resume preparation",
+      "evidence": "Resume obtains cleared/unreachable/retryCounts/failedBy/deadline/lastProgressAt from the previously delivered ClearOrder. Its missing lastProgressAt fallback is serverTime and mismatched failedBy length resets to per-room empty arrays. A future coherent replay path must validate original producer values before this legacy preparation can substitute defaults."
+    }
+  ],
+  "nextImplementation": [
+    "Add one pure, bounded room-progress serializer from the actual private job, preserving original values and visitContext, and use it inside the existing fenced outgoing capture. Do not synthesize missing clocks or retry history.",
+    "Validate indices against the exact ordered positions, finite counts/clocks and bounded failure-lane identities. Refusal must remain distinguishable from a valid empty progress set. Preserve distinct physical visits and unreachable classification.",
+    "Do not admit the capture as incoming readiness. Full episode components, producer authentication, final seal/replay and actual actor/native acknowledgements remain required before replacing current resume transport."
+  ],
+  "limits": [
+    "This source trace establishes a missing checkpoint component, not an observed network ordering failure or physical regression.",
+    "Pure room serializer and private outgoing capture changed; no transfer consumer/native authority or periodic work added.",
+    "Audits remain paused; full handover and performance remain unverified."
+  ],
+  "sourceHashes": {
+    "addons/core/functions/cortexLocality.sqf": "01896ed8509fec95bd667bf1575a1fe4146fc9459373f202f09a142f2a6d45bf",
+    "addons/infantry/functions/buildingLaneJournal.sqf": "0b9bfba8afca8a1d4ff12a4c8d0aa5b1814c44abd7f48b1c369b93829f9c6aa1",
+    "addons/infantry/functions/buildingOperationStep.sqf": "8fa736912f2c0e3d86d6cb070bddf87b85502867363fe522e781620efe45d456",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "f3534fb0a7938613338b186bdadcb3bb5c83f0813cdd9e7ce643396e65e10a52",
+    "addons/infantry/functions/buildingRoomJournal.sqf": "0e27fa8e0a57b0156933cbbfd9ce2b7d3c18081f880a1fa32a9af8721ac25ec8",
+    "addons/main/CfgFunctions.hpp": "8247bcd7c40fe98c475f0bb5ec20d3559b5ae4436b4e3aedab4eb3b494dba3ab"
+  },
+  "physicalAcceptance": false,
+  "implementationFollowup": {
+    "serializer": "addons/infantry/functions/buildingRoomJournal.sqf",
+    "schema": "[1,visitContext,positions,cleared,unreachable,retryLength,retryRows,failedBy,deadline,lastProgressAt]",
+    "sparseRetries": "Original array length and only defined[index,count] entries; no fallback count or clock.",
+    "capture": "Version3 ten-field private capture appends rooms after lanes and stageJournal. All three must validate before capture.",
+    "bounds": "512 ordered room positions; unique disjoint retired indices; retry length <= room count; per-room unique failure identities among PAIR_0..PAIR_7. Original nonnegative finite clocks/context required.",
+    "cost": "One bounded pure room copy on actual outgoing loss. No extra periodic work, world query, native command or message. Actual cost unmeasured.",
+    "remaining": "Actor visit history, egress, settings/motion and retirement domains, authenticated producer registration/seal/replay, incoming native readiness. No receiver consumes this capture."
+  },
+  "validation": {
+    "focusedExistingCases": 3,
+    "newCases": 0,
+    "fullTests": 1497,
+    "compiledSQF": 434,
+    "PBOs": 11,
+    "fullBuild": "PASS",
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-room-producer-08903b22",
+    "fingerprint": "61a343811b3ba7376dd48b3f67b59f4051712acd6f4730e15f212c9009be79b9",
+    "buildLog": ".qa/handovers/clear-room-build.log",
+    "independentLog": ".qa/handovers/clear-room-independent.log",
+    "initialFocusedFailures": "Two old version2/last-field source assertions updated for explicit version3/room extension; no runtime failure or test removed.",
+    "sourceNote": "Built from implementation working tree after08903b22; runtime unchanged between build and checkpoint; review/handover metadata followed build."
+  }
+}

@@ -1502,6 +1502,7 @@
         "addons/infantry/functions/buildingActorMotion.sqf",
         "addons/infantry/functions/buildingLaneJournal.sqf",
         "addons/infantry/functions/buildingStageJournal.sqf",
+        "addons/infantry/functions/buildingRoomJournal.sqf",
         "addons/infantry/functions/buildingRoofTop.sqf",
         "addons/infantry/functions/buildingExteriorCandidate.sqf",
         "addons/infantry/functions/buildingExteriorProposal.sqf",

@@ -156,10 +156,13 @@ isNil {
             private _stageBudget=if (_lanes isEqualType [] && {count _lanes == 13}) then {
                 [_clearJob] call CBE_fnc_BuildingStageJournal
             } else {[]};
-            if (count _stageBudget == 5) then {
-                _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[2,clientOwner,
+            private _rooms=if (count _stageBudget == 5) then {
+                [_clearJob] call CBE_fnc_BuildingRoomJournal
+            } else {[]};
+            if (count _rooms == 10) then {
+                _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[3,clientOwner,
                     _clearJob get "generation",_clearJob get "ownerEpoch",_clearJob get "operationGeneration",
-                    serverTime,_clearJob get "hardDeadline",_lanes,_stageBudget]];
+                    serverTime,_clearJob get "hardDeadline",_lanes,_stageBudget,_rooms]];
             };
         };
     };

@@ -1874,3 +1874,6 @@ normal publication keeps its changed-state and current-owner checks. No new peri
 serialization, network delivery or native command is introduced. Full phase/actor
 capture, registration, authenticated replay and actual incoming readiness remain
 unfinished; physical behaviour and transfer cost remain unverified.
+
+
+Outgoing clearance capture now also serializes original room progress from the fenced private job through `BuildingRoomJournal`. The machine-private capture is version3 with ten fields: the version2 lane and exterior components plus the room component. Room state carries the exact visit context and ordered positions, physically visited and unreachable indices separately, sparse retry length/indexed counts, per-room failed lane identities and original deadline/progress clocks. Missing or malformed state refuses capture rather than creating progress or refreshing budgets. This is still a partial producer checkpoint: actor visit history, egress, motion/settings and retirement domains plus authenticated transfer/replay and incoming native readiness remain required. No receiver or periodic job is introduced. See `clear-room-producer-boundary-20261026.json` for current limits and offline evidence.
