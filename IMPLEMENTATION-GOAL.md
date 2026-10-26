@@ -1,21 +1,48 @@
 # CBE implementation goal
 
-Deliver a standalone Arma 3 AI improvement addon by selecting useful functionality from the source register, merging complementary methods, fixing defects and evolving them into coherent CBE behaviour. Source fidelity serves gameplay quality, tactical plausibility, balance and engine performance; copying every source mechanism is not the objective.
+Deliver a standalone Arma 3 AI improvement addon by selecting useful functionality from the source register, merging complementary methods, fixing defects and evolving them into coherent CBE behaviour. Source fidelity serves gameplay quality, tactical plausibility, balance and engine performance; copying every source mechanism is not the objective. LAMBS is a functionality baseline to implement and improve, never a required dependency.
 
-## Source and work order
+## Source register and evidence
 
-Use `reference/sourceReviews/source-review-map.json` and its readable `SOURCE-REVIEW-MAP.md` as the recoverable source queue. Record each selected capability's source evidence, intended benefit, CBE execution owner, implementation gaps and next concrete work. Missing historical evidence remains missing; inventory or source review alone is not implementation credit.
+Use these existing records before choosing or claiming work:
 
-1. Stabilise foundations: finite owner-local danger/operation FSM lifecycle, admission, interruption, cleanup, locality changes and preservation of mission/Zeus orders. Implement and improve LAMBS functionality without requiring LAMBS. Complete the relevant HBQ source review and redesign unsafe methods.
-2. Build individual movement, cover, building traversal/CQB, driving and recovery on those foundations. Then compose pairs, squads, multi-squad coordination, combined arms and support. Review all Protocol sources for their useful functionality in that order.
-3. Cherry-pick complementary improvements from the remaining registered references. Merge shared intent into existing owners. Keep compatibility-only, optional/default-off stealth and follow-on extensions within their recorded scope.
+- `reference/sourceReviews/source-review-map.json` and `reference/sourceReviews/SOURCE-REVIEW-MAP.md`: recoverable master source queue and selected intent.
+- `reference/sourceReviews/lambs-danger-source-queue.json`: readable danger/FSM review scope and unresolved source paths.
+- `releaseVerificationAndDeployment/referenceReviews/hbq-reference-index.json`: HBQ review evidence and unresolved historical pointers. Review the entire relevant HBQ source, including every major branch; selected helpers do not establish whole-mod coverage.
+- `releaseVerificationAndDeployment/referenceReviews/protocol-implementation-programme-20261020.json`: all nine Protocol references and their capability/integration gaps.
+
+For each selected capability, record the source version/hash and actual execution path, intended benefit, existing CBE owner, useful differences, implementation gaps and next concrete change. Mark source methods as retained, adapted, replaced or rejected with a reason. Rejecting an unsafe method does not resolve a required capability: retain the capability gap until a suitable implementation exists. Missing historical evidence remains missing. Inventory, source review and test counts alone earn no implementation credit.
+
+## Foundations-up implementation order
+
+1. **FSM and execution foundations.** Establish finite owner-local danger/operation lifecycles: admission, task identity, decision/execution separation, interruption, native-command ownership, cancellation, cleanup, locality migration and repeat use. Preserve newer mission/Zeus orders and specialist ownership. Complete relevant LAMBS and HBQ source-to-executor tracing as these foundations are repaired.
+2. **Individual building blocks.** Build movement, cover, sensing/contact response, firing, building traversal/CQB, driving, traffic and finite recovery on those lifecycles. Keep useful native engine behaviour. Resolve shared defects here before relying on them in larger behaviours.
+3. **Pairs and squads.** Compose buddy roles, arrival-driven movement, casualty replacement, coherent building entry/clearance/isolation/egress, squad manoeuvre and convoy flow from the shared building blocks.
+4. **Coordination and combined arms.** Build multi-squad allocation, armour/infantry cooperation, artillery, AA, aircraft, insertion and support through the same task ownership and handover rules. Implement useful Protocol functionality and complementary registered methods at the layer they belong to, rather than importing independent competing controllers.
+5. **Deferred scope.** Compatibility expansion comes last: IKMS, WBK Droids and WBK Zombies remain compatibility-only. Keep optional stealth default-off and follow-on extensions deferred according to their register entries. Existing specialist safeguards remain mandatory throughout.
+
+This sequence governs dependencies, not an endless prerequisite programme. Define a finite foundation batch, resolve its specific defects, and build the next required capability on it. A physical-validation pause does not prevent independent implementation; it does prevent claims of demonstrated behaviour.
 
 ## Change safeguards
 
-For each bounded batch, state the specific capability or defect being resolved; trace its actual execution and writers before editing. Keep one movement/task owner, bounded work and finite recovery. Preserve authored skill baselines, newer orders, group membership policies and specialist ownership. Do not add permanent controllers, broad scans, speculative infrastructure or physical shortcuts to hide failures. Preserve local reference archives, Workshop files, signing keys and unrelated checkout changes.
+Before each bounded batch, name the capability or defect, its register reference, affected CBE owner, observable intended outcome and checks. Trace the real callers, writers, callbacks and cleanup before editing. Reuse existing owners and focused checks; add machinery only for a demonstrated unmet requirement. Do not replace a working path merely to resemble a reference mod.
 
-Extend relevant existing checks, then run the coherent build/package gates. Keep retained failures visible. Build-out, offline verification, physical behaviour and measured performance are separate evidence categories. Audits remain paused until the user resumes them; do not manufacture physical acceptance. The performance target remains at most 5% median / 10% p95 overhead, subject to measurement.
+Keep one task/movement owner per affected actor or platform, bounded searches and finite recovery. Delayed work must retain its original task identity and refuse stale authority. Release only state the operation still owns. Preserve authored skill baselines, newer orders, group membership policies and specialist ownership. CBA owns settings; Zeus/ZEN modules issue behaviour tasks.
+
+Do not add permanent controllers, broad scans, speculative infrastructure, arm stretching or physical shortcuts to conceal failures. Explicit operator-selected garrison teleport remains the recorded exception. Inaccessible building points must produce bounded failure/replanning, not false clearance or endless retries.
+
+Work only in the verified CBE checkout and intended branch/PR. Preserve unrelated changes, local reference archives, installed Workshop/game files and signing keys. Never stage upstream reference assets into the product. Keep changes reviewable so a regression can be isolated and reverted without discarding unrelated work.
+
+## Verification and progress
+
+Extend relevant existing checks, then run coherent build/package gates at an implementation checkpoint. Do not weaken a failed check to conceal a behavioural defect. Retain failures and record the exact source/candidate and limitations.
+
+Track **build-out**, **offline verification**, **physical behaviour** and **measured performance** separately. A capability can be implemented while physical validation remains pending; neither source inventory nor passing static checks proves it works in Arma. Audits remain paused until the user resumes them. Do not launch Arma or stage audits while paused. The performance target remains at most 5% median / 10% p95 overhead, subject to measurement.
+
+For a material regression, isolate the changed execution path and repair or revert the responsible change before layering dependent functionality onto it. Do not count retained failures as accepted behaviour. Record remaining physical uncertainty for a later authorised pass without repeatedly rebuilding an unchanged candidate.
 
 ## Finite completion
 
-A batch is complete when its stated outcome is implemented, relevant checks pass and no known material issue remains within that batch. Do not add optional refinements or move its criteria. The overall production goal is complete only when required registered functionality is resolved, authority/lifecycle checks and authorised physical validation pass, and performance is measured within budget. If blocked, record the exact blocker, completed work and minimum remaining action; continue independent required build-out where possible.
+A batch is complete when its stated outcome is implemented, relevant checks pass and no known material issue remains within that batch. Do not add optional refinements or move its criteria. Update the existing register/review record and handover with what changed, what is evidenced and what remains.
+
+The overall production goal is complete when required selected functionality has an explicit resolved disposition, authority/lifecycle checks and authorised physical validation pass, and performance is measured within budget. It does not require wholesale copying of every reference or implementation of deferred optional scope. If blocked, record the exact blocker, completed work and minimum remaining action; continue independent required build-out where possible.

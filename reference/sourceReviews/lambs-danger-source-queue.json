@@ -135,8 +135,8 @@
       "path": "functions/fnc_tacticsFlank.sqf",
       "sha256": "94f21d3dca5cf1e0e1f4f8af35bec760733b9eeb1c78090ea125a290983a755b",
       "area": "Tactical group layer",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body and main group executor reviewed 2026-10-26; selected CBE mapping in evidence",
+      "next": "Finish remaining descendants and original-owner restoration mapping; no compiled, physical or whole-mod parity claim."
     },
     {
       "path": "functions/fnc_tacticsGarrison.sqf",
@@ -149,8 +149,8 @@
       "path": "functions/fnc_tacticsHide.sqf",
       "sha256": "4eed0e0a7d9ec99836c319007f15a89f5cb000ff019b695a3b415c931fcab113",
       "area": "Tactical group layer",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body and main group executor reviewed 2026-10-26; selected CBE mapping in evidence",
+      "next": "Finish remaining descendants and original-owner restoration mapping; no compiled, physical or whole-mod parity claim."
     },
     {
       "path": "functions/fnc_tacticsHold.sqf",

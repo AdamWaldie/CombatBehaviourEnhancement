@@ -542,5 +542,81 @@
     "remaining": "Full doGroupSuppress recursion, readyroster/vehicle/overwatch/smoke dependencies, then role flow/casualtyreplacement/return against actual CBE executors. Physical combinedarms and suppression quality remain unverified.",
     "runtimeChange": "None; no proven additional controller required.",
     "physicalAcceptance": false
+  },
+  "groupSuppressionRosterReview20261026": {
+    "scope": "Complete readable bodies of four main-addon helpers and selected CBE fire/admission/reposition paths. Not whole-addon parity or compiled SQFC equivalence.",
+    "sourceHashes": {
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/GroupAction/fnc_doGroupSuppress.sqf": "8a4cf075f291c6c12d1c76fda655e1446404ef85c2a3bd9449e490e1a16f0417",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_findReadyUnits.sqf": "5be4706ade968c0a081308ce6f18bc67de75ff0c9481b797bb1923163f2caf43",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_checkVisibilityList.sqf": "4605ed8e39502313e9b6ac04277b34b316e4b1eaf61825fc7c99cd32974d5773",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/VehicleAction/fnc_doVehicleSuppress.sqf": "4fcbcdf0a08deabf78a27c2edd1efd2792fa3dba82b599ae77af89174b5f898a"
+    },
+    "findings": [
+      {
+        "source": "doGroupSuppress refreshes living nonplayer enabled actors and canFire vehicles, shuffles positions and attempts visibility for at most three infantry. It repeats every6-8seconds while a shared group tactic flag remains true.",
+        "intent": "Maintain useful suppression as participants and lanes change.",
+        "cbe": "CortexFireControl rebuilds eligible participants, excludes movers/reservations and native tasks, limits geometry to three actor lanes and rotates failed candidates. Native SUPPRESS retains fire authority.",
+        "disposition": "Keep bounded roster/lane intent; reject delayed work authorised only by a reusable boolean. Reuse the existing scheduler."
+      },
+      {
+        "source": "Failed suppression can issue20m infantry movement/forceSpeed3 or50m driver movement/findEmptyPosition; success sets infantry forceSpeed1.",
+        "intent": "Improve ineffective firing positions.",
+        "cbe": "FireControl only fires. CortexTacticalStart separately admits finite group CortexTacticalReposition with ownership, route and task gates.",
+        "disposition": "Reject unleased fire-to-movement and speed mutations. Per-actor firing-position improvement after persistent occlusion remains an explicit capability gap; group reposition does not prove equivalence."
+      },
+      {
+        "source": "findReadyUnits filters range/health/fleeing/player/vehicle/PATH/MOVE/task state, then resets ATTACK actors through BLUE and YELLOW combat modes.",
+        "intent": "Select participants for group action.",
+        "cbe": "CortexActorFireTaskAvailable reads native tasks/reservations without mutation. FireControl separately checks ROE, specialist ownership, selected loaded muzzle and current motion.",
+        "disposition": "Adapt eligibility intent; reject ROE mutation inside roster discovery. This selected fire review does not prove every movement caller protects all native orders."
+      },
+      {
+        "source": "checkVisibilityList tests terrain for up to four positions within viewDistance. doVehicleSuppress adds first-surface/friendly/range checks, retreats aim10percent and queues6second useWeapon when currentCommand is still SUPPRESS.",
+        "intent": "Select usable lanes and sustain mounted suppression.",
+        "cbe": "Selected CortexVehicles ground routine uses native belief, bounded SuppressionAim, station/magazine eligibility, LineOfFireClear and fresh issue checks.",
+        "disposition": "Keep safe point-fire intent; reject delayed useWeapon without original episode identity. Mounted/air variants, physical effects and performance remain separately unverified."
+      }
+    ],
+    "nextRequiredWork": [
+      "Trace existing actor cover/reposition ownership and blocked-lane observations before designing a finite actor firing-position adjustment. Do not add a controller based solely on this review.",
+      "Continue remaining danger/main descendants and HBQ branch dispositions. These main helpers do not enlarge or complete the41-file danger-addon queue."
+    ],
+    "runtimeChanged": false,
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
+  },
+  "flankHideExecutionReview20261026": {
+    "scope": "Complete readable bodies of tacticsFlank, tacticsHide, doGroupFlank and doGroupHide. Selected CBE indoor/cover/tactical paths, not complete descendant or compiled parity.",
+    "sourceHashes": {
+      ".qa/lambs-danger-installed-20261026/functions/fnc_tacticsFlank.sqf": "94f21d3dca5cf1e0e1f4f8af35bec760733b9eeb1c78090ea125a290983a755b",
+      ".qa/lambs-danger-installed-20261026/functions/fnc_tacticsHide.sqf": "4eed0e0a7d9ec99836c319007f15a89f5cb000ff019b695a3b415c931fcab113",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/GroupAction/fnc_doGroupFlank.sqf": "358f1e64bc593dbb80be07fb5a6ca26e917c8ce946df4ff90ac28aeed59331ba",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/GroupAction/fnc_doGroupHide.sqf": "c7b588ae613a278129e5998cb10ef124ebbee8fb4450f15192d39b0917af13f8"
+    },
+    "findings": [
+      {
+        "source": "tacticsFlank redirects close contacts to assault; otherwise chooses terrain-weighted overwatch, appends cargo, suppresses boarding, changes formation/stance/speed and schedules doGroupFlank. Timer/flag cleanup restores group speed/formation and commands every current member to follow.",
+        "intent": "Reach a useful covered firing position while keeping the group together.",
+        "disposition": "Adapt terrain and cohesion intent through existing generation-owned manoeuvres. Reject unowned allowGetIn/stance changes and cleanup over the current rather than original roster. Whole restoration equivalence is not established."
+      },
+      {
+        "source": "doGroupFlank ends when the leader is within10m; each11-19second cycle reissues moves to every surviving participant, alternates firing eligibility by array parity, and moves/suppresses vehicles by leader proximity and crew count.",
+        "intent": "Alternate support and movement with close vehicle support.",
+        "disposition": "Use existing finite drill/combined-arms owners. Array parity changes as members leave and is not persistent buddy identity; leader arrival alone is not whole-roster arrival. Do not import repeated movement plus fire writes over the same actors."
+      },
+      {
+        "source": "tacticsHide sets group WHITE/LINE/attack disabled and queues unconditional240second restoration/follow. Optional launcher actors select a weapon and receive delayed fire/stance reset. doGroupHide calls doHide, sets forceMove, then repeats hiding on unitReady or clears it after20-60seconds.",
+        "intent": "Disperse from danger while retaining capable AT/AA response.",
+        "disposition": "Keep survival and specialist-fire intent through finite cover/withdrawal/launcher ownership. Reject stale delayed fire, shared forceMove flag cleanup, and unconditional group policy restoration. Original task/generation and physical completion are required."
+      }
+    ],
+    "actorFiringPositionGap": {
+      "existing": "IndoorActorDispatch can request a defensive IndoorActorOperation. IndoorActorNodeSelect binds original ASL origin,8m radius/same-floor band, at least1.5m displacement and0.8m horizontal improvement toward belief, with occupancy/failure exclusions,3 roof probes/call and12/operation. Completed defensive OBSERVE retains the reached point instead of immediately following.",
+      "limitation": "This is geometric proximity improvement, not proof of improved fire visibility. DangerCoverStep selects screening from a threat, not an unobstructed outbound firing lane. Neither is a general persistent-occlusion firing-position response.",
+      "next": "Before implementing any actor firing-position extension, define a bounded observation of persistent occlusion and actual prospective lane improvement, then reuse an existing finite actor owner. Do not treat roof ownership or being nearer as a successful firing position."
+    },
+    "runtimeChanged": false,
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
   }
 }
