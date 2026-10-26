@@ -799,6 +799,20 @@ class CortexOperations(unittest.TestCase):
         equipment=source('casualtyWeaponRecover')
         self.assertEqual(equipment.count('action ["TakeWeapon"'),1)
         self.assertIn('CBE_fnc_CasualtyWeaponRecover',pickup)
+        after_ammo=pickup.split('action ["TakeMagazine"',1)[1]
+        self.assertLess(after_ammo.index('call _pointPickupCurrent'),after_ammo.index('_actor setVariable ["CBE_PointActor_Recovery"'))
+        self.assertIn('if (_pointEquipmentSuperseded) exitWith',pickup)
+        after_weapon=equipment.split('action ["TakeWeapon"',1)[1]
+        for proof in ('local _actor','local _group','CBE_PointActor_Brain','CBE_PointActor_Order',
+                      'CBE_AIPass_Epoch','CBE_OperationGeneration','CBE_Cortex_ActorMove','NativeOrderReceipt'):
+            self.assertIn(proof,after_weapon.split('private _receiverAfter=',1)[0])
+        self.assertLess(after_weapon.index('exitWith {false}'),after_weapon.index('_actor setVariable ["CBE_PointActor_Equipment"'))
+        # Synchronous callback replacement cannot publish into the successor visit.
+        old_visit={'brain':'old','order':1,'epoch':2,'route':'r','lease':'l'}
+        for field in old_visit:
+            changed=dict(old_visit);changed[field]='replacement'
+            self.assertNotEqual(changed,old_visit)
+
         self.assertLess(equipment.index('distance (getPosASL _body) > 2'),equipment.index('action ["TakeWeapon"'))
         for invariant in ('_primary == ""','_secondary == ""','count _row == 7',
                           'count _receiverAfter == count _receiverBefore+1',

@@ -5,6 +5,8 @@
  * Public-journal-only cleanup refuses while any private local controller remains installed.
  * Individual BLUE/GREEN orders defer new investigation and end active execution;
  * exact owned movement cleanup remains available without changing combat mode.
+ * Native inventory callbacks may replace the visit. Original order/brain/epoch/route/lease
+ * are rechecked after the action; superseded work publishes no result or formation return.
  * Equipment recovery issues at most one request per visit: empty-primary ammunition first,
  * otherwise existing missing-weapon recovery. Immediate nonconfirmation never permits a second request.
  * Purpose: Execute one finite investigation of an engine-observed own-group casualty location.
@@ -238,6 +240,19 @@ if (_position vectorDistance (_brain get "goalASL") <= 2
     // Native TakeMagazine can act at arbitrary distance: only this physical visit grants it.
     // One equipment request per visit: an unconfirmed ammo action is still issued work.
     private _pointAmmoActionIssued=false;
+    private _pointEquipmentSuperseded=false;
+    private _pointPickupOrder=(_actor getVariable ["CBE_PointActor_Order",[]]) call _copy;
+    private _pointPickupCurrent={
+        count _pointPickupOrder == 11 && {local _actor} && {local _group} && {group _actor == _group}
+            && {(_actor getVariable ["CBE_PointActor_Brain",createHashMap]) isEqualTo _brain}
+            && {!(_brain getOrDefault ["finished",false])}
+            && {(_actor getVariable ["CBE_PointActor_Order",[]]) isEqualTo _pointPickupOrder}
+            && {(_group getVariable ["CBE_AIPass_Epoch",0]) isEqualTo (_pointPickupOrder select 1)}
+            && {(_group getVariable ["CBE_OperationGeneration",0]) isEqualTo (_pointPickupOrder select 3)}
+            && {serverTime < (_pointPickupOrder select 4)}
+            && {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo (_pointPickupOrder select 7)}
+            && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_pointPickupOrder select 5)}
+    };
     // One attempt uses the existing observation lease/deadline, never a new rearm controller.
     if (primaryWeapon _actor != ""
         && {[_group,"CBE_AIPass_AmmoShare_Enable",true] call CBE_fnc_CortexFeatureEnabled}
@@ -274,6 +289,9 @@ if (_position vectorDistance (_brain get "goalASL") <= 2
             if (_before >= 0) then {
             _pointAmmoActionIssued=true;
             _actor action ["TakeMagazine",_supply,_magazine];
+            // Native inventory callbacks may replace this visit synchronously.
+            // No stale result or follow-through may be published into its successor.
+            if !(call _pointPickupCurrent) exitWith {_pointEquipmentSuperseded=true};
             private _receiverAfter=[magazinesAmmoFull _actor,_magazine] call _rounds;
             private _sourceAfter=[magazinesAmmoCargo _supply,_magazine] call _rounds;
             private _gain=_receiverAfter-_before;
@@ -286,10 +304,12 @@ if (_position vectorDistance (_brain get "goalASL") <= 2
             };
         };
     };
+    if (_pointEquipmentSuperseded) exitWith {_brain set ["finished",true];-1};
     _brain set ["visitReached",true];
     // Urgent primary ammunition wins over a second weapon pickup in this callback.
     // An immediate UNVERIFIED result does not authorize replacing the pending action.
     if (!_pointAmmoActionIssued) then {[_actor,_body,_brain] call CBE_fnc_CasualtyWeaponRecover};
+    if !(call _pointPickupCurrent) exitWith {_brain set ["finished",true];-1};
     ["VISITED"] call _finish
 };
 if (_position vectorDistance (_brain get "progressPosition") >= 1) then {

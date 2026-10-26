@@ -86,5 +86,9 @@
   "casualtyEquipmentPriorityFollowup": {
     "review": "lambs-casualty-equipment-priority-20261026.json",
     "scope": "Selected complete body helper compared. CBE point visit now permits one equipment request, urgent primary ammo before missing weapon. No delayed acknowledgement/native cleanup/whole-source parity claim."
+  },
+  "casualtyActionContextFollowup": {
+    "review": "casualty-inventory-action-context-20261026.json",
+    "scope": "After native equipment action, original point ownership/order/epoch/route/lease must still match before result/follow-through. No delayed ACK or physical acceptance."
   }
 }

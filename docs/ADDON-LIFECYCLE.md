@@ -2055,3 +2055,6 @@ Ordinary driving recognises a deliberate authored wait from total physical rest 
 
 
 A physical casualty investigation permits at most one equipment request per visit. With existing ammo recovery enabled, compatible ammunition for an empty primary weapon takes priority over a missing weapon. An issued but immediately unconfirmed ammunition action still consumes that visit request; it cannot trigger a competing weapon pickup. If no ammunition action was issued, existing missing-rifle/launcher recovery remains available. The original visit deadline, cooldown, distance/LOS and ownership checks are unchanged. No equipment is created or occupied slot replaced. Delayed native results, cleanup/return and repeated visits remain physically unverified.
+
+
+Native casualty inventory actions form an explicit effect boundary. Before publishing their result, CBE rechecks the original point order/controller, actor/group locality, owner epoch, operation generation, original deadline, route and movement lease. If a mission inventory callback replaced the visit, the old request cannot publish into it or continue through point completion. Already-applied inventory effects are not rolled back. These are effect-bound checks, with no new recurring observer or delayed-acknowledgement claim. Callback timing, delayed pickup and physical cleanup remain unverified.

@@ -4,6 +4,8 @@
  * Locality/authority: Current point-investigation actor owner only. Exact live brain, casualty,
  * route, epoch and movement lease are required. Native TakeWeapon is distance-independent, so
  * current2m proximity and LOS are rechecked here. No occupied weapon slot is replaced.
+ * Inventory-action callbacks may replace the original visit; recheck original order/brain/epoch/
+ * route/lease before result observations/publication. Changed work receives no old result or rollback.
  * Repeat/JIP: One immediate attempt/point generation, no worker/deadline extension or replay.
  * One native action, <=8 equipped-weapon rows/snapshot. A command alone never verifies transfer.
  * Arguments: 0 actor OBJECT,objNull; 1 observed body OBJECT,objNull; 2 point brain HASHMAP,empty.
@@ -68,7 +70,19 @@ if (_sourceCount != 1 || {_receiverBefore findIf {_x isEqualTo _candidate} >= 0}
     || {primaryWeapon _actor != _primary} || {secondaryWeapon _actor != _secondary}
     || {handgunWeapon _actor != _handgun}) exitWith {false};
 _actor setVariable ["CBE_PointActor_Equipment",[_generation,"UNVERIFIED",_body,_slot,_weapon,serverTime],true];
+private _actionOrder=+(_actor getVariable ["CBE_PointActor_Order",[]]);
 _actor action ["TakeWeapon",_body,_weapon];
+// The native inventory action may synchronously invoke mission inventory handlers.
+// Its original result cannot overwrite a replacement point visit or changed route.
+if (count _actionOrder != 11 || {!local _actor} || {!local _group} || {group _actor != _group}
+    || {(_actor getVariable ["CBE_PointActor_Brain",createHashMap]) isNotEqualTo _brain}
+    || {_brain getOrDefault ["finished",false]}
+    || {(_actor getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo _actionOrder}
+    || {(_group getVariable ["CBE_AIPass_Epoch",0]) isNotEqualTo (_actionOrder select 1)}
+    || {(_group getVariable ["CBE_OperationGeneration",0]) isNotEqualTo (_actionOrder select 3)}
+    || {serverTime >= (_actionOrder select 4)}
+    || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo (_actionOrder select 7)}
+    || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_actionOrder select 5)}) exitWith {false};
 private _receiverAfter=weaponsItems _actor;
 private _sourceAfter=if (!isNull _body) then {weaponsItems _body} else {[]};
 private _sourceOthers=_sourceBefore select {!(_x isEqualTo _candidate)};

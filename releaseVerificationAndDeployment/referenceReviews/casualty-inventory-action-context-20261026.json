@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "dbbe2700",
+  "status": "POST_NATIVE_INVENTORY_ACTION_CONTEXT_OFFLINE_VERIFIED",
+  "finding": "Before this change, the casualty point and weapon helper published pickup results from admission checked before native action. Native inventory callbacks/mission event handlers can replace the point task; pre-action eligibility cannot authorize publishing the old result or point follow-through after that effect boundary. This is a synchronous native-effect boundary, not an assumption that ordinary unscheduled code is scheduler-preempted.",
+  "implementation": [
+    "Point arrival retains an independent original public point-order copy. After TakeMagazine, original private brain, order, group/locality, epoch, operation generation, original deadline, route and lease must still match before reading/publishing the result.",
+    "If ammo context changed, retire only the original private brain and skip old visit follow-through. After the optional weapon helper, recheck before the point VISITED cleanup. A replacement installed brain remains protected by existing FINISH identity checks.",
+    "TakeWeapon retains its original public order and rechecks actor/group locality, brain/order, epoch, operation generation, original deadline, native route and movement lease before post-action observations/result publication. Refusal makes no inventory rollback or successor mutation.",
+    "The one-equipment-request-per-visit priority remains. No new worker, timer, retry, inventory action, route or deadline."
+  ],
+  "cost": "Effect-bound metadata/route receipt reads only; no new periodic scan or geometry query. Reused existing native-route reader cost remains engine/route-size dependent and unmeasured.",
+  "limits": [
+    "No delayed inventory acknowledgement is introduced. Immediate UNVERIFIED remains possible even when native effects arrive later.",
+    "Native callbacks and replacement races, delayed pickup/cleanup and physical return must be verified in-game; audits paused.",
+    "Identical external state rewrites cannot be distinguished by equality alone. This is not all-controller handover completion or whole LAMBS parity."
+  ],
+  "validation": {
+    "tests": 1497,
+    "compiledSqf": 443,
+    "pbos": 11,
+    "candidate": ".qa/candidates/casualty-action-context-dbbe2700",
+    "fingerprint": "0dde2256ef4750f80ab8fbfaa191caea69b62fc7016119813ae3d1a498c0b9b5",
+    "buildLog": ".qa/handovers/casualty-action-context-build.log",
+    "independentLog": ".qa/handovers/casualty-action-context-independent.log",
+    "testsAdded": 0,
+    "physicalAcceptance": false
+  },
+  "sourceHashes": {
+    "addons/infantry/functions/pointActorOperation.sqf": "cd1aceb53fffda540af20fa31a82f17810e655eea49357c6ddfc505d8948c529",
+    "addons/infantry/functions/casualtyWeaponRecover.sqf": "3b6be8535f6e1d3633e5ec9fc89e9a1249684ab39012f281863cc34ef97a98c1"
+  }
+}
