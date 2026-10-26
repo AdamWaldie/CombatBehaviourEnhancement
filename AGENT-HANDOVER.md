@@ -1,3 +1,11 @@
+## Current checkpoint: preserve pending launcher requests (2026-10-26)
+
+The launcher relocation local row now retains original group/machine/epoch/operation/route and detached pre-request command/destination/formation anchor. Unchanged pre-ack state keeps the one request reserved only within its original ten seconds. Different context/marker/anchor cannot retain it; legacy three-field rows confer no retention authority. No duplicate movement, deadline renewal, worker or new source test count. This is a live acknowledgement fix, NOT durable cancellation after timeout, stop or migration; that foundation gap remains explicit.
+
+Full1497 tests and offline gates passed; independent candidate `.qa/candidates/launcher-request-c1c60071`, fingerprint `11ab4f5e4aedc61cef0e4c7250d74036f3667fea440c5925c5dab27396c95f64`. Build sourcec1c60071 plus working implementation. Logs `.qa/handovers/launcher-request-build.log` and `launcher-request-independent.log`. Same CBE checkout/branch/draftPR19 as below. Audits PAUSED; physical behaviour and performance unverified. Continue the original-request retirement contract across actual group/stop/locality writers before claiming handback. Preserve all unrelated dirt and protected stores.
+
+---
+
 ## Current checkpoint: launcher relocation terrain and height (2026-10-26)
 
 Continuation after pushed560584d2 on `Adam/cbe-recovery-followup-20261026`, CBE checkout `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`, draftPR19. Launcher relocation now refuses water/steep cover-fallback seeds using the existing cooldown, retains suitable open-ground sidesteps, checks absolute height for native destination/physical arrival and removes only its exact recorded point/deadline. No new owner, search pass or deadline. Full1497 tests and complete offline gates passed; independent candidate `.qa/candidates/launcher-relocation-560584d2`, fingerprint `e6a692f81bcafbc09ef3b27a549685ce0b6a37c0a6f82bdade8af4eff70a7363`. Logs `.qa/handovers/launcher-relocation-build.log` and `launcher-relocation-independent.log`. Build source560584d2 plus working implementation, not a clean release.

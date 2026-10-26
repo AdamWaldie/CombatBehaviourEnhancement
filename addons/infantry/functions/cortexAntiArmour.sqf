@@ -4,6 +4,8 @@
  * Native fleeing vetoes launcher task admission, relocation and final fire revalidation.
  * Relocation refuses water/steep fallback terrain. Native destination and physical arrival
  * use absolute-height separation; cleanup retires only the exact recorded movement point.
+ * Original owner/epoch/operation/route and pre-request native state keep a delayed doMove
+ * inside its original ten-second budget. A different task cannot borrow that reservation.
  * Puts the squad's best ready loaded anti-tank gunner onto known armour, clear of backblast
  * and the shared forward friendly/civilian cone and magazine-aware blast veto.
  * Reserve-only or reloading carriers cannot monopolise selection over a ready gunner.
@@ -86,12 +88,27 @@ private _actorAvailable={
 private _now = time;
 private _relocation = _state getOrDefault ["antiArmourRelocation",[]];
 private _relocationBlocks = false;
-if (count _relocation == 3) then {
-    _relocation params ["_relocating","_relocationSpot","_relocationUntil"];
+if (count _relocation in [3,5]) then {
+    _relocation params ["_relocating","_relocationSpot","_relocationUntil",
+        ["_relocationContext",[]],["_requestBefore",[]]];
+    private _contextCurrent=count _relocation == 5
+        && {_relocationContext isEqualTo [_group,clientOwner,
+            _group getVariable ["CBE_AIPass_Epoch",0],_group getVariable ["CBE_OperationGeneration",0],
+            [_group] call CBE_fnc_NativeOrderReceipt]};
+    private _moveIdentity=(_relocating getVariable ["CBE_Cortex_ActorMove",[]])
+        isEqualTo ["ANTI_ARMOUR",_relocationSpot,_relocationUntil];
+    // Unchanged pre-request state may mean the engine has not consumed doMove yet.
+    // It grants neither a retry nor extra time, only retention of this exact request.
+    private _nativePending=_contextCurrent && {_moveIdentity} && {count _requestBefore == 3}
+        && {[currentCommand _relocating,expectedDestination _relocating,formLeader _relocating]
+            isEqualTo _requestBefore};
     private _stillOurs = alive _relocating && {local _relocating} && {group _relocating == _group}
-        && {((expectedDestination _relocating) select 0) distance2D _relocationSpot < 1}
-        && {abs (((AGLToASL ((expectedDestination _relocating) select 0)) select 2)
-            -((AGLToASL _relocationSpot) select 2)) <= 1.5};
+        && {_contextCurrent} && {_moveIdentity}
+        && {_nativePending || {currentCommand _relocating == "MOVE"
+            && {formLeader _relocating isEqualTo (_requestBefore param [2,objNull,[objNull]])}
+            && {((expectedDestination _relocating) select 0) distance2D _relocationSpot < 1}
+            && {abs (((AGLToASL ((expectedDestination _relocating) select 0)) select 2)
+                -((AGLToASL _relocationSpot) select 2)) <= 1.5}}};
     private _arrived=_relocating distance2D _relocationSpot <= 2
         && {abs (((getPosASL _relocating) select 2)-((AGLToASL _relocationSpot) select 2)) <= 1.5};
     if (_stillOurs && {!_arrived} && {_now < _relocationUntil}) then {
@@ -201,9 +218,14 @@ if (_blocked) exitWith {
         false
     };
     if (!call _mayRelocate || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _relocationRoute}) exitWith {false};
+    private _requestDestination=expectedDestination _gunner;
+    private _requestBefore=[currentCommand _gunner,
+        [+(_requestDestination select 0),_requestDestination select 1,_requestDestination select 2],formLeader _gunner];
+    private _requestContext=[_group,clientOwner,_group getVariable ["CBE_AIPass_Epoch",0],
+        _group getVariable ["CBE_OperationGeneration",0],_relocationRoute];
     _gunner doMove _spot;
     _gunner setVariable ["CBE_Cortex_ActorMove",["ANTI_ARMOUR",+_spot,_now+10]];
-    _state set ["antiArmourRelocation",[_gunner,+_spot,_now+10]];
+    _state set ["antiArmourRelocation",[_gunner,+_spot,_now+10,_requestContext,_requestBefore]];
     false
 };
 if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};

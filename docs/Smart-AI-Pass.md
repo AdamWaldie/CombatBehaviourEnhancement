@@ -3064,3 +3064,8 @@ An idle indoor defender retains an already usable lane toward its native contact
 ### Launcher relocation terrain and arrival
 
 A short backblast-clearing relocation refuses water or terrain steeper than the existing manoeuvre slope limit, including when no screened cover was found. Open-ground sidesteps remain available on suitable terrain. Arrival and native destination checks distinguish absolute height as well as horizontal distance; cleanup removes only the exact recorded movement point and deadline. Rejected terrain uses a three-second retry cooldown. No extra movement controller, search pass or operation deadline is added. Physical movement remains unverified while audits are paused.
+
+
+### Launcher request acknowledgement
+
+A backblast-clearing move retains its original owner, group epoch, operation generation, route and pre-request native command/destination/formation anchor. While the engine still exposes that unchanged pre-request state, CBE retains the one pending relocation within its original ten-second budget. It does not issue another move or renew the deadline. Changed task context or movement identity cannot inherit the reservation. This closes premature retirement before destination acknowledgement; durable cancellation after timeout, shutdown or locality transfer remains incomplete and is not claimed by this change.

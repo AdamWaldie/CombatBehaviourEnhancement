@@ -720,5 +720,22 @@
     "runtimeChanged": false,
     "physicalAcceptance": false,
     "performanceAcceptance": false
+  },
+  "launcherRequestIdentity20261026": {
+    "problem": "Before native destination acknowledgement, relocation service treated unchanged pre-request state as a replacement move, removed the marker and admitted another launcher action.",
+    "change": "Existing local relocation row now also retains original group/source machine/owner epoch/operation generation/authored route and detached native pre-request command/destination/formation anchor. Matching pre-request state retains the one pending move only within the original10second budget. Native MOVE continuation requires the same context, exact marker and saved anchor. Legacy3field rows grant no retention authority.",
+    "path": "addons/infantry/functions/cortexAntiArmour.sqf",
+    "sourceSha256": "dff66bb23c804f3005bfca5fb6828e342e896372362cbf29e44c92c558f5be0b",
+    "checks": {
+      "tests": 1497,
+      "focusedLauncherTests": 2,
+      "build": ".qa/handovers/launcher-request-build.log",
+      "independent": ".qa/handovers/launcher-request-independent.log"
+    },
+    "candidate": ".qa/candidates/launcher-request-c1c60071",
+    "fingerprint": "11ab4f5e4aedc61cef0e4c7250d74036f3667fea440c5925c5dab27396c95f64",
+    "remaining": "Local row retention does not supply durable native cancellation after timeout, stop or owner migration. Original five-field row is not an all-writer handover seal. Do not count reservation expiry as physical cancellation.",
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
   }
 }

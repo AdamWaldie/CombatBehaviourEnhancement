@@ -11995,6 +11995,23 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(_actorMove select 0) == "ANTI_ARMOUR"',section)
         self.assertIn('(_actorMove select 1) isEqualTo _relocationSpot',section)
         self.assertIn('(_actorMove select 2) == _relocationUntil',section)
+        for proof in ('count _relocation == 5','_relocationContext isEqualTo [_group,clientOwner',
+                      'CBE_AIPass_Epoch','CBE_OperationGeneration','CBE_fnc_NativeOrderReceipt',
+                      '_nativePending || {currentCommand _relocating == "MOVE"',
+                      'isEqualTo _requestBefore','{_contextCurrent} && {_moveIdentity}'):
+            self.assertIn(proof,section)
+        commit=text.split('private _requestDestination=',1)[1]
+        self.assertLess(commit.index('private _requestBefore='),commit.index('_gunner doMove _spot'))
+        self.assertIn('_now+10,_requestContext,_requestBefore',commit)
+        # Matching pre-ack state retains one original request; a changed owner,
+        # order, formation or marker cannot retain it or renew its deadline.
+        def retain(now,deadline,context,marker,pending,goal,arrived):
+            return context and marker and (pending or goal) and not arrived and now<deadline
+        self.assertTrue(retain(3,10,True,True,True,False,False))
+        self.assertFalse(retain(10,10,True,True,True,False,False))
+        self.assertFalse(retain(3,10,False,True,True,False,False))
+        self.assertFalse(retain(3,10,True,False,True,False,False))
+
         for proof in ('AGLToASL ((expectedDestination _relocating) select 0)',
                       'getPosASL _relocating','AGLToASL _relocationSpot',
                       'if (_stillOurs && {!_arrived}'):
