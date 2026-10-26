@@ -156,5 +156,52 @@
       "addons/vehicles/functions/drivingPassFinish.sqf": "5dd1bca26e31185a705d86e186624d0b8e11c03fe3c6057e484de726ef8342c1"
     },
     "remaining": "Complete CBE pass finish/cleanup descendants and actual native stop/path cessation/return verification. No physical or whole-HBQ parity credit."
+  },
+  "cbeReturnCleanupTrace": {
+    "scope": "Selected DrivingPassFinish120-end, DrivingRecoveryCleanup registration100-117/service260-310, DrivingRecoveryRelease nativeReturn164-222; complete VehicleCrewDestinationState body. Selected agreement-release receipt validation/token clear28-end, with initial guard region previously inspected. Not a complete cleanup descendants audit.",
+    "chain": [
+      "Pass finish issues original route goal once only after owner/task/STOP proof, then publishes PASS_RETURN with original started/deadline/hardDeadline, nativeReturn and passReturnOwner.",
+      "Cleanup registration requires releasePending and not releaseUnresolved; original signature includes route/driver/operator/deadlines/nativeReturn/pass token/owner. Service observes matching receipt and calls existing recovery release, not a new manoeuvre.",
+      "Recovery release rejects replaced pass owner/route/cap, retains pending observation, records NATIVE_RETURN_UNRESOLVED on expired unchanged request, and excludes PASS_RETURN from ordinary FINAL-budget continuation.",
+      "Pure two-seat classifier observes matchingMOVE goals; WAIT/idle also needs actual local position and linear/angular rest. Late matching identity may retire metadata; this is not renewed movement authority or proof of route travel.",
+      "Agreement release closes only matching token/context from original participant machine and requests server broker release; no native movement/speed writes."
+    ],
+    "findings": [
+      "No new command retry or deadline renewal found in selected branches.",
+      "Unresolved receipts stop automatic cleanup tickets but remain explicit refusal evidence; they must not be labelled successful recovery.",
+      "Late matching acknowledgement is distinct from physical travel and complete controller handover."
+    ],
+    "runtimeChange": "None; no demonstrated defect in selected branches.",
+    "hashes": {
+      "addons/vehicles/functions/drivingPassFinish.sqf": "5dd1bca26e31185a705d86e186624d0b8e11c03fe3c6057e484de726ef8342c1",
+      "addons/vehicles/functions/drivingRecoveryCleanup.sqf": "9a9dc7ee38259b178c34f4993ee9b312047aec36ee429b84cbdbd90eca1cc5e1",
+      "addons/vehicles/functions/drivingRecoveryRelease.sqf": "59b681203ef2c27537bb7c6aaab9b49a2d95feab8f082fbba3e761fc74dcc5dd",
+      "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "f118e8296792173d1214203dcc16f0f03eb2e68c6f1a1640f82c5d329f21a60a",
+      "addons/vehicles/functions/vehicleCrewDestinationState.sqf": "716831555930c5088bfa790e6071395f84e27549493a07cc222c9e668f4de2c3",
+      "addons/vehicles/functions/drivingPassAgreementRelease.sqf": "db5e5f84b487ea660357e26e0bfacb507d75ebe28b21d2adcfe6f6fbbd92d8e9"
+    },
+    "remaining": "Full cleanup dispatch/registry/migration/broker descendants and physical authored-route travel, including missedACK and supersession scenarios. Audits paused; no performance or whole-controller parity claim.",
+    "dispatchAndBrokerFollowup": {
+      "scope": "Cleanup ticket dispatch/passSTOP188-211, shared service/queue138-177 and302-end, server RELEASE107-116. Other corridor/queue/abort service branches are separate and are not complete-pass evidence.",
+      "observed": [
+        "Shared service visits at most4 ticket entries per callback; exact signature and target ticket identity gate passSTOP.",
+        "PassSTOP invokes existing finish with original request; matching unresolved flag prevents requeue. A false retirement is retained only while exact provenance remains.",
+        "Service has one scheduled flag and existing0.25second callback; queue compaction and empty-registry reset do not create new episode deadlines.",
+        "Broker RELEASE requires server remote execution and a sender from original agreement owners, sends released result and deletes the exact token. This is broker retirement, not vehicle movement or physical handover."
+      ],
+      "checks": {
+        "existingTests": 44,
+        "modules": [
+          "test_driving_recovery_cleanup",
+          "test_driving_pass_plan",
+          "test_queue_pass_exclusion"
+        ],
+        "result": "PASS",
+        "testsAdded": 0,
+        "runtimeChanged": false
+      },
+      "brokerHash": "c9dbf8e19ecf10180de3862ef58c29180247bfdb1014ad925b016411859e5a05",
+      "remaining": "Physical STOP/path cessation/route travel and full other shared cleanup families remain unverified. No complete-controller proof or runtime cost measurement."
+    }
   }
 }
