@@ -6,7 +6,10 @@
  * Repeat/JIP: No mutation, query, worker, clock renewal or publication. Original local
  * progress clocks are represented as server times once; no new observation is supplied.
  * Arguments: 0 job HASHMAP default empty.
- * Return: ARRAY [1,visitContext,legRows,publicBudget] or[] on refusal. legRows are
+ * Return: ARRAY [2,visitContext,legRows,publicBudget,yieldReceipt] or[] on refusal.
+ * yieldReceipt is[] for unknown/malformed private yield state, never zero-spent proof.
+ * Capture callers must require a known two-field receipt; budget publication is independent.
+ * legRows are
  * [originalActorKey,eight-field record]; publicBudget is the existing five-field budget.
  * Current callers: BuildingOperationStep budget publication, CortexLocality source capture.
  * Example: private _follow=[_job] call CBE_fnc_BuildingFollowJournal;
@@ -75,8 +78,18 @@ isNil {
         } forEach keys _failures;
         if (!_valid) exitWith {[]};
         private _contextCopy=[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3];
-        [1,_contextCopy,_legRows,[_building,_hard,_transform apply {+_x},_budgetRows,
-            [_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3]]]
+        private _yield=_job getOrDefault ["yieldReceipt",[]];
+        private _yieldCopy=[];
+        if (_yield isEqualType [] && {count _yield == 2}
+            && {!isNil {_yield select 0}} && {!isNil {_yield select 1}}
+            && {(_yield select 0) isEqualTo _context}
+            && {(_yield select 1) isEqualType []} && {count (_yield select 1) <= 64}
+            && {(_yield select 1) findIf {isNil "_x" || {!(_x isEqualType "")} || {_x in ["","0:0"]}} < 0}
+            && {count ((_yield select 1) arrayIntersect (_yield select 1)) == count (_yield select 1)}) then {
+            _yieldCopy=[[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3],+(_yield select 1)];
+        };
+        [2,_contextCopy,_legRows,[_building,_hard,_transform apply {+_x},_budgetRows,
+            [_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3]],_yieldCopy]
     };
     false
 };

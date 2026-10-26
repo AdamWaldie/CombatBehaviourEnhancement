@@ -4104,17 +4104,20 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
         private _followReservations=[];
         private _followReservationsReady=false;
         // One completed worker may yield per callback, once per original episode.
-        // The public attempt receipt survives locality adoption without renewing deadlines.
-        private _yieldReceipt=_group getVariable ["CBE_Cortex_ClearYield",[]];
+        // Original private spent membership is mirrored publicly; unknown or replaced
+        // receipts never grant another attempt during this episode.
+        private _yieldReceipt=_job getOrDefault ["yieldReceipt",[]];
+        private _yieldPublished=_group getVariable ["CBE_Cortex_ClearYield",[]];
         private _yieldContext=+(_job get "visitContext");
         private _yieldValid=_yieldReceipt isEqualType [] && {count _yieldReceipt == 2}
+            && {!isNil {_yieldReceipt select 0}} && {!isNil {_yieldReceipt select 1}}
             && {(_yieldReceipt select 0) isEqualTo _yieldContext}
             && {(_yieldReceipt select 1) isEqualType []} && {count (_yieldReceipt select 1) <= 64}
-            && {(_yieldReceipt select 1) findIf {!(_x isEqualType "") || {_x in ["","0:0"]}} < 0}
+            && {(_yieldReceipt select 1) findIf {isNil "_x" || {!(_x isEqualType "")} || {_x in ["","0:0"]}} < 0}
             && {count ((_yieldReceipt select 1) arrayIntersect (_yieldReceipt select 1)) == count (_yieldReceipt select 1)};
         private _yielded=if (_yieldValid) then {+(_yieldReceipt select 1)} else {[]};
         // Refuse an unknown spent-membership record; never silently mint another yield.
-        private _yieldConsidered=(_yieldReceipt isNotEqualTo [] && {!_yieldValid}) || {count _yielded >= 64};
+        private _yieldConsidered=!_yieldValid || {_yieldPublished isNotEqualTo _yieldReceipt} || {count _yielded >= 64};
         {
             private _unit=_x;
             private _key=netId _unit;
@@ -4233,12 +4236,15 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                                     private _yieldTarget=+(_positions select _yieldIndex);
                                     if ([_blocker,AGLToASL _yieldTarget] call _roomSegmentClear
                                         && {[_blocker] call _actorAvailable} && {[_blocker] call _actorTaskFree}
-                                        && {currentCommand _blocker in ["","STOP"]} && {call _mayIssueMovement}) then {
+                                        && {currentCommand _blocker in ["","STOP"]} && {call _mayIssueMovement}
+                                        && {(_group getVariable ["CBE_Cortex_ClearYield",[]]) isEqualTo _yieldReceipt}) then {
+                                        _yielded pushBackUnique _blockerKey;
+                                        private _yieldCommitted=[+_yieldContext,+_yielded];
+                                        _job set ["yieldReceipt",_yieldCommitted];
+                                        _group setVariable ["CBE_Cortex_ClearYield",_yieldCommitted,true];
                                         _blocker doMove _yieldTarget;
                                         [_blocker,_yieldTarget] call _rememberMove;
                                         _follow set [_blockerKey,[_yieldIndex,0,_now,false,false,[],_now,getPosASL _blocker]];
-                                        _yielded pushBackUnique _blockerKey;
-                                        _group setVariable ["CBE_Cortex_ClearYield",[+_yieldContext,+_yielded],true];
                                         private _slot=_followReservations findIf {(_x select 0) == _blockerKey};
                                         if (_slot >= 0) then {(_followReservations select _slot) set [2,AGLToASL _yieldTarget]};
                                     };
@@ -4269,11 +4275,16 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                                     } forEach ((_job getOrDefault ["securityActors",[]]) select [0,64]);
                                     private _exitPlan=[_blocker,_taken,_lanes,_uses,true] call _chooseExteriorExit;
                                     private _exitTarget=_exitPlan select 0;
-                                    if (call _mayIssueMovement) then {
+                                    private _yieldRecorded=false;
+                                    if (call _mayIssueMovement
+                                        && {(_group getVariable ["CBE_Cortex_ClearYield",[]]) isEqualTo _yieldReceipt}) then {
                                         _yielded pushBackUnique _blockerKey;
-                                        _group setVariable ["CBE_Cortex_ClearYield",[+_yieldContext,+_yielded],true];
+                                        private _yieldCommitted=[+_yieldContext,+_yielded];
+                                        _job set ["yieldReceipt",_yieldCommitted];
+                                        _group setVariable ["CBE_Cortex_ClearYield",_yieldCommitted,true];
+                                        _yieldRecorded=true;
                                     };
-                                    if (count _exitTarget == 3 && {[_blocker] call _actorAvailable}
+                                    if (_yieldRecorded && {count _exitTarget == 3} && {[_blocker] call _actorAvailable}
                                         && {[_blocker] call _actorTaskFree} && {currentCommand _blocker in ["","STOP"]}
                                         && {call _mayIssueMovement}) then {
                                         _earlyExits set [_blockerKey,[_blocker,+_exitTarget,serverTime+45,"MOVING",false,+(_exitPlan select 1),+(_exitPlan select 2)]];
@@ -4371,7 +4382,7 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
         } forEach _activeWorkers;
         if (_followBudgetChanged && {call _mayIssueMovement}) then {
             private _snapshot=[_job] call CBE_fnc_BuildingFollowJournal;
-            if (count _snapshot == 4) then {
+            if (count _snapshot == 5) then {
                 _group setVariable ["CBE_Cortex_ClearFollowBudget",_snapshot select 3,true];
             };
         };

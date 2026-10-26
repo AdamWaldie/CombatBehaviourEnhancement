@@ -44,5 +44,9 @@
     "buildLog": ".qa/handovers/clear-follow-producer-build.log",
     "independentLog": ".qa/handovers/clear-follow-producer-independent.log",
     "sourceNote": "Full build from implementation working tree after40e960b1; runtime unchanged between full build and checkpoint; review/handover metadata followed build."
+  },
+  "yieldLedgerFollowup": {
+    "review": "clear-yield-attempt-ledger-20261026.json",
+    "scope": "Follow component version2 adds original private yield receipt as field4;[] explicitly means unknown. Budget publication remains independent; source capture requires known yield state. Outer capture version9, fourteen fields."
   }
 }

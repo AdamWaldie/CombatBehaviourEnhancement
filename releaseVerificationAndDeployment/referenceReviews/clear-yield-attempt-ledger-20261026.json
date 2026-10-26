@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "f54caaa6c9d254edd92271123468e8c8020744a9",
+  "status": "YIELD_LEDGER_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Original private one-time yield membership and spend-before-move ordering",
+  "sourceTrace": [
+    "Both existing follow-through yield paths read spent membership from CBE_Cortex_ClearYield. The interior path issued doMove/rememberMove before publishing its spent key; exterior selection already recorded its attempt before the final move.",
+    "A missing resume yield receipt was interpreted as an empty unspent set. Unknown/mismatched external public state was not bound to an original private producer ledger.",
+    "Reserve admission already has a private native-baseline map, while casualty-relief attempts still read/write their public receipt. Their full source serialization/private ownership remains separate unfinished work."
+  ],
+  "implementation": [
+    "Fresh visits initialize private yieldReceipt[visitContext,[]] and publish the explicit zero-spent receipt only through current guarded preparation. Resume takes the exact preflight-admitted original receipt, retaining absence as unknown rather than resetting membership.",
+    "Follow-through decisions read private yieldReceipt and require current public equality. Missing/malformed private state, a mismatched public mirror, invalid IDs or the existing64-key limit refuse another yield. Unset fields refuse instead of being read as a fresh budget.",
+    "Both actual spends recheck the public mirror/current operation, append the original actor key, update the private receipt and publish it before movement. Exterior movement additionally requires the current attempt recorded flag; failed geometry still preserves the existing conservative spent-attempt policy. No deadline, recovery or failed-room budget is renewed.",
+    "BuildingFollowJournal version2 has five fields, appending the original typed yield receipt.[] means unknown/malformed, distinct from a valid two-field zero-spent receipt. Normal follow-budget publication remains independent via field3; outgoing capture additionally requires a known two-field yield receipt. Outer capture becomes version9 while retaining fourteen fields."
+  ],
+  "cost": "One private receipt and explicit guarded zero-spent publication at fresh preparation. Existing bounded membership validation plus one public/private comparison per follow-through callback and exact mirror checks per actual spend. Snapshot copies at most64 string keys. No new worker, scan, query, timer, route or native command. Actual5percent median/10percent p95 remains unmeasured.",
+  "limits": [
+    "Attempt membership is not proof that the native command moved or that an exit/watch is physically held. Recording before issue is conservative and cannot grant arrival or room visits.",
+    "Missing yield receipt on resume disables the optional yield and prevents a complete outgoing capture; it does not invent a zero-spent proof. Full authenticated delivery/acknowledgement remains required.",
+    "Reserve admission and casualty-relief source components/private ownership remain incomplete, as do other actor native/settings/interruption/retirement and full producer registration/seal/replay/native readiness.",
+    "Actual normal/HC/Zeus migration, repeated flow/casualty behaviour, balance and performance remain unverified; audits paused."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/cortexClearBuilding.sqf": "3e9fdece4a806c2289166fd54acbaf35899fa38893f6a73acc68aa9eb2dd446c",
+    "addons/infantry/functions/buildingOperationStep.sqf": "7f43b439dc4b9049024dc4567869db30114a7278966c78a0a7fccc76addd5ac4",
+    "addons/infantry/functions/buildingFollowJournal.sqf": "cb4f9d4a2e49a608c34985429349e16811c309e1ab3da7cb72ef295db67bae0a",
+    "addons/core/functions/cortexLocality.sqf": "1ffe49d59cb1df2c781c07db0006a37dae916cc2980ef024d0bdc89e5bc8d966"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "focusedExistingCases": 7,
+    "newCases": 0,
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 438,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-yield-receipt-f54caaa6",
+    "fingerprint": "690ca34f8d9b7e48e07f3aea1ba65382e80104073115fcb03af3193b186653b7",
+    "buildLog": ".qa/handovers/clear-yield-receipt-build.log",
+    "independentLog": ".qa/handovers/clear-yield-receipt-independent.log",
+    "initialFocusedFailure": "Old source assertion allowed absent receipt; updated to require the stronger missing-or-mismatched private/public refusal. No cases removed.",
+    "sourceNote": "Full build from implementation working tree afterf54caaa6; runtime unchanged between full build and checkpoint; reference/handover metadata followed build."
+  }
+}

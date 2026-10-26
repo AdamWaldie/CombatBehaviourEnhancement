@@ -42,8 +42,20 @@ class FollowThroughOccupancyTests(unittest.TestCase):
         self.assertNotIn('call CBE_fnc_RecoveryStep',block)
         self.assertNotIn('_failedTargets pushBack',block)
         self.assertIn('[+_yieldContext,+_yielded]',block)
+        self.assertIn('_job set ["yieldReceipt",_yieldCommitted]',block)
+        self.assertIn('"yieldReceipt",[]',source)
+        self.assertIn('private _yieldConsidered=!_yieldValid',source)
+        self.assertIn('_yieldPublished isNotEqualTo _yieldReceipt',source)
+        interior=source.split('private _yieldIndex=',1)[1].split('// One exterior selection',1)[0]
+        self.assertLess(interior.index('_job set ["yieldReceipt"'),interior.index('_blocker doMove'))
+        self.assertIn('isEqualTo _yieldReceipt',interior)
+        self.assertIn('if (_yieldRecorded && {count _exitTarget == 3}',source)
+        preparation=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
+        self.assertIn('_job set ["yieldReceipt",_yieldReceipt]',preparation)
+        self.assertIn('private _yieldReceipt=[+_visitContext,[]]',preparation)
+
         self.assertIn('(_yieldReceipt select 0) isEqualTo _yieldContext',source)
-        self.assertIn('(_yieldReceipt isNotEqualTo [] && {!_yieldValid})',source)
+        self.assertIn('private _yieldConsidered=!_yieldValid || {_yieldPublished isNotEqualTo _yieldReceipt}',source)
         self.assertIn('count _yielded >= 64',source)
         self.assertIn('count (_yieldReceipt select 1) <= 64',source)
         context=['house','transform',240,'visit-b']

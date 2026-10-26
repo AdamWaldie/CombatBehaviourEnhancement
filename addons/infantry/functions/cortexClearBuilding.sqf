@@ -745,6 +745,17 @@ if (!_resume) then {
     [{_group setVariable ["CBE_Cortex_ClearVisitContext",_visitContext,true]}] call _commitPreparation;
 };
 _job set ["visitContext",+_visitContext];
+// Fresh visits publish an explicit zero-spent receipt. Resume retains only its
+// admitted original receipt; absence is unknown, never another free yield.
+private _yieldReceipt=[+_visitContext,[]];
+if (_resume) then {
+    private _index=_resumePhaseReceipts findIf {(_x select 0) == "CBE_Cortex_ClearYield"};
+    _yieldReceipt=if (_index < 0) then {[]} else {+((_resumePhaseReceipts select _index) select 1)};
+};
+_job set ["yieldReceipt",_yieldReceipt];
+if (!_resume) then {
+    [{_group setVariable ["CBE_Cortex_ClearYield",_yieldReceipt,true]}] call _commitPreparation;
+};
 [{
     params ["_liveOperation"];
     // OperationStart pairs before the episode lane preference is applied. The common

@@ -141,7 +141,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('[_clearJob] call CBE_fnc_BuildingRoomJournal',capture)
         self.assertIn('if (count _rooms == 13)',capture)
         self.assertIn('call CBE_fnc_BuildingFollowJournal',capture)
-        self.assertIn('if (count _follow == 4)',capture)
+        self.assertIn('if (count _follow == 5 && {count (_follow select 4) == 2})',capture)
         self.assertIn('["CAPTURE",_clearJob] call CBE_fnc_BuildingEarlyExitJournal',capture)
         self.assertIn('if (count _early == 6)',capture)
         early=(ROOT/'addons/infantry/functions/buildingEarlyExitJournal.sqf').read_text(encoding='utf-8')
@@ -153,6 +153,10 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertNotIn(effect,early)
 
         follow=(ROOT/'addons/infantry/functions/buildingFollowJournal.sqf').read_text(encoding='utf-8')
+        self.assertIn('private _yieldCopy=[]',follow)
+        self.assertIn('"yieldReceipt",[]',follow)
+        self.assertIn('_yieldCopy]',follow)
+
         follow_step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8').split('private _follow=_job getOrDefault',1)[1]
         self.assertLess(follow_step.index('_job set ["followThrough",_follow]'),follow_step.index('_follow set ['))
         self.assertIn('_followSpent pushBackUnique _key',follow_step)
@@ -187,7 +191,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertNotIn(effect,rooms)
 
         self.assertIn('if (count _stageBudget == 5)',capture)
-        self.assertIn('ClearLaneCaptureLocal",[8,clientOwner',capture)
+        self.assertIn('ClearLaneCaptureLocal",[9,clientOwner',capture)
         self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early]',capture)
         self.assertNotIn(',true]',capture)  # Machine-private proposal only.
         self.assertIn('call CBE_fnc_BuildingEgressJournal',capture)
