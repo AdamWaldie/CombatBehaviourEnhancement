@@ -1,3 +1,21 @@
+## Current checkpoint: durable chassis-turn retirement (26 October 2026)
+
+The current branch HEAD adds VehicleTurnRetire after source-review checkpoint22af0e62. Verify live HEAD/remote/PR before further work; PR19 remains draft/open. Governing direction is IMPLEMENTATION-GOAL.md: registered-source intent, finite foundation batches, then individual/pair/squad/combined composition. Overall goal remains active and incomplete; AUDITS PAUSED.
+
+Turn proof is published before native turn issue and survives local group-state cleanup. Cancellation records STOP before requesting STOPTURNING once; a later native NONE observation or a newer owner/input retires only exact original proof. Original crew/native-task/route/generation identity is preserved. Split locality has no native command authority. Original eight-second allowance plus30s bounds cleanup; one coalesced finite callback survives master shutdown. Unresolved terminal proof stays reserved. Driving and new tactical movement cannot infer handback from an expired ordinary lease.
+
+Full1497 tests/445 compiled SQF/11 PBOs and independent verification passed. Candidate .qa/candidates/vehicle-turn-retirement-22af0e62; fingerprint6a9cfab1f93b6f1e77e7b0985c704f13663d2ce02e80691c490d7000354a149e. Build .qa/handovers/vehicle-turn-retirement-final-22af0e62.log; independent .qa/handovers/vehicle-turn-retirement-independent.log. Initial full-suite expression-contract failure is retained in vehicle-turn-retirement-22af0e62.log and corrected before the final pass. Candidate is22af0e62 plus runtime changes, unsigned development evidence, not a clean release. Review/handover metadata postdates package. No running build process remains.
+
+Reference: releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#vehicleTurnRetirementImplementation20261026. Complete readable brainVehicle and five main helpers are now reconciled, not whole-mod parity. Reactive mortar smoke/illumination, reserve ammunition choice, broader descendant execution and physical behaviour remain open. Next required source-led work can address those capabilities or remaining registered FSM/setup/task paths; do not repeatedly refine this cancelled-turn record without a concrete failing requirement.
+
+Native late replies, identical repeated native intent, split ownership, physical stop/repeat use and performance remain unverified. Do not launch Arma or stage an audit. No merge/release/Steam publication is authorised here. Preserve unrelated workflow/branding deletions and PERFORMANCE-VALIDATION edits.
+
+Work only in C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks, remote AdamWaldie/CombatBehaviourEnhancement, branch Adam/cbe-recovery-followup-20261026. Never commit CBE work in WMP. Read reference/sourceReviews/source-review-map.json, lambs-danger-source-queue.json, hbq-reference-index.json and protocol-implementation-programme-20261020.json before choosing work. Protect Workshop originals E:/SteamLibrary/steamapps/workshop/content/107410, .qa source snapshots, Pinned Down archive C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708 and permanent signing keys; no raw reference assets in product packages.
+
+Older checkpoints below are historical and superseded where this section differs.
+
+---
+
 # Latest checkpoint: durable launcher relocation lifecycle (2026-10-26)
 
 Work only in `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`, remote `https://github.com/AdamWaldie/CombatBehaviourEnhancement.git`, branch `Adam/cbe-recovery-followup-20261026`, draft PR19. The chat's WMP directory is unrelated. Audits remain PAUSED; do not launch Arma or stage installed-game files.

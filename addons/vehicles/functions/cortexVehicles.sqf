@@ -117,6 +117,9 @@
  */
 
 params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_enemies", [], [[]]], ["_lifecycleOnly",false,[true]]];
+if ((_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap) then {
+    [_group,"SERVICE"] call CBE_fnc_VehicleTurnRetire;
+};
 private _vehicleMove = _state getOrDefault ["movementLease",[]];
 private _activeVehicleMove = false;
 if (_vehicleMove isNotEqualTo []) then {
@@ -320,22 +323,7 @@ if (_vehicleMove isNotEqualTo []) then {
                 };
             };
             if (_finishedOwner == "VEHICLE_ORIENT") then {
-                private _orientState=_state getOrDefault ["vehicleDangerOrient",[]];
-                private _orientVehicle=_orientState param [1,objNull,[objNull]];
-                if (!isNull _orientVehicle && {local _orientVehicle}) then {
-                    private _marker=_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]];
-                    if (_marker param [1,grpNull,[grpNull]] == _group
-                        && {(_marker param [4,-1,[0]]) == _generation}) then {
-                        if (!_orientControllerExternal && {!_orientDriverProtected} && {!_orientCommanderProtected} && {!_orientOrderChanged} && {!_orientOperationChanged} && {!_orientInputChanged}
-                            && {private _cleanupInput=vehicleMoveInfo _orientVehicle;
-                                !(toUpperANSI (_cleanupInput param [0,"",[""]]) in ["BACK","DIRECTBYCOMANDER"])
-                                    && {toUpperANSI (_cleanupInput param [1,"",[""]]) == (_marker param [8,"",[""]])}}
-                            && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
-                            _orientVehicle sendSimpleCommand "STOPTURNING";
-                        };
-                        _orientVehicle setVariable ["CBE_Danger_VehicleOrient",nil,true];
-                    };
-                };
+                [_group,"RELEASE"] call CBE_fnc_VehicleTurnRetire;
                 _state deleteAt "vehicleDangerOrient";
             };
             [_group,_finishedOwner,false] call CBE_fnc_CortexOwnershipLease;
@@ -350,6 +338,7 @@ if (_vehicleMove isNotEqualTo []) then {
 // Movement ownership blocks only another destination. Reporting, dismount handling and
 // gunnery remain composable for the duration of the physical move.
 private _movementOwned = _activeVehicleMove
+    || {(_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap}
     || {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []};
 if (_lifecycleOnly) exitWith {_movementOwned};
 private _vehicles = [];

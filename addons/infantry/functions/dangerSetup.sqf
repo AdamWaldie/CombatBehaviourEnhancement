@@ -94,6 +94,9 @@ if (!_enabled) exitWith {
 // epoch/operation merely because a returning owner still has the old local response variable.
 // Joined actors carry their own old-group receipt; no separate public actor index is needed.
 // Discovery already owns this bounded group footprint; no world scan or new worker is added.
+if ((_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap) then {
+    [_group,"SERVICE"] call CBE_fnc_VehicleTurnRetire;
+};
 private _paceActors=(units _group) select [0,64];
 if (_paceActors isNotEqualTo []) then {
     {

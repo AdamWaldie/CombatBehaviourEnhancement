@@ -61,6 +61,7 @@ _keepBrain=_keepBrain && {_reason == "CONTACT_DISABLED"} && {!_forget} && {local
     && {!([_group] call CBE_fnc_CortexExternalTakeover)}
     && {!([_group] call CBE_fnc_CortexZeusHeld)};
 if (!_keepBrain) then {
+[_group,"RELEASE"] call CBE_fnc_VehicleTurnRetire;
 {
     if (local _x && {(_x getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap}) then {
         ["RELEASE",_x] call CBE_fnc_LauncherMove;

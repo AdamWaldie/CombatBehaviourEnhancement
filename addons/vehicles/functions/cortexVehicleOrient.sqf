@@ -5,7 +5,9 @@
  * Locality / Authority: Runs on the current group and vehicle owner. It yields to convoy, player,
  * Zeus, specialist, declared platform driving ownership, existing operation and movement ownership
  * before issuing a turn command. Platform takeover retires the turn receipt without replay.
- * Repeat/JIP: Acceptance and refusal are recorded by the caller for one danger generation. An
+ * Repeat/JIP: Public VehicleTurn_Work survives state cleanup until native stop/replacement
+ * observation; VehicleTurnRetire owns its finite cancellation. No new turn starts over that proof.
+ * Acceptance and refusal are recorded by the caller for one danger generation. An
  * accepted response binds its original driver, effective commander and authored native order, and uses the shared
  * operation generation and movement
  * lease. A replaced/protected driver retires without late turn commands; the normal group tick
@@ -23,8 +25,10 @@ params [
     ["_threat",objNull,[objNull]], ["_dangerGeneration",-1,[0]]
 ];
 if (isNull _group || {!local _group} || {isNull _vehicle} || {!local _vehicle}
-    || {isNull _threat} || {!alive _threat} || {count _threatPosition < 2}
-    || {_dangerGeneration < 0}) exitWith {false};
+    || {isNull _threat} || {!alive _threat} || {!(count _threatPosition in [2,3])}
+    || {_threatPosition findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+    || {!finite _dangerGeneration} || {_dangerGeneration < 0} || {_dangerGeneration != floor _dangerGeneration}
+    || {(_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap}) exitWith {false};
 if !([_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled
     && {[_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled}) exitWith {false};
 if ([_group] call CBE_fnc_CortexExternalTakeover
@@ -66,10 +70,19 @@ if (count _operation == 0) exitWith {
 private _operationGeneration=_operation get "generation";
 private _nativeOrder=[_group] call CBE_fnc_NativeOrderReceipt;
 private _turnDirection=["LEFT","RIGHT"] select (_relative < 180);
+private _turnGoal=+_threatPosition;
+if (count _turnGoal == 2) then {_turnGoal pushBack 0};
+private _marker=[_dangerGeneration,_group,_turnGoal,serverTime+8,
+    _operationGeneration,_driver,_nativeOrder,_commander,_turnDirection];
+// Publish the immutable turn and native-seat context before the native command.
+_vehicle setVariable ["CBE_Danger_VehicleOrient",_marker,true];
+_group setVariable ["CBE_VehicleTurn_Work",createHashMapFromArray [
+    ["vehicle",_vehicle],["marker",+_marker],["sourceOwner",clientOwner],
+    ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]],
+    ["nativeSeats",[[currentCommand _driver,expectedDestination _driver],
+        [currentCommand _commander,expectedDestination _commander]]],
+    ["cleanupUntil",(_marker select 3)+30],["phase","TURN"]],true];
 _vehicle sendSimpleCommand _turnDirection;
 _state set ["movementLease",["VEHICLE_ORIENT",time+8]];
 _state set ["vehicleOperationGeneration",_operationGeneration];
-_vehicle setVariable ["CBE_Danger_VehicleOrient",[
-    _dangerGeneration,_group,+_threatPosition,serverTime+8,_operationGeneration,_driver,_nativeOrder,_commander,_turnDirection
-],true];
 true

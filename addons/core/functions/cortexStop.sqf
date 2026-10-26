@@ -281,6 +281,7 @@ if (!isNil "_civilianCreated") then {
     _x setVariable ["CBE_AIPass_LocalHandler", nil];
     _x setVariable ["CBE_AIPass_Adopted", nil];
     private _stoppingGroup=_x;
+    [_stoppingGroup,"RELEASE"] call CBE_fnc_VehicleTurnRetire;
     private _abortSourceOwner=[_stoppingGroup] call CBE_fnc_DrivingOwnerReceipt;
     private _postureOldEpoch=_stoppingGroup getVariable ["CBE_AIPass_Epoch",0];
     _x setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil];

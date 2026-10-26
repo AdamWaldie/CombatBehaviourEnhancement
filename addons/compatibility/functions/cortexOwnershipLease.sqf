@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Unobserved tracked-turn cancellation remains reserved through its public original journal.
  * Purpose: Gives one finite CBE operation exclusive ownership of the group's CBE movement domain.
  * Locality / Authority: Call only where the group is local. The public lease follows group locality so a server or headless-client owner can renew or release it.
  * Repeat/JIP: Reacquiring the same owner uses the explicitly supplied live deadline.
@@ -36,6 +37,7 @@ private _typed=_lease isEqualType [] && {count _lease == 2}
 if (_lease isNotEqualTo [] && {!_typed}) exitWith {false};
 private _live=_typed && {serverTime < (_lease select 1)};
 if (_acquire) exitWith {
+    if ((_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap) exitWith {false};
     if ((_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo []) exitWith {false};
     if ((_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []) exitWith {false};
     if (_owner == "" || {!(_expires isEqualType 0)} || {!finite _expires} || {_expires <= serverTime}

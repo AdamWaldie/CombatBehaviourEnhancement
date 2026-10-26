@@ -669,7 +669,8 @@
         "addons/vehicles/functions/cortexVehicleReverseStep.sqf",
         "addons/vehicles/functions/cortexAAObserve.sqf",
         "addons/vehicles/functions/cortexAARelocate.sqf",
-        "addons/vehicles/functions/vehicleArmourShot.sqf"
+        "addons/vehicles/functions/vehicleArmourShot.sqf",
+        "addons/vehicles/functions/vehicleTurnRetire.sqf"
       ]
     },
     {

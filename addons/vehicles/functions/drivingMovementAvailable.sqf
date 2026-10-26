@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Unobserved tracked-turn cancellation remains reserved through its public original journal.
  * Purpose: Determines whether ordinary driving may write while finite CBE movement is active.
  * Locality / Authority: Read-only on the current group owner, or trusted server recheck; never grants tactical ownership.
  * Repeat/JIP: Reads the live public movement lease and exact current reverse epoch/deadline.
@@ -15,6 +16,7 @@
  */
 params [["_group",grpNull,[grpNull]],["_serverCheck",false,[true]]];
 if (isNull _group || {!local _group && {!(_serverCheck && {isServer})}}) exitWith {false};
+if ((_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap) exitWith {false};
 if ((_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo []) exitWith {false};
 if ((_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []) exitWith {false};
 private _lease=_group getVariable ["CBE_Cortex_MovementLease",[]];

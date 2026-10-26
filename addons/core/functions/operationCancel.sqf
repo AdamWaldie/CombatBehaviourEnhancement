@@ -30,6 +30,9 @@ isNil {
     };
 };
 if (!_cancelAdmitted) exitWith {false};
+if ((_operation getOrDefault ["intent",""]) == "VEHICLE_ORIENT") then {
+    [_group,"RELEASE"] call CBE_fnc_VehicleTurnRetire;
+};
 [_group,_operation,_reason] call CBE_fnc_OperationRestore;
 [_group,createHashMap,objNull,[],"RELEASE",_generation] call CBE_fnc_CortexVehicleReverseStep;
 [_group,_generation] call CBE_fnc_CortexGroupMoveClear;

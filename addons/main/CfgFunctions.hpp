@@ -422,7 +422,8 @@ class CfgFunctions {
             class CortexVehicleCrewRecover {file = "\z\cbe\addons\vehicles\functions\cortexVehicleCrewRecover.sqf";};
               class CortexVehicleJink {file = "\z\cbe\addons\vehicles\functions\cortexVehicleJink.sqf";};
               class CortexVehicleReverseStep {file = "\z\cbe\addons\vehicles\functions\cortexVehicleReverseStep.sqf";};
-              class CortexVehicleOrient {file = "\z\cbe\addons\vehicles\functions\cortexVehicleOrient.sqf";};
+              class VehicleTurnRetire {file = "\z\cbe\addons\vehicles\functions\vehicleTurnRetire.sqf";};
+            class CortexVehicleOrient {file = "\z\cbe\addons\vehicles\functions\cortexVehicleOrient.sqf";};
             class CortexInfantrySpeed {file = "\z\cbe\addons\infantry\functions\cortexInfantrySpeed.sqf";};
             class CortexUnitRole {file = "\z\cbe\addons\infantry\functions\cortexUnitRole.sqf";};
             class CortexOnboardContact {file = "\z\cbe\addons\infantry\functions\cortexOnboardContact.sqf";};

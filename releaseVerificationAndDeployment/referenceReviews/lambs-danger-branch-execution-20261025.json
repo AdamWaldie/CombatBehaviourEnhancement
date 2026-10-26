@@ -961,11 +961,60 @@
       "evidence": "cortexVehicles finished VEHICLE_ORIENT path and cortexRestoreCalm both issue STOPTURNING under identity/input guards then immediately erase CBE_Danger_VehicleOrient. RestoreCalm also deletes vehicleDangerOrient/movementLease in common state cleanup. The retained receipt therefore cannot observe a delayed/unconfirmed stop.",
       "classification": "Confirmed source-level proof retirement gap; actual persistent turn or physical failure is unverified. Do not assume a native command is delayed in every execution.",
       "nextBoundedChange": "Trace all turn writers and lifecycle edges; retain exact original turn/crew/native-order proof until a native no-turn or replacement is observed, or an explicit finite unresolved terminal result. Do not replay turn travel, extend the original work deadline, overwrite newer native input or create a permanent controller. Reuse existing bounded cleanup/lifecycle mechanisms where possible.",
-      "exit": "All relevant cancellation/calm/shutdown/locality paths share the exact retirement rule and existing focused offline checks pass. Physical acknowledgement/repeat-use remains pending while audits are paused."
+      "exit": "All relevant cancellation/calm/shutdown/locality paths share the exact retirement rule and existing focused offline checks pass. Physical acknowledgement/repeat-use remains pending while audits are paused.",
+      "implementationStatus": "Implemented and offline verified in vehicleTurnRetirementImplementation20261026; native physical acknowledgement and performance remain pending. Original source-gap evidence is historical."
     },
     "runtimeChanges": false,
     "buildoutPercentageChange": false,
     "physicalAcceptance": false,
     "audits": "paused"
+  },
+  "vehicleTurnRetirementImplementation20261026": {
+    "base": "22af0e62",
+    "scope": "VEHICLE_ORIENT_NATIVE_RETIREMENT; native turn cancellation only, no additional vehicle tactic or firing owner.",
+    "sourceHashes": {
+      "addons/vehicles/functions/vehicleTurnRetire.sqf": "107e3003cdc9dbf1f39644da709c39d19c17a463a16e79d7a2fb83b00b4c55af",
+      "addons/vehicles/functions/cortexVehicleOrient.sqf": "809a8f99c9d67f9deedaeeb84e3c76a8ef9b94df2cfde9bd104d8a76fa535fdf",
+      "addons/vehicles/functions/cortexVehicles.sqf": "7bf3d4d69106a860141fc9cb97efefee28f496448b41e778ec6e4d79e6c988d1",
+      "addons/vehicles/functions/drivingMovementAvailable.sqf": "4ea9608028eec25d784336d5654a784a3c15373a3e917da4264a21b1258fbe55",
+      "addons/compatibility/functions/cortexOwnershipLease.sqf": "995c8cfc8abf0c098a27b51d3fe05102b4cecc9730f30418bd73141a73791754",
+      "addons/core/functions/operationStart.sqf": "69e61eac8d28c2c93ca99e20a145c9ef27e78ee26260d4ad375d80ec8be2dbb1",
+      "addons/core/functions/operationCancel.sqf": "05230bcda59d8ac3d0bb7fd4ca9daae4e52082498ee31588bb9b02178e442eb1",
+      "addons/core/functions/operationRelease.sqf": "f7b724868e2cb98fd4378eab0e91b66876997c9d5afb4870c24698fd1705c015",
+      "addons/core/functions/cortexStop.sqf": "8557fe614c5a0bd28576147e5067313403b88c01880e2f22cacd3ce0daaef122",
+      "addons/core/functions/cortexLocality.sqf": "683752223fcd3d5c707b49db3470065f90ec9019d93abb4af6820b6f25b52fbc",
+      "addons/infantry/functions/cortexRestoreCalm.sqf": "8e563b7eb38da4bde8ae73b0c9907a96e6194a044b4966f92291724e327e141e",
+      "addons/infantry/functions/cortexReleaseGroup.sqf": "9a516137b0770bb6834c910721b40b6cd49a0611cc57ce14adc6b9047d75484a",
+      "addons/infantry/functions/dangerSetup.sqf": "d06f6e0704abb3832cdc977cb6882df75e7943b6ea1c1a1067ef2130630bda9a",
+      "addons/main/CfgFunctions.hpp": "3530400d77312de79675e1376506e741004685a8021c8a3dab380f4e900de759"
+    },
+    "implementation": [
+      "Publish original nine-field marker, group/platform identity, crew native task snapshots, original owner/epoch and original deadline+30 cleanup limit before turn issue.",
+      "One registered VehicleTurnRetire handles completion/cancellation, calm, release, shutdown, locality adoption, sparse discovery and operation replacement. Split platform or crew locality retains proof without native commands; original expiry still bounds callbacks.",
+      "STOP phase is public before one STOPTURNING request. A subsequent invocation must observe native NONE to retire it as NATIVE_STOP_OBSERVED. No repeated STOPTURNING, turn replay or arbitrary waypoint/position command.",
+      "Changed native tasks/destination, authored order, operation generation, seats, care, external driving/Zeus or native replacement input yield without late stop. Original markers retire only if unchanged.",
+      "Pending or unknown public work blocks ordinary DrivingMovementAvailable, new movement ownership leases and OperationStart after ordinary lease expiry; CortexVehicles retains movement-owned outcome independently from local state cleanup.",
+      "One finite coalesced callback per original turn, with owner/serial/marker ticket, observes cancellation after master shutdown. Locality clears only machine-local callback ticket. No perpetual controller, world search or new CBA setting."
+    ],
+    "verification": {
+      "fullTests": 1497,
+      "compiledSQF": 445,
+      "PBOs": 11,
+      "focusedExistingChecks": 3,
+      "buildLog": ".qa/handovers/vehicle-turn-retirement-final-22af0e62.log",
+      "retainedInitialFailure": ".qa/handovers/vehicle-turn-retirement-22af0e62.log: existing movement-expression assertion; original expression retained and full suite rerun successfully.",
+      "independentLog": ".qa/handovers/vehicle-turn-retirement-independent.log",
+      "candidate": ".qa/candidates/vehicle-turn-retirement-22af0e62",
+      "fingerprint": "6a9cfab1f93b6f1e77e7b0985c704f13663d2ce02e80691c490d7000354a149e",
+      "provenance": "Unsigned development build of22af0e62 plus working runtime changes; engineering review/handover notes postdate package. Not a clean release."
+    },
+    "limits": [
+      "Native turn start/stop late replies, exact same repeated native intent, split-locality delivery and actual vehicle motion remain unverified. NONE is a subsequent native input observation, not swept-motion or irreversible-command proof.",
+      "After original hard deadline no cleanup command or callback renewal occurs. Unchanged unresolved proof remains an explicit reserved outcome, not successful handback.",
+      "No physical performance measurements or acceptance while audits are paused. General jink, firing-position, reserve ammunition and reactive mortar smoke/illumination gaps remain."
+    ],
+    "physicalAcceptance": false,
+    "audits": "paused",
+    "buildoutPercentageChange": false
   }
 }

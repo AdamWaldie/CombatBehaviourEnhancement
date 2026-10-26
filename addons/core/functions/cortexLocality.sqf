@@ -323,6 +323,7 @@ if (!_gained && {!local _group} && {count _clearRetireCapture == 17}
     private _retireKey=format ["CBE_CLEAR_RETIRE_%1_%2_%3",netId _group,_clearRetireCapture select 2,_clearRetireCapture select 3];
     [CBE_fnc_BuildingProducerRetire,_retire,0,_retireKey] call CBE_fnc_CortexQueueJob;
 };
+_group setVariable ["CBE_VehicleTurn_Cleanup",nil];
 _group setVariable ["CBE_AIPass_Epoch", (_group getVariable ["CBE_AIPass_Epoch", 0]) + 1];
 if (_gained && {local _group}) then {
     _group setVariable ["CBE_Cortex_LauncherTransfer",[clientOwner,_group getVariable ["CBE_AIPass_Epoch",0],serverTime+5]];
@@ -360,6 +361,7 @@ if (!_gained && {!local _group}) then {
 };
 
 if (!_gained || {!local _group}) exitWith {};
+[_group,"RELEASE"] call CBE_fnc_VehicleTurnRetire;
 // Resume only the original pending hold deadline; the executor rechecks actual actor ownership.
 [_group] call CBE_fnc_CortexHolderRecallPending;
 // Group and vehicle ownership need not arrive together; discovery retries the split case.

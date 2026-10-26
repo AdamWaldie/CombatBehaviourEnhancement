@@ -10230,7 +10230,7 @@ class CortexOperations(unittest.TestCase):
         for guard in ['_orientOperationChanged','_turnGeneration != (_orientOperation getOrDefault ["generation",-2])',
                       '(_orientOperation getOrDefault ["intent",""]) != "VEHICLE_ORIENT"',
                       '(_orientOperation getOrDefault ["phase",""]) == "CANCELLED"',
-                      '(_marker param [4,-1,[0]]) == _generation']:
+                      'private _turnGeneration=_marker param [4,-1,[0]]']:
             self.assertIn(guard,vehicles)
 
         self.assertLess(orient.index('CBE_ExternalDrivingOwner'),orient.index('call CBE_fnc_OperationStart'))
@@ -10238,21 +10238,36 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_ExternalDrivingOwner',active)
         self.assertIn('_activeVehicleMove=!_orientControllerExternal',active)
         self.assertIn('if (_orientControllerExternal ||',vehicles)
-        self.assertIn('if (!_orientControllerExternal &&',vehicles)
-        calm=source('cortexRestoreCalm').split('private _vehicleOrient=',1)[1].split('if (!_yieldToExternal && {_state',1)[0]
-        self.assertLess(calm.index('CBE_ExternalDrivingOwner'),calm.index('sendSimpleCommand "STOPTURNING"'))
-        self.assertIn('CompatibilityExternalControl',calm)
-        self.assertIn('driver _orientVehicle == _turnDriver',calm)
-        self.assertIn('effectiveCommander _orientVehicle == _turnCommander',calm)
-        self.assertIn('count _orientMarker == 9',calm)
-        self.assertIn('vehicleMoveInfo _orientVehicle',calm)
-        self.assertIn('== (_orientMarker select 8)',calm)
-        self.assertIn('CortexActorFireTaskAvailable',calm)
-        self.assertIn('(_orientMarker param [6,[],[[]]]) isEqualTo',calm)
-        self.assertIn('NativeOrderReceipt',calm)
+        retire=source('vehicleTurnRetire')
+        self.assertIn('class VehicleTurnRetire',registry)
+        for caller in ('cortexRestoreCalm','cortexReleaseGroup','operationCancel','operationRelease',
+                       'operationStart','cortexStop','cortexLocality','dangerSetup'):
+            self.assertIn('CBE_fnc_VehicleTurnRetire',source(caller))
+        self.assertIn('CBE_fnc_VehicleTurnRetire',vehicles)
+        for caller in ('cortexOwnershipLease','drivingMovementAvailable','operationStart'):
+            self.assertIn('CBE_VehicleTurn_Work',source(caller))
+        self.assertLess(orient.index('setVariable ["CBE_VehicleTurn_Work"'),
+                        orient.index('sendSimpleCommand _turnDirection'))
+        self.assertNotIn('sendSimpleCommand "STOPTURNING"',vehicles)
+        self.assertNotIn('sendSimpleCommand "STOPTURNING"',source('cortexRestoreCalm'))
+        self.assertEqual(retire.count('sendSimpleCommand "STOPTURNING"'),1)
+        self.assertLess(retire.index('_next set ["phase","STOP"]'),
+                        retire.index('sendSimpleCommand "STOPTURNING"'))
+        self.assertLess(retire.index('_phase == "STOP" && {_turn == "NONE"}'),
+                        retire.index('if (_phase == "TURN") then'))
+        for marker in ('CBE_ExternalDrivingOwner','CompatibilityExternalControl','CortexActorFireTaskAvailable',
+                       'driver _vehicle == _driver','effectiveCommander _vehicle == _commander',
+                       'expectedDestination _driver','expectedDestination _commander','NativeOrderReceipt',
+                       'NATIVE_STOP_OBSERVED','YIELDED_TO_REPLACEMENT','UNRESOLVED_DEADLINE',
+                       'serverTime >= _hard','CBE_VehicleTurn_CleanupSerial',
+                       '(_current getOrDefault ["marker",[]]) isEqualTo (_ticket select 2)',
+                       '_mode != "SERVICE"','cancelRequested','call _schedule;true'):
+            self.assertIn(marker,retire)
+        self.assertNotIn('sendSimpleCommand _turnDirection',retire)
+        self.assertNotIn('doMove',retire)
+        self.assertNotIn('addWaypoint',retire)
 
         self.assertIn('_dangerProfile == "ARMOURED"',vehicles)
-        self.assertIn('sendSimpleCommand "STOPTURNING"',vehicles)
         for marker in ['CBE_fnc_OperationCancel','VEHICLE_ORIENT_TIMEOUT','VEHICLE_ORIENT_ALIGNED',
                        '["INCOMPLETE","COMPLETE"] select _aligned']:
             self.assertIn(marker,vehicles)
