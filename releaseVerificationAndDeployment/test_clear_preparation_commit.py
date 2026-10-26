@@ -144,6 +144,16 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('if (count _follow == 5 && {count (_follow select 4) == 2})',capture)
         self.assertIn('["CAPTURE",_clearJob] call CBE_fnc_BuildingEarlyExitJournal',capture)
         self.assertIn('if (count _early == 6)',capture)
+        self.assertIn('call CBE_fnc_BuildingReliefJournal',capture)
+        self.assertIn('if (count _relief == 2)',capture)
+        relief=(ROOT/'addons/infantry/functions/buildingReliefJournal.sqf').read_text(encoding='utf-8')
+        for guard in ('count (_source select 1) > 8','count _entries > 16','_worker in _workers',
+                      '_guard in _guards','_until > _hard','count _binding != 5','count _stage != 7',
+                      '_stage select 5) isNotEqualTo _exit','_destination select 2) isEqualType true'):
+            self.assertIn(guard,relief)
+        for effect in ('setVariable','doMove','setDestination','spawn','serverTime+'):
+            self.assertNotIn(effect,relief)
+
         early=(ROOT/'addons/infantry/functions/buildingEarlyExitJournal.sqf').read_text(encoding='utf-8')
         self.assertLess(early.index('if (_mode == "PUBLIC") exitWith'),early.index('private _motion=_job'))
         for guard in ('count _exits > 8','count _x > 64','_motionRows pushBack','_viewRows pushBack',
@@ -191,8 +201,8 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertNotIn(effect,rooms)
 
         self.assertIn('if (count _stageBudget == 5)',capture)
-        self.assertIn('ClearLaneCaptureLocal",[9,clientOwner',capture)
-        self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early]',capture)
+        self.assertIn('ClearLaneCaptureLocal",[10,clientOwner',capture)
+        self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early,_relief]',capture)
         self.assertNotIn(',true]',capture)  # Machine-private proposal only.
         self.assertIn('call CBE_fnc_BuildingEgressJournal',capture)
         self.assertIn('count _egress == 14',capture)
@@ -273,6 +283,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertNotIn(forbidden,phase)
         self.assertIn('if (_resumePhasePending) exitWith {false};',phase)
         self.assertIn('["CHECK",_earlyCheck,_receipt] call CBE_fnc_BuildingEarlyExitJournal',phase)
+        self.assertIn('[_reliefCheck] call CBE_fnc_BuildingReliefJournal',phase)
         early_check=(ROOT/'addons/infantry/functions/buildingEarlyExitJournal.sqf').read_text(encoding='utf-8').split('if (_mode == "CHECK") exitWith {',1)[1].split('if (!(_mode in ["PUBLIC","CAPTURE"]))',1)[0]
         for guard in ('count _received != 2','count _x != 7','count (_received select 1) > 8',
                       'isNull _actor','netId _actor in _exits','["PUBLIC",_candidate]',

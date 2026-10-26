@@ -10,6 +10,15 @@ class ClearExitRelief(unittest.TestCase):
                       '(serverTime+45) min (_job get "deadline") min (_job get "hardDeadline")'):
             self.assertIn(guard,r)
         self.assertLess(r.index('setVariable ["CBE_Cortex_ClearRelief"'),r.index('call _chooseExteriorExit'))
+        self.assertIn('private _journal=_reliefSource',r)
+        self.assertIn('count _journal != 2',r)
+        self.assertIn('"reliefReceipt",[]]) isNotEqualTo _journal',r)
+        self.assertLess(r.index('_job set ["reliefReceipt"'),r.index('setVariable ["CBE_Cortex_ClearRelief"'))
+        self.assertIn('"reliefReceipt",[]]) isEqualTo [_context,_tried]',r)
+        self.assertIn('private _reliefSource=_job getOrDefault ["reliefReceipt",[]]',s)
+        self.assertIn('[_candidateJob] call CBE_fnc_BuildingReliefJournal',r)
+        self.assertLess(r.index('count _candidate != 2'),r.index('private _recorded=false'))
+
         self.assertIn('(_group getVariable ["CBE_Cortex_ClearRelief",[]]) isEqualTo [_context,_tried]',r)
     def test_relief_never_spends_existing_exit_security_or_unfinished_interior_work(self):
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')

@@ -73,6 +73,10 @@
       "yieldAttemptLedger20261026": {
         "review": "clear-yield-attempt-ledger-20261026.json",
         "scope": "Private original yield membership, explicit fresh zero-spent receipt and spend-before-native-move ordering; capture retains known receipt. No physical success or complete authenticated handover claim."
+      },
+      "reliefAttemptLedger20261026": {
+        "review": "clear-relief-attempt-ledger-20261026.json",
+        "scope": "Original private finite casualty-relief ledger, strict preflight/new-attempt encoding and outgoing source capture. No current casualty/native ownership proof, complete authenticated handover or physical parity claim."
       }
     },
     {

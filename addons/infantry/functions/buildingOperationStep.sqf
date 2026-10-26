@@ -1026,6 +1026,9 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
         };
         1.5
     };
+    // Preparation and actual attempt admission validate/copy this immutable receipt.
+    // Reading it here does not repeat full nested validation on every callback.
+    private _reliefSource=_job getOrDefault ["reliefReceipt",[]];
     private _earlyExits=_job getOrDefault ["earlyExits",createHashMap];
     private _earlyMotion=_job getOrDefault ["earlyExitMotion",createHashMap];
     private _earlyViewChecks=_job getOrDefault ["earlyExitViewChecks",createHashMap];
@@ -1061,7 +1064,7 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                 // changes before arrival, retire only our own leg and return the worker to
                 // its existing lane. Loss of the original guard instead retains the same
                 // finite leg as replacement exit security. A newer actor order takes DIVERTED.
-                private _reliefJournal=_group getVariable ["CBE_Cortex_ClearRelief",[]];
+                private _reliefJournal=_reliefSource;
                 private _reliefRows=if (count _reliefJournal == 2
                     && {(_reliefJournal select 0) isEqualTo (_job get "visitContext")}) then {
                     (_reliefJournal select 1) select [0,8]
@@ -2067,15 +2070,12 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
         if (_reliefConsidered) exitWith {false};
         _reliefConsidered=true;
         private _context=+(_job get "visitContext");
-        private _journal=_group getVariable ["CBE_Cortex_ClearRelief",[]];
-        private _tried=if (count _journal == 2 && {(_journal select 0) isEqualTo _context}) then {
-            +(_journal select 1)
-        } else {[]};
-        if (count _tried >= 8 || {_tried findIf {
-            !(_x isEqualType []) || {count _x != 5}
-                || {!((_x select 0) isEqualType "")} || {!((_x select 1) isEqualType "")}
-                || {!((_x select 4) isEqualType [])} || {count (_x select 4) != 5}
-        } >= 0}) exitWith {false};
+        private _journal=_reliefSource;
+        if (count _journal != 2 || {(_journal select 0) isNotEqualTo _context}
+            || {(_job getOrDefault ["reliefReceipt",[]]) isNotEqualTo _journal}
+            || {(_group getVariable ["CBE_Cortex_ClearRelief",[]]) isNotEqualTo _journal}) exitWith {false};
+        private _tried=+(_journal select 1);
+        if (count _tried >= 8) exitWith {false};
         private _posts=[];
         if (_vacantGuardKey != "") then {
             // Known lost post only. A missing replication lookup is not death evidence.
@@ -2135,14 +2135,25 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
         };
         private _attempt=[netId _worker,_observerKey,+_exit,_until,
             [_waitingPair,_waitingSlot,_waitingMember,+_observerStage,+_observerNative]];
+        private _nextTried=+_tried;
+        _nextTried pushBack _attempt;
+        private _candidateJob=createHashMapFromArray [
+            ["building",_building],["buildingTransform",_job get "buildingTransform"],
+            ["hardDeadline",_job get "hardDeadline"],["visitContext",_context],
+            ["securityEntries",_job get "securityEntries"],["reliefReceipt",[_context,_nextTried]]];
+        private _candidate=[_candidateJob] call CBE_fnc_BuildingReliefJournal;
+        if (count _candidate != 2) exitWith {false};
         private _recorded=false;
         isNil {
             if (call _mayIssueMovement && {[_worker] call _actorAvailable} && {[_worker] call _actorTaskFree}
                 && {[_worker] call _roomCommandOwned} && {[] call _observerReliefReady}
+                && {(_job getOrDefault ["reliefReceipt",[]]) isEqualTo _journal}
                 && {(_group getVariable ["CBE_Cortex_ClearRelief",[]]) isEqualTo _journal}
                 && {serverTime < _until}) then {
-                _tried pushBack _attempt;
-                _group setVariable ["CBE_Cortex_ClearRelief",[_context,+_tried],true];
+                _tried=+(_candidate select 1);
+                private _reliefCommitted=_candidate;
+                _job set ["reliefReceipt",_reliefCommitted];
+                _group setVariable ["CBE_Cortex_ClearRelief",_reliefCommitted,true];
                 _recorded=true;
             };
         };
@@ -2176,6 +2187,7 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                     (((_job get "pairs") param [_waitingPair,[]]) param [_waitingSlot,objNull]) == _waitingMember
                         && {!([_waitingMember] call _actorAvailable) || {_waitingMember in _unavailable}}
                 }}
+                && {(_job getOrDefault ["reliefReceipt",[]]) isEqualTo [_context,_tried]}
                 && {(_group getVariable ["CBE_Cortex_ClearRelief",[]]) isEqualTo [_context,_tried]}) then {
                 _earlyExits set [netId _worker,[_worker,+_target,_until,"MOVING",false,+_exit,+(_plan select 2)]];
                 _job set ["earlyExits",_earlyExits];

@@ -43,5 +43,9 @@
     "independentLog": ".qa/handovers/clear-yield-receipt-independent.log",
     "initialFocusedFailure": "Old source assertion allowed absent receipt; updated to require the stronger missing-or-mismatched private/public refusal. No cases removed.",
     "sourceNote": "Full build from implementation working tree afterf54caaa6; runtime unchanged between full build and checkpoint; reference/handover metadata followed build."
+  },
+  "reliefLedgerFollowup": {
+    "review": "clear-relief-attempt-ledger-20261026.json",
+    "scope": "Casualty relief now retains original private attempts and checks its public mirror. Full nested admission/capture validation is shared; native execution proof stays original. Reserve baseline/full transfer remain incomplete."
   }
 }

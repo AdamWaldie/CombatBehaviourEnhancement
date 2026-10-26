@@ -458,6 +458,13 @@ if (_resume) then {
                         ["securityEntries",_securityEntries]];
                     _identity=["CHECK",_earlyCheck,_receipt] call CBE_fnc_BuildingEarlyExitJournal;
                 };
+                if (_identity && {_key == "CBE_Cortex_ClearRelief"}) then {
+                    private _reliefCheck=createHashMapFromArray [
+                        ["building",_building],["buildingTransform",_admissionTransform],
+                        ["hardDeadline",_hardDeadline],["visitContext",_resumeRosterContext],
+                        ["securityEntries",_securityEntries],["reliefReceipt",_receipt]];
+                    _identity=count ([_reliefCheck] call CBE_fnc_BuildingReliefJournal) == 2;
+                };
                 if (!_identity) then {_resumePhasePending=true};
             };
         };
@@ -753,8 +760,17 @@ if (_resume) then {
     _yieldReceipt=if (_index < 0) then {[]} else {+((_resumePhaseReceipts select _index) select 1)};
 };
 _job set ["yieldReceipt",_yieldReceipt];
+private _reliefReceipt=[+_visitContext,[]];
+if (_resume) then {
+    private _index=_resumePhaseReceipts findIf {(_x select 0) == "CBE_Cortex_ClearRelief"};
+    _reliefReceipt=if (_index < 0) then {[]} else {+((_resumePhaseReceipts select _index) select 1)};
+};
+_job set ["reliefReceipt",_reliefReceipt];
+_reliefReceipt=[_job] call CBE_fnc_BuildingReliefJournal;
+_job set ["reliefReceipt",_reliefReceipt];
 if (!_resume) then {
     [{_group setVariable ["CBE_Cortex_ClearYield",_yieldReceipt,true]}] call _commitPreparation;
+    [{_group setVariable ["CBE_Cortex_ClearRelief",_reliefReceipt,true]}] call _commitPreparation;
 };
 [{
     params ["_liveOperation"];

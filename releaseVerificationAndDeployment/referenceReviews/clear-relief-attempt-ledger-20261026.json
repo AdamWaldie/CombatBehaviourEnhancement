@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "8f6b6ddd1ec1aa3053ad05026b9986a5661b237a",
+  "status": "RELIEF_LEDGER_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "topic": "Original private finite casualty-relief attempts and typed source encoding",
+  "sourceTrace": [
+    "Relief previously read CBE_Cortex_ClearRelief during early-exit service and each request. Missing/mismatched context could be interpreted as an empty tried list before the native-source checks.",
+    "The actual source constructs five-field attempts[workerKey,guardKey,exit,originalUntil,[waitingPair,waitingSlot,waitingMember,originalStage,observerNative]]. Attempt publication already precedes exterior planning; the new private ledger preserves that boundary.",
+    "Original stage is an ARRIVED seven-field record; native observer baseline is empty for a known lost observer or[command,expectedDestination,formationLeader]. Native execution/casualty proof remains in the original request/issue code."
+  ],
+  "primaryAPISource": {
+    "url": "https://community.bistudio.com/wiki/expectedDestination",
+    "usedFor": "Validate/copy native expectedDestination as[PositionAGL,planningMode STRING,forceReplan BOOL]. This data shape proves neither a successful native command nor actor ownership."
+  },
+  "implementation": [
+    "Pure BuildingReliefJournal validates/copies the exact visit-bound receipt: at most8 attempts, distinct nonempty original worker/guard keys, finite original exit/deadline, known entrance, bounded pair/slot/member binding, original ARRIVED stage and documented native destination tuple. Nested vectors are independently copied. Expired attempts remain spent. Missing/malformed[] is distinct from a valid zero-attempt[context,[]].",
+    "Fresh preparation publishes an explicit zero-attempt receipt through its current guard. Resume retains its exact admitted phase receipt and validates it; nonempty malformed data defers before startup through shared preflight. Unknown absence remains unknown, not a new eight-attempt allowance.",
+    "Live early-exit service and request decisions use the original private validated receipt. Full nested validation occurs at preparation/new-attempt admission, not per callback. Actual attempt commit requires unchanged private/public receipts, existing worker/native/observer/casualty proof and original deadline, then updates private state before public publication and exterior planning.",
+    "The final issue guard also requires the same privately committed receipt; a changed public mirror cannot manufacture or replay another attempt. No command, geometry, casualty proof, settings, route or actor membership is added/removed.",
+    "Outgoing capture adds the typed original relief receipt and requires it to be known. Outer private capture version10 has fifteen fields; full receiver/authenticated native readiness remains absent."
+  ],
+  "cost": "Common zero-attempt validation returns before entrance/native-stage work. At most8 nested rows are validated at preflight/preparation, each new finite attempt and actual outgoing capture. Ordinary callbacks read one private canonical receipt instead of doing full serialization. No new periodic worker, scan, query, timer or remote endpoint. Actual5percent median/10percent p95 remains unmeasured.",
+  "remaining": [
+    "Reserve-admission native baselines still need complete canonical source serialization and matching strict incoming validation.",
+    "Other actor native/settings/interruption/retirement and original producer registration/seal/request replay/native-ready aggregation remain incomplete; private capture cannot substitute for all-writer quiescence.",
+    "A typed original casualty/post binding is historical data, not current casualty evidence, held geometry or native ownership. Existing runtime proof remains mandatory.",
+    "Normal/HC/JIP/Zeus migration, casualty refill/flow/repeats, balance and performance unverified. Audits paused."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/buildingReliefJournal.sqf": "70ca2ca62bfc720139d34122e4a2f4729d516d7de78f6e378f4e0a908c621b3a",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "15b836b02ccfbe9b8e2dbcf149d9489ff51a70b839718f273a5a5dce476fa770",
+    "addons/infantry/functions/buildingOperationStep.sqf": "e71cb6a7e0767902cca02860b10356ae705e3aa186ba966cdc29b8dc2c84381d",
+    "addons/core/functions/cortexLocality.sqf": "c46463a4651c755775569fbc2e222dd3257bd40449a47dde62ed2671661413a2",
+    "addons/main/CfgFunctions.hpp": "2ccaad88d836a4255b614a4dcf5b1397e5b8909fbc67db3e65113f4363a94307"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "focusedExistingCases": 12,
+    "newCases": 0,
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 439,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-relief-ledger-8f6b6ddd",
+    "fingerprint": "689e0281992190a9349545c27a82d0fe222f0cc6a506aaa7664949efb40ba253",
+    "buildLog": ".qa/handovers/clear-relief-ledger-build.log",
+    "independentLog": ".qa/handovers/clear-relief-ledger-independent.log",
+    "sourceNote": "Full build from implementation working tree after8f6b6ddd; runtime unchanged between full build and checkpoint; reference/handover metadata followed build."
+  }
+}
