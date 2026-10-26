@@ -111,6 +111,7 @@
         "scope": "Watched post-edge actor/settings metadata rechecked after actual original-FSM exit; changed records refuse. Not full checkpoint/all-writer seal or physical handover proof."
       },
       "queuedThrowWriterFence20261026": {
+        "sourceCandidateReview": "clear-source-candidate-20261026.json",
         "review": "clear-throw-listener-fence-20261026.json",
         "scope": "Queued cancellation and observational listener callbacks bind original owner/epoch/generation; installed-generation timeout cleanup protects successors without stranding old listeners. No physical/all-writer seal claim."
       }

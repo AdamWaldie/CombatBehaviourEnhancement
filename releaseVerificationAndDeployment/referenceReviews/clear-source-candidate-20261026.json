@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "3cf13f6e210ed177683f831baa859ec352fde904",
+  "status": "UNSEALED_SOURCE_CANDIDATE_OFFLINE_VERIFIED",
+  "implementation": [
+    "Original registered source submits once after original FSM retirement and watched metadata consistency.",
+    "Incoming owner is captured at the original Local edge, before cleanup; later changes refuse submission and storage.",
+    "Server checks original registration, sender, transform, phase deadline, five-second capture freshness and three-second retirement limit.",
+    "Typed bounded payload; at most512 candidates; exact duplicates do not refresh deadlines.",
+    "Original identity retained for valid EGRESS; new visits and shutdown clear candidates. No incoming consumer or execution permission."
+  ],
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 443,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/clear-candidate-3cf13f6e",
+    "fingerprint": "7271dcda038a3d3a81797d16261dbfc58fc7aa1f3da2d5c7fa3f4dd2f028f5e4",
+    "buildLog": ".qa/handovers/clear-candidate-edge-build.log",
+    "independentLog": ".qa/handovers/clear-candidate-independent.log",
+    "unsignedDevelopmentSnapshot": true
+  },
+  "completeHandover": false,
+  "physicalAcceptance": false,
+  "remaining": [
+    "All-writer seal and controller retirement",
+    "Authenticated incoming delivery and actual native/settings/phase reconciliation",
+    "Runtime tactical and performance verification; audits paused"
+  ],
+  "productHashes": {
+    "addons/core/functions/cortexLocality.sqf": "1ae800b44ea7b82a4ac282ae543ab6428cdf6671183fddd8fc63f9cd6ad45bbd",
+    "addons/core/functions/cortexStop.sqf": "1e25aa9e6acac82b105c5975531e171e988c1bf720c3150d9bce52ab522916e5",
+    "addons/infantry/functions/buildingProducerRegister.sqf": "82ffc13dc5dfcf3183c6c310d6b60f518c246809bab432789f4857b819cce8c3",
+    "addons/infantry/functions/buildingProducerRetire.sqf": "4b920bd8e285f2b36fc31d46a2e609ac6fb32f596240433fdd17f63f0819fbb7",
+    "releaseVerificationAndDeployment/test_building_start_admission.py": "099951f51a3e1b0b06716d250c80aca1e10e680c5b5b67079c78581c815bb222",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "7d22e0cb65cd5964eecf00ae2c7a1a202be57a7119be120b2c2342539406fe0c"
+  }
+}

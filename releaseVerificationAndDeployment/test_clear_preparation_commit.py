@@ -254,7 +254,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
                       'isEqualTo _brain','_brain getOrDefault ["cancelled",false]',
                       'ORIGINAL_FSMS_RETIRED'):
             self.assertIn(guard,retire)
-        for forbidden in ('forceSpeed','doMove','doFollow','setPos','execFSM','remoteExec'):
+        for forbidden in ('forceSpeed','doMove','doFollow','setPos','execFSM'):
             self.assertNotIn(forbidden,retire)
         locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text(encoding='utf-8')
         self.assertLess(locality.index('private _clearRetireSource='),locality.index('private _drivingBrain='))
@@ -272,6 +272,12 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertLess(retire.index('if (_pending) exitWith'),retire.index('private _records='))
         self.assertLess(retire.index('SOURCE_METADATA_CHANGED'),retire.index('setVariable ["CBE_Cortex_ClearFSMRetiredLocal"'))
         self.assertIn('["records",_clearRetireRecords]',locality)
+        self.assertIn('["CAPTURE",_submission] remoteExecCall ["CBE_fnc_BuildingProducerRegister",2]',retire)
+        self.assertIn('groupOwner _group != (_state getOrDefault ["incomingOwner",-1])',retire)
+        self.assertIn('["incomingOwner",_clearEdgeIncomingOwner]',locality)
+        self.assertLess(locality.index('private _clearEdgeIncomingOwner=groupOwner _group;'),locality.index('call CBE_fnc_CortexIlluminationStep'))
+        self.assertLess(retire.index('SOURCE_METADATA_CHANGED'),retire.index('private _submission='))
+        self.assertLess(retire.index('if (_pending) exitWith'),retire.index('private _submission='))
         self.assertIn('_state deleteAt "writers";_state deleteAt "records";',retire)
         self.assertIn('createHashMapFromArray _pairs',locality)
         self.assertIn('CBE_Cortex_ClearSettingsPending',locality)

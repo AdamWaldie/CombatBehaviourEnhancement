@@ -8,6 +8,7 @@
  * Actual completedFSM, old-brain retirement, replaced private pointers and unchanged
  * post-edge actor/settings records are all required. Intentional edge cleanup precedes the baseline.
  * This is original-FSM retirement only, not all-writer quiescence, a server seal or readiness.
+ * One original-owner CAPTURE submission follows these checks; no retry or JIP replay.
  * Arguments: 0 state HASHMAP default empty: taskGroup GROUP, capture ARRAY, writers ARRAY,
  * until NUMBER server time, attempts NUMBER, producer NUMBER, done BOOL; records ARRAY
  * [object/group,variableName,present,valueCopy] rows, max578, after intentional edge cleanup.
@@ -30,6 +31,7 @@ if (!(_capture isEqualType []) || {count _capture != 17}
     || {(_capture select 0) != 12} || {(_capture select 1) != clientOwner}
     || {isNull _group} || {local _group} || {isRemoteExecuted}
     || {(_state getOrDefault ["producer",-1]) != clientOwner}
+    || {groupOwner _group != (_state getOrDefault ["incomingOwner",-1])}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
     || {(_group getVariable ["CBE_Cortex_ClearRetireLocal",createHashMap]) isNotEqualTo _state}
     || {(_group getVariable ["CBE_Cortex_ClearLaneCaptureLocal",[]]) isNotEqualTo _capture}) exitWith {["REPLACED"] call _finish};
@@ -72,4 +74,10 @@ private _recordsChanged=_records findIf {
 if (_recordsChanged) exitWith {["SOURCE_METADATA_CHANGED"] call _finish};
 // The callback is unscheduled; only this original private capture gets the observation.
 _group setVariable ["CBE_Cortex_ClearFSMRetiredLocal",[_capture select [0,7],serverTime,count _writers]];
+// Submission is once and remains explicitly unsealed; this is not a server acknowledgement.
+private _registration=(_capture select 16) select 3;
+private _submission=[_registration,_capture,serverTime,count _writers,_state get "incomingOwner"];
+_state set ["submitted",true];
+if (isServer) then {["CAPTURE",_submission] call CBE_fnc_BuildingProducerRegister}
+else {["CAPTURE",_submission] remoteExecCall ["CBE_fnc_BuildingProducerRegister",2]};
 ["ORIGINAL_FSMS_RETIRED"] call _finish

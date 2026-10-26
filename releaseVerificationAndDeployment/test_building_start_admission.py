@@ -44,6 +44,27 @@ class BuildingStartAdmissionTests(unittest.TestCase):
             self.assertIn(guard,registration)
         for forbidden in ('doMove','doStop','forceSpeed','setPos','execFSM','CBA_fnc_waitAndExecute'):
             self.assertNotIn(forbidden,registration)
+        capture=registration.split('if (_mode == "CAPTURE") exitWith {',1)[1].split('if (_mode != "REGISTER"',1)[0]
+        for guard in ('_original isNotEqualTo _registration','_sender != (_original select 1)',
+                      'count _capture != 17','groupOwner _group != _incomingOwner',
+                      '_incomingOwner == _sender','_nodes < 65536','_depth >= 16','count _value > 4096',
+                      'count _value > 512','CANDIDATE_UNSEALED','count _captures >= 512',
+                      'serverTime > (_capture select 5)+5','_retiredAt > (_capture select 5)+3',
+                      '(_actors param [3,[]]) isNotEqualTo _original',
+                      '_existing isEqualTo _candidate'):
+            self.assertIn(guard,capture)
+        self.assertNotIn('groupOwner _group != _sender',capture)  # Registered old owner, not successor.
+        self.assertLess(capture.index('_sender != (_original select 1)'),capture.index('private _stack='))
+        def may_submit(sender,registered=7,serial=1,original_serial=1,age=1,retire_age=1,incoming=8,current_owner=8):
+            return (sender==registered and incoming!=sender and incoming==current_owner
+                    and serial==original_serial and age<=5 and 0<=retire_age<=3)
+        self.assertTrue(may_submit(7))
+        self.assertFalse(may_submit(8))
+        self.assertFalse(may_submit(7,serial=2))
+        self.assertFalse(may_submit(7,age=6))
+        self.assertFalse(may_submit(7,retire_age=4))
+        self.assertFalse(may_submit(7,current_owner=9))
+        self.assertFalse(may_submit(7,incoming=7,current_owner=7))
         # Exact duplicate retains original identity, deadline and serial; conflicting owner refuses.
         identity=('group',7,'original visit',3,4,5)
         existing=identity+(1,)

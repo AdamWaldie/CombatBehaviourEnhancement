@@ -39,6 +39,7 @@
  */
 params [["_group", grpNull, [grpNull]], ["_gained", false, [true]], ["_resumeArtilleryScoot",true,[true]]];
 if (isNull _group) exitWith {};
+private _clearEdgeIncomingOwner=groupOwner _group;
 [_group,true] call CBE_fnc_CortexIlluminationStep;
 // Capture the previous published driving identity at the actual group locality edge,
 // before retirement can overwrite it. This local proposal alone grants no commands.
@@ -287,7 +288,8 @@ if (!_gained && {!local _group} && {count _clearRetireCapture == 17}
         _clearRetireRecords pushBack [_group,_x,_present,_value];
     } forEach ["CBE_Cortex_ClearSettingsPending","CBE_Cortex_ClearSettingsResult"];
     private _retire=createHashMapFromArray [["taskGroup",_group],["capture",_clearRetireCapture],
-        ["writers",_clearRetireWriters],["records",_clearRetireRecords],["producer",clientOwner],["attempts",0],["done",false],
+        ["writers",_clearRetireWriters],["records",_clearRetireRecords],["producer",clientOwner],
+        ["incomingOwner",_clearEdgeIncomingOwner],["attempts",0],["done",false],
         ["until",((_clearRetireCapture select 5)+3) min _clearRetireDeadline]];
     _group setVariable ["CBE_Cortex_ClearRetireLocal",_retire];
     _group setVariable ["CBE_Cortex_ClearFSMRetiredLocal",nil];
