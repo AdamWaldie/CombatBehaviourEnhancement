@@ -203,5 +203,94 @@
       "brokerHash": "c9dbf8e19ecf10180de3862ef58c29180247bfdb1014ad925b016411859e5a05",
       "remaining": "Physical STOP/path cessation/route travel and full other shared cleanup families remain unverified. No complete-controller proof or runtime cost measurement."
     }
+  },
+  "supportLifecycleBodies20261026": {
+    "scope": "Complete readable bodies of ten startup/eligibility/crew/recovery/damage/post-init files. Selected main controller startup/tail, settings master declaration and CBE paths only; not complete driveAssist/settings/config/helper dependency review.",
+    "sourceHashes": {
+      ".qa/hbq-complete-source-20261025/functions/fn_start.sqf": "7bf30fd6a7e942a4710b6c829058f9936023c6f65fa7d063408d702603c1fd4b",
+      ".qa/hbq-complete-source-20261025/functions/fn_initVehicle.sqf": "a779471f0fd13c55b223a07d6727b147e0b45d6139f151187f9da7e4caffdc40",
+      ".qa/hbq-complete-source-20261025/functions/fn_enabled.sqf": "85376a43ee2e9b07a117a977dea91158da5633a1ad3a9e36b91001f4c898c598",
+      ".qa/hbq-complete-source-20261025/functions/fn_feature.sqf": "ab58aaf35138921241af0f42813b0e14457f64c5820e758c927b874c0a415b06",
+      ".qa/hbq-complete-source-20261025/functions/fn_routeWaiting.sqf": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+      ".qa/hbq-complete-source-20261025/functions/fn_crewHold.sqf": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076",
+      ".qa/hbq-complete-source-20261025/functions/fn_unstuckLoop.sqf": "7b9cccb4641252cc63d249eec33167e41d3e7e000071434a139a3db367a73719",
+      ".qa/hbq-complete-source-20261025/functions/fn_unflipLoop.sqf": "856a0430011f16907df54161bc1fac02c64b7d3226ae6c4fb02f10970920107c",
+      ".qa/hbq-complete-source-20261025/functions/fn_damageInit.sqf": "0f18385e7dfd448b41501c2633f166c1fdedbc72b8850299c0f15917c1d9b081",
+      ".qa/hbq-complete-source-20261025/XEH_postInit.sqf": "a241dac9739c3f15025e05eb66b502dfebd8cef7b8310048cb4aefb846c737d2"
+    },
+    "dispositions": [
+      {
+        "files": [
+          "fn_start.sqf",
+          "fn_initVehicle.sqf",
+          "fn_enabled.sqf",
+          "fn_feature.sqf"
+        ],
+        "source": "Five-second init sets local InitDone before enabled admission, installs Local handler only after admission and spawns driveAssist/unstuck/crewHold/unflip workers on each start. Vehicle enable/disable and per-feature overrides read global defaults. Master setting explicitly documents restart for existing vehicles; no unsupported runtime-enable bug is inferred.",
+        "intent": "One local execution owner with mission overrides and owner changes.",
+        "cbe": "DrivingAssistStart is the ordinary driving owner; existing group discovery/locality and CortexFeatureEnabled provide integration points. Review old worker cessation and actual split vehicle/group ownership before claiming equivalence.",
+        "decision": "Adapt owner/override intent; do not import four permanent workers or shared Running booleans as proof of old-generation retirement."
+      },
+      {
+        "files": [
+          "fn_routeWaiting.sqf"
+        ],
+        "source": "Near current nonzero waypoint within completionRadius+50, HOLD/inactive trigger/timeout/nontrue condition identify intentional waiting. It does not require unitReady.",
+        "intent": "Do not treat an authored wait as a stuck vehicle.",
+        "cbe": "DrivingAssistStart _nativeWaiting uses physical rest plus nearby authored gate and whitespace-normalised condition; _mayRecoverRoute also requires DrivingRouteGoal plain-route permission independently of distance.",
+        "decision": "Retain intentional-wait policy. Match physical rest and actual order identity; readiness alone is neither permission nor proof of a stall."
+      },
+      {
+        "files": [
+          "fn_crewHold.sqf"
+        ],
+        "source": "Two-second worker changes unload/immobile policy according to canMove. GetOut callback admits assigned noncargo AI and limits three reseats/minute; half-second delayed body then force-seats into driver/gunner/commander/turret. Delayed body does not repeat every initial authority/assignment/feature check. Exit clears Running but does not restore an original policy lease or remove EH.",
+        "intent": "Keep an operable fighting crew together without trapping passengers.",
+        "cbe": "DrivingCrewBoarding selected admission/recall branches use original route and per-seat deadlines. Optional ordinary reboarding is off by default and never force-seats. Vehicle/convoy unload policy belongs to their separate exact leases.",
+        "decision": "Keep useful crew coordination, not forced seating or blanket unload defaults. Complete unload-policy and seat-action cleanup traces before claiming whole crew parity."
+      },
+      {
+        "files": [
+          "fn_unstuckLoop.sqf"
+        ],
+        "source": "Measures18seconds minimum scaled intervals, displacement/progress, excludes players and ordinary loading/wait/PATH/busy states, escalates refresh, optional repair/reverse nudge, teleport, then optional deletion/give-up. RouteLost branch executes before ordinary loading/routeWaiting/PATH veto, attempts teleport/refresh and continues.",
+        "intent": "Recognise real nonprogress and recover without endless oscillation.",
+        "cbe": "Existing DrivingAssistStart bounded recovery/queue/corridor/pass/native-return owners separate true progress, intentional waits and command acknowledgement. Source route-loss flag cannot grant authority over a mission wait.",
+        "decision": "Replace unsafe escalation with finite native recovery; reject teleport, repair, deletion and independent recovery writer. Rejection is not proof CBE can physically recover every source scenario."
+      },
+      {
+        "files": [
+          "fn_unflipLoop.sqf"
+        ],
+        "source": "Remembers crew, after persistent low-up-vector condition and unseen vehicle directly lifts/reorients/zeros velocity or teleports under damage protection. Orders remembered crew back, then force-seats unseen stragglers after45seconds within a120second retention.",
+        "intent": "Recover a disabled platform and recover its crew.",
+        "decision": "Physical unflip/teleport/invulnerability/force-seat methods are excluded by standing scope. Preserve legitimate crew/equipment recovery intent through native tasks; do not represent excluded shortcuts as implemented CBE capabilities."
+      },
+      {
+        "files": [
+          "fn_damageInit.sqf"
+        ],
+        "source": "HandleDamage preserves current damage on low-speed AI collision-like events with no ammo/instigator. More than300events/3seconds disables protection15seconds to avoid persistent jitter.",
+        "intent": "Avoid collision-driven AI losses and pathological physics cost.",
+        "cbe": "DrivingDamageReceipt/recovery record actual component damage; DrivingAssistStart has no damage suppression/repair writes.",
+        "decision": "Use prevention and abort-on-damage intent; reject invulnerability/collision damage suppression. Existing source event filter is not universal proof of collision cause."
+      },
+      {
+        "files": [
+          "XEH_postInit.sqf"
+        ],
+        "source": "Interface starts debug drawing/text; every machine spawns perfMonitor.",
+        "intent": "Observe driving and processing cost.",
+        "decision": "Reuse existing diagnostics/performance measurement. Worker presence or a monitor display is not evidence that the5percent median/10percent p95 budget passes."
+      }
+    ],
+    "remaining": [
+      "Complete all relevant main-controller branches and remaining helper/module/settings bodies with source-to-CBE execution dispositions; ten helper bodies are not the entire29-file source.",
+      "Measure physical driving, mixed-convoy step-off/spacing, recovery/crew handback and actual performance when audits are authorised.",
+      "Do not add duplicate recovery or crew workers, import source physical shortcuts, or silently count rejected methods as completed capabilities."
+    ],
+    "runtimeChanged": false,
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
   }
 }
