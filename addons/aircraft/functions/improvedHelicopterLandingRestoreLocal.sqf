@@ -24,7 +24,9 @@
  *
  * Return Value: BOOL - true when matching landing control is retired/release offered. It is not
  * proof of feature restoration; FeatureReleaseResult reports PENDING, RELEASED or retained UNRESOLVED.
- * Deferred retries never issue native flight handback commands.
+ * Deferred retries never issue native flight handback commands. Native handback also requires
+ * the original revision-bound authored landing node and an unchanged current-order receipt
+ * across cleanup. Metadata mismatch permits feature retirement but no stale land/height/velocity.
  *
  * Example: [_helicopter, true, "GETOUT"] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
  * Result: True after matching landing control retirement/release offer; feature completion is separate.
@@ -65,6 +67,8 @@ if (_expectedRevision < 0) then {_expectedRevision=_releasedRevision};
 if (_releasedRevision != _expectedRevision
     || {(_snapshot select 0) isNotEqualTo _expectedRevision}) exitWith {false};
 private _pilot=_snapshot select 2;
+private _landingOrder=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_OrderReceipt",[]];
+private _releaseOrder=[group _pilot] call CBE_fnc_NativeOrderReceipt;
 private _lease=_helicopter getVariable ["CBE_FlightLease",createHashMap];
 if !(_lease isEqualType createHashMap) exitWith {false};
 private _matchingLease=count _lease > 0 && {(_lease getOrDefault ["controller",""]) == "LANDING"}
@@ -130,7 +134,19 @@ isNil {
         || {!(_nativeLease isEqualType createHashMap)} || {count _nativeLease > 0}
         || {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",-1]) != _expectedRevision+1}
         || {[group _pilot] call CBE_fnc_CortexExternalTakeover}
-        || {[group _pilot] call CBE_fnc_CortexZeusHeld}) exitWith {};
+        || {[group _pilot] call CBE_fnc_CortexZeusHeld}
+        || {!(_landingOrder isEqualType [])} || {count _landingOrder != 4}
+        || {(_landingOrder select 0) isNotEqualTo _expectedRevision}
+        || {(_landingOrder select 1) isNotEqualTo group _pilot}
+        || {!((_landingOrder select 2) isEqualType 0)} || {!finite (_landingOrder select 2)}
+        || {(_landingOrder select 2) < 0}
+        || {!((_landingOrder select 3) isEqualType [])} || {(_landingOrder select 3) isEqualTo []}
+        || {([group _pilot,"",false,_landingOrder select 2] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo (_landingOrder select 3)}
+        || {([group _pilot] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _releaseOrder}) exitWith {};
+// Natural final completion may have no current node. A valid onward node must never
+// receive the settled LAND reissue if it appeared just before cleanup started.
+if (_landed && {(_releaseOrder param [1,-1]) >= 0}
+    && {(_releaseOrder select 1) != (_landingOrder select 2)}) exitWith {};
 if (_landed) then {
     _helicopter setVelocity [0, 0, 0];
     _helicopter land "LAND";

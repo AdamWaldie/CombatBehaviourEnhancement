@@ -2,11 +2,14 @@
  * Author: WaldoTheWarfighter
  * Feature ownership retains the approach snapshot and original pilot; anchor PATH changes
  * update only this revision, and pilot replacement ends the anchor before its next mutation.
- * Keeps a successfully landed local AI helicopter committed to the ground until its orders or
- * ownership genuinely change. The anchor survives vanilla completion of the final landing
+ * Settles a successfully landed local AI helicopter for the configured0-60 seconds, then
+ * retires the force loop and returns an unchanged hold to native landing control.
+ * The temporary anchor survives vanilla completion of the final landing
  * waypoint, but releases for a moved, deleted or retyped landing waypoint, a valid onward
  * waypoint after the settling delay, player, curator or specialist takeover, locality migration, feature
  * disablement or loss of a usable AI pilot. This function is scheduled and locality-safe.
+ * Full original authored-node metadata must still match before anchor admission/force writes.
+ * Current waypoint progression is separate so natural completion does not fabricate an edit.
  * Locality and authority: Runs only on the current helicopter owner and releases control when
  * that locality or the owning landing order changes.
  * Repeat/JIP: The control revision binds the anchor to one approach. A new owner can start its
@@ -25,8 +28,8 @@
  * Return Value: BOOL - true after the local ground-anchor lifecycle ends.
  *
  * Example: [_helicopter, _group, _position, "SCRIPTED", 1, _script, 2, 4] spawn CBE_fnc_ImprovedHelicopterLandingAnchorLocal;
- * Result: Maintains a landed aircraft at its touchdown position until an order or ownership
- * change releases it, then returns true at the end of that local lifecycle.
+ * Result: Settles a landed aircraft until the finite deadline or an order/ownership change,
+ * then releases CBE control and returns true; native LAND may retain the intentional hold.
  * Current caller: ImprovedHelicopterLandingExecuteLocal after a validated touchdown.
  */
 
@@ -59,6 +62,16 @@ if (!(_featureSnapshot isEqualType []) || {count _featureSnapshot != 6} || {(_fe
     [_helicopter,false,"",false,_controlRevision] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
     false
 };
+private _landingOrder=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_OrderReceipt",[]];
+if (!(_landingOrder isEqualType []) || {count _landingOrder != 4}
+    || {(_landingOrder select 0) isNotEqualTo _controlRevision}
+    || {(_landingOrder select 1) isNotEqualTo _group}
+    || {(_landingOrder select 2) isNotEqualTo _expectedWaypoint}
+    || {!((_landingOrder select 3) isEqualType [])} || {(_landingOrder select 3) isEqualTo []}) exitWith {
+    [_helicopter,false,"",false,_controlRevision] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
+    false
+};
+private _orderReceipt=_landingOrder select 3;
 private _normalisedType = toUpperANSI _waypointType;
 private _normalisedScript = toLowerANSI _expectedScript;
 private _settleUntil = diag_tickTime + (([_helicopter, "TouchdownHoldSeconds", 8] call CBE_fnc_ImprovedHelicopterLandingSetting) max 0 min 60);
@@ -71,7 +84,8 @@ private _releaseReason = "UNKNOWN";
 private _anchorAdmitted=false;
 isNil {
     if (local _helicopter && {alive _helicopter} && {local _entryPilot}
-        && {currentPilot _helicopter == _entryPilot}
+        && {currentPilot _helicopter == _entryPilot} && {group _entryPilot == _group}
+        && {([_group,"",false,_expectedWaypoint] call CBE_fnc_AuthoredRouteReceipt) isEqualTo _orderReceipt}
         && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",-1]) == _controlRevision}
         && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_FeatureSnapshot",[]]) isEqualTo _featureSnapshot}
         && {[_helicopter,"LANDING",str _controlRevision] call CBE_fnc_FlightLeaseValid}
@@ -127,7 +141,8 @@ while {!_release} do {
     // Scheduled anchor mutation commit: reuse the existing takeover check inside the force boundary.
     isNil {
         if (!local _helicopter || {!alive _helicopter} || {!local _entryPilot}
-            || {currentPilot _helicopter != _entryPilot}
+            || {currentPilot _helicopter != _entryPilot} || {group _entryPilot != _group}
+            || {([_group,"",false,_expectedWaypoint] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo _orderReceipt}
             || {!(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active",false])}
             || {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",-1]) != _controlRevision}
             || {!([_helicopter,"LANDING",str _controlRevision] call CBE_fnc_FlightLeaseValid)}) then {
@@ -199,7 +214,6 @@ while {!_release} do {
                         && {_currentIndex >= 0}
                         && {_currentIndex < _waypointCount}
                         && {_currentIndex != _expectedWaypoint}
-                        && {(waypointPosition [_group, _currentIndex]) distance2D _targetPosition > 25}
                     ) then {
                         _release = true;
                         _releaseReason = "ONWARD_WAYPOINT";
@@ -207,6 +221,14 @@ while {!_release} do {
                 };
             };
         };
+    };
+    if (!_release && {diag_tickTime >= _settleUntil}) then {
+        // Native LAND retains an intentional hold without a permanent CBE force writer.
+        // A valid different node is onward even when close to the touchdown point.
+        private _onward=currentWaypoint _group;
+        private _hasOnward=_onward >= 0 && {_onward < count waypoints _group} && {_onward != _expectedWaypoint};
+        _release=true;
+        _releaseReason=["SETTLED_NATIVE_LANDING","ONWARD_WAYPOINT"] select _hasOnward;
     };
     uiSleep 0.05;
 };
@@ -223,7 +245,7 @@ if (!isNull _helicopter && {local _helicopter}) then {
         _helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active", false]
         && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision}
     ) then {
-        [_helicopter, false, "", _releaseReason == "MULTI_HELICOPTER_GROUP", _controlRevision] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
+        [_helicopter, _releaseReason == "SETTLED_NATIVE_LANDING", _waypointType, _releaseReason == "MULTI_HELICOPTER_GROUP", _controlRevision] call CBE_fnc_ImprovedHelicopterLandingRestoreLocal;
     };
     if ((_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision) then {
         _helicopter setVariable ["CBE_ImprovedHelicopterLanding_LastResult", ["RELEASED", _targetPosition, diag_tickTime, _releaseReason, (getPosATL _helicopter) select 2], true];

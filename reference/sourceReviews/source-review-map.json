@@ -659,21 +659,23 @@
       "workshopId": "3771745732",
       "name": "BHL AI",
       "priority": "2 Complementary AI methods",
-      "candidateContribution": "Infantry and squad methods to compare",
-      "reviewStatus": "Unreconciled; older evidence pointer missing",
-      "nextSourceReview": "Recover provenance; enumerate relevant AI decisions and writers before selecting unique contributions.",
-      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
-      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "candidateContribution": "AI helicopter landing approach, braking, terrain clearance and lifecycle handover",
+      "reviewStatus": "Both readable helicopter controller bodies reviewed; finite CBE lifetimes and full landing-node write/cleanup guards implemented; physical evidence pending",
+      "nextSourceReview": "Relevant readable controller methods reconciled with existing CBE landing owner. Continue other registered foundation gaps; retain physical validation and dynamic obstacle coverage as unresolved.",
+      "recordedImplementationStatus": "LANDING_LIFECYCLE_IMPLEMENTED_PHYSICAL_AND_OBSTACLE_GAPS_OPEN",
+      "recordedRemaining": "Dynamic/placed-obstacle hull coverage, physical flight/hold/onward/repeat/locality results and measured cost remain open; whole-mod parity not claimed.",
       "implementationAssessmentCommit": "ca778db2",
-      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
-      "evidenceFilePresent": false,
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/bhl-helicopter-source-20261026.json",
+      "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "installedDirectoryObservation": {
         "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3771745732",
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
-      }
+      },
+      "historicalMissingEvidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "reviewScopeNote": "Helicopter-only scope verified from installed readable source; replaces incorrect infantry/squad candidate description. No build percentage uplift."
     },
     {
       "workshopId": "3775025723",
