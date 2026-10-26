@@ -435,6 +435,10 @@ if (_resume) then {
         _x params ["_key","_size","_contextIndex"];
         private _receipt=_group getVariable [_key,[]];
         _resumePhaseReceipts pushBack [_key,_receipt];
+        // Fresh producers always publish these three zero-or-spent baselines.
+        // Wait for missing transport state without creating a partially admitted executor.
+        if (_receipt isEqualTo [] && {_key in ["CBE_Cortex_ClearReserveAdmission",
+            "CBE_Cortex_ClearYield","CBE_Cortex_ClearRelief"]}) then {_resumePhasePending=true};
         if (_receipt isNotEqualTo []) then {
             if (!_contextValid || {!(_receipt isEqualType [])} || {count _receipt != _size}
                 || {(_receipt select _contextIndex) isNotEqualTo _resumeRosterContext}) then {
@@ -451,6 +455,11 @@ if (_resume) then {
                     } else {
                         (_receipt select [0,3]) isEqualTo [_building,_hardDeadline,_admissionTransform]
                     }
+                };
+                if (_identity && {_key == "CBE_Cortex_ClearYield"}) then {
+                    private _spent=_receipt select 1;
+                    _identity=_spent findIf {isNil "_x" || {!(_x isEqualType "")} || {_x in ["","0:0"]}} < 0
+                        && {count (_spent arrayIntersect _spent) == count _spent};
                 };
                 if (_identity && {_key == "CBE_Cortex_ClearReserveAdmission"}) then {
                     private _admissionCheck=createHashMapFromArray [["visitContext",_resumeRosterContext]];
@@ -478,6 +487,9 @@ if (_resume) then {
         ["CBE_Cortex_ClearStageBudget",5,4],["CBE_Cortex_ClearEarlyExits",2,0],
         ["CBE_Cortex_ClearReserveAdmission",2,0],["CBE_Cortex_ClearYield",2,0],
         ["CBE_Cortex_ClearRelief",2,0]];
+    // Every current producer publishes an explicit admission receipt, including zero rows.
+    // Missing network state is pending, not permission to start without original baselines.
+    if (count _resumeAdmissionSnapshot != 3) then {_resumePhasePending=true};
 };
 if (_resumePhasePending) exitWith {false};
 private _resumeLaneReceipt=[];

@@ -27,6 +27,8 @@ isNil {
             || {!((_context select 2) isEqualType 0)} || {!finite (_context select 2)} || {(_context select 2) < 0}
             || {!((_context select 3) isEqualType "")} || {(_context select 3) == ""}) exitWith {[]};
         private _capture=_mode == "CAPTURE";
+        // A known context cannot manufacture a missing map's original zero membership.
+        if (_capture && {isNil {_job get "reserveAdmissionCommands"}}) exitWith {[]};
         private _commands=_job getOrDefault ["reserveAdmissionCommands",createHashMap];
         private _source=[];
         if (_capture) then {

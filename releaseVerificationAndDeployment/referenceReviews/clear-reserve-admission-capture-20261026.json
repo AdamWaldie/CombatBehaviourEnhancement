@@ -35,5 +35,23 @@
     "addons/infantry/functions/buildingAdmissionJournal.sqf": "887b0d0d7284922537ebe8e8bcc16f5c203ca964d10758af692f208960f24f3c",
     "addons/infantry/functions/cortexClearBuilding.sqf": "ff24d1dcc9330e928cca89afed17d2a283d8ba27eea7c7b5fae9d6d0ca4b1a3f",
     "addons/core/functions/cortexLocality.sqf": "5b0776a0258e2d961462a15cfc3898bef43d1cbbe4fe89167e11752209c574da"
+  },
+  "readinessFollowup": {
+    "sourceBase": "d31e4d07",
+    "status": "BASELINE_READINESS_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "change": "Defer resumed operation startup when any mandatory original reserve/yield/relief receipt is missing. Validate yield keys as unique nonempty strings before startup. Outgoing reserve source capture rejects a missing private map even with known context. No native command, worker, deadline reset or readiness/authentication claim.",
+    "reason": "Producers explicitly publish zero-or-spent baseline receipts. Previously a partial receipt delivery could still create a resumed executor with unavailable reserve/yield/relief work. A missing map could also pass as known empty history.",
+    "candidate": ".qa/candidates/clear-baseline-readiness-d31e4d07",
+    "fingerprint": "66603f3a629c755e11805925e07e88973d3917cc044dfa211a2172b55c017236",
+    "tests": 1497,
+    "compiledSQF": 440,
+    "pboCount": 11,
+    "build": ".qa/handovers/clear-baseline-readiness-build.log",
+    "independent": ".qa/handovers/clear-baseline-readiness-independent.log",
+    "remaining": "Authenticated original source seal/finite replay/native readiness and physical migration remain incomplete. Audits paused.",
+    "sourceSHA256": {
+      "addons\\infantry\\functions\\cortexClearBuilding.sqf": "ec62327450fc1fcbe1eea7136760f0445b20f2c0be0ffa28e0e7191446b0cffb",
+      "addons\\infantry\\functions\\buildingAdmissionJournal.sqf": "76da8bc2a471b63a1e8b39e649d905babdbd2304ceffc2f1356d86afb1f8e9e9"
+    }
   }
 }

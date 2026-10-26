@@ -160,6 +160,19 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('_reserveAdmissionCommands set [_x select 0,_x select 1]',adoption)
         self.assertNotIn('getVariable',adoption)
         self.assertNotIn('netId',adoption)
+        for baseline in ('CBE_Cortex_ClearReserveAdmission','CBE_Cortex_ClearYield','CBE_Cortex_ClearRelief'):
+            self.assertIn(baseline,text.split('// Fresh producers always publish',1)[1].split('if (_receipt isNotEqualTo [])',1)[0])
+        yield_preflight=text.split('if (_identity && {_key == "CBE_Cortex_ClearYield"})',1)[1].split('if (_identity && {_key == "CBE_Cortex_ClearReserveAdmission"})',1)[0]
+        self.assertIn('_spent arrayIntersect _spent',yield_preflight)
+        self.assertIn('isNil "_x"',yield_preflight)
+
+        self.assertIn('if (count _resumeAdmissionSnapshot != 3) then {_resumePhasePending=true}',text)
+        pending=text.split('private _resumeAdmissionSnapshot=',1)[1].split('if (_resumePhasePending) exitWith',1)[0]
+        for effect in ('OperationStart',' doMove ','setVariable','serverTime+'):
+            self.assertNotIn(effect,pending)
+        self.assertIn('isNil {_job get "reserveAdmissionCommands"}',admission)
+        self.assertLess(admission.index('isNil {_job get "reserveAdmissionCommands"}'),admission.index('getOrDefault ["reserveAdmissionCommands"'))
+
 
         relief=(ROOT/'addons/infantry/functions/buildingReliefJournal.sqf').read_text(encoding='utf-8')
         for guard in ('count (_source select 1) > 8','count _entries > 16','_worker in _workers',
