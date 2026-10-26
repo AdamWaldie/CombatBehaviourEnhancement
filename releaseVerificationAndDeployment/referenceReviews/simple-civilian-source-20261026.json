@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-26",
+  "workshopId": "3529745801",
+  "name": "Simple Civilian Behaviour",
+  "status": "AI_SCRIPT_REVIEWED_NATIVE_PASSBY_TRIGGER_IMPLEMENTED_PHYSICAL_PENDING",
+  "provenance": {
+    "original": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3529745801\\addons\\WBK_Civies.pbo",
+    "snapshot": ".qa/simple-civilian-installed-20261026",
+    "packageSha256": "65806bce1fc479bb5cd1d09a36c3cc3a00738dca919e0b8284f7fa6db6dd3d13",
+    "originalBeforeAfterHashMatched": true,
+    "memberCount": 8,
+    "rawInputsTracked": false
+  },
+  "scope": "Complete108-line XEH_preInit.sqf, AI entry/init and player-action callback declarations config.cpp658-705; animation state declarations sampled only. No RTM/gesture playback or full movement-state graph evaluation. Not whole visual/effective-addon parity.",
+  "sourceHashes": {
+    "XEH_preInit.sqf": "f5025896002e3e1cd1ed4bb77c9c341834559306bb520693791e0d151c754956",
+    "config.cpp": "c2661472fa628f0ae15ace580c139ca67b171d688589f92c74401c9daa3781d9"
+  },
+  "sourceIntent": "Unarmed civilian fear, indoor/outdoor reactions, response to nearby fire/pass-by/hit, optional escape in a civilian car, and player stop/disperse interactions.",
+  "dispositions": [
+    "LoadCivilian excludes player/dead/captive/armed actors, disables FSM/AUTOCOMBAT/AUTOTARGET/COVER/TARGET, sets CARELESS/LIMITED and source-specific LAMBS exclusions. CBE retains mission/native capability and specialist authority rather than unconditionally replacing these settings.",
+    "Suppressed within30m (excluding self-instigator), FiredNear, Hit, vehicle Hit and GetOutMan trigger reactions/poses. Adapt the missing native projectile pass-by input through existing finite civilian ownership; do not copy duplicate vehicle handlers or world-wide animation/radio broadcasts.",
+    "Flee sets a public Scared flag with no reset in the reviewed body. Forced stop/flee change PATH, posture, behaviour and group pace without captured restoration. CBE repeat generations/deadlines/cooldowns and newer-order priority remain authoritative.",
+    "Indoor fear forces a custom prone/crouch animation, while outdoor fear claims cars or chooses random800-2000m escapes/group waypoints. Keep contextual survival intent as an open capability; no scripted poses, vehicle claims or distant group-waypoint replacement imported.",
+    "FindNearestCar checks IsTakenByCivie on candidate cars but sets it on the civilian. It does not check an empty driver, current vehicle owner or mobility before claiming CIV_F. Do not import the mismatched claim or automatic commandeering. Civilian vehicle escape remains unimplemented.",
+    "Player stop/disperse actions call forced functions on the actor owner and play gestures. They are not implemented by this autonomous event addition; future explicit operator tasks need their own authoritative intent and lifecycle. Existing compatibility-only Droids/Zombies scope is unchanged; this is a distinct registered civilian reference."
+  ],
+  "implementation": "CortexCivilianSetup installs/removes one owner-local Suppressed handler in its existing ID registry. Pass-by distance must be finite/nonnegative and within min(configured radius,30m), self-shot/instigator refused. Only current projectile velocity provides an inferred upstream threat point; no distant shooter/instigator position is queried. Missing/invalid velocity uses the existing local-danger fallback. Existing CortexCivilianReact receives SUPPRESSED priority2, below hit3/above FiredNear1, so cooldown/generation and finite observation/retry rules coalesce rounds. No new controller, reveal, pose, settings ownership, scan or vehicle claim.",
+  "engineReference": {
+    "url": "https://community.bistudio.com/wiki/Arma_3%3A_Event_Handlers#Suppressed",
+    "facts": "Suppressed available since1.58, local, supplies projectile-pass distance/shooter/instigator/ammo object; native enemy-side/ammo suppression rules control delivery. No allegiance manipulation added.",
+    "limit": "Neutral/same-side projectiles may not trigger it. This does not guarantee universal civilian pass-by detection."
+  },
+  "cost": "One additional native EH per installed civilian, cheap distance/identity/velocity work per delivered event. Geometry only through existing admitted reaction after ownership/cooldown checks; no world scan/worker. Dense-fire event overhead unmeasured.",
+  "validation": {
+    "focusedExistingCivilianCheck": "PASS",
+    "fullExistingTests": 1497,
+    "compiledSQF": 446,
+    "PBOs": 11,
+    "independentVerification": "PASS",
+    "candidate": ".qa/candidates/civilian-passby-15dda654",
+    "fingerprint": "5cac318ecd87f1761dab6d70e45a3130f55af4e8a981e0b707481e8e18f998b4",
+    "buildLog": ".qa/handovers/civilian-passby-15dda654.log",
+    "independentLog": ".qa/handovers/civilian-passby-independent.log"
+  },
+  "limits": [
+    "Actual civilian event delivery under mission side/ammo rules, escape direction/flow, repeated fire, migration/removal and runtime cost unverified.",
+    "Contextual shelter, body/scream awareness, civilian vehicle escape and operator interactions remain open; no whole-source parity or percentage uplift.",
+    "Unsigned development candidate from15dda654 plus working runtime; engineering notes postdate package.",
+    "Source animation assets/code not copied into product. Licence permission is not inferred from Workshop installation."
+  ],
+  "audits": "PAUSED"
+}

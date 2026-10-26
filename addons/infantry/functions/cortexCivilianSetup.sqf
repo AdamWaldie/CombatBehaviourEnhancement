@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Installs the event-driven CBE civilian danger response on one owner-local unarmed civilian.
  * Player, Zeus, specialist and neutral external-control ownership is left completely untouched.
- * No per-frame or periodic civilian scan is created. FiredNear, Explosion and Hit events request a
+ * No per-frame or periodic civilian scan is created. FiredNear, Suppressed, Explosion and Hit request a
  * priority-aware finite reaction through the shared scheduler.
  *
  * Locality / Authority: Shared all-machine class/Local hook calls setup; only the actual owner
@@ -68,6 +68,23 @@ private _fired=_unit addEventHandler ["FiredNear",{
         [_unit,_firer,"FIRED_NEAR",1] call CBE_fnc_CortexCivilianReact;
     };
 }];
+// Native pass-by warnings can exist without a nearby firing event. Infer only an
+// incoming direction; a distant shooter is not automatically visible to this civilian.
+private _suppressed=_unit addEventHandler ["Suppressed",{
+    params ["_unit",["_distance",1e6,[0]],["_shooter",objNull,[objNull]],
+        ["_instigator",objNull,[objNull]],["_ammoObject",objNull,[objNull]]];
+    if (!finite _distance || {_distance < 0}
+        || {_distance > ((missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Radius",45]) min 30)}
+        || {_unit == _shooter} || {_unit == _instigator}) exitWith {};
+    private _threat=getPosATL _unit;
+    if (!isNull _ammoObject) then {
+        private _incoming=velocity _ammoObject;
+        if (_incoming findIf {!finite _x} < 0 && {vectorMagnitude _incoming > 0.1}) then {
+            _threat=_threat vectorDiff ((vectorNormalized _incoming) vectorMultiply 30);
+        };
+    };
+    [_unit,_threat,"SUPPRESSED",2] call CBE_fnc_CortexCivilianReact;
+}];
 private _explosion=_unit addEventHandler ["Explosion",{
     params ["_unit","_damage","_explosionSource"];
     private _threat=if (isNull _explosionSource) then {getPosATL _unit} else {getPosATL _explosionSource};
@@ -77,7 +94,7 @@ private _hit=_unit addEventHandler ["Hit",{
     params ["_unit","_source"];
     [_unit,_source,"HIT",3] call CBE_fnc_CortexCivilianReact;
 }];
-_unit setVariable ["CBE_Cortex_CivilianHandlers",[["FiredNear",_fired],["Explosion",_explosion],["Hit",_hit]]];
+_unit setVariable ["CBE_Cortex_CivilianHandlers",[["FiredNear",_fired],["Suppressed",_suppressed],["Explosion",_explosion],["Hit",_hit]]];
 // Group and actor ownership can arrive in either order. This group-scoped native edge
 // checks only its roster; it does not create another movement controller or world scan.
 private _group=group _unit;

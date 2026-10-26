@@ -5924,8 +5924,18 @@ class CortexOperations(unittest.TestCase):
         react=source('cortexCivilianReact')
         init=source('cortexInit')
         stop=source('cortexStop')
-        for event in ['"FiredNear"','"Explosion"','"Hit"','"Local"']:
+        for event in ['"FiredNear"','"Suppressed"','"Explosion"','"Hit"','"Local"']:
             self.assertIn(event,setup)
+        passby=setup.split('private _suppressed=',1)[1].split('private _explosion=',1)[0]
+        for proof in ('!finite _distance','_distance < 0','min 30','_unit == _shooter',
+                      '_unit == _instigator','velocity _ammoObject','vectorNormalized _incoming',
+                      '[_unit,_threat,"SUPPRESSED",2] call CBE_fnc_CortexCivilianReact'):
+            self.assertIn(proof,passby)
+        for disclosure in ('getPosATL _shooter','getPosATL _instigator',' reveal ',
+                           'switchMove','setFriend','addPerFrameHandler'):
+            self.assertNotIn(disclosure,passby)
+        self.assertIn('["Suppressed",_suppressed]',setup)
+        self.assertIn('removeEventHandler _x',setup)
         self.assertNotIn('CBA_fnc_addPerFrameHandler',setup+react)
         self.assertNotIn('while {',setup+react)
         self.assertIn('CBE_fnc_CortexExternalTakeover',setup)

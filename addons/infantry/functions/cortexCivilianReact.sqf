@@ -27,7 +27,7 @@
  * Return Value:
  * Boolean - true when a real flee order was issued.
  *
- * Current callers: FiredNear, Explosion and Hit handlers installed by CBE_fnc_CortexCivilianSetup,
+ * Current callers: FiredNear, Suppressed, Explosion and Hit handlers installed by CBE_fnc_CortexCivilianSetup,
  * plus the focused audit endpoint.
  *
  * Example:

@@ -387,20 +387,21 @@
       "name": "Simple Civilian Behaviour",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Civilian reactions and task continuity",
-      "reviewStatus": "Unreconciled; older evidence pointer missing",
-      "nextSourceReview": "Recover source evidence; trace finite danger reactions, return to routine, locality and sensing cost.",
-      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
-      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "reviewStatus": "Complete readable AI script and config entry/action callbacks recovered/reviewed; visual animation graph not evaluated",
+      "nextSourceReview": "Continue contextual shelter/body awareness and task continuity; preserve mission settings. Native pass-by delivery, repeat/migration and dense-fire cost await physical validation.",
+      "recordedImplementationStatus": "FINITE_CIVILIAN_ESCAPE_NATIVE_PASSBY_EVENT_OFFLINE_PHYSICAL_PENDING",
+      "recordedRemaining": "Contextual shelter/body/scream awareness, civilian vehicle escape and operator interactions remain incomplete; native pass-by applicability/physical escape quality/cost unverified.",
       "implementationAssessmentCommit": "ca778db2",
-      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
-      "evidenceFilePresent": false,
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/simple-civilian-source-20261026.json",
+      "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "installedDirectoryObservation": {
         "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3529745801",
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
-      }
+      },
+      "reviewScopeNote": "Selected event contribution implemented through existing civilian owner from15dda654 plus working runtime; no whole-feature percentage reassessment."
     },
     {
       "workshopId": "3559900745",
