@@ -1006,6 +1006,7 @@ private _issue = {
     private _resumeSpots=_drill getOrDefault ["resumeSpots",[]];
     private _reservedSpots=(_resumeSpots select {(_x select 0) in _units}) apply {+(_x select 1)};
     private _slotsAvailable=true;
+    private _terrainAvailable=true;
     // Retain only still-owned recovery overrides across the main element's next bound.
     // FlankEnd restores the same records on cancellation, migration or completion.
     private _disabled = +(_drill get "disabled");
@@ -1049,6 +1050,11 @@ private _issue = {
                     };
                 } forEach [0.65,0.35,0];
             };
+            // All local alternatives may fail. Refuse this plan instead of issuing
+            // the original water/cliff destination; do not reroll or extend the bound.
+            if (surfaceIsWater _spot || {((surfaceNormal _spot) select 2) < 0.55}) then {
+                _terrainAvailable=false;
+            };
             if (_kind in ["BOUND", "FINAL", "ASSAULT"]) then {
                 private _cover = ([_spot, _enemyPos, 3, _spots+_reservedSpots, _group] call CBE_fnc_CortexFindCover) select 0;
                 // Cover may lie beyond the search radius on a large object. Preserve the formation slot.
@@ -1058,6 +1064,7 @@ private _issue = {
         _spots pushBack _spot;
         _planned pushBack [_unit,+_spot];
     } forEach _units;
+    if (!_terrainAvailable) exitWith {_result="NO_SAFE_BOUND_TERRAIN" call _end};
     if (!_slotsAvailable) exitWith {_result="NO_REPLACEMENT_SPACE" call _end};
     // Geometry is prepared above the local commit. Native writes and their journals commit only while
     // the same drill point, roster and observed actor tasks still own this entire bound.

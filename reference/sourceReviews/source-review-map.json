@@ -665,8 +665,8 @@
       "name": "Pinned Down Cover and Concealment",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Cover selection and concealment use",
-      "reviewStatus": "Verified extracted source available; deep review unreconciled",
-      "nextSourceReview": "Use the verified extracted snapshot to trace evidence, position choice, route feasibility and threat-facing posture.",
+      "reviewStatus": "Selected cover eligibility, FSM branches and caller regions reviewed; whole-source reconciliation open",
+      "nextSourceReview": "Complete position-selection, reachability, threat-facing and defensive-position execution review; reconcile with existing movement/posture owners without a competing forced-speed hold. Selected caller cleanup defect fixed; remaining source scope is not complete.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
@@ -686,7 +686,11 @@
         "readableSourceFiles": 37,
         "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
       },
-      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
+      "selectedReviewEvidence": [
+        "releaseVerificationAndDeployment/referenceReviews/pinned-cover-completion-dispositions-20261026.json",
+        "releaseVerificationAndDeployment/referenceReviews/danger-cover-return-anchor-20261026.json"
+      ]
     },
     {
       "workshopId": "3776232873",

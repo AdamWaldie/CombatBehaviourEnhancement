@@ -4974,6 +4974,13 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('forEach [0,1,-1,2,-2]',step)
         self.assertIn('(_spots+_reservedSpots) findIf {_candidate distance2D _x < 2}',step)
         self.assertIn('if (!_slotsAvailable) exitWith {_result="NO_REPLACEMENT_SPACE" call _end}',step)
+        terrain=step.split('// All local alternatives may fail.',1)[1].split('if (_kind in ["BOUND", "FINAL", "ASSAULT"])',1)[0]
+        self.assertIn('surfaceIsWater _spot',terrain)
+        self.assertIn('((surfaceNormal _spot) select 2) < 0.55',terrain)
+        self.assertIn('_terrainAvailable=false',terrain)
+        refusal=step.index('if (!_terrainAvailable) exitWith {_result="NO_SAFE_BOUND_TERRAIN" call _end}')
+        self.assertLess(refusal,step.index('// Geometry is prepared above the local commit.'))
+
 
         continuation=step.split('private _continueNative=',1)[1].split('if (!_continueNative)',1)[0]
         for proof in ('resumeNativeMoves','currentCommand _unit == "MOVE"',
