@@ -9,7 +9,10 @@
  * refuses; absence is explicit. Canonical context, baseline, applied value and server retry
  * timestamp remain original; foreign setting issuers are copied, never claimed as clearance.
  * Arguments: 0 job HASHMAP default empty.
- * Return: ARRAY [2,visitContext,actorRows,originalRegistration,settingsRetirement] or[] on refusal.
+ * Return: ARRAY [3,visitContext,actorRows,originalRegistration,settingsRetirement,groupPolicy] or[] on refusal.
+ * Group policy [1,original behaviour,original attack BOOL,continueRoute BOOL,attack lease,original native route].
+ * Only the exact CLEAR attack lease is accepted. Unknown group restoration keys refuse.
+ * Route copy is bounded to4096 nodes/depth16/512-character strings; it grants no replay.
  * Row [originalNetId,actor,canonicalSettingRows,motion,mirrorRows,reservation,evasionReturn,retireWindow].
  * Actor reservations/return expiry convert the original local clock to server time once; no renewal. Canonical rows preserve
  * [context,[property,baseline,applied] rows,retryAtServer]. Mirrors retain [name,present,value].
@@ -43,6 +46,51 @@ isNil {
         };
         private _copyVisit={params ["_source"];[_source select 0,(_source select 1) apply {+_x},_source select 2,_source select 3]};
         private _copiedVisit=[_visit] call _copyVisit;
+        // Preserve original group permission and task policy, never a new-owner native read.
+        private _operation=_group getVariable ["CBE_Operation",createHashMap];
+        private _restore=_operation getOrDefault ["restore",createHashMap];
+        private _baseBehaviour=_job getOrDefault ["baseBehaviour",""];
+        private _baseAttack=_job getOrDefault ["baseAttack",-1];
+        private _continueRoute=_job getOrDefault ["continueRoute",-1];
+        if (!(_restore isEqualType createHashMap) || {keys _restore findIf {_x != "groupAttack"} >= 0}
+            || {!(_baseBehaviour in ["SAFE","AWARE","COMBAT","STEALTH","CARELESS"])}
+            || {!(_baseAttack isEqualType true)} || {!(_continueRoute isEqualType true)}) exitWith {[]};
+        private _attack=_restore getOrDefault ["groupAttack",[]];
+        if (!(_attack isEqualType []) || {count _attack != 2}
+            || {_attack findIf {isNil "_x" || {!(_x isEqualType true)}} >= 0}
+            || {(_attack select 0) isNotEqualTo _baseAttack} || {_attack select 1}) exitWith {[]};
+        private _nativeReceipt=_job getOrDefault ["nativeOrderReceipt",[]];
+        if (!(_nativeReceipt isEqualType []) || {!(count _nativeReceipt in [2,3])}
+            || {_nativeReceipt findIf {isNil "_x"} >= 0}
+            || {[0,1] findIf {!((_nativeReceipt select _x) isEqualType 0)
+                || {!finite (_nativeReceipt select _x)}
+                || {(_nativeReceipt select _x) != floor (_nativeReceipt select _x)}} >= 0}
+            || {(_nativeReceipt select 0) < 0}
+            || {if (count _nativeReceipt == 2) then {(_nativeReceipt select 1) != -1} else {
+                (_nativeReceipt select 1) < 1 || {(_nativeReceipt select 1) >= (_nativeReceipt select 0)}
+                    || {!((_nativeReceipt select 2) isEqualType [])} || {(_nativeReceipt select 2) isEqualTo []}
+            }}) exitWith {[]};
+        private _policyValid=true;private _policyNodes=0;
+        private _copyPolicy={
+            params ["_value",["_depth",0]];
+            _policyNodes=_policyNodes+1;
+            if (_policyNodes > 4096 || {_depth > 16}) exitWith {_policyValid=false;[]};
+            if (_value isEqualType []) exitWith {
+                if (_depth >= 16 || {count _value > 4096} || {_value findIf {isNil "_x"} >= 0}) exitWith {_policyValid=false;[]};
+                private _copy=[];
+                {if (!_policyValid) exitWith {};_copy pushBack ([_x,_depth+1] call _copyPolicy)} forEach _value;
+                _copy
+            };
+            if (_value isEqualType 0) then {if (!finite _value) then {_policyValid=false}} else {
+                if (_value isEqualType "") then {if (count _value > 512) then {_policyValid=false}} else {
+                    if (!(_value isEqualType true || {_value isEqualType objNull} || {_value isEqualType grpNull})) then {_policyValid=false};
+                };
+            };
+            _value
+        };
+        private _copiedNative=[_nativeReceipt] call _copyPolicy;
+        if (!_policyValid) exitWith {[]};
+        private _groupPolicy=[1,_baseBehaviour,_baseAttack,_continueRoute,+_attack,_copiedNative];
         private _rows=[];private _keys=[];private _valid=true;
         {
             private _actor=_x;
@@ -169,7 +217,7 @@ isNil {
             _copiedResult=[_cleanupResult select 0,_cleanupResult select 1,+(_cleanupResult select 2)];
         };
         if (!_valid) exitWith {[]};
-        [2,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult]]
+        [3,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy]
     };
     false
 };

@@ -72,9 +72,17 @@ if (_mode == "CAPTURE") exitWith {
         || {!(_writerCount isEqualType 0)} || {!finite _writerCount}
         || {_writerCount < 1} || {_writerCount > 131} || {_writerCount != floor _writerCount}) exitWith {false};
     private _actors=_capture select 16;
-    if (!(_actors isEqualType []) || {count _actors != 5}
-        || {(_actors param [0,-1]) != 2} || {(_actors param [1,[]]) isNotEqualTo (_original select 2)}
+    if (!(_actors isEqualType []) || {count _actors != 6}
+        || {(_actors param [0,-1]) != 3} || {(_actors param [1,[]]) isNotEqualTo (_original select 2)}
         || {(_actors param [3,[]]) isNotEqualTo _original}) exitWith {false};
+    private _policy=_actors select 5;
+    if (!(_policy isEqualType []) || {count _policy != 6}
+        || {[0,1,2,3,4,5] findIf {isNil {_policy select _x}} >= 0}
+        || {(_policy select 0) isNotEqualTo 1}
+        || {!((_policy select 1) in ["SAFE","AWARE","COMBAT","STEALTH","CARELESS"])}
+        || {!((_policy select 2) isEqualType true)} || {!((_policy select 3) isEqualType true)}
+        || {(_policy select 4) isNotEqualTo [_policy select 2,false]}
+        || {!((_policy select 5) isEqualType [])} || {!(count (_policy select 5) in [2,3])}) exitWith {false};
     private _visit=_original select 2;
     private _building=_visit select 0;
     if (isNull _building || {!alive _building}

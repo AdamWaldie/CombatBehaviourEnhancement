@@ -295,7 +295,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertFalse(retired(True,True,True,True))
         self.assertTrue(retired(True,True,True))
         actor_journal=(ROOT/'addons/infantry/functions/buildingActorJournal.sqf').read_text(encoding='utf-8')
-        self.assertIn('count _actors == 5',capture)
+        self.assertIn('count _actors == 6',capture)
         self.assertIn('call CBE_fnc_BuildingActorJournal',capture)
         for guard in ('["FROZEN",_job] call CBE_fnc_BuildingProducerContext',
                       'producerRegistration','count _actors > 64','count _owned > 2',
@@ -313,8 +313,26 @@ class ClearPreparationCommitTests(unittest.TestCase):
                       '_serverNow+((_return select 2)-_localNow)',
                       '(_return select 0) isNotEqualTo _motion',
                       '(_return select 5) isNotEqualTo clientOwner',
-                      '[2,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult]]'):
+                      '[3,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy]'):
             self.assertIn(guard,actor_journal)
+        for guard in ('keys _restore findIf {_x != "groupAttack"}',
+                      '(_attack select 0) isNotEqualTo _baseAttack',
+                      '_policyNodes > 4096','_depth > 16','count _value > 512',
+                      '[1,_baseBehaviour,_baseAttack,_continueRoute,+_attack,_copiedNative]'):
+            self.assertIn(guard,actor_journal)
+        self.assertNotIn('attackEnabled',actor_journal)
+        self.assertNotIn('behaviour ',actor_journal.split('params [["_job"',1)[1])
+        original_route=[3,1,[['position',[1,2,3]],['condition','true']]]
+        import copy
+        transported=copy.deepcopy(original_route)
+        original_route[2][0][1][0]=99
+        self.assertEqual(transported[2][0][1][0],1)
+        def policy_valid(base,lease,extra_keys=False):
+            return type(base) is bool and lease==[base,False] and not extra_keys
+        self.assertTrue(policy_valid(True,[True,False]))
+        self.assertFalse(policy_valid(True,[False,False]))
+        self.assertFalse(policy_valid(True,[True,True]))
+        self.assertFalse(policy_valid(True,[True,False],True))
         # Clock origins may differ. Preserve remaining time, including already expired leases.
         for local_now,server_now,expiry in ((100,500,106),(100,500,99),(1,900,1)):
             encoded=server_now+(expiry-local_now)

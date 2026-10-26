@@ -2025,3 +2025,6 @@ Locality transfer supplies each original private indoor/point brain to its clean
 
 
 Passing qualification, duration/lateral planning, static body checks and traffic prediction measure projected world-space hulls. Scale, tilt and asymmetric origins therefore affect the actual dimensions used, rather than leaving model-unit bounds in metre-valued calculations. Traffic vertical intervals retain both hull offsets. Missing geometry refuses; all original consent, task deadlines and finite observation budgets remain. Additional model transforms and changed proposal sizes require runtime performance measurement.
+
+
+The current actor capture component is version3 with six fields; the outer source capture remains version12 with seventeen fields. The added group-policy component preserves the original private CLEAR behaviour baseline, attack baseline, continuation choice, exact baseline/applied attack lease and deeply copied authored native route. It reads no nonlocal AI settings. Unknown restoration fields and inconsistent leases refuse. The route copy is limited to4096 typed nodes, depth16 and512-character strings. Server storage validates the new component version and policy shape. This remains an unsealed original-source checkpoint; incoming reconciliation and execution are not implemented by storing these values.

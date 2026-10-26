@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "cbda8964",
+  "status": "ORIGINAL_CLEAR_GROUP_POLICY_CAPTURE_OFFLINE_VERIFIED",
+  "finding": "Private actor capture did not include the common CLEAR group attack lease or original private behaviour/continuation/native route policy. Separate replicated records are not a coherent original-source checkpoint.",
+  "implementation": [
+    "Actor component version3/six fields appends group policy version1: original behaviour, original attack baseline, continuation flag, original baseline/applied attack lease, deep original native route receipt. Outer capture remains version12/seventeen fields.",
+    "Exact frozen original CLEAR context and acknowledged registration required. Accept only original baseline matching the false-applied CLEAR attack lease; unknown restoration keys refuse instead of being dropped.",
+    "No nonlocal attackEnabled/behaviour/native order getter. Route structure validated; copy limited4096 nodes, depth16,4096 array entries,512-character strings and finite typed values. No new grace/clock/route reconstruction.",
+    "Server CAPTURE requires the new component version and typed group policy, retaining all original sender/recipient/phase/freshness limits. No incoming consumer, seal or native permission."
+  ],
+  "productHashes": {
+    "addons/core/functions/cortexLocality.sqf": "450219747b164e8f48a359172ab712e2134fd119ea9ea7d7647adb71e900f5f5",
+    "addons/infantry/functions/buildingActorJournal.sqf": "2df5db5a0624f598947a44367b26904e214a7f2c090b1190ac797eb9322c0292",
+    "addons/infantry/functions/buildingProducerRegister.sqf": "6b56537bc7a7cd6b7f631ac2521b11e4adbb897a78036d09addd7ec5d4908f23",
+    "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "4d96c9a365ab38074431ab828f89442f96d7b58a49324bb555fb2e5e0d64d922"
+  },
+  "validation": {
+    "tests": 1497,
+    "compiledSQF": 443,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/clear-group-policy-cbda8964",
+    "fingerprint": "7bc24b87a598cb12f7f4f19ec9720fdec7a1607b0c6c695cf18c5af99531cd93",
+    "buildLog": ".qa/handovers/clear-group-policy-build.log",
+    "independentLog": ".qa/handovers/clear-group-policy-independent.log",
+    "unsignedDevelopmentSnapshot": true
+  },
+  "physicalAcceptance": false,
+  "completeHandover": false,
+  "remaining": [
+    "All-writer seal, authenticated incoming delivery, original settings/native reconciliation and phase resumption.",
+    "Runtime normal/HC ordering and measured overhead remain unverified; audits paused."
+  ]
+}

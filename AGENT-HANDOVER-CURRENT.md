@@ -1,5 +1,8 @@
 # CBE continuation checkpoint, 26 October 2026
 
+Latest: original group policy is now part of actor component version3/six fields (outer capture remainsv12/17): original behaviour/attack baseline/continuation flag, exact original CLEAR attack lease and independently copied native route. Unknown restore keys or inconsistent lease refuse. Route copy bounded4096 nodes/depth16/512-character strings, no nonlocal native getters. Server requires new component and policy shape.1497 full tests/443 SQF/11 PBOs and independent verification pass. Candidate `.qa/candidates/clear-group-policy-cbda8964`, fingerprint `7bc24b87a598cb12f7f4f19ec9720fdec7a1607b0c6c695cf18c5af99531cd93`. Review `clear-group-policy-20261026.json`. Still UNSEALED; no incoming consumer/native authority. Audits paused; all-writer seal/incoming reconciliation/physical acceptance unfinished.
+
+
 Latest: passing admission/plan/static geometry/traffic now use projected world-metre hulls instead of raw model bounds. Traffic vertical occupancy/prediction uses asymmetric low/high Minkowski intervals. Unknown geometry refuses. Existing64-candidate/127-segment and owner/consent/deadline constraints retained; geometry CPU increases (traffic max260 model transforms), so performance remains unverified.1497 full/36 focused checks,443 SQF/11 PBOs and independent verification pass. Candidate `.qa/candidates/pass-world-chain-14513ded`, fingerprint `6f11491f56d8530afe6f9a9aff8619d315883543eb0350e76cb624c99c547e7d`. Review `hbq-pass-world-chain-20261026.json`. Audits paused, whole HBQ/CBE incomplete.
 
 
