@@ -159,8 +159,8 @@ isNil {
             private _rooms=if (count _stageBudget == 5) then {
                 [_clearJob] call CBE_fnc_BuildingRoomJournal
             } else {[]};
-            if (count _rooms == 10) then {
-                _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[3,clientOwner,
+            if (count _rooms == 12) then {
+                _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[4,clientOwner,
                     _clearJob get "generation",_clearJob get "ownerEpoch",_clearJob get "operationGeneration",
                     serverTime,_clearJob get "hardDeadline",_lanes,_stageBudget,_rooms]];
             };

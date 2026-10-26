@@ -7,8 +7,9 @@
  * Repeat/JIP: No publication, clock renewal, worker or JIP side effect. Malformed or
  * missing state refuses; sparse retry entries retain their original indices and length.
  * Arguments: 0 job HASHMAP default empty.
- * Return: ARRAY [1,visitContext,positions,cleared,unreachable,retryLength,retryRows,
- * failedBy,deadline,lastProgressAt], or[] on refusal. retryRows are[index,count].
+ * Return: ARRAY [2,visitContext,positions,cleared,unreachable,retryLength,retryRows,
+ * failedBy,deadline,lastProgressAt,enteredActors,actorVisitRows], or[] on refusal.
+ * Version2 retains actorVisitRows as[actorNetId,visitedRoomIndices]; retryRows are[index,count].
  * Current callers: CortexLocality outgoing frozen producer capture only.
  * Example: private _rooms=[_job] call CBE_fnc_BuildingRoomJournal;
  */
@@ -70,9 +71,31 @@ isNil {
             _failureRows pushBack (+_x);
         } forEach _failures;
         if (!_valid) exitWith {[]};
-        [1,[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3],
+        // These are prior physical observations, not current actor suitability or
+        // native-motion authority. Preserve original identities even after group changes.
+        private _entered=_job getOrDefault ["enteredActors",false];
+        private _visits=_job getOrDefault ["actorVisits",false];
+        if (!(_entered isEqualType []) || {count _entered > 64}
+            || {_entered findIf {!(_x isEqualType objNull) || {isNull _x} || {netId _x == ""}} >= 0}
+            || {count (_entered arrayIntersect _entered) != count _entered}
+            || {!(_visits isEqualType createHashMap)} || {count _visits > 64}) exitWith {[]};
+        private _enteredIds=_entered apply {netId _x};
+        private _visitKeys=keys _visits;
+        if (count (_enteredIds arrayIntersect _enteredIds) != count _enteredIds
+            || {count _visitKeys != count _enteredIds}
+            || {_visitKeys findIf {!(_x isEqualType "") || {!(_x in _enteredIds)}} >= 0}) exitWith {[]};
+        private _visitRows=[];
+        {
+            private _indices=_visits get _x;
+            if (!(_indices isEqualType []) || {count _indices < 1} || {count _indices > _size}
+                || {_indices findIf {!(_x call _index) || {!(_x in _cleared)}} >= 0}
+                || {count (_indices arrayIntersect _indices) != count _indices}) exitWith {_valid=false};
+            _visitRows pushBack [_x,+_indices];
+        } forEach _visitKeys;
+        if (!_valid) exitWith {[]};
+        [2,[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3],
             _positions apply {+_x},+_cleared,+_unreachable,count _retries,_retryRows,
-            _failureRows,_deadline,_progress]
+            _failureRows,_deadline,_progress,+_entered,_visitRows]
     };
     false
 };

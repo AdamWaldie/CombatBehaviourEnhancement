@@ -68,5 +68,9 @@
     "independentLog": ".qa/handovers/clear-room-independent.log",
     "initialFocusedFailures": "Two old version2/last-field source assertions updated for explicit version3/room extension; no runtime failure or test removed.",
     "sourceNote": "Built from implementation working tree after08903b22; runtime unchanged between build and checkpoint; review/handover metadata followed build."
+  },
+  "actorVisitFollowup": {
+    "review": "clear-actor-visit-capture-20261026.json",
+    "scope": "Version2 room component adds original per-actor entered/visit histories; outer private capture version4. Original version1/3 description is historical."
   }
 }
