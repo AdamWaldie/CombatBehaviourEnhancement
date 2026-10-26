@@ -2058,3 +2058,6 @@ A physical casualty investigation permits at most one equipment request per visi
 
 
 Native casualty inventory actions form an explicit effect boundary. Before publishing their result, CBE rechecks the original point order/controller, actor/group locality, owner epoch, operation generation, original deadline, route and movement lease. If a mission inventory callback replaced the visit, the old request cannot publish into it or continue through point completion. Already-applied inventory effects are not rolled back. These are effect-bound checks, with no new recurring observer or delayed-acknowledgement claim. Callback timing, delayed pickup and physical cleanup remain unverified.
+
+
+Interior clearance access planning budgets relevant-floor candidates rather than a raw model prefix. It may inspect up to512 admitted points to collect the existing24 visited or32 navigation/transit candidates, stopping once that allowance fills. This allows upper-floor nodes listed after lower-floor nodes to participate. Original support-probe ceilings, floor bands, connector caches, physical visit and movement-ownership checks remain. Sparse-floor selection does more coordinate work; runtime cost and actual traversal remain unverified. A selected node is not proof of reachability or room clearance.

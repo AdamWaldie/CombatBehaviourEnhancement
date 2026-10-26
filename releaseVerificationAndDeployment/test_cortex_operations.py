@@ -3176,7 +3176,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('!_approachingEntry && {_entered || {abs',branch)
         self.assertIn('abs (((getPosASL _point) select 2)-((AGLToASL _checkpoint) select 2)) <= 0.75',branch)
         self.assertIn('_positions select _previousPositionIndex',branch)
-        self.assertIn('_cleared select [0,24]',branch)
+        self.assertIn('[_cleared,_targetFloor,1.5,24,true] call _floorCandidates',branch)
         self.assertIn('(_probes getOrDefault [_probeKey,-1]) != count _cleared',branch)
         self.assertIn('count _checkpoint == 3',branch)
         self.assertIn('abs (((AGLToASL _checkpoint) select 2)-_targetFloor) <= 1.5',branch)
@@ -3192,7 +3192,28 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('["transitPositions",_allPositions select {!(_x in _positions)}]',admission)
         access=step.split('private _floorKey=str round',1)[1].split('// At most two legs:',1)[0]
         self.assertIn('count _accessCache < 8',access)
-        self.assertIn('select [0,32]',access)
+        candidates=step.split('private _floorCandidates={',1)[1].split('// Retain actor-specific',1)[0]
+        for bound in ('count _matches >= _limit','_nodes select [0,512]',
+                      'abs (((AGLToASL _node) select 2)-_floor) <= _band','!finite _x'):
+            self.assertIn(bound,candidates)
+        self.assertNotIn('lineIntersects',candidates)
+        self.assertNotIn('doMove',candidates)
+        # A large model lists its upper landing after more than32 lower-floor
+        # points. The candidate allowance applies after floor membership.
+        def floor_candidates(nodes,floor,band,limit):
+            result=[]
+            for node in nodes[:512]:
+                if len(result)>=limit: break
+                if abs(node[2]-floor)<=band: result.append(node)
+            return result
+        model=[(i,0,0) for i in range(40)]+[(i,0,4) for i in range(40)]
+        self.assertEqual([n for n in model[:32] if abs(n[2]-4)<=0.75],[])
+        self.assertEqual(len(floor_candidates(model,4,0.75,32)),32)
+        self.assertEqual(floor_candidates(model,0,0.75,24),model[:24])
+        self.assertEqual(floor_candidates(model,9,0.75,32),[])
+        self.assertEqual(floor_candidates(model[:40]*13+[(0,0,4)],4,0.75,32),[])
+
+        self.assertIn('_targetFloor,0.75,32] call _floorCandidates',access)
         self.assertIn('(_x select 2) == _building || {(_x select 3) == _building}',access)
         self.assertIn('_accessCache set [_floorKey,_access]',access)
         self.assertIn('if (_access isNotEqualTo []) exitWith {}',access)
@@ -3272,7 +3293,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('format ["%1:%2",_pairIndex,netId _point]',branch)
         self.assertIn('!(_previousPositionIndex in _ownVisits)',branch)
         self.assertLess(branch.index('_chain pushBack (+(_positions select _previousPositionIndex))'),branch.index('_chain pushBackUnique (+_checkpoint)'))
-        self.assertLess(branch.index('private _accessNodes=_cleared'),branch.index('private _transit='))
+        self.assertLess(branch.index('private _accessNodes='),branch.index('private _transit='))
         self.assertIn('_approach=[_positionIndex,+_first,false,_chain]',branch)
         self.assertIn('private _next=_remaining deleteAt 0',branch)
         self.assertIn('_target=+_next',branch)

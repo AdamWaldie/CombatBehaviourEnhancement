@@ -133,6 +133,10 @@
       "retirementCopyBoundsReview": {
         "review": "clear-retirement-copy-bounds-20261026.json",
         "scope": "Bound the whole watched metadata deep copy; malformed/cyclic/oversized source data refuses before retirement observer installation. No all-writer seal or replay claim."
+      },
+      "floorCandidateSamplingReview": {
+        "review": "clear-floor-candidate-sampling-20261026.json",
+        "scope": "Interior access samples24/32 candidates after relevant-floor filtering within512 original points. No physical route/visit/parity/performance proof."
       }
     },
     {
