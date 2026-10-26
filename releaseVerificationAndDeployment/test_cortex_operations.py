@@ -768,6 +768,16 @@ class CortexOperations(unittest.TestCase):
                       '_gain > 0 && {_gain == _removed}','["UNVERIFIED","VERIFIED"]'):
             self.assertIn(proof,pickup)
         self.assertEqual(pickup.count('action ["TakeMagazine"'),1)
+        self.assertLess(pickup.index('_pointAmmoActionIssued=true'),pickup.index('action ["TakeMagazine"'))
+        self.assertIn('if (!_pointAmmoActionIssued) then {[_actor,_body,_brain] call CBE_fnc_CasualtyWeaponRecover}',pickup)
+        self.assertNotIn('_pointAmmoActionIssued=false',pickup.split('action ["TakeMagazine"',1)[1])
+        # An issued but immediately unconfirmed action still consumes this visit's
+        # equipment request. No pickup, or a refused snapshot, leaves weapon recovery available.
+        for ammo_issued,ammo_verified,want_weapon,expected in (
+                (True,True,True,False),(True,False,True,False),
+                (False,False,True,True),(False,False,False,False)):
+            self.assertEqual((not ammo_issued) and want_weapon,expected)
+
         self.assertIn('count _cargo > 128',pickup)
         self.assertIn('count _rows > 128',pickup)
         self.assertLess(pickup.index('if (_before >= 0)'),pickup.index('action ["TakeMagazine"'))

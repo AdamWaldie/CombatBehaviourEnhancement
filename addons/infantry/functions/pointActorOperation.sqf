@@ -5,6 +5,8 @@
  * Public-journal-only cleanup refuses while any private local controller remains installed.
  * Individual BLUE/GREEN orders defer new investigation and end active execution;
  * exact owned movement cleanup remains available without changing combat mode.
+ * Equipment recovery issues at most one request per visit: empty-primary ammunition first,
+ * otherwise existing missing-weapon recovery. Immediate nonconfirmation never permits a second request.
  * Purpose: Execute one finite investigation of an engine-observed own-group casualty location.
  * Locality/authority: Actor and group owner only; shared scheduler executes each bounded step.
  * Repeat/JIP: One actor per group, original twelve-second deadline, public cancellation journal.
@@ -234,6 +236,8 @@ private _position=getPosASL _actor;
 if (_position vectorDistance (_brain get "goalASL") <= 2
     && {!(lineIntersects [eyePos _actor,(_brain get "goalASL") vectorAdd [0,0,0.5],_actor,_body])}) exitWith {
     // Native TakeMagazine can act at arbitrary distance: only this physical visit grants it.
+    // One equipment request per visit: an unconfirmed ammo action is still issued work.
+    private _pointAmmoActionIssued=false;
     // One attempt uses the existing observation lease/deadline, never a new rearm controller.
     if (primaryWeapon _actor != ""
         && {[_group,"CBE_AIPass_AmmoShare_Enable",true] call CBE_fnc_CortexFeatureEnabled}
@@ -268,6 +272,7 @@ if (_position vectorDistance (_brain get "goalASL") <= 2
             };
             private _before=[magazinesAmmoFull _actor,_magazine] call _rounds;
             if (_before >= 0) then {
+            _pointAmmoActionIssued=true;
             _actor action ["TakeMagazine",_supply,_magazine];
             private _receiverAfter=[magazinesAmmoFull _actor,_magazine] call _rounds;
             private _sourceAfter=[magazinesAmmoCargo _supply,_magazine] call _rounds;
@@ -282,7 +287,9 @@ if (_position vectorDistance (_brain get "goalASL") <= 2
         };
     };
     _brain set ["visitReached",true];
-    [_actor,_body,_brain] call CBE_fnc_CasualtyWeaponRecover;
+    // Urgent primary ammunition wins over a second weapon pickup in this callback.
+    // An immediate UNVERIFIED result does not authorize replacing the pending action.
+    if (!_pointAmmoActionIssued) then {[_actor,_body,_brain] call CBE_fnc_CasualtyWeaponRecover};
     ["VISITED"] call _finish
 };
 if (_position vectorDistance (_brain get "progressPosition") >= 1) then {

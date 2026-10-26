@@ -82,5 +82,9 @@
   "assaultPaceCallContextReview20261026": {
     "review": "releaseVerificationAndDeployment/referenceReviews/lambs-assault-pace-call-contexts-20261026.json",
     "meaning": "Full selected readable speed/direct/memory/CQB source bodies reviewed; native pace correspondence does not establish all-context parity. No runtime change."
+  },
+  "casualtyEquipmentPriorityFollowup": {
+    "review": "lambs-casualty-equipment-priority-20261026.json",
+    "scope": "Selected complete body helper compared. CBE point visit now permits one equipment request, urgent primary ammo before missing weapon. No delayed acknowledgement/native cleanup/whole-source parity claim."
   }
 }
