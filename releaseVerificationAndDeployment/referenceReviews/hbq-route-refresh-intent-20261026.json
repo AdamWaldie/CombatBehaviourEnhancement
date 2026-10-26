@@ -832,6 +832,35 @@
         "performanceAcceptance": false
       },
       "remaining": "Physical delivery, stop/locality interruption and final native reverse/crossing handback remain unverified. This fix addresses pre-consent initiation metadata, not all queue lifecycle gaps."
+    },
+    "cbeIssuedMovementFollowup": {
+      "scope": "Selected existing queue/recovery release execution path, not complete queue broker/crossing/locality acceptance.",
+      "traced": [
+        "DrivingQueueReverseCommit STOP journals simpleStopIssued and observes STOP plus one-second physical stillness before HELD reports.",
+        "DrivingRecoveryRelease shares SIMPLE_BACK proof, exact cap/crew/route checks and original hard deadline; pending native handback requires finite linear/angular rest.",
+        "DrivingRecoveryCleanup services at most four tickets per callback through the existing quarter-second service, retaining original deadlines.",
+        "DrivingBypassRelease distinguishes accepted queue crossing completion from cancelled crossing; cancelled owned stops may create a separate finite Abort_Hold. DrivingAbortHandback checks original crew/order/owner and current safety/rest before a return."
+      ],
+      "defect": "RecoveryRelease sent STOP again on every unchanged pending BACK observation despite simpleStopIssued already being true. It shares that journal with QueueReverseCommit, so shutdown cleanup could replay an already-issued STOP.",
+      "implementation": "Gate the existing STOP write on simpleStopIssued being false. Continue observing acknowledgement and physical rest, holding only the exact owned cap within the original deadline. No additional retry, timer, command, discovery or controller.",
+      "path": "addons/vehicles/functions/drivingRecoveryRelease.sqf",
+      "sourceSha256": "20842fb4b0d480d2cf744298fd48445a05c820ae53b607a8ef1a1edbff0cd7ac",
+      "focusedChecks": 19,
+      "remaining": "Full owner migration and command handback reliability remain unverified. Completed crossing return is a different flow from failed reverse braking; no universal full-stop rule was added to successful forward routing.",
+      "physicalAcceptance": false,
+      "performanceAcceptance": false,
+      "verification": {
+        "tests": 1497,
+        "focusedTests": 19,
+        "compiledSQF": 443,
+        "pbos": 11,
+        "build": ".qa/handovers/reverse-stop-once-build.log",
+        "independent": ".qa/handovers/reverse-stop-once-independent.log",
+        "candidate": ".qa/candidates/reverse-stop-once-875736dd",
+        "fingerprint": "128cb70a5918d2e9f8b56bdaf7ea6376da3a174aadec1e0b9c5b8312dec9735a",
+        "buildSource": "875736dd plus working implementation",
+        "physicalAcceptance": false
+      }
     }
   }
 }

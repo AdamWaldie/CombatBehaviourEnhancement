@@ -3079,3 +3079,8 @@ Physical driving geometry can now recognise a wall/fence/barrier gate through th
 ### Queue request retirement before consent
 
 Stopping an ordinary-driving operation also retires its exact pending queue request when no consent receipt has arrived. The original participant owner, group, epoch and driving generation must match; a successor request or newly installed consent survives. This prevents a silently refused or interrupted initiation from blocking later negotiation. Cleanup works on the original machine after locality loss, changes metadata only and sends no invented token or native movement/speed command. Existing consent retains its authenticated server-release path. No worker, timer, scan, setting or retry allowance is added. Physical interruption and multiplayer delivery remain unverified while audits are paused.
+
+
+### Reverse STOP acknowledgement without replay
+
+Native reverse cleanup issues STOP once per original recovery journal. Later cleanup calls observe that request and physical linear/angular rest under the existing deadline; an engine reply still showing BACK does not cause repeated STOP commands. The same issued marker is shared with queue reverse execution. Unacknowledged expiry remains unresolved, and a newer command, crew or speed owner still prevents handback. No timer, scan, retry budget or movement controller is added. Native acknowledgement timing and physical behaviour remain unverified while audits are paused.

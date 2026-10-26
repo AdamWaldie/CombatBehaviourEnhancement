@@ -32,6 +32,12 @@ class RecoveryCleanupTests(unittest.TestCase):
         release=(ROOT/'addons/vehicles/functions/drivingRecoveryRelease.sqf').read_text()
         for guard in (observer,release):
             self.assertIn('queueStopAcknowledged',guard)
+        # Queue commit and release share the same issued-STOP journal. Cleanup
+        # must observe a delayed reply rather than repeat STOP each service tick.
+        stop_issue=release.split('if (_commandMode == "SIMPLE_BACK") then {',1)[1].split('private _stopAcknowledged=',1)[0]
+        self.assertIn('&& {!(_work getOrDefault ["simpleStopIssued",false])}', stop_issue)
+        self.assertLess(stop_issue.index('simpleStopIssued'),stop_issue.index('sendSimpleCommand "STOP"'))
+        self.assertIn('_work set ["simpleStopIssued",true]', stop_issue)
         settling=release.split('private _stopAcknowledged=',1)[1].split('[_group,_vehicle] call CBE_fnc_ConvoyRetireMoveReceipt',1)[0]
         for proof in ('queueStopAcknowledged','vectorMagnitude velocity _vehicle',
                       'vectorMagnitude angularVelocity _vehicle','!finite _stopLinear',
