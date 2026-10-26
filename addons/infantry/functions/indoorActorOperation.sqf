@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Late FINISH binds original actor/group/operation/deadline/route/target/lease and rejects
+ * a different installed brain; generation/epoch alone cannot identify a cross-owner task.
  * Native planner data waits and delayed search retain ownership; no deadline is renewed.
  * Native fleeing preempts investigation and forbids return-to-formation cleanup commands.
  * One stalled CBE-issued ISSUE leg may select an alternative node under the same deadline/probe budget.
@@ -174,6 +176,10 @@ if (_mode == "FINISH") exitWith {
         _brain set ["finished",true]; _brain set ["pending",false]; _brain set ["completed",true];
     };
     if (!local _actor || {!local _group}) exitWith {false};
+    // A machine-local generation/epoch can collide with another owner's task.
+    // Only this installed controller (or an absent pointer during transfer) may clean up.
+    private _installed=_actor getVariable ["CBE_IndoorActor_Brain",createHashMap];
+    if (count _brain > 0 && {count _installed > 0 && {_installed isNotEqualTo _brain}}) exitWith {false};
     private _journal=_actor getVariable ["CBE_IndoorActor_Order",[]];
     if (count _journal != 10) exitWith {
         if (count _brain > 0 && {(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isEqualTo _brain}) then {
@@ -199,7 +205,14 @@ if (_mode == "FINISH") exitWith {
     _journal params ["_generation","_epoch","_oldGroup","_operation","_deadline","_route","_target","_lease","_issued","_formationLeader"];
     // A late old FSM cannot retire a successor's public journal or marker.
     if (count _brain > 0 && {(_brain getOrDefault ["generation",-1]) != _generation
-        || {(_brain getOrDefault ["ownerEpoch",-1]) != _epoch}}) exitWith {false};
+        || {(_brain getOrDefault ["ownerEpoch",-1]) != _epoch}
+        || {(_brain getOrDefault ["actor",objNull]) isNotEqualTo _actor}
+        || {(_brain getOrDefault ["group",grpNull]) isNotEqualTo _oldGroup}
+        || {(_brain getOrDefault ["operationGeneration",-1]) != _operation}
+        || {(_brain getOrDefault ["deadline",-1]) isNotEqualTo _deadline}
+        || {(_brain getOrDefault ["route",[]]) isNotEqualTo _route}
+        || {(_brain getOrDefault ["target",[]]) isNotEqualTo _target}
+        || {(_brain getOrDefault ["lease",[]]) isNotEqualTo _lease}}) exitWith {false};
     private _destination=(expectedDestination _actor) param [0,[],[[]]];
     private _reservation=_actor getVariable ["CBE_Cortex_ActorMove",[]];
     private _ownsLeg=_issued && {serverTime < _deadline+30}

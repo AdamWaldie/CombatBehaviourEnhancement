@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Late FINISH binds original actor/group/operation/deadline/route/target/lease and rejects
+ * a different installed brain; generation/epoch alone cannot identify a cross-owner task.
  * Individual BLUE/GREEN orders defer new investigation and end active execution;
  * exact owned movement cleanup remains available without changing combat mode.
  * Purpose: Execute one finite investigation of an engine-observed own-group casualty location.
@@ -62,6 +64,10 @@ private _available={call _releaseAvailable && {missionNamespace getVariable ["CB
 if (_mode in ["FINISH","TRANSFER"]) exitWith {
     if (count _brain > 0) then {_brain set ["finished",true];_brain set ["pending",false];_brain set ["completed",true]};
     if (!local _actor || {!local _group}) exitWith {false};
+    // A machine-local generation/epoch can collide with another owner's task.
+    // Only this installed controller (or an absent pointer during transfer) may clean up.
+    private _installed=_actor getVariable ["CBE_PointActor_Brain",createHashMap];
+    if (count _brain > 0 && {count _installed > 0 && {_installed isNotEqualTo _brain}}) exitWith {false};
     private _order=_actor getVariable ["CBE_PointActor_Order",[]];
     if !(_order isEqualType [] && {count _order == 11}) exitWith {false};
     _order params ["_generation","_epoch","_oldGroup","_operation","_deadline","_route","_target","_lease","_issued","_before","_requestAt"];
@@ -80,7 +86,14 @@ if (_mode in ["FINISH","TRANSFER"]) exitWith {
             || {!((_before select 1) isEqualType [])} || {!((_before select 2) isEqualType objNull)}
             || {_requestAt < 0}}}
         || {count _brain > 0 && {(_brain getOrDefault ["generation",-1]) != _generation
-            || {(_brain getOrDefault ["ownerEpoch",-1]) != _epoch}}}) exitWith {false};
+            || {(_brain getOrDefault ["ownerEpoch",-1]) != _epoch}
+            || {(_brain getOrDefault ["actor",objNull]) isNotEqualTo _actor}
+            || {(_brain getOrDefault ["group",grpNull]) isNotEqualTo _oldGroup}
+            || {(_brain getOrDefault ["operationGeneration",-1]) != _operation}
+            || {(_brain getOrDefault ["deadline",-1]) isNotEqualTo _deadline}
+            || {(_brain getOrDefault ["route",[]]) isNotEqualTo _route}
+            || {(_brain getOrDefault ["target",[]]) isNotEqualTo _target}
+            || {(_brain getOrDefault ["lease",[]]) isNotEqualTo _lease}}}) exitWith {false};
     private _reservation=_actor getVariable ["CBE_Cortex_ActorMove",[]];
     private _destination=(expectedDestination _actor) param [0,[],[[]]];
     private _pending=_issued && {count _before == 3}

@@ -109,6 +109,26 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         for forbidden in ('setPosATL','setVelocity','forceSpeed','joinSilent','setDamage','doFire'):
             self.assertNotIn(forbidden,s)
     def test_finish_preserves_new_tasks_and_can_run_with_features_disabled(self):
+        for name,channel in [('indoorActorOperation','IndoorActor'),('pointActorOperation','PointActor')]:
+            source=(ROOT/'addons/infantry/functions'/f'{name}.sqf').read_text()
+            finish=source.split('if (_mode in ["FINISH","TRANSFER"]) exitWith {',1)[1] if channel=='PointActor' else source.split('if (_mode == "FINISH") exitWith {',1)[1]
+            finish=finish.split('if (_mode == "START")',1)[0]
+            for field in ('actor','group','operationGeneration','deadline','route','target','lease'):
+                self.assertIn(f'_brain getOrDefault ["{field}",',finish)
+            self.assertIn('_installed isNotEqualTo _brain',finish)
+            self.assertLess(finish.index('_installed isNotEqualTo _brain'),finish.index('expectedDestination _actor'))
+        # Generations/epochs may coincide across ownership. Neither equal counters nor
+        # equal context authorise an old callback to retire a different installed brain.
+        original=('actorA','groupA',4,99,('routeA',),(1,2,0),('leaseA',))
+        def owns_cleanup(journal,installed):
+            return journal==original and installed in (None,'original')
+        self.assertTrue(owns_cleanup(original,'original'))
+        self.assertTrue(owns_cleanup(original,None))
+        self.assertFalse(owns_cleanup(original,'successor'))
+        for field in range(len(original)):
+            changed=list(original);changed[field]='new'
+            self.assertFalse(owns_cleanup(tuple(changed),None))
+
         s=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         finish=s.split('if (_mode == "FINISH") exitWith {',1)[1].split('if (_mode == "START")',1)[0]
         for guard in ('_generation','_epoch','_oldGroup == _group','CBE_OperationGeneration',

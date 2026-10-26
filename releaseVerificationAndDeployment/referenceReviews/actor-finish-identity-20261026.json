@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "cdd9e55bb74e4f64027e20fdefa2534ae60e7855",
+  "status": "ACTOR_FINISH_ORIGINAL_CONTEXT_OFFLINE_VERIFIED",
+  "finding": "Late FINISH checked only generation and epoch before public journal cleanup. Those counters do not uniquely identify tasks across original groups and owners. Native recall had additional gates, but marker/result/order writes could still target a successor.",
+  "implementation": [
+    "Reject a nonempty different installed controller before journal reads, native destination observation or public cleanup.",
+    "With a supplied brain, match original actor/group/operation generation/deadline/route/target/lease as well as generation/epoch.",
+    "Preserve journal-only transfer cleanup, original finite windows, actual native destination and formation checks. No new controller, worker, timer or native command."
+  ],
+  "productHashes": {
+    "addons/infantry/functions/indoorActorOperation.sqf": "a55f8522de1c63a3c6c5bdc57509b45f14a92543fc6a3d2e7940c5d31970261c",
+    "addons/infantry/functions/pointActorOperation.sqf": "564337b69f6350f65dc10a87890b26e6f2f55225f2cbe5c5b6db6618607c8094",
+    "releaseVerificationAndDeployment/test_indoor_actor_lifecycle.py": "ac936b2a6da7c97e58a8b7be1a8fb8b480e10b5ab6341b9179682c8f37dcaff2"
+  },
+  "validation": {
+    "tests": 1497,
+    "focusedTests": 32,
+    "compiledSQF": 443,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/actor-finish-identity-cdd9e55b",
+    "fingerprint": "61bebe5d838f7429b164b07dee79abfa3146fb1766615b7cf98c0eded03d5765",
+    "buildLog": ".qa/handovers/actor-finish-identity-build.log",
+    "independentLog": ".qa/handovers/actor-finish-identity-independent.log",
+    "unsignedDevelopmentSnapshot": true
+  },
+  "physicalAcceptance": false,
+  "completeHandover": false,
+  "remaining": [
+    "Actual migration and delayed cleanup ordering remain runtime-unverified; audits paused.",
+    "Complete all-writer seal and incoming actual native/settings/phase reconciliation."
+  ]
+}

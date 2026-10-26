@@ -1,5 +1,8 @@
 # CBE continuation checkpoint, 26 October 2026
 
+Latest: indoor/point FINISH now refuses a different installed brain and matches the supplied original actor/group/operation/deadline/route/target/lease before any native observation or public cleanup. This closes a cross-owner/group generation-counter collision. Public-journal-only transfer remains supported. Existing32 focused and1497 full tests pass,443 SQF/11 PBOs; independent verification PASS. Candidate `.qa/candidates/actor-finish-identity-cdd9e55b`, fingerprint `61bebe5d838f7429b164b07dee79abfa3146fb1766615b7cf98c0eded03d5765`. Review `actor-finish-identity-20261026.json`. Audits paused; complete source seal/incoming reconciliation and physical/performance acceptance remain unfinished.
+
+
 Latest checkpoint: original-source clearance candidates now reach bounded private server storage after original FSM retirement and watched metadata checks. Recipient is bound at the original Local edge before cleanup. Server authenticates original registration/sender and current intended recipient, original transform/deadlines and finite typed payload. Storage is UNSEALED; no incoming executor consumes it. Complete all-writer seal and incoming native/settings/phase reconciliation remain unfinished. Full offline1497 tests/443 compiled SQF/11 PBOs and independent verification passed. Candidate `.qa/candidates/clear-candidate-3cf13f6e`, fingerprint `7271dcda038a3d3a81797d16261dbfc58fc7aa1f3da2d5c7fa3f4dd2f028f5e4`. Review `clear-source-candidate-20261026.json`. Audits remain paused.
 
 
