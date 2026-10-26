@@ -92,6 +92,8 @@ Shared SQF wait helpers must reserve distinct parameter/local names such as `_cb
 
 ## Source integration and behaviour acceptance
 
+The implementation strategy is selective functionality improvement across the reference collection. Review each mod for useful AI intent, then keep, merge or redesign complementary methods inside CBE. Whole-mod imitation is not the completion criterion. Rejecting an unsafe method does not remove a required gameplay capability; implement a suitable replacement. Use `docs/SOURCE-REVIEW-MAP.md` and `docs/source-review-map.json` for the recoverable review queue, missing evidence and each reference's intended contribution. Preserve foundations-first, Protocol priority, compatibility-only and optional/deferred scopes.
+
 The source collection exists to combine unique capabilities, sound decisions and working improvements into one coherent CBE controller. Evaluate complete intent and execution, not isolated matching functions. For each selected source method, record its contribution, interaction with existing layers, authority, balance and cost, deliberate departures, remaining gaps and physical evidence. Distinguish reviewed, selected, implemented, integrated and physically verified. Parity is useful baseline evidence, not the final goal; reject conflicting controllers and preserve complementary strengths. Compatibility-only sources remain separate. No source-count percentage establishes functional delivery.
 
 ## Build-out progress versus acceptance
