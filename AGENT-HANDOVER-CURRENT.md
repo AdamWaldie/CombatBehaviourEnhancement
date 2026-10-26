@@ -1,5 +1,8 @@
 # CBE continuation checkpoint, 26 October 2026
 
+Latest: CLEAR settings cleanup now covers a later participant's original actor expiry instead of expiring at the first actor's deadline. Same generation/epoch and actor issuer required. Only shared pending deadline changes; individual windows and scan cursor remain unchanged, repeated admission creates no time. Selected canonical settings writer trace confirms local group/actor/epoch guards, not all-writer readiness.1497 full tests/443 SQF/11 PBOs and independent verification pass. Candidate `.qa/candidates/clear-settings-union-e964de0a`, fingerprint `1036271dfa3dd06a97b015f0899d3c788bf70847300ca4f173232f2857a47580`. Review `clear-settings-window-union-20261026.json`. Audits paused; source seal/incoming reconciliation/runtime acceptance unfinished.
+
+
 Latest: original group policy is now part of actor component version3/six fields (outer capture remainsv12/17): original behaviour/attack baseline/continuation flag, exact original CLEAR attack lease and independently copied native route. Unknown restore keys or inconsistent lease refuse. Route copy bounded4096 nodes/depth16/512-character strings, no nonlocal native getters. Server requires new component and policy shape.1497 full tests/443 SQF/11 PBOs and independent verification pass. Candidate `.qa/candidates/clear-group-policy-cbda8964`, fingerprint `7bc24b87a598cb12f7f4f19ec9720fdec7a1607b0c6c695cf18c5af99531cd93`. Review `clear-group-policy-20261026.json`. Still UNSEALED; no incoming consumer/native authority. Audits paused; all-writer seal/incoming reconciliation/physical acceptance unfinished.
 
 

@@ -2028,3 +2028,6 @@ Passing qualification, duration/lateral planning, static body checks and traffic
 
 
 The current actor capture component is version3 with six fields; the outer source capture remains version12 with seventeen fields. The added group-policy component preserves the original private CLEAR behaviour baseline, attack baseline, continuation choice, exact baseline/applied attack lease and deeply copied authored native route. It reads no nonlocal AI settings. Unknown restoration fields and inconsistent leases refuse. The route copy is limited to4096 typed nodes, depth16 and512-character strings. Server storage validates the new component version and policy shape. This remains an unsealed original-source checkpoint; incoming reconciliation and execution are not implemented by storing these values.
+
+
+The shared clearance-setting cleanup service covers the latest original expiry of its admitted actors. When a later actor joins the same clear generation/owner epoch with a later matching-issuer window, only the shared deadline changes. Earlier actor windows still expire at their original times, and the scan cursor is retained. Repeated admission cannot create a new actor window or extend its native restoration authority.

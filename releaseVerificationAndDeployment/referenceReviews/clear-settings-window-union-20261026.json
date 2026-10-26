@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "e964de0a",
+  "status": "CLEAR_SETTINGS_ORIGINAL_WINDOW_UNION_OFFLINE_VERIFIED",
+  "finding": "The shared cleanup expiry was fixed by its first actor. A later independently admitted actor with a later original window could lose automatic cleanup when the earlier shared expiry ended.",
+  "implementation": [
+    "For the same clear generation/owner epoch and matching actor issuer, retain a later original actor expiry as the shared service deadline.",
+    "Copy pending state and change only deadline index2. Preserve scan cursor, generation/epoch and every individual actor retirement window. Repeated admission of the same window creates no new time.",
+    "Earlier actor expiry still forbids its automatic native restoration. No new worker, timer, scan, native movement or settings command. Existing callback remains one actor at a time."
+  ],
+  "writerTrace": {
+    "scope": "Selected original source cleanup paths only; not an all-writer seal.",
+    "findings": [
+      "Shared scheduler rejects nonlocal group/stale epoch before invoking cleanup.",
+      "ActorSettingsCleanupStep independently checks current local group/epoch before work.",
+      "CortexClearSettingsRelease checks exact group/actor membership and clear generation/epoch inside isNil.",
+      "ActorSettings native property writes occur inside isNil and require actual local actor/authority group/current epoch; canonical issuer/generation/deadline and native applied values are checked."
+    ],
+    "hashes": {
+      "addons/core/functions/actorSettings.sqf": "ea2598d5b3930a87f5259c55482f1858ca3f2538805092aa71a4ddecb344c96f",
+      "addons/core/functions/actorSettingsCleanupStep.sqf": "02c50dbb443ac1b714acd50d04149eb44fc35eb82a9cfbf73f112a2a9ac9a923",
+      "addons/core/functions/cortexQueueJob.sqf": "88555522925667f76a8949f004275559f6fd5892dfea4bf00ecafd097f12773f",
+      "addons/core/functions/cortexSchedulerTick.sqf": "bb82985f8c39a9b72ebeb57a19b0d8a405e45e41cef267e69701fadb7439478d"
+    }
+  },
+  "productHashes": {
+    "addons/infantry/functions/cortexClearSettingsRelease.sqf": "e7c51b065a2dfcab13d0c7c4749ed5e0a8802980aa2fc50d6f9eb043dc1dcb6c",
+    "releaseVerificationAndDeployment/test_clear_settings_release.py": "e9cf38d06fbbd8f39ff00c1c55d70a3ad39bf555ab0f2d9a381058e3023378f8"
+  },
+  "validation": {
+    "tests": 1497,
+    "focusedTests": 4,
+    "compiledSQF": 443,
+    "PBOs": 11,
+    "newTestCases": 0,
+    "candidate": ".qa/candidates/clear-settings-union-e964de0a",
+    "fingerprint": "1036271dfa3dd06a97b015f0899d3c788bf70847300ca4f173232f2857a47580",
+    "buildLog": ".qa/handovers/clear-settings-union-build.log",
+    "independentLog": ".qa/handovers/clear-settings-union-independent.log",
+    "unsignedDevelopmentSnapshot": true
+  },
+  "physicalAcceptance": false,
+  "completeHandover": false,
+  "remaining": [
+    "Actual delayed native restoration and normal/HC transfer ordering remain unverified; audits paused.",
+    "Complete all-writer seal, incoming authenticated delivery/native settings reconciliation and phase resumption."
+  ]
+}
