@@ -803,6 +803,10 @@ _job set ["enteredActors",_enteredActors];
 _job set ["enteredActorIdentities",_enteredActorIdentities];
 // Early exits remain part of this episode even while other workers sweep.
 // Adopt bookkeeping only when the exact native leg or a physical arrival is still ours.
+_job set ["earlyExits",createHashMap];
+_job set ["earlyExitMotion",createHashMap];
+_job set ["earlyExitViewChecks",createHashMap];
+_job set ["earlyExitViewCursor",0];
 private _earlyReceipt=_group getVariable ["CBE_Cortex_ClearEarlyExits",[]];
 if (!_resume) then {[{_group setVariable ["CBE_Cortex_ClearEarlyExits",nil,true]}] call _commitPreparation};
 if (_resume && {_earlyReceipt isEqualType []} && {count _earlyReceipt == 2}

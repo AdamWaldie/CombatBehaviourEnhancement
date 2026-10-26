@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "7a741dba3cdd15debd4bf2d183d2b302c8cc1b6d",
+  "status": "EARLY_EXIT_COMPONENT_OFFLINE_VERIFIED_TRANSPORT_PENDING",
+  "topic": "Shared early-exit records and original source observation history",
+  "sourceTrace": [
+    "Live early-exit publication copied the current rows directly. Its map was attached only at new-leg writes; motion and view maps attached after service. No outgoing component retained the original early motion/view clocks.",
+    "Current public row has seven fields[actor,target,deadline,state,retryUsed,entry,watch]. The existing two-field public receipt is[visitContext,rows]. Motion rows contain[ASL pose,serverTime]; view rows contain[nextDue,blockedSince] with -1 as the clear sentinel.",
+    "Retired relief can delete its early-exit row while motion/view histories remain. Historical observation keys are therefore not silently discarded merely because no current exit row exists."
+  ],
+  "implementation": [
+    "Pure BuildingEarlyExitJournal PUBLIC mode validates/copies at most eight existing seven-field rows into the unchanged two-field public format. Valid empty current-context publication is retained after last relief retires. Missing/malformed original data refuses.",
+    "CAPTURE returns[1,visitContext,keyedRows,motionRows,viewRows,viewCursor], preserving original map keys even if an actor reference later becomes null. Any surviving actor must still match its original key. No null reference is resolved to a replacement.",
+    "PUBLIC returns before reading/copying historical motion/view maps. Only outgoing CAPTURE validates/copies at most64 rows per observation domain and its original finite integer rotation cursor. Clocks are already server-time and copied unchanged; no new motion, view, arrival or retry grace is supplied.",
+    "Preparation initializes all four private domains. Existing maps attach before early-exit service/publication/native writes; late motion/view assignments move earlier rather than adding a second map pass. Original geometry, relief, actor/native/recovery/retry/deadline and watch checks remain.",
+    "Outer machine-private capture becomes version8/fourteen fields, appending the six-field early-exit component after follow-through. The source predicate and other component guards still apply. No incoming consumer, native command or remote readiness endpoint is introduced."
+  ],
+  "cost": "Normal publication now validates at most eight exit rows/context instead of directly copying them, retaining existing changed-only/publication conditions. PUBLIC does not copy up to128 historical observation rows. Actual outgoing loss adds one bounded motion/view copy. No extra worker, timer, scan, network channel or native command. Actual5percent median/10percent p95 remains unmeasured.",
+  "remaining": [
+    "Legacy incoming early receipt adoption still accepts4/5/7-field rows and can default a missing retryUsed flag. Current producers now always encode7, but truncated nonempty resume data needs strict preflight deferral before startup, with matching adoption changes. Do not treat serializer validation as complete incoming validation.",
+    "Current incoming resume does not consume the new motion/view component; original observation-age preservation across actual transfer remains unproven.",
+    "Reserve admission/yield/relief, other actor native/settings/interruption/retirement domains, authenticated original-producer registration/seal/replay and actual incoming native readiness remain incomplete.",
+    "Historical observation serialization alone is not proof of a currently owned watch/post; exact native and geometry checks remain separate.",
+    "Normal/HC/Zeus migration, flow/casualty/repeat behaviour, balance and performance unverified. Audits paused."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/buildingEarlyExitJournal.sqf": "8b638505ebf9cc308955e1c5ffd78145e5cad51181600892dce2ff841768e4b6",
+    "addons/infantry/functions/buildingOperationStep.sqf": "16c0f77f618df78cdddcd29a4b2994e71fecd85d20712a4d7636ccdc8a1522fc",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "66c75233e03f679c606cdfa8d8a505e8bac7ea2329d11bface6a1201d5c0bcdc",
+    "addons/core/functions/cortexLocality.sqf": "4b4bf232d798ee227c8a22f906be1053ee1ec5467b19b39df1a48568180e9e5e",
+    "addons/main/CfgFunctions.hpp": "d52153bd1706c6c46f62365db1f8aefde662a73b3606aba14a706d16289b4836"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "focusedExistingCases": 18,
+    "newCases": 0,
+    "fullBuild": "PASS",
+    "tests": 1497,
+    "compiledSQF": 438,
+    "PBOs": 11,
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-early-producer-7a741dba",
+    "fingerprint": "4b09c0c63d125c536e4ddffe4cc2f632fd4594239b2e57407a4b0b8bfcd136b2",
+    "buildLog": ".qa/handovers/clear-early-producer-build.log",
+    "independentLog": ".qa/handovers/clear-early-producer-independent.log",
+    "sourceNote": "Full build from implementation working tree after7a741dba; runtime unchanged between full build and checkpoint; reference/handover metadata followed build."
+  }
+}

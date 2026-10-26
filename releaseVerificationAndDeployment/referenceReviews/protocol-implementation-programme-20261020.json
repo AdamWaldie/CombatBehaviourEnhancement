@@ -61,6 +61,10 @@
       "followProducerSnapshot20261026": {
         "review": "clear-follow-producer-capture-20261026.json",
         "scope": "Original follow-through legs/progress clocks and failed/exhausted search history share pure live/capture encoding. No incoming leg replay, native readiness, complete transfer or physical parity claim."
+      },
+      "earlyExitProducerSnapshot20261026": {
+        "review": "clear-early-producer-capture-20261026.json",
+        "scope": "Shared current early-exit row encoding and original motion/view/cursor source capture. No incoming observation replay, complete native readiness/transfer or physical parity claim; legacy truncated-row admission remains a named gap."
       }
     },
     {

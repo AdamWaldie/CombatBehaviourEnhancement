@@ -1028,14 +1028,17 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
     };
     private _earlyExits=_job getOrDefault ["earlyExits",createHashMap];
     private _earlyMotion=_job getOrDefault ["earlyExitMotion",createHashMap];
+    private _earlyViewChecks=_job getOrDefault ["earlyExitViewChecks",createHashMap];
+    _job set ["earlyExits",_earlyExits];
+    _job set ["earlyExitMotion",_earlyMotion];
+    _job set ["earlyExitViewChecks",_earlyViewChecks];
     private _publishEarlyExits={
         private _previous=_group getVariable ["CBE_Cortex_ClearEarlyExits",[]];
         private _currentContext=_job get "visitContext";
         if ((count _earlyExits > 0 || {count _previous == 2 && {(_previous select 0) isEqualTo _currentContext}})
             && {call _mayIssueMovement}) then {
-            private _rows=(keys _earlyExits) apply {+(_earlyExits get _x)};
-            private _receipt=[+(_job get "visitContext"),_rows];
-            if ((_group getVariable ["CBE_Cortex_ClearEarlyExits",[]]) isNotEqualTo _receipt) then {
+            private _receipt=["PUBLIC",_job] call CBE_fnc_BuildingEarlyExitJournal;
+            if (count _receipt == 2 && {(_group getVariable ["CBE_Cortex_ClearEarlyExits",[]]) isNotEqualTo _receipt}) then {
                 _group setVariable ["CBE_Cortex_ClearEarlyExits",_receipt,true];
             };
         };
@@ -1163,10 +1166,8 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
             };
         };
     } forEach (keys _earlyExits);
-    _job set ["earlyExitMotion",_earlyMotion];
     // An early arrival supports ongoing clearance by watching its selected doorway.
     // One rotating actual-eye check per callback; observation never creates an entry receipt.
-    private _earlyViewChecks=_job getOrDefault ["earlyExitViewChecks",createHashMap];
     private _watchKeys=(keys _earlyExits) select {
         private _row=_earlyExits get _x;
         (_row select 3) == "ARRIVED" && {count (_row param [6,[]]) == 3}
@@ -1206,7 +1207,6 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
             };
         };
     };
-    _job set ["earlyExitViewChecks",_earlyViewChecks];
     call _publishEarlyExits;
     // Shared bounded planner: at most four proposals/entrances, existing geometry checks.
     // Selection grants no movement authority or physical arrival receipt.

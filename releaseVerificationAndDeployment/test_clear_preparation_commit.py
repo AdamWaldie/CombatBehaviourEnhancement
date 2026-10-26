@@ -142,6 +142,16 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('if (count _rooms == 13)',capture)
         self.assertIn('call CBE_fnc_BuildingFollowJournal',capture)
         self.assertIn('if (count _follow == 4)',capture)
+        self.assertIn('["CAPTURE",_clearJob] call CBE_fnc_BuildingEarlyExitJournal',capture)
+        self.assertIn('if (count _early == 6)',capture)
+        early=(ROOT/'addons/infantry/functions/buildingEarlyExitJournal.sqf').read_text(encoding='utf-8')
+        self.assertLess(early.index('if (_mode == "PUBLIC") exitWith'),early.index('private _motion=_job'))
+        for guard in ('count _exits > 8','count _x > 64','_motionRows pushBack','_viewRows pushBack',
+                      '_row select 1) < -1','_cursor != floor _cursor','netId _actor isNotEqualTo _key'):
+            self.assertIn(guard,early)
+        for effect in ('setVariable','doMove','setDestination','spawn','serverTime+'):
+            self.assertNotIn(effect,early)
+
         follow=(ROOT/'addons/infantry/functions/buildingFollowJournal.sqf').read_text(encoding='utf-8')
         follow_step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8').split('private _follow=_job getOrDefault',1)[1]
         self.assertLess(follow_step.index('_job set ["followThrough",_follow]'),follow_step.index('_follow set ['))
@@ -177,8 +187,8 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertNotIn(effect,rooms)
 
         self.assertIn('if (count _stageBudget == 5)',capture)
-        self.assertIn('ClearLaneCaptureLocal",[7,clientOwner',capture)
-        self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress,_follow]',capture)
+        self.assertIn('ClearLaneCaptureLocal",[8,clientOwner',capture)
+        self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early]',capture)
         self.assertNotIn(',true]',capture)  # Machine-private proposal only.
         self.assertIn('call CBE_fnc_BuildingEgressJournal',capture)
         self.assertIn('count _egress == 14',capture)

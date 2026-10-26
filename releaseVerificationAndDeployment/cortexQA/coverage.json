@@ -1506,6 +1506,7 @@
         "addons/infantry/functions/buildingProducerContext.sqf",
         "addons/infantry/functions/buildingEgressJournal.sqf",
         "addons/infantry/functions/buildingFollowJournal.sqf",
+        "addons/infantry/functions/buildingEarlyExitJournal.sqf",
         "addons/infantry/functions/buildingRoofTop.sqf",
         "addons/infantry/functions/buildingExteriorCandidate.sqf",
         "addons/infantry/functions/buildingExteriorProposal.sqf",

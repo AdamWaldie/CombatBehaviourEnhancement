@@ -96,7 +96,11 @@ class ClearExitRelief(unittest.TestCase):
         p=s.split('private _publishEarlyExits={',1)[1].split('private _record=_earlyExits get',1)[0]
         self.assertIn('count _previous == 2',p)
         self.assertIn('(_previous select 0) isEqualTo _currentContext',p)
-        self.assertIn('private _rows=(keys _earlyExits)',p)
+        self.assertIn('["PUBLIC",_job] call CBE_fnc_BuildingEarlyExitJournal',p)
+        self.assertIn('count _receipt == 2',p)
+        journal=(ROOT/'addons/infantry/functions/buildingEarlyExitJournal.sqf').read_text(encoding='utf-8')
+        self.assertIn('if (_mode == "PUBLIC") exitWith {[_contextCopy,_rows]}',journal)
+        self.assertIn('forEach keys _exits',journal)
         self.assertIn('isNotEqualTo _receipt',p)
         self.assertIn('call _mayIssueMovement',p)
     def test_lost_observer_keeps_same_bounded_exit_leg_without_fake_coverage(self):

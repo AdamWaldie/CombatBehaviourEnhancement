@@ -161,10 +161,11 @@ isNil {
                     private _stageBudget=[_clearJob] call CBE_fnc_BuildingStageJournal;
                     private _rooms=if (count _stageBudget == 5) then {[_clearJob] call CBE_fnc_BuildingRoomJournal} else {[]};
                     private _follow=if (count _rooms == 13) then {[_clearJob] call CBE_fnc_BuildingFollowJournal} else {[]};
-                    if (count _follow == 4) then {
-                        _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[7,clientOwner,
+                    private _early=if (count _follow == 4) then {["CAPTURE",_clearJob] call CBE_fnc_BuildingEarlyExitJournal} else {[]};
+                    if (count _early == 6) then {
+                        _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[8,clientOwner,
                             _clearJob get "generation",_clearJob get "ownerEpoch",_clearJob get "operationGeneration",
-                            serverTime,_clearJob get "hardDeadline",_lanes,_stageBudget,_rooms,_phase,_egress,_follow]];
+                            serverTime,_clearJob get "hardDeadline",_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early]];
                     };
                 };
             };
