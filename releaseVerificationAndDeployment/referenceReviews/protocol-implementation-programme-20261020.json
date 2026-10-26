@@ -89,6 +89,10 @@
       "producerRegistration20261026": {
         "review": "clear-producer-registration-20261026.json",
         "scope": "Actual-owner server registration and exact live-job acknowledgement only. Final producer seal, incoming transport/readiness and physical migration remain incomplete."
+      },
+      "originalActorMetadata20261026": {
+        "review": "clear-actor-metadata-capture-20261026.json",
+        "scope": "Registered frozen-source canonical settings and motion metadata captured; no all-writer seal, incoming readiness or physical parity claim."
       }
     },
     {

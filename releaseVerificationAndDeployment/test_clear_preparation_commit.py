@@ -242,12 +242,31 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertNotIn(effect,rooms)
 
         self.assertIn('if (count _stageBudget == 5)',capture)
-        self.assertIn('ClearLaneCaptureLocal",[11,clientOwner',capture)
-        self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early,_relief,_admission]',capture)
+        self.assertIn('ClearLaneCaptureLocal",[12,clientOwner',capture)
+        self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early,_relief,_admission,_actors]',capture)
         self.assertNotIn(',true]',capture)  # Machine-private proposal only.
         self.assertIn('call CBE_fnc_BuildingEgressJournal',capture)
         self.assertIn('count _egress == 14',capture)
         self.assertIn('private _egressing=_phase == "EGRESS"',capture)
+        actor_journal=(ROOT/'addons/infantry/functions/buildingActorJournal.sqf').read_text(encoding='utf-8')
+        self.assertIn('count _actors == 4',capture)
+        self.assertIn('call CBE_fnc_BuildingActorJournal',capture)
+        for guard in ('["FROZEN",_job] call CBE_fnc_BuildingProducerContext',
+                      'producerRegistration','count _actors > 64','count _owned > 2',
+                      'CBE_ActorSettings','CBE_Cortex_ClearMotion','_retryAt < 0',
+                      '_properties pushBack [_property,_pair select 0,_pair select 1]',
+                      '_key in ["","0:0"]','_settings isEqualTo [] && {_mirrors findIf',
+                      '_copiedRegistration set [2,[_visit] call _copyVisit]'):
+            self.assertIn(guard,actor_journal)
+        for forbidden in ('setVariable','forceSpeed','doMove','expectedDestination','unitPos ',
+                          'getForcedSpeed','serverTime+','spawn','remoteExec'):
+            self.assertNotIn(forbidden,actor_journal)
+        import copy
+        original=[['issuer',4,3,100],{'STANCE':['AUTO','UP'],'SPEED':[2,1]},9]
+        snapshot=copy.deepcopy(original)
+        original[1]['SPEED'][0]=0
+        self.assertEqual(snapshot[1]['SPEED'],[2,1])
+        self.assertEqual(snapshot[2],9)  # Existing server retry deadline does not restart.
         egress=(ROOT/'addons/infantry/functions/buildingEgressJournal.sqf').read_text(encoding='utf-8')
         step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         self.assertIn('private _journal=[_job] call CBE_fnc_BuildingEgressJournal',step)

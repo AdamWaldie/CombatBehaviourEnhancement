@@ -1504,6 +1504,7 @@
         "addons/infantry/functions/buildingStageJournal.sqf",
         "addons/infantry/functions/buildingRoomJournal.sqf",
         "addons/infantry/functions/buildingProducerContext.sqf",
+        "addons/infantry/functions/buildingActorJournal.sqf",
         "addons/infantry/functions/buildingProducerRegister.sqf",
         "addons/infantry/functions/buildingEgressJournal.sqf",
         "addons/infantry/functions/buildingFollowJournal.sqf",
