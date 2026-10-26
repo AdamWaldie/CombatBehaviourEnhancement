@@ -771,6 +771,7 @@ if (_reserveAdmission isEqualType [] && {count _reserveAdmission == 2}
 _job set ["reserveAdmissionCommands",_reserveAdmissionCommands];
 private _actorVisits=createHashMap;
 private _enteredActors=[];
+private _enteredActorIdentities=[];
 if (_resume) then {
     {
         private _actor=_x;
@@ -792,12 +793,14 @@ if (_resume) then {
             if (_visited isNotEqualTo []) then {
                 _actorVisits set [netId _actor,_visited];
                 _enteredActors pushBack _actor;
+                _enteredActorIdentities pushBack [_actor,netId _actor];
             };
         };
     } forEach (_team select [0,8]);
 };
 _job set ["actorVisits",_actorVisits];
 _job set ["enteredActors",_enteredActors];
+_job set ["enteredActorIdentities",_enteredActorIdentities];
 // Early exits remain part of this episode even while other workers sweep.
 // Adopt bookkeeping only when the exact native leg or a physical arrival is still ours.
 private _earlyReceipt=_group getVariable ["CBE_Cortex_ClearEarlyExits",[]];

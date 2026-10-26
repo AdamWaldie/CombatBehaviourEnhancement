@@ -2773,7 +2773,15 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                     && {[_visitor,_positionASL] call _roomSegmentClear};
                 if (_atPosition) then {
                     private _enteredActors=_job getOrDefault ["enteredActors",[]];
+                    private _enteredCount=count _enteredActors;
                     _enteredActors pushBackUnique _visitor;
+                    if (count _enteredActors != _enteredCount) then {
+                        // Capture identity while the physical visitor still exists. A later
+                        // deleted object must not erase or reassign its historical visits.
+                        private _identities=_job getOrDefault ["enteredActorIdentities",[]];
+                        _identities pushBack [_visitor,netId _visitor];
+                        _job set ["enteredActorIdentities",_identities];
+                    };
                     _job set ["enteredActors",_enteredActors];
                     private _actorVisits=_job getOrDefault ["actorVisits",createHashMap];
                     private _visited=_actorVisits getOrDefault [netId _visitor,[]];

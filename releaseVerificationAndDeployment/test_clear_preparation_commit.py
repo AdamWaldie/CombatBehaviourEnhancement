@@ -139,7 +139,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('_clearJob get "hardDeadline",_lanes',capture)
         self.assertIn('[_clearJob] call CBE_fnc_BuildingStageJournal',capture)
         self.assertIn('[_clearJob] call CBE_fnc_BuildingRoomJournal',capture)
-        self.assertIn('if (count _rooms == 12)',capture)
+        self.assertIn('if (count _rooms == 13)',capture)
         self.assertIn('_lanes,_stageBudget,_rooms',capture)
         rooms=(ROOT/'addons/infantry/functions/buildingRoomJournal.sqf').read_text(encoding='utf-8')
         for field in ('cleared','unreachable','retryCounts','failedBy','deadline','lastProgressAt','visitContext'):
@@ -152,11 +152,15 @@ class ClearPreparationCommitTests(unittest.TestCase):
                       'count _visitKeys != count _enteredIds','!(_x in _cleared)',
                       '_visitRows pushBack [_x,+_indices]','+_entered,_visitRows'):
             self.assertIn(guard,rooms)
+        for guard in ('"enteredActorIdentities",false','count _identities != count _entered',
+                      'netId _actor isNotEqualTo _originalId','_enteredIds pushBack _originalId',
+                      '_identityRows pushBack [_actor,_originalId]'):
+            self.assertIn(guard,rooms)
         for effect in ('setVariable','doMove','setDestination','spawn','serverTime+'):
             self.assertNotIn(effect,rooms)
 
         self.assertIn('if (count _stageBudget == 5)',capture)
-        self.assertIn('ClearLaneCaptureLocal",[5,clientOwner',capture)
+        self.assertIn('ClearLaneCaptureLocal",[6,clientOwner',capture)
         self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress]',capture)
         self.assertNotIn(',true]',capture)  # Machine-private proposal only.
         self.assertIn('call CBE_fnc_BuildingEgressJournal',capture)

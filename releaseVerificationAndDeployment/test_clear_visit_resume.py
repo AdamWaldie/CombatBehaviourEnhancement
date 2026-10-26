@@ -18,6 +18,8 @@ class ClearVisitResumeTests(unittest.TestCase):
         self.assertNotIn('setPos',block)
         self.assertIn('_job set ["actorVisits",_actorVisits]',block)
         self.assertIn('_job set ["enteredActors",_enteredActors]',block)
+        self.assertIn('_enteredActorIdentities pushBack [_actor,netId _actor]',block)
+        self.assertIn('_job set ["enteredActorIdentities",_enteredActorIdentities]',block)
 
     def test_new_tasks_cannot_reuse_old_receipts(self):
         text=source('cortexClearBuilding')
@@ -34,6 +36,11 @@ class ClearVisitResumeTests(unittest.TestCase):
         observation=text.split('if (_atPosition) then {',1)[1].split('if !(_positionIndex in _cleared)',1)[0]
         self.assertIn('if !(_positionIndex in _visited)',observation)
         self.assertIn('_visitChangedActors pushBackUnique _visitor',observation)
+        self.assertIn('if (count _enteredActors != _enteredCount)',observation)
+        self.assertNotIn('_visitor in _enteredActors',observation)
+        self.assertIn('_identities pushBack [_visitor,netId _visitor]',observation)
+        self.assertLess(observation.index('_identities pushBack'),observation.index('_actorVisits set'))
+        self.assertNotIn('remoteExec',observation)
         publish=text.split('// Coalesce physical observations',1)[1].split('// Claimed rooms',1)[0]
         self.assertIn('call _mayIssueMovement',publish)
         self.assertIn('local _actor && {group _actor == _group}',publish)

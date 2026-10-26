@@ -7,9 +7,11 @@
  * Repeat/JIP: No publication, clock renewal, worker or JIP side effect. Malformed or
  * missing state refuses; sparse retry entries retain their original indices and length.
  * Arguments: 0 job HASHMAP default empty.
- * Return: ARRAY [2,visitContext,positions,cleared,unreachable,retryLength,retryRows,
- * failedBy,deadline,lastProgressAt,enteredActors,actorVisitRows], or[] on refusal.
- * Version2 retains actorVisitRows as[actorNetId,visitedRoomIndices]; retryRows are[index,count].
+ * Return: ARRAY [3,visitContext,positions,cleared,unreachable,retryLength,retryRows,
+ * failedBy,deadline,lastProgressAt,enteredActors,actorVisitRows,identities], or[] on refusal.
+ * Version3 identities are[originalActor,originalNetId], recorded before deletion.
+ * Deleted references are historical only; actorVisitRows retain original keys.
+ * retryRows are[index,count]; no original identity is guessed from a replacement.
  * Current callers: CortexLocality outgoing frozen producer capture only.
  * Example: private _rooms=[_job] call CBE_fnc_BuildingRoomJournal;
  */
@@ -74,12 +76,22 @@ isNil {
         // These are prior physical observations, not current actor suitability or
         // native-motion authority. Preserve original identities even after group changes.
         private _entered=_job getOrDefault ["enteredActors",false];
+        private _identities=_job getOrDefault ["enteredActorIdentities",false];
         private _visits=_job getOrDefault ["actorVisits",false];
         if (!(_entered isEqualType []) || {count _entered > 64}
-            || {_entered findIf {!(_x isEqualType objNull) || {isNull _x} || {netId _x == ""}} >= 0}
-            || {count (_entered arrayIntersect _entered) != count _entered}
+            || {_entered findIf {!(_x isEqualType objNull)} >= 0}
+            || {!(_identities isEqualType [])} || {count _identities != count _entered}
             || {!(_visits isEqualType createHashMap)} || {count _visits > 64}) exitWith {[]};
-        private _enteredIds=_entered apply {netId _x};
+        private _enteredIds=[];private _identityRows=[];
+        {
+            if (!(_x isEqualType []) || {count _x != 2}) exitWith {_valid=false};
+            _x params ["_actor","_originalId"];
+            if (!(_actor isEqualType objNull) || {_actor isNotEqualTo (_entered select _forEachIndex)}
+                || {!(_originalId isEqualType "")} || {_originalId == ""}
+                || {!isNull _actor && {netId _actor isNotEqualTo _originalId}}) exitWith {_valid=false};
+            _enteredIds pushBack _originalId;_identityRows pushBack [_actor,_originalId];
+        } forEach _identities;
+        if (!_valid) exitWith {[]};
         private _visitKeys=keys _visits;
         if (count (_enteredIds arrayIntersect _enteredIds) != count _enteredIds
             || {count _visitKeys != count _enteredIds}
@@ -93,9 +105,9 @@ isNil {
             _visitRows pushBack [_x,+_indices];
         } forEach _visitKeys;
         if (!_valid) exitWith {[]};
-        [2,[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3],
+        [3,[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3],
             _positions apply {+_x},+_cleared,+_unreachable,count _retries,_retryRows,
-            _failureRows,_deadline,_progress,+_entered,_visitRows]
+            _failureRows,_deadline,_progress,+_entered,_visitRows,_identityRows]
     };
     false
 };

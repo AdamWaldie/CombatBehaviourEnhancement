@@ -160,8 +160,8 @@ isNil {
                 if ((!_egressing && {count _lanes == 13}) || {_egressing && {count _egress == 14}}) then {
                     private _stageBudget=[_clearJob] call CBE_fnc_BuildingStageJournal;
                     private _rooms=if (count _stageBudget == 5) then {[_clearJob] call CBE_fnc_BuildingRoomJournal} else {[]};
-                    if (count _rooms == 12) then {
-                        _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[5,clientOwner,
+                    if (count _rooms == 13) then {
+                        _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[6,clientOwner,
                             _clearJob get "generation",_clearJob get "ownerEpoch",_clearJob get "operationGeneration",
                             serverTime,_clearJob get "hardDeadline",_lanes,_stageBudget,_rooms,_phase,_egress]];
                     };

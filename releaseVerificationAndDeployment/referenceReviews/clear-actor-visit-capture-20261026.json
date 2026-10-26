@@ -44,5 +44,9 @@
   "egressFollowup": {
     "review": "clear-egress-producer-capture-20261026.json",
     "scope": "Later outer version5 adds phase/egress and a common original-producer predicate. Original ENTRY/SWEEP-only capture limitation is historical for EGRESS, while other named domains and deleted-identity limitations remain."
+  },
+  "originalIdentityFollowup": {
+    "review": "clear-original-visit-identity-20261026.json",
+    "scope": "Private identities now recorded before deletion. Room version3 retains null historical references with original keys, while missing/mismatched identity evidence still refuses. This resolves that serializer limitation only; active worker/native and full replay limitations remain."
   }
 }

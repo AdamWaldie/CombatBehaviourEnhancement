@@ -53,6 +53,10 @@
       "replanJournal20261026": {
         "review": "clear-replan-journal-phase-20261026.json",
         "scope": "Existing clearance REPLAN FSM phase now saves/checks/adopts exact lane metadata and may export its original producer state. No new route, retry credit, deadline, consumer or physical parity claim."
+      },
+      "originalVisitIdentity20261026": {
+        "review": "clear-original-visit-identity-20261026.json",
+        "scope": "Original physical entrant identities retained before deletion for truthful historical producer capture. No replacement visit credit, native replay, complete casualty handover or physical parity claim."
       }
     },
     {
