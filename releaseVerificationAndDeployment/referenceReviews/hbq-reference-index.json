@@ -773,6 +773,16 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-reverse-track-20261026.json",
+      "sha256": "ae6d774d53a30e12a2c32b8aed2b5737b143216b9e34f77953782d07cb2e0093",
+      "scope": "Existing measured track extended to ordinary rear travel; explicit cadence comparison, no observation LOD claim.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_precision.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-road-endpoint-cutoff-20261025.json",
       "sha256": "0b6cadc9b7f668ea7d0ff60622ce21e9606ba0c5f5e4de40c9edc6fcfdc9bd8b",
       "scope": "Road endpoint-based continuation cutoff only; candidate ranking remains a heuristic.",

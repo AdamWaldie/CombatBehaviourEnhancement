@@ -170,6 +170,22 @@ class DrivingGeometryTests(unittest.TestCase):
                        'vectorDotProduct _bodySide','vectorDotProduct _bodyForward','"BODY_METRES"'):
             self.assertIn(marker,s)
         self.assertNotIn('worldToModel',s)
+        self.assertIn('["_travelDirection",1,[0]]',s)
+        self.assertIn('!(_travelDirection in [-1,1])',s)
+        self.assertIn('clientOwner,"BODY_METRES",_travelDirection]',s)
+        self.assertIn('(vectorNormalized vectorDir _vehicle) vectorMultiply _travelDirection',s)
+        assist=(ROOT/'addons/vehicles/functions/drivingAssistStart.sqf').read_text()
+        self.assertIn('ownerEpoch",-1]],_travelDirection] call CBE_fnc_DrivingTurnTrack',assist)
+        self.assertIn('if (_nativeReverse || {count _nativeHint != 4}) then {[_turn select 0]}',assist)
+        # Rotating both planar axes by pi reverses signed chord curvature,
+        # without changing its physical radius or displacement sampling threshold.
+        for side,along in ((2,-5),(-2,-5),(0,-4),(0.5,-3)):
+            forward=2*side/(side*side+along*along)
+            rear_side,rear_along=-side,-along
+            rear=2*rear_side/(rear_side*rear_side+rear_along*rear_along)
+            self.assertAlmostEqual(rear,-forward)
+            self.assertAlmostEqual(rear_side**2+rear_along**2,side**2+along**2)
+        self.assertNotEqual(('route','BODY_METRES',1),('route','BODY_METRES',-1))
         # A fixed physical chord has the same curvature for every object scale.
         x,y=2.0,6.0
         expected=2*x/(x*x+y*y)

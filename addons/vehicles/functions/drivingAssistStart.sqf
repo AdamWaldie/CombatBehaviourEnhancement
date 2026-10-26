@@ -848,11 +848,11 @@ _brain set ["geometryTracks",_geometryTracks];
                 // at zero while the exact expired BACK remains pending; never retry forward.
                 _traffic=[0,_vehicle,-1,time,0];
             };
-            private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],[_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]]] call CBE_fnc_DrivingTurnTrack;
+            private _turn=[_vehicle,_geometryTracks getOrDefault [netId _vehicle,[]],[_routeIdentity,_brain getOrDefault ["ownerEpoch",-1]],_travelDirection] call CBE_fnc_DrivingTurnTrack;
             _geometryTracks set [netId _vehicle,_turn select 1];
             // Existing hints describe forward paths. Rear geometry uses instantaneous native
-            // yaw in its own reversed unit frame rather than borrowing forward curvature/support.
-            private _curveHint=if (_nativeReverse) then {[]} else {if (count _nativeHint != 4) then {[_turn select 0]} else {_nativeHint}};
+            // measured chord in its reversed unit frame rather than borrowing forward path/support.
+            private _curveHint=if (_nativeReverse || {count _nativeHint != 4}) then {[_turn select 0]} else {_nativeHint};
             // Fresh native elevation also covers off-road grade; retain the existing
             // road policy in SI units, without granting support or movement authority.
             private _nativeGrade=_nativeHint param [3,-1,[0]];
