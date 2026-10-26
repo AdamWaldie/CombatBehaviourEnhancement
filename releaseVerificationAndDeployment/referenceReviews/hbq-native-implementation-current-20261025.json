@@ -77,5 +77,9 @@
   "authoredWaitRecognitionFollowup": {
     "review": "hbq-authored-wait-recognition-20261026.json",
     "scope": "Native intentional wait no longer requires task completion. Physical rest/proximity and authored gates remain; selected complete routeWaiting helper and three call-site branches compared. No convoy smoothing/parity/physical claim."
+  },
+  "routeRefreshIntentFollowup": {
+    "review": "hbq-route-refresh-intent-20261026.json",
+    "scope": "Complete refreshRoute helper reconciled against current exact native return/recovery paths. Reject waypoint reconstruction, disabled-feature override, unconditional crew follow and degenerate path termination as imported methods. No duplicate executor or physical/parity claim."
   }
 }

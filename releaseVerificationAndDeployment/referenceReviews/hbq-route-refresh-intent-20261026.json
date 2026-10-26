@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "b1897b09",
+  "workshopId": "3812620045",
+  "status": "COMPLETE_REFRESH_HELPER_INTENT_RECONCILED_NO_DUPLICATE_EXECUTOR",
+  "scope": "Complete protected fn_refreshRoute.sqf body. Selected current CBE admission/return branches traced; this does not renew whole driveAssist, unstuck, driving or HBQ parity.",
+  "sourceBranches": [
+    {
+      "branch": "null group /3-second refresh throttle",
+      "intent": "Avoid concurrent duplicate route mutations.",
+      "CBE": "Current executor/epoch/route/crew proof and original finite recovery journals govern command issuance. Do not add another independent retry timer."
+    },
+    {
+      "branch": "distinct effective commander",
+      "intent": "Vehicle movement operator plans; do not strand a driver in another native control mode.",
+      "CBE": "Original driver and effective commander/fallback identity retained. Original destination request and later reply are observed; changed seats/tasks/route revoke handback. Actual both-seat native behaviour remains unverified."
+    },
+    {
+      "branch": "optional fixed-path termination",
+      "intent": "An old steering path must cease owning motion before authored routing resumes.",
+      "sourceMethod": "One-point path at current ATL location, resets z to0, releases forced speed and waits up to4seconds.",
+      "disposition": "Do not import. Retain original temporary-command/stop/return proof and finite cleanup rather than treating a degenerate path/proximity as quiescence. Whole temporary-controller termination remains subject to physical verification."
+    },
+    {
+      "branch": "crew follow/enable features/engine",
+      "intent": "Restore useful native crew route behaviour after temporary control.",
+      "disposition": "No unconditional PATH/MOVE enable or engine start; disabled features and mission/native tasks remain authority. CBE scopes exact native stop/handback to original operating actors and avoids following an on-foot leader. No unrelated group-wide crew order."
+    },
+    {
+      "branch": "no open waypoint",
+      "intent": "No route can be recreated; helper nevertheless applies crew follow.",
+      "disposition": "CBE refuses missing original route/goal instead of inventing a crew task."
+    },
+    {
+      "branch": "delete/recreate current waypoint and copy metadata",
+      "intent": "Prompt native replanning while preserving authored route meaning.",
+      "sourceMethod": "Copies type/statements/radius/behaviour/combat/formation/speed/timeout/name/loiter/script/attachments and trigger synchronization into a recreated waypoint.",
+      "disposition": "Do not import authored waypoint reconstruction. CBE allows exact plain-MOVE original-goal recovery and treats changed scripted/conditioned/timed/synchronized/attached orders as unavailable to replay. Metadata resemblance is not identity or proof of unchanged external script references."
+    },
+    {
+      "branch": "true return value",
+      "intent": "Reports helper completion.",
+      "CBE": "Keep metadata retirement/native acknowledgement distinct from physical travel. Do not use source helper true, elapsed4seconds or native reply as proof of successful recovery."
+    }
+  ],
+  "currentCbeTrace": [
+    "DrivingAssistStart _mayRecoverRoute binds current executor, leader vehicle, intentional waits, plain MOVE, boarding/queue state and original planning/recovery clocks.",
+    "DrivingRecoveryRelease nativeReturn observes an already-issued request without reissuing. An ordinary recovery return may retain FINAL with its original hardDeadline; queue/pass returns retire without manufacturing another ordinary allowance.",
+    "Exact reverse stop/native route handback retains original cap/route/driver/operator proof. Motion rest is measured separately from native STOP; newer command/role/ownership wins.",
+    "DrivingRecoveryCommandState classifies original pending/expired/acknowledged destinations; DrivingCorridorRelease reuses the two-seat classifier for its existing return observation without acquiring recovery authority.",
+    "Convoy recovery keeps its separate original route receipt and finite endpoint/retry admission; this review adds no convoy path/speed change."
+  ],
+  "gaps": [
+    "Actual steering termination, STOP/rest and both-seat return acknowledgement/travel need in-engine verification.",
+    "Unknown/same-value external order ambiguity, staggered ownership and external-controller full writer quiescence are not resolved by reading source.",
+    "Whole HBQ integration, physical mixed convoy flow and measured performance remain incomplete."
+  ],
+  "validation": {
+    "sourceIntegrity": "hbq_reference_index.py verifies complete29-file preserved membership/hashes; index refreshed after this review. Raw sources untouched.",
+    "runtimeChanged": false,
+    "testsAdded": 0,
+    "fullBuildRepeated": false,
+    "reusedRuntimeCandidate": ".qa/candidates/native-intentional-wait-e1c0e34a",
+    "fingerprint": "a061e693887db708d1dc0830c6bbf290498a2ebf3eeaa66f5e4ca50c20162ba6",
+    "existingBuildLog": ".qa/handovers/native-intentional-wait-final-build.log",
+    "existingIndependentLog": ".qa/handovers/native-intentional-wait-independent.log",
+    "physicalAcceptance": false
+  },
+  "sourceHashes": {
+    ".qa/hbq-complete-source-20261025/functions/fn_refreshRoute.sqf": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "a649054401d5de4e39e77770fd8e0fcfb4d108d2b2786dfb6ed360a4df9fd5f2",
+    "addons/vehicles/functions/drivingRecoveryRelease.sqf": "59b681203ef2c27537bb7c6aaab9b49a2d95feab8f082fbba3e761fc74dcc5dd",
+    "addons/vehicles/functions/drivingRecoveryCommandState.sqf": "f118e8296792173d1214203dcc16f0f03eb2e68c6f1a1640f82c5d329f21a60a",
+    "addons/vehicles/functions/drivingCorridorRelease.sqf": "6e9837d83bf2fadf8adf7c18303fc1c1c53ebba085447736cb605f7740410448",
+    "addons/vehicles/functions/drivingRouteGoal.sqf": "2b96b048425e6b9a288830e4fd0817f60f6f173d06477770e47ea61067cf19ef",
+    "addons/vehicles/functions/convoyTick.sqf": "fd5e5e88e5dc3421d51200af8d4c4462c3f96bc91b8205150f8da170caf7aa68"
+  },
+  "audits": "paused"
+}
