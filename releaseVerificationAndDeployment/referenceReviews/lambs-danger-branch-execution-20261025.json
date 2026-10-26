@@ -679,5 +679,46 @@
     },
     "physicalAcceptance": false,
     "performanceAcceptance": false
+  },
+  "reinforcementLifecycleReview20261026": {
+    "scope": "Complete readable bodies of tacticsReinforce, tacticsProfiles, XEH_postInit and findReadyVehicles; selected CBE requester and launcher/flight cleanup trace. Not complete reinforcement executor, dependency or whole-source parity.",
+    "sourceHashes": {
+      ".qa/lambs-danger-installed-20261026/functions/fnc_tacticsReinforce.sqf": "c6477a2ca420d4a77787f611540647874a7703b937d46b3914952cc205de51d9",
+      ".qa/lambs-danger-installed-20261026/functions/fnc_tacticsProfiles.sqf": "04556c4285c5f7395070bb32de10b94579f33e6c15e33f227747dbd55fcc0b5b",
+      ".qa/lambs-danger-installed-20261026/XEH_postInit.sqf": "90cbfbc8f06239748c781b29cce2b4bd3ae596cb4ee98e2ae90481c51ec3a79f",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_findReadyVehicles.sqf": "bf46de0e02807cab95b6aa8ef36535526e66b37a69cbebccee732c6c0609c77e"
+    },
+    "findings": [
+      {
+        "source": "tacticsReinforce may reset a PATH-disabled garrison through optional WP addon, claim empty nearby vehicles of the config side, queue body checks, clear HOLD/GUARD/DISMISS waypoints, change formation/attack/behaviour/unload policy, pack/deploy static weapons, flare and issue delayed group move. Half-delay cleanup clears the shared tactic flag and changes the then-current leader vehicle unload policy.",
+        "intent": "Bring a willing supporting group and relevant equipment into action.",
+        "disposition": "Separate support assignment, transport, static handling and fire support under their real owners. Do not copy mission waypoint deletion, blanket vehicle acquisition, delayed unscoped movement or current-vehicle restoration. Inventory each descendant before claiming full implementation."
+      },
+      {
+        "source": "tacticsProfiles returns false; its observer/militia/recon plans are comments. Reviewed tactics entry invocation is commented out.",
+        "intent": "Planned specialised group profiles.",
+        "disposition": "No executable capability to port or parity credit. CBE role decisions need actual implementations and evidence; source comments are not missing working upstream behaviours."
+      },
+      {
+        "source": "findReadyVehicles deduplicates ground-touching vehicles carrying nearby group members, with canFire and vehicle magazine presence.",
+        "intent": "Find usable ground fire-support platforms.",
+        "disposition": "Use current per-station crew/muzzle/magazine/authority capability selection. Vehicle-wide magazine presence does not prove that the selected gunner can fire. This helper has no crew/mission authority grant."
+      },
+      {
+        "source": "XEH_postInit bridges four CBA danger events to scripted event handlers on the original actor/group.",
+        "intent": "Expose assessment/contact/reinforcement/artillery events.",
+        "disposition": "Review consumer authority and event identity separately; event dispatch is not owner acknowledgement or completed behaviour. No new event system added."
+      }
+    ],
+    "cbeRequesterTrace": "CortexReinforce submits native-known enemy position to existing server support allocation, uses ACTIVE/request expiry and capped retry/armour request counters; no movement itself. Only this requester body was read in this batch; SupportServer/Local/Maintain integration remains separately scoped.",
+    "launcherCancellationGap": {
+      "current": "CortexAntiArmour retains actor/point/deadline in local group state and a three-field actor marker. Its service is behind feature/eligibility guards. RestoreCalm deletes the local relocation entry; CortexLocality may retire ordinary actor markers.",
+      "missing": "No immutable original route/epoch/group/formation-anchor/native pre-request receipt or durable pending acknowledgement for this task. Expiring metadata cannot prove that a late native doMove will not execute.",
+      "requiredNext": "Design one bounded original-request/retirement contract using existing group/locality/stop service points before adding return/STOP commands. It must preserve newer orders, cover disable/contact loss and owner change, retain unresolved acknowledgement without renewed travel budget, and refuse duplicate incoming work. Do not borrow fleeing-only DangerFlight or casualty-only PointActorOperation semantics.",
+      "notResolvedBy": "The preceding terrain/height fix improves point selection and identity but does not close native cancellation."
+    },
+    "runtimeChanged": false,
+    "physicalAcceptance": false,
+    "performanceAcceptance": false
   }
 }

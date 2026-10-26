@@ -163,15 +163,15 @@
       "path": "functions/fnc_tacticsProfiles.sqf",
       "sha256": "04556c4285c5f7395070bb32de10b94579f33e6c15e33f227747dbd55fcc0b5b",
       "area": "Tactical group layer",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected lifecycle/caller scope in evidence",
+      "next": "Reconcile real enabled callers and remaining descendants; comments, events and inventory are not behavioural parity."
     },
     {
       "path": "functions/fnc_tacticsReinforce.sqf",
       "sha256": "c6477a2ca420d4a77787f611540647874a7703b937d46b3914952cc205de51d9",
       "area": "Tactical group layer",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected lifecycle/caller scope in evidence",
+      "next": "Reconcile real enabled callers and remaining descendants; comments, events and inventory are not behavioural parity."
     },
     {
       "path": "functions/fnc_tacticsSuppress.sqf",
@@ -268,8 +268,8 @@
       "path": "XEH_postInit.sqf",
       "sha256": "90cbfbc8f06239748c781b29cce2b4bd3ae596cb4ee98e2ae90481c51ec3a79f",
       "area": "Startup/settings",
-      "reviewStatus": "Current readable source not semantically reconciled",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected lifecycle/caller scope in evidence",
+      "next": "Reconcile real enabled callers and remaining descendants; comments, events and inventory are not behavioural parity."
     },
     {
       "path": "XEH_preInit.sqf",
