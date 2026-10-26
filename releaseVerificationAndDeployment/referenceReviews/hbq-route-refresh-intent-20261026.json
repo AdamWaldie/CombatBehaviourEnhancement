@@ -905,7 +905,7 @@
       "addons/vehicles/functions/drivingRouteReceipt.sqf": "3cf86826cf2fc0b51ca495225186b3ab02e1fa408e3c9f332fafdd348cfb1930",
       "addons/vehicles/functions/drivingOperationStep.sqf": "c8e1c98de4d6d0cedfb8d90d77eb31df69d8bd3564ab967d3460f4df3dcaef73"
     },
-    "nextConcreteWork": "Continue the remaining HBQ main-controller obstacle/grinding/route-watchdog execution branches against the existing CBE geometry and finite recovery owner. Retain explicit journey-continuity and shallow-ford gaps rather than count rejected source mechanisms as delivered functionality.",
+    "nextConcreteWork": "The named obstacle/grinding/watchdog branches were subsequently reviewed in controllerObstaclesGrindingWatchdog20261026; do not restart them from this historical instruction. Current wait/refresh and crew semantics are reconciled in the later20261026 sections. Continue a specific remaining registered capability or execution gap; physical continuity/provider quiescence/ford support remain open.",
     "runtimeChanges": false,
     "physicalAcceptance": false,
     "performanceAcceptance": false
@@ -1047,5 +1047,93 @@
     "buildLog": ".qa/handovers/ordinary-rear-stop-8d660547.log",
     "independentLog": ".qa/handovers/ordinary-rear-stop-independent.log",
     "limits": "Unsigned dirty development candidate: base8d660547 plus working changes; engineering notes postdate package. Native delayed STOP, handback, physical stop/start and performance unverified. Audits paused. Whole HBQ reconciliation incomplete."
+  },
+  "crewRetentionAndRecallReconciliation20261026": {
+    "base": "253f5ae2",
+    "status": "CURRENT_RETENTION_AND_OPTIONAL_RECALL_PATHS_RECONCILED_PHYSICAL_PENDING",
+    "scope": "Full readable HBQ crewHold, full CBE DrivingCrewBoarding and VehicleUnloadPolicy bodies; selected DrivingAssistStart sampling/cap-commit, CortexVehicles acquisition and ReleaseGroup/Stop cleanup call sites. Lost-driver/gunner seat replacement, all other driving writers and complete external HBQ handback remain separate.",
+    "sourceIntent": "Retain operating crew while a vehicle can move, permit passengers to dismount, restore default bailout when immobilised, and recover an assigned operator who independently exits. Source feature defaults off and excludes players/cargo at initial GetOut admission.",
+    "sourceDefectsAndRejectedMethods": [
+      "GetOut spawns a0.5s force-seat callback which rechecks alive/canMove/occupancy but not current locality, feature enablement, assignment, human/Zeus/specialist/task ownership or original seat episode. Three-per-minute throttling is not ownership.",
+      "While loop writes setUnloadInCombat and allowCrewInImmobile without capturing prior policy. It lacks final policy/EH restoration/removal when it exits. Do not import either persistent writer or force seating."
+    ],
+    "currentCbeMapping": [
+      {
+        "path": "CortexVehicleUnloadPolicy ACQUIRE/adoption/RELEASE",
+        "implementation": "Exact group/epoch/owner and previous/applied pair. Foreign value changes drop custody and block reacquisition in that epoch. Unchanged adoption does not reissue policy. Immobility/native driver or effective-commander flight retires only unchanged owned policy. Assigned incoming GET IN/unknown remote intent veto first acquisition; convoy policy stays independent.",
+        "limit": "CBE policy deliberately retains cargo for its own tactical dismount owner, unlike HBQ crew-only policy; this is a documented gameplay decision, not byte parity. Same-value foreign writes cannot be distinguished."
+      },
+      {
+        "path": "DrivingCrewBoarding optional recall",
+        "implementation": "Existing CBA/per-vehicle feature remains false by default. Requires a previously physically observed occupied operating seat, unchanged route/driver, continuing assignment, local idle unreserved healthy actor and calm usable platform. One normal orderGetIn true after20s, no assignment mutation/force seat. New task/care/ownership/60s episode expiry retires recall.",
+        "limit": "Optional recall history is brain-local, max20 seat rows; reset on route/driver/owner replacement cannot recall an outside actor not physically reobserved. Intentional scripted dismount must unassign the operator under the user-approved opt-in policy."
+      },
+      {
+        "path": "DrivingCrewBoarding native cooperation and cap commit",
+        "implementation": "Only actual native GET IN waits the vehicle, at most20 assigned operating-seat rows. Public original60s seat deadline and measured2m progress survive adoption.12s without motion retires except native planning/data-wait states may consume only the original remaining deadline. DrivingAssistStart samples once and rechecks at cap commit; it remains the speed writer.",
+        "limit": "A requested reboard is not native GET IN acknowledgement; until native command acceptance, the helper does not claim a boarding hold or force the actor aboard."
+      },
+      {
+        "path": "CortexVehicles -> VehicleUnloadPolicy; ReleaseGroup/Stop",
+        "implementation": "Existing vehicle owner acquires the policy; tracked excluded vehicles release it. Group release passes non-restoring handover for external takeover, global stop offers exact baseline restoration. Unchanged restoration never repeats setUnloadInCombat.",
+        "limit": "Full physical cargo/damage/panic/Zeus/locality behaviour and command acknowledgement still pending."
+      }
+    ],
+    "runtimeChanged": false,
+    "noPatchReason": "This selected source intent already has explicit safer CBE implementation paths and the approved optional policy. Source review provides no demonstrated missing writer or lifecycle defect requiring another runtime patch. Do not duplicate these controllers or renew their deadlines to increase review counts.",
+    "hashes": {
+      ".qa/hbq-complete-source-20261025/functions/fn_crewHold.sqf": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076",
+      "addons/vehicles/functions/drivingCrewBoarding.sqf": "b5840b4ea8a99c6e4250870e2cdebf915b1843ae2ebf16874684f85c501634b7",
+      "addons/vehicles/functions/cortexVehicleUnloadPolicy.sqf": "44cbf1547ef9397c289eeeec51e5d923eab5239d75716312cb7485cdcec00258",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "ed68bb5fe799209d57f7f223d59713affdb65fce7cdf809c7abfeadaae88bd8a",
+      "addons/vehicles/functions/cortexVehicles.sqf": "6d207aa4b1f909e9f996d4fc05d71418c49bff8152b287248206d7b9164f01e0",
+      "addons/infantry/functions/cortexReleaseGroup.sqf": "9a516137b0770bb6834c910721b40b6cd49a0611cc57ce14adc6b9047d75484a",
+      "addons/core/functions/cortexStop.sqf": "d4c70f5e08bbf6b09f89f04440253103cac4578315faae301491cae5351d9a72"
+    },
+    "remaining": [
+      "Physical native crew/cargo retention, reboarding, assignment changes, concurrent care, player/Zeus takeover, mobility loss and locality migration remain unrun while audits are paused.",
+      "End-to-end driving/HBQ all-writer reconciliation and actual external provider handback remain incomplete.",
+      "No implementation percentage, physical acceptance or measured performance uplift from this review."
+    ]
+  },
+  "routeWaitAndRefreshReconciliation20261026": {
+    "base": "253f5ae2",
+    "status": "WAIT_AND_REFRESH_SOURCE_INTENT_RECONCILED_CURRENT_CBE_PHYSICAL_PENDING",
+    "scope": "Complete readable routeWaiting/refreshRoute bodies; full CBE DrivingRouteGoal/DrivingRouteReceipt/AuthoredRouteReceipt and selected native-wait/recovery admission, ordinary recovery issue, reverse handback and convoy waypoint eligibility blocks. Not complete all-writer execution acceptance.",
+    "sourceIntent": "Distinguish intentional authored waits from a stall, clear old fixed-path ownership, and resume the original journey through its actual operating commander rather than making the crew follow an on-foot leader.",
+    "findings": [
+      {
+        "source": "routeWaiting treats current authored index0 as implicit, requires proximity within completion radius+50m, then checks HOLD/inactive trigger/timeout/nontrivial condition.",
+        "cbe": "Ordinary native-wait recognition additionally requires measured stationary state. DrivingRouteGoal refuses non-plain MOVE, conditions/statements/scripts/timeouts/attachments/synchronization regardless of distance, so distant authored gates cannot authorize recovery. Conditions/statements are read only, never evaluated or replayed.",
+        "decision": "Retain current distinction between native intent and recovery permission; no route-wait polling controller needed."
+      },
+      {
+        "source": "refreshRoute globally throttles3s, snapshots selected waypoint properties before an atomic delete/recreate, and checks only that the old index still exists inside the mutation.",
+        "cbe": "Full selected authored metadata receipts invalidate stale recovery; original route remains in place. The native replay belongs to an exact finite recovery journal, not a scheduled generic refresh.",
+        "decision": "Reject waypoint reconstruction and stale pre-mutation snapshots. Source does not copy waypointDescription, synchronizedWaypoints, waypointHousePosition, waypointLoiterAltitude or waypointForceBehaviour, despite its identical-route description. It can therefore lose intent as well as restart completion."
+      },
+      {
+        "source": "Commanded vehicles get engineOn/PATH/MOVE/setCurrentWaypoint/doMove; other branches can reset forceSpeed, setDriveOnPath to current position and command group follow, without original feature/cap/native-task provenance.",
+        "cbe": "Recovery checks actual driver/operator seats and local owner, full route and command receipts, native flight/care/external/task ownership and exact cap custody. SIMPLE_BACK sends STOP once and requires observed STOP plus measured linear/angular rest. Forward native handback is bounded by the original hard deadline. On-foot leader does not grant mounted follow.",
+        "decision": "Preserve native journey-continuation intent through the current finite executor; do not copy unowned feature enablement, forced-speed reset, path replacement or group recall."
+      }
+    ],
+    "runtimeChanged": false,
+    "noPatchReason": "Selected CBE wait/recovery paths already enforce the reviewed authority and lifecycle requirements. No concrete missing runtime writer was found in this scoped comparison; do not invent another watchdog or relax mission-order protection for source parity. Physical continuity remains an unmet requirement, not silently accepted.",
+    "hashes": {
+      ".qa/hbq-complete-source-20261025/functions/fn_routeWaiting.sqf": "9f73ce6923e74108b4f6f56e62bf207d30776b341925ec3e9913ac5d1c0390de",
+      ".qa/hbq-complete-source-20261025/functions/fn_refreshRoute.sqf": "28773a9fd1b297621dbade7ae9b6637a4d6c9715e6c376449598c69cef522be8",
+      "addons/vehicles/functions/drivingRouteGoal.sqf": "2b96b048425e6b9a288830e4fd0817f60f6f173d06477770e47ea61067cf19ef",
+      "addons/vehicles/functions/drivingRouteReceipt.sqf": "3cf86826cf2fc0b51ca495225186b3ab02e1fa408e3c9f332fafdd348cfb1930",
+      "addons/core/functions/authoredRouteReceipt.sqf": "cef11ff7c5beedda792935e28f117288c85a0cc16252371dfff74c9b7b80a076",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "ed68bb5fe799209d57f7f223d59713affdb65fce7cdf809c7abfeadaae88bd8a",
+      "addons/vehicles/functions/drivingRecoveryRelease.sqf": "20842fb4b0d480d2cf744298fd48445a05c820ae53b607a8ef1a1edbff0cd7ac",
+      "addons/vehicles/functions/convoyTick.sqf": "fd5e5e88e5dc3421d51200af8d4c4462c3f96bc91b8205150f8da170caf7aa68"
+    },
+    "remaining": [
+      "Actual recovery/forward return/STOP acknowledgement and travel, mixed-convoy continuity and performance require later authorised engine evidence.",
+      "Full HBQ/CBE all-writer handover reconciliation, same-value native intent ambiguity and actual external-provider quiescence remain open.",
+      "Shallow fords still require vehicle-specific native depth/support admission; dry/deck corridor support is not ford implementation."
+    ]
   }
 }
