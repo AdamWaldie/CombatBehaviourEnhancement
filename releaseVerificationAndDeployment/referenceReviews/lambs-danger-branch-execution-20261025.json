@@ -78,5 +78,9 @@
   "nativePaceOwnershipFollowup20261026": {
     "review": "danger-pace-native-ownership-20261026.json",
     "scope": "Actual canonical SPEED confirmation for engine continuation and exact changed-value metadata retirement after original window. No new movement owner or physical parity claim."
+  },
+  "assaultPaceCallContextReview20261026": {
+    "review": "releaseVerificationAndDeployment/referenceReviews/lambs-assault-pace-call-contexts-20261026.json",
+    "meaning": "Full selected readable speed/direct/memory/CQB source bodies reviewed; native pace correspondence does not establish all-context parity. No runtime change."
   }
 }
