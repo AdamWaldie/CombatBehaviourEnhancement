@@ -5,10 +5,12 @@
  * not grant the nonlocal group shared-scheduler command authority. No successor is cancelled.
  * Repeat/JIP: One exact-capture keyed finite observer, at most8 checks inside the original
  * capture time+3s and episode deadline. Duplicate callbacks do not reset attempts or clocks.
- * Actual completedFSM, old-brain retirement and replaced private pointers are all required.
+ * Actual completedFSM, old-brain retirement, replaced private pointers and unchanged
+ * post-edge actor/settings records are all required. Intentional edge cleanup precedes the baseline.
  * This is original-FSM retirement only, not all-writer quiescence, a server seal or readiness.
  * Arguments: 0 state HASHMAP default empty: taskGroup GROUP, capture ARRAY, writers ARRAY,
- * until NUMBER server time, attempts NUMBER, producer NUMBER, done BOOL.
+ * until NUMBER server time, attempts NUMBER, producer NUMBER, done BOOL; records ARRAY
+ * [object/group,variableName,present,valueCopy] rows, max578, after intentional edge cleanup.
  * Writer [original object/group,brain variable name,original FSM handle,original brain].
  * Return: NUMBER .25 while waiting, -1 on completion/refusal/expiry.
  * Current callers: CortexLocality via existing CortexQueueJob after original pointer retirement.
@@ -17,7 +19,12 @@
 params [["_state",createHashMap,[createHashMap]]];
 private _group=_state getOrDefault ["taskGroup",grpNull];
 private _capture=_state getOrDefault ["capture",[]];
-private _finish={params ["_reason"];_state set ["done",true];_state set ["result",_reason];-1};
+private _finish={
+    params ["_reason"];
+    _state set ["done",true];_state set ["result",_reason];
+    _state deleteAt "writers";_state deleteAt "records";
+    -1
+};
 if (_state getOrDefault ["done",false]) exitWith {-1};
 if (!(_capture isEqualType []) || {count _capture != 17}
     || {(_capture select 0) != 12} || {(_capture select 1) != clientOwner}
@@ -49,6 +56,20 @@ private _pending=false;private _invalid=false;
 } forEach _writers;
 if (_invalid) exitWith {["WRITER_IDENTITY_CHANGED"] call _finish};
 if (_pending) exitWith {0.25};
+// Compare after actual old-FSM exit. A mismatch refuses, never refreshes the baseline.
+private _records=_state getOrDefault ["records",[]];
+if (!(_records isEqualType []) || {count _records < 2} || {count _records > 578}) exitWith {["INVALID_RECORDS"] call _finish};
+private _recordsChanged=_records findIf {
+    private _record=_x;
+    if (!(_record isEqualType []) || {count _record != 4}
+        || {[0,1,2,3] findIf {isNil {_record select _x}} >= 0}) exitWith {true};
+    _record params ["_object","_variable","_present","_original"];
+    if (!(_object isEqualType objNull || {_object isEqualType grpNull}) || {isNull _object}
+        || {!(_variable isEqualType "")} || {!(_present isEqualType true)}) exitWith {true};
+    private _currentPresent=!isNil {_object getVariable _variable};
+    _currentPresent isNotEqualTo _present || {_present && {(_object getVariable _variable) isNotEqualTo _original}}
+} >= 0;
+if (_recordsChanged) exitWith {["SOURCE_METADATA_CHANGED"] call _finish};
 // The callback is unscheduled; only this original private capture gets the observation.
 _group setVariable ["CBE_Cortex_ClearFSMRetiredLocal",[_capture select [0,7],serverTime,count _writers]];
 ["ORIGINAL_FSMS_RETIRED"] call _finish

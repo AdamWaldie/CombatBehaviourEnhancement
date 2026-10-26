@@ -254,8 +254,36 @@ if (!_gained && {!local _group} && {count _clearRetireCapture == 17}
     private _clearRetireDeadline=if ((_clearRetireCapture select 10) == "EGRESS") then {
         (_clearRetireCapture select 11) select 7
     } else {_clearRetireCapture select 6};
+    // This baseline follows intentional Local-edge marker retirement. Preserve it
+    // independently: later old-FSM exits must not silently alter the watched records.
+    private _copyClearRetireValue={
+        params ["_value"];
+        if (_value isEqualType []) exitWith {_value apply {[_x] call _copyClearRetireValue}};
+        if (_value isEqualType createHashMap) exitWith {
+            private _pairs=[];
+            {_pairs pushBack [_x,[_y] call _copyClearRetireValue]} forEach _value;
+            createHashMapFromArray _pairs
+        };
+        _value
+    };
+    private _clearRetireRecords=[];
+    {
+        private _recordActor=_x select 1;
+        {
+            private _present=!isNil {_recordActor getVariable _x};
+            private _value=if (_present) then {[_recordActor getVariable _x] call _copyClearRetireValue} else {[]};
+            _clearRetireRecords pushBack [_recordActor,_x,_present,_value];
+        } forEach ["CBE_ActorSettings","CBE_Cortex_ClearMotion","CBE_Cortex_ClearStance",
+            "CBE_Cortex_ClearForcedSpeed","CBE_Cortex_ClearAppliedSpeed","CBE_Cortex_ClearSettingToken",
+            "CBE_Cortex_ActorMove","CBE_Cortex_ClearEvasionReturn","CBE_Cortex_ClearSettingRetireUntil"];
+    } forEach ((_clearRetireCapture select 16) select 2);
+    {
+        private _present=!isNil {_group getVariable _x};
+        private _value=if (_present) then {[_group getVariable _x] call _copyClearRetireValue} else {[]};
+        _clearRetireRecords pushBack [_group,_x,_present,_value];
+    } forEach ["CBE_Cortex_ClearSettingsPending","CBE_Cortex_ClearSettingsResult"];
     private _retire=createHashMapFromArray [["taskGroup",_group],["capture",_clearRetireCapture],
-        ["writers",_clearRetireWriters],["producer",clientOwner],["attempts",0],["done",false],
+        ["writers",_clearRetireWriters],["records",_clearRetireRecords],["producer",clientOwner],["attempts",0],["done",false],
         ["until",((_clearRetireCapture select 5)+3) min _clearRetireDeadline]];
     _group setVariable ["CBE_Cortex_ClearRetireLocal",_retire];
     _group setVariable ["CBE_Cortex_ClearFSMRetiredLocal",nil];

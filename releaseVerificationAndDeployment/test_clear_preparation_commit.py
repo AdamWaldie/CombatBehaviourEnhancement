@@ -265,6 +265,23 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('_retireExisting getOrDefault ["capture",[]]',locality)
         self.assertNotRegex(retire,r'setVariable\s*\[[^;]*,true\]')
         self.assertIn('[CBE_fnc_BuildingProducerRetire,_retire,0,_retireKey]',locality)
+        for guard in ('count _records > 578','SOURCE_METADATA_CHANGED',
+                      '_currentPresent isNotEqualTo _present',
+                      '(_object getVariable _variable) isNotEqualTo _original'):
+            self.assertIn(guard,retire)
+        self.assertLess(retire.index('if (_pending) exitWith'),retire.index('private _records='))
+        self.assertLess(retire.index('SOURCE_METADATA_CHANGED'),retire.index('setVariable ["CBE_Cortex_ClearFSMRetiredLocal"'))
+        self.assertIn('["records",_clearRetireRecords]',locality)
+        self.assertIn('_state deleteAt "writers";_state deleteAt "records";',retire)
+        self.assertIn('createHashMapFromArray _pairs',locality)
+        self.assertIn('CBE_Cortex_ClearSettingsPending',locality)
+        # Baseline copies cannot drift with a mutable canonical source map.
+        import copy
+        baseline=copy.deepcopy({'SPEED':[2,1]})
+        changed={'SPEED':[2,1]}
+        self.assertEqual(changed,baseline)
+        changed['SPEED'][1]=0
+        self.assertNotEqual(changed,baseline)
         def retired(cancelled,completed,pointer_replaced,expired=False):
             return cancelled and completed and pointer_replaced and not expired
         self.assertFalse(retired(True,False,True))
