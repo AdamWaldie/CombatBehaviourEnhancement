@@ -81,6 +81,10 @@
       "reliefAttemptLedger20261026": {
         "review": "clear-relief-attempt-ledger-20261026.json",
         "scope": "Original private finite casualty-relief ledger, strict preflight/new-attempt encoding and outgoing source capture. No current casualty/native ownership proof, complete authenticated handover or physical parity claim."
+      },
+      "actorHandoffPreflight20261026": {
+        "review": "clear-actor-handoff-preflight-20261026.json",
+        "scope": "Known inherited settings and native motion are observed and snapshot-rechecked before operation handoff. Partial requested properties refuse adoption. No complete authenticated owner-ready or physical parity claim."
       }
     },
     {

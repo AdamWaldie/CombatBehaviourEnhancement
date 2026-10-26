@@ -82,12 +82,41 @@ class ActorSettingsTests(unittest.TestCase):
         self.assertIn('setVariable ["CBE_ActorSettings",_next,true]',adopt)
         self.assertNotIn('call _write',adopt)
         self.assertNotIn('serverTime',adopt)
+        self.assertIn('keys _requested findIf {!(_x in _owned)}',adopt)
+        inspect=s.split('if (_mode == "INSPECT") exitWith {',1)[1].split('private _taskOwned=false;',1)[0]
+        for proof in ('_scope != "OPERATION"','serverTime >= _deadline',
+                      '(_oldContext select 2) != _generation','keys _requested findIf {!(_x in _owned)}',
+                      'call _same','"ADOPTABLE"','"ABSENT"','"CHANGED"'):
+            self.assertIn(proof,inspect)
+        for forbidden in ('setVariable','call _write','serverTime+','CortexQueueJob'):
+            self.assertNotIn(forbidden,inspect)
+        self.assertLess(s.index('if (_releaseAt > 0'),s.index('if (_mode == "INSPECT")'))
+        self.assertLess(s.index('currentCommand _actor in ['),s.index('if (_mode == "INSPECT")'))
+        # Missing properties and native edits cannot become successor baselines.
+        def inspect_model(owned,requested,native,pending=0):
+            if pending or not set(requested)<=set(owned):return False
+            return all(native[k]==v[1] for k,v in owned.items())
+        full={"STANCE":("AUTO","UP"),"SPEED":(-1,2)}
+        requested={"STANCE":"UP","SPEED":4}
+        self.assertTrue(inspect_model(full,requested,{"STANCE":"UP","SPEED":2}))
+        self.assertFalse(inspect_model({"SPEED":(-1,2)},requested,{"SPEED":2}))
+        self.assertFalse(inspect_model(full,requested,{"STANCE":"DOWN","SPEED":2}))
+        self.assertFalse(inspect_model(full,requested,{"STANCE":"UP","SPEED":2},1))
         start=src('addons/infantry/functions/cortexClearBuilding.sqf')
         self.assertLess(start.index('[_motionActor,_job,4,if (_resume)'),start.index('["ADOPT",_motionActor,_job]'))
         motion=src('addons/infantry/functions/buildingActorMotion.sqf')
         self.assertEqual(motion.count('call CBE_fnc_CortexClearSettingsApply'),2)
+        observe=motion.split('if (_mode == "OBSERVE") then {',1)[1].split('} else {',1)[0]
+        for proof in ('"participants"','count _proposal > 8','_actor in _proposal',
+                      '"unavailable"','serverTime >=','"deadline"','"hardDeadline"'):
+            self.assertIn(proof,observe)
+        self.assertIn('if (_mode in ["CHECK","OBSERVE"]) exitWith {',motion)
+        early=motion.split('private _result=false;',1)[1].split('if (_mode != "ADOPT") exitWith {',1)[0]
+        after_retire=early.split('private _kind=_mode;',1)[1]
+        for forbidden in ('setVariable','_job set',' doMove ','doStop ','forceSpeed'):
+            self.assertNotIn(forbidden,after_retire)
     def test_release_retains_unconfirmed_pairs_and_does_not_cancel_native_tasks(self):
-        s=core();release=s.split('if (_mode == "RELEASE") exitWith {',1)[1].split('private _operation=',1)[0]
+        s=core();release=s.split('if (_mode == "RELEASE") exitWith {',1)[1].split('// Native flight',1)[0]
         for required in ('_pair select 1','_pair select 0','_remaining set [_key,_pair]',
                          '[_key] call _read','"PENDING"','"RELEASED"'):
             self.assertIn(required,release)
@@ -119,6 +148,13 @@ class ActorSettingsTests(unittest.TestCase):
         self.assertLess(s.index('_canonical isEqualTo [] &&'),s.index('call CBE_fnc_ActorSettings'))
         self.assertIn('_brain getOrDefault ["job",createHashMap]) isNotEqualTo _job',s)
         self.assertIn('CBE_AIPass_Active',s)
+        preflight=s.split('if (_mode == "PREFLIGHT") exitWith {',1)[1].split('// Preserve the task',1)[0]
+        for proof in ('"INSPECT"','_originalGeneration','"STANCE","UP"','"SPEED",_speed',
+                      '"ADOPTABLE"','"CBE_Cortex_ClearSettingToken"','"CBE_Cortex_ClearStance"',
+                      '"CBE_Cortex_ClearForcedSpeed"','"CBE_Cortex_ClearAppliedSpeed"'):
+            self.assertIn(proof,preflight)
+        for forbidden in ('setVariable','forceSpeed','setUnitPos','"RELEASE"','"APPLY"'):
+            self.assertNotIn(forbidden,preflight)
         pace=s.split('// Preserve the task',1)[1].split('_result=[_mode,_actor,',1)[0]
         for rule in ('_mode == "APPLY"','behaviour _actor == "STEALTH"','finite _speed',
                      '_speed == -1 || {_speed > 1}','_speed=1'):

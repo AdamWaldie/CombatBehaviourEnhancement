@@ -8,6 +8,19 @@ def clear():return (ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').re
 class ClearPreparationCommitTests(unittest.TestCase):
     def test_each_commit_rechecks_original_authority_without_wrapping_route_plan(self):
         text=clear()
+        preflight=text.split('// Inspect inherited settings',1)[1].split('private _generation=-1;',1)[0]
+        for proof in ('"PREFLIGHT"','"ADOPTABLE","ABSENT"','_resumeSettingsProbe',
+                      '(_motion select 4) isNotEqualTo (_mirrors select [1,3])',
+                      '(_team select [0,8])','_resumeActorSettings pushBack',
+                      'keys (_canonical select 1) apply','_canonical,_mirrors,_motion,_outcome',
+                      '["OBSERVE",_candidate,_resumeSettingsProbe] call CBE_fnc_BuildingActorMotion',
+                      'if (_resumeSettingsPending) exitWith {false}'):
+            self.assertIn(proof,preflight)
+        for forbidden in ('setVariable','doMove','doStop','forceSpeed','setUnitPos','CortexClearRelease','serverTime+'):
+            self.assertNotIn(forbidden,preflight)
+        self.assertLess(text.index('if (_resumeSettingsPending) exitWith'),text.index('call CBE_fnc_OperationStart'))
+        self.assertLess(text.index('RESUME_ACTOR_SETTINGS_CHANGED'),text.index('call CBE_fnc_CortexReleaseGroup'))
+        self.assertIn('!([false] call _inspectResumeSettings)',text)
         gate=text.split('private _commitPreparation={',1)[1].split('// A valid new operation',1)[0]
         for proof in ('isNil {','local _group','CBE_AIPass_ClearGeneration','_preparationEpoch',
                       'CBE_AIPass_Epoch','_operationGeneration','"ownerEpoch"','"CLEAR"','"objective"',

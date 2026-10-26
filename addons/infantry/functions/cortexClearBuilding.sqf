@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Resume settings preflight preserves the durable order on known partial/native mismatch,
+ * rechecking original canonical/mirror/motion snapshots before operation mutation.
  * Resume startup refuses known actor settings/motion adoption failures; this is not
  * complete cross-owner readiness or proof that missing inherited records never existed.
  * Fresh startup also consumes settings PREPARE results; pending predecessor restoration
@@ -515,6 +517,68 @@ if (_resume && {count ((_cleared+_unreachable) arrayIntersect (_cleared+_unreach
     };
 };
 if (_resumeLanePending) exitWith {false};
+// Inspect inherited settings before any successor operation or cleanup consumes the
+// durable order. These read-only observations do not prove missing transport state ready.
+private _resumeActorSettings=[];
+private _resumeSettingsProbe=createHashMapFromArray [["group",_group],["building",_building],
+    ["visitContext",_resumeRosterContext],["buildingTransform",_admissionTransform],
+    ["hardDeadline",_hardDeadline],["deadline",_deadline],["generation",_admissionGeneration],
+    ["ownerEpoch",_admissionEpoch],["nativeOrderReceipt",_nativeOrderReceipt],
+    ["participants",_team select [0,8]],["unavailable",_resumeUnavailable]];
+private _inspectResumeSettings={
+    params [["_capture",false]];
+    private _valid=true;
+    {
+        private _candidate=_x;
+        private _outcome=[_candidate,_resumeSettingsProbe,4,"PREFLIGHT"] call CBE_fnc_CortexClearSettingsApply;
+        if (!(_outcome in ["ADOPTABLE","ABSENT"])) exitWith {_valid=false};
+        private _canonical=_candidate getVariable ["CBE_ActorSettings",[]];
+        private _mirrors=[_candidate getVariable ["CBE_Cortex_ClearSettingToken",""],
+            _candidate getVariable ["CBE_Cortex_ClearStance",""],
+            _candidate getVariable ["CBE_Cortex_ClearForcedSpeed",[]],
+            _candidate getVariable ["CBE_Cortex_ClearAppliedSpeed",[]]];
+        private _motion=_candidate getVariable ["CBE_Cortex_ClearMotion",[]];
+        if (_motion isNotEqualTo []) then {
+            if (!(_motion isEqualType []) || {count _motion != 5}
+                || {[0,1,2,3,4] findIf {isNil {_motion select _x}} >= 0}
+                || {(_motion select 0) isNotEqualTo _group}
+                || {(_motion select 1) isNotEqualTo _resumeRosterContext}
+                || {!((_motion select 2) in ["MOVE","HOLD"])}
+                || {!((_motion select 3) isEqualType [])} || {count (_motion select 3) != 3}
+                || {(_motion select 3) findIf {isNil "_x" || {!(_x isEqualType 0)} || {!finite _x}} >= 0}
+                || {!((_motion select 4) isEqualType [])} || {!(count (_motion select 4) in [0,3])}) then {
+                _valid=false;
+            } else {
+                if ((_motion select 4) isNotEqualTo []) then {
+                    // Motion which recorded settings requires that exact original chain;
+                    // a speed-only or absent lease cannot become a fresh stance baseline.
+                    if (_outcome != "ADOPTABLE" || {(_motion select 4) isNotEqualTo (_mirrors select [1,3])}) then {
+                        _valid=false;
+                    };
+                };
+            };
+        };
+        if (_valid && {_motion isNotEqualTo []}
+            && {!(["OBSERVE",_candidate,_resumeSettingsProbe] call CBE_fnc_BuildingActorMotion)}) then {
+            _valid=false;
+        };
+        if (!_valid) exitWith {};
+        if (_capture) then {
+            private _copy=if (_canonical isEqualTo []) then {[]} else {
+                [+(_canonical select 0),createHashMapFromArray
+                    (keys (_canonical select 1) apply {[_x,+((_canonical select 1) get _x)]}),_canonical select 2]
+            };
+            _resumeActorSettings pushBack [_candidate,_copy,_mirrors,+_motion,_outcome];
+        } else {
+            private _original=_resumeActorSettings select _forEachIndex;
+            if ([_candidate,_canonical,_mirrors,_motion,_outcome] isNotEqualTo _original) then {_valid=false};
+        };
+    } forEach (_team select [0,8]);
+    _valid
+};
+private _resumeSettingsPending=false;
+if (_resume) then {isNil {_resumeSettingsPending=!([true] call _inspectResumeSettings)}};
+if (_resumeSettingsPending) exitWith {false};
 private _generation=-1;
 private _operation=createHashMap;
 private _handoffAccepted=false;
@@ -545,6 +609,9 @@ isNil {
     if (_resumePhaseReceipts findIf {
         (_group getVariable [_x select 0,[]]) isNotEqualTo (_x select 1)
     } >= 0) exitWith {_handoffFailure="RESUME_PHASE_CHANGED"};
+    if (_resume && {!([false] call _inspectResumeSettings)}) exitWith {
+        _handoffFailure="RESUME_ACTOR_SETTINGS_CHANGED";
+    };
     // These arrays can change without a new common generation. Never commit a roster
     // selected before a replacement or changed visit episode arrived during planning.
     if (_useResumeRoster && {

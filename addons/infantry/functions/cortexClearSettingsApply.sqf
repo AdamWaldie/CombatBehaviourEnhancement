@@ -2,12 +2,15 @@
  * Author: WaldoTheWarfighter
  * Purpose: Bind clearance stance/speed acquisition to the shared actor-settings lease.
  * Locality/authority: Actual group/actor owner and current CLEAR operation, visit, route and job.
+ * PREFLIGHT observes inherited settings before a successor exists; it grants no operation authority.
  * Repeat/JIP: Keeps the original issuer/baselines/deadline. ADOPT updates metadata only, never a
  * native setting or movement. Partial mirrors are retained, not imported as authority.
  * APPLY caps live STEALTH clearance pace at1m/s through the same canonical speed lease;
  * a lower mission-owned cap remains lower. CHECK/ADOPT/PREPARE never replay pacing.
  * Arguments: 0 actor OBJECT objNull; 1 job HASHMAP empty; 2 speed NUMBER4;
- * 3 mode STRING APPLY (CHECK, ADOPT or PREPARE).
+ * 3 mode STRING APPLY (CHECK, ADOPT, PREPARE or PREFLIGHT).
+ * PREFLIGHT observes original complete stance/speed and mirrors before operation startup;
+ * it writes nothing and returns ADOPTABLE/ABSENT or a refusal. Absence is not transfer readiness.
  * Return: ActorSettings status STRING; only APPLIED/OWNED/ADOPTED acknowledge settings, not movement.
  * Current callers: BuildingOperationStep, BuildingActorMotion and CortexClearBuilding preparation.
  * Example: [_unit,_job,4] call CBE_fnc_CortexClearSettingsApply;
@@ -22,7 +25,7 @@ isNil {
     private _generation=_job getOrDefault ["operationGeneration",-1];
     private _epoch=_job getOrDefault ["ownerEpoch",-1];
     private _deadline=_job getOrDefault ["hardDeadline",-1];
-    if (!(_mode in ["APPLY","CHECK","ADOPT","PREPARE"]) || {isNull _group} || {!local _group}
+    if (!(_mode in ["APPLY","CHECK","ADOPT","PREPARE","PREFLIGHT"]) || {isNull _group} || {!local _group}
         || {isNull _actor} || {!local _actor} || {group _actor != _group}
         || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
         || {!(_visit isEqualType [])} || {count _visit != 4}
@@ -32,10 +35,10 @@ isNil {
         || {(_job getOrDefault ["buildingTransform",[]]) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
         || {(_job getOrDefault ["generation",-1]) != (_group getVariable ["CBE_AIPass_ClearGeneration",-2])}
         || {(_job getOrDefault ["nativeOrderReceipt",[]]) isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
-        || {((_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["intent",""]) != "CLEAR"}
+        || {_mode != "PREFLIGHT" && {((_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["intent",""]) != "CLEAR"}}
         || {serverTime >= ((_job getOrDefault ["deadline",-1]) min _deadline)}) exitWith {};
     private _brain=_group getVariable ["CBE_BuildingBrain",createHashMap];
-    if (!(_mode in ["ADOPT","PREPARE"]) && {(_brain getOrDefault ["job",createHashMap]) isNotEqualTo _job
+    if (!(_mode in ["ADOPT","PREPARE","PREFLIGHT"]) && {(_brain getOrDefault ["job",createHashMap]) isNotEqualTo _job
         || {_brain getOrDefault ["cancelled",false]} || {_brain getOrDefault ["finished",false]}}) exitWith {};
     private _canonical=_actor getVariable ["CBE_ActorSettings",[]];
     if (_canonical isEqualTo [] && {
@@ -64,6 +67,26 @@ isNil {
             {_actor setVariable [_x,nil,true]} forEach ["CBE_Cortex_ClearForcedSpeed",
                 "CBE_Cortex_ClearAppliedSpeed","CBE_Cortex_ClearStance","CBE_Cortex_ClearSettingToken"];
             _result="PREPARED";
+        };
+    };
+    if (_mode == "PREFLIGHT") exitWith {
+        if (_canonical isEqualTo []) exitWith {_result="ABSENT"};
+        if (!(_canonical isEqualType []) || {count _canonical != 3}
+            || {[0,1,2] findIf {isNil {_canonical select _x}} >= 0}
+            || {!((_canonical select 0) isEqualType [])} || {count (_canonical select 0) != 5}
+            || {[0,1,2,3,4] findIf {isNil {(_canonical select 0) select _x}} >= 0}) exitWith {};
+        private _originalGeneration=(_canonical select 0) select 2;
+        _result=["INSPECT",_actor,[_group,_issuer,_originalGeneration,_epoch,_deadline],
+            createHashMapFromArray [["STANCE","UP"],["SPEED",_speed]]] call CBE_fnc_ActorSettings;
+        if (_result == "ADOPTABLE") then {
+            private _owned=_canonical select 1;
+            if (toUpperANSI unitPos _actor != "UP"
+                || {(_actor getVariable ["CBE_Cortex_ClearSettingToken",""]) isNotEqualTo _issuer}
+                || {(_actor getVariable ["CBE_Cortex_ClearStance",""]) isNotEqualTo ((_owned get "STANCE") select 0)}
+                || {(_actor getVariable ["CBE_Cortex_ClearForcedSpeed",[]]) isNotEqualTo ((_owned get "SPEED") select 0)}
+                || {(_actor getVariable ["CBE_Cortex_ClearAppliedSpeed",[]]) isNotEqualTo ((_owned get "SPEED") select 1)}) then {
+                _result="REFUSED";
+            };
         };
     };
     // Preserve the task's live stealth intent without adding another speed writer.

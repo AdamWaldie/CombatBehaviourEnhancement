@@ -36,7 +36,7 @@ class MotionReceiptTests(unittest.TestCase):
         # A completed short leg may be idle before migration is observed. Its
         # durable receipt, native endpoint, floor and measured rest still bind it;
         # publishing a fresh MOVE receipt must retain actual MOVE-only permission.
-        for proof in ('_mode in ["ADOPT","CHECK"]','_command in ["","WAIT"]',
+        for proof in ('_mode in ["ADOPT","CHECK","OBSERVE"]','_command in ["","WAIT"]',
                       'vectorMagnitude velocity _actor < 0.278',
                       'vectorDistance (AGLToASL _target) <= 1.5',
                       '((AGLToASL _target) select 2)) <= 0.75',
@@ -44,9 +44,9 @@ class MotionReceiptTests(unittest.TestCase):
             self.assertIn(proof,move)
         self.assertNotIn('serverTime+',move)
         self.assertNotIn('"STOP"',move)
-        self.assertLess(text.index('if (_mode == "CHECK") exitWith {'),text.index('if (_mode != "ADOPT") exitWith {'))
-        self.assertLess(text.index('if (_mode == "CHECK") exitWith {'),text.index('_moves set [netId _actor'))
-        check=text.split('if (_mode == "CHECK") exitWith {',1)[1].split('if (_mode != "ADOPT")',1)[0]
+        self.assertLess(text.index('if (_mode in ["CHECK","OBSERVE"]) exitWith {'),text.index('if (_mode != "ADOPT") exitWith {'))
+        self.assertLess(text.index('if (_mode in ["CHECK","OBSERVE"]) exitWith {'),text.index('_moves set [netId _actor'))
+        check=text.split('if (_mode in ["CHECK","OBSERVE"]) exitWith {',1)[1].split('if (_mode != "ADOPT")',1)[0]
         self.assertIn('!_checkTargetRequired',check)
         self.assertIn('_checkTarget call _positionValid',check)
         self.assertIn('_checkTarget isEqualTo _target',check)
@@ -57,7 +57,7 @@ class MotionReceiptTests(unittest.TestCase):
                     and all(type(v) in (int,float) and math.isfinite(v) for v in supplied)
                     and supplied==receipt)
         self.assertTrue(exact_target([1,2,3],[1,2,3]))
-        for changed in ([],[1,2],[1,2,4],[1,2,float('nan')],"123"):
+        for changed in ([],[1,2],[1,2,4],[1,2,float('nan')],[1,None,3],"123"):
             self.assertFalse(exact_target(changed,[1,2,3]))
         step=read('buildingOperationStep.sqf')
         room=step.split('private _roomCommandOwned={',1)[1].split('private _exitMovementOwned={',1)[0]

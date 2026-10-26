@@ -1936,3 +1936,23 @@ A finite native ATTACK pace response now continues only while its exact canonica
 The condition reads one speed property and bounded lease fields. It performs no squad/configuration scan, settings write, timer renewal or movement command. Existing original restoration windows and protection of newer mission values remain. Full imported-state readiness and broader foreign-owner retirement remain separate unfinished work. Native timing, repeated response/cleanup, owner migration and runtime cost still need physical validation; audits remain paused.
 
 After the original restoration window closes, exact old speed-only bookkeeping can retire when the actual native speed has demonstrably changed. This path removes only the matching settings and pace records in the current owner transaction; it issues no native command. Missing, foreign, malformed or still-applied settings remain unresolved. The restoration window does not renew, and a later task cannot inherit an unconfirmed successful restore.
+
+
+### Clearance settings before handoff
+
+Clearance resume now inspects inherited actor settings before replacing the operation. A partial property map, changed native stance/speed, pending restoration or inconsistent clearance mirrors defers startup and leaves the durable order available for the existing discovery retry. Motion records that carried a settings triple require the same original baseline/applied values. A speed-only receipt cannot acknowledge a successor that requires both stance and speed.
+
+The read-only ActorSettings INSPECT mode checks the original issuer, generation and deadline under current actor/group ownership. It returns ADOPTABLE only for the requested properties whose recorded values still match native settings. It neither applies settings nor acknowledges a successor operation. The clearance adapter also checks its original mirrors. Up to eight interior actors are inspected once during preparation and again in the final handoff transaction, where their canonical, mirror and motion snapshots must remain unchanged. The original deadlines do not renew; no worker, query or movement command is added.
+
+Actual adoption still runs through the existing operation and actor authority checks. Missing state remains distinct from a coherent original-producer delivery receipt. This change prevents known settings failures from consuming an order; it does not complete authenticated transfer, motion readiness, all-writer retirement or exterior readiness. Physical migration, repeated flow and the added bounded startup cost remain unverified while audits are paused.
+
+
+### Clearance settings before handoff
+
+Clearance resume now inspects inherited actor settings before replacing the operation. A partial property map, changed native stance/speed, pending restoration or inconsistent clearance mirrors defers startup and leaves the durable order available for the existing discovery retry. Motion records that carried a settings triple require the same original baseline/applied values. A speed-only receipt cannot acknowledge a successor that requires both stance and speed.
+
+The read-only ActorSettings INSPECT mode checks the original issuer, generation and deadline under current actor/group ownership. It returns ADOPTABLE only for the requested properties whose recorded values still match native settings. It neither applies settings nor acknowledges a successor operation. The clearance adapter also checks its original mirrors. Up to eight interior actors are inspected once during preparation and again in the final handoff transaction, where their canonical, mirror and motion snapshots must remain unchanged. The original deadlines do not renew; no worker, query or movement command is added.
+
+BuildingActorMotion OBSERVE shares the existing native MOVE, settled WAIT and HOLD checks before startup. It accepts only the bounded proposed interior roster under current owner, visit, route and original deadlines. This result grants no operation or movement authority. Actual CHECK/ADOPT retains the live common-operation checks. A changed destination can therefore defer the attempt before cleanup consumes the order.
+
+Actual adoption still runs through the existing operation and actor authority checks. Missing state remains distinct from a coherent original-producer delivery receipt. This change prevents known settings and motion failures from consuming an order; it does not complete authenticated transfer, all-writer retirement or exterior readiness. Physical migration, repeated flow and the added bounded startup cost remain unverified while audits are paused.
