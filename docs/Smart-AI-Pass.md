@@ -3074,3 +3074,8 @@ A backblast-clearing move retains its original owner, group epoch, operation gen
 ### Legacy wall and fence gate detection
 
 Physical driving geometry can now recognise a wall/fence/barrier gate through the same paired literal open/close animation parser used by the server opening path, when no supported indexed source qualifies. This connects detection to the existing legacy executor without treating every wall or house door as a gate. At most two candidate classes use the bounded parser per observation; ordinary source recognition remains first. Unrecognised or budget-limited objects remain solid obstacles. No extra world query, ray, worker or gate-opening authority is added. Actual modded-gate passage and processing cost remain unverified while audits are paused.
+
+
+### Queue request retirement before consent
+
+Stopping an ordinary-driving operation also retires its exact pending queue request when no consent receipt has arrived. The original participant owner, group, epoch and driving generation must match; a successor request or newly installed consent survives. This prevents a silently refused or interrupted initiation from blocking later negotiation. Cleanup works on the original machine after locality loss, changes metadata only and sends no invented token or native movement/speed command. Existing consent retains its authenticated server-release path. No worker, timer, scan, setting or retry allowance is added. Physical interruption and multiplayer delivery remain unverified while audits are paused.

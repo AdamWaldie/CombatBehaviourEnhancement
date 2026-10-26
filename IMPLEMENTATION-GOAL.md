@@ -2,6 +2,14 @@
 
 Deliver a standalone Arma 3 AI improvement addon by selecting useful functionality from the source register, merging complementary methods, fixing defects and evolving them into coherent CBE behaviour. Source fidelity serves gameplay quality, tactical plausibility, balance and engine performance; copying every source mechanism is not the objective. LAMBS is a functionality baseline to implement and improve, never a required dependency.
 
+## Governing implementation priority
+
+Build upward from shared foundations, with reliable gameplay improvements as the outcome. First close concrete FSM ownership, interruption, cleanup and repeat-use defects against the LAMBS baseline and the relevant HBQ execution paths. Then compose individual behaviours, pairs, squads and combined operations. Complete the registered Protocol AI capability programme on those foundations. Do not jump layers simply because a higher-level feature is easier to add or improves a tracker figure.
+
+The source register governs the work queue and intended contributions. Review every reference still lacking a source disposition, including its relevant callers, delayed writers and cleanup; select useful AI functionality across the collection and merge complementary strengths into existing CBE owners. A review finding must lead to a specific capability decision or defect resolution, rather than an expanding parallel planning programme. Respect recorded compatibility-only, optional and follow-on scope. LAMBS functionality must work within standalone CBE, without requiring LAMBS itself.
+
+Before extending an affected layer, identify known material regressions in its shared foundations. Fix or isolate those regressions first; independent required work may continue while physical validation is paused. Preserve the last verified candidate and its limitations. Never treat an unrun audit, matching source names, more tests or a green package as evidence of improved AI. Do not conceal a failure through test-side assistance, weakened checks or physical shortcuts.
+
 ## Source register and evidence
 
 Use these existing records before choosing or claiming work:

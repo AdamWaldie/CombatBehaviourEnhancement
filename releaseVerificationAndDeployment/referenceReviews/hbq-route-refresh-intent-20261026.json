@@ -753,5 +753,85 @@
     },
     "physicalAcceptance": false,
     "performanceAcceptance": false
+  },
+  "controllerTrafficAndJamReview20261026": {
+    "source": "functions/fn_driveAssist.sqf",
+    "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "completeReadableRegions": [
+      "977-1195 StandingSince and TrafficCap/FromLeft",
+      "1197-1343 TrafficRays",
+      "1383-1534 TrafRelease, deferred ReplanSoon, SidePushOk, MovingBehind, BackUp, JamBack, JamReplan and JamReal",
+      "1535-1671 TrafficStep"
+    ],
+    "scope": "Selected complete HBQ helper bodies. CBE comparison covers FollowingCap calculations, full QueueAutoStep/QueueHold and selected ordinary-driving/convoy callers. This is not whole-controller lifecycle, physical parity or measured performance acceptance.",
+    "findings": [
+      {
+        "source": "TrafficCap follows same-heading moving traffic through speed limits, predicts six-second crossing windows and yields to the right. It uses a 60m discovery radius, raw model dimensions and flattened positions/velocities; empty/dead vehicles are excluded from traffic and delegated elsewhere.",
+        "intent": "Follow moving traffic without unnecessary stop/start; distinguish crossing conflict from a merely nearby vehicle.",
+        "cbe": "DrivingFollowingCap already computes continuous following/closing-speed caps, measured projected hulls, current vertical overlap and crossing occupancy. It includes parked/dead vehicles. Aligned convoy predecessors delegate longitudinal spacing only; contact-range hull protection remains.",
+        "disposition": "Retain intent through the existing read-only observer and sole cap writer. Do not add another traffic loop or copy source radius/flat geometry/5kmh minimum. Current vertical overlap, nominal braking and discovery bounds are limitations, not a future collision guarantee."
+      },
+      {
+        "source": "TrafficRays casts one curved forward ray or three rear fan rays. A held vehicle gains two metres of ray reach. Same-direction moving vehicles avoid ray stops; a peer standing more than eight seconds changes classification. Busy marks are conditional on recent real progress.",
+        "intent": "Avoid flickering stops, give queues time to move and keep ordinary recovery from treating temporary waiting as failure.",
+        "cbe": "Ordinary DrivingAssistStart combines following, gate/solid geometry, pedestrian and rear observations through its current cap lease; queue holds explicitly observe cap application and physical stillness. ConvoyTick retains continuous spacing and lead speed reserve rather than binary distance-band holds.",
+        "disposition": "Keep the distinction between moving following, physical occupancy and intentional holds. Do not use an eight-second classification change as permission to drive through a hull. Mixed tracked acceleration and restart flow remain physically unverified; no speculative retuning in this review."
+      },
+      {
+        "source": "TrafficStep preserves a hard stop inside 4*massFactor metres but can suppress it during HardFreeUntil after a replan. Its non-hard traffic hold releases after 15 seconds and ignores traffic for ten seconds; comments still say twenty. Prediction and ray authority also skip the selected PassBy peer.",
+        "intent": "Break deadlocks without permanently holding the route.",
+        "cbe": "Current cap observations retain physical occupancy; QueueAutoStep negotiates one bounded attempt through existing owner/server consent and original expiry. QueueHold requires matching token, applied zero cap and sampled stillness before reporting readiness.",
+        "disposition": "Reject elapsed-time clearance, unacknowledged peer priority and blanket traffic-ignore windows. A timeout may end an attempt; it cannot prove passage. Entire CBE queue cancellation/native handback must still be traced before claiming end-to-end parity."
+      },
+      {
+        "source": "TrafficStep chooses yield/pass peers using stored ranks, with 25-second peer lifetimes and crossing-jam admission after six seconds. JamReal latches after five seconds of observed standstill; StandingSince uses signed speed, so reversing can retain a standing observation.",
+        "intent": "Choose one participant to make room and avoid both reversing together.",
+        "cbe": "QueueAutoStep consumes one attempt per original persistent-jam episode, bounds COMMIT retransmission to two and checks current FSM/owner epoch/brain/route. QueueHold retains original consent expiry; duplicate application does not renew its dwell.",
+        "disposition": "Adapt cooperative role intent through explicit consent rather than unilateral rank assumptions. Source signed-speed/latch policy is not evidence of current physical rest. Do not claim automatic negotiation covers every convoy or uncontrolled peer."
+      },
+      {
+        "source": "JamBack repeatedly calls physics push after rear checks, or broadcasts a timestamp-only BackReq to a rear vehicle. Side-push moves both participants with model velocity; ReplanSoon spawns a delayed refresh checked only for alive vehicle/non-null group. TrafRelease unconditionally forceSpeed -1.",
+        "intent": "Create space, propagate a queue retreat and resume the authored journey.",
+        "cbe": "Existing CBE queue request/hold path carries participant context, original expiry and owner validation into its finite native recovery domain. That request path alone does not prove reverse execution, cancellation or restoration.",
+        "disposition": "Reject physical push, timestamp-only movement authority, stale delayed refresh and unconditional cap release. Preserve the native cooperative recovery capability as required; do not count rejection as implementation or invent another controller."
+      },
+      {
+        "source": "JamReplan permits at most three refreshes per progress episode, twenty seconds apart, after the first twenty seconds of an order; it vetoes followers/player-led groups and routeWaiting. The called refreshRoute method has separately recorded authored-route/cleanup departures.",
+        "intent": "Try a finite route replan rather than wait forever or escalate immediately to physical recovery.",
+        "cbe": "Ordinary-driving callback arbitrates queue, rear recovery, route refresh, geometry and passing under its current brain and cap lease; selected caller review shows safety observations still feed that single writer.",
+        "disposition": "Retain bounded retry/progress and intentional-wait vetoes. Require original native-order ownership and real handback; do not import wholesale waypoint recreation or assume request acknowledgement equals travel."
+      }
+    ],
+    "nextConcreteWork": "Trace the existing CBE queue reverse/crossing cancellation and final native handback as one lifecycle, including expiry, newer route, stop, and locality transfer. Repair only a demonstrated missing ownership/cleanup path before extending convoy-level cooperation. Remaining unread HBQ main branches stay in the source queue.",
+    "cbeSourceHashes": {
+      "addons/vehicles/functions/drivingFollowingCap.sqf": "39ce8281f2d8f55ffab3e84237b20009af95364940b77bbb74bf62e55f3b0378",
+      "addons/vehicles/functions/drivingQueueAutoStep.sqf": "d0c5fac9f465b5af7827f033eaf05692450941e79e969736afed7b2e01c8876b",
+      "addons/vehicles/functions/drivingQueueHold.sqf": "4400459fabc65c3cfa0ceee7dc234716ab472bdbd22cc6cd728a65df2c41793f",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "a649054401d5de4e39e77770fd8e0fcfb4d108d2b2786dfb6ed360a4df9fd5f2",
+      "addons/vehicles/functions/convoyTick.sqf": "fd5e5e88e5dc3421d51200af8d4c4462c3f96bc91b8205150f8da170caf7aa68"
+    },
+    "runtimeChanges": false,
+    "physicalAcceptance": false,
+    "performanceAcceptance": false,
+    "implementationFix": {
+      "problem": "DrivingOperationFinish calls QueueAgreementRelease, but it formerly returned immediately without consent. A BEGIN silently refused by broker limits or stopped before VERIFY left the root request on the original machine, blocking future initiation.",
+      "change": "Existing metadata-only release now accepts an exact root request when consent is absent, using the same captured participant owner and both actor group/epoch/generation checks. Atomic retirement requires unchanged request and still-absent consent. Existing consent keeps its real token release. No new timer, query, worker or movement authority.",
+      "path": "addons/vehicles/functions/drivingQueueAgreementRelease.sqf",
+      "sourceSha256": "958f7d7113642692884369b3585e9e1bdeb6826af57811807cbec2a3335c5106",
+      "checks": {
+        "focusedTests": 7,
+        "fullTests": 1497,
+        "compiledSQF": 443,
+        "pbos": 11,
+        "build": ".qa/handovers/queue-pending-retirement-build.log",
+        "independent": ".qa/handovers/queue-pending-retirement-independent.log",
+        "candidate": ".qa/candidates/queue-pending-retirement-05402028",
+        "fingerprint": "4a04b4717b8442480a60cca40e10283e48432a41c39942c48b76e96c6fcbb6b8",
+        "buildSource": "05402028 plus working implementation",
+        "physicalAcceptance": false,
+        "performanceAcceptance": false
+      },
+      "remaining": "Physical delivery, stop/locality interruption and final native reverse/crossing handback remain unverified. This fix addresses pre-consent initiation metadata, not all queue lifecycle gaps."
+    }
   }
 }

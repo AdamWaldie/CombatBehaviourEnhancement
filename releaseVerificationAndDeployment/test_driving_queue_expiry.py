@@ -114,6 +114,15 @@ class DrivingQueueExpiry(unittest.TestCase):
         for forbidden in ('doMove','doStop','forceSpeed','setDriveOnPath','nearEntities','waitAndExecute'):
             self.assertNotIn(forbidden,executable)
         self.assertLess(release.index('if (!_matches) exitWith'),release.index('setVariable ["CBE_DrivingQueue_Consent",nil]'))
+        # Finish must also retire a request when BEGIN was refused silently or
+        # VERIFY has not delivered consent. Both paths retain the same original
+        # owner/group/epoch/generation checks and compare exact current metadata.
+        pending=release[release.index('if (!_hasConsent && {_index == 0}'):]
+        self.assertIn('isEqualTo _consent', pending)
+        self.assertIn('isEqualTo _request', pending)
+        self.assertIn('CBE_DrivingQueue_Request",nil', pending)
+        self.assertIn('if (_hasConsent) then {["RELEASE",[_token]]', pending)
+        self.assertLess(release.index('if (!_matches) exitWith'), release.index('if (!_hasConsent && {_index == 0}'))
         self.assertIn('class DrivingQueueAgreementRelease', (ROOT/'addons/main/CfgFunctions.hpp').read_text())
         self.assertIn('if (_index == 0 && {',release)
         self.assertIn('_consent getOrDefault ["serial",-1],_context',release)
