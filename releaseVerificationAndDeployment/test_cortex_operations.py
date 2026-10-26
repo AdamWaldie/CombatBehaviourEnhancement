@@ -1896,9 +1896,34 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('keys _owned findIf {_x != "SPEED"}',settings)
         self.assertIn('[_authorityGroup,_mode == "RELEASE",_actor]',settings)
         self.assertIn('private _paceActors=(units _group) select [0,64]',source('dangerSetup'))
-        check=pace.split('if (_mode == "CHECK") exitWith',1)[1].split('if (_mode != "RELEASE"',1)[0]
+        check=pace.split('if (_mode == "CHECK") exitWith',1)[1].split('if (_mode == "RELEASE" && {serverTime >=',1)[0]
         self.assertIn('CBE_OperationGeneration',check)
         self.assertIn('CBE_AIPass_Epoch',check)
+        for proof in ('CBE_ActorSettings','(_lease select 0) isNotEqualTo _context',
+                      '(_lease select 2) isNotEqualTo 0','count _owned != 1',
+                      '!("SPEED" in _owned)','getForcedSpeed _actor',
+                      'abs (_nativeSpeed-(_speedPair select 1)) <= 0.00001'):
+            self.assertIn(proof,check)
+        for forbidden in ('call CBE_fnc_ActorSettings','units _group','nearEntities',
+                          'setVariable','forceSpeed','serverTime+'):
+            self.assertNotIn(forbidden,check)
+        settings=source('actorSettings')
+        self.assertIn('abs (_a-_b) <= 0.00001',settings)
+        # Native acknowledgement uses the same tolerance as the real settings owner.
+        self.assertLess(abs((3+0.000005)-3),0.00001)
+        self.assertGreater(abs((3+0.00002)-3),0.00001)
+        expired=pace.split('if (_mode == "RELEASE" && {serverTime >=',1)[1].split('// RELEASE does not adopt/replay speed',1)[0]
+        for proof in ('isNil {','local _actor','group _actor != _group',
+                      'isNotEqualTo _proof','(_lease select 0) isNotEqualTo _context',
+                      'count _owned != 1','!("SPEED" in _owned)',
+                      'abs (_nativeSpeed-(_pair select 1)) <= 0.00001',
+                      'setVariable ["CBE_ActorSettings",nil,true]'):
+            self.assertIn(proof,expired)
+        for forbidden in ('forceSpeed','call CBE_fnc_ActorSettings','serverTime+',
+                          'CortexQueueJob','units _group'):
+            self.assertNotIn(forbidden,expired)
+
+
         self.assertIn('["CHECK",_x] call CBE_fnc_DangerAttackPace',source('dangerSetup'))
 
     def test_native_group_contacts_survive_a_leader_cover_blind_spot(self):

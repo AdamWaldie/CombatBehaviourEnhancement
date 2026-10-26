@@ -74,5 +74,9 @@
     "review": "danger-evasion-footing-20261025.json",
     "scope": "Existing prone/upright native lateral reactions now share obstruction and footing vetoes. Earlier sourceHashes remain historical; follow-up records current actor source. Not full doCover/doDodge or danger parity.",
     "physicalAcceptance": false
+  },
+  "nativePaceOwnershipFollowup20261026": {
+    "review": "danger-pace-native-ownership-20261026.json",
+    "scope": "Actual canonical SPEED confirmation for engine continuation and exact changed-value metadata retirement after original window. No new movement owner or physical parity claim."
   }
 }
