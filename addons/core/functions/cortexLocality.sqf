@@ -152,17 +152,20 @@ isNil {
         _buildingBrain set ["completed",true];
         if (_captureOutgoing) then {
             private _clearJob=_buildingBrain getOrDefault ["job",createHashMap];
-            private _lanes=["FROZEN",_clearJob] call CBE_fnc_BuildingLaneJournal;
-            private _stageBudget=if (_lanes isEqualType [] && {count _lanes == 13}) then {
-                [_clearJob] call CBE_fnc_BuildingStageJournal
-            } else {[]};
-            private _rooms=if (count _stageBudget == 5) then {
-                [_clearJob] call CBE_fnc_BuildingRoomJournal
-            } else {[]};
-            if (count _rooms == 12) then {
-                _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[4,clientOwner,
-                    _clearJob get "generation",_clearJob get "ownerEpoch",_clearJob get "operationGeneration",
-                    serverTime,_clearJob get "hardDeadline",_lanes,_stageBudget,_rooms]];
+            if (["FROZEN",_clearJob] call CBE_fnc_BuildingProducerContext) then {
+                private _phase=_clearJob get "phase";
+                private _egressing=_phase == "EGRESS";
+                private _lanes=if (_egressing) then {[]} else {["FROZEN",_clearJob] call CBE_fnc_BuildingLaneJournal};
+                private _egress=if (_egressing) then {[_clearJob] call CBE_fnc_BuildingEgressJournal} else {[]};
+                if ((!_egressing && {count _lanes == 13}) || {_egressing && {count _egress == 14}}) then {
+                    private _stageBudget=[_clearJob] call CBE_fnc_BuildingStageJournal;
+                    private _rooms=if (count _stageBudget == 5) then {[_clearJob] call CBE_fnc_BuildingRoomJournal} else {[]};
+                    if (count _rooms == 12) then {
+                        _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[5,clientOwner,
+                            _clearJob get "generation",_clearJob get "ownerEpoch",_clearJob get "operationGeneration",
+                            serverTime,_clearJob get "hardDeadline",_lanes,_stageBudget,_rooms,_phase,_egress]];
+                    };
+                };
             };
         };
     };

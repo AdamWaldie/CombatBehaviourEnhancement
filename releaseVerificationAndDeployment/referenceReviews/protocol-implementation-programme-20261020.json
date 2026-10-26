@@ -45,6 +45,10 @@
         "review": "clear-room-producer-boundary-20261026.json",
         "followup": "clear-actor-visit-capture-20261026.json",
         "scope": "Original shared room progress and exact per-actor physical visit histories now accompany outgoing lane/exterior capture. Partial ENTRY/SWEEP source component only; egress, deleted original identity, complete seal/replay and actual native readiness remain unfinished. No physical or whole-source parity claim."
+      },
+      "egressProducerSnapshot20261026": {
+        "review": "clear-egress-producer-capture-20261026.json",
+        "scope": "Shared original source predicate and pure14-field final-egress serializer now support outgoing EGRESS capture with unchanged original exit clocks. No native replay, final seal, incoming readiness, REPLAN completeness, full-source parity or physical acceptance."
       }
     },
     {

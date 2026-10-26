@@ -40,5 +40,9 @@
     "independentLog": ".qa/handovers/clear-actor-visits-independent.log",
     "newCases": 0,
     "sourceNote": "Final full build followed serializer header-version correction. Runtime files unchanged between final build and checkpoint; documentation/reference metadata followed build. Earlier clear-actor-visits-build.log is intermediate and not the retained candidate."
+  },
+  "egressFollowup": {
+    "review": "clear-egress-producer-capture-20261026.json",
+    "scope": "Later outer version5 adds phase/egress and a common original-producer predicate. Original ENTRY/SWEEP-only capture limitation is historical for EGRESS, while other named domains and deleted-identity limitations remain."
   }
 }

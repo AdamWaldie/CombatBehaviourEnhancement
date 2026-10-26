@@ -4411,26 +4411,8 @@ if (_phase == "EGRESS" && {!(_job getOrDefault ["finished",false])}
     && {(_job get "generation") == (_group getVariable ["CBE_AIPass_ClearGeneration",-1])}
     && {(_currentOperation getOrDefault ["generation",-1]) == (_job get "operationGeneration")}
     && {(_currentOperation getOrDefault ["intent",""]) == "CLEAR"}) then {
-    private _moves=_job getOrDefault ["movementTargets",createHashMap];
-    private _progress=_job getOrDefault ["egressProgress",[]];
-    private _rows=(_job getOrDefault ["egressAssignments",[]]) apply {
-        _x params ["_actor","_target",["_arrived",false]];
-        private _recordIndex=_progress findIf {(_x select 0) == _actor};
-        private _record=if (_recordIndex < 0) then {[]} else {_progress select _recordIndex};
-        [_actor,+_target,_arrived,+(_moves getOrDefault [netId _actor,[]]),
-            _record param [3,0],+(_record param [4,[],[[]]]),
-            _record param [1,-1],
-            _record param [2,-1],_record param [5,-1],
-            +(_record param [6,[]])]
-    };
-    private _journal=["EGRESS",_rows apply {_x select 1},_job get "egressStartedServer",_rows,
-        _job get "building",_job get "buildingTransform",_job get "hardDeadline",
-        _job get "egressDeadlineServer",_job getOrDefault ["egressFailed",false],
-        _job getOrDefault ["entryFailed",false],5,
-        +(_job getOrDefault ["egressPending",[]]),
-        ((keys (_job getOrDefault ["egressExitUses",createHashMap])) apply {[_x,(_job get "egressExitUses") get _x]}),
-        +(_job get "visitContext")];
-    if ((_group getVariable ["CBE_Cortex_ClearEgress",[]]) isNotEqualTo _journal) then {
+    private _journal=[_job] call CBE_fnc_BuildingEgressJournal;
+    if (count _journal == 14 && {(_group getVariable ["CBE_Cortex_ClearEgress",[]]) isNotEqualTo _journal}) then {
         _group setVariable ["CBE_Cortex_ClearEgress",_journal,true];
     };
 };

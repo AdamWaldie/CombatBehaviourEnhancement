@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "d51ce6f69653a8cdf28ca9a2a03992e409fea8be",
+  "status": "EGRESS_COMPONENT_OFFLINE_VERIFIED_TRANSPORT_PENDING",
+  "topic": "Shared final-egress encoding and phase-aware source producer capture",
+  "sourceTrace": [
+    "Final-egress publication encoded14 fields at the callback tail, separate from entry/sweep lane encoding. The old private capture required13 lanes, so egress could not produce a capture.",
+    "The existing executor creates distinct original egressStartedServer and egressDeadlineServer clocks; the latter can outlive the sweep hard deadline. Capture must preserve that original finite egress window, not grant a replacement window.",
+    "Egress progress rows are initialized with seven original fields at transition or assignment before native doMove. Missing rows previously produced sentinel/fallback values in publication rather than a valid transferable progress record."
+  ],
+  "implementation": [
+    "BuildingProducerContext verifies actual private job/brain identity, original producerOwner, parent CLEAR operation objective/generation/epoch, exact visit context, unchanged building transform and original phase deadline. LIVE requires current locality and uncancelled producer; FROZEN requires actual loss and the existing LOCALITY_CHANGE callback fence before pointer/epoch retirement. A completed callback flag is not all-writer quiescence.",
+    "BuildingLaneJournal EXPORT/FROZEN uses that shared producer predicate; SAVE/ADOPT/CHECK phase admission remains unchanged. Entry/sweep still require their original hard deadline; egress capture uses the existing original egressDeadlineServer. No deadline changed.",
+    "BuildingEgressJournal purely serializes the existing version5 fourteen-field journal. Actual live publication and outgoing capture share it. At most eight total assigned/pending actors, eight progress rows,64 movement entries and four exit-use counters; original retry, pending plan counts, timestamps, legs, checkpoints and motion positions retained. Nested vectors/context are copied independently.",
+    "Require one exact seven-field progress record per current assignment, typed finite nonnegative distances/clocks, retries0/1, pending attempts0/1/2, unique actor assignments and original-clock bounds. Missing/malformed state refuses instead of substituting a new budget or observation.",
+    "Outer machine-private capture becomes version5/twelve fields: [5,producerOwner,clearGeneration,ownerEpoch,operationGeneration,capturedServerTime,originalHardDeadline,lanes,stageJournal,rooms,phase,egress]. ENTRY/SWEEP carries13 lanes and empty egress; EGRESS carries empty lanes and14-field egress. Both retain valid exterior and per-actor room histories. No receiver consumes this source record.",
+    "Shared producer admission rejects both a finished brain and an already-finished private job, matching the existing live egress publication exclusion. Job terminal marking occurs before the final brain status write; no scheduler race is assumed."
+  ],
+  "cost": "Existing egress changed-only public write cadence and same8x8 progress association bound; added validation and deep vector copies. Shared source context adds bounded original identity/transform checks during export/loss; entry/sweep FROZEN rechecks through the lane serializer. No worker, scan, timer, request or new public channel. Actual frame-time effect and5/10budget unmeasured.",
+  "remaining": [
+    "REPLAN capture remains unsupported by the existing lane schema; do not count all clearance phases complete.",
+    "Follow-through, early-exit/reserve state, original deleted actor identity, actor motion/settings, interruption and retirement domains still need a coherent source contract.",
+    "No authenticated producer registration/final seal/request replay or actual incoming native-ready aggregation. No proof that all original callbacks/workers are quiescent.",
+    "Physical flow, locality/HC/JIP/Zeus repeated use, balance and performance remain unverified. Audits paused."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/buildingProducerContext.sqf": "401d575c8c55b950432b42e30a4ee8a0e1556cc18a36dcfaec5bcfaa249c5456",
+    "addons/infantry/functions/buildingEgressJournal.sqf": "ce59440caa5175d6a04a1d75cbbe16adc2e85c0de87efbacfdf14ac09e63f65f",
+    "addons/infantry/functions/buildingLaneJournal.sqf": "1dad92176f8b065f9f6b62b11a013b0dafdae850ee0bedfa9cfa1a72b7b5bc51",
+    "addons/infantry/functions/buildingOperationStep.sqf": "95b3dae7d5a83eb3608cb8d7549f910ef0a0a8e75a2821da7ce1006ba2980acb",
+    "addons/core/functions/cortexLocality.sqf": "2b806c42065028d415da5dc5205124675fa80685aa4afbbbaabed8b8ec06df57",
+    "addons/main/CfgFunctions.hpp": "ef7fa29697ef2b3835f9d3ce96967ecc6ead6fb2f202df48a979902bbdd1db23",
+    "addons/infantry/functions/buildingRoomJournal.sqf": "1c195cf9916a7646440d26a216f3fed5753c54821ddb0b1341f8fd2885b5d6d6"
+  },
+  "physicalAcceptance": false,
+  "validation": {
+    "focusedExistingCases": 619,
+    "newCases": 0,
+    "fullTests": 1497,
+    "compiledSQF": 436,
+    "PBOs": 11,
+    "fullBuild": "PASS",
+    "independent": "PASS",
+    "candidate": ".qa/candidates/clear-egress-producer-sealed-d51ce6f6",
+    "fingerprint": "90c95336d38bf8cdc9da0641209775d76f4a09f25109984f2f46cfcf1908e76d",
+    "buildLog": ".qa/handovers/clear-egress-producer-terminal-build.log",
+    "independentLog": ".qa/handovers/clear-egress-producer-sealed-independent.log",
+    "retainedIntermediate": "Both clear-egress-producer-d51ce6f6 and clear-egress-producer-final-d51ce6f6 are intermediate. Only sealed-named candidate includes corrected room authority documentation.",
+    "earlierChecks": "Initial focused invocation lacked the local checker import path and retained two moved source assertions; corrected path/source boundaries passed619 existing cases. First full run found another moved source assertion; preserved field/clock checks moved to the strict serializer. No tests removed or new cases added.",
+    "sourceNote": "Full1497 tests/all offline gates passed final functional source with terminal guard. One room header then renamed its authority helper; documentation contract rechecked and HEMTT/package verification rerun without repeating unchanged static tests. No functional changes after full gates. Metadata followed package.",
+    "packageLog": ".qa/handovers/clear-egress-producer-package.log"
+  }
+}

@@ -117,11 +117,13 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('private _snapshot=if (_export) then {[]} else {',journal)
         self.assertIn('private _encoding=_mode in ["SAVE","EXPORT","FROZEN"]',journal)
         self.assertEqual(journal.count('if (_encoding) then {'),3)
-        producer=journal.split('if (_export && {',1)[1].split('private _positions=',1)[0]
+        producer=(ROOT/'addons/infantry/functions/buildingProducerContext.sqf').read_text(encoding='utf-8')
+        self.assertIn('call CBE_fnc_BuildingProducerContext',journal)
         for guard in ('"CBE_BuildingBrain"','"job",createHashMap','isNotEqualTo _job',
                       '"ownerEpoch"','"generation"','"cancelled"','"finished"'):
             self.assertIn(guard,producer)
         self.assertNotIn('setVariable',producer)
+        self.assertIn('_job getOrDefault ["finished",false]',producer)
         self.assertIn('"producerOwner",-1',producer)
         self.assertIn('if (_frozen) then {',producer)
         self.assertIn('"LOCALITY_CHANGE"',producer)
@@ -154,9 +156,23 @@ class ClearPreparationCommitTests(unittest.TestCase):
             self.assertNotIn(effect,rooms)
 
         self.assertIn('if (count _stageBudget == 5)',capture)
-        self.assertIn('ClearLaneCaptureLocal",[4,clientOwner',capture)
-        self.assertIn('_lanes,_stageBudget,_rooms]',capture)
+        self.assertIn('ClearLaneCaptureLocal",[5,clientOwner',capture)
+        self.assertIn('_lanes,_stageBudget,_rooms,_phase,_egress]',capture)
         self.assertNotIn(',true]',capture)  # Machine-private proposal only.
+        self.assertIn('call CBE_fnc_BuildingEgressJournal',capture)
+        self.assertIn('count _egress == 14',capture)
+        self.assertIn('private _egressing=_phase == "EGRESS"',capture)
+        egress=(ROOT/'addons/infantry/functions/buildingEgressJournal.sqf').read_text(encoding='utf-8')
+        step=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
+        self.assertIn('private _journal=[_job] call CBE_fnc_BuildingEgressJournal',step)
+        for guard in ('count _assignments+count _pending > 8','count _records != 1',
+                      'count _uses > 4','count _moves > 64','_next > _until',
+                      '_rows apply {+(_x select 1)}','_transform apply {+_x}'):
+            self.assertIn(guard,egress)
+        for effect in ('setVariable','doMove','setDestination','spawn','serverTime+'):
+            self.assertNotIn(effect,egress)
+        self.assertIn('"egressDeadlineServer",-1',producer)
+
         start=(ROOT/'addons/infantry/functions/buildingOperationStart.sqf').read_text(encoding='utf-8')
         self.assertIn('["producerOwner",clientOwner]',start)
         self.assertIn('setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil]',start)
@@ -165,10 +181,11 @@ class ClearPreparationCommitTests(unittest.TestCase):
         def may_capture(*,gained=False,local=False,owner=4,client=4,cancelled=False,
                         finished=False,phase='ENTRY',epoch=7,current_epoch=7):
             return (not gained and not local and owner==client and not cancelled
-                    and not finished and phase in ('ENTRY','SWEEP') and epoch==current_epoch)
+                    and not finished and phase in ('ENTRY','SWEEP','EGRESS') and epoch==current_epoch)
         self.assertTrue(may_capture())
+        self.assertTrue(may_capture(phase='EGRESS'))
         for changed in ({'gained':True},{'local':True},{'owner':5},{'cancelled':True},
-                        {'finished':True},{'phase':'EGRESS'},{'current_epoch':8}):
+                        {'finished':True},{'phase':'REPLAN'},{'current_epoch':8}):
             self.assertFalse(may_capture(**changed))
         tail=journal.split('private _journal=',1)[1]
         self.assertLess(tail.index('if (_export) exitWith {_journal}'),tail.index('_job set'))

@@ -69,20 +69,8 @@ _result=call {
         _job set ["laneJournalPhase",_phase];
         _job set ["laneJournalLastResult",false];
     };
-    if (_export && {
-        private _brain=_group getVariable ["CBE_BuildingBrain",createHashMap];
-        !(_brain isEqualType createHashMap)
-            || {(_brain getOrDefault ["job",createHashMap]) isNotEqualTo _job}
-            || {(_brain getOrDefault ["ownerEpoch",-1]) != (_job getOrDefault ["ownerEpoch",-2])}
-            || {(_brain getOrDefault ["generation",-1]) != (_job getOrDefault ["generation",-2])}
-            || {(_brain getOrDefault ["producerOwner",-1]) != clientOwner}
-            || {_brain getOrDefault ["finished",false]}
-            || {if (_frozen) then {
-                !(_brain getOrDefault ["cancelled",false])
-                    || {(_brain getOrDefault ["cancelReason",""]) != "LOCALITY_CHANGE"}
-                    || {!(_brain getOrDefault ["completed",false])}
-            } else {_brain getOrDefault ["cancelled",false]}}
-    }) exitWith {false};
+    if (_export && {!([if (_frozen) then {"FROZEN"} else {"LIVE"},_job]
+        call CBE_fnc_BuildingProducerContext)}) exitWith {false};
     private _positions=_job getOrDefault ["positions",[]];
     private _pairs=_job getOrDefault ["pairs",[]];
     private _routes=_job getOrDefault ["pairRoutes",[]];

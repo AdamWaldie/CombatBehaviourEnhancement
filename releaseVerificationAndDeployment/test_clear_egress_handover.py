@@ -52,9 +52,13 @@ class ClearEgressHandoverTests(unittest.TestCase):
         self.assertIn('_assignments findIf {[_x] call _outsideExit}', egress)
         # The durable sender and resumed reader share progress fields rather than restarting grace.
         journal=source.split('// Publish only material egress changes.',1)[1]
-        for field in ('_record param [1,-1]','_record param [2,-1]',
-                      '_record param [5,-1]','_record param [6,[]]'):
-            self.assertIn(field,journal)
+        self.assertIn('call CBE_fnc_BuildingEgressJournal',journal)
+        serializer=(ROOT/'addons/infantry/functions/buildingEgressJournal.sqf').read_text(encoding='utf-8')
+        for field in ('_record select 1','_record select 2',
+                      '_record select 5','+(_record select 6)'):
+            self.assertIn(field,serializer)
+        self.assertIn('count _records != 1',serializer)
+        self.assertNotIn('_record param',serializer)
         adoption=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text()
         self.assertIn('private _exitRowSize=[6,10] select _progressVersion',adoption)
         for field in ('then {_x select 6}','then {_x select 7}','then {_x select 8}','then {+(_x select 9)}'):

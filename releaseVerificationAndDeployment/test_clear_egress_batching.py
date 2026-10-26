@@ -62,8 +62,14 @@ class ClearEgressBatchingTests(unittest.TestCase):
 
     def test_journal_and_observer_retain_incremental_assignments(self):
         journal=self.step.split('// Publish only material egress changes.',1)[1]
-        self.assertIn('"egressPending",[]',journal)
-        self.assertIn('"egressExitUses",createHashMap',journal)
+        self.assertIn('call CBE_fnc_BuildingEgressJournal',journal)
+        serializer=(ROOT/'addons/infantry/functions/buildingEgressJournal.sqf').read_text(encoding='utf-8')
+        self.assertIn('"egressPending",false',serializer)
+        self.assertIn('"egressExitUses",false',serializer)
+        self.assertIn('_pendingRows,_useRows',serializer)
+        self.assertIn('_record select 2,_record select 5',serializer)
+        self.assertIn('count _records != 1',serializer)
+        self.assertNotIn('_record param',serializer)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         observation=qa.split('private _exit=_group getVariable ["CBE_Cortex_ClearEgress",[]];',1)[1].split('forEach _egressAssignments;',1)[0]
         self.assertIn('count _exit in [4,10,13,14]',observation)

@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Purpose: Copy the original private clearance room progress for outgoing capture.
  * Locality/authority: Pure local data conversion. CortexLocality must first fence and
- * validate the original producer through BuildingLaneJournal FROZEN. This grants no
+ * validate the original producer through BuildingProducerContext FROZEN. This grants no
  * incoming authority, physical visit, native acknowledgement or permission to replay.
  * Repeat/JIP: No publication, clock renewal, worker or JIP side effect. Malformed or
  * missing state refuses; sparse retry entries retain their original indices and length.

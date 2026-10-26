@@ -3288,8 +3288,12 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('private _moves=createHashMap',stage)
         publish=source('buildingOperationStep').split('// Publish only material egress changes.',1)[1].split('_brain set ["phase"',1)[0]
         self.assertIn('isNotEqualTo _journal',publish)
-        self.assertIn('_record param [3,0]',publish)
-        self.assertIn('_job get "egressDeadlineServer"',publish)
+        self.assertIn('call CBE_fnc_BuildingEgressJournal',publish)
+        serializer=source('buildingEgressJournal')
+        self.assertIn('_record select 3',serializer)
+        self.assertIn('"egressDeadlineServer",-1',serializer)
+        self.assertIn('count _records != 1',serializer)
+        self.assertIn('_until,_failed,_entryFailed,5,_pendingRows,_useRows',serializer)
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text()
         observe=qa.split('private _exit=_group getVariable ["CBE_Cortex_ClearEgress",[]];',1)[1].split('forEach _egressAssignments;',1)[0]
         self.assertIn('count _exit in [4,10,13,14]',observe)
