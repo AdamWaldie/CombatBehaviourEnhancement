@@ -135,5 +135,26 @@
       "addons/vehicles/functions/vehicleCrewMoveDeletionWatch.sqf": "a2bc004cb26e3de00825be545504422fbab6e1122ab0bf6b9aa9cb528be2ebdb",
       "addons/vehicles/functions/vehicleCrewMoveRetire.sqf": "072d236ff9fc196485356f364a86c951c1dc9d565bd99d6e5b315b4bdfd285b4"
     }
+  },
+  "idleHandbackEvidence20261027": {
+    "baseline": "d2622b0da076b6f252ed4eaaa977be59bc01c4cb",
+    "registeredIntent": "Protocol Artillery selected-gun movement and finite original-crew handback, shared with armour selected-platform movement. Preserve unrelated infantry and original mission ownership; do not create a gun-crew group or count metadata as physical restoration.",
+    "finding": "Shared VehicleCrewMoveNativePhase RETURNING used findIf over recorded MOVE returns. Empty returns (original idle/WAIT baseline, or no surviving original MOVE recipient) vacuously acknowledged handback without current idle/native-goal/platform-rest proof. Nonempty returns also read native goals without first proving each surviving recipient remained local and active.",
+    "implementation": "Empty returns now require nonempty surviving original crew, all survivors in active originals, current idle/WAIT commands and the existing VehicleCrewDestinationState OWNED predicate with current observations/stop goal/physical arrival sample plus measured rest. Nonempty returns refuse surviving nonlocal/inactive recipients before native command/destination reads. Original reply/cleanup deadlines and all commands remain unchanged; same positive evidence principle as existing passive ReturnProof idle case.",
+    "validation": {
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "buildLog": ".qa/handovers/crew-idle-handback-build-d2622b0d.log",
+      "candidate": ".qa/candidates/crew-idle-handback-d2622b0d",
+      "fingerprint": "f70a3296b6dcccefd8e098cfab8149860c45c0d32a5181de98488e8525672059",
+      "independentLog": ".qa/handovers/crew-idle-handback-independent.log",
+      "initialCheck": "Existing source contract expected3 current-arrival predicate uses; the fourth is the new explicit idle acknowledgement. Updated that count and retained actual geometry/rest/authority assertions."
+    },
+    "limits": "Offline correction only. NATIVE_RETURN_ACKNOWLEDGED means native handback evidence, not physical travelled return or original formation restoration. Newer commands/replaced goals/missing living originals can retain unresolved metadata under existing policy. Broader idle/formation continuation and newer-order supersession remain gaps; no worker/timeout/expiry is treated as proof. Actual artillery/armour peer travel, casualty/HC/repeat and performance remain unverified.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

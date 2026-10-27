@@ -144,7 +144,7 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('count _observations != 4',worker)
         self.assertIn('_phase in ["REQUESTED","STOPPING","RETURNING"]',worker)
         self.assertIn('ASLToAGL getPosASL _battery,_linearMotion,_angularMotion',worker)
-        self.assertEqual(worker.count('_observations,serverTime,_arrivalSample]'),3)
+        self.assertEqual(worker.count('_observations,serverTime,_arrivalSample]'),4)
         self.assertIn('_ack == "OWNED" && {serverTime <= (_work get "replyUntil")}',worker)
 
         admission=(base/'artilleryCrewMoveStart.sqf').read_text(encoding='utf-8')
@@ -196,6 +196,14 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('_phase in ["REQUESTED","STOPPING","RETURNING"]',worker)
         self.assertIn('_point vectorDistance _goal <= 0.25',predicate)
         self.assertNotIn('doMove',returning)
+        idle=returning.split('if (_returns isEqualTo []) then {',1)[1].split('} else {',1)[0]
+        for proof in ('_rest && {_survivors isNotEqualTo []}',
+                      '_survivors findIf {!(_x in _activeSeats)} < 0',
+                      'currentCommand _x in ["","WAIT"]',
+                      '[_goal,_work get "replyUntil",_observations,_observations,serverTime,_arrivalSample]'):
+            self.assertIn(proof,idle)
+        self.assertLess(returning.index('!local _actor || {!(_actor in _activeSeats)}'),
+                        returning.index('private _native=expectedDestination _actor'))
         # A short native return can complete before the first callback. Idle alone,
         # a replaced destination, motion or a remote endpoint cannot prove return.
         def returned(command, destination_error, endpoint_distance, at_rest, vertical_error=0):

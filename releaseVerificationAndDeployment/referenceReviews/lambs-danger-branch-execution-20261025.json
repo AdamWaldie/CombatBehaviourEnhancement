@@ -1701,5 +1701,13 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "civilianNativeCueBoundary20261027": {
+    "baseline": "d2622b0da076b6f252ed4eaaa977be59bc01c4cb",
+    "inspection": "CBE addons/danger/config.cpp assigns its native danger FSM only to SoldierWB/SoldierEB/SoldierGB. Existing civilian listeners are FiredNear/Suppressed/Explosion/Hit; current civilian source findings already retain body/scream gaps. No new full upstream FSM review or runtime slot observation is claimed.",
+    "decision": "Body/scream integration requires an actual civilian native-cue bridge/FSM contract that preserves intended civilian danger behaviour and current owner/task priority. Do not infer those cues from ordinary hit listeners, scan allDeadMen periodically, or override the civilian danger slot merely to collect events without reconciling its lifecycle. Continue independent selected-crew foundation work; civilian body/scream remains unimplemented.",
+    "runtimeChangedForCivilianCues": false,
+    "physicalAcceptance": false,
+    "scoresChanged": false
   }
 }
