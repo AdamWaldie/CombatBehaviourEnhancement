@@ -7675,6 +7675,12 @@ class CortexOperations(unittest.TestCase):
                       '_state set ["phase","EVALUATE"]'):
             self.assertLess(moving.index(proof),moving.index('_joined joinSilent _host'))
         self.assertNotIn('_state set ["deadline",',moving)
+        host_policy=regroup.split('private _hostTaskAvailable=',1)[1].split('if (_phase == "EVALUATE")',1)[0]
+        for guard in ('CBE_AIPass_Regroup_Enable','CBE_AIPass_ClearBuilding',
+                      'CBE_AIPass_Garrison','CBE_AIPass_Defend','CBE_Operation'):
+            self.assertIn(guard,host_policy)
+        self.assertIn('[_candidate] call _hostTaskAvailable',regroup)
+        self.assertLess(moving.index('[_host] call _hostTaskAvailable'),moving.index('_joined joinSilent _host'))
 
         regroup=source('cortexRegroupStep')
         queued=source('cortexRegroupOnKill')

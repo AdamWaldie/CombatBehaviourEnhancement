@@ -24,7 +24,8 @@
  * Hosts on other machines are never used, so a merge never moves a unit's locality.
  * Unconscious ACE casualties stay where they are. The original casualty roster excludes later
  * arrivals from the old group-wide job; remnant size and host combat capacity are rechecked
- * during MOVE. Host replacement never renews the original deadline.
+ * during MOVE. Host feature opt-out and active task rosters also forbid selection/join.
+ * Host replacement never renews the original deadline.
  * Locality and authority: runs on the group owner's scheduler. Group movement and joinSilent are issued for
  * local units only. Nothing is broadcast by CBE.
  *
@@ -134,6 +135,17 @@ if !("deadline" in _state) then {_state set ["deadline",time+_timeout]};
 if (time >= (_state get "deadline")) exitWith {call _finish};
 private _joinDistance = missionNamespace getVariable ["CBE_AIPass_Regroup_JoinDistance", 30];
 private _phase = _state getOrDefault ["phase", "EVALUATE"];
+// Receiving a remnant is also a group-membership change. A host's feature opt-out
+// and current task roster have the same priority as those of the source group.
+// Deliberate reinforcement is a separate executor, not permission for survivor merging.
+private _hostTaskAvailable={
+    params ["_candidate"];
+    [_candidate,"CBE_AIPass_Regroup_Enable",true] call CBE_fnc_CortexFeatureEnabled
+        && {!(_candidate getVariable ["CBE_AIPass_ClearBuilding",false])}
+        && {(_candidate getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []}
+        && {(_candidate getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []}
+        && {count (_candidate getVariable ["CBE_Operation",createHashMap]) == 0}
+};
 
 if (_phase == "EVALUATE") exitWith {
     if (_state getOrDefault ["firstEvaluation", -1] < 0) then {_state set ["firstEvaluation", time]};
@@ -172,6 +184,7 @@ if (_phase == "EVALUATE") exitWith {
             if (_distance < _hostDistance && {_hostCapable >= _minimumHost}
                 && {_hostAlive + count _movers <= _maxSize}
                 && {!(_candidate getVariable ["CBE_AIPass_RegroupQueued", false])}
+                && {[_candidate] call _hostTaskAvailable}
                 && {[_candidate] call CBE_fnc_CortexIsEligible}) then {
                 _host = _candidate;
                 _hostDistance = _distance;
@@ -219,6 +232,7 @@ if (isNull _host || {!local _host} || {isNull _hostLeader} || {vehicle _hostLead
 private _hostMembers=units _host;
 private _hostCapable={[_x] call CBE_fnc_CortexCombatEffective} count _hostMembers;
 if (side _host != side _group || {_host getVariable ["CBE_AIPass_RegroupQueued",false]}
+    || {!([_host] call _hostTaskAvailable)}
     || {_hostCapable < (missionNamespace getVariable ["CBE_AIPass_Regroup_MaxRemnantSize",2])+1}) exitWith {
     _state set ["phase","EVALUATE"];
     _group setVariable ["CBE_AIPass_RegroupHost",nil];

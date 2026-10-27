@@ -574,10 +574,10 @@
       "name": "Smart Merge AI",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Survivor regroup and group merging",
-      "reviewStatus": "Selected survivor admission/chase/join bodies reviewed; original-cohort and live-host fitness fixes implemented; remaining source/physical gaps open",
-      "nextSourceReview": "Review startup/tick/settings, pressure/history, reservations/veto and locality/stop descendants; reconcile unique faction/role/standalone-isolation intent before adding it.",
-      "recordedImplementationStatus": "SELECTED_REGROUP_LIFECYCLE_FIXES_IMPLEMENTED_WHOLE_SOURCE_OPEN",
-      "recordedRemaining": "Whole source/helper semantics, physical original-cohort/host-casualty/repeat/locality behaviour and cost remain unverified.",
+      "reviewStatus": "All36 readable function bodies/config/settings reviewed; selected CBE cohort/live-host/task-policy fixes implemented; physical evidence pending",
+      "nextSourceReview": "Readable body dispositions complete for installed2.0.5. Continue other unresolved registered sources; retain physical joining/host task/cohort/repeat/locality and cost gaps.",
+      "recordedImplementationStatus": "READABLE_SOURCE_RECONCILED_SELECTED_REGROUP_FIXES_PHYSICAL_PENDING",
+      "recordedRemaining": "Selected CBE survivor merge behaviour needs physical validation and cost measurement. Whole-mod parity is not claimed; broader faction/allied/singleton/vehicle policies were not selected.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/smart-merge-source-20261027.json",
       "evidenceFilePresent": true,
@@ -589,7 +589,7 @@
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
       },
       "historicalMissingEvidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
-      "reviewScopeNote": "Installed2.0.5 protected copy hashed; selected body review led to concrete CBE FSM fixes. No whole-mod percentage uplift."
+      "reviewScopeNote": "All36 readable bodies and config/settings have explicit grouped dispositions; no implementation-completion percentage inferred."
     },
     {
       "workshopId": "3742481604",
