@@ -1,19 +1,19 @@
 {
   "base": "4d5940d2",
-  "status": "ACTUAL_CANNON_SHOT_SCREENED_REPOSITION_SOURCE_INTEGRATED",
+  "status": "ACTUAL_SHELL_OR_SELECTED_NATIVE_MISSILE_SHOT_SCREENED_REPOSITION_SOURCE_INTEGRATED",
   "sourceIntent": "Protocol Armoured Force post-shot manoeuvre, combined with current CBE owner-local finite selected-platform movement. Source fireAtTarget request counters are not treated as actual shots.",
   "implementation": [
-    "One native vehicle Fired listener observes the exact loaded main turret shotShell weapon/muzzle/ammunition/magazine, original gunner and projectile parents. A matching actual shot consumes that listener; one original20s expiry removes stale state. Repeated ARM does not renew it.",
+    "One native Fired listener retains exact main-turret weapon/muzzle/ammunition/magazine, original gunner/crew/native control and projectile-parent evidence. Shell fire retires its listener after the first matching shot; selected ordinary ground missiles retain at most8 projectile references until disappearance plus idle/ready gunner. One original20s expiry remains; ARM and later shots never renew it.",
     "Only currently idle tanks/APCs without authored route, competing task, combined role or external controller can offer a shot receipt. Current target, group epoch, operation generation, native route, feature gates and original deadline are rechecked before use.",
     "Existing bounded avenue planner considers a25m move only while currently exposed; its selected point must be screened from the fresh believed threat. Nearby AT standoff retains priority and its existing60s policy.",
     "Existing selected-crew FSM owns movement,5m rested arrival, stop/return and retirement. Original20s deadline is retained. Lost target belief/ownership or lost point screening at arrival/HOLD requests existing release; no group split or group waypoint.",
-    "Nonmatching machine-gun Fired events reject before full authority checks. Nonarmour vehicles skip receipt polling. Already screened armour skips avenue planning. No permanent scan, separate movement worker, ammo changes, teleport or physics writes."
+    "Nonmatching events reject shell admission before full authority checks; a current missile listener instead discards optional movement proof for mixed firing. Nonarmour vehicles skip receipt polling. Already-screened armour skips avenue planning. No permanent scan, projectile controller, movement worker, ammo change or physical shortcut."
   ],
   "controls": "Existing Vehicles and VehicleGunnery CBA gates; no new setting or Zeus module.",
   "limitations": [
     "Point screening is not whole hull cover, ballistic protection, hit/kill proof or successful physical movement.",
     "Idle driver/commander admission excludes some two-seat vehicles while commander is in FIRE. Does not take over native FIRE/SUPPRESS tasks.",
-    "Main turret shell fire only; artillery, AA, air targets, missiles and authored routes retain their own authority. No general all-platform post-shot parity claim.",
+    "Main-turret shell and selected ordinary single-burst ground-missile episodes only. Artillery/AA/air targets/authored routes remain excluded; child-payload carriers, declared ACE guidance, unknown modes and mixed firing cannot authorize post-missile repositioning. No general missile/controller parity claim.",
     "Normal/HC physical flow, repeatability, casualty handover and5%median/10%p95 performance acceptance remain outstanding; audits paused."
   ],
   "validation": {
@@ -62,5 +62,31 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "currentImplementationEvidence": "nativeMissileObservation20261027",
+  "nativeMissileObservation20261027": {
+    "baseline": "b55c46940f5fe443b31643e306e8fd55e81e81d6",
+    "sourceIntent": "Protocol Armoured Force requests ATGM/cannon fire and immediate cover movement. Extend actual-shot observation inside existing CBE finite selected-crew work rather than using a fire request as success or moving during observed missile flight.",
+    "implementation": "ARM admits native shotMissile alongside shotShell only in existing main-station ground/armour scope. Air-only rounds, nonempty/unknown submunition payload fields and declared ACE missileguidance.enabled refuse missile movement admission. Each matching actual Fired event must retain original weapon/muzzle/magazine/ammo/gunner/parents and crew/task evidence; missile mode must resolve to configured burst1. One existing listener retains<=8 original projectile references. Mixed/nonmatching firing under that current listener or budget overflow discards optional proof. First shot timestamp/original20s deadline never renew. Mixed/unsupported missile proof removes its listener but retains an inert private record until the original expiry, preventing repeated ARM/listener/expiry registration in that same window. Native firing and other controllers are not reserved or blocked.",
+    "consumption": "TAKE requires1..8 known projectile references, no surviving recorded object, and idle/ready gunner before once-only proof consumption. It then uses existing fresh target belief, screened avenue and original selected-crew FSM with only remaining original episode time. Shell first-shot handling is unchanged. No new timer, worker, projectile mutation, firing/ammo policy, external-provider handover or movement controller.",
+    "validation": {
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "buildLog": ".qa/handovers/armour-missile-observation-final-build-b55c4694.log",
+      "candidate": ".qa/candidates/armour-missile-observation-final-b55c4694",
+      "fingerprint": "a96c4093b9c92c85bde7cf38a4f0b9b2b1b6d63efc6be72153ee3be04661ce8a",
+      "independentLog": ".qa/handovers/armour-missile-observation-final-independent.log"
+    },
+    "limits": "Offline integration only. Projectile disappearance is not hit/kill or general scripted-guidance quiescence. Unknown scripted children/controllers remain unsupported. Native fire-mode/guidance transitions, bursts/mixed stations, actual remaining-time movement, normal/HC/repeat and cost need physical validation. Long flight or mixed firing may produce no move. This does not finish broader ATGM/Armoured Force/LAMBS/combined-arms parity.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false,
+    "supersededCandidate": {
+      "candidate": ".qa/candidates/armour-missile-observation-b55c4694",
+      "fingerprint": "824b595901d2200f2ecacb79a64e66e1780e4f32abd3fee7ffeb6cdf43ede81b",
+      "reason": "Superseded before commit by mixed/unsupported missile episode rearm-churn correction."
+    }
   }
 }

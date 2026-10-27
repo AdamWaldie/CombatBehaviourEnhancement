@@ -8630,6 +8630,33 @@ class CortexOperations(unittest.TestCase):
         self.assertFalse(controls(crew,crew,receipt,('WAIT',(101,200,0),'leader')))
         self.assertFalse(controls(crew,crew,receipt,('WAIT',(100,200,0),'new-leader')))
         self.assertIn('"shotshell"',shot)
+        for proof in ('_simulation in ["shotshell","shotmissile"]','getNumber (_ammoCfg >> "airLock") == 2',
+                      'getNumber (_ammoCfg >> "ace_missileguidance" >> "enabled") > 0',
+                      'isArray _payloadCfg','isText _payloadCfg','getNumber (_modeCfg >> "burst") != 1',
+                      'count _projectiles >= 8','_state set ["projectiles",_projectiles]',
+                      '_projectiles findIf {!isNull _x} >= 0','!unitReady _gunner',
+                      'currentCommand _gunner in ["","WAIT"]'):
+            self.assertIn(proof,shot)
+        take=shot.split('if (_mode == "TAKE") exitWith {',1)[1].split('private _proof=',1)[0]
+        self.assertIn('count _projectiles < 1',take)
+        self.assertNotIn('set ["until"',shot)
+        self.assertEqual(shot.count('addEventHandler ["Fired"'),1)
+        self.assertEqual(shot.count('call CBA_fnc_waitAndExecute'),1)
+        discard=shot.split('private _discardFlight=',1)[1].split('private _group=',1)[0]
+        self.assertIn('_state set ["discarded",true]',discard)
+        self.assertNotIn('setVariable ["CBE_ArmourShot_Work",nil]',discard)
+        self.assertNotIn('waitAndExecute',discard)
+        self.assertLess(shot.index('if (_mode == "EXPIRE") exitWith'),shot.index('getOrDefault ["discarded",false]'))
+        missile=shot.split('if (_state getOrDefault ["waitFlight",false]) exitWith {',1)[1]
+        self.assertNotIn('waitUntil',missile)
+        self.assertNotIn('spawn',missile)
+        self.assertLess(missile.index('getNumber (_modeCfg >> "burst") != 1'),missile.index('_state set ["projectiles",_projectiles]'))
+        def can_consume(known,live,idle,ready,before_deadline):
+            return 1<=known<=8 and live==0 and idle and ready and before_deadline
+        self.assertTrue(can_consume(2,0,True,True,True))
+        for row in [(0,0,True,True,True),(9,0,True,True,True),(2,1,True,True,True),
+                    (2,0,False,True,True),(2,0,True,False,True),(2,0,True,True,False)]:
+            self.assertFalse(can_consume(*row))
         self.assertIn('call CBE_fnc_VehicleArmourShot',vehicles)
         self.assertIn('_postShot select 2',standoff)
         self.assertIn('call CBE_fnc_CortexCoverScreened',standoff)

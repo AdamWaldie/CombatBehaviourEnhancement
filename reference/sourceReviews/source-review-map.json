@@ -255,7 +255,7 @@
       "priority": "1 Protocol programme",
       "candidateContribution": "Armour protection, engagement and repositioning",
       "reviewStatus": "Readable scripts reviewed; integration/scope gaps remain",
-      "nextSourceReview": "Complete ATGM/cover/exposure/relocation review beyond selected station, standoff and post-shot paths.",
+      "nextSourceReview": "Resolve broader/scripted/burst/multistation ATGM and cover/exposure/relocation gaps beyond selected native main-station missile observation, standoff and post-shot paths. Physical guidance/crew/remaining-budget movement and cost remain unverified.",
       "recordedImplementationStatus": "READABLE_SOURCE_REVIEWED_SELECTED_STATION_INTENT_INTEGRATED",
       "recordedRemaining": "Selected countermeasure-station intent and original CBE vehicle foundations now include language-independent horn exclusion and exact jink control-seat authority/cancellation. Continue suitable ATGM/cover/exposure/relocation integration; actual shots, tactical movement, owner handback and performance remain unverified. Binary registration/declarations reviewed; runtime/provider dependencies and licensing remain separate.",
       "implementationAssessmentCommit": "ca778db2",
@@ -269,6 +269,10 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "nativeMissileObservation20261027": {
+        "evidence": "releaseVerificationAndDeployment/referenceReviews/armour-post-shot-cover-20261025.json#nativeMissileObservation20261027",
+        "scope": "Selected bounded native missile post-shot observation; not general missile/controller parity or physical acceptance."
       }
     },
     {

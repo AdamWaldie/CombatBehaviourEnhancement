@@ -420,6 +420,10 @@
       "dismountedOriginalStop20261026": {
         "review": "selected-dismounted-stop-retirement-20261026.json",
         "scope": "Passive exact-worker retirement permits dismounted original survivors with newer native STOP and individual rest. No command, replacement adoption or group split; general supersession and physical acceptance remain incomplete."
+      },
+      "nativeMissileObservation20261027": {
+        "evidence": "armour-post-shot-cover-20261025.json#nativeMissileObservation20261027",
+        "scope": "Original crew/native control receipts plus selected native missile flight observations integrated. Broader/scripted/burst/multistation scope and physical/performance acceptance remain incomplete."
       }
     }
   ],

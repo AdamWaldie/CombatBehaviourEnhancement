@@ -36,7 +36,7 @@ The tables list evaluation objectives. They do not assert that every named mecha
 | PROTOCOL AI ANTI-AIR: RELOCATE AND ANTI-MISSILE (3809708209) | AA relocation, warning allocation and point defence | Readable scripts reviewed; integration/scope gaps remain | Complete station/weapon/projectile applicability and interruption review; distinguish existing experimental subset from remaining capability. |
 | PROTOCOL AI NAVY SEAL (3813369033) | Boat/shore insertion and ground transition | Readable scripts reviewed; integration/scope gaps remain | Complete relevant source handover review across crew/cargo/landing and existing ground squad execution. |
 | PROTOCOL AI RAPPELING (3819636004) | AI rappel task and aircraft/passenger handover | Readable scripts reviewed; integration/scope gaps remain | Resolve real finite Advanced Rappelling provider contract and dependencies; detection alone does not implement rappelling. |
-| PROTOCOL AI ARMORED FORCE (3822504009) | Armour protection, engagement and repositioning | Readable scripts reviewed; integration/scope gaps remain | Complete ATGM/cover/exposure/relocation review beyond selected station, standoff and post-shot paths. |
+| PROTOCOL AI ARMORED FORCE (3822504009) | Armour protection, engagement and repositioning | Readable scripts reviewed; integration/scope gaps remain | Resolve broader/scripted/burst/multistation ATGM and relocation beyond selected native missile observation/standoff/post-shot paths; physical guidance, crew and cost unverified. |
 
 ## complementary ai methods
 
