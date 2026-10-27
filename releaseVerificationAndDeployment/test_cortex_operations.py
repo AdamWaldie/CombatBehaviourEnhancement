@@ -7663,6 +7663,18 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_group selectLeader (_movers select 0)',regroup)
         self.assertIn('_group move _target',regroup)
         self.assertNotIn('{doStop _x; _x doMove _target} forEach _movers',regroup)
+        queued=source('cortexRegroupOnKill')
+        self.assertIn('["remnantRoster",(units _group) select {alive _x}]',queued)
+        cohort=regroup.split('private _living=',1)[1].split('private _movers =',1)[0]
+        self.assertIn('"remnantRoster" in _state',cohort)
+        self.assertIn('_living findIf {!(_x in _remnantRoster)}',cohort)
+        self.assertIn('CBE_AIPass_Regroup_MaxRemnantSize',cohort)
+        moving=regroup.split('// MOVE',1)[1]
+        for proof in ('private _hostMembers=units _host','CortexCombatEffective',
+                      'CBE_AIPass_RegroupQueued','CBE_AIPass_Regroup_MaxRemnantSize',
+                      '_state set ["phase","EVALUATE"]'):
+            self.assertLess(moving.index(proof),moving.index('_joined joinSilent _host'))
+        self.assertNotIn('_state set ["deadline",',moving)
 
         regroup=source('cortexRegroupStep')
         queued=source('cortexRegroupOnKill')
