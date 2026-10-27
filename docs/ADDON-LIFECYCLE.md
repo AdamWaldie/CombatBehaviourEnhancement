@@ -2075,3 +2075,11 @@ The first gun acquires the movement domain through ordinary-driving handback. La
 Discovery, shutdown and locality handling visit each admitted reference. Owner transfer adopts retirement only and retains original deadlines. A pending shoot-and-scoot request waits for its own prefire handback rather than treating another gun's reservation as its own. Group membership and unrelated authored orders remain unchanged. No new CBA setting or Zeus module is required.
 
 This is source implementation, not demonstrated parallel gun movement. Native group-formation effects, two-gun travel and firing, casualty/deletion, repeated locality edges, normal/HC operation and performance remain unverified while audits are paused. Original idle/formation continuation and unresolved native-command recovery remain separate open requirements.
+
+### Temporary exclusion of exhausted garrison posts
+
+When a walking approach exhausts its native retries and entrance choices, the old interior post leaves the order's candidate pool before an alternative is selected. Successful reassignment therefore cannot offer that exhausted post to another actor or casualty replacement. The original movement and order deadlines remain unchanged.
+
+The group remembers at most eight exhausted posts for 90 seconds on the server clock. A duplicate failure keeps the original expiry. New walking orders and walking refill consult those exact building/post signatures. Changed building position, direction, up vector or scale invalidates the saved entry. Published metadata follows group ownership and creates no movement callback. Explicit initial teleport and in-place placement remain available independently of walking-path failures.
+
+This temporary selection policy does not prove universal inaccessibility. A newly opened route with unchanged building geometry may remain excluded until the short memory expires. Clearance success, physical entry, arrival/PATH locking and failure reporting retain their existing requirements. Repeated native/placed/modded building approaches, owner transfer and measured cost remain unverified while audits are paused.

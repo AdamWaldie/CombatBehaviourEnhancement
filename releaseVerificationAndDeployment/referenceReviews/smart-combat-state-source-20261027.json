@@ -778,5 +778,43 @@
       "independentLog": ".qa/handovers/garrison-motion-progress-independent.log",
       "physicalAcceptance": false
     }
+  },
+  "garrisonFailedPostMemory20261027": {
+    "base": "13ba71e17b1757b0bf1a34693a4ee1b6a0aef85f",
+    "sourceScope": "Selected fn_updateGarrisonState failure producer and fn_coordinateGarrison failed-position exclusion; protected member hashes reverified against manifest and installed PBO unchanged. No renewed whole-mod review or compiled equivalence claim.",
+    "sourceHashes": {
+      "functions/buildings/fn_updateGarrisonState.sqf": "ba9eab88eb9fcf3a1b2a733af3909ba802cef1e83dcdaf0644747bed9a953e97",
+      "functions/buildings/fn_coordinateGarrison.sqf": "d673809c71b132f06a207cf861ddb2bae2eddc70c8461d76dce4135ac437db89"
+    },
+    "intent": "Avoid repeatedly assigning a recently exhausted post. Source remembers8 positions for90seconds, tests2.5m proximity, and also records lost firing sectors. Keep bounded failure memory; native path failure and firing quality remain separate.",
+    "defect": "CBE removed interior posts from the episode candidate pool on terminal failure, but successful reassignment left the exhausted old post available for another actor or later refill. New walking orders also discarded episode-only failure history.",
+    "implementation": "Retire an exhausted interior post before alternative selection, retaining existing retry/entrance/reassignment/order bounds. A separate bounded metadata helper remembers at most8 exact post/building/transform signatures for90server-seconds. Duplicate failures keep the original expiry. Position/direction/up/scale/deletion changes invalidate advisory entries; different posts/floors/buildings are not rejected by proximity alone.",
+    "execution": "CortexGarrison consults the read-only cache for walking admission before old-task replacement; explicit initial in-place/teleport placement bypasses it. CortexGarrisonRefill uses it for walking replacements. Current-owner generation-bound ApplyLocal records only owned approach exhaustion. Published entries survive owner transfer without a new callback or renewed deadline. No movement/settings/PATH/arrival/clearance authority comes from this helper.",
+    "cost": "At most8 cache rows validated and compared with the existing bounded512-post admission or64-post refill pool. Recording trims to8 and publishes only a new distinct failure. No new geometry query, timer, controller, world scan or source-side recurring doMove. Object transform/scale lookup and array-comparison engine cost remain unmeasured. Cheap expiry/type checks precede native transform/scale queries, so expired entries do not keep paying world-state lookup cost.",
+    "validation": {
+      "tests": 1497,
+      "compiledSqf": 448,
+      "pbos": 11,
+      "focused": ".qa/handovers/garrison-failed-post-focused.log",
+      "build": ".qa/handovers/garrison-failed-post-final-build-13ba71e1.log",
+      "independent": ".qa/handovers/garrison-failed-post-final-independent.log",
+      "candidate": ".qa/candidates/garrison-failed-post-final-13ba71e1",
+      "fingerprint": "789a5da316bba316ee90bccd84a03dd1fcffbe0141ce0e1496833ef82b867615",
+      "kind": "Unsigned dirty development from13ba71e1 plus runtime patch; engineering records postdate package. Existing recovery case extended, no added or skipped tests."
+    },
+    "limits": "A changed obstacle or newly opened door without changed building geometry may wait until memory expires. This is a temporary selection policy, not universal inaccessible-model proof. Physical repeated native/placed/modded traversal, owner migration and measured performance remain unverified. CQB clearance flow, casualty/isolation/egress, quiet shelter and per-actor firing-position movement remain separate gaps. Audits PAUSED.",
+    "runtimeHashes": {
+      "addons/infantry/functions/cortexGarrison.sqf": "5926ce1f328b1ef346b5967841a6e907b626861ac369767459c15da9799cf185",
+      "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "4d1ca4b1ac1991e2d9536256f055c52c41c99db2801e0435423631c28a98a36d",
+      "addons/infantry/functions/cortexGarrisonFailedPosts.sqf": "8bce7e7ac1139b3ffcb328bb4f5fec5e9c45c5e09527eaef6cac724307c8ba9a",
+      "addons/infantry/functions/cortexGarrisonRefill.sqf": "4a56291a23774ff4c8a36f52369fc18766961b9ab2edccb4a26ee6ff17d27c7a"
+    },
+    "intermediateCandidate": {
+      "candidate": ".qa/candidates/garrison-failed-post-13ba71e1",
+      "fingerprint": "98bf4f550f831794259d6ed84efa9034cb4cad3fea53c1668aac05b497e95be0",
+      "build": ".qa/handovers/garrison-failed-post-build-13ba71e1.log",
+      "independent": ".qa/handovers/garrison-failed-post-independent.log",
+      "reason": "Passed intermediate source, superseded by expiry-before-native-transform/scale-query correction. Final complete build rerun covers the correction."
+    }
   }
 }

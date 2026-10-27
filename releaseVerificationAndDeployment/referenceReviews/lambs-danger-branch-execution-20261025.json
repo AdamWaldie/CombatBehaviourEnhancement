@@ -1391,5 +1391,11 @@
     },
     "physicalAcceptance": false,
     "performanceAcceptance": false
+  },
+  "firingPositionOwnerBoundary20261027": {
+    "scope": "Current selected FireControl suppression issue, DangerCoverStep selection/continuation and TacticalReposition endpoint ownership. No runtime changes to firing-position movement in this batch.",
+    "finding": "FireControl has bounded failed-lane rotation but issues no movement. DangerCoverStep selects incoming-threat screening and is tied to hazard generations, so admitting a firing-position request into it would not prove an outgoing lane or original native handback. TacticalReposition moves the whole group, not one blocked rifleman.",
+    "next": "Define persistent occlusion and prospective usable outgoing-lane evidence together with one finite actor command/retirement path before adding fire-to-movement delegation. Existing CQB/cover/point/launcher owners must remain disjoint; do not import LAMBS unleased recurring doMove/forceSpeed fallback.",
+    "remaining": "General per-actor firing-position improvement remains unimplemented and physically unverified. The independent garrison failed-post change does not close this capability."
   }
 }

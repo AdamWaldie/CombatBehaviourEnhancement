@@ -373,6 +373,7 @@ class CfgFunctions {
             class CortexSetPhase {file = "\z\cbe\addons\infantry\functions\cortexSetPhase.sqf";};
             class CortexGarrison {file = "\z\cbe\addons\infantry\functions\cortexGarrison.sqf";};
             class CortexGarrisonArrived {file = "\z\cbe\addons\infantry\functions\cortexGarrisonArrived.sqf";};
+            class CortexGarrisonFailedPosts {file = "\z\cbe\addons\infantry\functions\cortexGarrisonFailedPosts.sqf";};
             class CortexGarrisonRefill {file = "\z\cbe\addons\infantry\functions\cortexGarrisonRefill.sqf";};
             class CortexGarrisonApplyLocal {file = "\z\cbe\addons\infantry\functions\cortexGarrisonApplyLocal.sqf";};
             class CortexGarrisonRelease {file = "\z\cbe\addons\infantry\functions\cortexGarrisonRelease.sqf";};

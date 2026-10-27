@@ -7991,6 +7991,50 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_entries resize ((count _entries) min 4)',text)
         self.assertIn('private _replacementEntries=',text)
         self.assertNotIn('_job set ["deadline",(_job get "deadline") max (time+60)]',text)
+        # A successful replacement must still retire the exhausted old post before
+        # another actor/refill can select it. Advisory memory does not prove a model
+        # is inaccessible and must not extend movement or failed-post deadlines.
+        exhausted=text.split('// This post exhausted',1)[1].split('private _replacement=',1)[0]
+        self.assertLess(exhausted.index('call CBE_fnc_CortexGarrisonFailedPosts'),
+                        exhausted.index('private _alternatives='))
+        self.assertIn('!(str (_x select [0,4]) in _retiredPosts)',exhausted)
+        cache=source('cortexGarrisonFailedPosts')
+        live=cache.split('private _live=',1)[1].split('if (_assignment isNotEqualTo',1)[0]
+        self.assertLess(live.index('serverTime < (_x select 2)'),live.index('call _validSignature'))
+        self.assertLess(live.index('serverTime < (_x select 2)'),live.index('getObjectScale'))
+        for marker in ('_saved select [0,8]','count _live >= 8','_live deleteAt 0',
+                       'serverTime+90','serverTime < (_x select 2)',
+                       '_live findIf {(_x select 0) isEqualTo _signature} < 0',
+                       'getObjectScale','getPosWorld _building,vectorDir _building,vectorUp _building'):
+            self.assertIn(marker,cache)
+        for forbidden in ('doMove','doStop','doFollow','spawn','execFSM','CortexQueueJob','nearestObjects'):
+            self.assertNotIn(forbidden,cache)
+        planning=source('cortexGarrison')
+        self.assertIn('if (!_inPlace && {!_teleport}) then {',planning)
+        self.assertIn('!((_x select [0,4]) in _failedPosts)',planning)
+        self.assertIn('!((_candidate select [0,4]) in _failedPosts)',source('cortexGarrisonRefill'))
+        # Metadata model only. Different buildings/floors, transform/scale changes
+        # and the original expiry reopen selection without a permanent model ban.
+        def remember(rows,key,transform,scale,now):
+            live=[r for r in rows[:8] if r[2]>now and r[0][1]==transform and r[1]==scale]
+            if not any(r[0]==key for r in live):
+                live=(live[-7:]+[(key,scale,now+90)])
+            return live
+        a=(('house-A',0),'original-transform')
+        b=(('house-A',1),'original-transform')
+        rows=remember([],a,'original-transform',1,0)
+        self.assertEqual(rows,remember(rows,a,'original-transform',1,25))
+        self.assertEqual(rows[0][2],90)  # Duplicate observation does not renew.
+        self.assertEqual(len(remember(rows,b,'original-transform',1,25)),2)
+        self.assertEqual(remember(rows,a,'original-transform',1,90)[0][2],180)
+        moved=(a[0],'moved-transform')
+        self.assertEqual(remember(rows,moved,'moved-transform',1,25),[(moved,1,115)])
+        self.assertEqual(remember(rows,a,'original-transform',2,25),[(a,2,115)])
+        for i in range(1,10):
+            rows=remember(rows,((f'house-{i}',0),'original-transform'),'original-transform',1,i)
+        self.assertEqual(len(rows),8)
+        self.assertNotIn(a,[r[0] for r in rows])
+
 
     def test_garrison_reuses_and_invalidates_its_local_building_topology(self):
         """Entry anchors should not re-enumerate every room once per defender."""

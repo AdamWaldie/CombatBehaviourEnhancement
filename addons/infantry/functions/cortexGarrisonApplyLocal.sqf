@@ -34,6 +34,8 @@
  * Surplus exterior security searches at most one actor per callback and three times per actor.
  * Valid slots observe real exits, retain distinct destinations and use the original order deadline.
  * Each search counts live reservations once; failed/incapacitated actors do not claim exit coverage.
+ * Exhausted interior posts leave this order's candidate pool even after successful reassignment;
+ * a bounded transform-aware group failure cache carries that advisory exclusion across orders.
  * Physical occupants remain excluded by the shared geometry validator. Rejected-point history
  * also survives adoption so a one-exit building does not repeat the same failed cover candidate.
  * One short-range engine empty-space query can propose an uncovered alternate after rejection.
@@ -532,6 +534,7 @@ private _buildingAnchor = {
                     _x setVariable ["CBE_AIPass_GarrisonFailed",true,true];
                     if ((_assignment param [4,"INTERIOR"]) == "INTERIOR") then {
                         _retiredPosts set [str (_assignment select [0,4]),true];
+                        [_group,_assignment] call CBE_fnc_CortexGarrisonFailedPosts;
                     };
                     diag_log format ["[CBE] Garrison arrival failed unit=%1 remaining=%2",_x,_x distance (_assignment select 0)];
                 } else {
@@ -587,6 +590,13 @@ private _buildingAnchor = {
                                         _x doMove _nextTarget; [_x,_nextTarget] call _rememberMove;
                                         diag_log format ["[CBE] Garrison trying alternate entrance unit=%1 entrance=%2/%3 remaining=%4",_x,_nextEntry+1,count _entries,_x distance (_assignment select 0)];
                                     } else {
+                                    // This post exhausted its native retries and entrance choices even
+                                    // when another post can be assigned. Retire it before choosing
+                                    // alternatives so another actor/refill cannot immediately retry it.
+                                    if ((_assignment param [4,"INTERIOR"]) == "INTERIOR") then {
+                                        _retiredPosts set [str (_assignment select [0,4]),true];
+                                        [_group,_assignment] call CBE_fnc_CortexGarrisonFailedPosts;
+                                    };
                                     private _occupied=(units _group) apply {
                                         private _otherAssignment=_x getVariable ["CBE_AIPass_GarrisonPos",[]];
                                         if (_otherAssignment isEqualTo []) then {""} else {str (_otherAssignment select 0)}
@@ -622,9 +632,7 @@ private _buildingAnchor = {
                         [_x,group _x,"APPLY",createHashMapFromArray [["SPEED",_x getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]]]] call CBE_fnc_CortexGarrisonSettings;
                     };
                     _x setVariable ["CBE_AIPass_GarrisonFailed",true,true];
-                    if ((_assignment param [4,"INTERIOR"]) == "INTERIOR") then {
-                        _retiredPosts set [str (_assignment select [0,4]),true];
-                    };
+
                                         diag_log format ["[CBE] Garrison arrival failed unit=%1 attempted=%2 remaining=%3",_x,count _attempted,_x distance (_assignment select 0)];
                                     };
                                     };

@@ -39,12 +39,13 @@ private _occupiedPosts=[];
         _occupiedPosts pushBack [_assignment param [2,objNull],+(_assignment select 0)];
     };
 } forEach _living;
+private _failedPosts=[_group] call CBE_fnc_CortexGarrisonFailedPosts;
 private _vacancy=[];
 {
     private _candidate=_x;
     private _building=_candidate param [2,objNull];
     private _transform=_candidate param [3,[]];
-    if (!isNull _building && {alive _building}
+    if (!((_candidate select [0,4]) in _failedPosts) && {!isNull _building} && {alive _building}
         && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
         && {_occupiedPosts findIf {
             (_x select 0) == _building

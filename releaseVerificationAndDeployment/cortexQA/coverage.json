@@ -1205,6 +1205,7 @@
         "addons/infantry/functions/cortexGarrison.sqf",
         "addons/infantry/functions/cortexGarrisonApplyLocal.sqf",
         "addons/infantry/functions/cortexGarrisonRelease.sqf",
+        "addons/infantry/functions/cortexGarrisonFailedPosts.sqf",
         "addons/infantry/functions/cortexGarrisonRefill.sqf",
         "addons/infantry/functions/cortexGarrisonArrived.sqf",
         "addons/infantry/functions/cortexGarrisonSettings.sqf"

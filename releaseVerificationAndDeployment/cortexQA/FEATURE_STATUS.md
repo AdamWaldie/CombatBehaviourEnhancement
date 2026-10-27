@@ -46,7 +46,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | ART - Spotted artillery bursts | 13 | 0 | 30 | `runServer.sqf` | 0 | implemented_partial |
 | CB - Counter-battery | 10 | 0 | 3 | `runServer.sqf` | 0 | implemented_partial |
 | AIRBORNE - Parachute passengers | 6 | 0 | 10 | `runAirborne.sqf` | 0 | implemented_partial |
-| GARRISON - Garrison and dynamic AO | 1 | 0 | 6 | `runServer.sqf`, `runBuildingComparison.sqf` | 1 | implemented_partial |
+| GARRISON - Garrison and dynamic AO | 1 | 0 | 7 | `runServer.sqf`, `runBuildingComparison.sqf` | 1 | implemented_partial |
 | FLARES - Aircraft countermeasures | 1 | 0 | 2 | `runAircraft.sqf` | 2 | implemented_partial |
 | INVESTIGATE - Known-area investigation | 3 | 0 | 2 | `runSupport.sqf` | 0 | implemented_partial |
 | ASSAULT - Final assault | 2 | 0 | 1 | `runCombat.sqf` | 3 | implemented_partial |
