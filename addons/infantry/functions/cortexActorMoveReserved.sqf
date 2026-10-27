@@ -3,8 +3,8 @@
  * Purpose: Read whether a finite actor movement reservation prevents routine task admission.
  * Locality/authority: Read-only on the actor owner; remote/nonlocal actors refuse admission.
  * Repeat/JIP: No mutation or expiry renewal. Empty markers are free; unknown/malformed markers
- * remain reserved. Unresolved flight/naval-egress journals also block admission after the
- * ordinary marker expires; only their exact cleanup may retire pending native proof.
+ * remain reserved. Unresolved flight/naval-egress, point and indoor journals also block admission
+ * after the ordinary marker expires; only their exact cleanup may retire pending native proof.
  * Only a fully typed finite three-field lease without that journal can expire on its local clock.
  * Arguments: 0 actor <OBJECT>, objNull.
  * Return: BOOL, true for reserved/unknown/nonlocal actor; false only for empty or valid expired lease.
@@ -21,6 +21,11 @@ if (isNull _actor || {!local _actor}) exitWith {true};
 if ((_actor getVariable ["CBE_Danger_FlightLease",[]]) isNotEqualTo []) exitWith {true};
 if ((_actor getVariable ["CBE_Cortex_NavalEgressMove",[]]) isNotEqualTo []) exitWith {true};
 if ((_actor getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap) exitWith {true};
+// A finite observer deadline is not acknowledgement of its outstanding native request.
+// Point/indoor FINISH and transfer cleanup use exact own-journal proof independently;
+// ordinary admission cannot claim the actor until that owner actually retires the journal.
+if ((_actor getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []) exitWith {true};
+if ((_actor getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []) exitWith {true};
 private _lease=_actor getVariable ["CBE_Cortex_ActorMove",[]];
 if (_lease isEqualTo []) exitWith {false};
 private _expired=_lease isEqualType [] && {count _lease == 3}

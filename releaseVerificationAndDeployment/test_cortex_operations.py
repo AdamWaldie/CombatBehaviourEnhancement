@@ -6372,6 +6372,21 @@ class CortexOperations(unittest.TestCase):
         for proof in ('_lease isEqualTo []','count _lease == 3','finite _x','finite (_lease select 2)','time >= (_lease select 2)'):
             self.assertIn(proof,predicate)
         self.assertNotIn('disableAI',predicate)
+        # Expiry of an ordinary lease cannot erase pending native-command custody.
+        for journal in ('CBE_PointActor_Order','CBE_IndoorActor_Order'):
+            guard='if ((_actor getVariable ["'+journal+'",[]]) isNotEqualTo []) exitWith {true};'
+            self.assertIn(guard,predicate)
+            self.assertLess(predicate.index(guard),predicate.index('private _lease='))
+        point=source('pointActorOperation')
+        finish=point.split('if (_mode in ["FINISH","TRANSFER"]) exitWith {',1)[1].split('if (_mode == "START")',1)[0]
+        self.assertLess(finish.index('"CANCEL_PENDING"'),finish.index('"CBE_PointActor_Order",nil,true'))
+        self.assertNotIn('CortexActorMoveReserved',finish)
+        indoor=source('indoorActorOperation')
+        finish=indoor.split('if (_mode == "FINISH") exitWith {',1)[1].split('if (_mode == "START")',1)[0]
+        self.assertIn('"CBE_IndoorActor_Order",nil,true',finish)
+        self.assertNotIn('CortexActorMoveReserved',finish)
+        release_available=indoor.split('private _releaseAvailable=',1)[1].split('private _',1)[0]
+        self.assertNotIn('CortexActorMoveReserved',release_available)
 
     def test_combined_ground_preserves_protected_individual_tasks(self):
         guard=source('cortexActorFireTaskAvailable')

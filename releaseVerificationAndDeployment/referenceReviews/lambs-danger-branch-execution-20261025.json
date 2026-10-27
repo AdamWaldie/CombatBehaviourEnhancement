@@ -1423,5 +1423,27 @@
       "independentLog": ".qa/handovers/civilian-arrival-independent.log",
       "sourceNote": "Unsigned dirty development candidate from cb4031f8 plus civilian arrival patch. Engineering notes postdate packaging; unrelated pre-existing documentation dirt remains outside this commit. No physical acceptance."
     }
+  },
+  "actorJournalAdmission20261027": {
+    "status": "IMPLEMENTED_OFFLINE_PHYSICAL_PENDING",
+    "registeredGap": "firingPositionOwnerBoundary20261027: preserve disjoint point/indoor ownership before adding firing-position movement",
+    "trace": "FireControl -> CortexActorMoveReserved / CortexActorFireTaskAvailable; Garrison and Clear admission -> CortexActorMoveReserved. PointActorOperation FINISH retains CANCEL_PENDING when the original native request is unacknowledged, even after the twelve-second marker expires. IndoorActorOperation retains its public order until exact FINISH. Existing discovery REAP/TRANSFER and locality cleanup own journal retirement.",
+    "defect": "Shared predicate checked durable flight/naval/launcher journals but treated expired point/indoor ordinary leases as free. Actor availability could therefore become true while those operations still held exact public command/cleanup proof. An unchanged native WAIT/empty pre-issue state may pass fire admission despite a pending old request.",
+    "change": "Refuse routine movement/fire admission while either point or indoor public order journal is nonempty, including unknown/malformed nonempty state. Only the existing exact owner cleanup clears the journal. No new expiry, cleanup worker or writer.",
+    "baselineToPreserve": "Point/indoor FINISH/TRANSFER/REAP and native return authority do not call the shared reservation predicate; their explicit own-lease proof remains available. CLEAR replacement keeps its existing exact indoor-brain/journal/lease exception before explicit retirement. Empty/expired ordinary leases without a durable journal retain existing semantics.",
+    "cost": "Two actor-local variable observations before ordinary lease expiry. No scan, timer, event, setting or new movement controller; cost remains unmeasured.",
+    "exit": "Existing shared reservation, point/indoor cleanup and CLEAR replacement contracts plus complete offline build and independent package verification pass.",
+    "limits": "Protects admission, not positive native cancellation or all-writer handover. Malformed/still-pending journals remain reserved until their owner resolves them. General firing-position movement remains unimplemented. Audits paused.",
+    "verification": {
+      "tests": 1497,
+      "compiledSQF": 448,
+      "PBOs": 11,
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/actor-journal-c76da57f",
+      "fingerprint": "7de1a8f2b69388b7209d2b0eac00a91a4bfd5da0df8c4554dca1aad279f81389",
+      "buildLog": ".qa/handovers/actor-journal-build-c76da57f.log",
+      "independentLog": ".qa/handovers/actor-journal-independent.log",
+      "sourceNote": "Unsigned dirty development candidate from c76da57f plus journal admission patch. Engineering notes postdate packaging. Physical handback/repeat/locality/performance unverified."
+    }
   }
 }
