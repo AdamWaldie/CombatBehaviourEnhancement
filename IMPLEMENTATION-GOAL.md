@@ -2,19 +2,25 @@
 
 Deliver a standalone Arma 3 AI improvement addon by selecting useful functionality from the source register, merging complementary methods, fixing defects and evolving them into coherent CBE behaviour. Source fidelity serves gameplay quality, tactical plausibility, balance and engine performance; copying every source mechanism is not the objective. LAMBS is a functionality baseline to implement and improve, never a required dependency.
 
-## Source-led execution gate (latest user direction, 27 October 2026)
+## Governing execution rule (27 October 2026)
 
-The objective is working AI improvement, built upward from dependable foundations. Use `reference/sourceReviews/source-review-map.json` and its linked reviews to select work; verify each proposed contribution against the preserved source and current CBE executor. Combine useful intent and complementary methods, rather than accumulating independent mod controllers or implementing a feature solely to improve a percentage.
+Improve CBE from its foundations upward, using the recoverable source register as the work queue and preserved source code as evidence. The full production objective remains active, including authorised physical validation and the 5% median / 10% p95 performance budget. This rule governs implementation; it does not declare parity or acceptance.
 
-Before starting the next implementation batch:
+**Order:** owner-local danger/operation FSM lifecycles → individual sensing, firing, movement, cover, building traversal and driving → buddy pairs and squads → multi-squad coordination and combined arms. Implement useful LAMBS functionality inside standalone CBE, reconcile the entire relevant HBQ source, and build all nine registered Protocol capabilities at their appropriate layers. Other sources contribute selected complementary improvements. Preserve the recorded compatibility-only, optional and follow-on boundaries.
 
-- Identify one concrete registered capability gap or defect, its source evidence and the existing CBE behaviour it must preserve. Review unresolved references as needed to make that decision; do not restart completed source reviews without a specific reason.
-- Check the affected FSM lifecycle and lower-layer dependencies first. Fix or isolate a known material defect before expanding dependent behaviour. Independent registered work may continue; the whole mod need not wait for one blocked feature.
-- Define a finite outcome, the smallest coherent implementation and relevant checks before editing. Include interruption, ownership, cleanup and repeat use wherever the change affects them. No new shared framework or extra controller without a demonstrated requirement.
-- Preserve the prior verified candidate. If the change breaks an established path, repair or revert that change before layering more behaviour onto it. Never hide the failure with forced actions, audit assistance, weakened checks or broader success claims.
-- Close the batch when its stated outcome and relevant checks are satisfied, recording remaining physical or performance uncertainty separately. Do not expand the completion criteria with optional refinements. Continue upward only through usable dependencies.
+Use `reference/sourceReviews/source-review-map.json` and `reference/sourceReviews/SOURCE-REVIEW-MAP.md` to select the capability. Follow their source-specific reviews, the LAMBS queue, HBQ index and Protocol programme listed below. Verify stale claims against preserved sources and current executors. The absent historical `LOCAL_IMPLEMENTATION_LEDGER.md` is not available authority; do not invent missing history or treat this recoverable queue as historically complete.
 
-Priority remains owner-local FSM/lifecycle foundations and useful LAMBS/HBQ functionality, then individual behaviours, buddy pairs, squads and multi-squad/combined arms. Implement all nine registered Protocol capabilities at their appropriate layers. Compatibility-only, optional and follow-on entries retain their recorded scope. Audits are paused; this directive does not authorise launching Arma, installed-game staging, merging or publishing.
+Every implementation batch must satisfy this sequence:
+
+1. **Choose a specific contribution.** Name the register entry, source version/hash, actual source execution path and desired gameplay improvement. Explain what is retained, adapted, combined or rejected and why. Preserve the capability gap when rejecting an unsafe source method.
+2. **Check its foundation.** Trace admission, task identity, all affected command writers and delayed callbacks, interruption, cleanup, repeat use and supported locality/casualty handling. Identify the existing CBE owner and dependencies. Repair or isolate a known material defect before adding dependent behaviour; continue independent required work where safe.
+3. **Bound the change.** State its finite outcome, existing behaviour to preserve and relevant checks before editing. Implement inside the existing owner. Do not add a parallel controller, speculative framework, broader admission, more concurrency or renewed recovery budgets merely to make a source feature appear integrated.
+4. **Protect authority and performance.** Preserve newer mission/Zeus orders, authored skills, group policies and specialist control. Keep searches, update rates, reservations and recovery bounded. Metadata cleanup is not proof that a native command or external writer has stopped. Do not claim successful handover without the required evidence.
+5. **Verify and close.** Use focused existing checks during development and coherent full build/package gates at the checkpoint. Preserve the prior candidate and exact limitations. If a regression appears, isolate and repair or revert the responsible change before dependent expansion; never hide it with forced actions, audit assistance or weaker checks. Record the implementation and remaining gaps in the existing source review/register and handover, then stop that batch when its stated outcome is met.
+
+Report build-out, offline verification, physical behaviour and measured cost separately. Pending physical acceptance does not erase implemented work; passing source checks or packaging does not demonstrate improved AI. Do not derive completion percentages from file counts, reviews or tests. No extra acceptance framework is required.
+
+Audits remain paused. This goal update authorises no Arma launch, installed-game staging, merge or publication. Work only in the verified CBE checkout and intended branch/PR; preserve unrelated changes, Workshop originals, extracted baselines, archives and signing keys. Keep raw reference material and secrets out of commits and packages.
 
 ## Current goal directive (27 October 2026)
 

@@ -1709,5 +1709,35 @@
     "runtimeChangedForCivilianCues": false,
     "physicalAcceptance": false,
     "scoresChanged": false
+  },
+  "civilianDisableReceiptRepair20261027": {
+    "baseline": "d048447b64125b0d3012bdcdb680f169a809d1aa",
+    "sourceReference": "civilianIndoorRefuge20261027; civilianObservationAdoption20261026; LAMBS doHide/civilian refuge intent",
+    "sourceSHA256": "8f776e10fcf61d521d73b162622c484357dc603ff65ddeaab35d20e84cebd9fe",
+    "selectedIntent": "Preserve source-inspired civilian refuge functionality while making CBE owner-local interruption and repeat use reliable. This is a consumer regression repair, not a new source review or body/scream implementation.",
+    "defect": "CivilianReact publishes eight fields and Adopt/Step require eight, but Setup removal still required seven. Disable cancelled the private observer but did not consume the current public retry. Re-enable before original expiry could adopt that unspent retry and later reissue the old movement.",
+    "implementation": "Setup removal consumes retry for the current eight-field receipt using its exact generation/expiry/originalGroup, after cancelling observer/adoption work. Original deadline and once-only budget remain unchanged. No native command is issued by disable. Fresh danger still creates a distinct generation through existing admission.",
+    "executionPath": [
+      "aiTweaksSettingChanged -> CortexInit -> CortexCivilianSetup(remove=true)",
+      "CortexStop -> CortexCivilianSetup(remove=true)",
+      "CortexCivilianReact eight-field publication -> CortexCivilianAdopt retry proof -> CortexCivilianStep once-only retry"
+    ],
+    "verification": {
+      "regressionBefore": ".qa/handovers/civilian-disable-regression-before.log",
+      "focusedAfter": "Existing CortexOperations.test_civilian_reactions_are_event_driven_and_yield_to_wbk_and_zeus PASS",
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "buildLog": ".qa/handovers/civilian-disable-receipt-build-d048447b.log",
+      "candidate": ".qa/candidates/civilian-disable-receipt-d048447b",
+      "fingerprint": "aa4ec87c77d9345de776c88ac1d41ce04827011491d4c321a423ee4194e2591d",
+      "independentLog": ".qa/handovers/civilian-disable-receipt-independent.log",
+      "limits": "Static source-contract and compilation/package evidence, not native Arma execution."
+    },
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false,
+    "limits": "No physical Arma disable/re-enable/locality proof. Native movement can continue after CBE stops observing it; metadata retirement is not cancellation or safe arrival."
   }
 }

@@ -6079,6 +6079,16 @@ class CortexOperations(unittest.TestCase):
         retry=step.split('if (_stalled) then {',1)[1]
         self.assertLess(retry.index('setVariable ["CBE_Cortex_CivilianRetrySpent"'),retry.index('_unit doMove'))
         self.assertNotIn('CBE_Cortex_CivilianRetrySpent",nil',adopt+react)
+        # Shelter binding changed the published reaction schema. Disable must
+        # consume that same generation's retry before any later re-adoption.
+        removal=setup.split('if (_remove) exitWith {',1)[1].split('if (!local _unit',1)[0]
+        self.assertIn('count _receipt == 8',removal)
+        self.assertNotIn('count _receipt == 7',removal)
+        self.assertIn('[_receipt select 2,_receipt select 0,_receipt select 6,true],true',removal)
+        self.assertLess(removal.index('CivilianObserver",nil'),removal.index('CivilianRetrySpent'))
+        self.assertNotIn('doMove',removal)
+        self.assertNotIn('doFollow',removal)
+
 
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runReactions.sqf').read_text()
         self.assertIn('private _civilianPeer=',qa)

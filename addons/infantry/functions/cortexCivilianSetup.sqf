@@ -9,6 +9,8 @@
  * installs reactions/adopts observation. Group Local handles split arrival order.
  * Repeat/JIP: handler IDs are removed before replacement. Actor and group Local edges
  * reconstruct only the original finite observer; shared retry consumption and deadline survive.
+ * Disabling retires the observer and consumes the current eight-field reaction retry;
+ * re-enabling may observe that original leg but cannot reissue a cancelled retry.
  * Native Local receipt checks are finite; there is no periodic civilian/world scan.
  *
  * Arguments:
@@ -48,7 +50,7 @@ if (_remove) exitWith {
     _unit setVariable ["CBE_Cortex_CivilianAdoptQueued",nil];
     // Disabling cancels retry permission; re-enable may observe, never replay old movement.
     private _receipt=_unit getVariable ["CBE_Cortex_CivilianReaction",[]];
-    if (local _unit && {count _receipt == 7}) then {
+    if (local _unit && {count _receipt == 8}) then {
         _unit setVariable ["CBE_Cortex_CivilianRetrySpent",[_receipt select 2,_receipt select 0,_receipt select 6,true],true];
     };
     private _group=group _unit;

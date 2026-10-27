@@ -339,7 +339,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "workshop-intake-3822504009.json",
-      "remaining": "Actual main-cannon Fired capture and one finite screened post-shot move are now integrated through the selected-crew FSM, limited to idle tanks/APCs/main-turret shells. Broader suitable ATGM, mission-route/mixed/custom-platform cases and proven supersession/deleted-platform cleanup remain incomplete. Actual loading/firing, native travel/handback, repeated use, owner migration, combat balance and performance remain unverified; dependencies/licensing remain separate. See armour-post-shot-cover-20261025.json.",
+      "remaining": "Actual main-cannon Fired capture, original control-crew proof and one finite screened post-shot move are integrated through the selected-crew FSM. Selected single-shot native ground missiles now retain bounded actual-projectile observations inside the original episode deadline before post-shot eligibility; disappearance is not hit/kill or general scripted-guidance quiescence. Broader guided/payload/burst/multi-station, mission-route/mixed/custom-platform cases and proven supersession/deleted-platform cleanup remain incomplete. Actual firing, native travel/handback, repeat use, owner migration, balance and performance remain unverified; dependencies/licensing remain separate. See armour-post-shot-cover-20261025.json#nativeMissileObservation20261027.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"

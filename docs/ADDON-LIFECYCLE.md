@@ -2130,6 +2130,10 @@ Outgoing clearance journals validate three finite vectors and one finite positiv
 
 No new controller, retry, deadline, remote endpoint, world scan or physical shortcut is introduced. Scale editing during entry, clearance, egress, garrison, door use and locality transfer still requires physical verification when audits resume. The earlier natural-only scope note describes its checkpoint; this shared correction supersedes that remaining geometry-schema gap.
 
+## Civilian disable and repeat-use ownership
+
+Disabling civilian reactions retires the current private observer and adoption tickets, then marks the original eight-field reaction's generation/expiry/group retry as spent. This applies to exterior and indoor destinations. The previous seven-field disable guard no longer matched the shelter-enabled receipt and could leave its retry available when re-enabled. Re-enabling may observe the same still-pending native leg for its original remaining lifetime, but cannot issue that cancelled retry. A genuinely fresh admitted danger reaction receives its own generation and existing finite retry budget. Native MOVE itself is not cancelled; no STOP, follow command, new timer or world scan is introduced. Physical disable/re-enable and locality behaviour remain unverified while audits are paused.
+
 ## Civilian shelter identity
 
 The finite civilian escape receipt is now [originalExpiry,priority,generation,cause,nativeDestination,authoredRoute,originalGroup,shelterBinding]. shelterBinding is empty for exterior escape or [building,[worldPosition,direction,up,scale]] for an indoor destination. React validates geometry before issue; Adopt validates and copies it without issuing movement; Step checks the same public binding and current geometry before arrival or its existing once-only retry. Movement/rotation/scale/visibility/destruction changes report SHELTER_CHANGED. An unchanged pending native MOVE may retain exact identity for a later fresh danger redirect; it is never reported as physically cancelled. No new migration or JIP replay path is added.
