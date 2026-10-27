@@ -1589,5 +1589,27 @@
       "sourceNote": "Unsigned dirty development fromdea63b8b plus native-profile correction; lifecycle docs included, engineering records postdate package. Prior illumination candidate explicitly superseded."
     },
     "remaining": "Final modded runtime configuration and native getArtilleryAmmo/range classification, actual illumination/ballistics, dusk/dawn cancellation, normal/HC locality, tactical balance and measured overhead remain unverified. Flare impact fields are nonzero: never describe illumination as harmless or damage-free. Audits remain paused."
+  },
+  "naturalIndoorScaleLifecycle20261027": {
+    "baseline": "cf8b35127e9ac461ef15fc903b65ff23739905fe",
+    "sourceSHA256": "8f776e10fcf61d521d73b162622c484357dc603ff65ddeaab35d20e84cebd9fe",
+    "sourceIntent": "LAMBS doHide may choose native building points as nearby shelter; its direct movement and delayed posture writers are not imported. Current CBE natural indoor task and screened refuge helpers are the existing bounded building blocks.",
+    "finding": "Natural indoor task identity, selection bindings, failed-node and confirmed visit history compared only world position/direction/up. A later curator scale edit changes room coordinates while that three-part identity remains equal. This is an inter-callback geometry invalidation defect, not a claimed intra-call scheduler race.",
+    "implementation": "Add getObjectScale to the existing geometry tuple consistently in IndoorActorOperation, IndoorActorNodeSelect, IndoorObservationDispatch and DangerRefugeSelect. Active natural work retires through existing BUILDING_CHANGED cleanup; changed-scale failure/visit records and search bindings no longer match. Historical tuples without scale fail closed. No new worker, deadline, retry, movement or broad scan.",
+    "validation": {
+      "focusedTests": 41,
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/indoor-scale-build-cf8b3512.log",
+      "candidate": ".qa/candidates/natural-indoor-scale-cf8b3512",
+      "fingerprint": "1b29365c1d169a7e3d52a168dde489d70dab5fd1fd1cc80123799b6e4a2a6b00",
+      "independentLog": ".qa/handovers/natural-indoor-scale-independent.log",
+      "newTestCases": 0
+    },
+    "limits": "Offline gates only. Native cancellation/return after scale edits and actual room traversal remain unverified; invalidation is not physical handback proof. Whole-squad CLEAR and walking-garrison geometry identities are separate known follow-up paths. Civilian indoor shelter remains unimplemented: no new civilian route is added by this correction. No whole LAMBS parity or score change. Audits paused.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

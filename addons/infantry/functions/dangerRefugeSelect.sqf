@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Geometry identity includes object scale: rescaling invalidates cached selection and active work.
  * Purpose: Select a screened nearby indoor refuge after exterior danger cover fails.
  * Locality/authority: Read-only on the actor/group owner. Callers retain task, native-order,
  * generation and movement authority and recheck those before issuing any command.
@@ -23,13 +24,13 @@ private _refuge=[];
 {
     private _refugeHouse=_x;
     if (alive _refugeHouse) then {
-        private _refugeFrame=[getPosWorld _refugeHouse,vectorDir _refugeHouse,vectorUp _refugeHouse];
+        private _refugeFrame=[getPosWorld _refugeHouse,vectorDir _refugeHouse,vectorUp _refugeHouse,getObjectScale _refugeHouse];
         private _refugeNode=[_actor,_refugeHouse,_origin,[]] call CBE_fnc_IndoorActorNodeSelect;
         if (count _refugeNode == 3 && {_origin vectorDistance _refugeNode >= 0.6}
             && {_origin vectorDistance _refugeNode <= 18}
             && {[_rayStart,(AGLToASL _refugeNode) vectorAdd [0,0,1],_actor,"COVER"] call CBE_fnc_CortexCoverScreened}
             && {alive _refugeHouse}
-            && {_refugeFrame isEqualTo [getPosWorld _refugeHouse,vectorDir _refugeHouse,vectorUp _refugeHouse]}) then {
+            && {_refugeFrame isEqualTo [getPosWorld _refugeHouse,vectorDir _refugeHouse,vectorUp _refugeHouse,getObjectScale _refugeHouse]}) then {
             _refuge=+_refugeNode;
         };
     };

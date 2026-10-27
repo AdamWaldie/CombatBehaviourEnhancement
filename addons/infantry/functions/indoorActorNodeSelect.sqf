@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Geometry identity includes object scale: rescaling invalidates cached selection and active work.
  * Purpose: Plan one actor's indoor observation destination near a supplied native contact belief.
  * Locality/authority: Read-only world observation on the actor/group owner; only the optional
  * caller-owned search HashMap is updated. No movement or access is granted.
@@ -52,7 +53,7 @@ if (_reserved findIf {!(_x call _positionValid)} >= 0) exitWith {[]};
 private _reservedASL=_reserved apply {AGLToASL _x};
 private _failedNodes=[];
 private _epoch=(group _actor) getVariable ["CBE_AIPass_Epoch",0];
-private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building];
+private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building];
 private _binding=[_actor,_building,_transform,+_belief,+_searchMemory,_defensive,+_defensiveOrigin];
 private _previousBinding=_search getOrDefault ["binding",[]];
 if (_previousBinding isNotEqualTo [] && {_previousBinding isNotEqualTo _binding}) exitWith {[]};

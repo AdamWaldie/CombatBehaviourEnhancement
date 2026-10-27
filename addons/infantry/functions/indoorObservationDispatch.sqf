@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Geometry identity includes object scale: rescaling invalidates cached selection and active work.
  * Native planner data waits and delayed search retain ownership; no deadline is renewed.
  * Candidate preflight shares one ephemeral group ownership snapshot across this bounded sample;
  * actor START/STEP/door authority still re-read current ownership without that snapshot.
@@ -88,7 +89,7 @@ private _admitted=0;
     if (count _nodes > 0 && {count _nodes <= 512}) then {
         private _ranked=[];
         private _history=_group getVariable ["CBE_Danger_BuildingVisits",[]];
-        private _visited=[];private _transform=[getPosWorld _house,vectorDir _house,vectorUp _house];
+        private _visited=[];private _transform=[getPosWorld _house,vectorDir _house,vectorUp _house,getObjectScale _house];
         if (_history isEqualType [] && {count _history == 2} && {(_history select 0) isEqualTo _clue}
             && {(_history select 1) isEqualType []}) then {
             {if (_x isEqualType [] && {count _x == 3} && {(_x select 0) isEqualTo _house}

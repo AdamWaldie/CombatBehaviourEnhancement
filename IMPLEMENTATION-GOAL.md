@@ -2,6 +2,20 @@
 
 Deliver a standalone Arma 3 AI improvement addon by selecting useful functionality from the source register, merging complementary methods, fixing defects and evolving them into coherent CBE behaviour. Source fidelity serves gameplay quality, tactical plausibility, balance and engine performance; copying every source mechanism is not the objective. LAMBS is a functionality baseline to implement and improve, never a required dependency.
 
+## Source-led execution gate (latest user direction, 27 October 2026)
+
+The objective is working AI improvement, built upward from dependable foundations. Use `reference/sourceReviews/source-review-map.json` and its linked reviews to select work; verify each proposed contribution against the preserved source and current CBE executor. Combine useful intent and complementary methods, rather than accumulating independent mod controllers or implementing a feature solely to improve a percentage.
+
+Before starting the next implementation batch:
+
+- Identify one concrete registered capability gap or defect, its source evidence and the existing CBE behaviour it must preserve. Review unresolved references as needed to make that decision; do not restart completed source reviews without a specific reason.
+- Check the affected FSM lifecycle and lower-layer dependencies first. Fix or isolate a known material defect before expanding dependent behaviour. Independent registered work may continue; the whole mod need not wait for one blocked feature.
+- Define a finite outcome, the smallest coherent implementation and relevant checks before editing. Include interruption, ownership, cleanup and repeat use wherever the change affects them. No new shared framework or extra controller without a demonstrated requirement.
+- Preserve the prior verified candidate. If the change breaks an established path, repair or revert that change before layering more behaviour onto it. Never hide the failure with forced actions, audit assistance, weakened checks or broader success claims.
+- Close the batch when its stated outcome and relevant checks are satisfied, recording remaining physical or performance uncertainty separately. Do not expand the completion criteria with optional refinements. Continue upward only through usable dependencies.
+
+Priority remains owner-local FSM/lifecycle foundations and useful LAMBS/HBQ functionality, then individual behaviours, buddy pairs, squads and multi-squad/combined arms. Implement all nine registered Protocol capabilities at their appropriate layers. Compatibility-only, optional and follow-on entries retain their recorded scope. Audits are paused; this directive does not authorise launching Arma, installed-game staging, merging or publishing.
+
 ## Current goal directive (27 October 2026)
 
 Build standalone CBE into a reliable Arma 3 AI improvement addon by selecting, combining and improving useful AI functionality from the source register. The governing queue is `reference/sourceReviews/source-review-map.json`, with the linked LAMBS, HBQ and Protocol reviews providing execution evidence. Check those records against preserved source and current CBE code before choosing a change. The historical `LOCAL_IMPLEMENTATION_LEDGER.md` is absent; do not imply it is available or that the recoverable register is historically complete.

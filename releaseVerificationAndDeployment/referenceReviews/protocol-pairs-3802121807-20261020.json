@@ -34,8 +34,8 @@
     {
       "intent": "A moving buddy is supported by the other, then roles alternate.",
       "source": "Consecutive roster pairs toggle _leapFrog on the first actor; one doMove and one doSuppressiveFire per iteration.",
-      "cbe": "OperationStart/CombatPairs preserves pair metadata; CortexAdvanceStart/CortexAssaultStart and CortexFlankStep own finite group-element bounding and fire roles.",
-      "status": "PARTIAL: group-element bounding is not proof of independent pair-granular alternation. Outdoor team selection does not currently guarantee every persistent buddy stays in the same element."
+      "cbe": "CombatPairs retains eligible buddy identity; CombatPairElements allocates partners to opposite move/cover roles. CortexAdvanceStart commits synchronised buddy bounds through OperationStart, and CortexFlankStep owns physical arrival, finite recovery and role alternation.",
+      "status": "IMPLEMENTED_SYNCHRONISED_OPPOSITE_ROLES_PHYSICAL_ACCEPTANCE_PENDING"
     },
     {
       "intent": "Keep a partner when casualties occur.",
@@ -287,5 +287,26 @@
       "addons/infantry/functions/cortexAdvanceStart.sqf": "664c1abcd9bf22e976b102afbecf4f830a194fb767bb2dabc0ae90d1f7c5095d",
       "addons/infantry/functions/cortexFlankStep.sqf": "4bbcab2cf89ee2f3e86def506ae59a44fb91bc1fa39b3f96e4c148ee8dd5fb8d"
     }
+  },
+  "participantAvailabilityReconciliation20261027": {
+    "baseline": "cf8b35127e9ac461ef15fc903b65ff23739905fe",
+    "reason": "Top-level first contribution still described missing opposite pair-role integration, contradicting the later synchronisedBuddyBounds and intentScopeReconciliation20261023 records. Correct the current summary without counting a new implementation or claiming physical success.",
+    "sourceVerification": "Installed original PBO and preserved complete readable fn_pairs.sqf match the recorded SHA-256 values. Complete readable upstream function inspected: living consecutive roster pairs and immediate flag alternation; no arrival-driven timing or casualty wait state.",
+    "currentTrace": "Current FlankStep _actorTaskFree excludes incapacitated/dead/captive, hidden, simulation-disabled, mounted, healing, fleeing, external-controlled and reserved actors. _fitSquad filters active roles; refill and donor selection preserve useful armed cover. Roster publication validates native command observations and task identity. Active-bound replacement captures actor-specific progress/retries before restart. Insufficient roles terminate or use the existing finite recovery; physical arrival witnesses and PAUSE own alternation.",
+    "decision": "No missing participant filter or indefinite casualty-wait mechanism established by the inspected paths. Do not add a parallel casualty worker, role controller, new timeout or weaker arrival gate on this hypothesis. Correct stale source-summary status only; retain required casualty/cover/arrival/locality physical validation.",
+    "inspectionScope": "Complete upstream readable function; complete CombatPairs/CombatPairsPublish/CombatPairElements/CombatEffective helpers; selected AdvanceStart and FlankStep admission, roster/refill/publication and arrival/PAUSE paths. Not a new full-body review of FlankStep or proof that every interruption path is correct.",
+    "currentSourceHashes": {
+      "addons/infantry/functions/combatPairs.sqf": "e3ccb3a449e880944f847758f785fb2cebac726076b79f595a5a05d52c26e617",
+      "addons/infantry/functions/combatPairsPublish.sqf": "7308c4a9f92350d75890ef7fbd4717a34c3a69352b64382e43c4874ae6648b78",
+      "addons/infantry/functions/combatPairElements.sqf": "e4665ca374783a4f74747761735043f780d3b600384f24529a50609063b21b79",
+      "addons/infantry/functions/cortexAdvanceStart.sqf": "664c1abcd9bf22e976b102afbecf4f830a194fb767bb2dabc0ae90d1f7c5095d",
+      "addons/infantry/functions/cortexFlankStep.sqf": "bff63731b7694d8e933277764d7390f0243b596eb9e4b3556e5b72a561469975",
+      "addons/infantry/functions/cortexCombatEffective.sqf": "2914f40449f6e189410fbba8ca908585904bfe6d6188adf7964065d358c69ced"
+    },
+    "runtimeChanged": false,
+    "scoresChanged": false,
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "validation": "Run existing pair lifecycle contract and reference-boundary checks plus documentation checker; no new test or unchanged full build required. Audits remain paused."
   }
 }
