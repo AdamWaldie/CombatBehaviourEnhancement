@@ -5,6 +5,8 @@
  * event with exact station, projectile parents, task generation and native route; never fires,
  * moves, reveals, changes ammunition or grants movement authority.
  * Repeat/JIP: One private20-second episode/platform, one Fired listener and one expiry callback.
+ * Original driver/commander seats and non-gunner native command/destination/formation receipts
+ * must still match at shot observation and TAKE. Missing crew evidence discards the episode.
  * Repeated ARM never renews it. First matching shot removes the listener; TAKE consumes proof
  * once. Ownership/task changes discard proof. No JIP replay or new owner adoption.
  * Only ordinary main-turret shotShell fire on tanks/APCs qualifies; missiles, AA and artillery
@@ -33,9 +35,30 @@ _result=call {
         };
     };
     private _group=grpNull;private _gunner=objNull;private _target=objNull;
+    private _controlsCurrent={
+        private _crew=_state getOrDefault ["crew",[]];
+        private _native=_state getOrDefault ["controlNative",false];
+        _crew isEqualType [] && {count _crew == 2}
+            && {[driver _vehicle,effectiveCommander _vehicle] isEqualTo _crew}
+            && {_crew findIf {isNull _x || {!local _x} || {group _x != _group}
+                || {isPlayer _x} || {!isNull remoteControlled _x}
+                || {!simulationEnabled _x} || {isObjectHidden _x}
+                || {!([_x] call CBE_fnc_CortexCombatEffective)}} < 0}
+            && {_native isEqualType []}
+            && {count _native == count ((_crew arrayIntersect _crew)-[_gunner])}
+            && {_native findIf {
+                if (!(_x isEqualType []) || {count _x != 4}) exitWith {true};
+                _x params ["_operator","_command","_destination","_anchor"];
+                !(_operator in _crew) || {_operator == _gunner}
+                    || {currentCommand _operator != _command}
+                    || {(expectedDestination _operator) isNotEqualTo _destination}
+                    || {formLeader _operator != _anchor}
+            } < 0}
+            && {(_native apply {_x select 0}) isEqualTo ((_crew arrayIntersect _crew)-[_gunner])}
+    };
     private _valid={
         local _vehicle && {alive _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
-            && {local _group} && {!isNull _group}
+            && {local _group} && {!isNull _group} && {call _controlsCurrent}
             && {!isNull _gunner} && {local _gunner} && {gunner _vehicle == _gunner}
             && {group _gunner == _group} && {!isPlayer _gunner} && {isNull remoteControlled _gunner}
             && {[_gunner] call CBE_fnc_CortexCombatEffective}
@@ -82,8 +105,14 @@ _result=call {
             || {toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas"}) exitWith {false};
         _gunner=gunner _vehicle;_group=group _gunner;_target=_payload select 0;
         if ([driver _vehicle,effectiveCommander _vehicle] findIf {
-            isNull _x || {!(currentCommand _x in ["","WAIT"])}
+            isNull _x || {!local _x} || {!(currentCommand _x in ["","WAIT"])}
         } >= 0) exitWith {false};
+        private _crew=[driver _vehicle,effectiveCommander _vehicle];
+        // The selected gunner will receive the admitted fire command. Other operators
+        // must retain their exact idle native work; firing grants no route/crew handover.
+        private _controlNative=((_crew arrayIntersect _crew)-[_gunner]) apply {
+            [_x,currentCommand _x,(expectedDestination _x) apply {if (_x isEqualType []) then {+_x} else {_x}},formLeader _x]
+        };
         private _loaded=_payload select 2;
         private _magazine=_loaded getOrDefault ["loadedMagazine",""];
         private _ammo=getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
@@ -93,6 +122,7 @@ _result=call {
         private _serial=(_vehicle getVariable ["CBE_ArmourShot_Serial",0])+1;
         private _token=format ["ARMOUR_SHOT:%1:%2",clientOwner,_serial];
         _state=createHashMapFromArray [["schema",1],["token",_token],["group",_group],["gunner",_gunner],
+            ["crew",_crew],["controlNative",_controlNative],
             ["target",_target],["position",+(_payload select 1)],["until",serverTime+20],
             ["owner",clientOwner],["epoch",_group getVariable ["CBE_AIPass_Epoch",-1]],
             ["operationGeneration",_group getVariable ["CBE_OperationGeneration",0]],

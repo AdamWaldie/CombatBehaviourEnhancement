@@ -8606,6 +8606,29 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('doFire',shot.split('params [[',1)[1])
         self.assertIn('((_state get "route") param [1,-2,[0]]) == -1',shot)
         self.assertIn('waypointType [_group,_index] in ["HOLD","SENTRY"]',shot)
+        for proof in ('private _controlsCurrent=','[driver _vehicle,effectiveCommander _vehicle] isEqualTo _crew',
+                      'count _native == count ((_crew arrayIntersect _crew)-[_gunner])',
+                      'currentCommand _operator != _command',
+                      '(expectedDestination _operator) isNotEqualTo _destination',
+                      'formLeader _operator != _anchor','call _controlsCurrent',
+                      '["crew",_crew],["controlNative",_controlNative]',
+                      'private _controlNative=((_crew arrayIntersect _crew)-[_gunner]) apply'):
+            self.assertIn(proof,shot)
+        self.assertIn('(_native apply {_x select 0}) isEqualTo ((_crew arrayIntersect _crew)-[_gunner])',shot)
+        self.assertIn('isNull _x || {!local _x} || {!(currentCommand _x in ["","WAIT"])}',shot)
+        self.assertLess(shot.index('if ((_state get "owner") != clientOwner || {!(call _valid)})'),
+                        shot.index('if (_mode == "TAKE") exitWith'))
+        # Current idle state alone cannot transfer an old shot episode to replacement crew,
+        # a different native destination or another formation anchor.
+        def controls(original_crew,current_crew,original_receipt,current_receipt):
+            return original_crew==current_crew and original_receipt==current_receipt
+        crew=('driver','commander')
+        receipt=('WAIT',(100,200,0),'leader')
+        self.assertTrue(controls(crew,crew,receipt,receipt))
+        self.assertFalse(controls(crew,('relief-driver','commander'),receipt,receipt))
+        self.assertFalse(controls(crew,crew,receipt,('MOVE',(100,200,0),'leader')))
+        self.assertFalse(controls(crew,crew,receipt,('WAIT',(101,200,0),'leader')))
+        self.assertFalse(controls(crew,crew,receipt,('WAIT',(100,200,0),'new-leader')))
         self.assertIn('"shotshell"',shot)
         self.assertIn('call CBE_fnc_VehicleArmourShot',vehicles)
         self.assertIn('_postShot select 2',standoff)

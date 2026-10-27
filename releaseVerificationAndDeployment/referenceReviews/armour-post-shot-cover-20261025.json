@@ -40,5 +40,27 @@
       "fingerprint": "37855079ba656068a64c0c62dc2a1b534e5f2c63415d52b4a6183aa795d39f76",
       "physicalAcceptance": false
     }
+  },
+  "operatingCrewIdentity20261027": {
+    "baseline": "01557774a6194e1e759aa9da93a3b3cde56a501b",
+    "sourceVerification": "Installed Protocol Armoured Force PBO443b80ca and preserved readable fn_armored_force.sqf f0b14982 hashes reverified. Selected post-fire request/immediate move branch inspected, not a renewed complete-source review. Source ATGM requests do not prove a shot or guidance completion.",
+    "finding": "VehicleArmourShot retained gunner/group/epoch/route and real Fired identity, but not original driver/effective-commander seats or their idle native destinations/formation. Replacement idle crew or a changed individual destination could therefore inherit an old optional shot episode without a new actual shot.",
+    "implementation": "ARM now requires local control actors before sampling and retains original driver/effective commander plus exact command/independent expectedDestination arrays/formLeader for each distinct non-gunner control actor (<=2). At SHOT and TAKE, existing validity also requires the same local healthy nonplayer crew and complete ordered control receipts. Missing/replaced/mismatched proof discards the episode via existing listener cleanup. The gunner retains admitted-fire/target proof because native firing intentionally changes its state. No new native command, timer, deadline, weapon class, ammo change or controller.",
+    "missileBoundary": "Missile post-shot movement remains unimplemented. First projectile disappearance alone cannot safely establish completion for guided/submunition/burst/multiple-shot work. Do not widen shotShell eligibility by a simulation flag or add detached projectile waits without that execution contract. Existing20s expiry and actual-shot-only consumption remain.",
+    "validation": {
+      "focusedExistingCase": 1,
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "buildLog": ".qa/handovers/armour-shot-control-build-01557774.log",
+      "candidate": ".qa/candidates/armour-shot-control-01557774",
+      "fingerprint": "6eb0ea7eebd6a56e5930e4cda373fc76e67b9c7dc98b12f9d61a12e781644f8a",
+      "independentLog": ".qa/handovers/armour-shot-control-independent.log"
+    },
+    "limits": "Offline source/compile/package evidence only. Native crew changes, engine destination transitions, mixed groups, interruption/return, normal/HC repetition and cost remain physically unverified. Same-value intervening native edits remain indistinguishable. Main-turret cannon scope and broader Protocol/LAMBS/combined-arms gaps remain; no whole-mod parity or percentage increase.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }
