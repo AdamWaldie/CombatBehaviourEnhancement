@@ -5966,6 +5966,20 @@ class CortexOperations(unittest.TestCase):
         step=source('cortexCivilianStep')
         self.assertIn('CBE_Cortex_CivilianGeneration',step)
         self.assertIn('CBE_fnc_CortexExternalTakeover',step)
+        # Arrival and native-goal matching have different meanings. Keep a pending
+        # escape recoverable when the actor is still short of the refuge point.
+        arrival_radius=float(re.search(r'private _arrivalRadius=([0-9.]+);',step).group(1))
+        self.assertIn('_unit distance _destination < _arrivalRadius',step)
+        self.assertIn('_unit distance _destination >= _arrivalRadius',step)
+        for displacement,arrived in (((0,0,0),True),((1,1,0),True),((2,0,0),False),
+                                     ((4,0,0),False),((0,0,4),False),((8,0,0),False)):
+            distance=sum(value*value for value in displacement)**0.5
+            self.assertEqual(distance < arrival_radius,arrived)
+            self.assertEqual(distance >= arrival_radius,not arrived)
+        self.assertIn('_currentGoal distance _destination <= 6',step)
+        self.assertIn('_goal distance _destination <= 6',step)
+        self.assertLess(step.index('if (!_taskOwned) exitWith'),step.index('["ARRIVED"] call _finish'))
+        self.assertNotIn('doStop',step)
         self.assertEqual(step.count('_unit doMove _destination'),1)
         self.assertNotIn('while {',step)
         for proof in ('CortexActorMoveReserved','ace_medical_ai_healQueue','simulationEnabled _unit',

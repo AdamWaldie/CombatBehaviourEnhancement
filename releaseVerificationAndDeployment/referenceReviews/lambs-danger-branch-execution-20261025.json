@@ -1397,5 +1397,31 @@
     "finding": "FireControl has bounded failed-lane rotation but issues no movement. DangerCoverStep selects incoming-threat screening and is tied to hazard generations, so admitting a firing-position request into it would not prove an outgoing lane or original native handback. TacticalReposition moves the whole group, not one blocked rifleman.",
     "next": "Define persistent occlusion and prospective usable outgoing-lane evidence together with one finite actor command/retirement path before adding fire-to-movement delegation. Existing CQB/cover/point/launcher owners must remain disjoint; do not import LAMBS unleased recurring doMove/forceSpeed fallback.",
     "remaining": "General per-actor firing-position improvement remains unimplemented and physically unverified. The independent garrison failed-post change does not close this capability."
+  },
+  "civilianArrivalLifecycle20261027": {
+    "status": "IMPLEMENTED_OFFLINE_PHYSICAL_PENDING",
+    "registeredGap": "civilianExteriorRefuge20261026.remaining: six-metre observer arrival can retire before reaching the selected screened point",
+    "source": {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doHide.sqf",
+      "sha256": "8f776e10fcf61d521d73b162622c484357dc603ff65ddeaab35d20e84cebd9fe"
+    },
+    "sourceIntent": "Move to nearby refuge; upstream unitReady/short-timeout doStop is not physical arrival proof and is not copied.",
+    "owner": "Existing CortexCivilianReact -> CortexCivilianAdopt -> CortexCivilianStep finite owner-local observer; no new controller.",
+    "change": "Use a shared two-metre 3D arrival radius for ARRIVED and exact-MOVE retention on deadline/stall/disable. Keep the distinct six-metre native destination matching tolerance unchanged. A civilian two to six metres short no longer receives ARRIVED or loses the exact pending MOVE solely through the old arrival envelope.",
+    "baselineToPreserve": "Original generation/group/route/native task checks, shared once-only retry consumption, original deadline and observation-only locality adoption; no STOP, speed/posture/skill mutation or retry renewal.",
+    "cost": "Constant arrival comparison change; no new engine query, worker, scan, setting or repeated route issue.",
+    "exit": "Existing civilian lifecycle contract passes; coherent full offline build and independent package verification. Physical approach/repeated danger/locality/native final acceptance tolerance remain pending while audits are paused.",
+    "limits": "Two-metre proximity is not proof of shelter screening at the actual actor, blast safety or native command cancellation. If the engine finishes farther away, report native task change or bounded failure rather than force movement or fabricate arrival. Indoor shelter and the other recorded civilian gaps remain.",
+    "verification": {
+      "tests": 1497,
+      "compiledSQF": 448,
+      "PBOs": 11,
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/civilian-arrival-cb4031f8",
+      "fingerprint": "a6078b4f73650faa1ce6b2761b95614986b6c77b9c06fd8d804c927085473711",
+      "buildLog": ".qa/handovers/civilian-arrival-build-cb4031f8.log",
+      "independentLog": ".qa/handovers/civilian-arrival-independent.log",
+      "sourceNote": "Unsigned dirty development candidate from cb4031f8 plus civilian arrival patch. Engineering notes postdate packaging; unrelated pre-existing documentation dirt remains outside this commit. No physical acceptance."
+    }
   }
 }

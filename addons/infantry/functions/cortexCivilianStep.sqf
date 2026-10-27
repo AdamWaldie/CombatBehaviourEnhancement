@@ -2,7 +2,9 @@
  * Author: WaldoTheWarfighter
  * Advances one finite civilian danger escape through CBE's shared owner-local scheduler.
  * The step observes physical progress, permits one recovery reissue after a genuine stall and then
- * retires. New native tasks, routes or destinations end movement without a retry.
+ * retires. Arrival needs less than two metres of 3D point proximity; the separate six-metre
+ * native-goal matching tolerance does not establish arrival or material-cover protection.
+ * New native tasks, routes or destinations end observation without a retry.
  * No temporary behaviour, group pace or posture is applied, so retirement restores no settings.
  * A superseding task retires only this generation's metadata; no restoration or movement replay.
  * Observation deadline or exhausted retry retains an exact ongoing escape MOVE receipt for
@@ -33,6 +35,7 @@ private _unit=_state getOrDefault ["unit",objNull];
 private _group=_state getOrDefault ["group",grpNull];
 private _generation=_state getOrDefault ["generation",-1];
 private _destination=_state getOrDefault ["destination",[]];
+private _arrivalRadius=2;
 private _observer=_unit getVariable ["CBE_Cortex_CivilianObserver",[]];
 if ((_state getOrDefault ["observerOwner",-1]) != clientOwner || {count _observer != 5}
     || {(_observer select 3) != (_state getOrDefault ["observerSerial",-1])}
@@ -65,7 +68,7 @@ private _finish={
             && {count _currentGoal == 3} && {count _destination == 3}
             && {_currentGoal findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
             && {_destination findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
-            && {_currentGoal distance _destination <= 6} && {_unit distance _destination >= 6};
+            && {_currentGoal distance _destination <= 6} && {_unit distance _destination >= _arrivalRadius};
         if (!_retain) then {
             _unit setVariable ["CBE_Cortex_CivilianReaction",[],true];
             _unit setVariable ["CBE_Cortex_CivilianReactionUntil",nil,true];
@@ -84,7 +87,7 @@ if (isNull _unit || {isNull _group} || {!local _unit} || {!local _group} || {!([
 // with a different goal belongs to the mission even when its command label is unchanged.
 private _nativeOrder=_state getOrDefault ["nativeOrder",[]];
 private _goal=(expectedDestination _unit) param [0,[],[[]]];
-private _atDestination=count _destination == 3 && {_unit distance _destination < 6};
+private _atDestination=count _destination == 3 && {_unit distance _destination < _arrivalRadius};
 private _taskOwned=group _unit == _group && {simulationEnabled _unit} && {!isObjectHidden _unit}
     && {isNull objectParent _unit} && {_unit checkAIFeature "MOVE"} && {_unit checkAIFeature "PATH"}
     && {!([_unit] call CBE_fnc_CortexActorMoveReserved)}

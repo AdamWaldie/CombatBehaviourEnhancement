@@ -1,3 +1,7 @@
+## Governing goal and source queue
+
+Read `IMPLEMENTATION-GOAL.md` before selecting implementation work. Its current directive governs the foundations-up sequence, finite batch criteria and regression safeguards. Use `reference/sourceReviews/source-review-map.json` and its linked LAMBS, HBQ and Protocol reviews as the recoverable source queue. Historical references below to `LOCAL_IMPLEMENTATION_LEDGER.md` do not establish availability: that file is currently absent. Resolve stale instructions against the current directive and actual source evidence. Repair or isolate material foundation defects before dependent expansion; preserve existing owners and working behaviour. Audits remain paused. Keep build-out, offline checks, physical acceptance and measured performance distinct.
+
 Governing implementation direction: read IMPLEMENTATION-GOAL.md, especially the Current goal directive and source-register batch requirements, before choosing work. Foundations first; preserve working behaviour and protected sources. Audits remain paused.
 
 Current implementation direction: see `IMPLEMENTATION-GOAL.md`; use the source register and build upward from FSM foundations. Audits remain paused.

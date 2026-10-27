@@ -1183,5 +1183,46 @@
       "drivingRecoveryRelease.sqf": "20842fb4b0d480d2cf744298fd48445a05c820ae53b607a8ef1a1edbff0cd7ac",
       "drivingQueueAutoStep.sqf": "d0c5fac9f465b5af7827f033eaf05692450941e79e969736afed7b2e01c8876b"
     }
+  },
+  "queueNativeWriterTrace20261027": {
+    "base": "cb4031f8b2668ad990e1f21814b2ddc816139392",
+    "scope": "Complete current readable DrivingQueueReverseCurrent and DrivingQueueReverseCommit bodies. Selected DrivingRecoveryRelease STOP/return region, DrivingQueueContext/CrossingVehicle/Proposal crew-role gates, NativeRecoveryAdopt queue refusal and complete TokenClosed closure journal. Caller locations enumerated; this is not a renewed full-body review of all callers, broker, children or HBQ.",
+    "protectedSource": "Preserved HBQ fn_driveAssist SHA-256 2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931 verified. No raw source, installed Workshop/game file or runtime source changed.",
+    "nativeCommandReference": {
+      "url": "https://community.bistudio.com/wiki/sendSimpleCommand",
+      "finding": "Official warning states that driver-as-effectiveCommander can refuse driving commands; keep separate original operating actors for native BACK. Do not add crew, force commander assignment or claim rear doMove proves reverse."
+    },
+    "execution": [
+      "ReverseCurrent is an observation gate. It checks original2..4 participant identity/roles/dependencies, bounded rear requirements, token/expiry and phase. Actual-owner rows require private ownerRoute/ownerOrders; shared remote data and bounded pending STOP are not native destination proof.",
+      "Crossing substitutes only the exact QUEUE bypass journal with frozen binding/path/deadline and original current crew route. At most23 segments bound observed root movement; other held participants remain at their recorded poses. This is not fresh swept-hull clearance; the active executor retains that requirement.",
+      "ReverseCommit stays inside the existing ordinary driving cap-writer transaction. ADMIT reads current owner consent. ISSUE obtains fresh rear/parent room and creates one exact SIMPLE_BACK journal before/with one BACK request. Duplicate ISSUE returns only its matching journal, not a second command.",
+      "STOP needs the exact original consent/brain/route/crew/journal, original expiry, zero owned cap and unchanged native command observations. It issues STOP once. Native STOP acknowledgement plus measured linear/angular rest must persist one second before HELD; HELD reporting is bounded to two reports. HELD is not queue clearance or returned route travel.",
+      "RecoveryRelease distinguishes STOP request, native STOP acknowledgement and physical rest before forward handback. Queue-bound native return keeps QUEUE_RETURN and the existing original reply/hard deadline. Ordinary final-budget cleanup does not erase this dedicated return.",
+      "The separate-driver/operator restriction is an engine capability boundary, not an arbitrary headcount gate. Existing role selection can let a driver-only root cross while a genuinely reverse-capable peer yields; two driver-only vehicles have no supported SIMPLE_BACK queue solution. Native destination driving and other finite bypass work remain separate."
+    ],
+    "newMigrationConstraint": "DrivingQueueTokenClosed is a fail-closed admission predicate, not positive broker-retirement proof: true may mean remembered closure, malformed/unknown data, full live journal or unauthorised caller. Its entries are machine-private. A new owner cannot use true or missing consent as acknowledgement that the original broker episode and all writers have retired.",
+    "implementationDisposition": "No demonstrated missing native-command guard in these two inspected helpers warrants runtime mutation. Retain the existing owner/cap/crew/route/phase boundaries. Cooperative queue migration remains unimplemented rather than being redirected through ordinary NativeRecoveryAdopt, which explicitly refuses queueBinding.",
+    "requiredMigrationBoundary": [
+      "Bind the original participant/context, token/expiry, private ownerRoute/ownerOrders and original issuer epoch/generation to explicit current-owner retirement custody.",
+      "Obtain explicit authenticated broker episode retirement and relevant participant writer cessation; a fail-closed token query, absent state or expiry alone is insufficient.",
+      "Observe each original native BACK/STOP/return and existing cap/child cleanup under unchanged original budgets. Do not replay reverse/crossing, mint fresh clocks, adopt new crew or silently change route authority."
+    ],
+    "validation": {
+      "existingQueueContracts": 16,
+      "result": "PASS",
+      "log": ".qa/handovers/hbq-queue-native-contract-review.log",
+      "newTests": 0,
+      "runtimeChanged": false,
+      "fullBuildRepeated": false,
+      "candidateUnchanged": ".qa/candidates/garrison-failed-post-final-13ba71e1"
+    },
+    "remaining": "All-writer cooperative queue migration, broker/child retirement and physical reverse/crossing/return/mixed-convoy quality remain open. No whole-HBQ parity, provider quiescence, percentage or performance credit. Audits PAUSED.",
+    "hashes": {
+      "addons/vehicles/functions/drivingQueueReverseCurrent.sqf": "e707be886d76639c4543d2dd9661889932989deed4f5702af2b5529cf6015c94",
+      "addons/vehicles/functions/drivingQueueReverseCommit.sqf": "ec173345eea7eb7ae21e8315eafcb1d613dd70286d40c17bf95de22c5809889b",
+      "addons/vehicles/functions/drivingQueueTokenClosed.sqf": "8054f5f298e7259e028276d33fe0d88307ac1cc5ba6e8365392d660080c87281",
+      "addons/vehicles/functions/drivingNativeRecoveryAdopt.sqf": "e1dbff29d77b2e3f9205b7dcde49a0999ebd234ba208cdadccb2a031f6e80901",
+      "addons/vehicles/functions/drivingRecoveryRelease.sqf": "20842fb4b0d480d2cf744298fd48445a05c820ae53b607a8ef1a1edbff0cd7ac"
+    }
   }
 }
