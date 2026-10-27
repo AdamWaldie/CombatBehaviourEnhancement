@@ -13,12 +13,31 @@ class SmokePayloadTests(unittest.TestCase):
         self.assertNotIn('select {_x isEqualType ""}',classify)
         self.assertIn('_payloadChecks=0;',s)
         for proof in ('_kind == "ILLUM"','_simulation == "shotilluminating"',
-                      '!finite _explosive','_explosive != 0'):
+                      'finite _explosive','_explosive == 0'):
             self.assertIn(proof,classify)
         self.assertIn('if (!(_mode in ["HE","SMOKE","ILLUM"])) exitWith {""}',s)
         self.assertIn('case "ILLUM": {_isIllum}',s)
         self.assertIn('default {!_isSmoke && {!_special}',s)
         self.assertIn('count _profile != 4',s)
+        # Resolved installed FlareCore and both 82mm flare classes share these fields.
+        # Zero-indirect rejection would exclude ordinary vanilla illumination.
+        native_flare={'hit':5,'indirect':2,'range':0.2,'explosive':0}
+        import re
+        limits={key:float(re.search(pattern,classify).group(1)) for key,pattern in {
+            'hit':r'_hit <= ([0-9.]+)', 'indirect':r'_indirect <= ([0-9.]+)',
+            'range':r'_indirectRange <= ([0-9.]+)'}.items()}
+        for fields,accepted in ((native_flare,True),
+                                (native_flare|{'hit':6},False),
+                                (native_flare|{'indirect':3},False),
+                                (native_flare|{'range':0.3},False),
+                                (native_flare|{'explosive':1},False)):
+            self.assertEqual(all(0 <= fields[k] <= limits[k] for k in limits)
+                             and fields['explosive']==0,accepted)
+        self.assertIn('_kind == "SMOKE" && {_indirect != 0}',classify)
+        self.assertIn('getNumber (_ammoConfig >> "hit") == 0} && {_indirect == 0}',classify)
+        self.assertLess(classify.index('_payloads findIf {!([_x,_depth+1,_kind]'),
+                        classify.index('private _explosive='))
+
         self.assertIn('_exactMagazine == "" || {_magazine == _exactMagazine}',s)
 
     def test_smoke_gate_reaches_admission_continuation_and_owner_release(self):

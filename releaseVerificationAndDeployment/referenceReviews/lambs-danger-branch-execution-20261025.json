@@ -1479,7 +1479,7 @@
     }
   },
   "reactiveMortarIllumination20261027": {
-    "status": "IMPLEMENTED_OFFLINE_PHYSICAL_PENDING",
+    "status": "SUPERSEDED_NATIVE_FLARE_ZERO_INDIRECT_REJECTION",
     "registeredGap": "mountedReadinessAndReactiveSmoke20261026.remaining: illumination classification/selection",
     "source": "LAMBS brainVehicle static mortar branch. Retain nighttime native illumination intent; replace name heuristics, random ammo choice and unowned delayed repeat with CBE existing danger-fire owner.",
     "baselineToPreserve": "Smoke priority under suppression, original danger fix/generation/expiry,120s danger cooldown, one mission/shot sequence, ammunition/range/ETA and friendly safety, explicit owner/crew/ROE/token/shot confirmation. Rejected illumination must never become HE.",
@@ -1500,6 +1500,94 @@
       "sourceNote": "Unsigned dirty development from8f68d652 plus this runtime patch. Lifecycle docs included; engineering records postdate package. Not a clean release or physical acceptance."
     },
     "limits": "No physical flare delivery, effective lighting, native payload descent, modded ammunition coverage, dawn cancellation, HC locality, tactical balance or measured performance proof. Existing conservative normal artillery friendly radius may reject otherwise useful illumination. Source nickname/name heuristics and random/delayed-repeat firing were not copied. Broader contextual smoke planning remains open; no whole LAMBS parity uplift.",
-    "engineReference": "https://community.bistudio.com/wiki/Arma_3_Lights"
+    "engineReference": "https://community.bistudio.com/wiki/Arma_3_Lights",
+    "followup": "Native source inheritance disproved the zero-indirect assumption: FlareCore and both standard82mm flares have hit5/indirect2/radius0.2/explosive0. Earlier candidate passed static gates but rejects vanilla flare selection. Preserve it as superseded; nativeAmmoProfileCorrection20261027 is current."
+  },
+  "nativeAmmoProfileCorrection20261027": {
+    "status": "NATIVE_DEFAULT_CLASSIFICATION_CORRECTED_OFFLINE_PHYSICAL_PENDING",
+    "intent": "Repair the concrete foundation regression in reactiveMortarIllumination20261027 before expanding dependent support behaviour.",
+    "provenance": {
+      "manifest": ".qa/native-ammo-classification-20261027/manifest.json",
+      "originalPbos": {
+        "E:\\SteamLibrary\\steamapps\\common\\Arma 3\\Dta\\bin.pbo": "46dc33dd5a0c163265c0c715f9642befa7aac3f3493c4502c4513f30224da7d7",
+        "E:\\SteamLibrary\\steamapps\\common\\Arma 3\\Addons\\weapons_f.pbo": "9043befb56e50ff585ffd42762c87dbb1990cd59e2b92ef2f58c7957ea085d32"
+      },
+      "tool": "HEMTT1.22.0 at .tmp/hemtt/bin/hemtt.exe; no tool upgrade",
+      "scope": "Core and weapons_f default configuration inheritance only; not final modded runtime config, magazine range, live classification execution or physical delivery. Raw configs and PBO index remain ignored protected research inputs.",
+      "protection": "Only config members were extracted into a fresh ignored directory; no game launch or installed-file modification. Repeated original hashes match across profile inspection. First extraction preceded recorded hashes. Raw configs/index and their full converted contents remain private; no original PBO/signature backup is claimed."
+    },
+    "nativeFacts": {
+      "FlareCore": {
+        "simulation": "shotIlluminating",
+        "hit": 5,
+        "indirectHit": 2,
+        "indirectHitRange": 0.2,
+        "explosive": 0,
+        "submunitionAmmo": ""
+      },
+      "Flare_82mm_AMOS_White": {
+        "simulation": "shotIlluminating",
+        "hit": 5,
+        "indirectHit": 2,
+        "indirectHitRange": 0.2,
+        "explosive": 0,
+        "submunitionAmmo": ""
+      },
+      "Flare_82mm_AMOS_White_Illumination": {
+        "simulation": "shotIlluminating",
+        "hit": 5,
+        "indirectHit": 2,
+        "indirectHitRange": 0.2,
+        "explosive": 0,
+        "submunitionAmmo": ""
+      },
+      "ShotDeployBase": {
+        "simulation": "shotDeploy",
+        "hit": 0,
+        "indirectHit": 0,
+        "indirectHitRange": 8,
+        "explosive": 1,
+        "submunitionAmmo": ""
+      },
+      "Smoke_82mm_AMOS_White": {
+        "simulation": "shotDeploy",
+        "hit": 0,
+        "indirectHit": 0,
+        "indirectHitRange": 8,
+        "explosive": 1,
+        "submunitionAmmo": "SmokeShellArty"
+      },
+      "SmokeShellArty": {
+        "simulation": "shotSmoke",
+        "hit": 0,
+        "indirectHit": 0,
+        "indirectHitRange": 0.2,
+        "explosive": 0,
+        "submunitionAmmo": ""
+      },
+      "Sh_82mm_AMOS": {
+        "simulation": "shotShell",
+        "hit": 165,
+        "indirectHit": 52,
+        "indirectHitRange": 18,
+        "explosive": 0.8,
+        "submunitionAmmo": ""
+      }
+    },
+    "defect": "The prior classifier refused any nonzero indirectHit before reaching the illumination leaf. Both vanilla82mm flare magazines therefore failed, despite passing source tests. Also, a generic zero-explosive rule on a parent deployer would wrongly reject native ShotDeployBase, whose hit/indirect are0 but explosive flag is1.",
+    "change": "Keep smoke zero-indirect policy. Require carriers to have zero hit/indirect and every branch to qualify; parent explosive flags are not leaf identity. Illumination leaves must be native shotIlluminating with finite/nonnegative hit<=5, indirect<=2, range<=0.2, explosive0. This permits the native small impact envelope without accepting HE, mixed/unknown leaves or stronger blast configurations. HE exclusion of illumination remains. No range/friendly/cooldown/mission/shot/crew/ROE change.",
+    "checks": "Existing payload contract extended with native-profile numeric boundary fixtures, carrier-before-leaf explosive ordering and explicit smoke guard. Public fixtures contain only classname/property facts, not copied config code. Three focused contracts and full1498 tests pass; no new test case. These checks are source/data evidence, not native SQF execution.",
+    "verification": {
+      "tests": 1498,
+      "compiledSQF": 449,
+      "PBOs": 11,
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/native-flare-profile-dea63b8b",
+      "fingerprint": "4aeefcfaae13a58d1afb5d93c59b70446d99629d8c1dd0c44ffd0c9705950b24",
+      "buildLog": ".qa/handovers/native-flare-profile-build-dea63b8b.log",
+      "independentLog": ".qa/handovers/native-flare-profile-independent.log",
+      "sourceNote": "Unsigned dirty development fromdea63b8b plus native-profile correction; lifecycle docs included, engineering records postdate package. Prior illumination candidate explicitly superseded."
+    },
+    "remaining": "Final modded runtime configuration and native getArtilleryAmmo/range classification, actual illumination/ballistics, dusk/dawn cancellation, normal/HC locality, tactical balance and measured overhead remain unverified. Flare impact fields are nonzero: never describe illumination as harmless or damage-free. Audits remain paused."
   }
 }

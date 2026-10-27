@@ -2,7 +2,7 @@
  * Author: WaldoTheWarfighter
  * Selects available plain HE, smoke or illumination, keeping their payload classes distinct.
  * Known native leaf simulations are required rather than an AI usage flag. Mixed deployers
- * are refused; illumination also excludes explosive configurations; each uncached payload tree permits 64 reads and four levels.
+ * are refused. Illumination permits the native FlareCore impact envelope, not arbitrary blast damage; each uncached payload tree permits 64 reads and four levels.
  * Locality/authority: read-only query on the battery owner; callers coordinate fire on the server.
  * Repeat/JIP: repeat-safe; immutable ammunition profiles are cached locally, available rounds are read each call.
  * Arguments: 0: battery <OBJECT>, default objNull; 1: smoke BOOL false or mode STRING HE/SMOKE/ILLUM.
@@ -36,9 +36,8 @@ private _classifyPayload = {
     private _ammoConfig=configFile >> "CfgAmmo" >> _ammoClass;
     private _simulation=toLowerANSI getText (_ammoConfig >> "simulation");
     private _indirect=getNumber (_ammoConfig >> "indirectHit");
-    private _explosive=getNumber (_ammoConfig >> "explosive");
-    if (!finite _indirect || {_indirect != 0}
-        || {_kind == "ILLUM" && {!finite _explosive || {_explosive != 0}}}) exitWith {false};
+    if (!finite _indirect || {_indirect < 0}
+        || {_kind == "SMOKE" && {_indirect != 0}}) exitWith {false};
     private _payload=getText (_ammoConfig >> "submunitionAmmo");
     private _payloadArray=getArray (_ammoConfig >> "submunitionAmmo");
     private _hasPayload=_payload != "" || {isArray (_ammoConfig >> "submunitionAmmo")};
@@ -65,11 +64,21 @@ private _classifyPayload = {
         };
         _validPayload && {_payloads isNotEqualTo []} && {count _payloads <= 16}
             && {_payloads findIf {!(_x isEqualType "") || {_x == ""}} < 0}
-            && {getNumber (_ammoConfig >> "hit") == 0}
+            && {getNumber (_ammoConfig >> "hit") == 0} && {_indirect == 0}
             && {_payloads findIf {!([_x,_depth+1,_kind] call _classifyPayload)} < 0}
     };
     // An AI usage flag alone cannot prove this projectile delivers smoke.
-    if (_kind == "ILLUM") then {_simulation == "shotilluminating"} else {_simulation in ["shotsmoke","shotsmokex"]}
+    if (_kind == "ILLUM") then {
+        // Native FlareCore has small impact fields (hit5/indirect2/radius0.2), not zero.
+        // A deployer can carry explosive=1 with zero damage; its leaves, not that flag,
+        // determine payload identity. Only this bounded non-explosive native flare envelope qualifies.
+        private _hit=getNumber (_ammoConfig >> "hit");
+        private _indirectRange=getNumber (_ammoConfig >> "indirectHitRange");
+        private _explosive=getNumber (_ammoConfig >> "explosive");
+        _simulation == "shotilluminating" && {finite _hit} && {_hit >= 0} && {_hit <= 5}
+            && {_indirect <= 2} && {finite _indirectRange} && {_indirectRange >= 0} && {_indirectRange <= 0.2}
+            && {finite _explosive} && {_explosive == 0}
+    } else {_simulation in ["shotsmoke","shotsmokex"]}
 };
 {
     private _profile = _cache getOrDefault [_x,[]];
