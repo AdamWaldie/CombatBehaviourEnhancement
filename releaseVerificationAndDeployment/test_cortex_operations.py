@@ -9554,6 +9554,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_job set ["groundWeapon",_plan getOrDefault ["groundWeapon",""]]',controller)
         self.assertIn('_job set ["groundTurret",_plan getOrDefault ["groundTurret",[]]]',controller)
         self.assertIn('_isPlane && {speed _aircraft < 40}',controller)
+        readiness='if (!canMove _aircraft || {fuel _aircraft <= 0}) exitWith {["AIRFRAME_UNAVAILABLE"] call _finish};'
+        self.assertIn(readiness,controller)
+        self.assertLess(controller.index(readiness),controller.index('private _startFailure="";'))
+        self.assertNotIn('["AIRFRAME_UNAVAILABLE",true]',controller)
+        start=source('airAttackOperationStart')
+        fresh='if (!alive _aircraft || {!canMove _aircraft} || {fuel _aircraft <= 0}) exitWith {false};'
+        self.assertIn(fresh,start)
+        self.assertLess(start.index('if (count _current > 0 &&'),start.index(fresh))
+        self.assertLess(start.index(fresh),start.index('private _generation='))
+        self.assertLess(start.index(fresh),start.index('call CBE_fnc_FlightLeaseAcquire'))
         self.assertIn('serverTime+0.8+random 0.8',controller)
         self.assertIn('flareINGRESS',controller)
         self.assertIn('flareEGRESS',controller)
@@ -9854,6 +9864,9 @@ class CortexOperations(unittest.TestCase):
         """Planning must not leak one late flight, targeting or fire command after a takeover."""
         controller=source('cortexAirAttack')
         self.assertIn('private _mayControlAircraft = {',controller)
+        command_gate=controller.split('private _mayControlAircraft = {',1)[1].split('private _liveSpeedReceipt=',1)[0]
+        self.assertIn('{canMove _aircraft}',command_gate)
+        self.assertIn('{fuel _aircraft > 0}',command_gate)
         for boundary in ['_startFailure="CONTROL_RELEASED"',
                          'if (_unsafeDelivery && {!([] call _mayControlAircraft)}) exitWith',
                          'if (_commandedStage != _stage && {!([] call _mayControlAircraft)}) exitWith',

@@ -2,11 +2,17 @@
 
 Deliver a standalone Arma 3 AI improvement addon by selecting useful functionality from the source register, merging complementary methods, fixing defects and evolving them into coherent CBE behaviour. Source fidelity serves gameplay quality, tactical plausibility, balance and engine performance; copying every source mechanism is not the objective. LAMBS is a functionality baseline to implement and improve, never a required dependency.
 
-## Current goal directive (26 October 2026)
+## Current goal directive (27 October 2026)
 
 Build a standalone CBE AI improvement addon upward from reliable FSM and execution foundations. Use reference/sourceReviews/source-review-map.json and its linked source reviews as the implementation queue: verify the actual preserved source, select useful AI intent, reconcile overlapping methods and record remaining gaps. Implement and improve the LAMBS functionality baseline without requiring LAMBS; reconcile the entire relevant HBQ controller; then build individual behaviours, pairs, squads and combined arms, including the nine Protocol capabilities, on usable shared foundations. Preserve working gameplay, newer mission/Zeus orders, authored skill baselines, specialist ownership and protected local sources. Prefer small, coherent changes inside existing owners, bounded work and native engine behaviour. Do not add competing controllers, speculative frameworks or source shortcuts that undermine reliability or performance.
 
 This directive governs implementation sequencing under the full production objective. It does not narrow that objective, declare current behaviour accepted, authorise audits or move deferred compatibility work forward.
+
+The source register is a capability-selection queue, not a checklist to import whole mods. For every contribution, trace the preserved source through its callers, decisions, command writers and cleanup, then compare the current CBE execution path. Record what useful intent is retained, adapted, replaced or rejected and why. Resolve overlapping approaches inside the existing owner. A familiar source name, a reviewed file or an available module is not evidence that CBE delivers its behaviour.
+
+Advance only on dependencies that are usable for the proposed change: FSM lifecycle and authority first, then individual building blocks, buddy pairs, squads and combined arms. Preserve the existing baseline before changing a shared foundation. A known material defect in that foundation blocks dependent expansion until repaired or isolated; it does not block unrelated required work. Keep each batch finite and tied to a specific registered gap, with an observable outcome and relevant checks. Do not grow new frameworks, controllers or test suites simply to increase apparent coverage.
+
+Protect gameplay continuity as well as source integrity: newer mission/Zeus orders, authored skills, group policies, interruption, locality changes, cancellation and repeat use must remain coherent. Bound searches, updates and recovery; prefer native engine behaviour when it fulfils the intent. Repair or revert regressions instead of hiding them with forced movement, false completion, weakened checks or another competing controller. Keep build-out progress distinct from offline verification, physical behaviour and measured cost. Audits remain paused; carry physical uncertainties forward explicitly without claiming them resolved.
 
 Before editing, identify a finite batch in the existing register or review record with:
 

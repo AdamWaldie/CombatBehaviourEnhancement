@@ -1,0 +1,168 @@
+{
+  "date": "2026-10-27",
+  "workshopId": "3682445063",
+  "name": "Smart Aircraft AI",
+  "version": "2.6.0",
+  "status": "CORE_READABLE_SOURCE_RECONCILED_ATTACK_READINESS_VETO_IMPLEMENTED_PHYSICAL_PENDING",
+  "provenance": {
+    "original": "E:/SteamLibrary/steamapps/workshop/content/107410/3682445063/addons/saai.pbo",
+    "snapshot": ".qa/smart-aircraft-installed-20261027",
+    "packageSha256": "91a394e3d9b35cfe0f5c0188c1c053da74d9fe5a59534699d93633b8a958cbc2",
+    "originalBeforeAfterHashMatched": true,
+    "memberHashes": {
+      "$PBOPREFIX$": {
+        "sha256": "44b54beaa36a572833b34678ba6d29e5e4f712a9a5f5daf956f1c39c5d0c1e42",
+        "bytes": 4
+      },
+      "BIS_AddonInfo.hpp": {
+        "sha256": "3a7daca8421eaf123257e6913e18dc25c3ac60fb517cb9f6431f648142176227",
+        "bytes": 76
+      },
+      "config.cpp": {
+        "sha256": "93cbc6c2ca6d2315f5e60e0dee9e0c37409c04bcb3406464589a1b935f945f43",
+        "bytes": 889
+      },
+      "functions/fn_antistasiCompat.sqf": {
+        "sha256": "bdfbe967dc0931a55d482c8603dad380a46d8fbe4d19705d24cc62af689042da",
+        "bytes": 11000
+      },
+      "functions/fn_main.sqf": {
+        "sha256": "e1b79080285e7c7884110c5719f070e9350d652d5cd07021b8188a6275a01860",
+        "bytes": 66852
+      },
+      "XEH_postInit.sqf": {
+        "sha256": "462a31aa645c17ce2844df9425f4c6df46b8594d542355bb522f4143033c993c",
+        "bytes": 817
+      },
+      "XEH_preInit.sqf": {
+        "sha256": "043e9f06d483690458bbfeda4159d8db977033fed943f355dba917914b274fd0",
+        "bytes": 13558
+      }
+    },
+    "compiledExecutionEquivalence": "Not established"
+  },
+  "reviewScope": {
+    "fullBodies": [
+      "config.cpp",
+      "XEH_postInit.sqf",
+      "XEH_preInit.sqf",
+      "functions/fn_main.sqf"
+    ],
+    "selectedRanges": {
+      "functions/fn_antistasiCompat.sqf": [
+        "1-25 initialization and first detection branch"
+      ]
+    },
+    "unreviewed": [
+      "functions/fn_antistasiCompat.sqf lines26-320; compatibility integration deferred"
+    ],
+    "boundary": "Core readable implementation and settings reviewed; Antistasi integration not fully reviewed. Compiled execution, whole-mod build-out and physical/performance parity are not established."
+  },
+  "findings": [
+    {
+      "path": "fn_main:187-239,1446-1554",
+      "finding": "Order detection accepts a current waypoint or native MOVE without separating source-authored movement from mission orders. On the hasOrders branch an active combat episode calls exitCombat before releaseControl.",
+      "disposition": "Replace with CBE task identity/native-order guards; never import this inference as an authority test."
+    },
+    {
+      "path": "fn_main:709-778,501-548,1233-1278",
+      "finding": "Combat saves only waypoint position/type/behaviour/speed. Exit, breakaway and RTB delete all group waypoints. Exit reconstructs the old partial route, including when called after orders become visible.",
+      "disposition": "Reject route deletion/reconstruction. Retain CBE exact named temporary-leg ownership, edited-leg preservation and existing native route."
+    },
+    {
+      "path": "fn_main:332-419,781-795,1607-1643",
+      "finding": "Cargo/driver/turret locks and copilot policy are overwritten, skills/fleeing changed without baseline restoration, and delayed GetOutMan callback force-seats with moveInAny. Delayed GetIn callbacks only recheck alive.",
+      "disposition": "Reject. Preserve mission skills/seats/locks; use existing scoped policies and default-off normal crew recall. No raw source import."
+    },
+    {
+      "path": "fn_main:649-680,1233-1320",
+      "finding": "Damage/fuel/idle return intent is useful, but destination choice scans nearby entities without native knowledge and may return current position or arbitrary flat terrain. RTB service mutates damage/fuel/ammo after a delayed callback with no final task/owner check; rearm-disabled RTB does not clear isRTB in that path.",
+      "disposition": "Retain operational-readiness/return intent as an unresolved capability. Reject omniscient safe-base inference and synthetic service. Require a suitable known/authored recovery destination and finite existing-owner handover before implementing return."
+    },
+    {
+      "path": "fn_main:877-948,1446-1554,1563-1600",
+      "finding": "Per-aircraft 0.1-second loop scans nearby missiles/rockets and targets; global discovery scans vehicles every3seconds. Server-only startup and lack of Local rebinding do not establish HC ownership support.",
+      "disposition": "Do not copy scheduler/world scans. CBE incoming warning event, finite generation/expiry response and shared flight lease already cover selected defensive admission intent; physical usefulness and cost remain unverified."
+    },
+    {
+      "path": "fn_main:684-705,951-1008,1090-1231,1479-1535",
+      "finding": "Targets are selected by side inequality and proximity, then revealed at4. Pursuit uses live target pose/velocity, while fire reports true after requests rather than observing a shot.",
+      "disposition": "Reject hidden target acquisition and request-as-result. Keep CBE native targetKnowledge/known target admission, belief-based plan, loaded station/operator selection and existing Fired result path. Exact priority/weapon classification descendants remain unread."
+    },
+    {
+      "path": "fn_main:83-180,425-466,802-850,1011-1088",
+      "finding": "AA and delivery categories use classname/displayName substring lists, including launch_nlaw as an AA hint. Aircraft weapon inventory is limited to aggregate weapons and turret0/driver, then selected by vehicle ammo/name and fixed range.",
+      "disposition": "Retain threat-aware weapon suitability intent; use CBE loaded magazine/config simulation/airLock/usage flags, bounded station inventory and live eligible operator instead of copying names. Existing metadata classification still contains explicit pylon hints and needs modded-aircraft physical validation."
+    },
+    {
+      "path": "fn_main:554-646; XEH_preInit full body",
+      "finding": "Emergency ejection relocates crew with setPosATL/setVelocity, force-seats into a generated parachute and later deletes surviving crew. Delayed callbacks do not retain task/owner authority. Settings expose this and synthetic service as defaults.",
+      "disposition": "Reject these ejection/cleanup shortcuts. No new source settings copied. Native emergency survival and legitimate support/service remain separate unresolved capabilities, not completed by rejecting the source method."
+    }
+  ],
+  "cbeComparison": {
+    "baseCommit": "bec6c1043ff13210d82d61d777a9cb17d6c6de0a",
+    "files": {
+      "addons/aircraft/functions/cortexAirAttack.sqf": "408bffcd569b5b47dab45640e829020b3b92dac44de6f2c015e51565d550cb2d",
+      "addons/aircraft/functions/cortexAirAttackPlan.sqf": "64ec4845e41a0972f15e85f17c93271fb154cbe0909915a1c7f46f5bfdf316b1",
+      "addons/aircraft/functions/airAttackOperationStep.sqf": "cd1b4281207b5b96449cb7c515139397a1477976de37ecd8b76f592aead0f8e2",
+      "addons/aircraft/functions/cortexMissileDefenceStep.sqf": "08af36029f73cb068e8938697848c8fe01257146e0b3645063f2beece4565cfd",
+      "addons/aircraft/functions/cortexAircraftEligible.sqf": "b551311932b73f53ea35b701b76685555e4102caeec20026b9057f4aa80d7a0c",
+      "addons/aircraft/functions/flightLeaseAcquire.sqf": "7518c078119d17119b6244d94863d678da1db8f5c8015b78b8bb4d8f3adc6005",
+      "addons/aircraft/functions/flightLeaseRelease.sqf": "ec592b3c842a2554562a3975091533a8aea2e16a276b98af9c2fb009e9a14955"
+    },
+    "inspectedPaths": [
+      "CortexAirAttack entry/control predicate, deadline, native known-target admission and finish path",
+      "CortexAirAttackPlan admission/header and weapon metadata classification",
+      "AirAttackOperationStep full body",
+      "CortexMissileDefenceStep full body",
+      "CortexAircraftEligible full body",
+      "FlightLeaseAcquire selected body and FlightLeaseRelease full body"
+    ],
+    "retainedFoundation": "Existing owner-local operation/FSM, flight token/owner, generation, stage deadlines, command-boundary permission, authored-order guards and exact temporary-leg retirement. These are code findings, not proven engine behaviour.",
+    "openGaps": [
+      "Hard fuel exhaustion/native mobility loss now veto fresh attack admission and retire existing attack execution, with the same check at later native command boundaries. Low-fuel/damage service thresholds and recovery-destination/native RTB lifecycle remain unimplemented by this patch.",
+      "Known suitable recovery destinations, native landing continuity, resource-aware rearm/refuel policy and repeat-use lifecycle remain unreconciled.",
+      "CBE missile evasion still uses two bounded model-space velocity impulses. This is not a demonstrated natural-flight solution; replacement requires native manoeuvre/terrain/ownership assessment and later physical validation.",
+      "Physical attack, interruption, return, repeat, locality migration and measured cost remain unverified."
+    ]
+  },
+  "nextConcreteWork": "Reconcile known/authored recovery destination and service policy with existing flight/task ownership before low-fuel/damage RTB. Do not re-review completed core readable bodies without changed source or a concrete failure. Antistasi adapter remains deferred compatibility; physical attack-abort/native handback/locality/repeat and cost await authorised audits.",
+  "validation": {
+    "runtimeChanged": true,
+    "physicalAudits": "Paused; no Arma launch or installed-game staging",
+    "implementationReassessedByThisMap": false,
+    "implementationCredit": "Finite attack-readiness veto implemented and offline verified. No whole-mod percentage uplift or physical/performance acceptance."
+  },
+  "attackReadinessImplementation20261027": {
+    "baseCommit": "bec6c1043ff13210d82d61d777a9cb17d6c6de0a",
+    "sourceIntent": "Avoid continuing combat when the aircraft is no longer operational; safe native handback precedes any later RTB policy.",
+    "affectedOwner": "Existing AirAttackOperationStart/CortexAirAttack FSM and native command predicate only.",
+    "change": "Fresh jobs refuse !alive/!canMove/fuel<=0 before flight lease/generation allocation, after existing-job handling so retained jobs can still retire. Active/direct execution rejects unavailable aircraft before planning using AIRFRAME_UNAVAILABLE and existing _finish without group-follow. Command permission rechecks canMove and positive fuel after planning.",
+    "preservedBaseline": "Original stage deadlines, operation/generation/flight ownership, native knowledge/weapon gates, edited-waypoint preservation, exact speed/pilot feature restoration and authored-route handling. Defensive countermeasures unchanged.",
+    "cost": "Two native readiness reads at fresh admission and each existing command predicate; one native readiness pair before planning. No worker/search/setting or new timer. Runtime cost unmeasured.",
+    "commandSemanticsSources": [
+      "https://community.bistudio.com/wiki/canMove",
+      "https://community.bistudio.com/wiki/fuel"
+    ],
+    "limitations": "canMove is a native mobility veto and can reject a tail-rotor-damaged helicopter a player might still control. This is not a glide/autorotation/landing solution, damage model, guaranteed safety or RTB implementation. Existing cleanup flyInHeight/native continuation still needs physical review.",
+    "checks": {
+      "existingTestsExtended": [
+        "test_adaptive_air_attack_is_bounded_physical_and_zeus_safe",
+        "test_air_attack_rechecks_authority_at_native_command_boundaries"
+      ],
+      "offlineTests": 1497,
+      "compiledSqf": 446,
+      "pbos": 11,
+      "buildLog": ".qa/handovers/airframe-readiness-bec6c104.log",
+      "candidate": ".qa/candidates/airframe-readiness-bec6c104",
+      "fingerprint": "3ad8f68e81b81ac5089c2187d2b994c61b28bd56a17a66eb97c54881792c6a56",
+      "independentLog": ".qa/handovers/airframe-readiness-independent.log",
+      "physicalAcceptance": false
+    },
+    "runtimeHashes": {
+      "addons/aircraft/functions/airAttackOperationStart.sqf": "d5284182aedc45631884129eae09b404727885efc7c554bf0d57ca025af3de51",
+      "addons/aircraft/functions/cortexAirAttack.sqf": "7b692379f70503fa2fbe65991d39a9d23f12afa7db15452d5e0711439f642d7b"
+    }
+  }
+}
