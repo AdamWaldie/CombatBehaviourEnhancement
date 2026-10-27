@@ -6,7 +6,7 @@
   "baseline": "d2bbc2ae70bc7a5d03a1bb8631c5c50f7d5f9fbc",
   "sourceRoot": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\PinnedDown\\20261013-013708\\3559900745\\extracted-20261011\\PinnedDown",
   "preservation": "Recovered extracted snapshot only; original PBO/signatures unavailable. Entire archive320 files verified0 failures before review; no upstream code executed or source modified.",
-  "scope": "Five complete selected readable helpers plus selected AIsuppression startup/event/recovery regions. Not complete32-file review, FSM review or later3820871877 version equivalence. Player effects excluded from selected integration.",
+  "scope": "Five initial complete AI helpers plus complete attachment body and complete six-state/eight-link suppression FSM runtime reviewed. AIsuppression and bootstrap remain selected-region only. Not complete32-file review or later3820871877 version equivalence; player effects excluded.",
   "sources": [
     {
       "path": "functions/fn_closeFireReaction.sqf",
@@ -37,6 +37,21 @@
       "path": "functions/fn_AIsuppression.sqf",
       "sha256": "47d2a042beffed612a6ebcda4c0d378427f3e0479f464a0248b47196867a1347",
       "scope": "Selected event/startup and shared recovery walker regions reviewed; complete body and FSM/caller graph not closed. Recovery lines379..416 inspected with elapsed source near shared walker setup."
+    },
+    {
+      "path": "functions/fn_Pinned.fsm",
+      "sha256": "c258d53985c874fb5cac0f6914e799d2ab816c8857584dcf39af19ed8812c3e9",
+      "scope": "Complete compiled runtime6states/8links, all init/condition/action strings and empty preconditions; editor layout not a gameplay specification."
+    },
+    {
+      "path": "functions/fn_attachSP.sqf",
+      "sha256": "334838a7eab064ea70e1971bc288be56c34d4edea157efb1d7c53011d5297117",
+      "scope": "Complete107-line readable attachment body."
+    },
+    {
+      "path": "functions/fn_PinnedRev_Init.sqf",
+      "sha256": "5ff8c2852860740e9dcd54bc60168fecd85a1a83177e2467968739d456b74c39",
+      "scope": "Startup and reconciliation introduction lines1..175; remaining queue/reconciliation implementation not fully reviewed."
     }
   ],
   "dispositions": [
@@ -72,5 +87,35 @@
     "fingerprint": "9e53249b30969afb7acb50ef6cf878d2af28c1dbc621218192ea76b8332bc688"
   },
   "limits": "Offline algebra/source/config/compile/package evidence only. No Arma audit or whole-mod parity. Changed pressure between samples is not reconstructed. First/long-gap policy deliberately preserves one nominal adjustment. Physical morale/retreat/recovery/surrender balance and normal/HC performance remain unverified.",
-  "nextRequiredReview": "Read full remaining AIsuppression, attachSP/startup, fn_Pinned.fsm runtime and release/repeat/locality paths. Reconcile remaining AI capabilities and3820871877 version before whole-source claims. Do not add parallel skill/stance walkers or player visual effects."
+  "nextRequiredReview": "Complete remaining AIsuppression body, remaining startup/reconciliation and relevant settings/locality/repeat paths. Suppression FSM runtime and attachSP have now been reviewed; do not restart unchanged review. Compare3820871877 before whole-source claims.",
+  "suppressionFSMFollowup20261027": {
+    "baseline": "43d46c29f69b49bc75eaf4f7e697f2febf75ee3d",
+    "states": [
+      "START",
+      "Main",
+      "END",
+      "Drop",
+      "MoralePosition",
+      "reset"
+    ],
+    "runtimeLinks": 8,
+    "sourceExecution": "Main prioritises unconscious reset/dead-or-forceRelease end; recovered suppression/hold passes morale posture, suppression above0.05 with refresher enters Drop. Drop approximates indoor status through nearest-house radius and overhead rays cached8s, forces prone outside/crouch inside. Exterior target suppression uses live native attack target and fallback alternatives, target-local claims, three spatial people samples, loaded5/total20 threshold, doSuppressiveFire and suppressFor burst. Hold and refresher limit cadence. MoralePosition may retain crouch for low native morale or release exact owned stance. Reset only refreshes local timing. No general FSM local/route/epoch/movement ownership check was found in the complete runtime.",
+    "sourceAttachment": "Owner forwards attachSP, excludes players/custom classname patterns and optional player groups, sets feature flags before duplicate guard, registers one stance-settle queue entry. Server startup queues EntityCreated one-frame attach, clears inherited respawn state, sweeps placed allUnits and declares shared reconcile walker. Remaining reconciliation implementation is not reviewed by this followup.",
+    "cbeComparison": "Danger/stance/fire responsibilities already separated. CortexStance uses existing bounded cover probes and exact owned strong stance; danger reflex uses finite weak stance and operation reservations. CortexFireControl already has target distribution, loaded primary bullets, reserve conservation, active native suppression limit, actor/mission/specialist/route reservations and protected firing lane. No parallel persistent per-actor suppression FSM, target claim state or synthetic suppression floor is imported.",
+    "selectedDefect": "Suppression checked weaponState magazineReloadPhase(index6) but not roundReloadPhase(index5), and reserve accounting had no explicit inventory/compatible-class limit. Readiness now requires both finite zero phases and matching selected/current magazine before reserves/geometry. Inventory and compatibility lists over128 defer only CBE suppression; native firing remains enabled.",
+    "nativeContract": "https://community.bistudio.com/wiki/weaponState",
+    "preservedBounds": "Existing one issued suppression per pass, at most3 geometry candidates, rotating cursor,60 total rounds/two loose spares and8s per-actor spacing; no reload/selection/force-fire/stop/reset/worker/new task/deadline. Inventory retrieval native cost unmeasured.",
+    "verification": {
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "regressionBefore": ".qa/handovers/suppression-ready-regression-before.log",
+      "buildLog": ".qa/handovers/suppression-ready-build-43d46c29.log",
+      "candidate": ".qa/candidates/suppression-ready-43d46c29",
+      "fingerprint": "d0f07700679d0924c27caa6304d1e90d5546658b7612a5b59c1db53212c14b67",
+      "independentLog": ".qa/handovers/suppression-ready-independent.log"
+    },
+    "limits": "No physical suppression effectiveness/readiness/burst retirement or scale acceptance. Source target claims are machine-local and can fall back to shared target, not proven cross-owner allocation. Indoor cache lacks transform/context identity; source forced stance and stale skill reset are not copied. Next remaining source review is full AIsuppression body, remaining PinnedRev_Init/reconciliation, settings/startup changes and later3820871877 version."
+  }
 }

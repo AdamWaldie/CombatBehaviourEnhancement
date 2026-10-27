@@ -4809,12 +4809,17 @@ class CortexOperations(unittest.TestCase):
                       'count _weaponState >= 7', 'finite _reload', '_reload == 0',
                       '(_weaponState select 0) == _weapon', '(_weaponState select 1) == _muzzle',
                       'compatibleMagazines [_weapon,_magazineMuzzle]',
-                      '(magazinesAmmoFull _unit) select',
+                      '_inventory select',
                       '!(_x select 2) && {(_x select 1) > 0}',
                       'getNumber (_ammo >> "hit") > 0',
                       'if (count _spare >= 2 && {_rounds >= 60}']:
             self.assertLess(suppression.index(proof), boundary)
         self.assertLess(suppression.index('[_unit, _aimASL,_magazine] call CBE_fnc_CortexLineOfFireClear'),boundary)
+        for proof in ('_weaponState param [5,1,[0]]','finite _roundReload','_roundReload == 0',
+                      '(_weaponState select 3) == _magazine','count _compatible > 128',
+                      'private _inventory=magazinesAmmoFull _unit','count _inventory > 128'):
+            self.assertLess(suppression.index(proof),boundary)
+        self.assertLess(suppression.index('count _inventory > 128'),suppression.index('private _spare ='))
         self.assertNotIn('selectWeapon', suppression)
         self.assertNotIn('_unit ammo _weapon', suppression)
         self.assertLess(suppression.index('if (_rifleReady) then'),suppression.index('compatibleMagazines [_weapon,_magazineMuzzle]'))

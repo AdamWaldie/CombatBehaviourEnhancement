@@ -43,7 +43,10 @@
  * Ongoing native SUPPRESS commands count against the limit beyond the timestamp window and
  * never receive another suppression request while that command remains active.
  * A suppressor needs at least two nonempty spare magazines and 60 rounds
- * for his weapon, must currently hold a loaded primary bullet muzzle with a completed magazine reload, must not himself be heavily
+ * for his weapon, must currently hold a loaded primary bullet muzzle with settled round and magazine
+ * reload phases. Selected native magazine must match the counted magazine. Reserve accounting
+ * refuses over128 compatible classes or inventory rows, leaving native fire enabled.
+ * The suppressor must not himself be heavily
  * suppressed, and must have a clear line of fire
  * (CBE_fnc_CortexLineOfFireClear keeps friendlies, including the flanking element, and civilians out
  * of the cone). Each suppressor rests 8 s between bursts. Flank element members are left alone.
@@ -315,8 +318,11 @@ if (_suppressPos isNotEqualTo [] && {!(formation _group in ["FILE","DIAMOND"])})
                 private _loaded = if (_muzzle == "") then {0} else {_unit ammo _muzzle};
                 private _weaponState = weaponState _unit;
                 private _reload = _weaponState param [6,1,[0]];
+                private _roundReload = _weaponState param [5,1,[0]];
                 private _rifleReady = count _weaponState >= 7
                     && {(_weaponState select 0) == _weapon} && {(_weaponState select 1) == _muzzle}
+                    && {(_weaponState select 3) == _magazine}
+                    && {finite _roundReload} && {_roundReload == 0}
                     && {finite _reload} && {_reload == 0} && {_weapon != ""} && {currentWeapon _unit == _weapon}
                     && {_loaded > 0} && {toLowerANSI getText (_ammo >> "simulation") == "shotbullet"}
                     && {getNumber (_ammo >> "hit") > 0};
@@ -326,7 +332,10 @@ if (_suppressPos isNotEqualTo [] && {!(formation _group in ["FILE","DIAMOND"])})
                     // nonempty reserves for this muzzle; loaded magazines must not count twice.
                     private _magazineMuzzle = [ _muzzle, "this" ] select (_muzzle == _weapon);
                     private _compatible = compatibleMagazines [_weapon,_magazineMuzzle];
-                    private _spare = (magazinesAmmoFull _unit) select {
+                    if (count _compatible > 128) then {continue};
+                    private _inventory=magazinesAmmoFull _unit;
+                    if (count _inventory > 128) then {continue};
+                    private _spare = _inventory select {
                         !(_x select 2) && {(_x select 1) > 0} && {(_x select 0) in _compatible}
                     };
                     private _rounds = _loaded;
