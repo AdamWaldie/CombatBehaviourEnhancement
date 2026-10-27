@@ -216,7 +216,46 @@ class ArtilleryFireSessions(unittest.TestCase):
         retirement=(ROOT/'addons/vehicles/functions/vehicleCrewMoveRetire.sqf').read_text(encoding='utf-8')
         self.assertIn('call CBE_fnc_VehicleCrewMoveRetire',retire)
         self.assertNotIn('execFSM',retire)
-        self.assertNotIn('CBE_Artillery',retirement)
+        # Shared native retirement remains unchanged for the tactical singleton;
+        # artillery metadata alone delegates to its bounded per-gun reservation owner.
+        self.assertIn('private _artillery=_referenceKey == "CBE_ArtilleryCrew_Reservations"',retirement)
+        self.assertIn('[_group,"REMOVE",_reference] call CBE_fnc_ArtilleryCrewReservation',retirement)
+        self.assertIn('[_group,"REPLACE",_reference,_adoptedReference]',retirement)
+        self.assertIn('else {[_group,_leaseOwner,false] call CBE_fnc_CortexOwnershipLease}',retirement)
+        reservations=(base/'artilleryCrewReservation.sqf').read_text(encoding='utf-8')
+        for marker in ('count _rows > 64','_rows findIf',
+                       '(_peer select 2) == (_reference select 2)',
+                       '(_replacement select [0,3]) isNotEqualTo (_reference select [0,3])',
+                       '_rows deleteAt _index','_expiry=_expiry max (_x select 1)',
+                       '_private isEqualTo [] || {_private isEqualTo (_snapshot select 1)}'):
+            self.assertIn(marker,reservations)
+        for forbidden in ('doMove','doStop','doFollow','spawn','execFSM','allUnits','allGroups'):
+            self.assertNotIn(forbidden,reservations)
+        self.assertIn('"OWNED",_reference',worker)
+        self.assertIn('(_sequence max _priorSerial)+1',admission)
+        self.assertNotIn('setVariable ["CBE_ArtilleryCrew_Reservations",nil',worker)
+        self.assertNotIn('"ARTILLERY_CREW",false',worker)
+        # Metadata arbitration model only: not proof of native movement or locality.
+        # Removing either peer must preserve the other's original expiry; expiry
+        # alone does not delete an unresolved entry. Serials distinguish null objects.
+        a=(None,'same-token',10,2,2)
+        b=(None,'same-token',11,2,2)
+        rows=[(a,110),(b,240)]
+        def remove_exact(entries,ref):
+            kept=[row for row in entries if row[0]!=ref]
+            return kept,max((row[1] for row in kept),default=None)
+        self.assertEqual(remove_exact(rows,a),([(b,240)],240))
+        self.assertEqual(remove_exact(rows,b),([(a,110)],110))
+        self.assertEqual(remove_exact([(b,240)],a),([(b,240)],240))
+        self.assertEqual(remove_exact([(a,110)],a),([],None))
+        # Owner/epoch replacement changes only its exact entry and no deadline.
+        adopted=(*a[:3],3,7)
+        migrated=[(adopted if ref==a else ref,until) for ref,until in rows]
+        self.assertEqual(migrated,[(adopted,110),(b,240)])
+        self.assertEqual(remove_exact(migrated,a),(migrated,240))
+        for name in ('cortexDiscover','cortexLocality','cortexStop'):
+            location=ROOT/'addons/core/functions'/f'{name}.sqf'
+            self.assertIn('"LIST"] call CBE_fnc_ArtilleryCrewReservation',location.read_text(encoding='utf-8'))
         self.assertIn('count _contract != 6',retirement)
         self.assertIn('execFSM _fsmPath',retirement)
         self.assertIn('_wasRetiring &&',retire)
@@ -286,11 +325,12 @@ class ArtilleryFireSessions(unittest.TestCase):
                       '(_data select 0) isNotEqualTo _battery',
                       '(_data select 1) != "Deleted"',
                       '(_data select 2) != (_watch select 6)',
-                      '(_group getVariable [_referenceKey,[]]) isNotEqualTo _reference',
+                      '(_group getVariable [_referenceKey,[]]) isEqualTo _reference',
+                      '!_referenceCurrent',
                       '_crew isNotEqualTo (_watch select 7)',
                       '!isNull _x && {!local _x || {alive _x}}',
                       '_currentPublicLease isEqualTo _publicLease',
-                      'if (_leaseStillOurs',
+                      'if (!_artillery && {_leaseStillOurs}',
                       'removeEventHandler ["Deleted",_watch select 6]',
                       'PLATFORM_DELETED_ORIGINAL_CREW_DEAD'):
             self.assertIn(guard,deletion)

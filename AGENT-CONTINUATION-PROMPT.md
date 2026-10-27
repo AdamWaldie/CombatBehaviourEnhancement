@@ -1,10 +1,20 @@
-Governing implementation direction: read IMPLEMENTATION-GOAL.md, especially the Current goal directive and source-register batch requirements, before choosing work. Foundations first; preserve working behaviour and protected sources. Audits remain paused.
+## 2026-10-27: same-group selected-gun reservation lifecycle
 
-# Start with the current CBE handover
+Basef0899f6a. Implemented bounded per-gun reservations under the existing artillery movement domain: one exact reference/original deadline per gun, group-wide deletion-safe serials, first-gun ordinary-driving handback, peer-only aggregate lease, and exact removal through normal retirement, passive proof, deletion, locality and shutdown. Scoot waits only for its own prefire entry. No group split/waypoint or new native movement/controller/settings/module.
 
-Read `AGENT-HANDOVER-CURRENT.md` before the historical notes below. It records the latest checkpoint, unfinished work, protected stores and audit pause. Check the usage limit before starting a batch. The full production-ready goal remains incomplete.
+existing selected-crew FSM, original actors, deadlines and destination/Zeus/external guards retained. Typed/malformed/newer ownership refuses old writes. unresolved entries keep the domain reserved.
 
+Full1497tests/447SQF/11PBO and independent verify passed. Candidate .qa/candidates/artillery-peer-f0899f6a fingerprint6c6101719d1b87c57170e17bcef124f5b259f0ff07a0e0caeb257d457c816d3e. logs .qa/handovers/artillery-peer-build-f0899f6a.log and artillery-peer-independent.log. Unsigned dirty development from base plus runtime patch.
 
+engineering notes postdate package. Initial focused stale generic-source assertion and full-run16 local temp access errors/missing coverage registration are recorded in the existing selected-crew review. final complete rerun passed, no test-count increase.
+
+Physical peer travel/formation effects, firing/handback, death/deletion/repeat, normal/HC/JIP/Zeus and measured performance remain UNRUN. Original idle/formation continuation and terminal native uncertainty remain open. Do not call this whole Protocol artillery parity. See referenceReviews/artillery-selected-crew-20261025.json#peerReservationsImplementation20261027 and protocol-implementation-programme-20261020.json.
+
+source-review-map.json updated. Audits PAUSED. no Arma launch or installed-game staging. Goal ACTIVE/INCOMPLETE.
+
+Working directory C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks. branch Adam/cbe-recovery-followup-20261026, PR19 open draft. Preserve unrelated dirt, WMP checkout, Workshop E:/SteamLibrary/steamapps/workshop/content/107410, game E:/SteamLibrary/steamapps/common/Arma 3, PinnedDown C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708, register backup and permanent signing pair. Follow IMPLEMENTATION-GOAL.md: source register, LAMBS/HBQ FSM foundations, then individuals/pairs/squads/combined arms and complete Protocol capability intent.
+
+Continue a specific required unresolved source/behaviour path. do not repeat completed reviews or invent a provider handover from inactivity/expired timers. No merge/publication/manual CI.
 
 ## 2026-10-23: indoor candidate selection reuses persistent buddies
 Base5f9dd844. IndoorActorDispatch now uses existing read-only CombatElementSelect(max2,min1) on actors already qualified for contact knowledge/range/native tasks/ownership. Live same-building/contact investigator identity requires current group/epoch, actor generation, active brain/deadline; its eligible partner gets selection preference, then existing intact pairs. Adequate nonleader alternatives remain preferred; formation anchor is last within the preferred set and original distance-ranked fallbacks remain. Each actor START remains independent, so no unavailable/refused buddy blocks a healthy actor, forces shared entry or fabricates a paired result. No pair publication, new controller/worker/timer/geometry or actor command added to dispatcher. Existing2-investigator capacity and8-second selection interval retained; at most16 candidate/registry rows and2 incumbent brains. This is selection cohesion, not synchronised movement/cover or room clearing. Updated private protocol-pairs comparison, preserving incomplete pair-granular parity and physical limits.

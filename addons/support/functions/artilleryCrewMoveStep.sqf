@@ -47,14 +47,8 @@ private _finish={
                 "CBE_Cortex_ArtilleryScootSession","CBE_Cortex_ArtilleryScootDeadline","CBE_Cortex_ArtilleryScootPurpose"];
         };
         if (_retired && {local _group}
-            && {(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isEqualTo _reference}) then {
-            [_group,"ARTILLERY_CREW",false] call CBE_fnc_CortexOwnershipLease;
-            _group setVariable ["CBE_ArtilleryCrew_Reference",nil,true];
+            && {[_group,"REMOVE",_reference] call CBE_fnc_ArtilleryCrewReservation}) then {
             [_battery,"RELEASE",_reference] call CBE_fnc_VehicleCrewMoveDeletionWatch;
-            private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
-            if ((_state getOrDefault ["movementLease",[]]) isEqualTo (_work get "localLease")) then {
-                _state deleteAt "movementLease";
-            };
         };
     };
     -1
@@ -62,7 +56,7 @@ private _finish={
 if (_phase in ["RETIRED","UNRESOLVED"]) exitWith {-1};
 if (!local _group || {(_work get "owner") != clientOwner}
     || {(_work get "epoch") != (_group getVariable ["CBE_AIPass_Epoch",-1])}
-    || {(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo _reference}) exitWith {
+    || {!([_group,"CHECK",_reference] call CBE_fnc_ArtilleryCrewReservation)}) exitWith {
     // The new owner must explicitly adopt retirement. The old owner cannot rewrite its
     // journal, renew deadlines or make a terminal native-control claim across this edge.
     -1
@@ -103,7 +97,8 @@ private _retirementCurrent=(_driverOnly && {_retirementActor isEqualTo _driver})
 private _activeSeats=if (_retirementOnly) then {
     [_retirementActor] select {!isNull _x && {alive _x}}
 } else {(_seats arrayIntersect _seats) select {!isNull _x && {alive _x}}};
-private _control=alive _battery && {simulationEnabled _battery} && {!isObjectHidden _battery}
+private _control=([_group,"OWNED",_reference] call CBE_fnc_ArtilleryCrewReservation)
+    && {alive _battery} && {simulationEnabled _battery} && {!isObjectHidden _battery}
     && {(!_retirementOnly && {_live isEqualTo _seats}) || {_retirementOnly && {_retirementCurrent}}}
     && {isNil {_battery getVariable "CBE_ExternalDrivingOwner"}}
     && {!([_battery] call CBE_fnc_CompatibilityExternalControl)}

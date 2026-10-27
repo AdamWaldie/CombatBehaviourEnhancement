@@ -31,7 +31,7 @@ if (isNull _group || {(_work getOrDefault ["token",""]) != _token}
     || {(_work getOrDefault ["owner",-1]) != owner _battery}
     || {(_work getOrDefault ["epoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",-2])}
     || {count _reference != 5}
-    || {(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo _reference}
+    || {!([_group,"CHECK",_reference] call CBE_fnc_ArtilleryCrewReservation)}
     || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_session select 4)}
     || {serverTime >= (_session select 9)} || {!alive _battery}
     || {!isNil {_battery getVariable "CBE_ExternalDrivingOwner"}}

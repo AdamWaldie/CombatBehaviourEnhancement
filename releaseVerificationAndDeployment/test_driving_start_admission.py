@@ -41,7 +41,7 @@ class DrivingStartAdmissionTests(unittest.TestCase):
         # retirement journal remains. The readers must refuse without clearing proof.
         available=(ROOT/'addons/vehicles/functions/drivingMovementAvailable.sqf').read_text(encoding='utf-8')
         acquire=(ROOT/'addons/compatibility/functions/cortexOwnershipLease.sqf').read_text(encoding='utf-8')
-        reservation='CBE_ArtilleryCrew_Reference'
+        reservation='CBE_ArtilleryCrew_Reservations'
         self.assertLess(available.index(reservation),available.index('private _lease='))
         admission=acquire.split('if (_acquire) exitWith {',1)[1].split('// Release the ordinary cap',1)[0]
         self.assertIn(reservation,admission)

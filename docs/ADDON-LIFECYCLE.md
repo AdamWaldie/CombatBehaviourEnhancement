@@ -2065,3 +2065,13 @@ Native casualty inventory actions form an explicit effect boundary. Before publi
 
 
 Interior clearance access planning budgets relevant-floor candidates rather than a raw model prefix. It may inspect up to512 admitted points to collect the existing24 visited or32 navigation/transit candidates, stopping once that allowance fills. This allows upper-floor nodes listed after lower-floor nodes to participate. Original support-probe ceilings, floor bands, connector caches, physical visit and movement-ownership checks remain. Sparse-floor selection does more coordinate work; runtime cost and actual traversal remain unverified. A selected node is not proof of reachability or room clearance.
+
+### Same-group selected artillery reservations
+
+Mixed groups can admit separate selected-gun movement jobs under the existing artillery owner. Each gun keeps its original crew, native route receipt, movement/hold/cleanup deadlines and FSM. Admission uses a group-wide monotonic serial so two deleted platforms cannot acquire the same reference. The reservation table is bounded to 64 entries; it is not a new movement controller or scheduler.
+
+The first gun acquires the movement domain through ordinary-driving handback. Later guns must match that domain and cannot retire a peer's driving controller. The shared lease tracks the latest original hold deadline, while each gun expires independently. Observed retirement or qualifying deletion removes only that exact entry. The last entry releases the unchanged aggregate lease; unresolved entries continue to block other CBE group movement even after expiry. Newer or unknown public/private leases are preserved.
+
+Discovery, shutdown and locality handling visit each admitted reference. Owner transfer adopts retirement only and retains original deadlines. A pending shoot-and-scoot request waits for its own prefire handback rather than treating another gun's reservation as its own. Group membership and unrelated authored orders remain unchanged. No new CBA setting or Zeus module is required.
+
+This is source implementation, not demonstrated parallel gun movement. Native group-formation effects, two-gun travel and firing, casualty/deletion, repeated locality edges, normal/HC operation and performance remain unverified while audits are paused. Original idle/formation continuation and unresolved native-command recovery remain separate open requirements.

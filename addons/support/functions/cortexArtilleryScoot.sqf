@@ -9,8 +9,8 @@
  * Both actual AI movement seats must remain local, available and free of treatment,
  * protected tasks, direct native STOP and non-route MOVE commands before planning and issue.
  * Geometry cannot grant authority over changed crew or authored route metadata.
- * The current group-waypoint executor is restricted to a single occupied platform.
- * Mixed groups are refused until selected-vehicle displacement and handback are implemented.
+ * Group-waypoint execution is restricted to one occupied platform; mixed groups use the
+ * selected-crew FSM. Same-group peers retain independent references and retirement deadlines.
  * Moves a mobile battery after the last shell flight and warning interval have elapsed. If another
  * Cortex movement owner is active, the relocation waits in five-second steps for at most two minutes
  * instead of replacing that route. Once acquired, the shared movement lease prevents contact,
@@ -111,7 +111,8 @@ private _group = group driver _battery;
 private _state = [_group] call CBE_fnc_CortexGroupState;
 // Prefire native retirement must finish before a relocation acquires movement. This retry
 // keeps the original server admission deadline and never issues a new outward command.
-private _crewReference=_group getVariable ["CBE_ArtilleryCrew_Reference",[]];
+private _crewReference=_crewWork getOrDefault ["reference",[]];
+if !([_group,"CHECK",_crewReference] call CBE_fnc_ArtilleryCrewReservation) then {_crewReference=[]};
 if (_crewReference isNotEqualTo []) exitWith {
     if ((_crewWork getOrDefault ["kind",""]) != "POSITION"
         || {(_crewWork getOrDefault ["token",""]) != _token}

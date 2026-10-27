@@ -43,7 +43,7 @@ isNil {
             || {(_operation getOrDefault ["phase",""]) == "CANCELLED"}
             || {_publicLease isNotEqualTo ["VEHICLE_STANDOFF",_until]}
             || {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []}
-            || {(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo []}
+            || {(_group getVariable ["CBE_ArtilleryCrew_Reservations",[]]) isNotEqualTo []}
             || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
             || {[] call CBE_fnc_CortexIsPaused}
             || {!([_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled)}

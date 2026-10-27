@@ -5,7 +5,8 @@
  * Shared movement acquisition first retires ordinary driving; unresolved parent work refuses.
  * No group waypoint or membership is changed. Only the later owner-local FSM may issue crew moves.
  * Repeat/JIP: One exact token/session/reference, original deadlines and monotonic serial; existing
- * work never becomes a new baseline. New owners may retire old work, never replay its outward leg.
+ * work never becomes a new baseline. Same-group guns retain separate original deadlines under
+ * one aggregate movement reservation. New owners may retire old work, never replay its outward leg.
  * Arguments: 0 battery OBJECT,objNull; 1 token STRING,""; 2 original positioning(10) or relocation(7) session ARRAY,[];
  * 3 selected supported endpoint ARRAY of three finite NUMBER,[]; 4 kind STRING,"POSITION" or "SCOOT".
  * Return: BOOL admission and FSM start, not native acknowledgement, arrival or firing readiness.
@@ -68,7 +69,6 @@ isNil {
             || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}
             || {[_group] call CBE_fnc_CortexExternalTakeover}
             || {!(call _identityCurrent)}
-            || {(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo []}
             || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
             || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_movementOrder select 1)}) exitWith {false};
         // Discovery may not yet have adopted this group. Establish the epoch before the
@@ -130,8 +130,18 @@ isNil {
                 } < 0};
         };
         if (!_drivingGunOnly) exitWith {false};
-        if !([_group,"ARTILLERY_CREW",true,_holdUntil] call CBE_fnc_CortexOwnershipLease) exitWith {false};
-        private _refuse={[_group,"ARTILLERY_CREW",false] call CBE_fnc_CortexOwnershipLease;false};
+        // Allocate one group-wide serial so deleted/null platforms cannot make two
+        // different admitted entries equal. Failed admission consumes, never reuses it.
+        private _sequence=_group getVariable ["CBE_ArtilleryCrew_Sequence",0];
+        private _priorSerial=_battery getVariable ["CBE_ArtilleryCrew_Serial",0];
+        if (!(_sequence isEqualType 0) || {!finite _sequence} || {_sequence < 0}
+            || {!(_priorSerial isEqualType 0)} || {!finite _priorSerial} || {_priorSerial < 0}) exitWith {false};
+        private _serial=(_sequence max _priorSerial)+1;
+        private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
+        private _reference=[_battery,_token,_serial,_epoch,clientOwner];
+        _group setVariable ["CBE_ArtilleryCrew_Sequence",_serial,true];
+        if !([_group,"ADD",_reference,[],_holdUntil] call CBE_fnc_ArtilleryCrewReservation) exitWith {false};
+        private _refuse={[_group,"REMOVE",_reference] call CBE_fnc_ArtilleryCrewReservation;false};
         if (!(call _sourceCurrent) || {!(call _crewCurrent)} || {driver _battery != _driver}
             || {!((effectiveCommander _battery) in [_operator,objNull])}
             || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_movementOrder select 1)}) exitWith {call _refuse};
@@ -141,10 +151,7 @@ isNil {
             private _goal=(_baseline select (_x+1)) param [0,[],[[]]];
             count _goal != 3 || {_goal findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
         }} >= 0) exitWith {call _refuse};
-        private _serial=(_battery getVariable ["CBE_ArtilleryCrew_Serial",0])+1;
-        private _epoch=_group getVariable ["CBE_AIPass_Epoch",0];
-        private _reference=[_battery,_token,_serial,_epoch,clientOwner];
-        private _lease=["ARTILLERY_CREW",time+(_holdUntil-serverTime)];
+        private _lease=+((_group getVariable ["CBE_ArtilleryCrew_Lease",[]]) select 1);
         private _work=createHashMapFromArray [["token",_token],["serial",_serial],["group",_group],["kind",_kind],
             ["owner",clientOwner],["epoch",_epoch],["reference",_reference],["crew",_seats],
             ["session",+_session],["route",+(_movementOrder select 1)],["baseline",_baseline],
@@ -153,9 +160,6 @@ isNil {
             ["progressAt",serverTime],["release",false]];
         _battery setVariable ["CBE_ArtilleryCrew_Serial",_serial,true];
         _battery setVariable ["CBE_ArtilleryCrew_Work",_work,true];
-        _group setVariable ["CBE_ArtilleryCrew_Reference",_reference,true];
-        private _state=[_group] call CBE_fnc_CortexGroupState;
-        _state set ["movementLease",_lease];
         private _executorSerial=(_battery getVariable ["CBE_ArtilleryCrew_ExecutorSerial",0])+1;
         _battery setVariable ["CBE_ArtilleryCrew_ExecutorSerial",_executorSerial];
         private _handle=[_battery,_token,_serial,_executorSerial] execFSM "\z\cbe\addons\main\fsm\artilleryCrewMove.fsm";
@@ -163,11 +167,9 @@ isNil {
         if (!(_handle isEqualType 0) || {!finite _handle} || {_handle < 0}) exitWith {
             _work set ["phase","RETIRED"];_work set ["result","FSM_START_REFUSED"];
             _battery setVariable ["CBE_ArtilleryCrew_Work",_work,true];
-            _group setVariable ["CBE_ArtilleryCrew_Reference",nil,true];
-            if ((_state getOrDefault ["movementLease",[]]) isEqualTo _lease) then {_state deleteAt "movementLease"};
             call _refuse
         };
-        [_battery,"INSTALL",["CBE_ArtilleryCrew_Work","CBE_ArtilleryCrew_Reference","ARTILLERY_CREW"]]
+        [_battery,"INSTALL",["CBE_ArtilleryCrew_Work","CBE_ArtilleryCrew_Reservations","ARTILLERY_CREW"]]
             call CBE_fnc_VehicleCrewMoveDeletionWatch;
         true
     };

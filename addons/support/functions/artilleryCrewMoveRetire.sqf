@@ -25,7 +25,7 @@ private _pending=false;
 isNil {
     private _before=_battery getVariable ["CBE_ArtilleryCrew_Work",createHashMap];
     private _wasRetiring=(_before getOrDefault ["phase",""]) in ["RETURNING","UNRESOLVED"];
-    _pending=[_battery,_token,_serial,["CBE_ArtilleryCrew_Work","CBE_ArtilleryCrew_Reference",
+    _pending=[_battery,_token,_serial,["CBE_ArtilleryCrew_Work","CBE_ArtilleryCrew_Reservations",
         "CBE_ArtilleryCrew_FSM","CBE_ArtilleryCrew_ExecutorSerial","ARTILLERY_CREW",
         "\z\cbe\addons\main\fsm\artilleryCrewMove.fsm"]] call CBE_fnc_VehicleCrewMoveRetire;
     private _work=_battery getVariable ["CBE_ArtilleryCrew_Work",createHashMap];

@@ -17,7 +17,7 @@
 params [["_group",grpNull,[grpNull]],["_serverCheck",false,[true]]];
 if (isNull _group || {!local _group && {!(_serverCheck && {isServer})}}) exitWith {false};
 if ((_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap) exitWith {false};
-if ((_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo []) exitWith {false};
+if ((_group getVariable ["CBE_ArtilleryCrew_Reservations",[]]) isNotEqualTo []) exitWith {false};
 if ((_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []) exitWith {false};
 private _lease=_group getVariable ["CBE_Cortex_MovementLease",[]];
 if (_lease isNotEqualTo []) then {

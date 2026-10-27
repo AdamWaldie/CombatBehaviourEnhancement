@@ -349,15 +349,16 @@ _group setVariable ["CBE_AIPass_Adopted", _gained];
 // Native handler IDs stay on their machine; remove only this group's old local observer.
 if (!_gained && {!local _group}) then {
     {
-        private _reference=_group getVariable [_x,[]];
-        private _platform=if (_reference isEqualType []) then {_reference param [0,objNull,[objNull]]} else {objNull};
+        private _reference=_x;
+        private _platform=_reference param [0,objNull,[objNull]];
         if (!isNull _platform) then {
             private _watch=_platform getVariable ["CBE_VehicleCrewMove_DeletedWatch",[]];
             if (_watch isEqualType [] && {count _watch == 8} && {(_watch select 1) isEqualTo _group}) then {
                 [_platform,"RELEASE",_watch select 0] call CBE_fnc_VehicleCrewMoveDeletionWatch;
             };
         };
-    } forEach ["CBE_ArtilleryCrew_Reference","CBE_VehicleTacticalMove_Reference"];
+    } forEach (([_group,"LIST"] call CBE_fnc_ArtilleryCrewReservation)
+        + [_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]]);
 };
 
 if (!_gained || {!local _group}) exitWith {};
@@ -801,8 +802,8 @@ if (_tacticalReference isEqualType [] && {count _tacticalReference == 5}) then {
 
 // Retire only the original selected-gun journal when its owner-local executor ended or
 // crossed this epoch. A live current worker is left alone; this does not cancel an active fire.
-private _crewReference=_group getVariable ["CBE_ArtilleryCrew_Reference",[]];
-if (count _crewReference == 5) then {
+{
+    private _crewReference=_x;
     private _crewBattery=_crewReference select 0;
     if (!isNull _crewBattery && {local _crewBattery} && {local _group}) then {
         private _executor=_crewBattery getVariable ["CBE_ArtilleryCrew_FSM",[]];
@@ -815,7 +816,7 @@ if (count _crewReference == 5) then {
             [_crewBattery,_crewReference select 1,_crewReference select 2] call CBE_fnc_ArtilleryCrewMoveRetire;
         };
     };
-};
+} forEach ([_group,"LIST"] call CBE_fnc_ArtilleryCrewReservation);
 
 // A pending shoot-and-scoot request is durable, but its queued callback belonged to the old owner.
 // Resume it only after calm restoration has removed the old owner's waypoint and transient state;

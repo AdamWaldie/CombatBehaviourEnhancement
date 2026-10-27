@@ -1111,6 +1111,7 @@
         "addons/infantry/functions/cortexSpotterFix.sqf",
         "addons/support/functions/cortexArtilleryPosition.sqf",
         "addons/support/functions/cortexArtilleryPositionReport.sqf",
+        "addons/support/functions/artilleryCrewReservation.sqf",
         "addons/support/functions/artilleryCrewMoveStart.sqf",
         "addons/support/functions/artilleryCrewMoveStep.sqf",
         "addons/support/functions/artilleryCrewMoveRetire.sqf",

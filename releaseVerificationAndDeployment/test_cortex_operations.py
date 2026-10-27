@@ -7117,7 +7117,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(_state getOrDefault ["phase",""]) == "CONTACT"',tick)
         self.assertIn('"movementLease"',restore)
         self.assertIn('private _groupMovementOwned = _crewMovementReserved || {count _movementLease == 2',tick)
-        self.assertIn('private _crewMovementReserved=(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo []',tick)
+        self.assertIn('private _crewMovementReserved=(_group getVariable ["CBE_ArtilleryCrew_Reservations",[]]) isNotEqualTo []',tick)
         dispatch=tick.split('private _groupMovementOwned =',1)[1].split('if (!_groupMovementOwned',1)[0]
         self.assertIn('case "VEHICLE_ORIENT": {true}',dispatch)
         self.assertNotIn('CBE_Danger_VehicleOrient',dispatch)

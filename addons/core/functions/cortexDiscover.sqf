@@ -107,8 +107,8 @@ if (_tacticalReference isEqualType [] && {count _tacticalReference == 5}) then {
 
 // Retire only the original selected-gun journal when its owner-local executor ended or
 // crossed this epoch. A live current worker is left alone; this does not cancel an active fire.
-private _crewReference=_group getVariable ["CBE_ArtilleryCrew_Reference",[]];
-if (count _crewReference == 5) then {
+{
+    private _crewReference=_x;
     private _crewBattery=_crewReference select 0;
     if (!isNull _crewBattery && {local _crewBattery} && {local _group}) then {
         private _executor=_crewBattery getVariable ["CBE_ArtilleryCrew_FSM",[]];
@@ -121,7 +121,7 @@ if (count _crewReference == 5) then {
             [_crewBattery,_crewReference select 1,_crewReference select 2] call CBE_fnc_ArtilleryCrewMoveRetire;
         };
     };
-};
+} forEach ([_group,"LIST"] call CBE_fnc_ArtilleryCrewReservation);
     if (_groundEligible) then {
         [_group] call CBE_fnc_CortexHearingLocal;
         [_group] call CBE_fnc_DangerSetup;

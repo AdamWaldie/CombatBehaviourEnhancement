@@ -52,11 +52,14 @@ isNil {
             if !(_work isEqualType createHashMap) exitWith {false};
             private _group=_work getOrDefault ["group",grpNull];
             private _reference=_work getOrDefault ["reference",[]];
+            private _referenceCurrent=if (_referenceKey == "CBE_ArtilleryCrew_Reservations") then {
+                [_group,"CHECK",_reference] call CBE_fnc_ArtilleryCrewReservation
+            } else {(_group getVariable [_referenceKey,[]]) isEqualTo _reference};
             if (isNull _group || {!local _group} || {count _reference != 5}
                 || {(_reference select 0) isNotEqualTo _battery}
                 || {(_work getOrDefault ["owner",-1]) != (_reference select 4)}
                 || {(_reference select 3) != (_work getOrDefault ["epoch",-1])}
-                || {(_group getVariable [_referenceKey,[]]) isNotEqualTo _reference}) exitWith {false};
+                || {!_referenceCurrent}) exitWith {false};
             private _crew=_work getOrDefault ["crew",[]];
             if (!(_crew isEqualType []) || {count _crew != 2}
                 || {_crew findIf {!(_x isEqualType objNull)} >= 0}) exitWith {false};
@@ -91,8 +94,11 @@ isNil {
             || {!finite (_data select 2)} || {(_data select 2) != (_watch select 6)}
             || {!local _battery}) exitWith {false};
         _watch params ["_reference","_group","_workKey","_referenceKey","_leaseOwner","_publicLease"];
-        if (isNull _group || {!local _group}
-            || {(_group getVariable [_referenceKey,[]]) isNotEqualTo _reference}) exitWith {false};
+        private _artillery=_referenceKey == "CBE_ArtilleryCrew_Reservations";
+        private _referenceCurrent=if (_artillery) then {
+            [_group,"CHECK",_reference] call CBE_fnc_ArtilleryCrewReservation
+        } else {(_group getVariable [_referenceKey,[]]) isEqualTo _reference};
+        if (isNull _group || {!local _group} || {!_referenceCurrent}) exitWith {false};
         private _work=_battery getVariable [_workKey,createHashMap];
         if (!(_work isEqualType createHashMap)
             || {(_work getOrDefault ["reference",[]]) isNotEqualTo _reference}
@@ -108,18 +114,20 @@ isNil {
         private _currentPublicLease=_group getVariable ["CBE_Cortex_MovementLease",[]];
         private _leaseStillOurs=_currentPublicLease isEqualTo []
             || {_publicLease isNotEqualTo [] && {_currentPublicLease isEqualTo _publicLease}};
-        if (_publicLease isNotEqualTo [] && {_currentPublicLease isEqualTo _publicLease}) then {
+        if (!_artillery && {_publicLease isNotEqualTo []} && {_currentPublicLease isEqualTo _publicLease}) then {
             [_group,_leaseOwner,false] call CBE_fnc_CortexOwnershipLease;
         };
         private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
-        if (_leaseStillOurs
+        if (!_artillery && {_leaseStillOurs}
             && {(_state getOrDefault ["movementLease",[]]) isEqualTo (_work getOrDefault ["localLease",["UNKNOWN"]])}) then {
             _state deleteAt "movementLease";
         };
         private _terminal=+_work;
         _terminal set ["phase","RETIRED"];_terminal set ["result",_reason];
         _battery setVariable [_workKey,_terminal];
-        _group setVariable [_referenceKey,nil,true];
+        if (_artillery) then {
+            [_group,"REMOVE",_reference] call CBE_fnc_ArtilleryCrewReservation;
+        } else {_group setVariable [_referenceKey,nil,true]};
         _group setVariable ["CBE_VehicleCrewMove_DeletionResult",[_reference select 1,_reference select 2,
             _reason,serverTime],true];
         if (_leaseStillOurs && {"operationGeneration" in _work}) then {

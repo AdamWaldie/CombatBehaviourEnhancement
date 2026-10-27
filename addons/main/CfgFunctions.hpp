@@ -289,6 +289,7 @@ class CfgFunctions {
             class ArtilleryMissionStart {file = "\z\cbe\addons\support\functions\artilleryMissionStart.sqf";};
             class ArtilleryMissionQueue {file = "\z\cbe\addons\support\functions\artilleryMissionQueue.sqf";};
             class ArtilleryMissionStep {file = "\z\cbe\addons\support\functions\artilleryMissionStep.sqf";};
+            class ArtilleryCrewReservation {file = "\z\cbe\addons\support\functions\artilleryCrewReservation.sqf";};
             class ArtilleryCrewMoveStart {file = "\z\cbe\addons\support\functions\artilleryCrewMoveStart.sqf";};
             class ArtilleryCrewMoveStep {file = "\z\cbe\addons\support\functions\artilleryCrewMoveStep.sqf";};
             class ArtilleryCrewMoveRetire {file = "\z\cbe\addons\support\functions\artilleryCrewMoveRetire.sqf";};

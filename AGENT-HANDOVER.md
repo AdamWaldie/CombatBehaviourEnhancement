@@ -1,3 +1,21 @@
+## 2026-10-27: same-group selected-gun reservation lifecycle
+
+Basef0899f6a. Implemented bounded per-gun reservations under the existing artillery movement domain: one exact reference/original deadline per gun, group-wide deletion-safe serials, first-gun ordinary-driving handback, peer-only aggregate lease, and exact removal through normal retirement, passive proof, deletion, locality and shutdown. Scoot waits only for its own prefire entry. No group split/waypoint or new native movement/controller/settings/module.
+
+existing selected-crew FSM, original actors, deadlines and destination/Zeus/external guards retained. Typed/malformed/newer ownership refuses old writes. unresolved entries keep the domain reserved.
+
+Full1497tests/447SQF/11PBO and independent verify passed. Candidate .qa/candidates/artillery-peer-f0899f6a fingerprint6c6101719d1b87c57170e17bcef124f5b259f0ff07a0e0caeb257d457c816d3e. logs .qa/handovers/artillery-peer-build-f0899f6a.log and artillery-peer-independent.log. Unsigned dirty development from base plus runtime patch.
+
+engineering notes postdate package. Initial focused stale generic-source assertion and full-run16 local temp access errors/missing coverage registration are recorded in the existing selected-crew review. final complete rerun passed, no test-count increase.
+
+Physical peer travel/formation effects, firing/handback, death/deletion/repeat, normal/HC/JIP/Zeus and measured performance remain UNRUN. Original idle/formation continuation and terminal native uncertainty remain open. Do not call this whole Protocol artillery parity. See referenceReviews/artillery-selected-crew-20261025.json#peerReservationsImplementation20261027 and protocol-implementation-programme-20261020.json.
+
+source-review-map.json updated. Audits PAUSED. no Arma launch or installed-game staging. Goal ACTIVE/INCOMPLETE.
+
+Working directory C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks. branch Adam/cbe-recovery-followup-20261026, PR19 open draft. Preserve unrelated dirt, WMP checkout, Workshop E:/SteamLibrary/steamapps/workshop/content/107410, game E:/SteamLibrary/steamapps/common/Arma 3, PinnedDown C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708, register backup and permanent signing pair. Follow IMPLEMENTATION-GOAL.md: source register, LAMBS/HBQ FSM foundations, then individuals/pairs/squads/combined arms and complete Protocol capability intent.
+
+Continue a specific required unresolved source/behaviour path. do not repeat completed reviews or invent a provider handover from inactivity/expired timers. No merge/publication/manual CI.
+
 ## 2026-10-27: walking-garrison detour progress and building source review
 
 Baseb3edc00e. GarrisonApplyLocal now observes2m actual3D displacement from its existing motion anchor rather than radial destination-distance gain. Owned native stair/door detours can continue without false stall retries. Existing12s no-motion timer, two retries/entrance/reassignment bounds, physical arrival locks and original public deadline unchanged. Circling may consume more of that fixed budget; movement is not arrival. No new field/worker/query/setting/timer.

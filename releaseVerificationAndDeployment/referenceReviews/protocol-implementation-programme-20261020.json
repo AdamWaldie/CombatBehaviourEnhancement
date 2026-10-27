@@ -163,7 +163,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-artillery-3801354927-20261020.json",
-      "remaining": "Selected mixed-group pre/postfire movement source is integrated; true same-group peer concurrency, terminal unknown/casualty and original idle/formation continuation remain code/evidence gaps. Physical firing/scoot/counter-battery, normal/HC/JIP/Zeus and performance remain unverified. Reuse licensing remains separate.",
+      "remaining": "Selected mixed-group pre/postfire movement and bounded per-gun same-group reservations are integrated in source. Physical peer movement/formation interaction, terminal unknown/casualty recovery and original idle/formation continuation remain code/evidence gaps. Physical firing/scoot/counter-battery, normal/HC/JIP/Zeus and performance remain unverified. Reuse licensing remains separate.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
@@ -204,6 +204,11 @@
       "dismountedOriginalStop20261026": {
         "review": "selected-dismounted-stop-retirement-20261026.json",
         "scope": "Passive exact-worker retirement permits dismounted original survivors with newer native STOP and individual rest. No command, replacement adoption or group split; general supersession and physical acceptance remain incomplete."
+      },
+      "peerReservations20261027": {
+        "review": "artillery-selected-crew-20261025.json#peerReservationsImplementation20261027",
+        "status": "IMPLEMENTED_SOURCE_OFFLINE_CHECKED_PHYSICAL_UNVERIFIED",
+        "scope": "Exact per-gun reservations and aggregate lease across admission/HOLD/retirement/locality/stop/deletion; no added movement owner or group-membership change."
       }
     },
     {

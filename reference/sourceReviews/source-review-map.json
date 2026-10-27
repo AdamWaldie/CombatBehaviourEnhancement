@@ -115,7 +115,7 @@
       "priority": "1 Protocol programme",
       "candidateContribution": "Battery positioning, fire response and counter-battery",
       "reviewStatus": "Readable scripts reviewed; integration/scope gaps remain",
-      "nextSourceReview": "Complete source-to-selected-crew execution mapping; preserve mixed-group membership and unrelated infantry orders.",
+      "nextSourceReview": "Bounded per-gun reservations integrated; see artillery-selected-crew-20261025.json#peerReservationsImplementation20261027. Original idle/formation continuation and positive terminal-native recovery remain open. Physical peer travel/formation/firing/handback and measured cost require a later authorised audit; do not repeat the completed singleton trace.",
       "recordedImplementationStatus": "READABLE_SCRIPTS_REVIEWED_PARTIAL_INTENT_PATHS",
       "recordedRemaining": "Pre-fire positioning integrated for independent mobile battery groups with bounded native proposals and authenticated arrival/HOLD; mixed-group positioning and physical firing/scoot/counter-battery validation remain. Binary startup/dependencies/licence remain unverified.",
       "implementationAssessmentCommit": "ca778db2",
@@ -123,7 +123,7 @@
       "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "programmeStatus": "SELECTED_PREFIRE_AND_POSTFIRE_CREW_FSM_INTEGRATED_OFFLINE_PHYSICAL_PENDING",
-      "programmeRemaining": "Selected mixed-group pre/postfire movement source is integrated; true same-group peer concurrency, terminal unknown/casualty and original idle/formation continuation remain code/evidence gaps. Physical firing/scoot/counter-battery, normal/HC/JIP/Zeus and performance remain unverified. Reuse licensing remains separate.",
+      "programmeRemaining": "Selected mixed-group pre/postfire movement and bounded per-gun same-group reservations are integrated in source. Physical peer movement/formation interaction, terminal unknown/casualty recovery and original idle/formation continuation remain code/evidence gaps. Physical firing/scoot/counter-battery, normal/HC/JIP/Zeus and performance remain unverified. Reuse licensing remains separate.",
       "installedDirectoryObservation": {
         "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3801354927",
         "present": true,

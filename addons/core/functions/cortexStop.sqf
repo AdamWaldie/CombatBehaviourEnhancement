@@ -296,13 +296,13 @@ if (!isNil "_civilianCreated") then {
         };
     } forEach ((units _stoppingGroup) select [0,64]);
     // Rebind retirement only AFTER the controlled epoch edge. No outward leg resumes.
-    private _crewReference=_stoppingGroup getVariable ["CBE_ArtilleryCrew_Reference",[]];
-    if (local _stoppingGroup && {count _crewReference == 5}) then {
+    {
+        private _crewReference=_x;
         private _crewBattery=_crewReference select 0;
-        if (!isNull _crewBattery && {local _crewBattery}) then {
+        if (local _stoppingGroup && {!isNull _crewBattery} && {local _crewBattery}) then {
             [_crewBattery,_crewReference select 1,_crewReference select 2] call CBE_fnc_ArtilleryCrewMoveRetire;
         };
-    };
+    } forEach ([_stoppingGroup,"LIST"] call CBE_fnc_ArtilleryCrewReservation);
     private _tacticalReference=_stoppingGroup getVariable ["CBE_VehicleTacticalMove_Reference",[]];
     if (local _stoppingGroup && {_tacticalReference isEqualType []} && {count _tacticalReference == 5}) then {
         private _tacticalPlatform=_tacticalReference param [0,objNull,[objNull]];
