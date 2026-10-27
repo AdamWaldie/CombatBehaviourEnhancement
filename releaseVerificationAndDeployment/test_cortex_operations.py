@@ -7975,6 +7975,11 @@ class CortexOperations(unittest.TestCase):
 
     def test_garrison_recovery_does_not_require_finished_move(self):
         text=source('cortexGarrisonApplyLocal')
+        self.assertIn('_lastPosition vectorDistance (getPosATL _x) >= 2',text)
+        self.assertNotIn('(_lastPosition vectorDistance _target)-((getPosATL _x) vectorDistance _target)',text)
+        self.assertLess(text.index('if (serverTime > (_job get "deadline"))'),text.index('_lastPosition vectorDistance (getPosATL _x) >= 2'))
+        self.assertIn('_route set [2,getPosATL _x]; _route set [3,time]',text)
+        self.assertIn('[_x,_assignment] call _assignmentArrived',text)
         self.assertIn('time-_lastProgress >= 12',text)
         self.assertIn('_retries < 2',text)
         self.assertIn('_x doMove _target',text)

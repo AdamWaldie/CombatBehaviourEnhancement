@@ -26,6 +26,16 @@
     "functions/bootstrap/fn_preInit.sqf",
     "functions/bootstrap/fn_start.sqf",
     "functions/bootstrap/fn_stop.sqf",
+    "functions/buildings/fn_cachedBuildingPositions.sqf",
+    "functions/buildings/fn_canIdleGarrison.sqf",
+    "functions/buildings/fn_coordinateBuildingClear.sqf",
+    "functions/buildings/fn_coordinateGarrison.sqf",
+    "functions/buildings/fn_findGarrisonPositions.sqf",
+    "functions/buildings/fn_findThreatBuilding.sqf",
+    "functions/buildings/fn_getBuildingPlan.sqf",
+    "functions/buildings/fn_releaseBuildingPlan.sqf",
+    "functions/buildings/fn_updateBuildingState.sqf",
+    "functions/buildings/fn_updateGarrisonState.sqf",
     "functions/hazards/fn_findEvasionPosition.sqf",
     "functions/hazards/fn_reactToHazard.sqf",
     "functions/hazards/fn_registerProjectile.sqf",
@@ -36,6 +46,7 @@
     "functions/registry/fn_discoverUnits.sqf",
     "functions/registry/fn_registerUnit.sqf",
     "functions/registry/fn_unregisterUnit.sqf",
+    "functions/scheduler/fn_maintenance.sqf",
     "functions/scheduler/fn_tick.sqf",
     "functions/state/fn_acquireMovementControl.sqf",
     "functions/state/fn_beginState.sqf",
@@ -160,43 +171,43 @@
     },
     "functions/buildings/fn_cachedBuildingPositions.sqf": {
       "sha256": "a84ef0b0fb26a53279b478d4714d41d926e20e24b4d156d90c5a44f2d35f5851",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/buildings/fn_canIdleGarrison.sqf": {
       "sha256": "de36ca9427b763d106017d265184da200f9274d6b33ff1fe1ff88d8505973378",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/buildings/fn_coordinateBuildingClear.sqf": {
       "sha256": "421fc861cea5480f9f4d51e6e1e170dab0a58ccb853528e39f64fdcc4463a175",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/buildings/fn_coordinateGarrison.sqf": {
       "sha256": "d673809c71b132f06a207cf861ddb2bae2eddc70c8461d76dce4135ac437db89",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/buildings/fn_findGarrisonPositions.sqf": {
       "sha256": "d35a4b5d9b7008de1b7284586cb87ce74d833c422dd6b0c5a41fc3fa1f4dc071",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/buildings/fn_findThreatBuilding.sqf": {
       "sha256": "48e6cd44c1f5abe317f6c0b2c204aaeeb0a6d5974020ac4ec1f2383030b6638a",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/buildings/fn_getBuildingPlan.sqf": {
       "sha256": "cc96e05afeec4f352444b921a0a91e870e395a9431ecd281b6083cab4bcc631f",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/buildings/fn_releaseBuildingPlan.sqf": {
       "sha256": "d088301d951ac20beceabfedf0a1445a0dd9c82afd4ee0d27c069225f6a178a6",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/buildings/fn_updateBuildingState.sqf": {
       "sha256": "180474a2e38af8bafb2b507f404c7a2d9c4ed39b6d3b3f079f0d5b6d6c5dde34",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/buildings/fn_updateGarrisonState.sqf": {
       "sha256": "ba9eab88eb9fcf3a1b2a733af3909ba802cef1e83dcdaf0644747bed9a953e97",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/contacts/fn_hasContactLink.sqf": {
       "sha256": "a80170ed3973f0a00c94397c7788edf14e435d71307aa347161712fb605c9722",
@@ -432,7 +443,7 @@
     },
     "functions/scheduler/fn_maintenance.sqf": {
       "sha256": "e169100abcd85f71a92c5ed46668024100dd1d86c5fcd3cf225c44acfbb8e421",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/scheduler/fn_processUnit.sqf": {
       "sha256": "049abd17daab60c223b994399fb838d4ca4cdd1f9824ce4823e7e4a749eee634",
@@ -677,13 +688,13 @@
     },
     "result": "Existing CBE selected paths retain original expiry/generation/owner policy and FiredMan evidence rather than adding this source state controller. Source-specific unique reaction, hazard, support, medical, logistics, building and coordination methods remain to be examined in their actual bodies."
   },
-  "nextConcreteWork": "Continue actual feature callers/cleanup: maintenance and state-owning hazard/contact/building task paths, selecting concrete unique behaviour gaps against current CBE owners. Bootstrap/registry/state/hazard bodies listed complete need no repeated review without change. Physical multi-actor grenade escape, indoor/floor/bridge routing, repeated/cross-grenade cases and measured cost remain pending under audit pause.",
+  "nextConcreteWork": "Continue unread actual feature callers/settings and group cleanup methods or select another concrete registered gap; building/garrison readable helpers listed complete need no repetition without change. Quiet shelter/failed-position reuse remain candidates, not automatic defaults. Physical detours versus circling, native/placed/modded CQB flow, casualty/isolation/egress/repeat and measured cost remain pending under audit pause.",
   "validation": {
     "runtimeChanged": true,
     "audits": "PAUSED",
     "packageRebuilt": true,
     "implementationReassessedByThisMap": false,
-    "boundary": "Listed source bodies only. Finite CBE endpoint-allocation improvement offline verified; no whole-mod parity/percentage or physical/performance acceptance."
+    "boundary": "Listed source bodies only. Endpoint-allocation and garrison-motion changes offline verified; no whole-mod parity/percentage or physical/performance acceptance."
   },
   "bootstrapRegistryHazards20261027": {
     "sourceBase": "1b5db62227d092ebe1a2b7b3bb5c6aac0c95f4f4",
@@ -723,6 +734,48 @@
       "candidate": ".qa/candidates/grenade-endpoint-spacing-1b5db622",
       "fingerprint": "e43a61b2e4d58cc64d7816eb416b0222b61d05e0f4f60dde4c1def88cfe38ff4",
       "independentLog": ".qa/handovers/grenade-endpoint-spacing-independent.log",
+      "physicalAcceptance": false
+    }
+  },
+  "buildingAndGarrisonReconciliation20261027": {
+    "baseCommit": "b3edc00efd2ff95198a18ef1aafa6d13fab0ccbe",
+    "scope": "Full readable10 building/garrison helpers and scheduler maintenance. Building settings/defaults and downstream fire-focus/suppression helpers remain unread. CBE comparison selected current actor availability/casualty identity, room occupancy and completion regions of BuildingOperationStep and topology/progress/retry regions of GarrisonApplyLocal; not whole CBE CQB proof.",
+    "findings": [
+      "Threat-building admission uses a living known visible hostile and nearby native building positions, rather than explicit room/door modelling. Building plan orders native positions by horizontal distance with floor-height penalty and chunks them by team size. It does not establish connected rooms, real entrances, accessibility or hostile room safety.",
+      "Clearing assigns a configured small assault subset and watch-only support sectors to other actors; support is not physically moved into exterior isolation. Loss/nonlocality/interruption of any assaulter cancels the source plan rather than filling the slot. Do not import as a solution to CBE stragglers or casualty reinforcement.",
+      "Stage advancement accepts a configurable required fraction of actors and can advance after timeout with partial arrival. Consequently building route complete is not evidence that every assigned point was visited. CBE complete/entry/egress and per-point evidence remain independent.",
+      "Source building cache compares position/direction and a60-second lifetime but not pitch/roll/scale. Group garrison candidate cache can persist despite building transform changes until its own expiry. Keep CBE transform/physical-arrival identity; no universal placed-building accessibility inference.",
+      "Garrison ranks bounded building/post pools, remembers at most8 failed positions for90seconds and may shelter a small subset of an idle quiet stationary group. Quiet shelter and failure quarantine are candidate contributions still to reconcile, not implemented by this review.",
+      "Source garrison uses3D arrival/floor/roof evidence and tracks actual0.5m displacement so stairs/door detours need not reduce radial distance. It also reissues doMove every4seconds while the plan is active; that recurring writer and fixed thresholds are not copied.",
+      "Source release iterates current group members and ends matching building state names, then clears plan variables. It does not generally prove each actor still owns the same native leg before broader state cleanup; CBE exact actor/native/task restoration remains necessary."
+    ],
+    "existingCbe": {
+      "casualtyAndRoles": "Selected current availability/casualty receipt and active pair-room occupancy paths retain actor identity, known casualty proof and floor-aware target separation. Extensive current CBE clearance roles already exist; their presence is not physical acceptance.",
+      "completion": "CBE COMPLETE requires all recorded positions plus no entry/egress failure in the inspected finish condition. A native position visit still does not establish hostile room safety.",
+      "scopeBoundary": "Do not claim source parity or reliable entry/flow from selected code comparison."
+    },
+    "remaining": "Other actual feature callers/settings and group release writers; idle shelter/failure quarantine selection; dynamic native/placed/modded building accessibility, casualty refill/isolation/egress and repeated physical CQB/performance validation."
+  },
+  "garrisonDetourProgressImplementation20261027": {
+    "sourceIntent": "Observe genuine native detour travel instead of requiring straight-line improvement toward a room/window post.",
+    "defect": "Existing GarrisonApplyLocal subtracted current destination distance from distance at the last sample. Walking around a wall or stairwell can increase that radial distance and trigger retries while the owned native leg is still moving.",
+    "change": "Use displacement from the existing3D lastPosition anchor at the existing2m threshold. Update only the existing route motion/progress fields. Preserve12-second no-motion timer, two retries, entrance/reassignment bounds, original public deadline and physical GarrisonArrived locks.",
+    "tradeoff": "Lateral circling can defer a stall retry until the original public deadline instead of an earlier radial-nonprogress retry. It never proves useful progress, extends that deadline or credits arrival. No extra active-path doMove cadence is copied from the source.",
+    "cost": "Replace two vector distances with one inside the existing callback. No new field, query, worker, setting or timer. Measured cost remains unverified.",
+    "runtimeHashes": {
+      "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "2491584bfa15343151dbe348aa7abac4a484016f0809cd975dc1fbd0fef7e80a"
+    },
+    "checks": {
+      "existingTestsExtended": [
+        "test_garrison_recovery_does_not_require_finished_move"
+      ],
+      "offlineTests": 1497,
+      "compiledSqf": 446,
+      "pbos": 11,
+      "fullBuildLog": ".qa/handovers/garrison-motion-progress-b3edc00e.log",
+      "candidate": ".qa/candidates/garrison-motion-progress-b3edc00e",
+      "fingerprint": "528d4be62335891186f52685b25770f3cd6134a61db4e18b4e721981a02ee5bf",
+      "independentLog": ".qa/handovers/garrison-motion-progress-independent.log",
       "physicalAcceptance": false
     }
   }

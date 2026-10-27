@@ -115,6 +115,8 @@ Active operation FSMs check cached Zeus-order markers and external ownership bef
 
 Aircraft attack admission requires positive fuel and native mobility before starting a new flight lease/FSM. Existing attacks retain their lifecycle so loss of readiness reaches exact owned cleanup; they stop planning on `AIRFRAME_UNAVAILABLE`, and later command boundaries recheck the same readiness. This releases attack control without issuing a recovery route, crew-follow order, repair or ejection. Native mobility is a conservative attack veto, not proof of safe landing or recovery. Physical abort/handback, modded airframes and runtime cost remain unverified while audits are paused.
 
+Walking garrison measures three-dimensional travel for its existing stall timer, so stairs and doorway detours can continue even when straight-line distance to the post temporarily increases. The original public deadline and retry/reassignment limits remain unchanged. Motion does not prove useful progress or arrival; the existing physical post checks still decide when PATH may be held. Circling can consume the remaining original budget before failure, and engine path quality remains unverified.
+
 An artillery order already accepted by the engine is treated separately. CBE stops issuing new fire or relocation commands when eligibility changes, but retains the bounded uncertain-shot record until the engine confirms the shot or its quarantine expires. This bookkeeping does not own movement or block a newer Zeus order; it prevents an unconfirmed shot from being retried.
 
 Every scheduler-backed operation FSM has a fifteen-second starvation watchdog while a due callback is pending.
