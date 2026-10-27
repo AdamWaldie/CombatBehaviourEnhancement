@@ -17,11 +17,24 @@
   },
   "reviewedFullBodies": [
     "XEH_postInit.sqf",
+    "config.cpp",
     "functions/actions/fn_hearGunfire.sqf",
     "functions/actions/fn_observeGunfire.sqf",
     "functions/actions/fn_recordGunfire.sqf",
+    "functions/bootstrap/fn_log.sqf",
+    "functions/bootstrap/fn_postInit.sqf",
+    "functions/bootstrap/fn_preInit.sqf",
+    "functions/bootstrap/fn_start.sqf",
+    "functions/bootstrap/fn_stop.sqf",
+    "functions/hazards/fn_findEvasionPosition.sqf",
+    "functions/hazards/fn_reactToHazard.sqf",
+    "functions/hazards/fn_registerProjectile.sqf",
+    "functions/hazards/fn_updateHazardState.sqf",
     "functions/policy/fn_hasMissionOrders.sqf",
     "functions/policy/fn_isEligible.sqf",
+    "functions/registry/fn_addUnitHandlers.sqf",
+    "functions/registry/fn_discoverUnits.sqf",
+    "functions/registry/fn_registerUnit.sqf",
     "functions/registry/fn_unregisterUnit.sqf",
     "functions/scheduler/fn_tick.sqf",
     "functions/state/fn_acquireMovementControl.sqf",
@@ -30,8 +43,7 @@
     "functions/state/fn_endState.sqf",
     "functions/state/fn_getState.sqf",
     "functions/state/fn_releaseMovementControl.sqf",
-    "functions/state/fn_updateState.sqf",
-    "config.cpp"
+    "functions/state/fn_updateState.sqf"
   ],
   "partialBodies": {
     "cfgFunctions.hpp": "First55lines registration; remaining registration unread",
@@ -128,23 +140,23 @@
     },
     "functions/bootstrap/fn_log.sqf": {
       "sha256": "24ab9e59dc6d0373917423406e9372999b2da30216e90d9709135a1ea2625d72",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/bootstrap/fn_postInit.sqf": {
       "sha256": "1e7a1e7ea5701799b6e009de0c8012a04b5d32b17ae5d8fe8a54e91f43880a8d",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/bootstrap/fn_preInit.sqf": {
       "sha256": "1ebbafc12c15d31ff7188863618d482d448a4b99ae970b549e4b313a7347816c",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/bootstrap/fn_start.sqf": {
       "sha256": "2de44e1a5cc4913bbb000c7e1c97ab26e12d6705fafaf6d402d6db6920ca92f3",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/bootstrap/fn_stop.sqf": {
       "sha256": "f8015c4819c8f05973f896316dfefd2d8eddd82f7cf6a55f005996c13e2f37c7",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/buildings/fn_cachedBuildingPositions.sqf": {
       "sha256": "a84ef0b0fb26a53279b478d4714d41d926e20e24b4d156d90c5a44f2d35f5851",
@@ -276,19 +288,19 @@
     },
     "functions/hazards/fn_findEvasionPosition.sqf": {
       "sha256": "d54f26b248878c0e8bbb0cd0b50cf9bbfa69474a60f9bd017c3b61c0fccb84e1",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/hazards/fn_reactToHazard.sqf": {
       "sha256": "0aa116491e191a61776a26189bc4413d5856df7acd5a3fd3bd2e4f44a9250966",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/hazards/fn_registerProjectile.sqf": {
       "sha256": "e2e0be2f45578d0744311093d683352b21a395e959e91b0a9873330861f831b9",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/hazards/fn_updateHazardState.sqf": {
       "sha256": "17d744dc14e4542df6aa2981ad6740161e3c810c80f6df69cd1a6ad4503618a2",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/logistics/fn_coordinateResupply.sqf": {
       "sha256": "1803fc033ba10a32824ea0616464106a4b43dd055df82dd8c12a55450aff2785",
@@ -404,15 +416,15 @@
     },
     "functions/registry/fn_addUnitHandlers.sqf": {
       "sha256": "939439b5964ad616fe44fb926df74cd5be3004fcf6beb7ce601ca1932059acdc",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/registry/fn_discoverUnits.sqf": {
       "sha256": "b040c62375939e64ad570c96fdc181a276ff80666b10b698a5ffbb2392908b1b",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/registry/fn_registerUnit.sqf": {
       "sha256": "9400a6cda3c1daca3381d1b456f5c72391d50223d98ed935f661a3a84b309f70",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/registry/fn_unregisterUnit.sqf": {
       "sha256": "4f6510ecd7b91bfea6ecfacf00ac4e5a2738f1e5342baf322e08b6dc2be50d30",
@@ -665,12 +677,53 @@
     },
     "result": "Existing CBE selected paths retain original expiry/generation/owner policy and FiredMan evidence rather than adding this source state controller. Source-specific unique reaction, hazard, support, medical, logistics, building and coordination methods remain to be examined in their actual bodies."
   },
-  "nextConcreteWork": "Trace source bootstrap/registry Local/EH removal and movement-owning callers of the reviewed state helpers. Then evaluate hazard, contact/gunfire and building/task descendants for unique useful decisions against existing CBE owners. Preserve foundations-first; do not import all143files or score inventory as implemented behaviour.",
+  "nextConcreteWork": "Continue actual feature callers/cleanup: maintenance and state-owning hazard/contact/building task paths, selecting concrete unique behaviour gaps against current CBE owners. Bootstrap/registry/state/hazard bodies listed complete need no repeated review without change. Physical multi-actor grenade escape, indoor/floor/bridge routing, repeated/cross-grenade cases and measured cost remain pending under audit pause.",
   "validation": {
-    "runtimeChanged": false,
+    "runtimeChanged": true,
     "audits": "PAUSED",
-    "packageRebuilt": false,
+    "packageRebuilt": true,
     "implementationReassessedByThisMap": false,
-    "boundary": "Only listed bodies reviewed; remaining source queue explicit. No whole-mod parity/percentage, in-engine or performance acceptance. Previous5ac826a9 candidate unchanged."
+    "boundary": "Listed source bodies only. Finite CBE endpoint-allocation improvement offline verified; no whole-mod parity/percentage or physical/performance acceptance."
+  },
+  "bootstrapRegistryHazards20261027": {
+    "sourceBase": "1b5db62227d092ebe1a2b7b3bb5c6aac0c95f4f4",
+    "scope": "Full readable bootstrap5, registry4(including previously read unregister) and hazards4 bodies. Settings/default registration bodies, maintenance, group release descendants and other feature callers remain unread.",
+    "findings": [
+      "Bootstrap starts on server and noninterface machines. Discovery appends allUnits and registers only eligible local units; this is periodic discovery, not a strictly event-only registry. Actor Local handlers queue gain/unregister loss; new local registration resets local state to idle rather than proving continuation of the old task.",
+      "Stop removes mission handlers, sound FiredMan handlers, global hazard/report arrays and unregisters managed units. The6 per-unit reaction/locality handlers are retained under a per-machine handlersOwner guard, not removed by unregister/stop. Most reactions guard registered/local state; dependent group release helpers still need their own ownership/body review. No claim that stop is an all-writer quiescence acknowledgement.",
+      "Suppressed/Hit store live attacker getPosATL rather than a sensed belief; do not import as hidden enemy contact evidence. Native AmmoExplodedNear records actual local blast position with a short age bound.",
+      "Hazard registration caches grenade/shell class facts, requires a positive timeToExplosion, caps registry128 and checks nearby projectile sight before a delayed reaction. Skill/suppression/injury affect latency. This is useful perception/fuse intent; getShotInfo index2 confirmed against official command documentation, not effective projectile lifetime.",
+      "Evasion uses9 bounded candidate headings, reserved squad endpoints, increased hazard distance, water/slope/occupancy checks and sparse path/screening rays. It resets candidate height toground and uses linear projectile prediction capped0.6s without collision/gravity; do not claim native indoor/ballistic-path accuracy.",
+      "React forces MOVE/TARGET/AUTOTARGET/posture/speed changes after state admission. updateHazardState can issue STOP/posture before the general updateState performs mission-order/timeout checks. CBE retains original actor/task authority instead of importing this extra writer."
+    ],
+    "commandReference": "https://community.bistudio.com/wiki/getShotInfo",
+    "selectedContribution": "Avoid giving multiple immediate-hazard responders the same cover/escape destination; retain CBE single-grenade finite job and existing actor reservation/cleanup rather than source global per-actor hazard loop.",
+    "remaining": "Predictive visible fuse-aware hazard selection, obstacle/floor-aware escape, legitimate emergency interruption and full feature-caller/cleanup reconciliation remain separate gaps; no whole source parity."
+  },
+  "grenadeEndpointSeparationImplementation20261027": {
+    "sourceIntent": "Source findEvasionPosition rejects points already reserved for hazard responders. Adapt that intent inside the existing CBE event job, without copying source code or replacing state ownership.",
+    "defect": "CortexGrenadeCheck passed[] reserved positions into every FindCover call, despite retaining issued destinations in regroupActors. FindCover could repeatedly select one post and its unscreened seed fallback bypassed reservation checks.",
+    "change": "Pass issued job endpoints into existing FindCover. Test returned point, original away seed and2 nearby away bearings against already-issued endpoints (2m horizontal spacing) and increased distance from observed grenade. Reject before support PATH hold mutation when no candidate qualifies. Preserve exact six-second actor lease, native clearance-return proposal and existing delayed regroup/ownership policy.",
+    "limits": "Endpoint separation within one local grenade job only; not actor-body/path clearance, collision avoidance, cross-grenade reservations, guaranteed blast cover, projectile-motion prediction or successful physical escape. No terrain-only selector added to misrepresent indoor floors/bridges as ground routing.",
+    "expectedCost": "Existing16-actor bound and one cover search per eligible reacting actor retained. Up to4 fallback candidates against at most15 previously issued points; extra reserved-distance checks in the existing bounded cover search. No additional world query, worker, timer, setting or global state. Actual cost unmeasured.",
+    "runtimeHashes": {
+      "addons/infantry/functions/cortexGrenadeCheck.sqf": "ad15cba09402f98a7c9e07d5d7fe3f644cb4d4c277bbd5dd26a2d67091b98c02",
+      "releaseVerificationAndDeployment/test_cortex_operations.py": "0a181a1e9daafbc7ca2ae984f59201158865c54d1f2783471f1a9ee896b6ef30"
+    },
+    "checks": {
+      "existingTestsExtended": [
+        "test_grenade_evasion_admission_and_cleanup_require_strict_ownership"
+      ],
+      "offlineTests": 1497,
+      "compiledSqf": 446,
+      "pbos": 11,
+      "fullBuildLog": ".qa/handovers/grenade-endpoint-spacing-1b5db622.log",
+      "finalPackagingLog": ".qa/handovers/grenade-endpoint-spacing-final-1b5db622.log",
+      "packagingNote": "Final packaging refresh followed a header-only correction: the9m seed is measured from each actor, not the grenade. Full tests already passed the identical runtime logic.",
+      "candidate": ".qa/candidates/grenade-endpoint-spacing-1b5db622",
+      "fingerprint": "e43a61b2e4d58cc64d7816eb416b0222b61d05e0f4f60dde4c1def88cfe38ff4",
+      "independentLog": ".qa/handovers/grenade-endpoint-spacing-independent.log",
+      "physicalAcceptance": false
+    }
   }
 }

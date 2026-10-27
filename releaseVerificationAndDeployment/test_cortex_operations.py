@@ -6626,6 +6626,13 @@ class CortexOperations(unittest.TestCase):
         admission=text.split('private _grenade =',1)[1]
         self.assertLess(admission.index('call CBE_fnc_CortexActorMoveReserved'),admission.index('_unit doMove _spot'))
         self.assertNotIn('count _actorMove != 3',admission)
+        self.assertIn('private _reserved=_regroupActors apply {+(_x select 2)};',admission)
+        self.assertIn('[_away,_grenadePos,6,_reserved,_group,"COVER",_unit]',admission)
+        self.assertIn('_reserved findIf {_x distance2D _candidate < 2} < 0',admission)
+        self.assertIn('_x distance2D _grenadePos > _originDangerDistance',admission)
+        self.assertIn('if (_free < 0) then {continue};',admission)
+        self.assertLess(admission.index('if (_free < 0)'),admission.index('_unit enableAI "PATH"'))
+        self.assertLess(admission.index('private _spot=+(_escapeCandidates select _free)'),admission.index('_unit doMove _spot'))
         cleanup=text.split('if (_regroup isNotEqualTo []) exitWith {',1)[1].split('private _grenade =',1)[0]
         self.assertIn('_actorMove isEqualTo ["GRENADE_EVASION",_spot,_expires]',cleanup)
         self.assertNotIn('(_actorMove select 1) distance2D',cleanup)
