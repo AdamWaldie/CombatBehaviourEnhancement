@@ -1797,5 +1797,28 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "pointReturnAcknowledgement20261027": {
+    "baseline": "f7e3871f15260387180d3252da5525568b94bc36",
+    "sourceReference": "LAMBS main UnitAction/fnc_doCheckBody.sqf; selected casualty-investigation intent adapted under the existing PointActor owner. No upstream code imported or executed.",
+    "sourceSHA256": "be58252ed15228047ec673df09a0f7d3642df372ed21504309b537d4c501433c",
+    "defect": "FINISH issued native doFollow then immediately cleared task journal, movement lease and group slot without observing native acknowledgement. Discovery can finish a late outbound request after the original FSM ended, making its ten-second interval insufficient to reliably sample a brief FOLLOW.",
+    "implementation": "Twelve-field public journal retains original generation, epoch, group, operation, deadline, route, goal and lease; final field stores once-issued return anchor and original result. Unsuspended publication precedes one doFollow to a distinct anchor. Exact native FOLLOW/formLeader or positive replacement permits metadata retirement. Self-anchor issues no FOLLOW and requires settled original point movement with matching destination, unitReady, rest and physical arrival. Unknown return remains reserved. Existing finite FSM samples at0.25s within original deadline+30s. Discovery/TRANSFER may resume the same FSM observation-only once per machine/current epoch/original generation after old handle ends; finished=true prevents body work. Existing roster pass finds regrouped orphan journals; live FSM is not bypassed.",
+    "bounds": "Original twelve-second investigation and original deadline plus30s cleanup window, never renewed. No new permanent worker/world scan/return replay. Restart ticket stored before execFSM; failed start retains journal rather than retrying. Original epoch remains immutable; cleanup-only observation epoch does not admit investigation work.",
+    "verification": {
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "focusedExistingChecks": 34,
+      "regressionBefore": ".qa/handovers/point-return-regression-before.log",
+      "selfAnchorRegressionBefore": ".qa/handovers/point-return-self-anchor-regression-before.log",
+      "supersededCandidate": ".qa/candidates/point-return-before-self-anchor-f7e3871f",
+      "buildLog": ".qa/handovers/point-return-resume-build-f7e3871f.log",
+      "candidate": ".qa/candidates/point-return-observer-f7e3871f",
+      "fingerprint": "6e8edc63ff66a2eeafa25b1860263dc0ec82effaeffcce974c626b50ecd72b85",
+      "independentLog": ".qa/handovers/point-return-observer-independent.log"
+    },
+    "limits": "Offline evidence only; no Arma launch. FOLLOW acknowledgement does not prove physical return or restored formation. Same-value native edits, public-journal delivery ordering across owners and all external-writer quiescence remain unproven. A changed MOVE destination after requested FOLLOW is ambiguous and retains custody. Sampling can still miss brief native state; timeout is not success. Legacy malformed/eleven-field journals are not silently accepted. No whole-mod parity, behavioural acceptance or measured performance claim."
   }
 }

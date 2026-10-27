@@ -740,7 +740,8 @@ class CortexOperations(unittest.TestCase):
         for guard in ('!local _group','select [0,8]','count _casualties >= 8','serverTime+300','findIf {(_x select 0) == _unit} < 0'):
             self.assertIn(guard,capture)
         self.assertIn('"CBE_Danger_Casualties",nil,true',source('cortexStop'))
-        self.assertEqual(point.count('["deadline",_deadline]'),1)
+        self.assertEqual(point.count('["deadline",_deadline]'),2)  # Admission and observation copy the same immutable deadline.
+        self.assertNotIn('["deadline",serverTime+',point)
         step=point.split('if (_mode != "STEP") exitWith',1)[1]
         self.assertLess(step.index('completedFSM _handle'),step.index('_actor doMove'))
         self.assertLess(step.index('"requestAt",serverTime'),step.index('_actor doMove'))
@@ -6447,6 +6448,55 @@ class CortexOperations(unittest.TestCase):
         finish=point.split('if (_mode in ["FINISH","TRANSFER"]) exitWith {',1)[1].split('if (_mode == "START")',1)[0]
         self.assertLess(finish.index('"CANCEL_PENDING"'),finish.index('"CBE_PointActor_Order",nil,true'))
         self.assertNotIn('CortexActorMoveReserved',finish)
+        self.assertIn('count _order == 12',finish)
+        self.assertIn('_lease call _copy,false,[],-1,[]]',point)
+        self.assertIn('if (_returning isNotEqualTo []) exitWith {',finish)
+        returning=finish.split('if (_returning isNotEqualTo []) exitWith {',1)[1].split('private _owns=',1)[0]
+        self.assertIn('_anchor == _actor && {_nativeCommand == "MOVE"}',returning)
+        self.assertNotIn('doFollow',returning)
+        for proof in ('_nativeCommand == "FOLLOW"','formLeader _actor == _anchor',
+                      '"FOLLOW_OBSERVED"','"RETURN_UNRESOLVED"','"RETURN_PENDING"',
+                      '_returnOrder set [11,[_returnLeader,_resultReason]]',
+                      'CBE_PointActor_ReturnStatus','_prior select [0,2]'):
+            self.assertIn(proof,finish)
+        self.assertEqual(finish.count('_actor doFollow _returnLeader'),1)
+        self.assertIn('if (_returnLeader != _actor) then {_actor doFollow _returnLeader}',finish)
+        self.assertIn('_anchor == _actor',returning)
+        self.assertIn('unitReady _actor',returning)
+        self.assertIn('abs speed _actor < 0.5',returning)
+        self.assertIn('(getPosASL _actor) vectorDistance (AGLToASL _target) <= 2',returning)
+        self.assertIn('"NATIVE_IDLE_AT_VISIT"',returning)
+        request=finish.split('private _returnOrder=',1)[1]
+        self.assertLess(request.index('setVariable ["CBE_PointActor_Order",_returnOrder,true]'),request.index('_actor doFollow'))
+        self.assertIn('[_returnOrder] call _observeReturn',request.split('_actor doFollow',1)[1])
+        self.assertNotIn('doMove',finish)
+        self.assertNotIn('CBA_fnc_waitAndExecute',finish)
+        reap=point.split('if (_mode == "REAP") exitWith {',1)[1].split('if (_mode == "QUEUE")',1)[0]
+        self.assertLess(reap.index('!completedFSM _handle'),reap.index('["TRANSFER",_actor,_brain]'))
+        self.assertIn('if !("reason" in _brain)',reap)
+        point_fsm=(ROOT/'addons/main/fsm/pointActor.fsm').read_text()
+        for proof in ('class ReturnWait','returnPending','_returnAt=time+0.25',
+                      'deadline"",0])+30','finalStates[]={"Ended"}'):
+            self.assertIn(proof,point_fsm)
+        self.assertIn('_brain set ["returnPending",true]',finish)
+        self.assertIn('_brain set ["returnPending",false]',finish)
+        observer=finish.split('private _observeReturn={',1)[1].split('private _retire=',1)[0]
+        for proof in ('_mode != "TRANSFER"','serverTime >= _deadline+30',
+                      '!completedFSM _handle','returnObserverTicket','returnObserverEpoch',
+                      '_observer set ["finished",true]','_observer set ["pending",false]'):
+            self.assertIn(proof,observer)
+        self.assertLess(observer.index('set ["returnObserverTicket"'),observer.index('] execFSM'))
+        self.assertNotIn('doFollow',observer)
+        self.assertNotIn('doMove',observer)
+        self.assertIn('returnObserverEpoch',point_fsm.split('class Finished',1)[1])
+        self.assertNotIn('returnObserverEpoch',point_fsm.split('class Finished',1)[0])
+        self.assertIn('[_order] call _observeReturn',returning)
+        self.assertIn('["TRANSFER",_actor,_brain]',reap)
+        discovery=source('cortexDiscover')
+        retained=discovery.split('// Reuse this roster pass for an investigator',1)[1].split('} forEach units _group;',1)[0]
+        self.assertIn('CBE_PointActor_Order',retained)
+        self.assertIn('["REAP",_x,_retainedPoint]',retained)
+        self.assertIn('["TRANSFER",_x,createHashMap]',retained)
         indoor=source('indoorActorOperation')
         finish=indoor.split('if (_mode == "FINISH") exitWith {',1)[1].split('if (_mode == "START")',1)[0]
         self.assertIn('"CBE_IndoorActor_Order",nil,true',finish)

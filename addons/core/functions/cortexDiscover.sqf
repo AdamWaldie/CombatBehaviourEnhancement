@@ -11,6 +11,8 @@
  * - re-applies garrison orders on the new owner after a locality change, because disableAI and
  *   event handlers are stored per machine;
  * - reconciles finite movement ownership for independent alternative controllers;
+ * - reaps retained point-investigation journals in the existing local roster pass, including
+ *   regrouped actors no longer reachable through their original group slot; no task replay;
  * - retires inherited exact pass-leg receipts in the existing sixteen-vehicle chunk, including
  *   vehicle locality that arrives after group adoption, without replaying the old pass;
  * - caches locally owned, eligible artillery for fire support and counter-battery;
@@ -164,6 +166,15 @@ if (_tacticalReference isEqualType [] && {count _tacticalReference == 5}) then {
         {
             if (local _x && {(_x getVariable ["CBE_FiringPosition_Order",[]]) isNotEqualTo []}) then {
                 ["REAP",_x] call CBE_fnc_FiringPositionOperation;
+            };
+            // Reuse this roster pass for an investigator which joined another group
+            // after its FSM ended; the old group's sole-slot lookup cannot find it.
+            if (local _x && {_x != (_group getVariable ["CBE_PointActor_Actor",objNull])}
+                && {(_x getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
+                private _retainedPoint=_x getVariable ["CBE_PointActor_Brain",createHashMap];
+                if (count _retainedPoint > 0) then {["REAP",_x,_retainedPoint] call CBE_fnc_PointActorOperation} else {
+                    ["TRANSFER",_x,createHashMap] call CBE_fnc_PointActorOperation;
+                };
             };
         } forEach units _group;
         private _pointActor=_group getVariable ["CBE_PointActor_Actor",objNull];
