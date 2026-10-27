@@ -275,6 +275,17 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-authored-wait-recognition-20261026.json",
+      "sha256": "54e33014c1995a7ecf0e92935b2cb166ba466ef2cd31b871fc729c7c8dd3490e",
+      "scope": "Read the record for its exact scope.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_routeWaiting.sqf",
+        "functions/fn_unstuckLoop.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-complete-source-inventory-20261025.json",
       "sha256": "808ad1b39cc06dfa68a2d3c59499d507305a551dec241ead9d44c1bc822c3e33",
       "scope": "Reconcile actual29-source-member HBQ package against partial19-source-member index; selected helper dispositions, not whole controller review or parity.",
@@ -636,7 +647,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-native-implementation-current-20261025.json",
-      "sha256": "e0b6f9c44d67538ccd327578ee5bfdd7113897be3f1482a105947827906d5f73",
+      "sha256": "2ecbd6b02c08b23790e2e42cca16091a8ccb437c4ee86bac79e80c3b5d2fe84e",
       "scope": "Current native-MOVE driving implementation reconciliation. Historical remaining fields are point-in-time evidence, not the present work queue. This is not renewed whole-HBQ parity.",
       "sourceFileMentions": [
         "functions/fn_vehicleUnstuck.sqf"
@@ -678,6 +689,15 @@
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf",
         "functions/fn_refreshRoute.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-pass-world-chain-20261026.json",
+      "sha256": "683d5f6e4078fc7ccaaaef2498e918e01cb9054c0eb0961d7a908023650bf0e9",
+      "scope": "Selected HBQ overtaking intent and CBE passing dimension chain; not whole-source parity.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
@@ -844,6 +864,43 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-intent-20261026.json",
+      "sha256": "919ec4d599bea09d8cc27c2ea4a5d3d3aea042591ef96719d9c3434f6d032dc2",
+      "scope": "Complete protected fn_refreshRoute.sqf body. Selected current CBE admission/return branches traced; this does not renew whole driveAssist, unstuck, driving or HBQ parity.",
+      "sourceFileMentions": [
+        "BIS_AddonInfo.hpp",
+        "config.cpp",
+        "functions/fn_crewHold.sqf",
+        "functions/fn_damageInit.sqf",
+        "functions/fn_debugText.sqf",
+        "functions/fn_debugTextClient.sqf",
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_driveAssistDebug.sqf",
+        "functions/fn_edenDraw.sqf",
+        "functions/fn_enabled.sqf",
+        "functions/fn_feature.sqf",
+        "functions/fn_initVehicle.sqf",
+        "functions/fn_moduleNavArea.sqf",
+        "functions/fn_nearestThreat.sqf",
+        "functions/fn_perfMonitor.sqf",
+        "functions/fn_playersNear.sqf",
+        "functions/fn_precision.sqf",
+        "functions/fn_protectBriefly.sqf",
+        "functions/fn_push.sqf",
+        "functions/fn_rearClear.sqf",
+        "functions/fn_refreshRoute.sqf",
+        "functions/fn_routeWaiting.sqf",
+        "functions/fn_start.sqf",
+        "functions/fn_teleportVehicleFree.sqf",
+        "functions/fn_unflipLoop.sqf",
+        "functions/fn_unstuckLoop.sqf",
+        "functions/fn_vehicleUnstuck.sqf",
+        "XEH_postInit.sqf",
+        "XEH_preInit.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-settings-controller-policy-20261025.json",
       "sha256": "04058bd3276d1c8d46dc3449b1d62d01599b115d688ffeb5651135cd7933838b",
       "scope": "Full read of all26 HBQ CBA declarations, settings resolution helpers and selected actual controller consumers; explicit selected/rejected/pending policy, not whole source parity.",
@@ -868,7 +925,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-shallow-ford-contract-20261024.json",
-      "sha256": "a9752bdf80ec2ad1af9a2d4c7597b482a360aa531a8db44cb695f0b6facb5c40",
+      "sha256": "ca8c0ab5018eb37bfe37f4c6f9a0738285471243a8ce99994731148e8e8a94a7",
       "scope": "Shallow-ford implementation contract and engine-coordinate uncertainty; selected navigation branch/interfaces, not whole controller re-review",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"

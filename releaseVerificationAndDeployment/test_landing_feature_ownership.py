@@ -64,12 +64,31 @@ class LandingFeatureOwnershipTests(unittest.TestCase):
                        '!= _controlRevision','call CBE_fnc_FlightLeaseValid'):
             self.assertLess(commit.index(marker),commit.index('setVectorDirAndUp'))
         self.assertIn('_entryPilot action ["LandGear"',commit)
+        self.assertLess(commit.index("call CBE_fnc_AuthoredRouteReceipt"),commit.index("setVectorDirAndUp"))
+        admission=approach.split("private _featuresAdmitted=false;",1)[1].split("if (!_featuresAdmitted)",1)[0]
+        self.assertLess(admission.index("call CBE_fnc_AuthoredRouteReceipt"),admission.index('disableAI "PATH"'))
+        self.assertIn('[_controlRevision,_group,_expectedWaypoint,_orderReceipt],true',admission)
         anchor=source('improvedHelicopterLandingAnchorLocal')
         force=anchor.split('// Scheduled anchor mutation commit:',1)[1].split('if (diag_tickTime',1)[0]
         for marker in ('isNil {','currentPilot _helicopter != _entryPilot','call CBE_fnc_FlightLeaseValid','CBE_fnc_CortexExternalTakeover'):
             self.assertLess(force.index(marker),force.index('addForce'))
+        self.assertLess(force.index("call CBE_fnc_AuthoredRouteReceipt"),force.index("addForce"))
+        self.assertIn('(_landingOrder select 0) isNotEqualTo _controlRevision',anchor)
+        restore=source("improvedHelicopterLandingRestoreLocal").split("// Actor release can defer",1)[1]
+        for guard in ("call CBE_fnc_AuthoredRouteReceipt", "call CBE_fnc_NativeOrderReceipt", "isNotEqualTo _releaseOrder", "count _landingOrder != 4"):
+            self.assertLess(restore.index(guard),restore.index('_helicopter land "LAND"'))
+        self.assertIn("if (_landed &&",restore)
         self.assertEqual(anchor.count('private _entryPilot='),1)
         self.assertNotIn('_entryPilot = currentPilot',anchor)
+        # Source contracts, not evidence of physical flight or native handback.
+        self.assertIn('private _approachUntil = _startTime + 180',approach)
+        self.assertLess(approach.index('_now >= _approachUntil'),approach.index('setVectorDirAndUp'))
+        self.assertIn('TimedOutOrder",_attemptIdentity,true',approach)
+        self.assertIn('[_group,_entryPilot,_expectedWaypoint,_orderReceipt]',approach)
+        self.assertIn('call CBE_fnc_AuthoredRouteReceipt',source('improvedHelicopterLandingStep'))
+        self.assertIn('diag_tickTime >= _settleUntil',anchor)
+        self.assertIn('_releaseReason == "SETTLED_NATIVE_LANDING", _waypointType',anchor)
+        self.assertNotIn('distance2D _targetPosition > 25',anchor)
 
     def test_aircraft_feature_release_is_finite_exact_and_never_replays_flight(self):
         helper=source('improvedHelicopterLandingFeatureReleaseLocal')

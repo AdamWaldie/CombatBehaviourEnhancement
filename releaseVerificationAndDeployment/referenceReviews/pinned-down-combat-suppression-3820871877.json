@@ -4,7 +4,7 @@
   "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3820871877",
   "added": "2026-10-16",
   "scope": "AI behaviour only; player features explicitly excluded by user",
-  "status": "initial_ai_source_comparison_complete_deep_review_pending",
+  "status": "core_ai_execution_and_current_package_delta_reviewed_remaining_capability_and_physical_gaps",
   "evidence": "Main PBO extracted with HEMTT; AI event/FSM/stance/skills/hearing/bootstrap paths inspected selectively, relevant source hashes compared with preserved 3559900745. Not a complete mod review. No production changes or live audit.",
   "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3820871877",
   "evaluate": [
@@ -317,5 +317,94 @@
       "Do not apply cached-baseline skill restoration over later owner changes.",
       "Live disabled-suppression morale and end-to-end fire/morale behaviour remain unrun."
     ]
+  },
+  "currentSnapshot20261027": {
+    "sourceRoot": ".qa\\pinned-suppression-3820871877-20261027-5793e970",
+    "pboSHA256": "5793e97068c6a06c8ac6aa30dc3a750c9d15c9bdbde28d12ff4690f21be3da79",
+    "priorRecordedPboSHA256": "ac94deaf558a78dfee69fc1d011ff3cbfa2ce47af2231548753aa8cecaa17272",
+    "version": "2.27 T66 RECOIL OWNERSHIP RELEASE in runtime/config; XEH build comment still T65",
+    "preservation": "Separate ignored extraction, no replacement of old archive/source or upstream execution; manifest includes38 extracted members.",
+    "comparison": [
+      {
+        "path": "functions/fn_AIsuppression.sqf",
+        "sha256": "58305d4df3ad78e6278202537091da860c14e9d96b47a805ac65d802553b9e47",
+        "identicalToPreserved": false
+      },
+      {
+        "path": "functions/fn_attachSP.sqf",
+        "sha256": "334838a7eab064ea70e1971bc288be56c34d4edea157efb1d7c53011d5297117",
+        "identicalToPreserved": true
+      },
+      {
+        "path": "functions/fn_Pinned.fsm",
+        "sha256": "c258d53985c874fb5cac0f6914e799d2ab816c8857584dcf39af19ed8812c3e9",
+        "identicalToPreserved": true
+      },
+      {
+        "path": "functions/fn_PinnedRev_Init.sqf",
+        "sha256": "5ff8c2852860740e9dcd54bc60168fecd85a1a83177e2467968739d456b74c39",
+        "identicalToPreserved": true
+      },
+      {
+        "path": "functions/fn_degradeSkills.sqf",
+        "sha256": "d755683eff5e206998403a08adbced67d18ac3511b2a3a97853f0810f9cc7168",
+        "identicalToPreserved": true
+      },
+      {
+        "path": "functions/fn_releaseAI.sqf",
+        "sha256": "e5742062981c63198b80018adfb09c2359c0929bf7fc835131f0b20c001609d6",
+        "identicalToPreserved": true
+      },
+      {
+        "path": "functions/fn_releaseOwnedStance.sqf",
+        "sha256": "ef0d077ccacb5d8bebd0f1621a9c1c8a66b969fc980150d8f0b2e6931111c29c",
+        "identicalToPreserved": true
+      },
+      {
+        "path": "functions/fn_closeFireReaction.sqf",
+        "sha256": "1735f60253ceb3e183af2284cfee47ac57ceeba1bdae55d6239fe5965d07b26e",
+        "identicalToPreserved": true
+      },
+      {
+        "path": "functions/fn_isSupportAware.sqf",
+        "sha256": "052dae729df58529c9582acd0c9ef9ce4911d66d01cd13e3e9a6d1f00ff9b08f",
+        "identicalToPreserved": true
+      },
+      {
+        "path": "functions/fn_isPlayerGroupAI.sqf",
+        "sha256": "6b81d04d447066cfa8da66fd01be88d7989ed3aeed75263f8e2c7cc98761d646",
+        "identicalToPreserved": true
+      },
+      {
+        "path": "functions/fn_postInit.sqf",
+        "sha256": "99e01c3c523655348efd9ac14adca6160d9b7d89bc17dd9bebc19f142d3c04a9",
+        "identicalToPreserved": false
+      },
+      {
+        "path": "functions/fn_syncSettings.sqf",
+        "sha256": "2c3470feff1bf0ad49cf9f959908e7935f6600f4f92703e1f73376347682cbfd",
+        "identicalToPreserved": false
+      },
+      {
+        "path": "XEH_preInit.sqf",
+        "sha256": "572a82f579a6bc263af68884851449e5c2f9368fc8749d1f5b65dd7161a194ce",
+        "identicalToPreserved": false
+      },
+      {
+        "path": "config.cpp",
+        "sha256": "fbb45ee2629434c603f2ebd5d096f470b385936f94cb98161e6930b18257b7b2",
+        "identicalToPreserved": false
+      }
+    ],
+    "review": "Changed AIsuppression diff complete, entire new postInit body, AI XEH/sync deltas and config version delta reviewed. Identical core helpers/FSM/bootstrap inherit explicit preserved-source scope; player code excluded.",
+    "aiDelta": "Suppressed EH adds actual source fields and calls PD_fnc_suppressedAwarenessReveal. New postInit defines that local-group listener with hostile check, weapon-device presence/low audibleFire heuristic,1000m normal/100m quiet defaults,2s per-source cooldown, skillFinal-dependent tiny gain, indefinite per-source-group store and reveal of actual source object. No added allGroups shot scan.",
+    "disposition": "Retain event-driven actual incoming-fire evidence through existing CBE danger intake; do not add source-identity reveal, indefinite store or attachment-presence suppression classification. Existing anonymous CBE hearing and actual native knowledge remain separate evidence. No new runtime implementation in this review batch.",
+    "remaining": "No complete player/debug/audio scope review or full mod parity. Cross-owner/physical effectiveness and dynamic skill-stress equivalent remain gaps; original startup ownership issue remains byte-identical in this package.",
+    "permanentArchive": {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261027-3820871877-5793e970",
+      "originalFilesVerified": 12,
+      "signatureFiles": 2,
+      "contents": "Complete currently installed directory plus main extraction. Both original PBOs/signatures preserved and hash-verified; no claim to recover missing historical3559900745 PBOs."
+    }
   }
 }

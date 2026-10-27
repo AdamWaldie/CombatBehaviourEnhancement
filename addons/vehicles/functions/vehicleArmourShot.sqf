@@ -1,14 +1,21 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Observe one real main-cannon shot before an optional short armour cover move.
+ * Purpose: Observe real main-turret shell or ordinary ground-missile shots before an optional short armour cover move.
  * Locality/authority: Internal platform/group/gunner owner only. Records a native Fired
  * event with exact station, projectile parents, task generation and native route; never fires,
  * moves, reveals, changes ammunition or grants movement authority.
  * Repeat/JIP: One private20-second episode/platform, one Fired listener and one expiry callback.
- * Repeated ARM never renews it. First matching shot removes the listener; TAKE consumes proof
+ * Original driver/commander seats and non-gunner native command/destination/formation receipts
+ * must still match at shot observation and TAKE. Missing crew evidence discards the episode.
+ * Repeated ARM never renews it. Shell fire removes its listener at the first matching shot.
+ * Missile fire retains at most8 original projectiles under that same listener/deadline; TAKE
+ * waits for their disappearance and an idle ready gunner. No guidance/impact/kill is fabricated.
+ * Discarded missile proof remains inert until original expiry to prevent repeated rearming.
+ * TAKE consumes proof
  * once. Ownership/task changes discard proof. No JIP replay or new owner adoption.
- * Only ordinary main-turret shotShell fire on tanks/APCs qualifies; missiles, AA and artillery
- * retain their own controllers. Native manual fire and external/player control refuse.
+ * Only ordinary main-turret shell/ground-missile fire on tanks/APCs qualifies. Missile payload
+ * carriers, scripted ACE guidance, burst modes and mixed firing episodes refuse repositioning.
+ * AA and artillery retain their own controllers. Native manual fire and external/player control refuse.
  * Arguments: 0 vehicle OBJECT objNull; 1 mode STRING ARM (ARM/SHOT/TAKE/EXPIRE);
  * 2 payload ARRAY []: ARM [target OBJECT, original believed ASL ARRAY3, loaded observation HASHMAP];
  * SHOT [native Fired ARRAY, native handler ID NUMBER]; EXPIRE [original token STRING].
@@ -32,10 +39,40 @@ _result=call {
             _vehicle setVariable ["CBE_ArmourShot_Work",nil];
         };
     };
+    private _discardFlight={
+        // Keep an inert record until the one original expiry: mixed fire must not
+        // create a new listener/timer on every routine gunnery update.
+        if ((_vehicle getVariable ["CBE_ArmourShot_Work",createHashMap]) isEqualTo _state) then {
+            private _handler=_state getOrDefault ["handler",-1];
+            if (_handler >= 0) then {_vehicle removeEventHandler ["Fired",_handler]};
+            _state set ["handler",-1];_state set ["discarded",true];_state set ["projectiles",[]];
+        };
+    };
     private _group=grpNull;private _gunner=objNull;private _target=objNull;
+    private _controlsCurrent={
+        private _crew=_state getOrDefault ["crew",[]];
+        private _native=_state getOrDefault ["controlNative",false];
+        _crew isEqualType [] && {count _crew == 2}
+            && {[driver _vehicle,effectiveCommander _vehicle] isEqualTo _crew}
+            && {_crew findIf {isNull _x || {!local _x} || {group _x != _group}
+                || {isPlayer _x} || {!isNull remoteControlled _x}
+                || {!simulationEnabled _x} || {isObjectHidden _x}
+                || {!([_x] call CBE_fnc_CortexCombatEffective)}} < 0}
+            && {_native isEqualType []}
+            && {count _native == count ((_crew arrayIntersect _crew)-[_gunner])}
+            && {_native findIf {
+                if (!(_x isEqualType []) || {count _x != 4}) exitWith {true};
+                _x params ["_operator","_command","_destination","_anchor"];
+                !(_operator in _crew) || {_operator == _gunner}
+                    || {currentCommand _operator != _command}
+                    || {(expectedDestination _operator) isNotEqualTo _destination}
+                    || {formLeader _operator != _anchor}
+            } < 0}
+            && {(_native apply {_x select 0}) isEqualTo ((_crew arrayIntersect _crew)-[_gunner])}
+    };
     private _valid={
         local _vehicle && {alive _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
-            && {local _group} && {!isNull _group}
+            && {local _group} && {!isNull _group} && {call _controlsCurrent}
             && {!isNull _gunner} && {local _gunner} && {gunner _vehicle == _gunner}
             && {group _gunner == _group} && {!isPlayer _gunner} && {isNull remoteControlled _gunner}
             && {[_gunner] call CBE_fnc_CortexCombatEffective}
@@ -82,24 +119,39 @@ _result=call {
             || {toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas"}) exitWith {false};
         _gunner=gunner _vehicle;_group=group _gunner;_target=_payload select 0;
         if ([driver _vehicle,effectiveCommander _vehicle] findIf {
-            isNull _x || {!(currentCommand _x in ["","WAIT"])}
+            isNull _x || {!local _x} || {!(currentCommand _x in ["","WAIT"])}
         } >= 0) exitWith {false};
+        private _crew=[driver _vehicle,effectiveCommander _vehicle];
+        // The selected gunner will receive the admitted fire command. Other operators
+        // must retain their exact idle native work; firing grants no route/crew handover.
+        private _controlNative=((_crew arrayIntersect _crew)-[_gunner]) apply {
+            [_x,currentCommand _x,(expectedDestination _x) apply {if (_x isEqualType []) then {+_x} else {_x}},formLeader _x]
+        };
         private _loaded=_payload select 2;
         private _magazine=_loaded getOrDefault ["loadedMagazine",""];
         private _ammo=getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
+        private _ammoCfg=configFile >> "CfgAmmo" >> _ammo;
+        private _simulation=toLowerANSI getText (_ammoCfg >> "simulation");
+        private _waitFlight=_simulation == "shotmissile";
+        private _payloadCfg=_ammoCfg >> "submunitionAmmo";
+        private _carrier=isNumber _payloadCfg || {isClass _payloadCfg}
+            || {isText _payloadCfg && {getText _payloadCfg != ""}}
+            || {isArray _payloadCfg && {getArray _payloadCfg isNotEqualTo []}};
         if ((_loaded getOrDefault ["loadedTurret",[]]) isNotEqualTo [0]
-            || {toLowerANSI getText (configFile >> "CfgAmmo" >> _ammo >> "simulation") != "shotshell"}
-            || {vehicle _target isKindOf "Air"}) exitWith {false};
+            || {!(_simulation in ["shotshell","shotmissile"])} || {vehicle _target isKindOf "Air"}
+            || {_waitFlight && {getNumber (_ammoCfg >> "airLock") == 2 || {_carrier}
+                || {getNumber (_ammoCfg >> "ace_missileguidance" >> "enabled") > 0}}}) exitWith {false};
         private _serial=(_vehicle getVariable ["CBE_ArmourShot_Serial",0])+1;
         private _token=format ["ARMOUR_SHOT:%1:%2",clientOwner,_serial];
         _state=createHashMapFromArray [["schema",1],["token",_token],["group",_group],["gunner",_gunner],
+            ["crew",_crew],["controlNative",_controlNative],
             ["target",_target],["position",+(_payload select 1)],["until",serverTime+20],
             ["owner",clientOwner],["epoch",_group getVariable ["CBE_AIPass_Epoch",-1]],
             ["operationGeneration",_group getVariable ["CBE_OperationGeneration",0]],
             ["route",[_group] call CBE_fnc_NativeOrderReceipt],
             ["weapon",_loaded getOrDefault ["loadedWeapon",""]],
             ["muzzle",_loaded getOrDefault ["loadedMuzzle",""]],["magazine",_magazine],["ammo",_ammo],
-            ["shotAt",-1],["handler",-1]];
+            ["waitFlight",_waitFlight],["projectiles",[]],["shotAt",-1],["handler",-1]];
         if !(call _valid) exitWith {false};
         private _handler=_vehicle addEventHandler ["Fired",{
             params ["_entity"];
@@ -118,24 +170,55 @@ _result=call {
         if ((_payload param [0,"",[""]]) != (_state get "token")) exitWith {false};
         call _clear;true
     };
+    if (_state getOrDefault ["discarded",false]) exitWith {_result};
     _group=_state get "group";_gunner=_state get "gunner";_target=_state get "target";
     private _shotMatches=true;
     if (_mode == "SHOT") then {
         private _event=_payload param [0,[],[[]]];
         _shotMatches=!( count _event < 8 || {(_payload param [1,-1,[0]]) != (_state get "handler")}
-        || {(_state get "handler") < 0} || {(_state get "shotAt") >= 0}
+        || {(_state get "handler") < 0} || {(_state get "shotAt") >= 0 && {!(_state getOrDefault ["waitFlight",false])}}
         || {(_event select 0) != _vehicle} || {(_event select 7) != _gunner}
         || {(_event select 1) != (_state get "weapon")} || {(_event select 2) != (_state get "muzzle")}
         || {(_event select 4) != (_state get "ammo")} || {(_event select 5) != (_state get "magazine")}
         || {isNull (_event select 6)}
         || {(getShotParents (_event select 6)) isNotEqualTo [_vehicle,_gunner]});
     };
-    if (!_shotMatches) exitWith {false};
+    if (!_shotMatches) exitWith {
+        // A live missile episode must not overlook another weapon/station's firing.
+        // A stale listener id cannot retire a successor episode.
+        if ((_state getOrDefault ["waitFlight",false]) && {_mode == "SHOT"}
+            && {(_payload param [1,-1,[0]]) == (_state get "handler")} && {(_state get "handler") >= 0}) then {call _discardFlight};
+        false
+    };
     if ((_state get "owner") != clientOwner || {!(call _valid)}) exitWith {call _clear;_result};
     if (_mode == "TAKE") exitWith {
         if ((_state get "shotAt") < 0) exitWith {[]};
+        private _projectiles=_state getOrDefault ["projectiles",false];
+        if ((_state getOrDefault ["waitFlight",false]) && {
+            !(_projectiles isEqualType []) || {count _projectiles < 1} || {count _projectiles > 8}
+                || {_projectiles findIf {!(_x isEqualType objNull)} >= 0}
+        }) exitWith {call _discardFlight;[]};
+        if ((_state getOrDefault ["waitFlight",false]) && {
+            _projectiles findIf {!isNull _x} >= 0 || {!unitReady _gunner}
+                || {!(currentCommand _gunner in ["","WAIT"])}
+        }) exitWith {[]};
         private _proof=[_target,+(_state get "position"),_state get "until",_state get "shotAt"];
         call _clear;_proof
+    };
+    if (_state getOrDefault ["waitFlight",false]) exitWith {
+        private _event=_payload select 0;
+        private _weaponCfg=configFile >> "CfgWeapons" >> (_state get "weapon");
+        private _muzzle=_state get "muzzle";
+        private _muzzleCfg=if (_muzzle in ["this",_state get "weapon"]) then {_weaponCfg} else {_weaponCfg >> _muzzle};
+        private _modeCfg=_muzzleCfg >> (_event select 3);
+        private _projectiles=_state getOrDefault ["projectiles",false];
+        if (!isClass _modeCfg || {getNumber (_modeCfg >> "burst") != 1}
+            || {!(_projectiles isEqualType [])} || {count _projectiles >= 8}) exitWith {call _discardFlight;false};
+        if ((_event select 6) in _projectiles) exitWith {false};
+        _projectiles=+_projectiles;_projectiles pushBack (_event select 6);
+        _state set ["projectiles",_projectiles];
+        if ((_state get "shotAt") < 0) then {_state set ["shotAt",serverTime]};
+        true
     };
     _vehicle removeEventHandler ["Fired",_state get "handler"];
     _state set ["handler",-1];_state set ["shotAt",serverTime];true

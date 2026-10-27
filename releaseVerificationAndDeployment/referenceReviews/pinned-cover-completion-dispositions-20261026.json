@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "workshopId": "3775025723",
+  "scope": "Selected MoveToCover completion, hold, return and cleanup branches. Not a complete FSM or source-tree review. Some long inspection outputs were truncated; no full-file review credit.",
+  "source": {
+    "path": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\PinnedDown\\20261013-013708\\3775025723\\extracted-20261011\\pd_cover_concealment\\MoveToCover.fsm",
+    "sha256": "abbacdb15729795f735a707424a8aa21e1733073bc3ece7d3848d6f29232476e",
+    "executed": false,
+    "modified": false
+  },
+  "dispositions": [
+    {
+      "branch": "setaction_ and timeout",
+      "intent": "Retain useful cover while suppressed; distinguish reached, nearby and failed movement.",
+      "observed": "Reached cover forceSpeed0; nominal hold is capped15 seconds, but timeout requires suppression at or below skill for reached ordinary cover. Defensive reached cover has a separate leave predicate.",
+      "decision": "Retain suppression-sensitive tactical intent, but do not import an unbounded speed hold. CBE danger cover currently releases its finite movement marker on arrival without adding a forced hold.",
+      "remaining": "Trace CBE suppression and defensive-position owners before deciding whether a finite tactical hold is missing; no new controller is justified by this selected comparison alone."
+    },
+    {
+      "branch": "completed and goback",
+      "intent": "Resume original movement when cover episode ends, while yielding to medical ownership.",
+      "observed": "Return branch compares waypoint indices and can issue doMove to saved GoPos if cycle and eligibility match.",
+      "decision": "Do not equate unchanged waypoint index with unchanged mission authority. CBE uses original route receipt, operation/epoch and actor goal checks; failed-approach return now retains the original formation anchor."
+    },
+    {
+      "branch": "Exit and nil_exit",
+      "intent": "Reject stale episode cleanup and release movement/targeting modifications.",
+      "observed": "Cycle guard protects many writes, but cleanup resets forceSpeed and enables targeting/suppression/autocombat features rather than restoring individual saved feature baselines.",
+      "decision": "Retain episode identity and single cleanup ownership; do not import unconditional feature enablement or remembered-target replay over newer authority.",
+      "remaining": "Review all selected CBE cover/stance/target writers together before extending restoration. No runtime changes made by this review."
+    },
+    {
+      "branch": "findalt",
+      "intent": "Avoid no-destination deadlock.",
+      "observed": "After repeated missing destinations, chooses a random position near leader.",
+      "decision": "Do not call an arbitrary fallback point cover. Required safe fallback remains subject to geometry, reachability and mission authority; failure may retire the finite attempt."
+    }
+  ],
+  "nextWork": "Complete untruncated startup/move/cleanup inspection and actual callers, then compare suppression/defence ownership across CBE before selecting further runtime changes. Do not repeat the already committed anchor fix.",
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "callerTrace": {
+    "source": "functions/fn_findCover.sqf",
+    "ranges": [
+      "146-207: eligibility and running-FSM exclusion",
+      "1841-1930: defensive assignment, doFSM dispatch and subsequent buddy writes"
+    ],
+    "limits": "Selected caller regions only. Whole findCover function and buddy lifecycle not fully reviewed. Source startup/move and nil-exit blocks were read with quoted FSM strings decoded as text, never executed."
+  },
+  "cbeFinding": {
+    "issue": "DangerSetup explicit cleanup invoked cover helper in normal service mode before generation invalidation. A still-enabled current cover lease could be retained rather than retired.",
+    "fix": "Pass existing releaseOnly=true. Existing helper then suppresses adoption, retention and failed-approach follow, removes only exact owned movement metadata, and retires matching pending assessment. No movement cancellation/teleport/AI-feature writes added.",
+    "validation": {
+      "tests": 1497,
+      "compiledSqf": 443,
+      "pbos": 11,
+      "physicalAcceptance": false,
+      "candidate": ".qa/candidates/danger-cover-shutdown-90fe7a60",
+      "fingerprint": "d20455d1ba73264eb6a4ec3961a53a213d03fef216d9b716b3f39d379e9d9ea2",
+      "buildLog": ".qa/handovers/danger-cover-shutdown-build.log",
+      "independentLog": ".qa/handovers/danger-cover-shutdown-independent.log"
+    },
+    "sourceHashes": {
+      "addons\\infantry\\functions\\dangerSetup.sqf": "b92d771878cac36ea24563d13447802b8948d12f42fefcb839dafad9f68d994e",
+      "addons\\infantry\\functions\\dangerCoverStep.sqf": "3902324b29d34adb24811c4e6f7c28f89a98cb4242b3a7421c25bda5f90eae9c"
+    }
+  },
+  "cbeComposition": {
+    "reviewedFiles": [
+      "addons/infantry/functions/dangerGroupHideStep.sqf",
+      "addons/infantry/functions/dangerCoverStep.sqf"
+    ],
+    "callSites": "CortexGroupTick services active response or original cover lease; DangerSetup and CortexReleaseGroup release posture and movement through their existing helpers.",
+    "posture": "At most64 sampled members and4 eligible idle actors. Weak posture only; no forceSpeed, target, firing or route writes. Actor release before cover/indoor movement restores only unchanged generation/epoch/operation-owned stance, otherwise refuses or transfers unchanged proof to existing finite actor cleanup.",
+    "decision": "Do not duplicate posture with a forced-speed cover hold. Useful cover arrival remains movement-free; dedicated tactical defence and source position-selection semantics remain separate review work.",
+    "limits": "This establishes code composition, not adequate tactical holding, physically effective cover, complete interruption correctness, whole-source parity or measured cost.",
+    "hashes": {
+      "addons/infantry/functions/dangerGroupHideStep.sqf": "42dc3dd38264996c2693fab827308577019aec96e439a1e6205b4495a967d72d",
+      "addons/infantry/functions/cortexGroupTick.sqf": "93437a096693d2c7b2f3b31763e7798851b8a071a23d1bec0f070bbc420e9327"
+    }
+  },
+  "selectedPositionReview": {
+    "sourceRanges": [
+      "fn_findCover.sqf:411-475 once-per-group terrain/vehicle/placed-structure intake",
+      "fn_findCover.sqf:1466-1565 six-candidate overwatch LOS reranking"
+    ],
+    "findings": [
+      "Source gathers structural and terrain candidates once rather than repeating nearest-object searches per grid cell.",
+      "Source distinguishes defensive-slot selection and overwatch preference; only a top-six shortlist gets the extra firing LOS check. LOS is a preference, not a safety requirement.",
+      "CBE CortexFindCover merges terrain and placed structures before its ten-object geometry budget; validates occupancy/slope/space, screens at chest height, then accepts the first valid candidate.",
+      "CBE CortexCoverScreened distinguishes FIRE/GEOM from VIEW screening, excludes human bodies, caps returned surfaces at4 and does not establish path accessibility or resistance to a particular munition."
+    ],
+    "disposition": "Keep emergency refuge selection separate from firing-position/overwatch scoring. Do not make exposure LOS a mandatory condition for refuge or add source grid/role searches to every danger callback. Reconcile firing-position quality through its existing tactical owner.",
+    "gaps": [
+      "Selected cover source admits placed Fence and other resolved fortification classes absent from the narrow CBE placed query; engine hierarchy/applicability and physical screening must be verified before broadening it.",
+      "Whole source position generation, defensive-object resolver, scoring and fallback traversal remain unreviewed.",
+      "No evidence yet establishes equivalent overwatch and defensive-slot quality."
+    ],
+    "cbeHashes": {
+      "addons/infantry/functions/cortexFindCover.sqf": "d32e142cabd78c8cc99b55e4b53d00b5996747ef9bed66b796239dfe883ff668",
+      "addons/infantry/functions/cortexCoverScreened.sqf": "442491c88fd72fa4187f73366c850ff4566745bcb9f2d4bed1040aa54451dae2"
+    },
+    "sourceCallerHash": "816981e7891231562c2e6c491b9cc9007c4195624010f7bcc2c780e56dac1bc1"
+  },
+  "selectedScoringReview": {
+    "sourceRange": "functions/fn_findCover.sqf:1161-1468",
+    "intent": [
+      "Blend personal/group/peak pressure; closest-safe mode at high pressure rather than advancing for score.",
+      "Hard per-actor maximum cover distance; support/overwatch destination cohesion and straggler recovery.",
+      "Protection/road/open-ground/distance scores; retreat gain for broken actors and pressure-dependent forward gain otherwise.",
+      "Base-of-fire/overwatch lag and standoff preferences; stronger cohesion gain when recovering."
+    ],
+    "sourceDefect": {
+      "location": "functions/fn_findCover.sqf:1320-1328",
+      "finding": "Cohesion rejection exitWith is inside the role-cohesion then block. The enclosing scoreCandidate continues through threat/protection/role scoring afterward, so the branch return does not establish the documented hard rejection at function scope.",
+      "confidence": "Static SQF scope finding; source was not executed.",
+      "disposition": "Do not import this control flow. Any selected hard cohesion policy must reject at the scoring function scope before ranking, with an existing regression check covering both inside-leash escape and outside-leash non-recovery."
+    },
+    "integrationDecision": "Do not place role scoring in the emergency cover reflex. Reconcile through existing finite tactical/flank actors; preserve per-actor travel, pressure and cohesion hard gates before optional preference scoring. No new global pressure service or repeated world queries.",
+    "remaining": "Actual CBE tactical-role scoring equivalence has not been established; source helper dependencies and candidate construction still need complete review."
+  },
+  "cbeTacticalFollowup": {
+    "finding": "Flank bound slot preparation tried three reduced lateral terrain alternatives but, when all failed, retained and issued the original water/steep-slope point.",
+    "implementation": "Newly planned slots must pass the existing water/slope criterion after alternatives, before the native commit. Otherwise terminate through existing drill cleanup with NO_SAFE_BOUND_TERRAIN. Original resumed destinations are not resampled. No search expansion, retry, worker or deadline renewal.",
+    "cost": "At most one additional water/slope classification per newly planned actor slot; physical cost unmeasured.",
+    "validation": {
+      "tests": 1497,
+      "compiledSqf": 443,
+      "pbos": 11,
+      "candidate": ".qa/candidates/bound-terrain-refusal-8205748e",
+      "fingerprint": "08795c48c6f0e4799faccc1de0fce7b74ebacb55a17fe8c9bcc5c9ef703abfd8",
+      "buildLog": ".qa/handovers/bound-terrain-refusal-build.log",
+      "independentLog": ".qa/handovers/bound-terrain-refusal-independent.log",
+      "physicalAcceptance": false
+    },
+    "runtimeHash": "bff63731b7694d8e933277764d7390f0243b596eb9e4b3556e5b72a561469975",
+    "limits": "Terrain classification is not path reachability. Refusal ends the current drill rather than finding a global alternative; tactical replanning and physical behaviour remain unverified."
+  }
+}

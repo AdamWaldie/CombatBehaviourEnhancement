@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
- * Relays up to three expiring sighting reports to eligible group owners, preserving reported positions.
+ * Relays up to three expiring sighting reports to eligible mutually allied group owners, preserving reported positions.
+ * Both mission friendship directions must be at least0.6; the receiver repeats this live check.
  * Spatial discovery includes mounted crews. Radio range requires a communicating member at
  * both ends; voice uses3D ASL separation and is rechecked by the receiver. Radio radius
  * remains horizontal; a receiver high above the sender cannot substitute voice for a missing radio.
@@ -9,7 +10,7 @@
  * Server-time deadlines reject stale work; no historical JIP commands are replayed.
  * Arguments: 0 sender GROUP grpNull; 1 reports ARRAY []: at most3
  * [ATL position ARRAY of3 finite NUMBERs, confidence NUMBER0..4,
- * original observed server time NUMBER>=0]; 2 sent server time NUMBER -1 (invalid default).
+ * original observed server time NUMBER>=0, reported contact SIDE west/east/resistance]; 2 sent server time NUMBER -1 (invalid default).
  * Return Value: Nothing.
  * Current callers: CBE_fnc_CortexContactReport.
  * Example: [_group, _reports, serverTime] remoteExecCall ["CBE_fnc_CortexReportServer", 2];
@@ -21,9 +22,11 @@ if (!isServer || {isNull _sender} || {remoteExecutedOwner > 0 && {remoteExecuted
     || {!([_sender] call CBE_fnc_CortexIsEligible)} || {!finite _sent} || {_sent < 0} || {serverTime - _sent > 10} || {_sent > serverTime + 1}) exitWith {};
 if (serverTime < (_sender getVariable ["CBE_AIPass_ReportServerDue", -1])) exitWith {};
 private _valid = (_reports select [0,3]) select {
-    _x isEqualType [] && {count _x == 3} && {(_x select 0) isEqualType []} && {count (_x select 0) == 3}
+    _x isEqualType [] && {count _x == 4} && {(_x select 0) isEqualType []} && {count (_x select 0) == 3}
     && {(_x select 0) findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} < 0}
-    && {(_x select 1) isEqualType 0} && {finite (_x select 1)} && {(_x select 1) >= 0} && {(_x select 1) <= 4}
+    && {(_x select 3) isEqualType west} && {(_x select 3) in [west,east,resistance]}
+        && {(side _sender) getFriend (_x select 3) < 0.6}
+        && {(_x select 1) isEqualType 0} && {finite (_x select 1)} && {(_x select 1) >= 0} && {(_x select 1) <= 4}
     && {(_x select 2) isEqualType 0} && {finite (_x select 2)} && {(_x select 2) >= 0}
     && {serverTime - (_x select 2) <= 10} && {(_x select 2) <= serverTime} && {(_x select 2) <= _sent+1}
 };
@@ -59,7 +62,9 @@ private _receivers = [];
     private _receiver = _x;
     private _receiverTransmitter = [_receiver] call CBE_fnc_CortexGroupTransmitter;
     private _receiverAnchor = if (isNull _receiverTransmitter) then {leader _receiver} else {_receiverTransmitter};
-    if (_receiver != _sender && {side _receiver == side _sender} && {!isNull _receiverAnchor} && {alive _receiverAnchor}
+    if (_receiver != _sender && {(side _receiver) getFriend (side _sender) >= 0.6}
+        && {(side _sender) getFriend (side _receiver) >= 0.6}
+        && {!isNull _receiverAnchor} && {alive _receiverAnchor}
         && {_receiverAnchor distance2D _senderPosition <= _range}
         && {(_receiverAnchor distance2D _senderPosition <= _voiceRange
                 && {(getPosASL _receiverAnchor) vectorDistance _senderASL <= _voiceRange})

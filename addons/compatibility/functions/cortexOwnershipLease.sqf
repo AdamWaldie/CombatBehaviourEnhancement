@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Unobserved tracked-turn cancellation remains reserved through its public original journal.
  * Purpose: Gives one finite CBE operation exclusive ownership of the group's CBE movement domain.
  * Locality / Authority: Call only where the group is local. The public lease follows group locality so a server or headless-client owner can renew or release it.
  * Repeat/JIP: Reacquiring the same owner uses the explicitly supplied live deadline.
@@ -13,7 +14,9 @@
  * Pending controlled-vehicle driving journals/cap releases and queue/pass consent or agreement
  * receipts refuse acquisition. Selected artillery or tactical crew references refuse acquisition
  * before any driving retirement, even after its ordinary lease expires. Only its exact producer
- * retires native proof; an acquisition attempt never clears it. Absence of metadata
+ * retires native proof; an acquisition attempt never clears it. ArtilleryCrewReservation
+ * aggregates admitted same-group guns inside this domain; it does not reacquire driving
+ * or grant another domain while any gun remains unresolved. Absence of metadata
  * is not proof of native physical quiescence; no cleanup receipt is erased to force handover.
  * Arguments: 0 group <GROUP>; 1 owner <STRING>; 2 acquire <BOOL>, true; 3 expiry <NUMBER>, serverTime + 30.
  * Return Value: Boolean - true when acquired/released, false for invalid locality or competing work.
@@ -36,7 +39,8 @@ private _typed=_lease isEqualType [] && {count _lease == 2}
 if (_lease isNotEqualTo [] && {!_typed}) exitWith {false};
 private _live=_typed && {serverTime < (_lease select 1)};
 if (_acquire) exitWith {
-    if ((_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo []) exitWith {false};
+    if ((_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap) exitWith {false};
+    if ((_group getVariable ["CBE_ArtilleryCrew_Reservations",[]]) isNotEqualTo []) exitWith {false};
     if ((_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []) exitWith {false};
     if (_owner == "" || {!(_expires isEqualType 0)} || {!finite _expires} || {_expires <= serverTime}
         || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};

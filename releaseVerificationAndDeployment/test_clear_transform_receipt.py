@@ -68,13 +68,15 @@ class ClearTransformReceiptTests(unittest.TestCase):
         self.assertIn('["resumeGeneration",_group getVariable ["CBE_AIPass_ClearGeneration",0]]',discovery)
         text=(ROOT/'addons/infantry/functions/cortexClearBuilding.sqf').read_text(encoding='utf-8')
         early=text.split('if (isNull _building) exitWith {',1)[1].split('if !(missionNamespace',1)[0]
-        self.assertEqual(early.count('[] call _retireResume'),2)
+        self.assertEqual(early.count('[] call _retireResume'),3)
         retirement=text.split('private _retireResume={',1)[1].split('if (_resumeRequested && {!(call _resumeCurrent)})',1)[0]
         self.assertIn('isNil {',retirement)
         self.assertIn('_resumeRequested && {call _resumeCurrent}',retirement)
         self.assertIn('_admissionEpoch ==',retirement)
         self.assertIn('TARGET_ABSENT',early)
         self.assertIn('TARGET_DESTROYED',early)
+        self.assertIn('isObjectHidden _building',early)
+        self.assertIn('TARGET_HIDDEN',early)
 
     def test_stale_resume_fixture_uses_real_snapshot_and_preserves_live_successor(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runBuildingComparison.sqf').read_text(encoding='utf-8')

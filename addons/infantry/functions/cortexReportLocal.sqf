@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Stores an expiring area report without revealing or tracking a target object.
+ * Both live mission friendship directions must be at least0.6, including after queued delivery.
+ * A one-way alliance or a relationship change cannot inherit earlier sharing permission.
  * Delivery rechecks both radio endpoints; nearby voice communication remains possible
  * when either endpoint is jammed. Voice uses3D ASL separation; radio radius remains horizontal.
  * Mounted receivers use the same eligibility contract.
@@ -9,7 +11,7 @@
  * older/duplicate sightings cannot replace fresher evidence. No historical JIP commands replay.
  * Arguments: 0 receiver GROUP grpNull; 1 sender GROUP grpNull; 2 reports ARRAY []:
  * at most3 [ATL position ARRAY of3 finite NUMBERs, confidence NUMBER0..4,
- * original observed server time NUMBER>=0]; 3 sent server time NUMBER -1 (invalid default).
+ * original observed server time NUMBER>=0, reported contact SIDE west/east/resistance]; 3 sent server time NUMBER -1 (invalid default).
  * Return Value: Nothing.
  * Current callers: CBE_fnc_CortexReportServer queued owner delivery.
  * Example: [_receiver, _sender, _reports, serverTime] remoteExecCall ["CBE_fnc_CortexReportLocal", groupOwner _receiver];
@@ -26,13 +28,17 @@ private _voiceRange=missionNamespace getVariable ["CBE_AIPass_ContactReports_Voi
 private _range = if (!isNull _transmitter) then {missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500]} else {missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35]};
 private _senderPosition = getPosASL ([_transmitter, leader _sender] select isNull _transmitter);
 private _receiverPosition = getPosASL ([_receiverTransmitter, leader _receiver] select isNull _receiverTransmitter);
-if (side _receiver != side _sender || {isNull _receiverTransmitter && {!alive leader _receiver}}
+if ((side _receiver) getFriend (side _sender) < 0.6
+    || {(side _sender) getFriend (side _receiver) < 0.6}
+    || {isNull _receiverTransmitter && {!alive leader _receiver}}
     || {_receiverPosition distance2D _senderPosition > _range}
     || {_receiverPosition vectorDistance _senderPosition > _voiceRange
         && {isNull _transmitter || {isNull _receiverTransmitter}}}) exitWith {};
 private _valid=(_reports select [0,3]) select {
-    _x isEqualType [] && {count _x == 3} && {(_x select 0) isEqualType []} && {count (_x select 0) == 3}
+    _x isEqualType [] && {count _x == 4} && {(_x select 0) isEqualType []} && {count (_x select 0) == 3}
         && {(_x select 0) findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} < 0}
+        && {(_x select 3) isEqualType west} && {(_x select 3) in [west,east,resistance]}
+        && {(side _receiver) getFriend (_x select 3) < 0.6}
         && {(_x select 1) isEqualType 0} && {finite (_x select 1)} && {(_x select 1) >= 0} && {(_x select 1) <= 4}
         && {(_x select 2) isEqualType 0} && {finite (_x select 2)} && {(_x select 2) >= 0}
         && {(_x select 2) <= serverTime} && {(_x select 2) <= _sent+1} && {serverTime < (_x select 2)+30}

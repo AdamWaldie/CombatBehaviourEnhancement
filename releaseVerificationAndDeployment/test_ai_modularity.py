@@ -124,6 +124,14 @@ class AIModularityContracts(unittest.TestCase):
         text = src('cortexPassengerReady')
         for check in ['simulationEnabled _vehicle','isObjectHidden _unit','_boarding && {_command == "STOP"','checkAIFeature "MOVE"','checkAIFeature "PATH"','local _unit','isPlayer','CBE_fnc_CortexCombatEffective','vectorMagnitude velocity _vehicle','vectorMagnitude angularVelocity _vehicle','surfaceIsWater','lineIntersectsSurfaces','fullCrew','emptyPositions']:
             self.assertIn(check,text)
+        deck=text.split('private _deck = lineIntersectsSurfaces',1)[1].split('if (_wet) exitWith {false}',1)[0]
+        for proof in ('private _supportObject=', '_hit select 3','_hit select 2',
+                      'isNull _supportObject','isKindOf "AllVehicles"',
+                      'vectorMagnitude velocity _supportObject > 0.1',
+                      'vectorMagnitude angularVelocity _supportObject > 0.01',
+                      '((_hit select 1) select 2) < 0.85'):
+            self.assertIn(proof,deck)
+        self.assertEqual(text.count('lineIntersectsSurfaces'),1)
         dismount = src('convoyDismountLocal')
         self.assertIn('CBE_fnc_CortexExternalTakeover',dismount)
         self.assertIn('private _operator =',dismount)
@@ -194,6 +202,21 @@ class AIModularityContracts(unittest.TestCase):
         self.assertIn('removeEventHandler',text)
         self.assertIn('serverTime+20',text)
         self.assertIn('50*round',text)
+        acoustic=text.split('private _items =',1)[1].split('_group setVariable ["CBE_AIPass_HearingDue"',1)[0]
+        for proof in ('_firer isKindOf "CAManBase"','select [0,16]',
+                      '"ItemInfo" >> "soundTypeIndex"','finite _soundIndex',
+                      '_soundIndex >= 0','_soundIndex == floor _soundIndex',
+                      '_soundIndex < count _sounds','_sounds select _soundIndex',
+                      'isClass (_weaponConfig >> _muzzle)','_modeConfig=_muzzleConfig >> _mode',
+                      'if (!isClass _modeConfig)','getArray (_modeConfig >> "sounds")',
+                      '["silencedsound","suppressedsound"]',
+                      'isClass (_modeConfig >> _selectedSound)',
+                      '_audible > 0 && {_audible <= 3}','_distance > 20'):
+            self.assertIn(proof,acoustic)
+        self.assertNotIn('(_sounds findIf',acoustic)
+        self.assertNotIn('_knownIntegralWeapons',acoustic)
+        self.assertNotIn('currentMagazine',acoustic)
+        self.assertNotIn('setSkill',text)
         self.assertNotIn(' reveal ',text)
         self.assertNotIn('allGroups',text)
         self.assertNotIn('allUnits',text)

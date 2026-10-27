@@ -61,5 +61,100 @@
     "addons/support/functions/cortexArtilleryPositionReport.sqf": "9906a795444eb6c31614fbd1ebdde0fb6206b6e7fc04947184cc46ed250420bb",
     "addons/support/functions/cortexArtilleryShot.sqf": "3a3cbb7a5b2c892807ea9c9542cfabd141bab8e3034fcdc913d29378cc2c5cbe",
     "addons/vehicles/functions/drivingMovementAvailable.sqf": "6b82e06fb13cdbe7ee97ab5a990dd08d615644802343c51136033a6f4dcc109a"
+  },
+  "peerConcurrencyTrace20261027": {
+    "base": "f0899f6a0dcd7bf2c00f88cf767e044dcb78965f",
+    "status": "EXECUTION_DEPENDENCY_TRACE_COMPLETE; PEER_SUPPORT_NOT_IMPLEMENTED",
+    "scope": "Selected-gun group-reference lifecycle and shared native kernel; referenced windows in large discovery/locality/stop/group-tick files, not renewed full-body or whole-mod review.",
+    "source": "Protected fn_artillery.sqf SHA-256 9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d verified. Lines112..136 and158..175 address selected driver/commander only. They do not establish simultaneous same-group gun execution, safe handback or finite recovery. Peer concurrency is CBE improvement scope, not a source parity claim.",
+    "findings": [
+      "Per-platform Work/FSM journals already exist, but group CBE_ArtilleryCrew_Reference stores exactly one [platform,token,serial,epoch,owner] tuple. Start refuses any existing tuple and then publishes its own; Current and Step require exact singleton equality.",
+      "CortexOwnershipLease also refuses acquisition while any artillery reference exists, even for ARTILLERY_CREW. Its one public [owner,server-expiry] lease and the private group movementLease cannot represent independent per-gun retirement or deadlines.",
+      "Live Step finalization releases the group lease and clears the singleton. Shared VehicleCrewMoveRetire does the same after positive native return/STOP or original-crew-loss/rest proof; its adoption rewrites the singleton for the new epoch. A second admission alone would strand the first worker or let one terminal path remove a peer reservation.",
+      "CortexDiscover and locality gain service one referenced platform. Locality loss removes one platform deletion observer. CortexStop adopts retirement for one platform. All must service exact admitted entries before widening admission.",
+      "VehicleCrewMoveDeletionWatch captures one exact reference, original crew and exact public-lease snapshot. Deleted platform references can become null; a future multi-entry identity must remain unambiguous after deletion rather than relying on object existence or assuming token/serial uniqueness across platforms.",
+      "CortexArtilleryScoot treats any group crew reference as this battery prefire retirement. A peer-aware path must distinguish this gun from another gun, retaining the original scoot deadline rather than cancelling or retiring the wrong job.",
+      "DrivingMovementAvailable, CortexGroupTick and VehicleTacticalMoveStart reserve the whole movement domain while a reference remains. Non-artillery group movement must remain blocked while any unresolved selected-gun native work remains; do not interpret lease expiry as quiescence.",
+      "NativeOrderReceipt observes group waypoint metadata only. It does not itself change when another gun receives a per-actor move, so the waypoint receipt is not the cause of current peer refusal. The shared native kernel separately checks original actor destinations before writes and refuses replaced destinations; keep those checks."
+    ],
+    "finiteImplementationBoundary": [
+      "Replace the singleton contract coherently across admission, HOLD proof, normal retirement, failed-worker retirement, stop, locality and deletion. Retain exact per-gun original crew, token, epoch, native route, deadlines and deletion-safe identity.",
+      "Use one existing artillery ownership domain with bounded admitted entries; adding a peer must not retire another gun driving brain, renew another gun deadline, change group membership, issue group waypoints or touch unrelated actors.",
+      "Keep the group reservation until the last exact entry retires. One entry stop/death/deletion/timeout must not clear peer authority; unresolved native work remains reserved. Reject malformed or duplicate entries without discarding them.",
+      "Extend existing selected-crew lifecycle checks for two guns with different deadlines, independent terminal order, stopped/replaced native orders, unresolved peer, locality/shutdown and deletion. Physical movement/formation side effects and measured cost remain a later authorised audit requirement."
+    ],
+    "nextAction": "Implement the complete bounded multi-entry lifecycle through the existing artillery owner, not an admission-only bypass or another movement controller. Original idle/formation continuation and other terminal-native recovery remain distinct unresolved requirements.",
+    "validation": "Source trace and protected-source hash verification only. No runtime source changed, no Arma staging/launch, no new build or implementation percentage credit. Existing f0899f6a runtime candidate remains unchanged.",
+    "hashes": {
+      "addons/support/functions/artilleryCrewMoveStart.sqf": "7aceb1265409593015da4706da5d58c22596589b72a670bc582b2daeb09aa3c9",
+      "addons/support/functions/artilleryCrewMoveCurrent.sqf": "5b12637c4cec6d5860200d942a847b09b4b464712f0be5592cc8b2db6b01d1e5",
+      "addons/support/functions/artilleryCrewMoveStep.sqf": "fffd06fe58e2c8a601a96c97e9e698e08c64832614b4d767ff00e52812565701",
+      "addons/support/functions/artilleryCrewMoveRetire.sqf": "54dccd1cf2244871dfff485afdae90d91c58868204d3f8971ae972e093d81fc2",
+      "addons/support/functions/cortexArtilleryScoot.sqf": "f198f85cb2847b1c0c673ec07b6a6e4e1e0ef059444f44cd8b2c5044a968910a",
+      "addons/core/functions/nativeOrderReceipt.sqf": "d6395ce27511e41e3d059f82fe1978639309056b7aaaa1e03535447becb3f3d6",
+      "addons/core/functions/cortexDiscover.sqf": "1928383985523cc3d19ddc9bb5e11afc754d6677001db67212e4e1873f357bba",
+      "addons/core/functions/cortexLocality.sqf": "683752223fcd3d5c707b49db3470065f90ec9019d93abb4af6820b6f25b52fbc",
+      "addons/core/functions/cortexStop.sqf": "d4c70f5e08bbf6b09f89f04440253103cac4578315faae301491cae5351d9a72",
+      "addons/compatibility/functions/cortexOwnershipLease.sqf": "995c8cfc8abf0c098a27b51d3fe05102b4cecc9730f30418bd73141a73791754",
+      "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf": "c05da99342f598dcff04ef86781978c714dc84adf44dd9ff71c5a4e62a3982d7",
+      "addons/vehicles/functions/vehicleCrewMoveRetire.sqf": "715da049e694cfb4d3bb14eb4308425b61fac181be07150376bcd133bc1c0eb8",
+      "addons/vehicles/functions/vehicleCrewMoveDeletionWatch.sqf": "314d274bb26b574ac9b3afe909d32b20060a97b6948e861e10c1970c2fff4397",
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "66d9247c9a9254bcec83d25bd030b1302ceef9c5491e5cce587cc081e28fd163",
+      "addons/vehicles/functions/drivingMovementAvailable.sqf": "4ea9608028eec25d784336d5654a784a3c15373a3e917da4264a21b1258fbe55",
+      "addons/infantry/functions/cortexGroupTick.sqf": "13827d9478e2cf208ac1ecb832dc36351d8ce7373d1b5b67df459da194ddca7e"
+    }
+  },
+  "currentStatus20261027": "Selected mixed-group positioning/scoot and bounded same-group peer reservations are integrated in source. Historical singleton/no-mixed-scoot limitations below are superseded only for this code scope; physical concurrency, native continuation, handback and performance remain unverified. Audits PAUSED.",
+  "peerReservationsImplementation20261027": {
+    "base": "f0899f6a0dcd7bf2c00f88cf767e044dcb78965f",
+    "sourceIntent": "Protocol3801354927 selected operating crew relocation, adapted to finite independent same-group gun execution. Preserve the original group; peer concurrency is a CBE improvement, not demonstrated source parity.",
+    "change": "Replace the group singleton with at most64 exact [five-field reference,original hold deadline] rows. Group-wide monotonic serials distinguish deleted/null gun identities. First admission retains ordinary-driving handback; peers reuse the exact aggregate domain and cannot retire another driving brain. The aggregate lease uses the latest original hold deadline, not a refreshed per-gun clock.",
+    "lifecycle": "Current HOLD proof and worker ownership address their own entry. Discovery/shutdown/locality service every entry; owner transfer replaces only original epoch/owner and resumes retirement, not outward movement. Proven native retirement/dead-original deletion removes one entry and recalculates the aggregate from remaining original deadlines. Last exact entry releases only matching public/private ownership. Unknown native work retains its entry; new or unknown leases are never overwritten by old removal.",
+    "scope": "Existing selected-crew FSM/native phase, original seats, group waypoint receipt, original move/hold/reply/cleanup deadlines and native command guards retained. Scoot waits only for its own prefire entry. Other movement domains remain blocked while any entry remains. Tactical singleton producer handling is retained. No group split, group waypoint, native movement command, worker, world scan, setting or module is added by the reservation helper.",
+    "cost": "Bounded validation/search over at most64 registry rows at admission, readiness, worker checks and retirement. Registry/aggregate publication only changes at admission/adoption/retirement; no periodic publication job. Added lookup cost and native group-formation effects are unmeasured.",
+    "validation": {
+      "tests": 1497,
+      "compiledSqf": 447,
+      "pbos": 11,
+      "build": ".qa/handovers/artillery-peer-build-f0899f6a.log",
+      "independent": ".qa/handovers/artillery-peer-independent.log",
+      "candidate": ".qa/candidates/artillery-peer-f0899f6a",
+      "fingerprint": "6c6101719d1b87c57170e17bcef124f5b259f0ff07a0e0caeb257d457c816d3e",
+      "kind": "Unsigned dirty development source from base plus this runtime patch; engineering review/handover postdate package. Not clean release or physical acceptance."
+    },
+    "retainedFailures": [
+      "First13-case focused run rejected a historical no-artillery-string assertion in the generic retirement helper; updated that existing assertion to check explicit metadata delegation while retaining generic tactical/native execution contracts. Second13-case focused run passed.",
+      "Initial full test attempt had16 Windows temporary-directory access errors and one unregistered-production-helper coverage failure. The helper was registered under existing ART coverage and the complete build rerun with appropriate local file access. All1497 passed; no skipped or added cases. Logs .qa/handovers/artillery-peer-full-tests.log and artillery-peer-focused.log retained."
+    ],
+    "remaining": "Physical two-gun native travel/arrival/formation interaction, independent firing and handback, casualty/deletion, repeats, normal/HC/JIP/Zeus and measured5%median/10%p95 cost remain unverified. Original idle/formation continuation and terminal unknown recovery remain open; do not claim complete artillery parity. Audits PAUSED.",
+    "hashes": {
+      "addons/support/functions/artilleryCrewMoveCurrent.sqf": "0f7c76f62238738306186dca4ae630635054bb2bfaec33b52e411220e51fd436",
+      "addons/support/functions/artilleryCrewMoveStart.sqf": "ac1e0f61af6ecfda5f41212d30a9cca8fd2a352dfafddedf4dac1e4b78a531fd",
+      "addons/support/functions/artilleryCrewMoveStep.sqf": "ffef5e7f902725e8507d6e7f05005e903b268d551c5193f289193501ffa13896",
+      "addons/support/functions/artilleryCrewReservation.sqf": "ec94ec43bd56457259559e63cd51d0881a8033f7c668a9fd3609849a7d3b19c3",
+      "addons/vehicles/functions/vehicleCrewMoveDeletionWatch.sqf": "a2bc004cb26e3de00825be545504422fbab6e1122ab0bf6b9aa9cb528be2ebdb",
+      "addons/vehicles/functions/vehicleCrewMoveRetire.sqf": "072d236ff9fc196485356f364a86c951c1dc9d565bd99d6e5b315b4bdfd285b4"
+    }
+  },
+  "idleHandbackEvidence20261027": {
+    "baseline": "d2622b0da076b6f252ed4eaaa977be59bc01c4cb",
+    "registeredIntent": "Protocol Artillery selected-gun movement and finite original-crew handback, shared with armour selected-platform movement. Preserve unrelated infantry and original mission ownership; do not create a gun-crew group or count metadata as physical restoration.",
+    "finding": "Shared VehicleCrewMoveNativePhase RETURNING used findIf over recorded MOVE returns. Empty returns (original idle/WAIT baseline, or no surviving original MOVE recipient) vacuously acknowledged handback without current idle/native-goal/platform-rest proof. Nonempty returns also read native goals without first proving each surviving recipient remained local and active.",
+    "implementation": "Empty returns now require nonempty surviving original crew, all survivors in active originals, current idle/WAIT commands and the existing VehicleCrewDestinationState OWNED predicate with current observations/stop goal/physical arrival sample plus measured rest. Nonempty returns refuse surviving nonlocal/inactive recipients before native command/destination reads. Original reply/cleanup deadlines and all commands remain unchanged; same positive evidence principle as existing passive ReturnProof idle case.",
+    "validation": {
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "buildLog": ".qa/handovers/crew-idle-handback-build-d2622b0d.log",
+      "candidate": ".qa/candidates/crew-idle-handback-d2622b0d",
+      "fingerprint": "f70a3296b6dcccefd8e098cfab8149860c45c0d32a5181de98488e8525672059",
+      "independentLog": ".qa/handovers/crew-idle-handback-independent.log",
+      "initialCheck": "Existing source contract expected3 current-arrival predicate uses; the fourth is the new explicit idle acknowledgement. Updated that count and retained actual geometry/rest/authority assertions."
+    },
+    "limits": "Offline correction only. NATIVE_RETURN_ACKNOWLEDGED means native handback evidence, not physical travelled return or original formation restoration. Newer commands/replaced goals/missing living originals can retain unresolved metadata under existing policy. Broader idle/formation continuation and newer-order supersession remain gaps; no worker/timeout/expiry is treated as proof. Actual artillery/armour peer travel, casualty/HC/repeat and performance remain unverified.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

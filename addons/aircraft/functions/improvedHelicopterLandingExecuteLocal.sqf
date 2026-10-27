@@ -11,8 +11,12 @@
  * the original pilot receives a finite actor-local FSM release receipt, never replacement crew.
  * Locality and authority: Only the current helicopter owner may drive this AI approach.
  * It checks its pilot, waypoint and player, curator or specialist ownership before and during control.
- * Repeat/JIP: One control revision owns an approach. A changed waypoint, pilot or locality
- * aborts that run; the published LastResult is readable by joining clients.
+ * Repeat/JIP: One control revision owns an approach for at most180 seconds. Timeout retires
+ * vector control and refuses automatic reacquisition of the exact same pilot/group/order.
+ * A changed waypoint, pilot or locality
+ * aborts that run; the published LastResult is readable by joining clients. Full authored
+ * landing-node metadata is checked at admission and each atomic flight-write boundary.
+ * Natural current-waypoint progression still follows the final-commit policy.
  *
  * Arguments:
  * 0: helicopter <OBJECT>
@@ -68,6 +72,13 @@ private _groupHelicopterCount = {
 // Exact vector landing owns one aircraft and one touchdown point. A formation must remain entirely
 // under vanilla group flight control; acquiring any member would steer the shared group into one LZ.
 if ([_group] call _groupHelicopterCount != 1 || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
+private _orderReceipt=[_group,"",false,_expectedWaypoint] call CBE_fnc_AuthoredRouteReceipt;
+if (_orderReceipt isEqualTo [] || {currentWaypoint _group != _expectedWaypoint}
+    || {(waypointPosition [_group,_expectedWaypoint]) distance2D _targetPosition > 0.5}
+    || {toUpperANSI waypointType [_group,_expectedWaypoint] != _waypointType}
+    || {_waypointType == "SCRIPTED" && {toLowerANSI waypointScript [_group,_expectedWaypoint] != _expectedScript}}) exitWith {false};
+private _attemptIdentity=[_group,_entryPilot,_expectedWaypoint,_orderReceipt];
+if ((_helicopter getVariable ["CBE_ImprovedHelicopterLanding_TimedOutOrder",[]]) isEqualTo _attemptIdentity) exitWith {false};
 private _minimumDistance = ([_helicopter, "MinimumActivationDistance", 50] call CBE_fnc_ImprovedHelicopterLandingSetting) max 50;
 if (_helicopter distance2D _targetPosition <= _minimumDistance) exitWith {false};
 
@@ -81,11 +92,16 @@ if !([_helicopter,"LANDING",_flightLeaseToken,500] call CBE_fnc_FlightLeaseAcqui
 private _featuresAdmitted=false;
 isNil {
     if (local _helicopter && {local _entryPilot} && {currentPilot _helicopter == _entryPilot}
+        && {group _entryPilot == _group} && {currentWaypoint _group == _expectedWaypoint}
+        && {([_group,"",false,_expectedWaypoint] call CBE_fnc_AuthoredRouteReceipt) isEqualTo _orderReceipt}
         && {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",-1]) == _controlRevision}
         && {[_helicopter,"LANDING",_flightLeaseToken] call CBE_fnc_FlightLeaseValid}
         && {_helicopter checkAIFeature "MOVE"} && {_helicopter checkAIFeature "PATH"}
         && {_entryPilot checkAIFeature "FSM"}
         && {(_entryPilot getVariable ["CBE_AirPilotFeatureReceipt",[]]) isEqualTo []}) then {
+        // Bind the original authored node before any feature or flight mutation.
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_OrderReceipt",
+            [_controlRevision,_group,_expectedWaypoint,_orderReceipt],true];
         _helicopter setVariable ["CBE_ImprovedHelicopterLanding_FeatureSnapshot",
             [_controlRevision,clientOwner,_entryPilot,true,true,false],true];
         _entryPilot setVariable ["CBE_AirPilotFeatureReceipt",
@@ -125,6 +141,8 @@ private _pitch = _attitude param [0, 0];
 private _bank = -(_attitude param [1, 0]);
 private _yaw = getDir _helicopter;
 private _startTime = diag_tickTime;
+private _approachUntil = _startTime + 180;
+private _timedOut = false;
 private _nextValidation = 0;
 private _nextObstacleScan = 0;
 // Deliberately separate from _nextObstacleScan (the tree-canopy hover-height timer below): the two
@@ -161,6 +179,7 @@ while {
     && {currentPilot _helicopter == _entryPilot}
 } do {
     private _now = diag_tickTime;
+    if (_now >= _approachUntil) exitWith {_abort=true; _timedOut=true;};
     private _delta = (_now - _lastTick) max 0.01;
     _lastTick = _now;
     private _positionASL = getPosASL _helicopter;
@@ -356,7 +375,8 @@ while {
     // Keep the final owner/revision/original-pilot check and all frame mutations together.
     isNil {
         if (!local _helicopter || {!alive _helicopter} || {!local _entryPilot}
-            || {currentPilot _helicopter != _entryPilot}
+            || {currentPilot _helicopter != _entryPilot} || {group _entryPilot != _group}
+            || {([_group,"",false,_expectedWaypoint] call CBE_fnc_AuthoredRouteReceipt) isNotEqualTo _orderReceipt}
             || {!(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_Active",false])}
             || {(_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision",-1]) != _controlRevision}
             || {!([_helicopter,"LANDING",_flightLeaseToken] call CBE_fnc_FlightLeaseValid)}) then {
@@ -382,9 +402,14 @@ while {
 };
 
 if ((_helicopter getVariable ["CBE_ImprovedHelicopterLanding_ControlRevision", -1]) == _controlRevision) then {
+    if (_timedOut && {local _helicopter}) then {
+        // Exact refusal survives tracker ticks/locality; a different authored order/pilot/group
+        // is eligible, but no timer silently renews this failed flight attempt.
+        _helicopter setVariable ["CBE_ImprovedHelicopterLanding_TimedOutOrder",_attemptIdentity,true];
+    };
     _helicopter setVariable [
         "CBE_ImprovedHelicopterLanding_LastResult",
-        [["ABORTED", "LANDED"] select _landed, _targetPosition, diag_tickTime, _helicopter distance2D _targetPosition, (getPosATL _helicopter) select 2],
+        [if (_timedOut) then {"APPROACH_TIMEOUT"} else {["ABORTED", "LANDED"] select _landed}, _targetPosition, diag_tickTime, _helicopter distance2D _targetPosition, (getPosATL _helicopter) select 2],
         true
     ];
 };

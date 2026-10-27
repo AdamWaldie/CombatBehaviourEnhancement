@@ -12,6 +12,7 @@
  * local. Nothing is broadcast.
  *
  * Repeat/JIP: initial owner adoption precedes queuing; repeated casualties share one pending job.
+ * The casualty-time living roster bounds that job; later arrivals are not adopted as survivors.
  * Arguments:
  * 0: group <GROUP> - the dead unit's group
  * 1: unit <OBJECT> - the dead unit
@@ -43,6 +44,6 @@ if !(_group getVariable ["CBE_AIPass_Adopted",false]) then {[_group,true] call C
 _group setVariable ["CBE_AIPass_RegroupQueued", true];
 [
     CBE_fnc_CortexRegroupStep,
-    createHashMapFromArray [["group", _group], ["phase", "EVALUATE"], ["firstEvaluation", -1], ["nativeOrderReceipt",[_group] call CBE_fnc_NativeOrderReceipt], ["operationGeneration",_group getVariable ["CBE_OperationGeneration",0]]],
+    createHashMapFromArray [["group", _group], ["phase", "EVALUATE"], ["firstEvaluation", -1], ["nativeOrderReceipt",[_group] call CBE_fnc_NativeOrderReceipt], ["operationGeneration",_group getVariable ["CBE_OperationGeneration",0]], ["remnantRoster",(units _group) select {alive _x}]],
     missionNamespace getVariable ["CBE_AIPass_Regroup_SettleSeconds", 5]
 ] call CBE_fnc_CortexQueueJob;

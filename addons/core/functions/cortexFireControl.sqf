@@ -4,9 +4,14 @@
  * Fleeing actors receive no injected target/fire/suppression; the shared task gate repeats at issue.
  * Native CANFIRE accepts current eight-field observations only while their original identity
  * witness and source expiry remain valid; legacy six/seven-field records use their event expiry.
+ * Persistently obstructed eligible nonleaders may request one finite lateral firing-position
+ * task per group; selection, native movement/return and unresolved custody use FiringPositionOperation.
+ * No task, stance or settings reset is inferred from a suppression timestamp.
  * Suppression assesses at most three actor lanes per pass: terrain veto, one FIRE/GEOM hit,
  * near-objective cover face within three metres, then the protected-actor cone at the issued point.
  * Both belief proxy and resolved face remain outside the existing20m close-threat domain.
+ * Suppression passes its actual loaded magazine to the shared firing-lane check so modded
+ * explosive bullets receive the existing aimpoint/near-impact blast veto as well as the cone.
  * Blocked batches rotate candidates. Raw belief remains unchanged; this never issues movement.
  * General rifle fire control also requires a currently selected primary bullet magazine;
  * launcher, pistol and UGL selection remains with native/specialist combat. No weapon is switched.
@@ -15,7 +20,8 @@
  * Suppression preserves the live coordinated/drill objective ahead of unrelated hidden contacts.
  * Current close-threat responders and active direct-target assignments are excluded from bursts.
  * Native INIT/INITFAILED/PLANNING/REPLAN/DELAY, STEALTH and physically moving actors defer all scripted fire-control orders; suppression additionally requires
- * native unitReady before reserve-ammo scans or firing-lane geometry. Native combat remains enabled.
+ * native unitReady before reserve-ammo scans or firing-lane geometry. FILE/DIAMOND formations
+ * defer discretionary suppression only; native combat and direct-target control remain enabled.
  * Squad fire control while in contact: close-threat priority, target distribution and disciplined
  * suppression.
  *
@@ -37,7 +43,10 @@
  * Ongoing native SUPPRESS commands count against the limit beyond the timestamp window and
  * never receive another suppression request while that command remains active.
  * A suppressor needs at least two nonempty spare magazines and 60 rounds
- * for his weapon, must currently hold a loaded primary bullet muzzle with a completed magazine reload, must not himself be heavily
+ * for his weapon, must currently hold a loaded primary bullet muzzle with settled round and magazine
+ * reload phases. Selected native magazine must match the counted magazine. Reserve accounting
+ * refuses over128 compatible classes or inventory rows, leaving native fire enabled.
+ * The suppressor must not himself be heavily
  * suppressed, and must have a clear line of fire
  * (CBE_fnc_CortexLineOfFireClear keeps friendlies, including the flanking element, and civilians out
  * of the cone). Each suppressor rests 8 s between bursts. Flank element members are left alone.
@@ -272,7 +281,9 @@ if (_suppressPos isEqualTo []) then {
         if (_knownIndex >= 0) then {_suppressPos=+((_enemies select _knownIndex) select 1)};
     };
 };
-if (_suppressPos isNotEqualTo []) then {
+// Tight movement formations retain native fire; do not assign discretionary bursts
+// that pin a file or close diamond into a scripted suppression task.
+if (_suppressPos isNotEqualTo [] && {!(formation _group in ["FILE","DIAMOND"])}) then {
     // Belief positions are ATL ground/body positions, not a disclosed enemy eye point.
     private _targetASL = (ATLToASL _suppressPos) vectorAdd [0,0,1];
     private _limit = missionNamespace getVariable ["CBE_AIPass_FireControl_MaxSuppressors", 2];
@@ -307,8 +318,11 @@ if (_suppressPos isNotEqualTo []) then {
                 private _loaded = if (_muzzle == "") then {0} else {_unit ammo _muzzle};
                 private _weaponState = weaponState _unit;
                 private _reload = _weaponState param [6,1,[0]];
+                private _roundReload = _weaponState param [5,1,[0]];
                 private _rifleReady = count _weaponState >= 7
                     && {(_weaponState select 0) == _weapon} && {(_weaponState select 1) == _muzzle}
+                    && {(_weaponState select 3) == _magazine}
+                    && {finite _roundReload} && {_roundReload == 0}
                     && {finite _reload} && {_reload == 0} && {_weapon != ""} && {currentWeapon _unit == _weapon}
                     && {_loaded > 0} && {toLowerANSI getText (_ammo >> "simulation") == "shotbullet"}
                     && {getNumber (_ammo >> "hit") > 0};
@@ -318,7 +332,10 @@ if (_suppressPos isNotEqualTo []) then {
                     // nonempty reserves for this muzzle; loaded magazines must not count twice.
                     private _magazineMuzzle = [ _muzzle, "this" ] select (_muzzle == _weapon);
                     private _compatible = compatibleMagazines [_weapon,_magazineMuzzle];
-                    private _spare = (magazinesAmmoFull _unit) select {
+                    if (count _compatible > 128) then {continue};
+                    private _inventory=magazinesAmmoFull _unit;
+                    if (count _inventory > 128) then {continue};
+                    private _spare = _inventory select {
                         !(_x select 2) && {(_x select 1) > 0} && {(_x select 0) in _compatible}
                     };
                     private _rounds = _loaded;
@@ -326,8 +343,14 @@ if (_suppressPos isNotEqualTo []) then {
                     if (count _spare >= 2 && {_rounds >= 60}) then {
                         _geometryChecks=_geometryChecks+1;
                         private _aimASL=[_unit,_targetASL,20] call CBE_fnc_CortexSuppressionAim;
+                        if (_aimASL isEqualTo []) then {
+                            if (["ASSESS",_unit,_targetASL] call CBE_fnc_FiringPositionOperation) then {
+                                _issued=true;_geometryChecks=3;_orders=_orders+1;
+                                _group setVariable ["CBE_AIPass_NextSuppress",_now+4];
+                            };
+                        } else {_unit setVariable ["CBE_FiringPosition_Blocked",nil]};
                         if (_aimASL isNotEqualTo []
-                            && {[_unit, _aimASL] call CBE_fnc_CortexLineOfFireClear}
+                            && {[_unit, _aimASL,_magazine] call CBE_fnc_CortexLineOfFireClear}
                             && {[_unit] call CBE_fnc_CortexActorFireTaskAvailable}) then {
                         _unit doSuppressiveFire _aimASL;
                         _unit setVariable ["CBE_AIPass_LastSuppress", _now];

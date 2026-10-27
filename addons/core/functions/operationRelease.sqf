@@ -24,6 +24,9 @@ if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {
     [_group,_generation,_handoverReason] call CBE_fnc_OperationCancel;
     false
 };
+if ((_operation getOrDefault ["intent",""]) == "VEHICLE_ORIENT") then {
+    [_group,"RELEASE"] call CBE_fnc_VehicleTurnRetire;
+};
 [_group,_operation,_reason] call CBE_fnc_OperationRestore;
 [_group,createHashMap,objNull,[],"RELEASE",_generation] call CBE_fnc_CortexVehicleReverseStep;
 [_group,_generation] call CBE_fnc_CortexGroupMoveClear;

@@ -73,6 +73,9 @@ private _previousGarrisonFailure=_group getVariable ["CBE_Cortex_GarrisonAdmissi
             // Release automatic actor jobs too; no group-wide reset is needed to retire them.
             // Inspect every current member so reordered membership cannot hide an admitted actor.
             {
+                if ((_x getVariable ["CBE_FiringPosition_Order",[]]) isNotEqualTo []) then {
+                    ["RETIRE",_x] call CBE_fnc_FiringPositionOperation;
+                };
                 private _point=_x getVariable ["CBE_PointActor_Brain",createHashMap];
                 if (count _point > 0 || {(_x getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
                     private _retiredPoint=["FINISH",_x,_point] call CBE_fnc_PointActorOperation;

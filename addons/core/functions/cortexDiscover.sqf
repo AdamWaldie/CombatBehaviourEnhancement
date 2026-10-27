@@ -11,6 +11,8 @@
  * - re-applies garrison orders on the new owner after a locality change, because disableAI and
  *   event handlers are stored per machine;
  * - reconciles finite movement ownership for independent alternative controllers;
+ * - reaps retained point-investigation journals in the existing local roster pass, including
+ *   regrouped actors no longer reachable through their original group slot; no task replay;
  * - retires inherited exact pass-leg receipts in the existing sixteen-vehicle chunk, including
  *   vehicle locality that arrives after group adoption, without replaying the old pass;
  * - caches locally owned, eligible artillery for fire support and counter-battery;
@@ -107,8 +109,8 @@ if (_tacticalReference isEqualType [] && {count _tacticalReference == 5}) then {
 
 // Retire only the original selected-gun journal when its owner-local executor ended or
 // crossed this epoch. A live current worker is left alone; this does not cancel an active fire.
-private _crewReference=_group getVariable ["CBE_ArtilleryCrew_Reference",[]];
-if (count _crewReference == 5) then {
+{
+    private _crewReference=_x;
     private _crewBattery=_crewReference select 0;
     if (!isNull _crewBattery && {local _crewBattery} && {local _group}) then {
         private _executor=_crewBattery getVariable ["CBE_ArtilleryCrew_FSM",[]];
@@ -121,7 +123,7 @@ if (count _crewReference == 5) then {
             [_crewBattery,_crewReference select 1,_crewReference select 2] call CBE_fnc_ArtilleryCrewMoveRetire;
         };
     };
-};
+} forEach ([_group,"LIST"] call CBE_fnc_ArtilleryCrewReservation);
     if (_groundEligible) then {
         [_group] call CBE_fnc_CortexHearingLocal;
         [_group] call CBE_fnc_DangerSetup;
@@ -155,6 +157,26 @@ if (count _crewReference == 5) then {
     };
     if (local _group && {(units _group) findIf {alive _x} >= 0}) then {
         _spotters append ((units _group) select {alive _x && {_x getVariable ["CBE_AIPass_Spotter", false]}});
+        // Passive finite-task reconciliation uses the already discovered group roster.
+        // It observes journals after migration, group joins or hard expiry without replaying MOVE.
+        private _firingActor=_group getVariable ["CBE_FiringPosition_Actor",objNull];
+        if (isNull _firingActor || {!alive _firingActor} || {group _firingActor != _group}) then {
+            _group setVariable ["CBE_FiringPosition_Actor",nil,true];
+        };
+        {
+            if (local _x && {(_x getVariable ["CBE_FiringPosition_Order",[]]) isNotEqualTo []}) then {
+                ["REAP",_x] call CBE_fnc_FiringPositionOperation;
+            };
+            // Reuse this roster pass for an investigator which joined another group
+            // after its FSM ended; the old group's sole-slot lookup cannot find it.
+            if (local _x && {_x != (_group getVariable ["CBE_PointActor_Actor",objNull])}
+                && {(_x getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
+                private _retainedPoint=_x getVariable ["CBE_PointActor_Brain",createHashMap];
+                if (count _retainedPoint > 0) then {["REAP",_x,_retainedPoint] call CBE_fnc_PointActorOperation} else {
+                    ["TRANSFER",_x,createHashMap] call CBE_fnc_PointActorOperation;
+                };
+            };
+        } forEach units _group;
         private _pointActor=_group getVariable ["CBE_PointActor_Actor",objNull];
         // A deleted, dead or regrouped investigator cannot occupy this group's sole slot.
         if (!isNull _pointActor && {!alive _pointActor || {group _pointActor != _group}}) then {

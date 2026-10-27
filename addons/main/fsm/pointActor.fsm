@@ -27,8 +27,18 @@ class FSM {
         };
         class Finished {
             name="Finished";init="[""FINISH"",_actor,_brain] call CBE_fnc_PointActorOperation;";precondition="";
-            class Links {};
+            class Links {
+                class ObserveReturn {priority=1;to="ReturnWait";condition="!isNull _actor && {local _actor} && {local group _actor} && {group _actor == (_brain getOrDefault [""group"",grpNull])} && {(_brain getOrDefault [""returnObserverEpoch"",_brain getOrDefault [""ownerEpoch"",-1]]) == ((group _actor) getVariable [""CBE_AIPass_Epoch"",0])} && {(_actor getVariable [""CBE_PointActor_Brain"",createHashMap]) isEqualTo _brain} && {_brain getOrDefault [""returnPending"",false]} && {serverTime < (_brain getOrDefault [""deadline"",0])+30}";action="_returnAt=time+0.25;";};
+                class End {priority=0;to="Ended";condition="true";action="";};
+            };
         };
+        class ReturnWait {
+            name="ReturnWait";init="";precondition="";
+            class Links {
+                class Observe {priority=0;to="Finished";condition="isNull _actor || {!local _actor} || {!local group _actor} || {group _actor != (_brain getOrDefault [""group"",grpNull])} || {(_brain getOrDefault [""returnObserverEpoch"",_brain getOrDefault [""ownerEpoch"",-1]]) != ((group _actor) getVariable [""CBE_AIPass_Epoch"",0])} || {(_actor getVariable [""CBE_PointActor_Brain"",createHashMap]) isNotEqualTo _brain} || {serverTime >= (_brain getOrDefault [""deadline"",0])+30} || {time >= _returnAt}";action="";};
+            };
+        };
+        class Ended {name="Ended";init="";precondition="";class Links {};};
     };
-    initState="Start";finalStates[]={"Finished"};
+    initState="Start";finalStates[]={"Ended"};
 };

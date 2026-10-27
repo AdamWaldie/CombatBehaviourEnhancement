@@ -18,7 +18,8 @@
  * 3 fixed producer contract ARRAY of six nonempty STRING,[]:
  * [work key,group reference key,worker key,worker serial key,movement lease owner,FSM path].
  * Return: BOOL retirement worker pending/live, not physical stop or returned native authority.
- * Current callers: ArtilleryCrewMoveRetire with its fixed artillery storage and worker contract.
+ * Current callers: ArtilleryCrewMoveRetire and VehicleTacticalMoveRetire with fixed producer contracts.
+ * Artillery reservation metadata delegates to its per-gun domain; tactical singleton handling is unchanged.
  * Example: [_vehicle,_token,_serial,_producerContract] call CBE_fnc_VehicleCrewMoveRetire;
  */
 params [["_battery",objNull,[objNull]],["_token","",[""]],["_serial",-1,[0]],
@@ -36,8 +37,12 @@ isNil {
         private _group=_work getOrDefault ["group",grpNull];
         private _reference=_work getOrDefault ["reference",[]];
         private _phase=_work getOrDefault ["phase",""];
+        private _artillery=_referenceKey == "CBE_ArtilleryCrew_Reservations";
+        private _referenceCurrent=if (_artillery) then {
+            [_group,"CHECK",_reference] call CBE_fnc_ArtilleryCrewReservation
+        } else {(_group getVariable [_referenceKey,[]]) isEqualTo _reference};
         if (isNull _group || {!local _group} || {count _reference != 5}
-            || {(_group getVariable [_referenceKey,[]]) isNotEqualTo _reference}
+            || {!_referenceCurrent}
             || {!(_phase in ["ISSUE","REQUESTED","MOVING","HOLD","STOPPING","RETURNING","UNRESOLVED"])}) exitWith {false};
         private _epoch=_group getVariable ["CBE_AIPass_Epoch",-1];
         if (_epoch < 0) exitWith {false};
@@ -86,22 +91,25 @@ isNil {
             private _publicLease=_group getVariable ["CBE_Cortex_MovementLease",[]];
             private _expectedPublic=[_leaseOwner,_work getOrDefault ["holdUntil",-1]];
             if (_live || {!_nativeRetired}
-                || {_publicLease isNotEqualTo [] && {_publicLease isNotEqualTo _expectedPublic}}
-                || {_localLease isNotEqualTo [] && {_localLease isNotEqualTo (_work get "localLease")}}) exitWith {
+                || {!_artillery && {_publicLease isNotEqualTo [] && {_publicLease isNotEqualTo _expectedPublic}}}
+                || {!_artillery && {_localLease isNotEqualTo [] && {_localLease isNotEqualTo (_work get "localLease")}}}) exitWith {
                 // A passive deletion observer does not adopt this unresolved movement.
                 [_battery,"INSTALL",[_workKey,_referenceKey,_leaseOwner]] call CBE_fnc_VehicleCrewMoveDeletionWatch;
                 false
             };
-            if !([_group,_leaseOwner,false] call CBE_fnc_CortexOwnershipLease) exitWith {false};
+            private _released=if (_artillery) then {
+                [_group,"REMOVE",_reference] call CBE_fnc_ArtilleryCrewReservation
+            } else {[_group,_leaseOwner,false] call CBE_fnc_CortexOwnershipLease};
+            if (!_released) exitWith {false};
             private _terminal=+_work;
             _terminal set ["phase","RETIRED"];
             _terminal set ["result",if (_stopObserved) then {"NATIVE_STOP_OBSERVED_AFTER_WORKER"} else {
                 ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER"] select _returnObserved
             }];
             _battery setVariable [_workKey,_terminal,true];
-            _group setVariable [_referenceKey,nil,true];
+            if (!_artillery) then {_group setVariable [_referenceKey,nil,true]};
             [_battery,"RELEASE",_reference] call CBE_fnc_VehicleCrewMoveDeletionWatch;
-            if (_localLease isNotEqualTo []) then {_state deleteAt "movementLease"};
+            if (!_artillery && {_localLease isNotEqualTo []}) then {_state deleteAt "movementLease"};
             false
         };
         private _journal=+_work;
@@ -129,8 +137,11 @@ isNil {
         private _adoptedReference=[_battery,_token,_serial,_epoch,clientOwner];
         _journal set ["owner",clientOwner];_journal set ["epoch",_epoch];
         _journal set ["reference",_adoptedReference];
+        if (_artillery) then {
+            _referenceCurrent=[_group,"REPLACE",_reference,_adoptedReference] call CBE_fnc_ArtilleryCrewReservation;
+        } else {_group setVariable [_referenceKey,_adoptedReference,true]};
+        if (!_referenceCurrent) exitWith {false};
         _battery setVariable [_workKey,_journal,true];
-        _group setVariable [_referenceKey,_adoptedReference,true];
         [_battery,"INSTALL",[_workKey,_referenceKey,_leaseOwner]] call CBE_fnc_VehicleCrewMoveDeletionWatch;
         private _executorSerial=(_battery getVariable [_executorSerialKey,0])+1;
         _battery setVariable [_executorSerialKey,_executorSerial];

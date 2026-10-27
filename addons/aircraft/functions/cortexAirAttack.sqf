@@ -14,6 +14,8 @@
  * Release readiness requires actual native selected-weapon state with the exact planned
  * magazine and positive rounds; reserve turret stock grants no release permission.
  * Pilot readiness uses the shared combat-effective predicate; unconscious/captive pilots cannot start new attack work.
+ * Exhausted fuel or native mobility loss ends attack work through exact owned cleanup. The same
+ * readiness is checked before later native commands; no repair, ejection or recovery route is invented.
  * Locality / Authority: Executes on the caller; world changes are limited to locally owned objects or groups, or to server-published state, as guarded below.
  * Executes one finite Cortex aircraft attack as ingress, attack and egress phases. Against an
  * airborne hostile these phases mean intercept, engage and disengage/rejoin: the first two
@@ -385,7 +387,8 @@ private _mayControlAircraft = {
         && {(_speedReceipt select 0) == _livePilot}
         && {(_speedReceipt select 2) isEqualType 0} && {finite (_speedReceipt select 2)}
         && {abs ((getForcedSpeed _aircraft)-(_speedReceipt select 2)) <= 0.1}};
-    _speedCurrent && {call _operationCurrent} && {local _aircraft} && {alive _aircraft} && {local _group} && {(_job get "group") == group _livePilot}
+    _speedCurrent && {call _operationCurrent} && {local _aircraft} && {alive _aircraft}
+        && {canMove _aircraft} && {fuel _aircraft > 0} && {local _group} && {(_job get "group") == group _livePilot}
         && {_stage == "" || {serverTime <= (_job getOrDefault ["deadline",-1])}}
         && {[_livePilot] call CBE_fnc_CortexCombatEffective} && {!isPlayer _livePilot}
         && {local _livePilot} && {[_livePilot] call CBE_fnc_CortexActorFireTaskAvailable}
@@ -428,6 +431,10 @@ if (!_allowed) exitWith {
     ]];
     ["CONTROL_RELEASED"] call _finish
 };
+// Mobility is a veto on powered attack work, not a prediction of safe recovery. In particular,
+// native canMove may reject a helicopter with tail-rotor damage that a player could still fly.
+// Retire our exact attack state without issuing group-follow or a synthetic landing/repair order.
+if (!canMove _aircraft || {fuel _aircraft <= 0}) exitWith {["AIRFRAME_UNAVAILABLE"] call _finish};
 private _isPlane=_aircraft isKindOf "Plane";
 // A helicopter may validly begin an attack from a hover. Planes still need enough energy to enter a
 // finite run; accepting a stationary plane would make its own spawn/ground state look like tactics.

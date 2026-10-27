@@ -90,6 +90,7 @@ columns, their spacing, driving assistance and halt/unload rules. Convoy driving
 not enable a standalone general driving controller. See the [settings reference](docs/SETTINGS-REFERENCE.md).
 
 Current implementation, physical acceptance and progression blockers are recorded in [the completion status](docs/COMPLETION-STATUS.md).
+Reference evaluation and selected AI functionality are mapped in [the source review map](reference/sourceReviews/SOURCE-REVIEW-MAP.md).
 
 ## Optional engine policy
 

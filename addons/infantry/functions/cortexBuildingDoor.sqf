@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Lets an approaching soldier on an explicit building order open a recognised unlocked door.
  * Locality/authority: called only on the soldier owner; direct non-server network invocation
  * is refused. Local calls and server-dispatched owner work retain their normal actor/order gates.
@@ -127,7 +128,7 @@ private _orderCurrent={
             && {_destination call _vectorValid} && {_target call _vectorValid}
             && {_destination vectorDistance _target <= 0.25}
             && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_brain getOrDefault ["route",[]])}
-            && {[getPosWorld _building,vectorDir _building,vectorUp _building] isEqualTo (_brain getOrDefault ["transform",[]])}
+            && {[getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building] isEqualTo (_brain getOrDefault ["transform",[]])}
             && {(_unit getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo (_brain getOrDefault ["lease",[]])}
     };
     private _key=switch (_context select 0) do {
@@ -149,7 +150,7 @@ private _orderCurrent={
             && {(_job getOrDefault ["generation",-1]) == (_context select 1)}
             && {(_job getOrDefault ["building",objNull]) == _building}
             && {_unit in ((_job getOrDefault ["team",[]])+(_job getOrDefault ["securityActors",[]]))}
-            && {(_job getOrDefault ["buildingTransform",[]]) isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+            && {(_job getOrDefault ["buildingTransform",[]]) isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
             && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_job getOrDefault ["nativeOrderReceipt",[]])}
             && {currentCommand _unit == "" || {_issued call _vectorValid && {_live call _vectorValid}
                 && {_live vectorDistance _issued <= 0.25}}}
@@ -160,7 +161,7 @@ private _orderCurrent={
     (_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []
         && {_assignment isEqualType []} && {count _assignment >= 4}
         && {(_assignment select 2) == _building}
-        && {(_assignment select 3) isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+        && {(_assignment select 3) isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
         && {_receipt isEqualType []} && {count _receipt == 5}
         && {(_receipt select 4) isEqualTo _assignment}
         && {(_receipt select 0) == _group} && {(_receipt select 1) == (_context select 1)}
@@ -218,7 +219,7 @@ private _visibilityChecks=0;
         if (_near && {_visibilityChecks < 4}) then {
             _visibilityChecks=_visibilityChecks+1;
             _nextCursor=(_cursor+_forEachIndex+1) mod _doorCount;
-            _visibilityProof=[getPosWorld _building,vectorDir _building,vectorUp _building,eyePos _unit,time];
+            _visibilityProof=[getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building,eyePos _unit,time];
             private _hits=lineIntersectsSurfaces [eyePos _unit,_position,_unit,objNull,true,1,"GEOM","NONE"];
             _visible=_hits isEqualTo [];
             if (!_visible) then {
@@ -232,10 +233,10 @@ private _visibilityChecks=0;
         if (_near && {_visible}) then {
         isNil {
         if (_near && {_visible}
-            && {count _visibilityProof == 5} && {time >= (_visibilityProof select 4)}
-            && {time-(_visibilityProof select 4) <= 0.5}
-            && {[getPosWorld _building,vectorDir _building,vectorUp _building] isEqualTo (_visibilityProof select [0,3])}
-            && {(eyePos _unit) vectorDistance (_visibilityProof select 3) <= 0.5}
+            && {count _visibilityProof == 6} && {time >= (_visibilityProof select 5)}
+            && {time-(_visibilityProof select 5) <= 0.5}
+            && {[getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building] isEqualTo (_visibilityProof select [0,4])}
+            && {(eyePos _unit) vectorDistance (_visibilityProof select 4) <= 0.5}
             && {alive _building} && {_building animationSourcePhase _source < 0.1}
             && {serverTime >= (_building getVariable ["CBE_Cortex_DoorRequestUntil",-1])}
             && {(_building getVariable ["bis_disabled_Door",0]) isEqualTo 0}

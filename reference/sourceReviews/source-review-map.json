@@ -1,0 +1,1149 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-26",
+  "sourceCommit": "6620c42c",
+  "policy": "Select useful AI functionality, merge complementary methods into existing CBE owners, fix defects and improve gameplay quality, balance and cost. Rejecting an unsafe source method does not complete its required capability.",
+  "scope": "48 recoverable Workshop references plus WMP as a separate local integration reference. Historical master ledger absent; completeness against lost history is unknown. All top-level Workshop intake/review IDs currently found are covered.",
+  "assessmentBoundary": "This maps the review queue and intended contributions. It does not reassess all source implementations, renew percentages, claim whole-mod parity or grant physical acceptance. Candidate contributions are evaluation objectives, not findings that the source implements them.",
+  "missingInputs": [
+    "LOCAL_IMPLEMENTATION_LEDGER.md historical master not recovered",
+    ".qa/source-refresh-20261011/code-inventory.json absent; old pointers retained as missing, not evidence of lost raw source"
+  ],
+  "references": [
+    {
+      "workshopId": "1858075458",
+      "name": "LAMBS Danger.fsm 2.6.2",
+      "priority": "0 Foundations",
+      "candidateContribution": "Standalone danger FSM, reactions, assault and task lifecycle",
+      "reviewStatus": "All41 readable danger-addon SQF body dispositions and civilian FSM runtime branches reviewed; selected main helpers reviewed; whole-source descendants remain incomplete",
+      "nextSourceReview": "Reconcile remaining main/wp helpers and concrete capabilities with existing owners. Civilian exterior/indoor refuge selection, migration observation and idle roofed gunfire retention are implemented but physically unverified; body/scream and broader civilian functionality remain incomplete. Settings modules are not a parity target.",
+      "recordedImplementationStatus": "PARTIAL_IMPLEMENTATION_WHOLE_SOURCE_INCOMPLETE",
+      "recordedRemaining": "Whole-source parity and remaining execution branches incomplete; physical reliability and performance separate.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/lambs-fsm-foundations-20261020.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/1858075458",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "currentDangerSnapshot": {
+        "path": ".qa\\lambs-danger-installed-20261026",
+        "pboSHA256": "252066f2c36108f55cbfea3506543f9583345d74e1351028f6269bdf2a7a0269",
+        "members": 96,
+        "readableSqf": 41,
+        "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json",
+        "scope": "Installed danger-addon snapshot:41 readable SQF body dispositions recorded. Configuration/context entry paths reviewed. No wholeLAMBS, descendant or compiled behavioural equivalence claim.",
+        "functionQueue": "reference/sourceReviews/lambs-danger-source-queue.json",
+        "latestReview": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#startupConfigurationReview20261026",
+        "civilianFSMReview": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianFSMReview20261026",
+        "civilianObservationFollowup": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianObservationAdoption20261026"
+      },
+      "civilianExteriorRefugeEvidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianExteriorRefuge20261026",
+      "combinedGroundFiringAreaEvidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#combinedGroundFiringAreas20261026",
+      "civilianShelterImplementation20261027": {
+        "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianIndoorRefuge20261027",
+        "scope": "Selected bounded civilian indoor fallback; not whole-LAMBS parity or physical acceptance. Existing source version/hash retained; no whole-map score reassessment."
+      },
+      "civilianIdleShelter20261027": {
+        "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianIdleShelter20261027",
+        "scope": "Selected negative gunfire-response deduplication at an observed idle roofed position, not a hold controller or whole-LAMBS acceptance."
+      },
+      "civilianWitnessedCasualty20261027": {
+        "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianWitnessedCasualty20261027",
+        "implementation": "Own-group death-event forward clear-view cues reuse the existing finite civilian refuge owner; <=16 roster, <=45m, no killer reveal or polling.",
+        "remaining": "Native civilian FSM body/scream/late-discovery parity, physical witnessing/refuge and measured performance remain unverified.",
+        "scoresChanged": false
+      }
+    },
+    {
+      "workshopId": "3812620045",
+      "name": "HBQ Advanced Driving AI",
+      "priority": "0 Foundations",
+      "candidateContribution": "Driving, traffic, recovery, convoy and crew policy",
+      "reviewStatus": "All28 indexed auxiliary bodies/declarations reviewed; main controller major branch reviews extended, end-to-end reconciliation incomplete",
+      "nextSourceReview": "Reconcile reviewed controller decisions, issued native work, detached callbacks and cleanup with required CBE capability dispositions. See navigation/route-memory, obstacle/grinding/watchdog and startup/crew/cadence sections in the current HBQ intent review. Readable body coverage does not establish integration or physical parity.",
+      "recordedImplementationStatus": "PARTIAL_IMPLEMENTATION_WHOLE_SOURCE_INCOMPLETE",
+      "recordedRemaining": "Whole-source parity remains incomplete. Optional default-off ordinary crew recall is now built; shallow-ford policy and other recorded source gaps remain open. Current convoy pacing trace does not justify blind tuning; physical reliability and performance unverified.",
+      "implementationAssessmentCommit": "52f9606d1612715eedeb862f8cca4705ca0420ae",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/hbq-reference-index.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3812620045",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "auxiliaryReviewEvidence": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-intent-20261026.json#auxiliaryBodyReconciliation20261026"
+    },
+    {
+      "workshopId": "3799391254",
+      "name": "PROTOCOL AI CQB",
+      "priority": "1 Protocol programme",
+      "candidateContribution": "Dynamic building entry, clearing and exterior isolation",
+      "reviewStatus": "Readable scripts reviewed; integration/scope gaps remain",
+      "nextSourceReview": "Reconcile complete selected execution with CBE entry/pair/reserve/isolation/egress owners; finish named flow and handover gaps.",
+      "recordedImplementationStatus": "READABLE_SCRIPTS_REVIEWED_INTENT_PATHS_EXIST_PHYSICAL_PENDING",
+      "recordedRemaining": "Binary startup/dependencies/licence; physical flow/handback/performance; safe doorway-specific fragmentation unproven.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment\\referenceReviews\\protocol-cqb-3799391254-20261020.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "programmeStatus": "READABLE_SCRIPTS_REVIEWED_INTENT_PATHS_EXIST_PHYSICAL_PENDING",
+      "programmeRemaining": "Binary startup/dependencies/licence; physical flow/handback/performance; safe doorway-specific fragmentation unproven.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3799391254",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3800081309",
+      "name": "PROTOCOL AI AIRBORNE",
+      "priority": "1 Protocol programme",
+      "candidateContribution": "Airborne insertion and ground transition",
+      "reviewStatus": "Readable scripts reviewed; integration/scope gaps remain",
+      "nextSourceReview": "Complete remaining source/dependency review; reconcile passengers, automatic landed squad and flight crew task preservation.",
+      "recordedImplementationStatus": "INSERTION_AND_AUTOMATIC_LANDED_SQUAD_HANDOVER_IMPLEMENTED_PHYSICAL_PENDING",
+      "recordedRemaining": "Original landed cargo now automatically forms a real ground squad when operating crew remains in its original group; native membership/waypoint acknowledgements and ordinary ground brain integrated. Actual insertion/repeated landing, cohesive movement/combat, group-change hooks, mixed HC/locality, failure handling and overhead remain unverified; broader aircraft/mission cases are not established.",
+      "implementationAssessmentCommit": "b7074d5c3baddd0b4dd57d82734c154750f8fdb7",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/airborne-ground-squad-20261024.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "programmeStatus": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
+      "programmeRemaining": "Physical repeated insertion, exit/landing equipment safety, later flight-height intent and support handback remain unverified. Source perpetual gunner loop is not a required implementation.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3800081309",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3801354927",
+      "name": "PROTOCOL AI ARTILLERY: RELOCATE & COUNTER-BATTERY",
+      "priority": "1 Protocol programme",
+      "candidateContribution": "Battery positioning, fire response and counter-battery",
+      "reviewStatus": "Readable scripts reviewed; integration/scope gaps remain",
+      "nextSourceReview": "Bounded per-gun reservations integrated; see artillery-selected-crew-20261025.json#peerReservationsImplementation20261027. Original idle/formation continuation and positive terminal-native recovery remain open. Physical peer travel/formation/firing/handback and measured cost require a later authorised audit; do not repeat the completed singleton trace.",
+      "recordedImplementationStatus": "READABLE_SCRIPTS_REVIEWED_PARTIAL_INTENT_PATHS",
+      "recordedRemaining": "Pre-fire positioning integrated for independent mobile battery groups with bounded native proposals and authenticated arrival/HOLD; mixed-group positioning and physical firing/scoot/counter-battery validation remain. Binary startup/dependencies/licence remain unverified.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment\\referenceReviews\\protocol-artillery-3801354927-20261020.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "programmeStatus": "SELECTED_PREFIRE_AND_POSTFIRE_CREW_FSM_INTEGRATED_OFFLINE_PHYSICAL_PENDING",
+      "programmeRemaining": "Selected mixed-group pre/postfire movement and bounded per-gun same-group reservations are integrated in source. Physical peer movement/formation interaction, terminal unknown/casualty recovery and original idle/formation continuation remain code/evidence gaps. Physical firing/scoot/counter-battery, normal/HC/JIP/Zeus and performance remain unverified. Reuse licensing remains separate.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3801354927",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3802121807",
+      "name": "PROTOCOL AI PAIRS",
+      "priority": "1 Protocol programme",
+      "candidateContribution": "Buddy roles, bounds and casualty replacement",
+      "reviewStatus": "Readable scripts reviewed; integration/scope gaps remain",
+      "nextSourceReview": "Reconcile source roles and arrival-driven transitions with current pair allocation and finite advance FSM.",
+      "recordedImplementationStatus": "SYNCHRONISED_BUDDY_ROLES_INTEGRATED_PHYSICAL_PENDING",
+      "recordedRemaining": "Synchronised opposite buddy roles are integrated through the finite advance FSM, with casualty/next-bound allocation and ownership checkpoint. Actual cover/arrival/recovery/migration/performance and licensing remain unverified. Independently timed pair waves are an optional CBE extension, not an arrival-driven feature supplied by the reference. See protocol-pairs-3802121807-20261020.json intentScopeReconciliation20261023.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment\\referenceReviews\\protocol-pairs-3802121807-20261020.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "programmeStatus": "SYNCHRONISED_BUDDY_ROLES_INTEGRATED_PHYSICAL_PENDING",
+      "programmeRemaining": "Synchronised opposite buddy roles are integrated through the finite advance FSM, with casualty/next-bound allocation and ownership checkpoint. Actual cover/arrival/recovery/migration/performance and licensing remain unverified. Independently timed pair waves are an optional CBE extension, not an arrival-driven feature supplied by the reference. See protocol-pairs-3802121807-20261020.json intentScopeReconciliation20261023.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3802121807",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3803702313",
+      "name": "PROTOCOL AI CITY TACTICS",
+      "priority": "1 Protocol programme",
+      "candidateContribution": "Urban movement, cover and smoke",
+      "reviewStatus": "Readable scripts reviewed; integration/scope gaps remain",
+      "nextSourceReview": "Reconcile source urban decisions with dynamic routing and one squad/CQB task owner.",
+      "recordedImplementationStatus": "READABLE_SCRIPTS_REVIEWED_INTENT_PATHS_EXIST_PHYSICAL_PENDING",
+      "recordedRemaining": "Binary startup/dependencies/licence and physical cover/smoke/flow/performance validation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment\\referenceReviews\\protocol-city-3803702313-20261020.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "programmeStatus": "READABLE_SCRIPTS_REVIEWED_INTENT_PATHS_EXIST_PHYSICAL_PENDING",
+      "programmeRemaining": "Binary startup/dependencies/licence and physical cover/smoke/flow/performance validation.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3803702313",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3809708209",
+      "name": "PROTOCOL AI ANTI-AIR: RELOCATE AND ANTI-MISSILE",
+      "priority": "1 Protocol programme",
+      "candidateContribution": "AA relocation, warning allocation and point defence",
+      "reviewStatus": "Readable scripts reviewed; integration/scope gaps remain",
+      "nextSourceReview": "Complete station/weapon/projectile applicability and interruption review; distinguish existing experimental subset from remaining capability.",
+      "recordedImplementationStatus": "SCOPED_NATIVE_AA_AND_EXPERIMENTAL_POINT_DEFENCE_CODE_INTEGRATED_PHYSICAL_PENDING",
+      "recordedRemaining": "Native-AA idle relocation, same-group native-warning allocation and default-off finite main-turret point-defence aim/shot/local-direct-pass-fuse/calibration code paths exist. Physical interception, balance and performance are unverified. Cross-owner projectile effects, payload/submunition handling, broader weapon/station layers, mixed/custom-AA relocation and authored-route cases remain unsupported or incomplete. Binary registration/declarations are reviewed; runtime dependencies and licensing remain separate.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment\\referenceReviews\\protocol-aa-3809708209-20261020.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "programmeStatus": "SCOPED_NATIVE_AA_AND_EXPERIMENTAL_POINT_DEFENCE_CODE_INTEGRATED_PHYSICAL_PENDING",
+      "programmeRemaining": "Native-AA idle relocation, same-group native-warning allocation and default-off finite main-turret point-defence aim/shot/local-direct-pass-fuse/calibration code paths exist. Physical interception, balance and performance are unverified. Cross-owner projectile effects, payload/submunition handling, broader weapon/station layers, mixed/custom-AA relocation and authored-route cases remain unsupported or incomplete. Binary registration/declarations are reviewed; runtime dependencies and licensing remain separate.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3809708209",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3813369033",
+      "name": "PROTOCOL AI NAVY SEAL",
+      "priority": "1 Protocol programme",
+      "candidateContribution": "Boat/shore insertion and ground transition",
+      "reviewStatus": "Readable scripts reviewed; integration/scope gaps remain",
+      "nextSourceReview": "Complete relevant source handover review across crew/cargo/landing and existing ground squad execution.",
+      "recordedImplementationStatus": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
+      "recordedRemaining": "Actual shore/nav path quality, mixed cargo/crew locality, refusal/repeat/migration, landing-to-ground combat and performance need physical evidence. Do not call source duplication two separate desired features.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment\\referenceReviews\\protocol-navy-3813369033-20261020.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "programmeStatus": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
+      "programmeRemaining": "Actual shore/nav path quality, mixed cargo/crew locality, refusal/repeat/migration, landing-to-ground combat and performance need physical evidence. Do not call source duplication two separate desired features.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3813369033",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3819636004",
+      "name": "PROTOCOL AI RAPPELING",
+      "priority": "1 Protocol programme",
+      "candidateContribution": "AI rappel task and aircraft/passenger handover",
+      "reviewStatus": "Readable scripts reviewed; integration/scope gaps remain",
+      "nextSourceReview": "Resolve real finite Advanced Rappelling provider contract and dependencies; detection alone does not implement rappelling.",
+      "recordedImplementationStatus": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
+      "recordedRemaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment\\referenceReviews\\protocol-rappel-3819636004-20261020.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "programmeStatus": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
+      "programmeRemaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3819636004",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3822504009",
+      "name": "PROTOCOL AI ARMORED FORCE",
+      "priority": "1 Protocol programme",
+      "candidateContribution": "Armour protection, engagement and repositioning",
+      "reviewStatus": "Readable scripts reviewed; integration/scope gaps remain",
+      "nextSourceReview": "Resolve broader/scripted/burst/multistation ATGM and cover/exposure/relocation gaps beyond selected native main-station missile observation, standoff and post-shot paths. Physical guidance/crew/remaining-budget movement and cost remain unverified.",
+      "recordedImplementationStatus": "READABLE_SOURCE_REVIEWED_SELECTED_STATION_INTENT_INTEGRATED",
+      "recordedRemaining": "Selected countermeasure-station intent and original CBE vehicle foundations now include language-independent horn exclusion and exact jink control-seat authority/cancellation. Continue suitable ATGM/cover/exposure/relocation integration; actual shots, tactical movement, owner handback and performance remain unverified. Binary registration/declarations reviewed; runtime/provider dependencies and licensing remain separate.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment\\referenceReviews\\workshop-intake-3822504009.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "programmeStatus": "SCOPED_STATION_AND_SELECTED_MOVEMENT_CODE_INTEGRATED_PHYSICAL_PENDING",
+      "programmeRemaining": "Actual main-cannon Fired capture and one finite screened post-shot move are now integrated through the selected-crew FSM, limited to idle tanks/APCs/main-turret shells. Broader suitable ATGM, mission-route/mixed/custom-platform cases and proven supersession/deleted-platform cleanup remain incomplete. Actual loading/firing, native travel/handback, repeated use, owner migration, combat balance and performance remain unverified; dependencies/licensing remain separate. See armour-post-shot-cover-20261025.json.",
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3822504009",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "nativeMissileObservation20261027": {
+        "evidence": "releaseVerificationAndDeployment/referenceReviews/armour-post-shot-cover-20261025.json#nativeMissileObservation20261027",
+        "scope": "Selected bounded native missile post-shot observation; not general missile/controller parity or physical acceptance."
+      }
+    },
+    {
+      "workshopId": "1808238502",
+      "name": "LAMBS Suppression",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Suppression and aim recovery balance",
+      "reviewStatus": "Selected scope reviewed; remaining scope needs disposition",
+      "nextSourceReview": "Reconcile the complete native policy with danger, firing and mission skill ownership; retain optional scope.",
+      "recordedImplementationStatus": "OPTIONAL_NATIVE_SIX_PROPERTY_POLICY_IMPLEMENTED_PHYSICAL_PENDING",
+      "recordedRemaining": "Six reviewed native suppression/aim recovery properties now implemented as an explicit optional addon; effective diagnostics and comparison provenance integrated. Actual merged runtime config, recovery, balance and performance unverified.",
+      "implementationAssessmentCommit": "99060c42",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/native-suppression-policy-20261024.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/1808238502",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "1858070328",
+      "name": "LAMBS RPG",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Launcher target selection and firing policy",
+      "reviewStatus": "Selected scope reviewed; remaining scope needs disposition",
+      "nextSourceReview": "Trace all relevant launcher decisions and ammunition tradeoffs beyond the selected vanilla config subset.",
+      "recordedImplementationStatus": "SELECTED_NATIVE_AI_POLICY_BUILT_OPTIONAL_UNVERIFIED",
+      "recordedRemaining": "Selected vanilla native AI policy built as optional launcher_policy; player/shared properties preserved. CUP/RHS/SOG adapters excluded; physical engagement, balance, friendly safety and ammunition economy unverified. Not whole-source parity.",
+      "implementationAssessmentCommit": "0385b7b29c33be19127649f200bea3a1b4b8e941",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/native-launcher-policy-20261024.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/1858070328",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "1862208264",
+      "name": "LAMBS Turrets",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Turret firing, dispersion and ammunition economy",
+      "reviewStatus": "Selected scope reviewed; remaining scope needs disposition",
+      "nextSourceReview": "Compare relevant firing branches and termination with native firing; retain interruption and friendly safety.",
+      "recordedImplementationStatus": "NATIVE_AI_DISPERSION_LAYER_BUILT_PHYSICAL_PENDING",
+      "recordedRemaining": "Native AI dispersion layer implemented in existing optional addon; non-terminable source burst policy deliberately rejected in favour of native termination. Physical firing, target-loss interruption, ammunition economy, balance, merged derived config and performance remain unverified. Existing0.12 ceiling differs from source0.15; no numerical improvement claim.",
+      "implementationAssessmentCommit": "d849a79d99803a079450884c847830ca15b66307",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/lambs-config-policies-20261024.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/1862208264",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "2905259701",
+      "name": "isky's A.I Skill Tweaks",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "AI parameter policy that coexists with mission skills",
+      "reviewStatus": "Selected scope reviewed; remaining scope needs disposition",
+      "nextSourceReview": "Decoded config was read; reconcile effective engine declarations and selective CBE policy without repeated skill overrides.",
+      "recordedImplementationStatus": "LOCAL_CONFIG_REVIEWED_EFFECTIVE_LOADING_PENDING",
+      "recordedRemaining": "Evaluate native countermeasure/suppression/aiming intent against current engine declarations and CBE settings without overwriting mission skill policy; do not transplant nested classes or claim inactive declarations work.",
+      "implementationAssessmentCommit": "713cb7d7",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/source-reconciliation-20261024.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/2905259701",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3380337397",
+      "name": "FPV AI Drones",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "AI FPV decisions and safe drone allocation",
+      "reviewStatus": "Source review pending",
+      "nextSourceReview": "Read AI flight/target/payload/ownership paths and reuse restrictions; distinguish native decisions from scripted physics.",
+      "recordedImplementationStatus": "REGISTERED_PENDING_SOURCE_EVALUATION",
+      "recordedRemaining": "See dated intake; registration is not implementation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3380337397.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3380337397",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3496308284",
+      "name": "AI Helicopter Decelerate No Climbing",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Helicopter deceleration without unwanted climbing",
+      "reviewStatus": "Installed1.0.5.0 readable controller/init/settings/config recovered and reconciled; compiled/runtime equivalence unverified",
+      "nextSourceReview": "Validate flight/mission-edit/locality behaviour and added full-receipt cost when audits resume; retain separate missile-defence native-handover review.",
+      "recordedImplementationStatus": "FINITE_OWNER_CORRECTION_FULL_AUTHORED_ORDER_GUARD_OFFLINE_PHYSICAL_PENDING",
+      "recordedRemaining": "Braking/climb reduction, approach/landing coexistence, same-index edits, HC migration and runtime cost remain unverified; SQFC/preprocessing equivalence not established.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/helicopter-deceleration-source-20261026.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3496308284",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "reviewScopeNote": "Selected CBE correction trace and finite guard from921ca8ea plus working runtime; no whole-feature percentage reassessment."
+    },
+    {
+      "workshopId": "3529745801",
+      "name": "Simple Civilian Behaviour",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Civilian reactions and task continuity",
+      "reviewStatus": "Complete readable AI script and config entry/action callbacks recovered/reviewed; visual animation graph not evaluated",
+      "nextSourceReview": "Continue contextual shelter/body awareness and task continuity; preserve mission settings. Native pass-by delivery, repeat/migration and dense-fire cost await physical validation.",
+      "recordedImplementationStatus": "FINITE_CIVILIAN_ESCAPE_NATIVE_PASSBY_EVENT_OFFLINE_PHYSICAL_PENDING",
+      "recordedRemaining": "Contextual shelter/body/scream awareness, civilian vehicle escape and operator interactions remain incomplete; native pass-by applicability/physical escape quality/cost unverified.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/simple-civilian-source-20261026.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3529745801",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "reviewScopeNote": "Selected event contribution implemented through existing civilian owner from15dda654 plus working runtime; no whole-feature percentage reassessment."
+    },
+    {
+      "workshopId": "3559900745",
+      "name": "Pinned Down Combat Suppression",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Combat suppression response",
+      "reviewStatus": "Core AI execution chain reviewed:10SQF bodies plus6-state/8-link FSM; selected AI config/settings paths. Whole player/debug/source scope and physical acceptance not complete.",
+      "nextSourceReview": "Do not repeat completed AIsuppression/bootstrap/FSM bodies. Evaluate remaining mission-aware stress/precision contribution and diagnostics cost if required; compare current3820871877 delta record. Source ownership/skill-writer defects are explicitly rejected, not CBE implementation.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/pinned-suppression-source-20261027.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3559900745",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3559900745",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3559900745/extracted-20261011",
+        "snapshotFiles": 38,
+        "readableSourceFiles": 32,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
+      "currentSelectedIntegration": "CortexMorale scales existing two-second balance by elapsed serverTime. CortexFireControl requires settled round+magazine phases and matching native magazine, with128-row/class reserve bounds. Existing owners retained; no parallel suppression/skill/stance walker or synthetic suppression floor."
+    },
+    {
+      "workshopId": "3579551673",
+      "name": "Pinned Down Surrender",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Surrender and capture behaviour",
+      "reviewStatus": "Verified extracted source available; deep review unreconciled",
+      "nextSourceReview": "Use the verified extracted snapshot to trace triggers, weapons/captive state, interruption and repeat restoration.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3579551673",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3579551673",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3579551673/extracted-20261011",
+        "snapshotFiles": 22,
+        "readableSourceFiles": 19,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
+    },
+    {
+      "workshopId": "3623550024",
+      "name": "AI Zeus - Autonomous Battlefield Commander",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Battlefield decisions and force allocation",
+      "reviewStatus": "Selected scope reviewed; remaining scope needs disposition",
+      "nextSourceReview": "Read deterministic decision/execution/cancellation paths and relevant behaviour modules; assess provider/LLM paths separately.",
+      "recordedImplementationStatus": "IDENTITY_CONFIG_AND_SELECTED_OWNERSHIP_HELPERS_REVIEWED",
+      "recordedRemaining": "Read startup, controlled-group admission, deterministic strategic decision/execution and cancellation chains; then evaluate the complete relevant modules. LLM/provider paths are not assumed required or safe merely because declared.",
+      "implementationAssessmentCommit": "713cb7d7",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/source-reconciliation-20261024.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3623550024",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3679457651",
+      "name": "SCAI Artillery Support",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Artillery observation and support response",
+      "reviewStatus": "Unreconciled; older evidence pointer missing",
+      "nextSourceReview": "Recover provenance; compare spotting, fire allocation, deconfliction and finite battery ownership with Protocol artillery.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3679457651",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3682445063",
+      "name": "Smart Aircraft AI",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Aircraft decisions and support behaviour",
+      "reviewStatus": "Installed2.6.0 core readable source reconciled; attack-readiness veto implemented/offline verified; recovery and physical evidence open",
+      "nextSourceReview": "Reconcile known/authored recovery destination and service policy with existing flight/task ownership before low-fuel/damage RTB. Do not re-review completed core readable bodies without changed source or a concrete failure. Antistasi adapter remains deferred compatibility; physical attack-abort/native handback/locality/repeat and cost await authorised audits.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Low-fuel/damage recovery destination/service lifecycle, deferred Antistasi integration and physical/performance evidence remain unresolved. Core readable review and readiness patch do not establish whole-mod parity or renew historical percentages.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/smart-aircraft-source-20261027.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3682445063",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3690291228",
+      "name": "Realistic Civilians",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Civilian routine and reactions",
+      "reviewStatus": "Unreconciled; older evidence pointer missing",
+      "nextSourceReview": "Recover provenance; compare useful civilian methods with Simple Civilian Behaviour and existing CBE danger.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3690291228",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3709853140",
+      "name": "Pinned Down Medical Solution",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Squad medical assistance",
+      "reviewStatus": "Verified extracted source available; deep review unreconciled",
+      "nextSourceReview": "Use the verified extracted snapshot to trace aid allocation, casualty approach and ACE/native medical task ownership.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3709853140",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3709853140",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3709853140/extracted-20261011",
+        "snapshotFiles": 25,
+        "readableSourceFiles": 23,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
+    },
+    {
+      "workshopId": "3721618614",
+      "name": "Smart Merge AI",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Survivor regroup and group merging",
+      "reviewStatus": "All36 readable function bodies/config/settings reviewed; selected CBE cohort/live-host/task-policy fixes implemented; physical evidence pending",
+      "nextSourceReview": "Readable body dispositions complete for installed2.0.5. Continue other unresolved registered sources; retain physical joining/host task/cohort/repeat/locality and cost gaps.",
+      "recordedImplementationStatus": "READABLE_SOURCE_RECONCILED_SELECTED_REGROUP_FIXES_PHYSICAL_PENDING",
+      "recordedRemaining": "Selected CBE survivor merge behaviour needs physical validation and cost measurement. Whole-mod parity is not claimed; broader faction/allied/singleton/vehicle policies were not selected.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/smart-merge-source-20261027.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3721618614",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "historicalMissingEvidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "reviewScopeNote": "All36 readable bodies and config/settings have explicit grouped dispositions; no implementation-completion percentage inferred."
+    },
+    {
+      "workshopId": "3742481604",
+      "name": "DiGii reference (identity needs reconciliation)",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "AI contribution to identify",
+      "reviewStatus": "Unreconciled; older evidence pointer missing",
+      "nextSourceReview": "Resolve actual mod identity and readable AI scope before selecting any mechanism.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3742481604",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3744994173",
+      "name": "AI Culler: Optimized Warfare",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "AI processing cost and simulation policy",
+      "reviewStatus": "Unreconciled; older evidence pointer missing",
+      "nextSourceReview": "Recover provenance; inspect what is culled and its effects on contact, objectives, locality and simulation-dependent tasks.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3744994173",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3763118318",
+      "name": "Pinned Down Steel Rain",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Artillery behaviour to compare",
+      "reviewStatus": "Verified extracted source available; deep review unreconciled",
+      "nextSourceReview": "Use the verified extracted snapshot to identify actual artillery methods and combine useful intent with the single CBE support lifecycle.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3763118318",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3763118318",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3763118318/extracted-20261011",
+        "snapshotFiles": 37,
+        "readableSourceFiles": 34,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
+    },
+    {
+      "workshopId": "3771745732",
+      "name": "BHL AI",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "AI helicopter landing approach, braking, terrain clearance and lifecycle handover",
+      "reviewStatus": "Both readable helicopter controller bodies reviewed; finite CBE lifetimes and full landing-node write/cleanup guards implemented; physical evidence pending",
+      "nextSourceReview": "Relevant readable controller methods reconciled with existing CBE landing owner. Continue other registered foundation gaps; retain physical validation and dynamic obstacle coverage as unresolved.",
+      "recordedImplementationStatus": "LANDING_LIFECYCLE_IMPLEMENTED_PHYSICAL_AND_OBSTACLE_GAPS_OPEN",
+      "recordedRemaining": "Dynamic/placed-obstacle hull coverage, physical flight/hold/onward/repeat/locality results and measured cost remain open; whole-mod parity not claimed.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/bhl-helicopter-source-20261026.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3771745732",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "historicalMissingEvidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "reviewScopeNote": "Helicopter-only scope verified from installed readable source; replaces incorrect infantry/squad candidate description. No build percentage uplift."
+    },
+    {
+      "workshopId": "3775025723",
+      "name": "Pinned Down Cover and Concealment",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Cover selection and concealment use",
+      "reviewStatus": "Selected cover eligibility, FSM branches and caller regions reviewed; whole-source reconciliation open",
+      "nextSourceReview": "Complete position-selection, reachability, threat-facing and defensive-position execution review; reconcile with existing movement/posture owners without a competing forced-speed hold. Selected caller cleanup defect fixed; remaining source scope is not complete.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3775025723",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3775025723",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3775025723/extracted-20261011",
+        "snapshotFiles": 38,
+        "readableSourceFiles": 37,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
+      "selectedReviewEvidence": [
+        "releaseVerificationAndDeployment/referenceReviews/pinned-cover-completion-dispositions-20261026.json",
+        "releaseVerificationAndDeployment/referenceReviews/danger-cover-return-anchor-20261026.json"
+      ]
+    },
+    {
+      "workshopId": "3776232873",
+      "name": "Pinned Down Tracks and Boots",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Infantry and vehicle cooperation to evaluate",
+      "reviewStatus": "Seven selected helpers fully reviewed including troop median/overwatch/updateSupport/hold; wider registerJob/updateJob/release chain incomplete",
+      "nextSourceReview": "Trace tracked passenger registration, support movement writers and release/native handback. Troop-body mechanised escort is a distinct unimplemented capability; do not replace existing combined-ground live-fire anchor. See supportPositioningFollowup20261027.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/pinned-tracks-boots-source-20261027.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3776232873",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3776232873",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3776232873/extracted-20261011",
+        "snapshotFiles": 63,
+        "readableSourceFiles": 62,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
+      "currentSelectedIntegration": "CortexPassengerReady resolves static non-vehicle deck parent, height/normal and linear/angular rest in its existing single-ray water exception. Existing CortexInfantrySpeed already handles bounded friendly hull braking; no source controller imported."
+    },
+    {
+      "workshopId": "3778948165",
+      "name": "Scorpion's Advanced AI",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "General AI methods to compare",
+      "reviewStatus": "Unreconciled; older evidence pointer missing",
+      "nextSourceReview": "Recover provenance; inventory relevant sensing, reaction and task execution methods; identify unique contributions.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3778948165",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3785056303",
+      "name": "Pinned Down Combat Awareness",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Combat awareness and information sharing",
+      "reviewStatus": "All14 recovered readable config/startup/settings/runtime/debug files reviewed; selected sound-mode classification integrated/offline verified; physical and full-source intent coverage remain incomplete",
+      "nextSourceReview": "Use pinned-awareness-source-20261027.json dispositions; do not repeat unchanged readable bodies. Native/legacy/custom sound evidence, broader anonymous sensing and physical balance/performance remain open.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/pinned-awareness-source-20261027.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3785056303",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3785056303",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3785056303/extracted-20261011",
+        "snapshotFiles": 15,
+        "readableSourceFiles": 14,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
+      "currentSelectedIntegration20261027": {
+        "evidence": "releaseVerificationAndDeployment/referenceReviews/pinned-awareness-source-20261027.json",
+        "status": "Selected sound intent implemented through existing local uncertain-area hearing; global reveal/indefinite identity accumulation rejected",
+        "wholeImplementationReassessed": false,
+        "physicalAcceptance": false,
+        "scoresChanged": false
+      }
+    },
+    {
+      "workshopId": "3798063749",
+      "name": "MRPH Infantry Charge - Rewrite Edition",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Infantry assault and commitment",
+      "reviewStatus": "Unreconciled; older evidence pointer missing",
+      "nextSourceReview": "Review the complete AI scope beyond CQB, including admission, approach, interruption and handback.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3798063749",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3799629858",
+      "name": "Pinned Down Conductor",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Coordination contribution to identify",
+      "reviewStatus": "Verified extracted source available; deep review unreconciled",
+      "nextSourceReview": "Use the verified extracted snapshot to identify actual coordination decisions and ensure complementary methods share one CBE owner.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3799629858",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "verifiedExtractedSource": {
+        "workshopId": "3799629858",
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011",
+        "snapshotFiles": 77,
+        "readableSourceFiles": 76,
+        "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
+      },
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
+    },
+    {
+      "workshopId": "3800356547",
+      "name": "Smart Combat AI - Realistic Reactions & Tactics V2",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Infantry reactions and tactical choices",
+      "reviewStatus": "Installed8.0.1 selected state/registry/hazard/building bodies reviewed; endpoint allocation, garrison motion and failed-post reuse source implemented/offline verified; other features open",
+      "nextSourceReview": "Continue unread actual feature callers/settings and group cleanup methods or another concrete registered gap. Failed-post memory is now integrated through current garrison ownership; see smart-combat-state-source-20261027.json#garrisonFailedPostMemory20261027. Quiet shelter remains a candidate. Physical native/placed/modded CQB flow, casualty/isolation/egress/repeat and measured cost remain pending under audit pause.",
+      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
+      "recordedRemaining": "Remaining feature callers/settings and group release writers; quiet shelter/failure quarantine still candidates. Physical detour/clearance/isolation/refill/egress and cost unverified. No historical whole-mod percentage renewal.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/smart-combat-state-source-20261027.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3800356547",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3806472028",
+      "name": "Drongo's Grenade Tweaks Lite",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "AI grenade and UGL choice",
+      "reviewStatus": "Selected scope reviewed; remaining scope needs disposition",
+      "nextSourceReview": "Review remaining relevant AI policy and balance; keep player damage/cost changes outside selected scope.",
+      "recordedImplementationStatus": "SELECTED_NATIVE_AI_GRENADE_CHOICE_LAYER_BUILT_PHYSICAL_PENDING",
+      "recordedRemaining": "Native fragmentation/UGL choice and cadence integrated into existing optional launcher policy. Player damage/cost and shared throwable-base changes excluded. Native shots, ROE, friendly safety, ammunition economy, derived config and performance unverified; not whole-source parity.",
+      "implementationAssessmentCommit": "7072f960",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/native-grenade-policy-20261024.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3806472028",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3815260246",
+      "name": "AEGIS-M - Integrated Air Defence Framework",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Module-free AI layered air defence",
+      "reviewStatus": "Selected scope reviewed; remaining scope needs disposition",
+      "nextSourceReview": "Review munition interception, group allocation, threat priority, human crew response and CIWS correction; exclude unrelated framework features.",
+      "recordedImplementationStatus": "FOCUSED_INTERCEPTION_MECHANISM_REVIEWED_FULL_SCOPE_PENDING",
+      "recordedRemaining": "See dated intake; registration is not implementation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3815260246.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3815260246",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3818040165",
+      "name": "Emergency Air Support",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Useful air-support decisions and task composition",
+      "reviewStatus": "Source review pending",
+      "nextSourceReview": "Read complete relevant AI support paths and select complementary methods; no wholesale air-support framework port.",
+      "recordedImplementationStatus": "REGISTERED_PENDING_SOURCE_EVALUATION",
+      "recordedRemaining": "See dated intake; registration is not implementation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3818040165.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3818040165",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3820669449",
+      "name": "FPVSCARE",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "AI reactions to FPV threats",
+      "reviewStatus": "Source reviewed; design/implementation pending",
+      "nextSourceReview": "Finish design from reviewed source, including credible threat cues, cover/evasion and original task handback.",
+      "recordedImplementationStatus": "SOURCE_REVIEWED_PENDING_DESIGN_AND_IMPLEMENTATION",
+      "recordedRemaining": "See dated intake; registration is not implementation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3820669449.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3820669449",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3820871877",
+      "name": "Pinned Down Combat Suppression",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "AI-only combat suppression improvements",
+      "reviewStatus": "Current5793e970 PBO preserved;14selected file comparison and changed AI event/postInit/settings/config delta reviewed. Core FSM/attachment/bootstrap unchanged from reviewed archive; player scope excluded.",
+      "nextSourceReview": "Use current T66 snapshot and recorded dispositions; no blind identity reveal/permanent per-source knowledge or source server-only queue. Remaining mission-aware precision/stress and physical/performance gaps stay explicit.",
+      "recordedImplementationStatus": "initial_ai_source_comparison_complete_deep_review_pending",
+      "recordedRemaining": "Deep AI source evaluation and implementation pending; player effects excluded.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment\\referenceReviews\\pinned-down-combat-suppression-3820871877.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3820871877",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "currentOriginalArchive": {
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261027-3820871877-5793e970",
+        "filesVerified": 12,
+        "bisignFiles": 2,
+        "mainPboSHA256": "5793e97068c6a06c8ac6aa30dc3a750c9d15c9bdbde28d12ff4690f21be3da79"
+      }
+    },
+    {
+      "workshopId": "3817252579",
+      "name": "Root's Adaptive Detection System (RADS)",
+      "priority": "3 Optional stealth",
+      "candidateContribution": "Optional stealth recognition of concealed occupants",
+      "reviewStatus": "Source review pending",
+      "nextSourceReview": "Trace recognition and side/captive/targetability changes; assess scenario disruption and default-off restoration.",
+      "recordedImplementationStatus": "REGISTERED_PENDING_SOURCE_EVALUATION",
+      "recordedRemaining": "See dated intake; registration is not implementation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3817252579.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3817252579",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3822271074",
+      "name": "Identity unresolved",
+      "priority": "3 Optional stealth",
+      "candidateContribution": "Optional stealth contribution, identity unresolved",
+      "reviewStatus": "Source review pending",
+      "nextSourceReview": "Locate and identify the source first; then assess requested stealth benefits and scenario risks. Keep optional/default off.",
+      "recordedImplementationStatus": "REGISTERED_PENDING_SOURCE_EVALUATION",
+      "recordedRemaining": "See dated intake; registration is not implementation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3822271074.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3822271074",
+        "present": false,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "2567352444",
+      "name": "WBK Droids",
+      "priority": "4 Compatibility only",
+      "candidateContribution": "Specialist droid ownership compatibility",
+      "reviewStatus": "Compatibility review only; expansion last",
+      "nextSourceReview": "Review movement/animation writers and actual takeover/release contract only.",
+      "recordedImplementationStatus": "COMPATIBILITY_ONLY",
+      "recordedRemaining": "Do not import tactical gameplay; specialist ownership and handover only. Expansion last.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/2567352444",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "2789152015",
+      "name": "WebKnight's Zombies And Creatures",
+      "priority": "4 Compatibility only",
+      "candidateContribution": "Specialist creature ownership compatibility",
+      "reviewStatus": "Compatibility review only; expansion last",
+      "nextSourceReview": "Review movement/animation writers and actual takeover/release contract only.",
+      "recordedImplementationStatus": "COMPATIBILITY_ONLY",
+      "recordedRemaining": "Do not import tactical gameplay; specialist ownership and handover only. Expansion last.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/2789152015",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3310205676",
+      "name": "IKMS / IMS-SOG reference (compatibility only)",
+      "priority": "4 Compatibility only",
+      "candidateContribution": "Specialist melee ownership compatibility",
+      "reviewStatus": "Compatibility review only; expansion last",
+      "nextSourceReview": "Identify current provider writers and actual handover; exclude melee gameplay implementation.",
+      "recordedImplementationStatus": "COMPATIBILITY_ONLY",
+      "recordedRemaining": "Do not import tactical gameplay; specialist ownership and handover only. Expansion last.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
+      "evidenceFilePresent": false,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3310205676",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3823619778",
+      "name": "TEKILLA Dynamic AI Reactions",
+      "priority": "5 Follow-on extension",
+      "candidateContribution": "Later AI dynamic-reaction extension",
+      "reviewStatus": "Registered for later evaluation",
+      "nextSourceReview": "Retain for later evaluation; inspect animation/grip quality, exact equipment restoration and finite task ownership when scheduled.",
+      "recordedImplementationStatus": "REGISTERED_FOR_LATER_EVALUATION_NOT_IMPLEMENTED",
+      "recordedRemaining": "See dated intake; registration is not implementation.",
+      "implementationAssessmentCommit": "ca778db2",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3823619778.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3823619778",
+        "present": true,
+        "observedAt": "2026-10-26",
+        "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    }
+  ],
+  "localReferences": [
+    {
+      "name": "WaldosMissionPack",
+      "path": "C:/Users/AdamW/OneDrive/Documents/GitHub/WaldosMissionPack",
+      "candidateContribution": "Coexist with mission-authored AI skills and explicit task ownership",
+      "reviewStatus": "Local integration review to reconcile",
+      "nextSourceReview": "Locate actual skill setters and their timing; retain mission baselines and avoid recurring CBE rewrites. Read only for this task; no WMP commits."
+    }
+  ],
+  "donePerSelectedFunctionality": [
+    "Trace relevant startup, decisions, execution, interruption, cleanup and all native writers. Record source paths/hashes and scope limits.",
+    "Choose KEEP, MERGE, REWRITE, REJECT METHOD or USER-DEFERRED with a reason and named CBE owner. Preserve required intent when replacing unsafe methods.",
+    "Implement useful selected functionality through the actual CBE path; record concrete remaining gaps. Avoid duplicate controllers/settings/task modules.",
+    "Check source/integration changes offline. Keep gameplay evidence, balance, locality/repeat tests and measured cost separate until audits resume."
+  ],
+  "constraints": [
+    "LAMBS functionality is implemented inside CBE; LAMBS is not a required dependency.",
+    "Foundations first, then Protocol individual/pair/squad/combined-arms behaviour. Other references supply complementary methods where they resolve those requirements.",
+    "CBA settings configure behaviour; Zeus/ZEN modules issue behaviour tasks. Merge duplicate task surfaces.",
+    "IKMS/WBK Droids/Zombies are compatibility only. Stealth candidates remain optional/scenario-sensitive. TEKILLA remains follow-on.",
+    "No arm stretching or broken animation/grip is acceptable. Preserve mission skills, task ownership and normal native physics.",
+    "Audits paused. No installed-game staging, game launch, Release/Steam publication or raw upstream source distribution.",
+    "Installed Workshop originals, extracted baselines, archive manifests and permanent signing originals remain read-only."
+  ],
+  "stores": {
+    "workdir": "C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks",
+    "workshop": "E:/SteamLibrary/steamapps/workshop/content/107410",
+    "pinnedDown": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708",
+    "registerBackup": "C:/Users/AdamW/Documents/AI-Reference-Archives/CBE-Implementation-Register/20261024-airborne-preflight-234416342678",
+    "hbq": ".qa/hbq-complete-source-20261025",
+    "lambsDanger": ".qa/lambs-2621-review/danger",
+    "lambsMain": ".qa/lambs-main-installed-20261025-bebceb06"
+  },
+  "audits": "paused",
+  "sourceAvailabilityReview": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
+}

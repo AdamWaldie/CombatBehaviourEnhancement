@@ -66,7 +66,7 @@ class ClearObservationLifecycle(unittest.TestCase):
             self.assertIn(bound,journal)
         for copy in ('_tried apply {+_x}','_history apply {+_x}',
                      '_stage set [0,+(_stage select 0)]','forEach [4,5]',
-                     '_transform apply {+_x}','(_context select 1) apply {+_x}'):
+                     '_transform apply {if (_x isEqualType []) then {+_x} else {_x}}','(_context select 1) apply {if (_x isEqualType []) then {+_x} else {_x}}'):
             self.assertIn(copy,journal)
         self.assertIn('_stageViewChecks',text)
         attach=text.index('_job set ["reserveStages",_reserveStages]')

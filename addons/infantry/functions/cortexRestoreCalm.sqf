@@ -185,6 +185,9 @@ if (_pendingHolds isNotEqualTo []) then {[_group,_pendingHolds] call CBE_fnc_Cor
         };
     };
     if (local _x) then {
+        if ((_x getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap) then {
+            ["RELEASE",_x] call CBE_fnc_LauncherMove;
+        };
         private _target = _x getVariable ["CBE_AIPass_VehicleTarget",objNull];
         if (!_yieldToExternal && {!isPlayer _x} && {isNull (remoteControlled _x)}
             && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
@@ -212,39 +215,8 @@ if (!isNull _jinkVehicle && {local _jinkVehicle}) then {
         _jinkVehicle setVariable ["CBE_Danger_VehicleJink",nil,true];
     };
 };
-private _vehicleOrient=_state getOrDefault ["vehicleDangerOrient",[]];
-private _orientVehicle=_vehicleOrient param [1,objNull,[objNull]];
-if (!isNull _orientVehicle && {local _orientVehicle}) then {
-    private _orientMarker=_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]];
-    if (_orientMarker param [1,grpNull,[grpNull]] == _group
-        && {(_orientMarker param [4,-1,[0]]) == (_state getOrDefault ["vehicleOperationGeneration",-2])}) then {
-        private _turnDriver=_orientMarker param [5,objNull,[objNull]];
-        private _turnCommander=_orientMarker param [7,objNull,[objNull]];
-        if (!_yieldToExternal
-            && {(_group getVariable ["CBE_OperationGeneration",-1]) == (_orientMarker param [4,-2,[0]])}
-            && {isNil {_orientVehicle getVariable "CBE_ExternalDrivingOwner"}}
-            && {!([_orientVehicle] call CBE_fnc_CompatibilityExternalControl)}
-            && {!isNull _turnDriver} && {driver _orientVehicle == _turnDriver}
-            && {local _turnDriver} && {group _turnDriver == _group} && {!isPlayer _turnDriver}
-            && {isNull remoteControlled _turnDriver}
-            && {(_orientMarker param [6,[],[[]]]) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
-            && {[_turnDriver] call CBE_fnc_CortexCombatEffective}
-            && {[_turnDriver] call CBE_fnc_CortexActorFireTaskAvailable}
-            && {count _orientMarker == 9}
-            && {(_orientMarker param [8,"",[""]]) in ["LEFT","RIGHT"]}
-            && {private _input=vehicleMoveInfo _orientVehicle;
-                !(toUpperANSI (_input param [0,"",[""]]) in ["BACK","DIRECTBYCOMANDER"])
-                    && {toUpperANSI (_input param [1,"",[""]]) == (_orientMarker select 8)}}
-            && {!isNull _turnCommander} && {effectiveCommander _orientVehicle == _turnCommander}
-            && {local _turnCommander} && {group _turnCommander == _group} && {!isPlayer _turnCommander}
-            && {isNull remoteControlled _turnCommander}
-            && {[_turnCommander] call CBE_fnc_CortexCombatEffective}
-            && {_turnCommander == _turnDriver || {[_turnCommander] call CBE_fnc_CortexActorFireTaskAvailable}}) then {
-            _orientVehicle sendSimpleCommand "STOPTURNING";
-        };
-        _orientVehicle setVariable ["CBE_Danger_VehicleOrient",nil,true];
-    };
-};
+// Public turn proof survives this local state cleanup until native acknowledgement.
+[_group,"RELEASE"] call CBE_fnc_VehicleTurnRetire;
 // Group policy cleanup is a short atomic commit, not three scattered native writes.
 // Native settings which still equal CBE's application may nevertheless belong to a new
 // task. Preserve those pairs as unresolved evidence rather than overriding that task or

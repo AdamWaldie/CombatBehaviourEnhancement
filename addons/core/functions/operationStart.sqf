@@ -80,6 +80,11 @@ private _cbeStartedOperation=createHashMap;
 isNil {
 _cbeStartedOperation=call {
 if (!local _group || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {createHashMap};
+// A pending native turn retirement is not free merely because its operation ended.
+if ((_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap) then {
+    [_group,"RELEASE"] call CBE_fnc_VehicleTurnRetire;
+};
+if ((_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap) exitWith {createHashMap};
 // Retire native attack caps only within this operation's group. Requested actors from
 // another group are filtered below and grant no authority to release that group's caps.
 private _paceParticipants=_participants select {!isNull _x && {group _x == _group}};

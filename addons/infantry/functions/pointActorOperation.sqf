@@ -5,6 +5,10 @@
  * Public-journal-only cleanup refuses while any private local controller remains installed.
  * Individual BLUE/GREEN orders defer new investigation and end active execution;
  * exact owned movement cleanup remains available without changing combat mode.
+ * Native inventory callbacks may replace the visit. Original order/brain/epoch/route/lease
+ * are rechecked after the action; superseded work publishes no result or formation return.
+ * Equipment recovery issues at most one request per visit: empty-primary ammunition first,
+ * otherwise existing missing-weapon recovery. Immediate nonconfirmation never permits a second request.
  * Purpose: Execute one finite investigation of an engine-observed own-group casualty location.
  * Locality/authority: Actor and group owner only; shared scheduler executes each bounded step.
  * Repeat/JIP: One actor per group, original twelve-second deadline, public cancellation journal.
@@ -12,8 +16,17 @@
  * Unacknowledged cancellation retains its public receipt for existing discovery/locality cleanup;
  * no replacement command or renewed deadline is inferred from unchanged pre-issue state.
  * Exact acknowledged cleanup may return to the saved native subformation only within the
- * original server deadline plus30s. Changed formation intent yields; late cleanup retires
- * metadata without a follow command. A dead/departed saved anchor may use the group leader.
+ * original server deadline plus30s. Changed formation intent yields; no new return is issued
+ * after that window. A dead/departed saved anchor may use the group leader before return issue.
+ * A twelfth journal field retains return custody and the original visit reason. A self-anchor
+ * issues no FOLLOW; it requires unitReady, rest and actual arrival at its retained point instead.
+ * The same finite FSM observes return state every0.25s within the original cleanup window;
+ * discovery may resume observation only once per owner/epoch/generation after its old FSM ends.
+ * A resumed observer starts finished and cannot replay body work or extend the original window.
+ * Finished/REAP/TRANSFER observe FOLLOW/formLeader or self-anchor idle proof, or newer
+ * native ownership. No return replay, extra worker or renewed deadline is introduced.
+ * Unknown return proof remains reserved after the window; repeated reports are coalesced.
+ * Native FOLLOW acknowledgement does not prove physical travel or formation restoration.
  * Arguments: mode STRING START; actor OBJECT objNull; context/brain HASHMAP empty.
  * START context: optional body OBJECT objNull, observed ARRAY (native event position); engine caller supplies cause 5 only.
  * A bounded actual-death identity receipt can corroborate a missing source or detached corpse group.
@@ -63,6 +76,9 @@ private _available={call _releaseAvailable && {missionNamespace getVariable ["CB
     && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
     && {[_actor] call CBE_fnc_IndoorActorGroupAvailable}};
 if (_mode in ["FINISH","TRANSFER"]) exitWith {
+    private _retired=false;
+    isNil {
+    _retired=call {
     if (count _brain > 0) then {_brain set ["finished",true];_brain set ["pending",false];_brain set ["completed",true]};
     if (!local _actor || {!local _group}) exitWith {false};
     // A machine-local generation/epoch can collide with another owner's task.
@@ -70,8 +86,8 @@ if (_mode in ["FINISH","TRANSFER"]) exitWith {
     private _installed=_actor getVariable ["CBE_PointActor_Brain",createHashMap];
     if (count _installed > 0 && {count _brain == 0 || {_installed isNotEqualTo _brain}}) exitWith {false};
     private _order=_actor getVariable ["CBE_PointActor_Order",[]];
-    if !(_order isEqualType [] && {count _order == 11}) exitWith {false};
-    _order params ["_generation","_epoch","_oldGroup","_operation","_deadline","_route","_target","_lease","_issued","_before","_requestAt"];
+    if !(_order isEqualType [] && {count _order == 12}) exitWith {false};
+    _order params ["_generation","_epoch","_oldGroup","_operation","_deadline","_route","_target","_lease","_issued","_before","_requestAt","_returning"];
     if (!(_generation isEqualType 0) || {!finite _generation} || {_generation < 1} || {_generation != floor _generation}
         || {!(_epoch isEqualType 0)} || {!finite _epoch} || {_epoch < 1} || {_epoch != floor _epoch}
         || {!(_oldGroup isEqualType grpNull)} || {!(_operation isEqualType 0)} || {!finite _operation} || {_operation < 0} || {_operation != floor _operation}
@@ -83,6 +99,9 @@ if (_mode in ["FINISH","TRANSFER"]) exitWith {
         || {!((_lease select 2) isEqualType 0)} || {!finite (_lease select 2)}
         || {!(_issued isEqualType true)} || {!(_before isEqualType [])}
         || {!(_requestAt isEqualType 0)} || {!finite _requestAt}
+        || {!(_returning isEqualType [])}
+        || {_returning isNotEqualTo [] && {count _returning != 2 || {!_issued}
+            || {!((_returning select 0) isEqualType objNull)} || {!((_returning select 1) isEqualType "")}}}
         || {_issued && {count _before != 3 || {!((_before select 0) isEqualType "")}
             || {!((_before select 1) isEqualType [])} || {!((_before select 2) isEqualType objNull)}
             || {_requestAt < 0}}}
@@ -97,7 +116,7 @@ if (_mode in ["FINISH","TRANSFER"]) exitWith {
             || {(_brain getOrDefault ["lease",[]]) isNotEqualTo _lease}}}) exitWith {false};
     private _reservation=_actor getVariable ["CBE_Cortex_ActorMove",[]];
     private _destination=(expectedDestination _actor) param [0,[],[[]]];
-    private _pending=_issued && {count _before == 3}
+    private _pending=_returning isEqualTo [] && {_issued} && {count _before == 3}
         && {currentCommand _actor in [_before select 0,"MOVE"]}
         && {(expectedDestination _actor) isEqualTo (_before select 1)}
         && {formLeader _actor isEqualTo (_before select 2)}
@@ -110,6 +129,94 @@ if (_mode in ["FINISH","TRANSFER"]) exitWith {
         && {_route isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}) exitWith {
         _actor setVariable ["CBE_PointActor_Result",[_generation,"CANCEL_PENDING",serverTime,+_target],true];
         false
+    };
+    private _resultReason=_brain getOrDefault ["reason","CANCELLED"];
+    private _reportReturn={
+        params ["_status","_anchor"];
+        private _prior=_actor getVariable ["CBE_PointActor_ReturnStatus",[]];
+        if (!(_prior isEqualType []) || {count _prior != 4}
+            || {(_prior select [0,2]) isNotEqualTo [_generation,_status]}
+            || {(_prior select 3) isNotEqualTo _anchor}) then {
+            _actor setVariable ["CBE_PointActor_ReturnStatus",[_generation,_status,serverTime,_anchor],true];
+        };
+    };
+    private _observeReturn={
+        params ["_journal"];
+        // Only discovery/transfer may restart observation after the old FSM ended.
+        // FINISH inside an executing FSM never starts a second executor.
+        if (_mode != "TRANSFER" || {serverTime >= _deadline+30}
+            || {(_actor getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo _journal}) exitWith {};
+        private _handle=_actor getVariable ["CBE_PointActor_FSM",-1];
+        if (_handle isEqualType 0 && {finite _handle} && {_handle >= 0} && {!completedFSM _handle}) exitWith {};
+        private _observer=_brain;
+        if (count _observer == 0) then {
+            _observer=createHashMapFromArray [["actor",_actor],["group",_oldGroup],
+                ["generation",_generation],["ownerEpoch",_epoch],["operationGeneration",_operation],
+                ["deadline",_deadline],["route",_route call _copy],["target",+_target],
+                ["lease",_lease call _copy],["reason",(_journal select 11) select 1]];
+        };
+        private _observerEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+        private _ticket=[clientOwner,_observerEpoch,_generation];
+        if ((_observer getOrDefault ["returnObserverTicket",[]]) isEqualTo _ticket) exitWith {};
+        // Ticket precedes execFSM; a failed start cannot repeatedly spawn observers.
+        _observer set ["returnObserverTicket",_ticket];
+        _observer set ["returnObserverEpoch",_observerEpoch];
+        _observer set ["finished",true];_observer set ["completed",true];
+        _observer set ["pending",false];_observer set ["returnPending",true];
+        _actor setVariable ["CBE_PointActor_Brain",_observer];
+        private _returnHandle=[_actor,_observer] execFSM "\z\cbe\addons\main\fsm\pointActor.fsm";
+        if ((_actor getVariable ["CBE_PointActor_Order",[]]) isEqualTo _journal
+            && {(_actor getVariable ["CBE_PointActor_Brain",createHashMap]) isEqualTo _observer}) then {
+            _actor setVariable ["CBE_PointActor_FSM",_returnHandle];
+        };
+    };
+    private _retire={
+        params ["_reason",["_status","",[""]],["_anchor",objNull,[objNull]]];
+        if ((_actor getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo _order) exitWith {false};
+        if (count _brain > 0) then {_brain set ["returnPending",false]};
+        if (_status != "") then {[_status,_anchor] call _reportReturn};
+        if ((_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo _lease) then {_actor setVariable ["CBE_Cortex_ActorMove",nil]};
+        _actor setVariable ["CBE_PointActor_Result",[_generation,_reason,serverTime,+_target],true];
+        _actor setVariable ["CBE_PointActor_Order",nil,true];
+        if ((_actor getVariable ["CBE_PointActor_Brain",createHashMap]) isEqualTo _brain || {count _brain == 0}) then {
+            _actor setVariable ["CBE_PointActor_Brain",nil];_actor setVariable ["CBE_PointActor_FSM",nil];
+        };
+        if ((_oldGroup getVariable ["CBE_PointActor_Actor",objNull]) == _actor) then {_oldGroup setVariable ["CBE_PointActor_Actor",nil,true]};
+        true
+    };
+    if (_returning isNotEqualTo []) exitWith {
+        _returning params ["_anchor","_originalReason"];
+        private _nativeCommand=toUpperANSI currentCommand _actor;
+        private _sameContext=_oldGroup == _group
+            && {_operation == (_group getVariable ["CBE_OperationGeneration",0])}
+            && {_route isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
+        // A formation anchor cannot follow itself. No return command was issued
+        // for that case; observe the original point leg settled at the visit instead.
+        if (_sameContext && {_anchor == _actor} && {formLeader _actor == _actor}
+            && {_nativeCommand in ["","MOVE"]} && {_destination call _vector}
+            && {_destination vectorDistance _target <= 0.25} && {unitReady _actor}
+            && {abs speed _actor < 0.5}
+            && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 2}) exitWith {
+            [_originalReason,"NATIVE_IDLE_AT_VISIT",_anchor] call _retire
+        };
+        if (_sameContext && {_anchor != _actor} && {!isNull _anchor} && {alive _anchor} && {group _anchor == _group}
+            && {_nativeCommand == "FOLLOW"} && {formLeader _actor == _anchor}) exitWith {
+            [_originalReason,"FOLLOW_OBSERVED",_anchor] call _retire
+        };
+        // A newer observable native task wins without a return replay or late reset.
+        // Changed MOVE geometry alone may be our pending FOLLOW transitioning;
+        // it is neither positive replacement nor native handback acknowledgement.
+        if (!_sameContext || {!(_nativeCommand in ["","MOVE","FOLLOW"])}
+            || {_nativeCommand == "FOLLOW" && {formLeader _actor != _anchor}}
+            || {_anchor == _actor && {formLeader _actor != _actor}}
+            || {_anchor == _actor && {_nativeCommand == "MOVE"} && {_destination call _vector}
+                && {_destination vectorDistance _target > 0.25}}) exitWith {
+            [_originalReason,"YIELDED_TO_NATIVE_ORDER",_anchor] call _retire
+        };
+        if (count _brain > 0) then {_brain set ["returnPending",true]};
+        [["RETURN_PENDING","RETURN_UNRESOLVED"] select (serverTime >= _deadline+30),_anchor] call _reportReturn;
+        [_order] call _observeReturn;
+        (_actor getVariable ["CBE_PointActor_Order",[]]) isEqualTo []
     };
     private _owns=_issued && {serverTime < _deadline+30}
         && {_oldGroup == _group} && {call _releaseAvailable}
@@ -125,15 +232,23 @@ if (_mode in ["FINISH","TRANSFER"]) exitWith {
     if (isNull _returnLeader || {group _returnLeader != _group}
         || {!([_returnLeader] call CBE_fnc_CortexCombatEffective)}) then {_returnLeader=leader _group};
     if (_owns && {!isNull _returnLeader} && {group _returnLeader == _group}
-        && {[_returnLeader] call CBE_fnc_CortexCombatEffective}) then {_actor doFollow _returnLeader};
-    if (_reservation isEqualTo _lease) then {_actor setVariable ["CBE_Cortex_ActorMove",nil]};
-    _actor setVariable ["CBE_PointActor_Result",[_generation,_brain getOrDefault ["reason","CANCELLED"],serverTime,+_target],true];
-    _actor setVariable ["CBE_PointActor_Order",nil,true];
-    if ((_actor getVariable ["CBE_PointActor_Brain",createHashMap]) isEqualTo _brain || {count _brain == 0}) then {
-        _actor setVariable ["CBE_PointActor_Brain",nil];_actor setVariable ["CBE_PointActor_FSM",nil];
+        && {[_returnLeader] call CBE_fnc_CortexCombatEffective}) exitWith {
+        if ((_actor getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo _order) exitWith {false};
+        // Persist before native issue; subsequent FINISH/TRANSFER calls only observe.
+        private _returnOrder=_order call _copy;
+        _returnOrder set [11,[_returnLeader,_resultReason]];
+        if (count _brain > 0) then {_brain set ["returnPending",true]};
+        _actor setVariable ["CBE_PointActor_Order",_returnOrder,true];
+        _actor setVariable ["CBE_PointActor_Result",[_generation,_resultReason,serverTime,+_target],true];
+        ["RETURN_PENDING",_returnLeader] call _reportReturn;
+        if (_returnLeader != _actor) then {_actor doFollow _returnLeader};
+        [_returnOrder] call _observeReturn;
+        (_actor getVariable ["CBE_PointActor_Order",[]]) isEqualTo []
     };
-    if ((_oldGroup getVariable ["CBE_PointActor_Actor",objNull]) == _actor) then {_oldGroup setVariable ["CBE_PointActor_Actor",nil,true]};
-    true
+    [_resultReason] call _retire
+    };
+    };
+    _retired
 };
 if (_mode == "START") exitWith {
     private _body=_brain getOrDefault ["body",objNull];private _observed=_brain getOrDefault ["observed",[]];
@@ -167,7 +282,7 @@ if (_mode == "START") exitWith {
     _actor setVariable ["CBE_PointActor_Brain",_brain];
     _actor setVariable ["CBE_Cortex_ActorMove",_lease call _copy];
     _actor setVariable ["CBE_PointActor_Order",[_generation,_epoch,_group,_brain get "operationGeneration",
-        _deadline,_route call _copy,+_goal,_lease call _copy,false,[],-1],true];
+        _deadline,_route call _copy,+_goal,_lease call _copy,false,[],-1,[]],true];
     _group setVariable ["CBE_PointActor_Actor",_actor,true];
     _group setVariable ["CBE_PointActor_After",serverTime+30,true];
     private _handle=[_actor,_brain] execFSM "\z\cbe\addons\main\fsm\pointActor.fsm";
@@ -183,10 +298,13 @@ private _current=count _brain > 0 && {local _actor} && {local _group}
     && {(_brain getOrDefault ["group",grpNull]) == _group}
     && {(_brain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])};
 if (_mode == "REAP") exitWith {
-    if (!_current) exitWith {false};
     private _handle=_actor getVariable ["CBE_PointActor_FSM",-1];
     if (_handle isEqualType 0 && {finite _handle} && {_handle >= 0} && {!completedFSM _handle}) exitWith {false};
-    _brain set ["reason","EXECUTOR_ENDED"];["FINISH",_actor,_brain] call CBE_fnc_PointActorOperation
+    // A completed old-epoch private FSM may retain the immutable public return.
+    // Transfer cleanup validates that exact journal; it never resumes investigation.
+    if (!_current) exitWith {["TRANSFER",_actor,_brain] call CBE_fnc_PointActorOperation};
+    if !("reason" in _brain) then {_brain set ["reason","EXECUTOR_ENDED"]};
+    ["TRANSFER",_actor,_brain] call CBE_fnc_PointActorOperation
 };
 if (_mode == "QUEUE") exitWith {
     if (!_current || {_brain getOrDefault ["finished",false]}) exitWith {false};
@@ -234,6 +352,21 @@ private _position=getPosASL _actor;
 if (_position vectorDistance (_brain get "goalASL") <= 2
     && {!(lineIntersects [eyePos _actor,(_brain get "goalASL") vectorAdd [0,0,0.5],_actor,_body])}) exitWith {
     // Native TakeMagazine can act at arbitrary distance: only this physical visit grants it.
+    // One equipment request per visit: an unconfirmed ammo action is still issued work.
+    private _pointAmmoActionIssued=false;
+    private _pointEquipmentSuperseded=false;
+    private _pointPickupOrder=(_actor getVariable ["CBE_PointActor_Order",[]]) call _copy;
+    private _pointPickupCurrent={
+        count _pointPickupOrder == 11 && {local _actor} && {local _group} && {group _actor == _group}
+            && {(_actor getVariable ["CBE_PointActor_Brain",createHashMap]) isEqualTo _brain}
+            && {!(_brain getOrDefault ["finished",false])}
+            && {(_actor getVariable ["CBE_PointActor_Order",[]]) isEqualTo _pointPickupOrder}
+            && {(_group getVariable ["CBE_AIPass_Epoch",0]) isEqualTo (_pointPickupOrder select 1)}
+            && {(_group getVariable ["CBE_OperationGeneration",0]) isEqualTo (_pointPickupOrder select 3)}
+            && {serverTime < (_pointPickupOrder select 4)}
+            && {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo (_pointPickupOrder select 7)}
+            && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_pointPickupOrder select 5)}
+    };
     // One attempt uses the existing observation lease/deadline, never a new rearm controller.
     if (primaryWeapon _actor != ""
         && {[_group,"CBE_AIPass_AmmoShare_Enable",true] call CBE_fnc_CortexFeatureEnabled}
@@ -268,7 +401,11 @@ if (_position vectorDistance (_brain get "goalASL") <= 2
             };
             private _before=[magazinesAmmoFull _actor,_magazine] call _rounds;
             if (_before >= 0) then {
+            _pointAmmoActionIssued=true;
             _actor action ["TakeMagazine",_supply,_magazine];
+            // Native inventory callbacks may replace this visit synchronously.
+            // No stale result or follow-through may be published into its successor.
+            if !(call _pointPickupCurrent) exitWith {_pointEquipmentSuperseded=true};
             private _receiverAfter=[magazinesAmmoFull _actor,_magazine] call _rounds;
             private _sourceAfter=[magazinesAmmoCargo _supply,_magazine] call _rounds;
             private _gain=_receiverAfter-_before;
@@ -281,8 +418,12 @@ if (_position vectorDistance (_brain get "goalASL") <= 2
             };
         };
     };
+    if (_pointEquipmentSuperseded) exitWith {_brain set ["finished",true];-1};
     _brain set ["visitReached",true];
-    [_actor,_body,_brain] call CBE_fnc_CasualtyWeaponRecover;
+    // Urgent primary ammunition wins over a second weapon pickup in this callback.
+    // An immediate UNVERIFIED result does not authorize replacing the pending action.
+    if (!_pointAmmoActionIssued) then {[_actor,_body,_brain] call CBE_fnc_CasualtyWeaponRecover};
+    if !(call _pointPickupCurrent) exitWith {_brain set ["finished",true];-1};
     ["VISITED"] call _finish
 };
 if (_position vectorDistance (_brain get "progressPosition") >= 1) then {

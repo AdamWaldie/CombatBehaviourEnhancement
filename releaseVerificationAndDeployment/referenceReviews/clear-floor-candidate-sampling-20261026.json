@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "8a995979",
+  "status": "RELEVANT_FLOOR_CANDIDATE_BUDGET_OFFLINE_VERIFIED",
+  "finding": "Interior access planner truncated cleared/native/transit point arrays to24/32 before floor filtering. A large model listing lower floors first could permanently hide usable upper-floor landing or transit candidates behind the prefix.",
+  "implementation": [
+    "Select up to24/32 relevant-floor candidates by scanning at most the admitted512-point domain, stopping when the existing allowance fills. Retain original order within the floor.",
+    "Apply to visited destination-floor access, current-floor visited/transit sources, destination landing nodes and supported target-floor transit. Native nodes remain candidates, not proof of accessible routes or visited rooms.",
+    "Original support probes, floor bands, eight cached connector/access buckets, per-room recovery, current movement authority and physical coverage checks remain. No model-specific route, synthetic point, new worker/timer or completion credit. Partner-entry recovery remains unchanged."
+  ],
+  "cost": "Up to512 coordinate/floor checks per helper call rather than a24/32 model prefix. At most five such selections in one changed-room approach construction; each stops when its allowance fills. Candidate ranking and geometry-probe ceilings remain24/32. Sparse-floor CPU cost rises and is not measured.",
+  "limits": [
+    "Same-floor samples still have finite24/32 allowances; this is not exhaustive pathfinding or proof all model points are reachable.",
+    "Actual large/modded model traversal, stragglers, casualty flow, owner handover and5%/10% performance limits require physical evidence. Audits paused."
+  ],
+  "validation": {
+    "tests": 1497,
+    "compiledSqf": 443,
+    "pbos": 11,
+    "candidate": ".qa/candidates/clear-floor-candidates-8a995979",
+    "fingerprint": "99b2f43099b62df727e2421f2027294b48d8f443de953ee466ac26edcfdf602d",
+    "buildLog": ".qa/handovers/clear-floor-candidates-final-build.log",
+    "independentLog": ".qa/handovers/clear-floor-candidates-independent.log",
+    "retainedFailure": ".qa/handovers/clear-floor-candidates-build.log: first replacement affected partner-entry outside helper scope; existing regression caught it. Reverted that edit, changed actual source-floor loop, retained partner-entry test. Updated access-order test to new declaration without weakening ordering.",
+    "testsAdded": 0,
+    "physicalAcceptance": false
+  },
+  "sourceHashes": {
+    "addons/infantry/functions/buildingOperationStep.sqf": "399efa76d714005bd5663185d7ad78b04e75f5b48a32ad5dabb4302aca992c89",
+    "addons/infantry/functions/cortexClearBuilding.sqf": "36022491a03d34c52ac6d16c548021735c1cd19e99429215bc36eddd5fd3697a"
+  }
+}

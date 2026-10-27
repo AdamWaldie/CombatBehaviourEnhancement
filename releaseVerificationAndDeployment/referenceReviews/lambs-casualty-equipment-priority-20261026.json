@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "90497933",
+  "status": "CASUALTY_VISIT_EQUIPMENT_REQUEST_PRIORITY_OFFLINE_VERIFIED",
+  "sourceScope": "Complete readable brainHide and doCheckBody helper bodies compared; selected CBE engine-to-point arrival/cleanup and equipment recovery path traced. Not complete LAMBS parity or dynamic inventory acknowledgement.",
+  "sourceIntent": [
+    "Identify a body from danger position, move/check/rearm it, recover missing backpack/launcher and return to leader.",
+    "Source doCheckBody uses global allDeadMen selection, an8second CBA wait, forceMove flag, native rearm/TakeWeapon, direct backpack contents reconstruction and follow-leader completion/timeout."
+  ],
+  "cbeDisposition": [
+    "Retain corroborated original casualty identity, bounded discovery/one actor per group, original12second point task, actual2m/LOS visit, finite movement/epoch/native-route lease and original subformation cleanup. No allDeadMen scan or forced movement flag.",
+    "Retain useful compatible primary ammunition and missing-rifle/launcher recovery through native actions, with existing unchanged-slot/clothing and exact before/after conservation checks. Do not transplant backpack contents or replace occupied equipment slots.",
+    "Only one equipment request per visit. Empty-primary ammunition has priority. Once TakeMagazine is issued, even an immediate UNVERIFIED result prevents a subsequent TakeWeapon request in the same callback. If ammo was not requested, existing missing-weapon recovery remains available.",
+    "No new recovery phase, worker, timer, query, scan, route, deadline or equipment creation. Existing native task ownership and finite cleanup remain."
+  ],
+  "finding": "The prior CBE point arrival requested TakeMagazine then unconditionally called CasualtyWeaponRecover. Both could request native equipment actions in the same callback even when the first transfer was unconfirmed. Nonconfirmation is not evidence that no request was issued.",
+  "limits": [
+    "This does not add delayed action acknowledgement or prove action completion/order. Existing immediate verification can remain UNVERIFIED when native effects arrive later. No rollback or second equipment request is inferred.",
+    "The later native task/formation cleanup is unchanged; delayed pickup versus cleanup, original subformation return, repeat visits and inventory races need physical verification.",
+    "Visits may obtain ammunition without obtaining a missing launcher on that same visit. A later eligible visit uses existing30second group cooldown; no extra revisit is scheduled.",
+    "Whole LAMBS body/indoor/assault behaviour parity, casualty-flow quality and performance remain unverified; audits paused."
+  ],
+  "validation": {
+    "tests": 1497,
+    "compiledSqf": 443,
+    "pbos": 11,
+    "candidate": ".qa/candidates/casualty-single-action-90497933",
+    "fingerprint": "03601596e3b5b1c2eb8d11d39855ac60cfbab37d40b19fb265a0956322798d02",
+    "buildLog": ".qa/handovers/casualty-single-action-build.log",
+    "independentLog": ".qa/handovers/casualty-single-action-independent.log",
+    "testsAdded": 0,
+    "physicalAcceptance": false
+  },
+  "sourceHashes": {
+    ".qa/lambs-2621-review/danger/functions/fnc_brainHide.sqf": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c",
+    ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doCheckBody.sqf": "be58252ed15228047ec673df09a0f7d3642df372ed21504309b537d4c501433c",
+    "addons/infantry/functions/dangerEngineAct.sqf": "acc070fe3537857f2b493c45370f34ac26aaf05b2a9ac918a2480d42a05d0937",
+    "addons/infantry/functions/pointActorOperation.sqf": "32dd7c1d5a3e199686b7ea963ccbee1aea4fe2f718287489d56a13857e06bb68",
+    "addons/infantry/functions/casualtyWeaponRecover.sqf": "2a70a56b5241b67aa16a5ef0b023af737008e99fccbe65113e46bf6db3cc0b16"
+  }
+}

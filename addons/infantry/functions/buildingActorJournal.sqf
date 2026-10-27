@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Copy original actor setting baselines and clearance motion at the fenced producer.
  * Locality/authority: Read-only local metadata after actual group locality loss. Requires the
  * original BuildingProducerContext FROZEN fence and acknowledged original registration.
@@ -9,13 +10,17 @@
  * refuses; absence is explicit. Canonical context, baseline, applied value and server retry
  * timestamp remain original; foreign setting issuers are copied, never claimed as clearance.
  * Arguments: 0 job HASHMAP default empty.
- * Return: ARRAY [5,visitContext,actorRows,originalRegistration,settingsRetirement,groupPolicy,ownership] or[] on refusal.
+ * Return: ARRAY [7,visitContext,actorRows,originalRegistration,settingsRetirement,groupPolicy,ownership,recovery] or[] on refusal.
  * Group policy [1,original behaviour,original attack BOOL,continueRoute BOOL,attack lease,original native route].
  * Only the exact CLEAR attack lease is accepted. Unknown group restoration keys refuse.
  * Route copy is bounded to4096 nodes/depth16/512-character strings; it grants no replay.
  * Ownership [1,original team keys,started keys,assignment rows,hold maps,classifications,access flags].
  * Assignments preserve original local progress clocks as server time. All lists/maps are <=64
  * and resolve only original captured actors. No hold or movement is reconstructed.
+ * Recovery [2,participant keys,spent attempts,active observations,unavailable keys,common progress].
+ * Progress retains phase, original clocks/pose/actor, replans, required/foot/suspended flags,
+ * original platform and bounded participant poses/platforms; it grants no new progress credit.
+ * Original local observation clocks convert once to server time; no retry or native order is replayed.
  * Row [originalNetId,actor,canonicalSettingRows,motion,mirrorRows,reservation,evasionReturn,retireWindow,entryState].
  * Entry state [1,private record present,private record,public recovery,public alternative].
  * Original server timestamps, spent retry/search counts and foreign-visit headers remain unchanged.
@@ -49,7 +54,7 @@ isNil {
             if (_property == "STANCE") exitWith {_data isEqualType "" && {_data in ["AUTO","UP","MIDDLE","DOWN"]}};
             _property == "SPEED" && {_data isEqualType 0} && {finite _data} && {_data == -1 || {_data >= 0}}
         };
-        private _copyVisit={params ["_source"];[_source select 0,(_source select 1) apply {+_x},_source select 2,_source select 3]};
+        private _copyVisit={params ["_source"];[_source select 0,(_source select 1) apply {if (_x isEqualType []) then {+_x} else {_x}},_source select 2,_source select 3]};
         private _copiedVisit=[_visit] call _copyVisit;
         // Preserve original group permission and task policy, never a new-owner native read.
         private _operation=_group getVariable ["CBE_Operation",createHashMap];
@@ -314,6 +319,97 @@ isNil {
         } forEach ["accessAdmitted","accessBlocked","accessReported"];
         if (!_ownershipValid) exitWith {[]};
         private _ownership=[1,_teamKeys,_startedKeys,_assignmentRows,_holds,_classifications,_access];
+        // Common recovery belongs to this original CLEAR generation, not a fresh owner.
+        // Copy spent attempts even when their native observation has already ended.
+        private _recoveryValid=true;
+        private _participants=[_operation getOrDefault ["participants",[]]] call _actorKeys;
+        if (!_ownershipValid) exitWith {[]};
+        private _attemptMap=_operation getOrDefault ["recoveryAttempts",createHashMap];
+        private _activeMap=_operation getOrDefault ["recovery",createHashMap];
+        if (!(_attemptMap isEqualType createHashMap) || {count _attemptMap > 64}
+            || {!(_activeMap isEqualType createHashMap)} || {count _activeMap > 64}) exitWith {[]};
+        private _attemptKeys=keys _attemptMap;private _activeKeys=keys _activeMap;
+        if ((_attemptKeys+_activeKeys) findIf {!(_x isEqualType "") || {!(_x in _keys)}} >= 0) exitWith {[]};
+        _attemptKeys sort true;_activeKeys sort true;
+        private _attemptRows=[];
+        {
+            if (isNil {_attemptMap get _x}) exitWith {_recoveryValid=false};
+            private _spent=_attemptMap get _x;
+            if (!(_spent isEqualType 0) || {!finite _spent} || {!(_spent in [0,1])}) exitWith {_recoveryValid=false};
+            _attemptRows pushBack [_x,_spent];
+        } forEach _attemptKeys;
+        if (!_recoveryValid) exitWith {[]};
+        private _activeRows=[];
+        {
+            if (isNil {_activeMap get _x}) exitWith {_recoveryValid=false};
+            private _observation=_activeMap get _x;
+            if (!(_observation isEqualType []) || {count _observation != 4}
+                || {_observation findIf {isNil "_x"} >= 0}
+                || {(_observation select 0) isNotEqualTo 1}
+                || {!((_observation select 1) isEqualType 0)} || {!finite (_observation select 1)}
+                || {!((_observation select 2) isEqualType [])} || {!(count (_observation select 2) in [2,3])}
+                || {(_observation select 2) findIf {isNil "_x" || {!(_x isEqualType 0)} || {!finite _x}} >= 0}
+                || {!((_observation select 3) call _vector)}
+                || {(_attemptMap getOrDefault [_x,-1]) isNotEqualTo 1}) exitWith {_recoveryValid=false};
+            private _observedAt=_serverNow+((_observation select 1)-_localNow);
+            if (!finite _observedAt) exitWith {_recoveryValid=false};
+            _activeRows pushBack [_x,[1,_observedAt,+(_observation select 2),+(_observation select 3)]];
+        } forEach _activeKeys;
+        if (!_recoveryValid) exitWith {[]};
+        private _unavailableKeys=[_operation getOrDefault ["unavailable",[]]] call _actorKeys;
+        if (!_ownershipValid) exitWith {[]};
+        // Retain the common observer's original progress baseline. Captured motion after a
+        // takeover must not look like fresh progress or restart its original stale window.
+        private _commonPhase=_operation getOrDefault ["phase",""];
+        private _startedAt=_operation getOrDefault ["startedAt",false];
+        private _progressAt=_operation getOrDefault ["lastProgressAt",false];
+        private _progressPosition=_operation getOrDefault ["lastProgressPosition",false];
+        private _progressActor=_operation getOrDefault ["lastProgressActor",false];
+        private _replans=_operation getOrDefault ["replans",false];
+        private _required=_operation getOrDefault ["participantsRequired",false];
+        private _onFoot=_operation getOrDefault ["progressOnFoot",false];
+        private _suspended=_operation getOrDefault ["fallbackProgressSuspended",false];
+        private _progressPlatform=_operation getOrDefault ["progressPlatform",false];
+        if (!(_commonPhase in ["ENTRY","SWEEP","REPLAN","EGRESS"])
+            || {[_startedAt,_progressAt,_replans] findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+            || {_replans < 0} || {_replans != floor _replans}
+            || {!(_progressPosition call _vector)} || {!(_progressActor isEqualType objNull)}
+            || {!isNull _progressActor && {!(netId _progressActor in _keys)}}
+            || {[_required,_onFoot,_suspended] findIf {!(_x isEqualType true)} >= 0}
+            || {!(_progressPlatform isEqualType objNull)}) exitWith {[]};
+        private _progressSource=_operation getOrDefault ["participantProgress",false];
+        if (!(_progressSource isEqualType []) || {count _progressSource > 64}) exitWith {[]};
+        private _progressRows=[];private _progressKeys=[];
+        {
+            if (isNil "_x" || {!(_x isEqualType [])} || {count _x != 2}
+                || {_x findIf {isNil "_x"} >= 0}) exitWith {_recoveryValid=false};
+            private _actor=_x select 0;private _pose=_x select 1;
+            if (!(_actor isEqualType objNull) || {isNull _actor}
+                || {!(netId _actor in _keys)} || {netId _actor in _progressKeys}
+                || {!(_pose call _vector)}) exitWith {_recoveryValid=false};
+            _progressKeys pushBack netId _actor;
+            _progressRows pushBack [netId _actor,+_pose];
+        } forEach _progressSource;
+        if (!_recoveryValid) exitWith {[]};
+        private _platformMap=_operation getOrDefault ["participantPlatforms",false];
+        if (!(_platformMap isEqualType createHashMap) || {count _platformMap > 64}) exitWith {[]};
+        private _platformKeys=keys _platformMap;
+        if (_platformKeys findIf {!(_x isEqualType "") || {!(_x in _keys)}} >= 0) exitWith {[]};
+        _platformKeys sort true;
+        private _platformRows=[];
+        {
+            if (isNil {_platformMap get _x}) exitWith {_recoveryValid=false};
+            private _platform=_platformMap get _x;
+            if (!(_platform isEqualType objNull)) exitWith {_recoveryValid=false};
+            _platformRows pushBack [_x,_platform];
+        } forEach _platformKeys;
+        if (!_recoveryValid) exitWith {[]};
+        private _startedServer=_serverNow+(_startedAt-_localNow);
+        private _progressServer=_serverNow+(_progressAt-_localNow);
+        if (!finite _startedServer || {!finite _progressServer}) exitWith {[]};
+        private _commonProgress=[1,_commonPhase,_startedServer,_progressServer,+_progressPosition,
+            _progressActor,_replans,_required,_onFoot,_suspended,_progressPlatform,_progressRows,_platformRows];
+        private _recoveryState=[2,_participants,_attemptRows,_activeRows,_unavailableKeys,_commonProgress];
         private _copiedRegistration=+_registration;
         _copiedRegistration set [2,[_visit] call _copyVisit];
         private _pending=_group getVariable ["CBE_Cortex_ClearSettingsPending",[]];
@@ -335,7 +431,7 @@ isNil {
             _copiedResult=[_cleanupResult select 0,_cleanupResult select 1,+(_cleanupResult select 2)];
         };
         if (!_valid) exitWith {[]};
-        [5,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy,_ownership]
+        [7,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy,_ownership,_recoveryState]
     };
     false
 };

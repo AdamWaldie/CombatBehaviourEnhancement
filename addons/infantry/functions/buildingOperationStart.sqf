@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Start the single owner-local building operation FSM for a prepared physical-clearance job.
  * Duplicate success requires a live FSM handle. The same unchanged job may replace one
  * ended executor while retaining room evidence, movement requests and original deadlines.
@@ -39,7 +40,7 @@ isNil {
         || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
         || {serverTime >= ((_job getOrDefault ["deadline",-1]) min (_job getOrDefault ["hardDeadline",-1]))}
         || {isNull _building} || {!alive _building}
-        || {(_job getOrDefault ["buildingTransform",[]]) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+        || {(_job getOrDefault ["buildingTransform",[]]) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
         || {(_job getOrDefault ["nativeOrderReceipt",[]]) isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
         || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {};
     private _old=_group getVariable ["CBE_BuildingBrain",createHashMap];

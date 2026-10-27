@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Shared movement reservations protect pending flight/naval/selected-crew cleanup during contact,
  * search, consolidation and stalled-actor selection without renewing recovery budgets.
  * Tactical-route and withdrawal retries preserve native STOP; these callers have no owned-stop receipt.
@@ -206,7 +207,7 @@ if ((_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []) then {
         private _transform=_assignment param [3,[]];
         private _building=_assignment param [2,objNull];
         local _x && {_transform isNotEqualTo []}
-            && {isNull _building || {_transform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}
+            && {isNull _building || {_transform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}}
     };
     if (_invalidBuildingActors isNotEqualTo []) then {[_group,true,_invalidBuildingActors] call CBE_fnc_CortexGarrisonRelease};
     private _diverted=_alive select {
@@ -263,6 +264,10 @@ private _airborneDelay = [_group, [_group] call CBE_fnc_CortexGroupState] call C
 if (_airborneDelay >= 0) exitWith {_airborneDelay};
 
 private _state = [_group] call CBE_fnc_CortexGroupState;
+// Service issued launcher requests independently of target knowledge and hold-fire admission.
+{if (local _x && {(_x getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap}) then {
+    ["SERVICE",_x] call CBE_fnc_LauncherMove;
+}} forEach ((units _group) select [0,64]);
 // A short calm/security treatment action uses the common operation lifecycle and is deliberately
 // evaluated before contact planning. It never delays a contact, retreat, direct order or an existing
 // movement/building operation; the next state tick cancels it when any of those conditions appears.
@@ -555,7 +560,7 @@ if (_movementOwner == "TACTICAL_REPOSITION" && {count _movementLease == 2} && {t
         };
     };
 };
-private _crewMovementReserved=(_group getVariable ["CBE_ArtilleryCrew_Reference",[]]) isNotEqualTo []
+private _crewMovementReserved=(_group getVariable ["CBE_ArtilleryCrew_Reservations",[]]) isNotEqualTo []
     || {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []};
 private _groupMovementOwned = _crewMovementReserved || {count _movementLease == 2 && {time < (_movementLease select 1)} && {
     switch (_movementOwner) do {

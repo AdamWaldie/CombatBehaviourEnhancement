@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Gate identity includes scale; hidden gates refuse new or continued gate work.
  * Purpose: Observe passage and close only the gate leaves opened by one admitted driving request.
  * Locality/authority: Server, unscheduled shared scheduler only; original route, crew, owners,
  * gate pose, lock and private opening receipt remain authoritative. No vehicle commands.
@@ -45,10 +46,11 @@ private _retire={
 if (isNull _gate || {!alive _gate}
     || {(_gate getVariable ["CBE_DrivingGate_CloseWork",createHashMap]) isNotEqualTo _job}
     || {serverTime >= (_job get "until")}) exitWith {["EXPIRED_OR_LOST"] call _retire};
+if (isObjectHidden _gate) exitWith {["GATE_HIDDEN"] call _retire};
 // Issued animation needs observation only: a departing vehicle/changed route cannot
 // create another gate command, but must not erase observed completion of the old one.
 if ((_job get "phase") == "CLOSING") exitWith {
-    if ((_job get "transform") isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate]
+    if ((_job get "transform") isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate,getObjectScale _gate]
         || {(_gate getVariable ["CBE_DrivingGate_ServerOpening",[]]) isNotEqualTo (_job get "opening")}) exitWith {["CLOSURE_CONTEXT_CHANGED"] call _retire};
     private _closed=true;
     {if (abs (([_x] call _leafPhase)-(_x select 2)) > 0.02) then {_closed=false}} forEach (_job get "leaves");
@@ -69,7 +71,7 @@ if (driver _vehicle != _driver || {_currentCommander != _commander}
     || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
     || {[] call CBE_fnc_CortexIsPaused}
     || {!([_taskGroup,"CBE_AIPass_DrivingAssist_CloseGates_Enable",false,_vehicle] call CBE_fnc_CortexFeatureEnabled)}
-    || {(_job get "transform") isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate]}
+    || {(_job get "transform") isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate,getObjectScale _gate]}
     || {(_gate getVariable ["CBE_DrivingGate_ServerOpening",[]]) isNotEqualTo (_job get "opening")}
     || {(_gate getVariable ["bis_disabled_Door",0]) isNotEqualTo 0}) exitWith {["AUTHORITY_CHANGED"] call _retire};
 if ((_taskGroup getVariable ["CBE_AIPass_Epoch",0]) != (_job get "epoch")

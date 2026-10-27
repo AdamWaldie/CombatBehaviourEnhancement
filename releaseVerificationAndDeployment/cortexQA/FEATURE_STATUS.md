@@ -22,13 +22,13 @@ Feature cases: **65**. Required variant categories: **14**.
 | POST - Post-contact search | 5 | 0 | 2 | `runMechanics.sqf`, `runContact.sqf` | 0 | implemented_partial |
 | FLANK - Flanking bounds | 8 | 0 | 6 | `runCombat.sqf` | 3 | implemented_partial |
 | CROSS - Road crossing | 1 | 0 | 1 | `runCrossing.sqf` | 0 | implemented_partial |
-| FIRE - Fire distribution and suppression | 3 | 0 | 3 | `runFireControl.sqf` | 0 | implemented_partial |
+| FIRE - Fire distribution and suppression | 3 | 0 | 4 | `runFireControl.sqf` | 0 | implemented_partial |
 | MORALE - Morale and withdrawal | 3 | 0 | 1 | `runReactions.sqf` | 2 | implemented_partial |
 | SURRENDER - Surrender | 1 | 0 | 1 | `runReactions.sqf` | 2 | implemented_partial |
 | GRENADE - Grenade avoidance | 1 | 0 | 2 | `runReactions.sqf` | 2 | implemented_partial |
-| CIVILIAN - Civilian danger response and external ownership | 4 | 0 | 4 | `runReactions.sqf` | 0 | implemented_partial |
-| AT - Anti-armour and ammunition roles | 2 | 0 | 1 | `runFireControl.sqf` | 0 | implemented_partial |
-| VEH - Vehicle engagement | 4 | 0 | 16 | `runGunnery.sqf`, `runNaval.sqf`, `runVehicleDrills.sqf` | 1 | implemented_partial |
+| CIVILIAN - Civilian danger response and external ownership | 4 | 0 | 5 | `runReactions.sqf` | 0 | implemented_partial |
+| AT - Anti-armour and ammunition roles | 2 | 0 | 2 | `runFireControl.sqf` | 0 | implemented_partial |
+| VEH - Vehicle engagement | 4 | 0 | 17 | `runGunnery.sqf`, `runNaval.sqf`, `runVehicleDrills.sqf` | 1 | implemented_partial |
 | DISMOUNT - Contact passenger dismount | 1 | 0 | 2 | `runVehicleDrills.sqf` | 0 | implemented_partial |
 | REMOUNT - Contact passenger remount | 1 | 0 | 1 | `runVehicleDrills.sqf` | 0 | implemented_partial |
 | WITHDRAW - Damaged vehicle withdrawal | 5 | 0 | 1 | `runVehicleDrills.sqf` | 1 | implemented_partial |
@@ -43,10 +43,10 @@ Feature cases: **65**. Required variant categories: **14**.
 | HEARING - Gunfire area reports | 1 | 0 | 1 | `runSupport.sqf` | 0 | implemented_partial |
 | REPORT - Contact sharing | 4 | 0 | 4 | `runSupport.sqf` | 0 | implemented_partial |
 | REINFORCE - Reinforcement | 3 | 0 | 1 | `runSupport.sqf` | 0 | implemented_partial |
-| ART - Spotted artillery bursts | 13 | 0 | 29 | `runServer.sqf` | 0 | implemented_partial |
+| ART - Spotted artillery bursts | 13 | 0 | 30 | `runServer.sqf` | 0 | implemented_partial |
 | CB - Counter-battery | 10 | 0 | 3 | `runServer.sqf` | 0 | implemented_partial |
 | AIRBORNE - Parachute passengers | 6 | 0 | 10 | `runAirborne.sqf` | 0 | implemented_partial |
-| GARRISON - Garrison and dynamic AO | 1 | 0 | 6 | `runServer.sqf`, `runBuildingComparison.sqf` | 1 | implemented_partial |
+| GARRISON - Garrison and dynamic AO | 1 | 0 | 7 | `runServer.sqf`, `runBuildingComparison.sqf` | 1 | implemented_partial |
 | FLARES - Aircraft countermeasures | 1 | 0 | 2 | `runAircraft.sqf` | 2 | implemented_partial |
 | INVESTIGATE - Known-area investigation | 3 | 0 | 2 | `runSupport.sqf` | 0 | implemented_partial |
 | ASSAULT - Final assault | 2 | 0 | 1 | `runCombat.sqf` | 3 | implemented_partial |

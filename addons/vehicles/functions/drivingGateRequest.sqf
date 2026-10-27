@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Gate identity includes scale; hidden gates refuse new or continued gate work.
  * Purpose: Forward a nearby gate observation to server authority under the current driving route.
  * Locality/authority: Current group/vehicle/driver owner only; non-server network calls are refused.
  * Server independently validates every authority, source, transform, lock and geometry condition.
@@ -37,10 +38,11 @@ private _route=[_group] call CBE_fnc_DrivingRouteReceipt;
 if (_route isEqualTo [] || {_revision < 0 && {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateIntent)}}) exitWith {false};
 if (_travelDirection == -1 && {([_group,_vehicle,_route,_revision,[],[],_travelDirection] call CBE_fnc_DrivingGateOwnerCheck) isEqualTo []}) exitWith {false};
 private _gate=_observation select 1;
+if (isObjectHidden _gate) exitWith {false};
 private _driver=driver _vehicle;
 private _commander=effectiveCommander _vehicle;
 if (isNull _commander) then {_commander=_driver};
-private _transform=[getPosWorld _gate,vectorDir _gate,vectorUp _gate];
+private _transform=[getPosWorld _gate,vectorDir _gate,vectorUp _gate,getObjectScale _gate];
 private _context=[_group,+_route,_revision,_gate,+_transform];
 private _ack=_vehicle getVariable ["CBE_DrivingGate_Result",[]];
 private _ackCurrent=count _ack in [7,8] && {(_ack select 0) == _gate} && {(_ack select 3) == _group}

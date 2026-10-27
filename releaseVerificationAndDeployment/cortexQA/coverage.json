@@ -519,7 +519,8 @@
       "production_sources": [
         "addons/core/functions/cortexFireControl.sqf",
         "addons/infantry/functions/cortexLineOfFireClear.sqf",
-        "addons/infantry/functions/cortexSuppressionAim.sqf"
+        "addons/infantry/functions/cortexSuppressionAim.sqf",
+        "addons/infantry/functions/firingPositionOperation.sqf"
       ]
     },
     {
@@ -609,7 +610,8 @@
         "addons/infantry/functions/cortexCivilianReact.sqf",
         "addons/infantry/functions/cortexCivilianSetup.sqf",
         "addons/infantry/functions/cortexCivilianStep.sqf",
-        "addons/compatibility/functions/cortexExternalOwner.sqf"
+        "addons/compatibility/functions/cortexExternalOwner.sqf",
+        "addons/infantry/functions/cortexCivilianAdopt.sqf"
       ]
     },
     {
@@ -628,7 +630,8 @@
         "runFireControl.sqf"
       ],
       "production_sources": [
-        "addons/infantry/functions/cortexAntiArmour.sqf"
+        "addons/infantry/functions/cortexAntiArmour.sqf",
+        "addons/infantry/functions/launcherMove.sqf"
       ]
     },
     {
@@ -668,7 +671,8 @@
         "addons/vehicles/functions/cortexVehicleReverseStep.sqf",
         "addons/vehicles/functions/cortexAAObserve.sqf",
         "addons/vehicles/functions/cortexAARelocate.sqf",
-        "addons/vehicles/functions/vehicleArmourShot.sqf"
+        "addons/vehicles/functions/vehicleArmourShot.sqf",
+        "addons/vehicles/functions/vehicleTurnRetire.sqf"
       ]
     },
     {
@@ -1108,6 +1112,7 @@
         "addons/infantry/functions/cortexSpotterFix.sqf",
         "addons/support/functions/cortexArtilleryPosition.sqf",
         "addons/support/functions/cortexArtilleryPositionReport.sqf",
+        "addons/support/functions/artilleryCrewReservation.sqf",
         "addons/support/functions/artilleryCrewMoveStart.sqf",
         "addons/support/functions/artilleryCrewMoveStep.sqf",
         "addons/support/functions/artilleryCrewMoveRetire.sqf",
@@ -1201,6 +1206,7 @@
         "addons/infantry/functions/cortexGarrison.sqf",
         "addons/infantry/functions/cortexGarrisonApplyLocal.sqf",
         "addons/infantry/functions/cortexGarrisonRelease.sqf",
+        "addons/infantry/functions/cortexGarrisonFailedPosts.sqf",
         "addons/infantry/functions/cortexGarrisonRefill.sqf",
         "addons/infantry/functions/cortexGarrisonArrived.sqf",
         "addons/infantry/functions/cortexGarrisonSettings.sqf"

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Bind clearance stance/speed acquisition to the shared actor-settings lease.
  * Locality/authority: Actual group/actor owner and current CLEAR operation, visit, route and job.
  * PREFLIGHT observes inherited settings before a successor exists; it grants no operation authority.
@@ -32,7 +33,7 @@ isNil {
         || {!((_visit select 3) isEqualType "")} || {(_visit select 3) == ""}
         || {_visit isNotEqualTo (_group getVariable ["CBE_Cortex_ClearVisitContext",[]])}
         || {isNull _building} || {!alive _building}
-        || {(_job getOrDefault ["buildingTransform",[]]) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+        || {(_job getOrDefault ["buildingTransform",[]]) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
         || {(_job getOrDefault ["generation",-1]) != (_group getVariable ["CBE_AIPass_ClearGeneration",-2])}
         || {(_job getOrDefault ["nativeOrderReceipt",[]]) isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
         || {_mode != "PREFLIGHT" && {((_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["intent",""]) != "CLEAR"}}

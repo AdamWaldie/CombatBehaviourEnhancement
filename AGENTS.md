@@ -1,3 +1,7 @@
+## Governing goal and source queue
+
+Read `IMPLEMENTATION-GOAL.md` before selecting implementation work. Its Governing execution rule governs source selection, the foundations-up sequence, finite batch criteria and regression safeguards. Follow its source-to-owner trace before changing behaviour and update the existing review/register with the result. Use `reference/sourceReviews/source-review-map.json` and its linked LAMBS, HBQ and Protocol reviews as the recoverable source queue. Historical references below to `LOCAL_IMPLEMENTATION_LEDGER.md` do not establish availability: that file is currently absent. Resolve stale instructions against the current directive and actual source evidence. Repair or isolate material foundation defects before dependent expansion; preserve existing owners and working behaviour. Audits remain paused. Keep build-out, offline checks, physical acceptance and measured performance distinct.
+
 # Contribution guidance
 
 ## Definition of done
@@ -91,6 +95,8 @@ A pause flag or a main-loop running marker is not exclusive movement authority. 
 Shared SQF wait helpers must reserve distinct parameter/local names such as `_cbeQaWaitPredicate` and `_cbeQaWaitDeadlineTick`. `call` predicates read the active dynamic scope; a helper-local `_until` hides a caller's mission/server-time `_until` and can cause false timeout or acknowledgement findings. Preserve the caller's clock and original deadline. Do not fix a failing audit by assigning production completion state. Prepared procedures remain unrun until fresh in-engine evidence exists.
 
 ## Source integration and behaviour acceptance
+
+The implementation strategy is selective functionality improvement across the reference collection. Review each mod for useful AI intent, then keep, merge or redesign complementary methods inside CBE. Whole-mod imitation is not the completion criterion. Rejecting an unsafe method does not remove a required gameplay capability; implement a suitable replacement. Use `reference/sourceReviews/SOURCE-REVIEW-MAP.md` and `reference/sourceReviews/source-review-map.json` for the recoverable review queue, missing evidence and each reference's intended contribution. Preserve foundations-first, Protocol priority, compatibility-only and optional/deferred scopes.
 
 The source collection exists to combine unique capabilities, sound decisions and working improvements into one coherent CBE controller. Evaluate complete intent and execution, not isolated matching functions. For each selected source method, record its contribution, interaction with existing layers, authority, balance and cost, deliberate departures, remaining gaps and physical evidence. Distinguish reviewed, selected, implemented, integrated and physically verified. Parity is useful baseline evidence, not the final goal; reject conflicting controllers and preserve complementary strengths. Compatibility-only sources remain separate. No source-count percentage establishes functional delivery.
 

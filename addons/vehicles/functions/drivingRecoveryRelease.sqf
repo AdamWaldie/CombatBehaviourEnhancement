@@ -10,6 +10,7 @@
  * Queue reverse native returns require both operating actors at the original goal and retire
  * without creating another ordinary recovery allowance.
  * Existing owner cleanup observes a pending stop at zero owned cap; no timer or renewed deadline.
+ * SIMPLE_BACK sends STOP once per original journal; delayed native acknowledgement never replays it.
  * Recovery is explicitly mode-bound: destination and SIMPLE_BACK have distinct native
  * ownership proof. Unknown modes grant no cleanup, adoption or command authority.
  * Purpose: Retires a matching ordinary recovery journal; only its exact owned reverse can stop
@@ -401,7 +402,10 @@ if (_owned) then {
         // Cancel only this exact native leg, after plain-MOVE validation too.
         // A STOP request alone cannot authorize forward route handback.
         if (_commandMode == "SIMPLE_BACK") then {
-            if (toUpperANSI (_simpleInfo param [0,""]) != "STOP") then {
+            // The original native STOP is a request, not a command to replay on
+            // every cleanup observation while the engine still exposes BACK.
+            if (toUpperANSI (_simpleInfo param [0,""]) != "STOP"
+                && {!(_work getOrDefault ["simpleStopIssued",false])}) then {
                 _vehicle sendSimpleCommand "STOP";
                 _work set ["simpleStopIssued",true];
                 _vehicle setVariable ["CBE_DrivingRecovery_Work",_work,true];

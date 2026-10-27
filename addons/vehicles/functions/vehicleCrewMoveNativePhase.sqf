@@ -9,6 +9,9 @@
  * epoch and at most two original active local crew are checked again before native writes.
  * This is not movement admission and cannot mint a session, lease, replacement crew or worker.
  * Repeat/JIP: One synchronous phase, original goal/baseline/reply/cleanup clocks retained.
+ * Idle-baseline handback requires all surviving originals active, current idle goals and
+ * measured platform rest; empty return arrays never prove retirement by themselves.
+ * Nonlocal/inactive return recipients refuse before native order observation.
  * No publication, timer, independent FSM or replay. Caller publishes the changed journal
  * and applies its domain-specific terminal/arrival policy in the same unscheduled callback.
  * Arguments: 0 platform OBJECT,objNull; 1 current journal HASHMAP,empty; 2 journal key STRING,"";
@@ -138,15 +141,27 @@ if (_phase == "STOPPING") exitWith {
 };
 if (_phase == "RETURNING") exitWith {
     private _returns=_work get "returns";
-    private _ack=_returns findIf {
-        _x params ["_actor","_point"];
-        if (isNull _actor || {!alive _actor}) exitWith {false};
-        private _native=expectedDestination _actor;
-        private _command=currentCommand _actor;
-        private _sample=[_command,_native,_command,_native];
-        ([_point,_work get "replyUntil",_sample,_sample,serverTime,_arrivalSample]
-            call CBE_fnc_VehicleCrewDestinationState) != "OWNED"
-    } < 0;
+    // Empty return orders mean an original idle baseline, not automatic handback.
+    // Reuse the same current-goal/physical-rest evidence as passive retirement proof.
+    private _ack=if (_returns isEqualTo []) then {
+        private _survivors=(_seats arrayIntersect _seats) select {!isNull _x && {alive _x}};
+        _rest && {_survivors isNotEqualTo []}
+            && {_survivors findIf {!(_x in _activeSeats)} < 0}
+            && {_activeSeats findIf {!(currentCommand _x in ["","WAIT"])} < 0}
+            && {([_goal,_work get "replyUntil",_observations,_observations,serverTime,_arrivalSample]
+                call CBE_fnc_VehicleCrewDestinationState) == "OWNED"}
+    } else {
+        _returns findIf {
+            _x params ["_actor","_point"];
+            if (isNull _actor || {!alive _actor}) exitWith {false};
+            if (!local _actor || {!(_actor in _activeSeats)}) exitWith {true};
+            private _native=expectedDestination _actor;
+            private _command=currentCommand _actor;
+            private _sample=[_command,_native,_command,_native];
+            ([_point,_work get "replyUntil",_sample,_sample,serverTime,_arrivalSample]
+                call CBE_fnc_VehicleCrewDestinationState) != "OWNED"
+        } < 0
+    };
     if (_ack) exitWith {["NATIVE_RETURN_ACKNOWLEDGED",true] call _finish};
     if (serverTime > (_work get "replyUntil")) exitWith {["NATIVE_RETURN_UNKNOWN"] call _finish};
     0.25

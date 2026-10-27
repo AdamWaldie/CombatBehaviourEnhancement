@@ -121,6 +121,22 @@
         "sourceCandidateReview": "clear-source-candidate-20261026.json",
         "review": "clear-throw-listener-fence-20261026.json",
         "scope": "Queued cancellation and observational listener callbacks bind original owner/epoch/generation; installed-generation timeout cleanup protects successors without stranding old listeners. No physical/all-writer seal claim."
+      },
+      "commonRecoveryCaptureReview": {
+        "review": "clear-recovery-state-20261026.json",
+        "scope": "Original roster, spent recovery attempts, active observation clocks/targets/start poses and unavailable actors copied in actor componentv6; no incoming recovery command or full seal."
+      },
+      "commonProgressCaptureReview": {
+        "review": "clear-common-progress-20261026.json",
+        "scope": "Original common observer phase/clocks/poses/platforms/flags/replans retained with recoveryv2; no incoming executor or new progress credit."
+      },
+      "retirementCopyBoundsReview": {
+        "review": "clear-retirement-copy-bounds-20261026.json",
+        "scope": "Bound the whole watched metadata deep copy; malformed/cyclic/oversized source data refuses before retirement observer installation. No all-writer seal or replay claim."
+      },
+      "floorCandidateSamplingReview": {
+        "review": "clear-floor-candidate-sampling-20261026.json",
+        "scope": "Interior access samples24/32 candidates after relevant-floor filtering within512 original points. No physical route/visit/parity/performance proof."
       }
     },
     {
@@ -147,7 +163,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-artillery-3801354927-20261020.json",
-      "remaining": "Selected mixed-group pre/postfire movement source is integrated; true same-group peer concurrency, terminal unknown/casualty and original idle/formation continuation remain code/evidence gaps. Physical firing/scoot/counter-battery, normal/HC/JIP/Zeus and performance remain unverified. Reuse licensing remains separate.",
+      "remaining": "Selected mixed-group pre/postfire movement and bounded per-gun same-group reservations are integrated in source. Physical peer movement/formation interaction, terminal unknown/casualty recovery and original idle/formation continuation remain code/evidence gaps. Physical firing/scoot/counter-battery, normal/HC/JIP/Zeus and performance remain unverified. Reuse licensing remains separate.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
@@ -188,6 +204,11 @@
       "dismountedOriginalStop20261026": {
         "review": "selected-dismounted-stop-retirement-20261026.json",
         "scope": "Passive exact-worker retirement permits dismounted original survivors with newer native STOP and individual rest. No command, replacement adoption or group split; general supersession and physical acceptance remain incomplete."
+      },
+      "peerReservations20261027": {
+        "review": "artillery-selected-crew-20261025.json#peerReservationsImplementation20261027",
+        "status": "IMPLEMENTED_SOURCE_OFFLINE_CHECKED_PHYSICAL_UNVERIFIED",
+        "scope": "Exact per-gun reservations and aggregate lease across admission/HOLD/retirement/locality/stop/deletion; no added movement owner or group-membership change."
       }
     },
     {
@@ -318,7 +339,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "workshop-intake-3822504009.json",
-      "remaining": "Actual main-cannon Fired capture and one finite screened post-shot move are now integrated through the selected-crew FSM, limited to idle tanks/APCs/main-turret shells. Broader suitable ATGM, mission-route/mixed/custom-platform cases and proven supersession/deleted-platform cleanup remain incomplete. Actual loading/firing, native travel/handback, repeated use, owner migration, combat balance and performance remain unverified; dependencies/licensing remain separate. See armour-post-shot-cover-20261025.json.",
+      "remaining": "Actual main-cannon Fired capture, original control-crew proof and one finite screened post-shot move are integrated through the selected-crew FSM. Selected single-shot native ground missiles now retain bounded actual-projectile observations inside the original episode deadline before post-shot eligibility; disappearance is not hit/kill or general scripted-guidance quiescence. Broader guided/payload/burst/multi-station, mission-route/mixed/custom-platform cases and proven supersession/deleted-platform cleanup remain incomplete. Actual firing, native travel/handback, repeat use, owner migration, balance and performance remain unverified; dependencies/licensing remain separate. See armour-post-shot-cover-20261025.json#nativeMissileObservation20261027.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
@@ -399,6 +420,10 @@
       "dismountedOriginalStop20261026": {
         "review": "selected-dismounted-stop-retirement-20261026.json",
         "scope": "Passive exact-worker retirement permits dismounted original survivors with newer native STOP and individual rest. No command, replacement adoption or group split; general supersession and physical acceptance remain incomplete."
+      },
+      "nativeMissileObservation20261027": {
+        "evidence": "armour-post-shot-cover-20261025.json#nativeMissileObservation20261027",
+        "scope": "Original crew/native control receipts plus selected native missile flight observations integrated. Broader/scripted/burst/multistation scope and physical/performance acceptance remain incomplete."
       }
     }
   ],

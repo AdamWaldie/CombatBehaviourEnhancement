@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-26",
+  "workshopId": "3496308284",
+  "name": "AI Helicopter Decelerate No Climbing",
+  "status": "READABLE_SOURCE_RECONCILED_FULL_ORDER_GUARD_IMPLEMENTED_PHYSICAL_PENDING",
+  "provenance": {
+    "original": "E:/SteamLibrary/steamapps/workshop/content/107410/3496308284/addons/AHDNC_main.pbo",
+    "snapshot": ".qa/ahdnc-installed-20261026",
+    "packageSha256": "35a481294908469fcc4b10b6ab1409b254e6220ef6ce766894d9d7519c344273",
+    "versionHeader": "1.0.5.0",
+    "originalBeforeAfterHashMatched": true,
+    "memberCount": 24,
+    "rawSourceTracked": false
+  },
+  "readableBodyScope": [
+    "functions/fnc_perSecond.sqf",
+    "functions/fnc_perFrame.sqf",
+    "XEH_preStart.sqf",
+    "XEH_preInit.sqf",
+    "XEH_postInit.sqf",
+    "initSettings.inc.sqf",
+    "config.cpp",
+    "CfgEventHandlers.hpp",
+    "script_component.hpp",
+    "script_mod.hpp",
+    "script_version.hpp",
+    "XEH_PREP.hpp"
+  ],
+  "sourceHashes": {
+    "functions/fnc_perSecond.sqf": "f0454db00d78a68f0b1a38d8c6b4c51d0f31376f08a974a9976fa3a688c0a53c",
+    "functions/fnc_perFrame.sqf": "7a0fac97e0ffb443615b34f2ff7ff6aeef86122c566e7a1b035dbc30754964db",
+    "XEH_postInit.sqf": "cd3fadccf5b5d162d3f4c84be4bafb60d0d52a293cee729d7ecd0b4a5f4f74a4",
+    "initSettings.inc.sqf": "2e6447a139e00a25d98b74536e8cf96008fad89e96c3332d4e94691ed28c001c",
+    "config.cpp": "a8dbd639289aec33c6e1337151f8b51c606dabd6a7e39cb745c1a2c4f8daf959"
+  },
+  "intent": "Reduce unwanted climb during native AI helicopter braking while preserving useful flight and landing intent.",
+  "findings": [
+    "Source class hooks collect helicopter/VTOL objects; a1-second global PFH selects climb/deceleration/nose-up episodes. Three forward terrain elevations veto selection. No finite episode timeout is evident in readable perFrame.",
+    "perFrame applies downward addForce from climbed-height squared, vertical-speed squared, pitch and mass. Actual locality, pilot/player/remote ownership and mission order are not rechecked there. Do not copy stale correction authority.",
+    "perSecond refusal removes helisDecel find _heli, while entries are arrays[heli,speed,altitude,time]. In readable SQF that object search cannot match a row and deleteAt -1 can remove an unrelated final row. CBE per-aircraft task identity avoids that method.",
+    "Readable enabled_VTOL condition excludes VTOL when true. Retain explicit CBE inclusion semantics. Compiled SQFC/preprocessing equivalence is not established."
+  ],
+  "cbeTrace": {
+    "admission": "HelicopterDecelerationStep existing bounded owner tracker",
+    "execution": "HelicopterDecelerationCorrectLocal finite correction with original generation/pilot/group, flight lease, landing/attack/missile priority and terrain/health/sling-load vetoes",
+    "change": "Partial six-field signature replaced by existing NativeOrderReceipt/AuthoredRouteReceipt. Same-index condition/timeout/script/attachment/behaviour/synchronization edits retire correction through ORDER_CHANGED. Optional MOVE braking point is read separately from opaque identity; implicit spawn nodes do not grant an authored approach destination. No new controller, force policy, deadline or replay."
+  },
+  "cost": "Full current authored metadata now queried at existing observation/final impulse guards instead of six fields. Query/allocation cost increases inside the finite correction window; no new PFH, scan or cache. Measure before performance acceptance.",
+  "validation": {
+    "initialFocusedFailure": "Old inline-getter assertion updated to trace shared receipt, retaining every original getter plus statements/timeouts/synchronization and original final-issue guard.",
+    "focusedExistingTests": 5,
+    "fullExistingTests": 1497,
+    "compiledSQF": 446,
+    "PBOs": 11,
+    "independentVerification": "PASS",
+    "candidate": ".qa/candidates/deceleration-full-order-921ca8ea",
+    "fingerprint": "355f5bb53d7644d3fbc2aa19408d6cdd467866d5a4efed0f3374af2d234ed088",
+    "buildLog": ".qa/handovers/deceleration-full-order-921ca8ea.log",
+    "independentLog": ".qa/handovers/deceleration-full-order-independent.log"
+  },
+  "limits": [
+    "Unsigned dirty development candidate from921ca8ea plus working runtime; notes postdate package.",
+    "Actual braking/climb/landing quality, mission-edit interruption, HC/locality and cost remain unverified.",
+    "Original SQFC/preprocessing semantics and independent runtime comparison unverified; no whole-mod parity or percentage inferred.",
+    "No upstream code/assets copied; Workshop presence is not a reuse licence.",
+    "Separate CortexMissileDefenceStep model-space impulse path observed; its method and native evasive handover remain review work, unresolved by this order guard."
+  ],
+  "audits": "PAUSED"
+}

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Geometry identity includes object scale: rescaling invalidates cached selection and active work.
  * Purpose: Plan one actor's indoor observation destination near a supplied native contact belief.
  * Locality/authority: Read-only world observation on the actor/group owner; only the optional
  * caller-owned search HashMap is updated. No movement or access is granted.
@@ -24,9 +25,14 @@
  * they never affect known-contact work or add roof rays.
  * 7 defensive BOOL false restricts candidates to an eight-metre same-floor improvement
  * toward believed threat geometry, retaining all roof/occupancy/failure checks.
+ * Defensive selection additionally requires a blocked current lane and a usable prospective
+ * FIRE/GEOM lane at the actor's current eye height. It adds at most four surface queries
+ * per call (one current lane, three candidates), only in defensive mode. This is position
+ * planning toward a native belief, never permission to fire or proof of accessibility.
  * 8 defensiveOrigin ASL ARRAY [] is mandatory for defensive selection and binds the
  * original radius/floor across retries; it is never replaced by the actor's new position.
  * Return: ARRAY - one native ATL position, or [] for invalid, occupied or unroofed candidates.
+ * Hidden buildings refuse before node/roof observation; authored mission visibility remains authoritative.
  * Navigation metadata and roof ownership do not establish accessibility or a safe room.
  * Current callers: CBE_fnc_IndoorActorOperation SELECT phase, including natural dispatch; DangerRefugeSelect fallback for flight and ordinary danger cover.
  * Example: private _node=[soldier1,house1,[100,100,2],[]] call CBE_fnc_IndoorActorNodeSelect;
@@ -40,14 +46,14 @@ private _positionValid={
         && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
 };
 if (isNull _actor || {!local _actor} || {!local group _actor}
-    || {isNull _building} || {!alive _building} || {!(_belief call _positionValid)}
+    || {isNull _building} || {!alive _building} || {isObjectHidden _building} || {!(_belief call _positionValid)}
     || {count _reserved > 16} || {_defensive && {!(_defensiveOrigin call _positionValid)}}) exitWith {[]};
 // Reject unknown reservations rather than sending a second actor to an unverified destination.
 if (_reserved findIf {!(_x call _positionValid)} >= 0) exitWith {[]};
 private _reservedASL=_reserved apply {AGLToASL _x};
 private _failedNodes=[];
 private _epoch=(group _actor) getVariable ["CBE_AIPass_Epoch",0];
-private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building];
+private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building];
 private _binding=[_actor,_building,_transform,+_belief,+_searchMemory,_defensive,+_defensiveOrigin];
 private _previousBinding=_search getOrDefault ["binding",[]];
 if (_previousBinding isNotEqualTo [] && {_previousBinding isNotEqualTo _binding}) exitWith {[]};
@@ -104,6 +110,23 @@ if (count _searchMemory == 4) then {
         && {(_x select 3) isEqualType 0} && {finite (_x select 3)} && {serverTime < (_x select 3)}
         && {(_x select 4) isEqualTo _epoch}) then {_failedNodes pushBack (AGLToASL (_x select 2))};
 } forEach ((_actor getVariable ["CBE_IndoorActor_NodeFailures",[]]) select [0,4]);
+// A nearer room node can still face the same wall. Keep a defender at an already
+// usable firing position; only screen alternatives when its present lane is blocked.
+// Native belief is the endpoint, never a hidden target's exact pose. A surface within
+// three metres of that belief can support near-face suppression, as in SuppressionAim.
+private _laneTargetASL=(AGLToASL _belief) vectorAdd [0,0,1];
+private _defensiveEyeHeight=0;
+private _defensiveLaneUsable={
+    params ["_from"];
+    if (terrainIntersectASL [_from,_laneTargetASL]) exitWith {false};
+    private _laneHits=lineIntersectsSurfaces [_from,_laneTargetASL,_actor,objNull,true,1,"FIRE","GEOM"];
+    _laneHits isEqualTo [] || {private _laneHit=_laneHits select 0;
+        !isNull (_laneHit select 2) && {(_laneHit select 0) vectorDistance _laneTargetASL <= 3}}
+};
+if (_defensive) then {
+    _defensiveEyeHeight=(((eyePos _actor) select 2)-((getPosASL _actor) select 2)) max 0.6 min 1.8;
+};
+if (_defensive && {[eyePos _actor] call _defensiveLaneUsable}) exitWith {[]};
 private _positions=_building buildingPos -1;
 if (count _positions > 512) exitWith {[]};
 private _bounds=boundingBoxReal _building;
@@ -160,7 +183,8 @@ private _roofTop=[_building] call CBE_fnc_BuildingRoofTop;
     } else {[]};
     if (_hits isNotEqualTo []) then {
         private _hit=_hits select 0;
-        if ((_hit select 2) == _building || {(_hit select 3) == _building}) exitWith {
+        if (((_hit select 2) == _building || {(_hit select 3) == _building})
+            && {!_defensive || {[_asl vectorAdd [0,0,_defensiveEyeHeight]] call _defensiveLaneUsable}}) exitWith {
             _selected=+_node;
         };
     };

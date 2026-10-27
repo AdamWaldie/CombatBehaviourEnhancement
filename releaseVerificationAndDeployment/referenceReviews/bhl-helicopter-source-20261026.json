@@ -1,0 +1,127 @@
+{
+  "date": "2026-10-26",
+  "workshopId": "3771745732",
+  "name": "BHL AI",
+  "status": "READABLE_CONTROLLER_RECONCILED_FINITE_LIFETIMES_AND_ORDER_GUARDS_IMPLEMENTED_PHYSICAL_PENDING",
+  "identityCorrection": "Installed mod.cpp describes custom landing logic for AI helicopters. Config registers only initTracker and landingLogic under Helicopter_Base_F. The previous infantry/squad candidate description was incorrect.",
+  "provenance": {
+    "original": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3771745732\\addons\\bhl_ai.pbo",
+    "snapshot": ".qa/bhl-ai-installed-20261026",
+    "packageSha256": "8f2be87332ddaf6f37caf7bea68baf66717c9b9f2168f233abc2371d435a1a34",
+    "originalBeforeAfterHashMatched": true,
+    "memberHashes": {
+      "$PBOPREFIX$": {
+        "sha256": "cd3335b60d26e4b9742479bd33769bfebb97d8280484496cec221b8d3c061892",
+        "bytes": 6
+      },
+      "config.bin": {
+        "sha256": "013222cbed83cb0ca5b6811ac26a6813c5fbdf66c48414693f8b444d212b92e7",
+        "bytes": 590
+      },
+      "config.cpp": {
+        "sha256": "09cddb47d63f07a1350aba217ea56fc3067734f66fc946e7125c1596d069660f",
+        "bytes": 1522
+      },
+      "functions/fn_initTracker.sqf": {
+        "sha256": "796c38c8d079a05d7c2440397609442f79b4702c6551f56894a91ab80eb7b372",
+        "bytes": 7406
+      },
+      "functions/fn_landingLogic.sqf": {
+        "sha256": "e0d0365b628f34039bbc610db91453d1546267b28856f90ec48054562347c0e7",
+        "bytes": 27822
+      }
+    },
+    "compiledConfigEquivalence": "Not established"
+  },
+  "readableBodyScope": [
+    "config.cpp: full registration",
+    "functions/fn_initTracker.sqf: full body",
+    "functions/fn_landingLogic.sqf: full 691-line body",
+    "installed mod.cpp: description"
+  ],
+  "sourceDispositions": [
+    {
+      "path": "initTracker: init/locality/admission",
+      "intent": "Observe AI helicopter landing orders, including scripted Zeus landing waypoints",
+      "disposition": "Adapt through existing landing scheduler and FlightLease; do not introduce a permanent second tracker. Source starts per-instance scheduled polling and only gates vehicle locality."
+    },
+    {
+      "path": "initTracker: destination/type cache and ghost-state reset",
+      "intent": "Reacquire changed landing orders and clear stale engine landing state",
+      "disposition": "Preserve intent but reject automatic MOVE/type/script rewriting and unconditional land NONE/doFollow. Source cache ignores same-position/type script and other metadata changes, and ignores new orders acquired within 100m."
+    },
+    {
+      "path": "landingLogic: approach, brake, glide and go-around",
+      "intent": "Smooth terrain-aware deceleration, final flare, one recovery approach and high/low terrain transitions",
+      "disposition": "Compare and evolve existing ImprovedHelicopterLandingExecuteLocal; no second physics writer. Current CBE already contains related glideslope/flare/go-around logic; physical equivalence is not established."
+    },
+    {
+      "path": "landingLogic: terrain and canopy scans",
+      "intent": "Avoid terrain structures during descent and final approach",
+      "disposition": "Retain capability requirement; source nearestTerrainObjects sampling omits dynamic/placed obstacles, truncates unsorted results and estimates tops using unrotated bounding-box Z. Not proof of a clear rotor/hull corridor."
+    },
+    {
+      "path": "landingLogic: takeover and abort",
+      "intent": "Yield for changed orders, curator movement, human pilot, damage, slingload and locality loss",
+      "disposition": "Use CBE exact actor/revision/lease ownership. Source checks state every0.25s while applying velocity/orientation every0.05s, has no phase deadline, and restores MOVE/PATH/height without recording mission baselines."
+    },
+    {
+      "path": "landingLogic: touchdown gear and ground anchor",
+      "intent": "Stable touchdown without bounce; retain landing until onward task",
+      "disposition": "Review existing CBE AnchorLocal, not import source EachFrame gear/force workers. Source anchor has no deadline and EachFrame force callback lacks locality/task checks; cleanup unconditionally restores features, cancels landing and sets height30. Do not remove current CBE flight behaviour without an explicit safe replacement."
+    }
+  ],
+  "cbeComparison": {
+    "inspectedPaths": [
+      "addons/aircraft/functions/improvedHelicopterLandingStep.sqf",
+      "addons/aircraft/functions/improvedHelicopterLandingExecuteLocal.sqf",
+      "addons/aircraft/functions/improvedHelicopterLandingAnchorLocal.sqf"
+    ],
+    "scope": "Selected registration/acquisition, authority, native writers, loop conditions and waypoint-release regions; complete restoration/caller reconciliation still required.",
+    "existingStrengths": [
+      "Shared landing scheduler and exclusive FlightLease",
+      "Original pilot and feature ownership snapshots",
+      "Single-aircraft group admission and specialist/Zeus release checks",
+      "Separate forward/canopy scan timers and one-shot landing gear request"
+    ],
+    "confirmedOpenGaps": [
+      "Physical landing/native hold/onward handback/repeated-use/locality evidence is pending.",
+      "Placed/dynamic-obstacle rotor/hull clearance coverage remains unresolved.",
+      "Same-value authored edits and explicit versus natural current-waypoint progression are observationally indistinguishable; existing final-commit progression policy is retained."
+    ],
+    "nextFiniteBatch": "Resume registered foundation work outside this completed landing lifecycle patch. Reconcile concrete remaining LAMBS/HBQ execution gaps rather than repeatedly revisiting unchanged landing guards. Physical landing/order-edit/migration/cost cases remain queued for a later authorised audit."
+  },
+  "evidenceBoundary": {
+    "runtimeChanged": true,
+    "implementationPercentageReassessed": false,
+    "wholeSourceParityClaimed": false,
+    "physicalValidation": "Pending; audits paused",
+    "performance": "Unmeasured; no improvement claimed"
+  },
+  "finiteLifetimes20261026": {
+    "approach": "At most180 seconds; timeout publishes exact pilot/group/index/full selected-node authored receipt and blocks automatic reacquisition of that unchanged order, including tracker reentry. Different authored metadata/pilot/group remains eligible.",
+    "ground": "The existing configured0-60 second settling period now ends the force loop. Unchanged landing holds use existing landed restoration to native LAND; any valid different waypoint yields, including nearby nodes. No extra worker, setting, world query or forced seating.",
+    "evidence": "1497 offline tests,446 compiled SQF,11 PBOs; independent package verification passed. These are static/package results only.",
+    "candidate": ".qa/candidates/landing-finite-lifetimes-12728173",
+    "fingerprint": "cebfaf3d2e1ae40253fdcc7472a2b360219cb6cde952ff50c8405e9f9534159c",
+    "buildLog": ".qa/handovers/landing-finite-lifetimes-12728173.log",
+    "independentLog": ".qa/handovers/landing-finite-lifetimes-independent.log",
+    "sourceIdentity": "Base12728173 plus current uncommitted landing changes; unsigned dirty development evidence. Engineering notes postdate packaging.",
+    "limits": "Physical approach deadline suitability, touchdown/native hold/onward release, repeats, migration and performance unrun; audits paused. Complete active-order metadata gap remains."
+  },
+  "orderIdentity20261026": {
+    "implemented": "Revision/group/index/full authored selected-node receipt published before feature changes. Atomic admission, approach vector/gear and anchor admission/force boundaries compare original metadata. Final native handback requires the same original node plus an unchanged current NativeOrderReceipt across cleanup; feature retirement can still proceed after an edit. Settled LAND refuses a valid onward current node.",
+    "paths": [
+      "ImprovedHelicopterLandingExecuteLocal",
+      "ImprovedHelicopterLandingAnchorLocal",
+      "ImprovedHelicopterLandingRestoreLocal"
+    ],
+    "cost": "Adds selected-node metadata and native waypoint enumeration at each finite active flight/force commit, normally20Hz and configurable up to50Hz. No new scheduler/handler/controller/world scan. Frame cost unmeasured.",
+    "staticVerification": "Existing9 landing test methods extended; complete1497-test build,446 compiledSQF and11PBOs passed; independent package verify passed.",
+    "candidate": ".qa/candidates/landing-order-identity-12728173",
+    "fingerprint": "5e2e6f93153dbfee57f4c9fec4979e27867a0ed4717fd9d72a86cfebacfb12a4",
+    "buildLog": ".qa/handovers/landing-order-identity-12728173.log",
+    "independentLog": ".qa/handovers/landing-order-identity-independent.log",
+    "sourceNote": "Unsigned dirty development candidate from base12728173 plus this landing patch; engineering notes postdate package. No clean-release/physical acceptance claim."
+  }
+}

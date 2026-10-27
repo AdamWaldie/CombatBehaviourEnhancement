@@ -1,0 +1,246 @@
+{
+  "date": "2026-10-27",
+  "workshopId": "3721618614",
+  "name": "Smart Merge AI",
+  "installedVersion": "2.0.5",
+  "status": "ALL36_READABLE_FUNCTION_BODIES_AND_CONFIG_REVIEWED_SELECTED_REGROUP_FIXES_IMPLEMENTED_PHYSICAL_PENDING",
+  "provenance": {
+    "original": "E:/SteamLibrary/steamapps/workshop/content/107410/3721618614/addons/smai_main.pbo",
+    "snapshot": ".qa/smart-merge-installed-20261026",
+    "packageSha256": "702d3db1eb5b273f4ae99b3f931e578b757ed985980a4904d2f65a8cc31ec7d5",
+    "originalBeforeAfterHashMatched": true,
+    "memberCount": 38,
+    "rawSourceTracked": false,
+    "compiledRuntimeEquivalence": "Not independently established"
+  },
+  "readableBodiesReviewed": [
+    "functions/fn_abortPending.sqf",
+    "functions/fn_addMergeVetoHandler.sqf",
+    "functions/fn_beginPending.sqf",
+    "functions/fn_currentCommandProtected.sqf",
+    "functions/fn_findTargetGroup.sqf",
+    "functions/fn_frameworkProtected.sqf",
+    "functions/fn_groupDistance.sqf",
+    "functions/fn_groupFaction.sqf",
+    "functions/fn_groupHasPlayer.sqf",
+    "functions/fn_hasCombatPressure.sqf",
+    "functions/fn_hasDirectPressure.sqf",
+    "functions/fn_hasNearbyFirefight.sqf",
+    "functions/fn_isAceUnconscious.sqf",
+    "functions/fn_isCombatCapable.sqf",
+    "functions/fn_isCombatVehicle.sqf",
+    "functions/fn_isIgnoredUnit.sqf",
+    "functions/fn_isSurvivorCandidate.sqf",
+    "functions/fn_isValidTargetGroup.sqf",
+    "functions/fn_markPressure.sqf",
+    "functions/fn_mergeUnit.sqf",
+    "functions/fn_onUnitKilled.sqf",
+    "functions/fn_postInit.sqf",
+    "functions/fn_preInit.sqf",
+    "functions/fn_processCandidate.sqf",
+    "functions/fn_prunePressureRegistry.sqf",
+    "functions/fn_registerSettings.sqf",
+    "functions/fn_registerUnit.sqf",
+    "functions/fn_reserveGroup.sqf",
+    "functions/fn_sideEnabled.sqf",
+    "functions/fn_start.sqf",
+    "functions/fn_stop.sqf",
+    "functions/fn_tick.sqf",
+    "functions/fn_unitInit.sqf",
+    "functions/fn_unregisterUnit.sqf",
+    "functions/fn_updateGroupHistory.sqf",
+    "functions/fn_updatePending.sqf",
+    "config.cpp"
+  ],
+  "bodyHashes": {
+    "functions/fn_abortPending.sqf": "42e3e9a4060e26eb784674e1db17838ebd0f0e91206862074f2bbc3c22f8a489",
+    "functions/fn_addMergeVetoHandler.sqf": "abfd72233ff5fa4f5fa63f99a04b69e637a73d7a03a615c0a241efd47200b017",
+    "functions/fn_beginPending.sqf": "47bc309c364100d393983d6b6907c642b06b0a7927f4d418c01bac073c9c3184",
+    "functions/fn_currentCommandProtected.sqf": "99628289a9ca71858d0d2f534ad7ce31986ae3039008ee11e153187a73d65183",
+    "functions/fn_findTargetGroup.sqf": "5b6587eca6b14af08a6d3f36c86e3b3f1fdb01bdc79ef67d852cbd60a9db2768",
+    "functions/fn_frameworkProtected.sqf": "88f6ee3cef9db1595f8092973d204bf951148e4855a190dc885a8484735c66b6",
+    "functions/fn_groupDistance.sqf": "d56a45f9dfa8e957b5397c7a69ce9a537cc671f01fefefaaad6d0e7282b0ffff",
+    "functions/fn_groupFaction.sqf": "eb5af8318dbdb324dfc9edd35f0fbc4f6756134fdee6d2e29901dc9d7bb31988",
+    "functions/fn_groupHasPlayer.sqf": "0696fdbbe538aa13d1235a6a22ea0029d30945769de31dcae8449e0db4460a68",
+    "functions/fn_hasCombatPressure.sqf": "d22dc0184cc3659bb25c9298d41477a3a466aca67159d573f898d039b3217d84",
+    "functions/fn_hasDirectPressure.sqf": "01bb5577f82a02ce34299b9fafee75cc04e4845a877203385925ebd142bde4f1",
+    "functions/fn_hasNearbyFirefight.sqf": "62e6b097a9d9b25f81cdc73e9db002d9bc45b3b911678356d9e5a5a7cee0d477",
+    "functions/fn_isAceUnconscious.sqf": "42fa2a21155acb418f58fcd0d87f71321cf44e3a1292f639350dfe3dbcce555e",
+    "functions/fn_isCombatCapable.sqf": "aecff106bac30eacc3f9acd931a9d1831e8a3d3c61a5d6d0ea33b2a95f4f9fc0",
+    "functions/fn_isCombatVehicle.sqf": "9f86ba4e1f576683693113a5267a44d783c7b459d499b98eab93dba8bd0a0f08",
+    "functions/fn_isIgnoredUnit.sqf": "a5fa5e6ee2867f4ee77b581f43fc9a800e7377e9f15951ba98e8d73038ba31b8",
+    "functions/fn_isSurvivorCandidate.sqf": "288b51c19de5cdd6ad9d30cb48a4517fe84f5fca00faa78b0c4afda689f01222",
+    "functions/fn_isValidTargetGroup.sqf": "d1550ed4ad5082f214124a4481bddcad5d72c5b4af1cf4890bc7ec534005c6cd",
+    "functions/fn_markPressure.sqf": "5c83fc8620b84dde6a79f31a7c87fbfa3dbb4fdaaec456636d2cab2d09f5b601",
+    "functions/fn_mergeUnit.sqf": "b1475d1bf6b49afe094d43089199f3e05a7f2c2098e673f4136920dc45316ff8",
+    "functions/fn_onUnitKilled.sqf": "c4cc1b7aece8fb58b5d7fc03ac8830fedffbe08c843c663aa76ef72a9c8f1712",
+    "functions/fn_postInit.sqf": "7c586a0b08c160c95c64403bef28b05b143be07c52b68460d57d14370957a1f7",
+    "functions/fn_preInit.sqf": "67ac380d6e935e78475b53150ccfa3748aff7d59c2ca90e779eaa72582d342c2",
+    "functions/fn_processCandidate.sqf": "9935bdf4038acd60154a187d39a694d7ab293c59bbd886df2086634993cfc070",
+    "functions/fn_prunePressureRegistry.sqf": "bf0c92b8ae844e8b24dc59f8c6fea4fad1ef17177e80c1ad3071228f41613d55",
+    "functions/fn_registerSettings.sqf": "967853b6a1ce073cff4b0c14eb6983b9acf7c6a66981c450e676a1e04eebd35f",
+    "functions/fn_registerUnit.sqf": "a0aefea93a75ad87583f017f859f1eb942a0146766f7ce659b12216efb42df4b",
+    "functions/fn_reserveGroup.sqf": "468da08088061e75ce74f21de5f867db4b0a2ec45cc39a5c7261f0c7be3cd204",
+    "functions/fn_sideEnabled.sqf": "2005c015563c2526c533301531993d46e49547d4216e4b3a4d47820f156b941d",
+    "functions/fn_start.sqf": "1e4855fbfdb9ed5b86612186467d5a585609987a27e6f05e014f19c18ab8dfe9",
+    "functions/fn_stop.sqf": "8ef3c8256f4925466693648c52cdb4ada0be861042ae5a41a8ff96dd883fefa4",
+    "functions/fn_tick.sqf": "5acbddc1fb80df3222cd768376ad5dbf36b39b19911d1fe186359c92d153f3d0",
+    "functions/fn_unitInit.sqf": "238bd020c5657c4d794d7a6f7aa1e6cb2bcd38d2e28803bdbe779619f57c6182",
+    "functions/fn_unregisterUnit.sqf": "fe7a50cc545a29e50d9a013315459eb82799e05177e39bcec5abd4e3c50eb3c4",
+    "functions/fn_updateGroupHistory.sqf": "032a6ac21a765d059418a017a55b65f3b95b576ebcc0c8e0cefcc970dc173b20",
+    "functions/fn_updatePending.sqf": "7def54277a327d9d5ce9a3dd6cdcb8da6c31eb32d7abeab967db9af55c3b43bf",
+    "config.cpp": "29555c9ba7f33aa62a9b81c877475067969d3f9c77433a126e1d3d8221f3e294"
+  },
+  "unreviewedFunctionBodies": [],
+  "scope": "All36 installed readable function bodies plus config registration/settings reviewed. Installed mod.cpp identity/description inspected. This is source semantic review, not complete CBE feature parity, runtime acceptance or measured cost.",
+  "dispositions": [
+    {
+      "intent": "Recover genuine casualty survivors rather than merge deliberate solo teams.",
+      "source": "Source checks peak combat history/other living members, isolation dwell/cooldown and optional explicit authorization. Pending destination suitability is rechecked on later callbacks.",
+      "cbe": "Existing casualty-only enqueue, peak-size threshold, remnant threshold and medical/task/mission protections retained. New job captures casualty-time living roster; later living additions or current size beyond remnant limit retire it. Direct jobs capture their initial roster once. Further losses may shrink scope.",
+      "decision": "Adapt continuous suitability and task membership scope into existing CBE owner, not source survivor polling/registries."
+    },
+    {
+      "intent": "Approach a useful host which can absorb survivors without stealing specialised ownership.",
+      "source": "Target admission checks same-side or optional mutual alliance, optional faction, living/combat capacity, protection flags, reserved slots and range. Source scores distance plus faction/same-owner preferences.",
+      "cbe": "Current same-side/same-owner host selection, configured size/capacity and physical join distance retained. MOVE now rechecks host combat strength, side and own-regroup status; losing fitness returns to EVALUATE under original deadline. No automatic cross-side/faction integration added.",
+      "decision": "Implement the confirmed stale-host gap; reservation-provider helpers, faction/role policies and wider selection descendants remain to reconcile."
+    },
+    {
+      "intent": "Finite approach and late cancellation should preserve newer task authority.",
+      "source": "updatePending reissues unit doMove on a cadence and may join at detection radius after timeout/stall; abortPending accepts an ownedMove boolean and current MOVE/empty command, then issues move-to-self/follow without exact destination/order proof. mergeUnit fires arbitrary veto/beforeMerge callbacks before membership mutation without a final post-callback full context check.",
+      "cbe": "Keep original CBE deadline, one retry, native/authored replacement guards, local membership and exact owned-MOVE cleanup. Do not import unowned repeated move/stop/follow, widened failure-time join authority or source hooks as command permission.",
+      "decision": "Reject unsafe mechanisms while retaining physical join/repeat/ownership verification as open requirements."
+    }
+  ],
+  "runtimeChanges": {
+    "paths": [
+      "addons/infantry/functions/cortexRegroupOnKill.sqf",
+      "addons/infantry/functions/cortexRegroupStep.sqf"
+    ],
+    "cost": "One original survivor array retained in existing job; each callback compares current living members against it. MOVE counts combat-effective members of the already selected host, reusing its roster for live capacity. No new worker, world scan, geometry, setting or deadline; native roster/eligibility cost unmeasured.",
+    "remaining": [
+      "Selected CBE task/host/cohort and native cleanup/physical joining/repeat/locality behaviour and performance remain unverified while audits are paused.",
+      "Same-owner live capacity is not a cross-owner distributed reservation protocol. Cross-side/faction/peaceful singleton/vehicle/civilian merging are not selected implicit expansions.",
+      "CBA/veto/event/settings counts and36 reviewed bodies do not score implementation or whole-mod parity."
+    ]
+  },
+  "verification": {
+    "tests": 1497,
+    "compiledSQF": 446,
+    "PBOs": 11,
+    "independentVerify": "PASS",
+    "candidate": ".qa/candidates/regroup-original-cohort-088dde17",
+    "fingerprint": "8c34e5edc8ba55eef680fa5329ac7e5c82cd2736e93ac86c7a82051dcbf572bd",
+    "buildLog": ".qa/handovers/regroup-original-cohort-088dde17.log",
+    "independentLog": ".qa/handovers/regroup-original-cohort-independent.log",
+    "sourceNote": "Unsigned dirty development candidate from base088dde17 plus this regroup patch; engineering notes postdate packaging."
+  },
+  "physicalAcceptance": false,
+  "performanceAcceptance": false,
+  "wholeModPercentageReassessed": false,
+  "allBodyDispositions": [
+    {
+      "files": [
+        "functions/fn_preInit.sqf",
+        "functions/fn_postInit.sqf",
+        "functions/fn_start.sqf",
+        "functions/fn_stop.sqf",
+        "functions/fn_tick.sqf"
+      ],
+      "disposition": "REPLACE_WITH_EXISTING_SCHEDULER",
+      "finding": "Source uses local pending/survivor/registry lanes and a0.2s PFH. Retain prompt active-work service and bounded batches through CBE's existing event-driven regroup job; do not add another per-unit registry or PFH. Stop leaves the PFH installed for reactivation. Separate pending/survivor lane budgets and mandatory registry processing are not a strict global work limit; pressure/queue filtering precedes those limits."
+    },
+    {
+      "files": [
+        "functions/fn_registerSettings.sqf",
+        "functions/fn_sideEnabled.sqf"
+      ],
+      "disposition": "SELECTIVE_POLICY_NOT_SETTING_PARITY",
+      "finding": "All declared CBA controls/defaults reviewed. Keep CBE global/group regroup gates and deliberate-small-team protection. Do not automatically import peaceful singleton/vehicle/static/civilian or allied-side merging; those broaden task and side ownership. Same-faction preferences remain unselected rather than implied functionality."
+    },
+    {
+      "files": [
+        "functions/fn_unitInit.sqf",
+        "functions/fn_registerUnit.sqf",
+        "functions/fn_unregisterUnit.sqf",
+        "functions/fn_onUnitKilled.sqf",
+        "functions/fn_updateGroupHistory.sqf"
+      ],
+      "disposition": "ADAPT_CASUALTY_AND_OWNER_LIFECYCLE",
+      "finding": "Source Local/Killed/pressure EH registration, local arrays, singleton casualty authorization and peak combat history traced. CBE already queues casualty-only owner work and preserves a peak threshold. Original-cohort fix is implemented in01dcdaf4. Source locality-loss unregister skips abortPending when actor is no longer local, so its local reservation can survive removal; do not copy this as a safe provider handover."
+    },
+    {
+      "files": [
+        "functions/fn_markPressure.sqf",
+        "functions/fn_hasDirectPressure.sqf",
+        "functions/fn_hasNearbyFirefight.sqf",
+        "functions/fn_hasCombatPressure.sqf",
+        "functions/fn_prunePressureRegistry.sqf"
+      ],
+      "disposition": "RETAIN_AWARENESS_INTENT_NOT_MERGE_AUTHORITY",
+      "finding": "Source tracks direct damage/fire/missile/own fire/native targets and nearby mutually allied pressure; mode2 bypasses pressure. These events are not permission to override a deliberate singleton mission. The nested group-casualty exitWith in hasDirectPressure exits its if block, not the function; its result is discarded. Default casualty authorization in processCandidate is a separate bypass, so this does not prove all source casualty regroup is broken. CBE retains explicit casualty-triggered scope and existing danger services."
+    },
+    {
+      "files": [
+        "functions/fn_frameworkProtected.sqf",
+        "functions/fn_currentCommandProtected.sqf",
+        "functions/fn_isAceUnconscious.sqf",
+        "functions/fn_isCombatCapable.sqf",
+        "functions/fn_isCombatVehicle.sqf",
+        "functions/fn_isIgnoredUnit.sqf",
+        "functions/fn_isSurvivorCandidate.sqf"
+      ],
+      "disposition": "USE_EXISTING_ELIGIBILITY_AND_TASK_BOUNDARIES",
+      "finding": "Source protects humans/captives/unconscious/script tasks/static and combat crews, adds mission opt-outs and specific VR/object-name exclusions. Retain general CBE actor/group/mission/specialist boundaries; do not copy mission-specific names or class heuristics as universal ownership. Source framework allow flags bypass its framework protection, not all later eligibility."
+    },
+    {
+      "files": [
+        "functions/fn_groupHasPlayer.sqf",
+        "functions/fn_groupFaction.sqf",
+        "functions/fn_groupDistance.sqf",
+        "functions/fn_isValidTargetGroup.sqf",
+        "functions/fn_findTargetGroup.sqf"
+      ],
+      "disposition": "ADAPT_LIVE_HOST_FITNESS_AND_TARGET_OPT_OUT",
+      "finding": "Source checks host protection/capacity/friendship/faction/range repeatedly and scores distance/affiliation/owner/combat state. CBE retains same-side/same-owner and capacity policy. Original-cohort/live-host fitness fix is implemented; current patch additionally checks host Regroup enablement and clearance/garrison/defence/common-operation task boundaries both at selection and before join. Generic merging must not become an unauthenticated reinforcement path."
+    },
+    {
+      "files": [
+        "functions/fn_reserveGroup.sqf",
+        "functions/fn_beginPending.sqf",
+        "functions/fn_processCandidate.sqf",
+        "functions/fn_updatePending.sqf"
+      ],
+      "disposition": "REPLACE_AGGREGATE_RESERVATIONS_AND_CHASE_WRITES",
+      "finding": "Source uses per-machine aggregate slot counts, isolation/search cooldowns and a timed chase. reserveGroup delta0 reads renew180s expiry; locality loss can strand an aggregate count and future reads can keep it alive. CBE retains same-owner live host capacity, original finite deadline and existing move lifecycle. Source timeout/stall can widen join distance; repeated doMove and ownedMove boolean are not exact new-order proof."
+    },
+    {
+      "files": [
+        "functions/fn_mergeUnit.sqf",
+        "functions/fn_abortPending.sqf",
+        "functions/fn_addMergeVetoHandler.sqf"
+      ],
+      "disposition": "REJECT_WEAK_CLEANUP_AND_POST_CALLBACK_AUTHORITY",
+      "finding": "Source exposes before/after merge events and CODE vetoes, then joinSilent; no final full order/context recheck follows arbitrary callbacks. Abort may issue move-to-self/follow from ownedMove plus MOVE/empty state without exact goal identity. Retain CBE physical join/configured capacity and exact owned cleanup; no new arbitrary callback authority or forced remote join."
+    }
+  ],
+  "hostTaskPolicy20261027": {
+    "change": "Reuse host Regroup feature gate and clearance/garrison/defence/common-operation boundaries at candidate selection and MOVE before membership mutation. A task-assigned/opted-out host cannot receive an old remnant; reselection keeps the original deadline. Deliberate reinforcement remains separate.",
+    "paths": [
+      "addons/infantry/functions/cortexRegroupStep.sqf"
+    ],
+    "cost": "Existing selected/candidate host reads only; no new search, worker, timer, setting or native command. Engine cost unmeasured.",
+    "verification": {
+      "tests": 1497,
+      "compiledSQF": 446,
+      "PBOs": 11,
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/regroup-host-task-policy-01dcdaf4",
+      "fingerprint": "586655498a65140e09786f996e1f50fe13e3eec1800eaa78172da6b3fd955d1b",
+      "buildLog": ".qa/handovers/regroup-host-task-policy-01dcdaf4.log",
+      "independentLog": ".qa/handovers/regroup-host-task-policy-independent.log",
+      "sourceNote": "Unsigned dirty development candidate from base01dcdaf4 plus host-policy patch; engineering notes postdate packaging."
+    }
+  }
+}

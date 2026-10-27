@@ -13,6 +13,10 @@
  * Original25s deadline, one reload/selection/fire request; no worker or deadline renewal.
  * Admission/loading/selection/fire require complete settled native weapon and magazine reload state;
  * an existing rifle or launcher reload is never replaced by an illumination request.
+ * Flare selection prefers the candidate muzzle's loaded flare; only unloaded carried spares
+ * or a positive loaded record for that same muzzle qualify. Other muzzles keep their ammunition.
+ * Direct illumination accepts native FlareCore impact values up to5/2/0.2 with explosive0;
+ * larger, negative, nonfinite or submunition payloads remain excluded. Flares are not harmless.
  * Public cleanup receipts survive locality; only the installing machine removes its handler ID.
  * New owners perform cleanup only, never loading, aiming or firing from inherited work.
  * FiredMan observes only the exact flare release and never changes its projectile. Cleanup removes
@@ -169,18 +173,36 @@ if (count _work == 0) exitWith {
         {
             private _muzzle=_x;
             if (_muzzle in ["this","SAFE",_weapon]) then {continue};
+            private _loaded=_actor weaponState _muzzle;
+            if (!([_loaded,true] call _settledWeapon)) then {continue};
             private _compatible=compatibleMagazines [_weapon,_muzzle];
             if (count _compatible > 128) then {continue};
             private _magazine="";
             {
                 private _class=_x select 0;
+                // A compatible class loaded elsewhere is not a carried reload supply.
+                private _loadedHere=(_x select 2)
+                    && {toLowerANSI (_x select 4) == toLowerANSI _muzzle}
+                    && {_class == (_loaded param [3,"",[""]])} && {(_loaded param [4,0,[0]]) > 0};
+                if ((_x select 2) && {!_loadedHere}) then {continue};
+                if ((_x select 1) <= 0 || {!(_class in _compatible)}) then {continue};
                 private _ammo=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _class >> "ammo");
-                if ((_x select 1) > 0 && {_class in _compatible}
-                    && {toLowerANSI getText (_ammo >> "simulation") == "shotilluminating"}
-                    && {getNumber (_ammo >> "hit") == 0} && {getNumber (_ammo >> "indirectHit") == 0}
-                    && {getText (_ammo >> "submunitionAmmo") == ""} && {!isArray (_ammo >> "submunitionAmmo")}) exitWith {_magazine=_class};
+                // Vanilla UGL flares inherit FlareCore's small impact fields, not zero damage.
+                private _hit=getNumber (_ammo >> "hit");
+                private _indirect=getNumber (_ammo >> "indirectHit");
+                private _radius=getNumber (_ammo >> "indirectHitRange");
+                private _explosive=getNumber (_ammo >> "explosive");
+                if (toLowerANSI getText (_ammo >> "simulation") != "shotilluminating"
+                    || {!finite _hit} || {_hit < 0} || {_hit > 5}
+                    || {!finite _indirect} || {_indirect < 0} || {_indirect > 2}
+                    || {!finite _radius} || {_radius < 0} || {_radius > 0.2}
+                    || {!finite _explosive} || {_explosive != 0}
+                    || {getText (_ammo >> "submunitionAmmo") != ""} || {isArray (_ammo >> "submunitionAmmo")}) then {continue};
+                // Native inventory order is not a reason to replace a usable loaded flare.
+                if (_class == (_loaded param [3,"",[""]])) exitWith {_magazine=_class};
+                if (_magazine == "") then {_magazine=_class};
             } forEach _inventory;
-            if (_magazine != "" && {[_actor weaponState _muzzle,true] call _settledWeapon}) exitWith {
+            if (_magazine != "") exitWith {
                 _choice=[_actor,_weapon,_muzzle,_magazine]
             };
         } forEach _muzzles;

@@ -28,7 +28,7 @@
  * ([_boundPoint, _enemyPos, 12, _taken] call CBE_fnc_CortexFindCover) params ["_spot", "_found"];
  * Result: a nearby spot with solid cover between it and the enemy, if one exists.
  *
- * Current callers: CBE_fnc_CortexFlankStep, CBE_fnc_CortexGrenadeCheck, CBE_fnc_CortexAntiArmour CBE_fnc_DangerCoverStep and CBE_fnc_BuildingOperationStep.
+ * Current callers: CBE_fnc_CortexFlankStep, CBE_fnc_CortexGrenadeCheck, CBE_fnc_CortexAntiArmour CBE_fnc_DangerCoverStep, CBE_fnc_CortexCivilianReact and CBE_fnc_BuildingOperationStep.
  */
 
 params [["_position", [], [[]]], ["_threat", [], [[]]], ["_radius", 12, [0]], ["_reserved", [], [[]]], ["_group",grpNull,[grpNull]],["_mode","COVER",[""]],["_actor",objNull,[objNull]]];

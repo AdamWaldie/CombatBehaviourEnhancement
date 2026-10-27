@@ -197,6 +197,21 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       '(_hit select 2) == _building','NO_PROGRESS','VISITED','BUILDING_CHANGED'):
             self.assertIn(guard,s)
         self.assertNotIn('_cleared pushBack',s)
+        # A curator scale edit changes native room coordinates without moving the house origin.
+        # Persist and compare that identity at admission, live issue, failure/visit recording,
+        # and selection/dispatch; otherwise later callbacks may reuse the old geometry.
+        import re
+        for name in ('indoorActorOperation','indoorActorNodeSelect','indoorObservationDispatch','dangerRefugeSelect'):
+            body=(ROOT/f'addons/infantry/functions/{name}.sqf').read_text()
+            old=re.findall(r'\[getPosWorld (_\w+),vectorDir \1,vectorUp \1\]',body)
+            self.assertEqual(old,[],name)
+            self.assertRegex(body,r'\[getPosWorld (_\w+),vectorDir \1,vectorUp \1,getObjectScale \1\]')
+        live=s.split('private _building=_brain get "building";',1)[1]
+        self.assertLess(live.index('getObjectScale _building'),live.index('["BUILDING_CHANGED"] call _finish'))
+        old_frame=((10,20,0),(0,1,0),(0,0,1),1)
+        resized_frame=old_frame[:3]+(2,)
+        self.assertNotEqual(old_frame,resized_frame)
+        self.assertNotEqual(old_frame[:3],old_frame)  # Unknown historical scale is not current proof.
         self.assertIn('_positionASL vectorDistance (AGLToASL _target) <= 1.5',s)
         self.assertIn('["progressPosition",getPosASL _actor]',s)
         self.assertNotIn('["progressPosition",getPosATL _actor]',s)
@@ -246,7 +261,7 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       'abs (_height-_beliefHeight) <= 1.5','_ranked select [0,3]',
                       'private _hit=_hits select 0','_selected isNotEqualTo []'):
             self.assertIn(guard,s)
-        self.assertEqual(s.count('lineIntersectsSurfaces'),1)
+        self.assertEqual(s.count('lineIntersectsSurfaces'),2)
         for proof in ('count _probed >= 12','_previousBinding isNotEqualTo _binding',
                       '_probed findIf {_x vectorDistance _nodeASL < 0.1}',
                       '_search set ["pending"','count _ranked > 3'):
@@ -254,7 +269,19 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         operation=(ROOT/'addons/infantry/functions/indoorActorOperation.sqf').read_text()
         self.assertIn('_brain set ["nodeSearch",_nodeSearch]',operation)
         self.assertIn('if (_nodeSearch getOrDefault ["pending",false]) then {-1}',operation)
-        # Later native nodes remain selectable without increasing the per-call ray budget.
+        # Only defensive selection adds a current-lane probe and at most three
+        # prospective probes. Ordinary investigation retains its three roof rays.
+        lane=s.split('private _defensiveLaneUsable=',1)[1].split('private _positions=',1)[0]
+        for proof in ('terrainIntersectASL','"FIRE","GEOM"',
+                      'vectorDistance _laneTargetASL <= 3',
+                      'if (_defensive && {[eyePos _actor] call _defensiveLaneUsable}) exitWith {[]}',
+                      'max 0.6 min 1.8'):
+            self.assertIn(proof,lane)
+        candidate=s.split('private _hits=if (_roofTop',1)[1]
+        self.assertIn('!_defensive || {[_asl vectorAdd [0,0,_defensiveEyeHeight]] call _defensiveLaneUsable}',candidate)
+        self.assertLess(s.index('if (_defensive && {[eyePos _actor]'),s.index('private _positions='))
+        self.assertEqual(s.count('call _defensiveLaneUsable'),2)
+        # Later native nodes remain selectable within the existing roof-ray budget.
         def search(nodes,roofed):
             probed=[];counts=[]
             while len(probed)<12:
@@ -309,7 +336,7 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         self.assertIn('abs ((_x select 2)-_height) <= 1',s)
         for forbidden in ('allUnits','nearEntities','nearestObjects','setVariable','_enemy'):
             self.assertNotIn(forbidden,s)
-        self.assertEqual(s.count('lineIntersectsSurfaces'),1)
+        self.assertEqual(s.count('lineIntersectsSurfaces'),2)
         self.assertIn('_ranked select [0,3]',s)
         # Occupancy is floor-specific and temporary, not a failed-node cache entry.
         def occupied(body,node):

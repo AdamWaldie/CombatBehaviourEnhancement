@@ -43,11 +43,12 @@ if (!_enabled && {_groupHandlers isNotEqualTo []}) then {
 if (!_enabled) exitWith {
     [_group,-1,false,""] call CBE_fnc_DangerGroupHideStep;
     // Retire the finite cover lease before invalidating its generation. The helper removes only
-    // CBE's exact actor move; on Zeus or specialist takeover it deliberately does not issue a
+    // CBE's exact actor move. Release-only also prevents explicit cleanup while still enabled
+    // from retaining a live lease. On Zeus or specialist takeover it deliberately does not issue a
     // follow command or restore movement over the new owner.
     private _dangerCoverLease=_group getVariable ["CBE_Danger_CoverLease",[]];
     if (local _group && {count _dangerCoverLease >= 2}) then {
-        [_group,_dangerCoverLease select 0,[],_dangerCoverLease select 1] call CBE_fnc_DangerCoverStep;
+        [_group,_dangerCoverLease select 0,[],_dangerCoverLease select 1,true] call CBE_fnc_DangerCoverStep;
     } else {
         _group setVariable ["CBE_Danger_CoverLease",nil];
     };
@@ -93,6 +94,9 @@ if (!_enabled) exitWith {
 // epoch/operation merely because a returning owner still has the old local response variable.
 // Joined actors carry their own old-group receipt; no separate public actor index is needed.
 // Discovery already owns this bounded group footprint; no world scan or new worker is added.
+if ((_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap) then {
+    [_group,"SERVICE"] call CBE_fnc_VehicleTurnRetire;
+};
 private _paceActors=(units _group) select [0,64];
 if (_paceActors isNotEqualTo []) then {
     {
@@ -102,6 +106,9 @@ if (_paceActors isNotEqualTo []) then {
         };
         if (local _x && {(_x getVariable ["CBE_Cortex_NavalEgressMove",[]]) isNotEqualTo []}) then {
             ["REAP",_x] call CBE_fnc_CortexNavalEgressActor;
+        };
+        if (local _x && {(_x getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap}) then {
+            ["SERVICE",_x] call CBE_fnc_LauncherMove;
         };
         private _flightProof=_x getVariable ["CBE_Danger_FlightLease",[]];
         if (local _x && {_flightProof isEqualType []} && {count _flightProof == 8}

@@ -280,6 +280,32 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertLess(retire.index('if (_pending) exitWith'),retire.index('private _submission='))
         self.assertIn('_state deleteAt "writers";_state deleteAt "records";',retire)
         self.assertIn('createHashMapFromArray _pairs',locality)
+        copy_boundary=locality.split('private _retireCopyValid=true;',1)[1].split('private _retire=createHashMapFromArray',1)[0]
+        for guard in ('_retireCopyNodes > 65536','_depth >= 16','count _value > 4096',
+                      'count _value > 64','count _value > 512','isNil "_y"',
+                      'if (!_retireCopyValid) exitWith {_group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil]}'):
+            self.assertIn(guard,copy_boundary)
+        self.assertIn('[_y,_depth+1] call _copyClearRetireValue',copy_boundary)
+        self.assertIn('[_x,_depth+1] call _copyClearRetireValue',copy_boundary)
+        # A cyclic source must terminate at the depth limit rather than enter Python's
+        # own recursion limit. This models the bounded traversal, not Arma execution.
+        def bounded_copy(value,depth=0,budget=None):
+            budget=[0] if budget is None else budget
+            budget[0]+=1
+            if budget[0]>65536 or depth>16: raise ValueError('bound')
+            if isinstance(value,(list,dict)):
+                if depth>=16 or len(value)>(64 if isinstance(value,dict) else 4096): raise ValueError('bound')
+                if isinstance(value,dict): return {k:bounded_copy(v,depth+1,budget) for k,v in value.items()}
+                return [bounded_copy(v,depth+1,budget) for v in value]
+            return value
+        cycle={};cycle['self']=cycle
+        with self.assertRaises(ValueError): bounded_copy(cycle)
+        with self.assertRaises(ValueError): bounded_copy(list(range(4097)))
+        ordinary={'context':['group','CLEAR',1,2,100],'owned':{'SPEED':[2,1]}}
+        copied=bounded_copy(ordinary)
+        ordinary['owned']['SPEED'][1]=0
+        self.assertEqual(copied['owned']['SPEED'][1],1)
+
         self.assertIn('CBE_Cortex_ClearSettingsPending',locality)
         # Baseline copies cannot drift with a mutable canonical source map.
         import copy
@@ -295,7 +321,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertFalse(retired(True,True,True,True))
         self.assertTrue(retired(True,True,True))
         actor_journal=(ROOT/'addons/infantry/functions/buildingActorJournal.sqf').read_text(encoding='utf-8')
-        self.assertIn('count _actors == 7',capture)
+        self.assertIn('count _actors == 8',capture)
         self.assertIn('call CBE_fnc_BuildingActorJournal',capture)
         for guard in ('["FROZEN",_job] call CBE_fnc_BuildingProducerContext',
                       'producerRegistration','count _actors > 64','count _owned > 2',
@@ -313,7 +339,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
                       '_serverNow+((_return select 2)-_localNow)',
                       '(_return select 0) isNotEqualTo _motion',
                       '(_return select 5) isNotEqualTo clientOwner',
-                      '[5,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy,_ownership]'):
+                      '[7,_copiedVisit,_rows,_copiedRegistration,[+_pending,_copiedResult],_groupPolicy,_ownership,_recoveryState]'):
             self.assertIn(guard,actor_journal)
         for guard in ('keys _restore findIf {_x != "groupAttack"}',
                       '(_attack select 0) isNotEqualTo _baseAttack',
@@ -352,6 +378,32 @@ class ClearPreparationCommitTests(unittest.TestCase):
                       'quarantineHeld','securityActors','rotatedOut','egressDiverted',
                       'accessAdmitted','accessBlocked','accessReported','assigned','started'):
             self.assertIn('"'+field+'"',actor_journal)
+        for guard in ('"recoveryAttempts"','"recovery"','"unavailable"',
+                      'count _attemptMap > 64','count _activeMap > 64',
+                      '_serverNow+((_observation select 1)-_localNow)',
+                      '(_attemptMap getOrDefault [_x,-1]) isNotEqualTo 1',
+                      '[2,_participants,_attemptRows,_activeRows,_unavailableKeys,_commonProgress]'):
+            self.assertIn(guard,actor_journal)
+        for field in ('phase','startedAt','lastProgressAt','lastProgressPosition','lastProgressActor',
+                      'replans','participantsRequired','progressOnFoot','fallbackProgressSuspended',
+                      'progressPlatform','participantProgress','participantPlatforms'):
+            self.assertIn('"'+field+'"',actor_journal)
+        self.assertIn('count _progressSource > 64',actor_journal)
+        self.assertIn('count _platformMap > 64',actor_journal)
+        self.assertIn('_serverNow+(_progressAt-_localNow)',actor_journal)
+        self.assertIn('netId _actor in _progressKeys',actor_journal)
+        original_progress=[1,'SWEEP',80,95,[1,2,0],'a',2,True,True,False,'a',[['a',[1,2,0]]],[['a','a']]]
+        saved_progress=copy.deepcopy(original_progress)
+        original_progress[11][0][1][0]=99
+        self.assertEqual(saved_progress[11][0][1][0],1)
+        self.assertEqual(saved_progress[3],95)
+        self.assertEqual(saved_progress[6],2)
+        recovery_source={'spent':[['a',1]],'active':[['a',[1,100,[2,3,0],[0,0,0]]]]}
+        recovery_copy=copy.deepcopy(recovery_source)
+        recovery_source['spent'][0][1]=0
+        recovery_source['active'][0][1][2][0]=99
+        self.assertEqual(recovery_copy['spent'][0][1],1)
+        self.assertEqual(recovery_copy['active'][0][1][2][0],2)
         self.assertIn('count _assigned != count _team',actor_journal)
         self.assertIn('_assigned findIf {isNil "_x"}',actor_journal)
         self.assertIn('isNil {_map get _x}',actor_journal)
@@ -382,7 +434,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('private _journal=[_job] call CBE_fnc_BuildingEgressJournal',step)
         for guard in ('count _assignments+count _pending > 8','count _records != 1',
                       'count _uses > 4','count _moves > 64','_next > _until',
-                      '_rows apply {+(_x select 1)}','_transform apply {+_x}'):
+                      '_rows apply {+(_x select 1)}','_transform apply {if (_x isEqualType []) then {+_x} else {_x}}'):
             self.assertIn(guard,egress)
         for effect in ('setVariable','doMove','setDestination','spawn','serverTime+'):
             self.assertNotIn(effect,egress)
@@ -419,7 +471,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertLess(tail.index('if (_export) exitWith {_journal}'),tail.index('_job set'))
         self.assertLess(tail.index('if (_export) exitWith {_journal}'),tail.index('setVariable'))
         self.assertIn('if (_export && {!(_result isEqualType [])}) then {[]} else {_result}',journal)
-        self.assertIn('(_context select 1) apply {+_x}',journal)
+        self.assertIn('(_context select 1) apply {if (_x isEqualType []) then {+_x} else {_x}}',journal)
         self.assertIn('_contextCopy,_positions apply {+_x}',journal)
         # Export advances no source clock; changing a nested returned transform or
         # request target must leave the private producer data untouched.

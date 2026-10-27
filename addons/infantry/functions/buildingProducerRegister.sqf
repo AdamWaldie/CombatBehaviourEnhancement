@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Register the original clearance producer and retain bounded unsealed server checkpoints.
  * Locality/authority: REGISTER accepts only the current group owner on server; ACK accepts only
  * server2 on the current producer. CAPTURE requires the registered original sender on server,
@@ -72,9 +73,15 @@ if (_mode == "CAPTURE") exitWith {
         || {!(_writerCount isEqualType 0)} || {!finite _writerCount}
         || {_writerCount < 1} || {_writerCount > 131} || {_writerCount != floor _writerCount}) exitWith {false};
     private _actors=_capture select 16;
-    if (!(_actors isEqualType []) || {count _actors != 7}
-        || {(_actors param [0,-1]) != 5} || {(_actors param [1,[]]) isNotEqualTo (_original select 2)}
+    if (!(_actors isEqualType []) || {count _actors != 8}
+        || {(_actors param [0,-1]) != 7} || {(_actors param [1,[]]) isNotEqualTo (_original select 2)}
         || {(_actors param [3,[]]) isNotEqualTo _original}) exitWith {false};
+    private _recoveryState=_actors select 7;
+    if (!(_recoveryState isEqualType []) || {count _recoveryState != 6}
+        || {(_recoveryState param [0,-1]) isNotEqualTo 2}) exitWith {false};
+    private _commonProgress=_recoveryState select 5;
+    if (!(_commonProgress isEqualType []) || {count _commonProgress != 13}
+        || {(_commonProgress param [0,-1]) isNotEqualTo 1}) exitWith {false};
     private _ownership=_actors select 6;
     if (!(_ownership isEqualType []) || {count _ownership != 7}
         || {(_ownership param [0,-1]) isNotEqualTo 1}) exitWith {false};
@@ -89,7 +96,7 @@ if (_mode == "CAPTURE") exitWith {
     private _visit=_original select 2;
     private _building=_visit select 0;
     if (isNull _building || {!alive _building}
-        || {(_visit select 1) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}) exitWith {false};
+        || {(_visit select 1) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}) exitWith {false};
     private _until=_capture select 6;
     if ((_capture select 10) == "EGRESS") then {
         private _egress=_capture select 11;
@@ -139,11 +146,13 @@ if (!(_group isEqualType grpNull) || {isNull _group} || {groupOwner _group != _s
         || {!finite _x} || {_x < 0} || {_x != floor _x}} >= 0}
     || {!((_visit select 0) isEqualType objNull)} || {isNull (_visit select 0)}
     || {!alive (_visit select 0)} || {!((_visit select 1) isEqualType [])}
-    || {count (_visit select 1) != 3} || {(_visit select 1) findIf {isNil "_x" || {!(_x call _vector)}} >= 0}
+    || {count (_visit select 1) != 4} || {((_visit select 1) select [0,3]) findIf {isNil "_x" || {!(_x call _vector)}} >= 0}
+    || {!(((_visit select 1) select 3) isEqualType 0)} || {!finite ((_visit select 1) select 3)}
+    || {((_visit select 1) select 3) <= 0}
     || {!((_visit select 2) isEqualType 0)} || {!finite (_visit select 2)}
     || {serverTime >= (_visit select 2)}
     || {!((_visit select 3) isEqualType "")} || {(_visit select 3) == ""} || {count (_visit select 3) > 128}
-    || {(_visit select 1) isNotEqualTo [getPosWorld (_visit select 0),vectorDir (_visit select 0),vectorUp (_visit select 0)]}) exitWith {false};
+    || {(_visit select 1) isNotEqualTo [getPosWorld (_visit select 0),vectorDir (_visit select 0),vectorUp (_visit select 0),getObjectScale (_visit select 0)]}) exitWith {false};
 private _registry=missionNamespace getVariable ["CBE_ClearProducer_Registry",createHashMap];
 {
     private _entry=_registry get _x;

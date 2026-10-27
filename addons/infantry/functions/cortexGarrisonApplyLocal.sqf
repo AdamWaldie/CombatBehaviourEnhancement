@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Dormant/hidden actors and queued medical healers retain assignment identity but yield
  * approach and event/delayed duck commands. Native flight also owns all four command boundaries.
  * No queue is cleared, morale changed or deadline renewed.
@@ -34,6 +35,8 @@
  * Surplus exterior security searches at most one actor per callback and three times per actor.
  * Valid slots observe real exits, retain distinct destinations and use the original order deadline.
  * Each search counts live reservations once; failed/incapacitated actors do not claim exit coverage.
+ * Exhausted interior posts leave this order's candidate pool even after successful reassignment;
+ * a bounded transform-aware group failure cache carries that advisory exclusion across orders.
  * Physical occupants remain excluded by the shared geometry validator. Rejected-point history
  * also survives adoption so a one-exit building does not repeat the same failed cover candidate.
  * One short-range engine empty-space query can propose an uncovered alternate after rejection.
@@ -48,7 +51,7 @@
  * upright at assault pace until they reach their post.
  * Nearby units try the interior destination directly, matching the engine path that works on viable
  * building models, then try up to four usable entrances nearest-first as bounded recovery.
- * Twelve seconds without two metres of three-dimensional approach progress retries the current leg twice, including commands
+ * Twelve seconds without two metres of measured three-dimensional travel retries the current leg twice, including commands
  * still reporting MOVE. While still approaching the building it then advances to another entrance.
  * Once the soldier has reached an entrance, an interior stall reassigns a free alternative position
  * instead of sending the soldier back outside through another door. Reassignment is attempted twice
@@ -95,7 +98,7 @@ private _assignmentValid = {
     private _transform=_assignment param [3,[]];
     if (_transform isEqualTo []) exitWith {true};
     private _building=_assignment param [2,objNull];
-    !isNull _building && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+    !isNull _building && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
 };
 private _invalidActors=(units _group) select {
     local _x && {!([_x getVariable ["CBE_AIPass_GarrisonPos",[]]] call _assignmentValid)}
@@ -189,7 +192,7 @@ private _buildingAnchor = {
     private _cached=_buildingTopologyCache getOrDefault [_cacheKey,[]];
     // Cached positions are world-space: curator movement invalidates them even
     // when the building remains undamaged. Old receipts rebuild once on use.
-    private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building];
+    private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building];
     if (count _cached < 3 || {abs ((_cached select 0)-_damage) > 0.05}
         || {(_cached select 2) isNotEqualTo _transform}) then {
         _cached=[_damage,+(_building buildingPos -1),_transform];
@@ -253,7 +256,7 @@ private _buildingAnchor = {
                 private _duckBuilding=_duckAssignment param [2,objNull];
                 private _duckTransform=_duckAssignment param [3,[]];
                 if (_duckTransform isNotEqualTo [] && {isNull _duckBuilding
-                    || {_duckTransform isNotEqualTo [getPosWorld _duckBuilding,vectorDir _duckBuilding,vectorUp _duckBuilding]}}) exitWith {};
+                    || {_duckTransform isNotEqualTo [getPosWorld _duckBuilding,vectorDir _duckBuilding,vectorUp _duckBuilding,getObjectScale _duckBuilding]}}) exitWith {};
                 private _until = time + 4 + random 4;
                 _unit setVariable ["CBE_AIPass_DuckUntil", _until];
                 private _duckStance=["MIDDLE", "DOWN"] select ((unitPos _unit) == "MIDDLE");
@@ -285,7 +288,7 @@ private _buildingAnchor = {
                             private _building=_duckAssignment param [2,objNull];
                             private _transform=_duckAssignment param [3,[]];
                             _transform isEqualTo [] || {!isNull _building
-                                && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}
+                                && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}}
                         }
                         && {[group _unit] call CBE_fnc_CortexIsEligible}
                         && {!([group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover)}) then {
@@ -467,7 +470,7 @@ private _buildingAnchor = {
                         _actor setVariable ["CBE_Cortex_GarrisonExteriorTargets",_targetHistory,true];
                         if (_valid && {[_actor] call _mayIssueMovement}) then {
                             _assignment=[+_target,_target getDir _watch,_building,
-                                [getPosWorld _building,vectorDir _building,vectorUp _building],"EXTERIOR",+_watch,+_entry,_covered];
+                                [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building],"EXTERIOR",+_watch,+_entry,_covered];
                             _actor setVariable ["CBE_AIPass_GarrisonPos",_assignment,true];
                             (_job get "routes") set [netId _actor,[+_target,false,getPosATL _actor,time,0,[str _target],0,[],-1,[],false]];
                             if (([_actor,group _actor,"APPLY",createHashMapFromArray [["STANCE","UP"]]] call CBE_fnc_CortexGarrisonSettings) == "APPLIED"
@@ -532,6 +535,7 @@ private _buildingAnchor = {
                     _x setVariable ["CBE_AIPass_GarrisonFailed",true,true];
                     if ((_assignment param [4,"INTERIOR"]) == "INTERIOR") then {
                         _retiredPosts set [str (_assignment select [0,4]),true];
+                        [_group,_assignment] call CBE_fnc_CortexGarrisonFailedPosts;
                     };
                     diag_log format ["[CBE] Garrison arrival failed unit=%1 remaining=%2",_x,_x distance (_assignment select 0)];
                 } else {
@@ -558,8 +562,11 @@ private _buildingAnchor = {
                             _route set [3,time]; _route set [4,0]; _route set [10,false];
                             _x doMove (_assignment select 0); [_x,(_assignment select 0)] call _rememberMove;
                         } else {
-                        // Lateral wandering does not renew a stalled interior route. Include floor height.
-                        if ((_lastPosition vectorDistance _target)-((getPosATL _x) vectorDistance _target) >= 2) then {
+                        // Door/stair detours can increase distance to the destination while the
+                        // owned native leg is still moving. Observe actual 3D displacement instead
+                        // of restarting that path for lack of radial gain. Motion is not arrival:
+                        // the original public deadline still bounds circling and unreachable posts.
+                        if (_lastPosition vectorDistance (getPosATL _x) >= 2) then {
                             _route set [2,getPosATL _x]; _route set [3,time];
                         } else {
                             if (time-_lastProgress >= 12) then {
@@ -584,6 +591,13 @@ private _buildingAnchor = {
                                         _x doMove _nextTarget; [_x,_nextTarget] call _rememberMove;
                                         diag_log format ["[CBE] Garrison trying alternate entrance unit=%1 entrance=%2/%3 remaining=%4",_x,_nextEntry+1,count _entries,_x distance (_assignment select 0)];
                                     } else {
+                                    // This post exhausted its native retries and entrance choices even
+                                    // when another post can be assigned. Retire it before choosing
+                                    // alternatives so another actor/refill cannot immediately retry it.
+                                    if ((_assignment param [4,"INTERIOR"]) == "INTERIOR") then {
+                                        _retiredPosts set [str (_assignment select [0,4]),true];
+                                        [_group,_assignment] call CBE_fnc_CortexGarrisonFailedPosts;
+                                    };
                                     private _occupied=(units _group) apply {
                                         private _otherAssignment=_x getVariable ["CBE_AIPass_GarrisonPos",[]];
                                         if (_otherAssignment isEqualTo []) then {""} else {str (_otherAssignment select 0)}
@@ -619,9 +633,7 @@ private _buildingAnchor = {
                         [_x,group _x,"APPLY",createHashMapFromArray [["SPEED",_x getVariable ["CBE_Cortex_GarrisonForcedSpeed",-1]]]] call CBE_fnc_CortexGarrisonSettings;
                     };
                     _x setVariable ["CBE_AIPass_GarrisonFailed",true,true];
-                    if ((_assignment param [4,"INTERIOR"]) == "INTERIOR") then {
-                        _retiredPosts set [str (_assignment select [0,4]),true];
-                    };
+
                                         diag_log format ["[CBE] Garrison arrival failed unit=%1 attempted=%2 remaining=%3",_x,count _attempted,_x distance (_assignment select 0)];
                                     };
                                     };

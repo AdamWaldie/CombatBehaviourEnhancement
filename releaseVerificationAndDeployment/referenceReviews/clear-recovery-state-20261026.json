@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "a3f655ed",
+  "status": "ORIGINAL_CLEAR_RECOVERY_CAPTURE_OFFLINE_VERIFIED",
+  "finding": "Building recovery calls RecoveryStep and consumes common-operation recoveryAttempts. The original private actor capture omitted those budgets and active observations. Existing support/drill paths do not transport the clearance private capture.",
+  "implementation": [
+    "Actor component version6/eight fields adds recovery version1: original participant keys, spent attempts, active observations, unavailable actor keys.",
+    "Retain ended observations spent attempts. Convert active original local observation clocks once to server time, preserve destinations/start poses and require corresponding spent attempt.",
+    "Bound maps and actor lists to64; reject unknown actors, malformed records and inconsistent active/spent state. No native getters, mutation, timer, worker, order or retry renewal."
+  ],
+  "limits": [
+    "This remains an UNSEALED source candidate, with no incoming executor. Common progress/phase state and full writer retirement/reconciliation are still incomplete.",
+    "Unknown/deleted original actor identities refuse capture rather than invent replacement identities.",
+    "No physical, whole-source parity or performance acceptance; audits paused."
+  ],
+  "validation": {
+    "tests": 1497,
+    "compiledSqf": 443,
+    "pbos": 11,
+    "candidate": ".qa/candidates/clear-recovery-a3f655ed",
+    "fingerprint": "a46c054e6eb1aa06d9c9ee3a5282e6152c97479a0012e9134dfe2bd17d94af11",
+    "buildLog": ".qa/handovers/clear-recovery-build.log",
+    "independentLog": ".qa/handovers/clear-recovery-independent.log",
+    "physicalAcceptance": false
+  },
+  "sourceHashes": {
+    "addons/infantry/functions/recoveryStep.sqf": "fc48767d941eb6d39f22f98db32f050875ae927ef3bf462fd1fd084256747d18",
+    "addons/core/functions/operationStep.sqf": "f47f6dce607b2e5a4490ff3cc6b788a29f56c04c25ea2d376efb0b49f2b978c2",
+    "addons/infantry/functions/buildingActorJournal.sqf": "6b72545d0d53e1f19c8f06d614b10bbc4e1d9555c225244353eff7c4702d948f"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "0478efaf",
+  "status": "BOUNDED_SOURCE_RETIREMENT_COPY_OFFLINE_VERIFIED",
+  "finding": "The outgoing retirement watcher copied whole watched metadata recursively without a depth, node, collection or value bound. Additional canonical map fields are not all examined by the actor serializer, so oversized/cyclic metadata could prevent locality cleanup from returning. The ordinary building callback already rejects lost locality/stale pointer before job work; no redundant job guard was added.",
+  "implementation": [
+    "Bound the existing private deep copy to65536 total nodes, depth16, arrays4096, maps64 and strings512. Only finite numbers, BOOL, strings, objects/groups, arrays and string-keyed maps are copied.",
+    "Reject sparse arrays/nil map values and unsupported value kinds. Stop copying on first refusal and discard only this machines private capture proposal before retirement queue installation. No retirement or submit receipt is granted.",
+    "No new function, recurring scan, timer, movement command, capture schema or native getter. Existing finite8-check/3s observer and706 watched-record bound remain unchanged."
+  ],
+  "limits": [
+    "Actual all-writer seal and incoming native/settings/phase reconciliation remain incomplete. Bounded metadata copying does not establish them.",
+    "Python cycle/copy checks model the traversal; full offline gates compile the SQF but do not execute Arma migration or establish frame cost. Audits remain paused."
+  ],
+  "validation": {
+    "tests": 1497,
+    "compiledSqf": 443,
+    "pbos": 11,
+    "candidate": ".qa/candidates/clear-retire-bounds-0478efaf",
+    "fingerprint": "d328a3ab335ee021ad3182e26753768fbe93fff927c73c3b0e2cfa2430f9b866",
+    "buildLog": ".qa/handovers/clear-retire-bounds-build.log",
+    "independentLog": ".qa/handovers/clear-retire-bounds-independent.log",
+    "physicalAcceptance": false
+  },
+  "sourceHashes": {
+    "addons/core/functions/cortexLocality.sqf": "6a94838b3f26949b75420643427ffca51088e0591235463564ab7330179addf9",
+    "addons/infantry/functions/buildingProducerRetire.sqf": "5b675d2dca8873b67f2c333b2ae741ca8788e2ebbd705aae97cf05e3825933d0",
+    "addons/infantry/functions/buildingOperationStep.sqf": "e71cb6a7e0767902cca02860b10356ae705e3aa186ba966cdc29b8dc2c84381d"
+  }
+}

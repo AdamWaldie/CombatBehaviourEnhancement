@@ -416,7 +416,9 @@ _brain set ["geometryTracks",_geometryTracks];
             private _index=currentWaypoint _group;
             if (_index <= 0 || {_index >= count waypoints _group}) exitWith {false};
             private _waypoint=[_group,_index];
-            if (!([_vehicle] call _stationary) || {!unitReady _vehicle}
+            // An authored wait can deliberately keep its native task unfinished.
+            // Physical rest and the actual nearby gate identify it, not unitReady.
+            if (!([_vehicle] call _stationary)
                 || {_vehicle distance2D (waypointPosition _waypoint) > ((waypointCompletionRadius _waypoint max 0)+50)}) exitWith {false};
             private _condition=toLowerANSI (((waypointStatements _waypoint) param [0,"true"]) splitString (toString [32,9,13,10]) joinString "");
             waypointType _waypoint == "HOLD"
@@ -750,7 +752,10 @@ _brain set ["geometryTracks",_geometryTracks];
                                 _stoppedRear set ["releasePending",true];
                                 _stoppedRear set ["releaseUnresolved",true];
                             } else {
-                                if (toUpperANSI ((vehicleMoveInfo _vehicle) param [0,""]) != "STOP") then {
+                                // Share the original STOP request with release/cleanup. A delayed
+                                // native acknowledgement is observation, not permission to replay.
+                                if (toUpperANSI ((vehicleMoveInfo _vehicle) param [0,""]) != "STOP"
+                                    && {!(_endingRear getOrDefault ["simpleStopIssued",false])}) then {
                                     _vehicle sendSimpleCommand "STOP";
                                     _stoppedRear set ["simpleStopIssued",true];
                                 };

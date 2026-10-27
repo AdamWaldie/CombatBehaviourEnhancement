@@ -13,10 +13,16 @@ class AntiArmourActorAuthorityTests(unittest.TestCase):
         self.assertIn('([_x] call _actorAvailable)',s)
         relocation=s.split('if (_blocked) exitWith {',1)[1]
         self.assertLess(relocation.index('call CBE_fnc_CortexFindCover'),relocation.index('if (!call _mayRelocate'))
-        self.assertLess(relocation.index('if (!call _mayRelocate'),relocation.index('_gunner doMove _spot'))
-        fire=s.split('_gunner doMove _spot',1)[1]
+        self.assertLess(relocation.index('if (!call _mayRelocate'),relocation.index('call CBE_fnc_LauncherMove'))
+        fire=s.split('call CBE_fnc_LauncherMove',1)[1]
         self.assertLess(fire.index('if !([_gunner] call _actorAvailable)'),fire.index('_gunner doTarget'))
         self.assertIn('_command in ["","MOVE"]',s)
+        executor=(ROOT/'addons/infantry/functions/launcherMove.sqf').read_text()
+        for guard in ('local _actor','local _group','CortexExternalOwner','CortexExternalTakeover',
+                      'CortexZeusHeld','ace_medical_ai_healQueue','CortexActorMoveReserved',
+                      '_context isNotEqualTo _currentContext','_native isNotEqualTo _before'):
+            self.assertLess(executor.index(guard),executor.index('_actor doMove'))
+        self.assertIn('isNil {',executor)
 
 
     def test_relocation_preserves_new_individual_move_and_gated_routes(self):
@@ -27,7 +33,7 @@ class AntiArmourActorAuthorityTests(unittest.TestCase):
                       '!isNull waypointAttachedObject','!isNull waypointAttachedVehicle',
                       '_destination vectorDistance waypointPosition _waypoint <= 3'):
             self.assertIn(check,guard)
-        movement=s.split('call CBE_fnc_CortexFindCover',1)[1].split('_gunner doMove _spot',1)[0]
+        movement=s.split('call CBE_fnc_CortexFindCover',1)[1].split('call CBE_fnc_LauncherMove',1)[0]
         self.assertIn('!call _mayRelocate',movement)
         self.assertIn('isNotEqualTo _relocationRoute',movement)
         self.assertLess(s.index('if (_blocked) exitWith {'),s.index('private _relocationRoute='))

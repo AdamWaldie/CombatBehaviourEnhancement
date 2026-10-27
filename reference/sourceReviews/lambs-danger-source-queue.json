@@ -1,0 +1,296 @@
+{
+  "schemaVersion": 1,
+  "sourceSnapshot": ".qa\\lambs-danger-installed-20261026",
+  "packageSha256": "252066f2c36108f55cbfea3506543f9583345d74e1351028f6269bdf2a7a0269",
+  "scope": "Danger addon only,41 readable SQF files; inventory/review positions do not score buildout or establish completeLAMBS scope. Includes separate compiled members not assessed by this text queue.",
+  "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json",
+  "files": [
+    {
+      "path": "functions/fnc_brain.sqf",
+      "sha256": "bc943d13c02dd2c8bbc5017530942854ef1f4442d2de537bc01a557802f3d9f2",
+      "area": "Actor FSM foundation",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
+      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
+    },
+    {
+      "path": "functions/fnc_brainAdjust.sqf",
+      "sha256": "20860fcd690c68c14f9fcbadb23610692213ffb23d801365be21c6c24cb07e9a",
+      "area": "Actor FSM foundation",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; caller/integration scope in evidence",
+      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+    },
+    {
+      "path": "functions/fnc_brainAssess.sqf",
+      "sha256": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
+      "area": "Actor FSM foundation",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
+      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
+    },
+    {
+      "path": "functions/fnc_brainEngage.sqf",
+      "sha256": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
+      "area": "Actor FSM foundation",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
+      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
+    },
+    {
+      "path": "functions/fnc_brainForced.sqf",
+      "sha256": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
+      "area": "Actor FSM foundation",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
+      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
+    },
+    {
+      "path": "functions/fnc_brainHide.sqf",
+      "sha256": "b740c27fb1a0fa9b90f7b88aea7e9ce22a41a2e7ecfc8fe8f8d2254f483b553c",
+      "area": "Actor FSM foundation",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
+      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
+    },
+    {
+      "path": "functions/fnc_brainReact.sqf",
+      "sha256": "c9bdec3da39c0010c806419606a7fb94f5861cf5d0b1ce72e47185d969a50e4c",
+      "area": "Actor FSM foundation",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26",
+      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+    },
+    {
+      "path": "functions/fnc_brainVehicle.sqf",
+      "sha256": "9bf4f270de89c69a63b4fe3949d22d73cc90c207b5053183052b383df64b86f8",
+      "area": "Actor FSM foundation",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; five delegated helpers and selected CBE paths reconciled in vehicleDecisionDelegationReview20261026; descendants/physical parity remain open",
+      "next": "Do not duplicate implemented turn retirement, finite reserve loading or reactive smoke/illumination based on historical summaries; see vehicleSourceSummaryReconciliation20261027. Reconcile remaining source descendants and actual physical/native handover gaps. No acceptance uplift."
+    },
+    {
+      "path": "functions/fnc_contact.sqf",
+      "sha256": "8c22ca9070c08e8709b2cfad3b44656ff0191b2be094dd45ecb8e6c524691f0f",
+      "area": "Actor FSM foundation",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected CBE mapping, descendants open",
+      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+    },
+    {
+      "path": "functions/fnc_fsmAllowAnimation.sqf",
+      "sha256": "dc3ad67477d3027acd21d1b2d60c48f5762753f2b79b1de397039b26d2833e2a",
+      "area": "Actor FSM foundation",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; caller/integration scope in evidence",
+      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+    },
+    {
+      "path": "functions/fnc_isForced.sqf",
+      "sha256": "b56d7eff15e0fad2019f6a42bb864a82ff321047683355d2473c7c6b780e6376",
+      "area": "Actor FSM foundation",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26",
+      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+    },
+    {
+      "path": "functions/fnc_isForcedExit.sqf",
+      "sha256": "a35659ea233adf6139114b47e95e5f4e7b6422604690cb2986ef0727ca066be6",
+      "area": "Actor FSM foundation",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26",
+      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+    },
+    {
+      "path": "functions/fnc_isLeader.sqf",
+      "sha256": "1d54335d79c30a654f85c808d97529f4aed6071293b45ec724f9d26c6d5ec326",
+      "area": "Actor FSM foundation",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; caller/integration scope in evidence",
+      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+    },
+    {
+      "path": "functions/fnc_tactics.sqf",
+      "sha256": "5be7f059257f9173eae92d9d1d32a65e09085c44d0df94968189ace056dd3ee5",
+      "area": "Tactical group layer",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected CBE mapping, descendants open",
+      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+    },
+    {
+      "path": "functions/fnc_tacticsAssault.sqf",
+      "sha256": "d61ab3ff72730cc113372f5bc0bee1005c4de2c6add18b401d002efbb856418c",
+      "area": "Tactical group layer",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; execution dependencies and physical integration open",
+      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+    },
+    {
+      "path": "functions/fnc_tacticsAssess.sqf",
+      "sha256": "77b708a13bc888a1e1e0aa4a9e044d4455e5c8aa6847c394f3c671136427dc93",
+      "area": "Tactical group layer",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected assessment mapping, execution descendants open",
+      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+    },
+    {
+      "path": "functions/fnc_tacticsAttack.sqf",
+      "sha256": "e055293415cefa99a2a9fa600ed429dc6c3f75310a8c9e4bac8d48e14abcdfc3",
+      "area": "Tactical group layer",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected intent/authority comparison in evidence",
+      "next": "Reconcile remaining descendants and actual enabled callers; no compiled, physical or whole-mod parity claim."
+    },
+    {
+      "path": "functions/fnc_tacticsCQB.sqf",
+      "sha256": "ed8324ac0d36f64fb87924683fa5b2df737e1f836ae4eafc60d0e0a192587f7d",
+      "area": "Tactical group layer",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected intent/authority comparison in evidence",
+      "next": "Reconcile remaining descendants and actual enabled callers; no compiled, physical or whole-mod parity claim."
+    },
+    {
+      "path": "functions/fnc_tacticsFlank.sqf",
+      "sha256": "94f21d3dca5cf1e0e1f4f8af35bec760733b9eeb1c78090ea125a290983a755b",
+      "area": "Tactical group layer",
+      "reviewStatus": "Complete readable body and main group executor reviewed 2026-10-26; selected CBE mapping in evidence",
+      "next": "Finish remaining descendants and original-owner restoration mapping; no compiled, physical or whole-mod parity claim."
+    },
+    {
+      "path": "functions/fnc_tacticsGarrison.sqf",
+      "sha256": "0ebc4b1fced272e0f70c4b1b613097449b5afa59c36d48850faff050ce84a2d3",
+      "area": "Tactical group layer",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected intent/authority comparison in evidence",
+      "next": "Reconcile remaining descendants and actual enabled callers; no compiled, physical or whole-mod parity claim."
+    },
+    {
+      "path": "functions/fnc_tacticsHide.sqf",
+      "sha256": "4eed0e0a7d9ec99836c319007f15a89f5cb000ff019b695a3b415c931fcab113",
+      "area": "Tactical group layer",
+      "reviewStatus": "Complete readable body and main group executor reviewed 2026-10-26; selected CBE mapping in evidence",
+      "next": "Finish remaining descendants and original-owner restoration mapping; no compiled, physical or whole-mod parity claim."
+    },
+    {
+      "path": "functions/fnc_tacticsHold.sqf",
+      "sha256": "3da8e86db4c590253d57cfedf2f46fcf23377c80bccca0fcd1f17eb005ec4570",
+      "area": "Tactical group layer",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected assessment mapping, execution descendants open",
+      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+    },
+    {
+      "path": "functions/fnc_tacticsProfiles.sqf",
+      "sha256": "04556c4285c5f7395070bb32de10b94579f33e6c15e33f227747dbd55fcc0b5b",
+      "area": "Tactical group layer",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected lifecycle/caller scope in evidence",
+      "next": "Reconcile real enabled callers and remaining descendants; comments, events and inventory are not behavioural parity."
+    },
+    {
+      "path": "functions/fnc_tacticsReinforce.sqf",
+      "sha256": "c6477a2ca420d4a77787f611540647874a7703b937d46b3914952cc205de51d9",
+      "area": "Tactical group layer",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected lifecycle/caller scope in evidence",
+      "next": "Reconcile real enabled callers and remaining descendants; comments, events and inventory are not behavioural parity."
+    },
+    {
+      "path": "functions/fnc_tacticsSuppress.sqf",
+      "sha256": "a2acf7e1fa141a43e4d3addb18dd8448e3ec20df213bb7ecc2427cec190d1bf2",
+      "area": "Tactical group layer",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; execution dependencies and physical integration open",
+      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+    },
+    {
+      "path": "functions/ZEN/fnc_setDisableAI.sqf",
+      "sha256": "8f6607d56178ae79e5d3575241ccc235003cd6913a56a45e915f1f5d30c4f2f9",
+      "area": "Zeus controls",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "functions/ZEN/fnc_setDisableGroupAI.sqf",
+      "sha256": "fd5192d26ff7f93d8ca9c40d1721519e5fc728c206e143a669fdcd71a438db79",
+      "area": "Zeus controls",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "functions/ZEN/fnc_setHasRadio.sqf",
+      "sha256": "8a2608512736fb15248eb9c5cb51f7af9e33e9a269c4f44eec6f9a48e801df77",
+      "area": "Zeus controls",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "functions/ZEN/fnc_setReinforcement.sqf",
+      "sha256": "e1da9b2dd19436725fa19c3f38d1bf4e7642c15f767d1bdc6807e2ac5adfe82f",
+      "area": "Zeus controls",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "functions/ZEN/fnc_showHasRadio.sqf",
+      "sha256": "45788dfd5ce2a066abf17a868d0d47c70b991476ac1a7951446fe5ce1b581393",
+      "area": "Zeus controls",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "functions/ZEN/fnc_showReinforcement.sqf",
+      "sha256": "e9be6b6ece9143c667d25030d889d6ff01cde0d4397a4512727d5c6c81f85ef1",
+      "area": "Zeus controls",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "functions/ZEN/fnc_showSetDisableAI.sqf",
+      "sha256": "c023c1403ab9b85a8c58308febd80b3283cb2a915cdbf82441b7e65b60f56fe6",
+      "area": "Zeus controls",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "functions/ZEN/fnc_showSetDisableGroupAI.sqf",
+      "sha256": "37fa9ff03c81a79d2c8325fc54b69facea099d8c5806a3f477c53a7a82f8d5a6",
+      "area": "Zeus controls",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "functions/ZeusModules/fnc_moduleConfigureGroupAI.sqf",
+      "sha256": "603a3176e8244122482f90c9270c598f346bfda37c11f2c917627360021b88b2",
+      "area": "Zeus controls",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "functions/ZeusModules/fnc_moduleDisableAI.sqf",
+      "sha256": "e6de6bd1145aba95adc3a975bc1e98f335db3954f9c882ffa3dfcbeb3f7d9ebf",
+      "area": "Zeus controls",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "functions/ZeusModules/fnc_moduleSetRadio.sqf",
+      "sha256": "6b6a2f56f4bf34dc1465512e887f47edf5a6fa9e5ad3fa4050a28a5ba2177785",
+      "area": "Zeus controls",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "settings.inc.sqf",
+      "sha256": "48a0e2583249fd679f1766c5adccbedde413ea2de4a39faf758318784d93276b",
+      "area": "Startup/settings",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "XEH_postInit.sqf",
+      "sha256": "90cbfbc8f06239748c781b29cce2b4bd3ae596cb4ee98e2ae90481c51ec3a79f",
+      "area": "Startup/settings",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected lifecycle/caller scope in evidence",
+      "next": "Reconcile real enabled callers and remaining descendants; comments, events and inventory are not behavioural parity."
+    },
+    {
+      "path": "XEH_preInit.sqf",
+      "sha256": "d34f940c1e56a839961b9bdd8ddede53898860e0cd9f8d7b52b49588c97bd54a",
+      "area": "Startup/settings",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "XEH_preInitClient.sqf",
+      "sha256": "412bb8f4c503576d64faa02a1f0c4636b63b9ced5f7c9df9d7a9a7801c176c27",
+      "area": "Startup/settings",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    },
+    {
+      "path": "XEH_preStart.sqf",
+      "sha256": "c329c9d5466cc1f0f2377b2e49c1ba2addc4407e40616a1215f8783bc7bbba0f",
+      "area": "Startup/settings",
+      "reviewStatus": "Complete readable body reviewed 2026-10-26; startupConfigurationReview20261026 records scope and CBE disposition; not implementation or physical acceptance",
+      "next": "Preserve CBA configuration versus Zeus behaviour-task split. Player convenience commands and full downstream execution remain separately scoped gaps, not automatic parity."
+    }
+  ]
+}

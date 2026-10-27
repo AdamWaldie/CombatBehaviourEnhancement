@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Geometry identity includes object scale: rescaling invalidates cached selection and active work.
+ * Mission-hidden target buildings refuse admission and retire live work through existing cleanup.
  * Late FINISH binds original actor/group/operation/deadline/route/target/lease and rejects
  * a different installed brain; generation/epoch alone cannot identify a cross-owner task.
  * Public-journal-only cleanup refuses while any private local controller remains installed.
@@ -142,7 +144,7 @@ private _recordSearchVisit={
         || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_brain getOrDefault ["route",[]])}
         || {!(_visitTarget call _vectorValid)} || {(getPosASL _actor) vectorDistance (AGLToASL _visitTarget) > 2}
         || {isNull _visitHouse} || {!alive _visitHouse}
-        || {[getPosWorld _visitHouse,vectorDir _visitHouse,vectorUp _visitHouse] isNotEqualTo _visitTransform}) exitWith {false};
+        || {[getPosWorld _visitHouse,vectorDir _visitHouse,vectorUp _visitHouse,getObjectScale _visitHouse] isNotEqualTo _visitTransform}) exitWith {false};
     // Arrival proof is two seconds old: proximity alone can now be outside a wall.
     // Recheck the same interior geometry once, when committing this visit.
     private _visitASL=getPosASL _actor;
@@ -259,7 +261,7 @@ if (_mode == "FINISH") exitWith {
         private _house=_brain getOrDefault ["building",objNull];
         private _transform=_brain getOrDefault ["transform",[]];
         if (!isNull _house && {alive _house} && {_target call _vectorValid}
-            && {[getPosWorld _house,vectorDir _house,vectorUp _house] isEqualTo _transform}) then {
+            && {[getPosWorld _house,vectorDir _house,vectorUp _house,getObjectScale _house] isEqualTo _transform}) then {
             private _failed=(_actor getVariable ["CBE_IndoorActor_NodeFailures",[]]) select [0,4];
             _failed=_failed select {_x isEqualType [] && {count _x == 5}
                 && {(_x select 3) isEqualType 0} && {finite (_x select 3)} && {serverTime < (_x select 3)}
@@ -285,7 +287,7 @@ if (_mode == "FINISH") exitWith {
         && {serverTime < (_clue select 2)} && {_target call _vectorValid}
         && {(getPosASL _actor) vectorDistance (AGLToASL _target) <= 2}
         && {!isNull _house} && {alive _house}
-        && {[getPosWorld _house,vectorDir _house,vectorUp _house] isEqualTo _transform}) then {
+        && {[getPosWorld _house,vectorDir _house,vectorUp _house,getObjectScale _house] isEqualTo _transform}) then {
         private _history=_group getVariable ["CBE_Danger_BuildingVisits",[]];
         private _visits=if (_history isEqualType [] && {count _history == 2}
             && {(_history select 0) isEqualTo _clue} && {(_history select 1) isEqualType []}) then {
@@ -332,7 +334,7 @@ if (_mode == "START") exitWith {
         || {(_clue select 2) > (_clue select 1)+20}
         || {(_clue select 4) isNotEqualTo (_group getVariable ["CBE_AIPass_Epoch",0])}}) exitWith {false};
     if (!(_contact isEqualType objNull) || {!(_building isEqualType objNull)} || {isNull _building}
-        || {!alive _building} || {!(_belief isEqualType [])} || {count _belief != 2}
+        || {!alive _building} || {isObjectHidden _building} || {!(_belief isEqualType [])} || {count _belief != 2}
         || {!((_belief select 0) call _vectorValid)} || {!((_belief select 1) isEqualType 0)}
         || {!finite (_belief select 1)} || {serverTime-(_belief select 1) < 0}
         || {serverTime-(_belief select 1) > 5 && {!(call _searchMemoryValid)}}) exitWith {false};
@@ -403,7 +405,7 @@ if (_mode == "START") exitWith {
     _brain=createHashMapFromArray [["jobKey",format ["CBE_INDOOR_%1",_serial]],["actor",_actor],["group",_group],["generation",_generation],
         ["ownerEpoch",_epoch],["formationLeader",_formationLeader],["operationGeneration",_group getVariable ["CBE_OperationGeneration",0]],
         ["deadline",_deadline],["route",[_group] call CBE_fnc_NativeOrderReceipt],
-        ["building",_building],["transform",[getPosWorld _building,vectorDir _building,vectorUp _building]],
+        ["building",_building],["transform",[getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]],
         ["belief",[+(_belief select 0),_belief select 1]],["contact",_contact],["defensive",_defensive],["defensiveOrigin",getPosASL _actor],
         ["searchMemory",_searchMemory call _copyArray],["observationClue",_clue call _copyArray],["observationOnly",_observationOnly],["contactRequired",!isNull _contact],["admission",_admission call _copyArray],["escalations",0],["escalate",false],["lease",_lease call _copyArray],["target",+_initialTarget],["issued",false],
         ["phase","SELECT"],["finished",false],["pending",false],["completed",false],
@@ -489,8 +491,8 @@ if (!(call _available) || {(_group getVariable ["CBE_OperationGeneration",0]) !=
     ["PREEMPTED"] call _finish
 };
 private _building=_brain get "building";
-if (isNull _building || {!alive _building}
-    || {[getPosWorld _building,vectorDir _building,vectorUp _building] isNotEqualTo (_brain get "transform")}) exitWith {
+if (isNull _building || {!alive _building} || {isObjectHidden _building}
+    || {[getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building] isNotEqualTo (_brain get "transform")}) exitWith {
     ["BUILDING_CHANGED"] call _finish
 };
 if (serverTime >= (_brain get "deadline")) exitWith {["DEADLINE"] call _finish};
@@ -604,7 +606,7 @@ if (_phase == "SELECT") exitWith {
         }}
         || {(_actor getVariable ["CBE_IndoorActor_Brain",createHashMap]) isNotEqualTo _brain}
         || {(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isNotEqualTo (_brain get "lease")}
-        || {[getPosWorld _building,vectorDir _building,vectorUp _building] isNotEqualTo (_brain get "transform")}
+        || {[getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building] isNotEqualTo (_brain get "transform")}
         || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_brain get "route")}
         || {(_group getVariable ["CBE_OperationGeneration",0]) != (_brain get "operationGeneration")}
         || {!([_actor] call CBE_fnc_IndoorActorGroupAvailable)}) exitWith {["PREEMPTED"] call _finish};

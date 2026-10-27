@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "sourceBase": "cac5bcad",
+  "finding": "Failed cover approach followed the current group leader rather than retaining the original subformation anchor.",
+  "implementation": [
+    "Append original formLeader to the finite cover lease before native movement.",
+    "Return only to that same effective same-group anchor while the current formation relationship still matches and all existing movement ownership checks hold.",
+    "Successful arrival remains in cover. Missing or changed anchors grant no follow command. No new timer, worker or scan."
+  ],
+  "sourceComparisonScope": "Pinned Down cover eligibility function read completely; selected movement/completion sections of MoveToCover FSM examined. This is not a complete FSM or whole-mod review and makes no parity claim.",
+  "validation": {
+    "tests": 1497,
+    "compiledSqf": 443,
+    "pbos": 11,
+    "buildLog": ".qa/handovers/danger-cover-anchor-final-build.log",
+    "independentLog": ".qa/handovers/danger-cover-anchor-independent.log",
+    "candidate": ".qa/candidates/danger-cover-anchor-cac5bcad",
+    "fingerprint": "88784d9d8a9b142853a02619bf3d6ce7aac596a081810e60741a6b406466952d",
+    "physicalAcceptance": false,
+    "retainedFailure": ".qa/handovers/danger-cover-anchor-build.log: obsolete lease assertion and source-map documentation boundary failures. Updated lease assertion and moved engineering source maps outside product docs; production boundary checks unchanged."
+  },
+  "limits": [
+    "Native formation-anchor behaviour and physical return remain unverified; audits paused.",
+    "Overall FSM handover, source review and production goal remain incomplete."
+  ],
+  "sourceHashes": {
+    "addons/infantry/functions/dangerCoverStep.sqf": "3902324b29d34adb24811c4e6f7c28f89a98cb4242b3a7421c25bda5f90eae9c"
+  }
+}

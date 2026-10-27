@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Copy the current producer's bounded exterior-post search/history journal.
  * Locality/authority: Pure data serializer; callers retain current operation/owner or
  * exact outgoing producer-fence validation. Output grants no task or native authority.
@@ -25,8 +26,10 @@ isNil {
             && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}};
         if (!(_building isEqualType objNull) || {isNull _building}
             || {!(_until isEqualType 0)} || {!finite _until} || {_until < 0}
-            || {!(_transform isEqualType [])} || {count _transform != 3}
-            || {_transform findIf {!(_x call _vector)} >= 0}
+            || {!(_transform isEqualType [])} || {count _transform != 4}
+            || {(_transform select [0,3]) findIf {!(_x call _vector)} >= 0}
+            || {!((_transform select 3) isEqualType 0)} || {!finite (_transform select 3)}
+            || {(_transform select 3) <= 0}
             || {!(_context isEqualType [])} || {count _context != 4}
             || {(_context select 0) isNotEqualTo _building}
             || {(_context select 1) isNotEqualTo _transform} || {(_context select 2) isNotEqualTo _until}
@@ -87,8 +90,8 @@ isNil {
             _rows pushBack [_key,_count,_tried apply {+_x},_stage,_history apply {+_x},_viewReceipt];
         } forEach _keys;
         if (!_valid) exitWith {[]};
-        [_building,_until,_transform apply {+_x},_rows,
-            [_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3]]
+        [_building,_until,_transform apply {if (_x isEqualType []) then {+_x} else {_x}},_rows,
+            [_context select 0,(_context select 1) apply {if (_x isEqualType []) then {+_x} else {_x}},_context select 2,_context select 3]]
     };
     false
 };

@@ -17,6 +17,24 @@ class GroupCommunicationTests(unittest.TestCase):
         import math
         owner=source('cortexReportLocal')
         server=source('cortexReportServer')
+        # Reports follow mutual mission allegiance, not a same-side shortcut.
+        # Delivery must recheck both directions before storing the area estimate.
+        for sides in ('(side _receiver) getFriend (side _sender)',
+                      '(side _sender) getFriend (side _receiver)'):
+            self.assertIn(sides+' >= 0.6',server)
+            self.assertIn(sides+' < 0.6',owner)
+            self.assertLess(owner.index(sides+' < 0.6'),owner.index('setVariable ["CBE_AIPass_AreaReport"'))
+        self.assertNotIn('side _receiver == side _sender',server)
+        self.assertNotIn('side _receiver != side _sender',owner)
+        sender=source('cortexContactReport')
+        self.assertIn('serverTime - (_x select 2),side _target]',sender)
+        for text,recipient in ((server,'_sender'),(owner,'_receiver')):
+            for proof in ('count _x == 4','(_x select 3) isEqualType west',
+                          '(_x select 3) in [west,east,resistance]',
+                          '(side '+recipient+') getFriend (_x select 3) < 0.6'):
+                self.assertIn(proof,text)
+        self.assertLess(owner.index('(side _receiver) getFriend (_x select 3) < 0.6'),
+                        owner.index('setVariable ["CBE_AIPass_AreaReport"'))
         combined=source('cortexCombinedArmsServer')
         fallback=source('cortexCombinedGroundFallbackServer')
         self.assertIn('_receiverPosition vectorDistance _senderPosition > _voiceRange',owner)

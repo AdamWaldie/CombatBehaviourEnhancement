@@ -192,7 +192,7 @@ isNil {
                     private _relief=if (count _early == 6) then {[_clearJob] call CBE_fnc_BuildingReliefJournal} else {[]};
                     private _admission=if (count _relief == 2) then {["CAPTURE",_clearJob] call CBE_fnc_BuildingAdmissionJournal} else {[]};
                     private _actors=if (count _admission == 3) then {[_clearJob] call CBE_fnc_BuildingActorJournal} else {[]};
-                    if (count _actors == 7) then {
+                    if (count _actors == 8) then {
                         _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",[12,clientOwner,
                             _clearJob get "generation",_clearJob get "ownerEpoch",_clearJob get "operationGeneration",
                             serverTime,_clearJob get "hardDeadline",_lanes,_stageBudget,_rooms,_phase,_egress,_follow,_early,_relief,_admission,_actors]];
@@ -206,6 +206,9 @@ isNil {
 };
 {
         private _unit = _x;
+        if ((_unit getVariable ["CBE_FiringPosition_Order",[]]) isNotEqualTo []) then {
+            ["TRANSFER",_unit] call CBE_fnc_FiringPositionOperation;
+        };
         private _point=_unit getVariable ["CBE_PointActor_Brain",createHashMap];
         if (count _point > 0 || {(_unit getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
             ["TRANSFER",_unit,_point] call CBE_fnc_PointActorOperation;
@@ -243,6 +246,7 @@ isNil {
         _unit setVariable ["CBE_AIPass_GarrisonHandlers", nil];
         _unit setVariable ["CBE_AIPass_DuckUntil", nil];
         _unit setVariable ["CBE_Cortex_ActorMove",nil];
+        _unit setVariable ["CBE_Cortex_LauncherCleanup",nil];
 } forEach units _group;
 // Observe the exact old FSMs only after this edge retired their original pointers.
 // No native command authority is placed in the observer's scheduler state.
@@ -263,20 +267,41 @@ if (!_gained && {!local _group} && {count _clearRetireCapture == 17}
     } else {_clearRetireCapture select 6};
     // This baseline follows intentional Local-edge marker retirement. Preserve it
     // independently: later old-FSM exits must not silently alter the watched records.
+    private _retireCopyValid=true;private _retireCopyNodes=0;
     private _copyClearRetireValue={
-        params ["_value"];
-        if (_value isEqualType []) exitWith {_value apply {[_x] call _copyClearRetireValue}};
+        params ["_value",["_depth",0]];
+        _retireCopyNodes=_retireCopyNodes+1;
+        if (!_retireCopyValid || {_retireCopyNodes > 65536} || {_depth > 16}) exitWith {_retireCopyValid=false;[]};
+        if (_value isEqualType []) exitWith {
+            if (_depth >= 16 || {count _value > 4096}
+                || {_value findIf {isNil "_x"} >= 0}) exitWith {_retireCopyValid=false;[]};
+            private _copy=[];
+            {if (!_retireCopyValid) exitWith {};_copy pushBack ([_x,_depth+1] call _copyClearRetireValue)} forEach _value;
+            _copy
+        };
         if (_value isEqualType createHashMap) exitWith {
+            if (_depth >= 16 || {count _value > 64}) exitWith {_retireCopyValid=false;[]};
             private _pairs=[];
-            {_pairs pushBack [_x,[_y] call _copyClearRetireValue]} forEach _value;
+            {
+                if (!_retireCopyValid) exitWith {};
+                if (!(_x isEqualType "") || {count _x > 512} || {isNil "_y"}) exitWith {_retireCopyValid=false};
+                _pairs pushBack [_x,[_y,_depth+1] call _copyClearRetireValue];
+            } forEach _value;
             createHashMapFromArray _pairs
+        };
+        if (_value isEqualType 0) then {if (!finite _value) then {_retireCopyValid=false}} else {
+            if (_value isEqualType "") then {if (count _value > 512) then {_retireCopyValid=false}} else {
+                if (!(_value isEqualType true || {_value isEqualType objNull} || {_value isEqualType grpNull})) then {_retireCopyValid=false};
+            };
         };
         _value
     };
     private _clearRetireRecords=[];
     {
+        if (!_retireCopyValid) exitWith {};
         private _recordActor=_x select 1;
         {
+            if (!_retireCopyValid) exitWith {};
             private _present=!isNil {_recordActor getVariable _x};
             private _value=if (_present) then {[_recordActor getVariable _x] call _copyClearRetireValue} else {[]};
             _clearRetireRecords pushBack [_recordActor,_x,_present,_value];
@@ -290,6 +315,8 @@ if (!_gained && {!local _group} && {count _clearRetireCapture == 17}
         private _value=if (_present) then {[_group getVariable _x] call _copyClearRetireValue} else {[]};
         _clearRetireRecords pushBack [_group,_x,_present,_value];
     } forEach ["CBE_Cortex_ClearSettingsPending","CBE_Cortex_ClearSettingsResult"];
+    // Refusal discards only this machine's proposal. It grants no retirement/submit receipt.
+    if (!_retireCopyValid) exitWith {_group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil]};
     private _retire=createHashMapFromArray [["taskGroup",_group],["capture",_clearRetireCapture],
         ["writers",_clearRetireWriters],["records",_clearRetireRecords],["producer",clientOwner],
         ["incomingOwner",_clearEdgeIncomingOwner],["attempts",0],["done",false],
@@ -299,7 +326,14 @@ if (!_gained && {!local _group} && {count _clearRetireCapture == 17}
     private _retireKey=format ["CBE_CLEAR_RETIRE_%1_%2_%3",netId _group,_clearRetireCapture select 2,_clearRetireCapture select 3];
     [CBE_fnc_BuildingProducerRetire,_retire,0,_retireKey] call CBE_fnc_CortexQueueJob;
 };
+_group setVariable ["CBE_VehicleTurn_Cleanup",nil];
 _group setVariable ["CBE_AIPass_Epoch", (_group getVariable ["CBE_AIPass_Epoch", 0]) + 1];
+if (_gained && {local _group}) then {
+    _group setVariable ["CBE_Cortex_LauncherTransfer",[clientOwner,_group getVariable ["CBE_AIPass_Epoch",0],serverTime+5]];
+    {if (local _x && {(_x getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap}) then {
+        ["TRANSFER",_x] call CBE_fnc_LauncherMove;
+    }} forEach ((units _group) select [0,64]);
+};
 _group setVariable ["CBE_DrivingAbort_Transfer",nil];
 _group setVariable ["CBE_DrivingNative_Transfer",nil];
 if (_abortSource isNotEqualTo []) then {
@@ -318,18 +352,20 @@ _group setVariable ["CBE_AIPass_Adopted", _gained];
 // Native handler IDs stay on their machine; remove only this group's old local observer.
 if (!_gained && {!local _group}) then {
     {
-        private _reference=_group getVariable [_x,[]];
-        private _platform=if (_reference isEqualType []) then {_reference param [0,objNull,[objNull]]} else {objNull};
+        private _reference=_x;
+        private _platform=_reference param [0,objNull,[objNull]];
         if (!isNull _platform) then {
             private _watch=_platform getVariable ["CBE_VehicleCrewMove_DeletedWatch",[]];
             if (_watch isEqualType [] && {count _watch == 8} && {(_watch select 1) isEqualTo _group}) then {
                 [_platform,"RELEASE",_watch select 0] call CBE_fnc_VehicleCrewMoveDeletionWatch;
             };
         };
-    } forEach ["CBE_ArtilleryCrew_Reference","CBE_VehicleTacticalMove_Reference"];
+    } forEach (([_group,"LIST"] call CBE_fnc_ArtilleryCrewReservation)
+        + [_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]]);
 };
 
 if (!_gained || {!local _group}) exitWith {};
+[_group,"RELEASE"] call CBE_fnc_VehicleTurnRetire;
 // Resume only the original pending hold deadline; the executor rechecks actual actor ownership.
 [_group] call CBE_fnc_CortexHolderRecallPending;
 // Group and vehicle ownership need not arrive together; discovery retries the split case.
@@ -769,8 +805,8 @@ if (_tacticalReference isEqualType [] && {count _tacticalReference == 5}) then {
 
 // Retire only the original selected-gun journal when its owner-local executor ended or
 // crossed this epoch. A live current worker is left alone; this does not cancel an active fire.
-private _crewReference=_group getVariable ["CBE_ArtilleryCrew_Reference",[]];
-if (count _crewReference == 5) then {
+{
+    private _crewReference=_x;
     private _crewBattery=_crewReference select 0;
     if (!isNull _crewBattery && {local _crewBattery} && {local _group}) then {
         private _executor=_crewBattery getVariable ["CBE_ArtilleryCrew_FSM",[]];
@@ -783,7 +819,7 @@ if (count _crewReference == 5) then {
             [_crewBattery,_crewReference select 1,_crewReference select 2] call CBE_fnc_ArtilleryCrewMoveRetire;
         };
     };
-};
+} forEach ([_group,"LIST"] call CBE_fnc_ArtilleryCrewReservation);
 
 // A pending shoot-and-scoot request is durable, but its queued callback belonged to the old owner.
 // Resume it only after calm restoration has removed the old owner's waypoint and transient state;

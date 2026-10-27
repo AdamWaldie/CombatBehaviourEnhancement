@@ -9,8 +9,11 @@
  * on by default; the handler and reaction job still restrict orders to locally owned AI. After a short
  * reaction delay, each local AI soldier
  * on foot within 12 m reacts if he can see the grenade or it is within 5 m, with a chance based on his
- * general skill and reduced by suppression. Escape spots are spread out, 9 m away from the grenade,
- * and moved into cover facing it where possible. One Cortex scheduler job per grenade checks every
+ * general skill and reduced by suppression. Escape seeds are 9 m from each reacting actor on an away bearing,
+ * and moved into cover facing it where possible. Cover searches share the destinations already
+ * issued by this grenade job. At most four endpoints are checked against those local reservations;
+ * occupied fallbacks are not issued. This is endpoint separation, not collision-free native routing.
+ * One Cortex scheduler job per grenade checks every
  * reacting soldier six seconds later; no callback or scheduler is created per unit. Each escape
  * receives a six-second GRENADE_EVASION actor lease, so a tactical bound or anti-armour relocation
  * cannot overwrite it. A soldier held as part of a coordinated base of fire temporarily leaves that
@@ -162,8 +165,22 @@ private _clearHoldOwned={
         private _sees = _unit distance _grenade < 5 || {([objNull, "VIEW"] checkVisibility [eyePos _unit, _grenadeASL]) > 0.2};
         private _chance = (0.5 + 0.5 * (_unit skill "general")) * (1 - 0.5 * ((getSuppression _unit) max 0 min 1));
         if (_sees && {random 1 < _chance}) then {
+            private _origin=getPosATL _unit;
             private _direction = (_grenadePos getDir _unit) + ((_reacted mod 3) - 1) * 35;
-            private _spot = ([(getPosATL _unit) getPos [9, _direction], _grenadePos, 6, [], _group,"COVER",_unit] call CBE_fnc_CortexFindCover) select 0;
+            private _reserved=_regroupActors apply {+(_x select 2)};
+            private _away=_origin getPos [9,_direction];
+            private _covered=([_away,_grenadePos,6,_reserved,_group,"COVER",_unit] call CBE_fnc_CortexFindCover) select 0;
+            // FindCover returns its seed when no post qualifies. Check that fallback too,
+            // then two nearby away bearings; never order several responders to one post.
+            // Only this finite grenade job's issued endpoints are reserved, not world space.
+            private _escapeCandidates=[_covered,_away,_origin getPos [9,_direction-35],_origin getPos [9,_direction+35]];
+            private _originDangerDistance=_origin distance2D _grenadePos;
+            private _free=_escapeCandidates findIf {
+                _x distance2D _grenadePos > _originDangerDistance
+                    && {private _candidate=_x;_reserved findIf {_x distance2D _candidate < 2} < 0}
+            };
+            if (_free < 0) then {continue};
+            private _spot=+(_escapeCandidates select _free);
             if (_supportPathOwned) then {
                 if (!(_unit checkAIFeature "PATH")) then {_unit enableAI "PATH"};
                 if (_unit checkAIFeature "PATH") then {_unit setVariable ["CBE_Cortex_SupportPathHold",nil,true]};

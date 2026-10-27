@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Bind garrison stance/speed writers and retirement to the shared exact actor-settings lease.
  * Locality/authority: Actual group/actor owner. Live public garrison issuer admits acquisition;
  * original actor issuer admits cleanup only, including after order removal or owner adoption.
@@ -107,7 +108,7 @@ if (_recovering) then {
     private _building=_assignment param [2,objNull,[objNull]];
     private _transform=_assignment param [3,[],[[]]];
     if (_transform isNotEqualTo [] && {isNull _building
-        || {_transform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}) exitWith {};
+        || {_transform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}}) exitWith {};
     if (serverTime >= (_duck select 2)+30) exitWith {_status="EXPIRED"};
     if (serverTime < (_duck select 2)) exitWith {_status="PENDING"};
     if (!(currentCommand _actor in ["","STOP","ATTACK","FIRE","SUPPRESS"])) exitWith {};

@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Read unambiguous legacy gate animation leaves from declarative open/close actions.
- * Locality/authority: Read-only server admission for a gate already found by physical geometry.
+ * Locality/authority: Read-only owner geometry or server admission for a physically observed gate.
  * Never evaluates action statements. Only literal this animate [name,0/1] is accepted;
  * indexed Open/CloseDoor_N or Open/CloseGate_N pairs must name one identical model animation.
  * Repeat/JIP: Stateless, no worker/cache or replay. Caller uses only when no supported source
@@ -9,7 +9,7 @@
  * Bounds: 32 actions,512 characters/statement,128 model animation names,8 leaves.
  * Arguments: 0 gate OBJECT objNull.
  * Return: ARRAY [index,animation,current phase,"ANIM"] rows, or[] when ambiguous/unsupported.
- * Current callers: DrivingGateOpenServer source-empty fallback.
+ * Current callers: DrivingGateOpenServer source-empty fallback; DrivingGeometryCap bounded candidate classification.
  * Example: private _leaves=[gate1] call CBE_fnc_DrivingGateLegacyLeaves;
  */
 params [["_gate",objNull,[objNull]]];

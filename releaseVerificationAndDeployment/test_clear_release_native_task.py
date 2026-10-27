@@ -187,7 +187,7 @@ class DoorCommitBoundaryTests(unittest.TestCase):
     def test_door_effect_rechecks_fresh_geometry_locks_and_order_atomically(self):
         text=(ROOT/'addons/infantry/functions/cortexBuildingDoor.sqf').read_text()
         commit=text.split('if (_near && {_visible}) then {',1)[1].split('call BIS_fnc_door',1)[0]
-        for proof in ('isNil {','count _visibilityProof == 5','time-(_visibilityProof select 4) <= 0.5',
+        for proof in ('isNil {','count _visibilityProof == 6','time-(_visibilityProof select 5) <= 0.5',
                       'getPosWorld _building','eyePos _unit','animationSourcePhase _source',
                       'CBE_Cortex_DoorRequestUntil','bis_disabled_Door','call _orderCurrent',
                       'CBE_fnc_CortexExternalTakeover'):

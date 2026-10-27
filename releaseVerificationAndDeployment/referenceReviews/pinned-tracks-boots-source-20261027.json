@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-27",
+  "workshopId": "3776232873",
+  "baseline": "abcfe36913fbd1906917d4ab8a8809b9c282c603",
+  "sourceRoot": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\PinnedDown\\20261013-013708\\3776232873\\extracted-20261011\\pd_tracks_and_boots",
+  "scope": "Seven selected source helper bodies reviewed (path, water, depth, overwatch, support positioning/update and hold); selected updateJob support call sites located. Not whole-mod/passenger state-machine/caller graph or physical acceptance.",
+  "sources": [
+    {
+      "path": "functions/fn_pathBlockedByInfantry.sqf",
+      "sha256": "76efd8895840df048d3e619239c91edfe034b5b1f3661070dcc3d262b124afc7",
+      "scope": "Complete33-line readable helper"
+    },
+    {
+      "path": "functions/fn_waterContact.sqf",
+      "sha256": "9ffb6ae04b7c175cd16748078c8a5844f83b8c7e7c4136c6723442040587fc8f",
+      "scope": "Complete17-line readable helper; source method not imported"
+    },
+    {
+      "path": "functions/fn_waterDepth.sqf",
+      "sha256": "dd48dcfe00e27489440583d2564f7f74a480efcefa6de911d3277c90b2878436",
+      "scope": "Complete7-line readable helper; no depth-policy equivalence inferred"
+    },
+    {
+      "path": "functions/fn_findOverwatchPosition.sqf",
+      "sha256": "6450fca27087677d08814ae8f818d4f882efe8b9c98a93c090b6b91f8ab6a50f",
+      "scope": "Complete108-line readable helper reviewed."
+    },
+    {
+      "path": "functions/fn_supportPosition.sqf",
+      "sha256": "7c3be4f5a4c08157b820e8368a60451c9120316363d3625792478ce5025e37cb",
+      "scope": "Complete readable helper reviewed; higher caller/registration/release graph remains incomplete."
+    },
+    {
+      "path": "functions/fn_updateSupport.sqf",
+      "sha256": "fe9da87d9c020df2853c0556af6220c8901bd4403cc05ae388bdfbe63a603aea",
+      "scope": "Complete readable helper reviewed; higher caller/registration/release graph remains incomplete."
+    },
+    {
+      "path": "functions/fn_holdVehicle.sqf",
+      "sha256": "056c7cf2af18fb519906e9ea6b81430ad1239ce02eb8115eac6b0b7926652e0f",
+      "scope": "Complete readable helper reviewed; higher caller/registration/release graph remains incomplete."
+    }
+  ],
+  "findings": [
+    {
+      "intent": "Vehicles should not advance through friendly dismounted infantry.",
+      "source": "pathBlockedByInfantry projects supplied unit centres onto2D segment with fixed corridor width. Selected overwatch caller requires candidate behind infantry body,10m destination separation and path helper.",
+      "cbe": "Existing CortexInfantrySpeed is read-only, bounds32pedestrians, uses world-metre hull/vertical overlap and speed-dependent braking, consumed by driving and convoy owners. Source fixed2D segment is not footprint/crossing-time/native path proof; no duplicate helper imported."
+    },
+    {
+      "intent": "Wet vehicle footprint must affect transport decisions.",
+      "source": "waterContact samples centre and four model-offset points; waterDepth transforms terrain height. Several dismount/boarding/disabled-transport callers consume these.",
+      "cbe": "CortexPassengerReady centre water/deck check already exists; full footprint and transport state-machine scope remains open. No source water formula, forced dismount or independent passenger controller imported."
+    }
+  ],
+  "confirmedCBEGap": "Existing routine passenger bridge exception accepted any downward geometry hit above0.5m, including another vehicle/person or moving support, without parent resolution or surface normal qualification.",
+  "implementation": "Reuse static-support intent from existing DrivingPathGeometry. Same one downward ray now resolves parent/direct object; unidentified/AllVehicles support refuses. Require height above0.5m, normalZ>=0.85, linear speed<=0.1m/s and angular speed<=0.01rad/s. Existing native actor/vehicle motion, care, reservations, boarding tasks and ownership remain. No new scan/worker/ray/command or emergency-bailout policy.",
+  "verification": {
+    "fullTests": 1498,
+    "compiledSQF": 449,
+    "pboCount": 11,
+    "newTestCases": 0,
+    "regressionBefore": ".qa/handovers/passenger-deck-regression-before.log",
+    "buildLog": ".qa/handovers/passenger-deck-build-abcfe369.log",
+    "candidate": ".qa/candidates/passenger-static-deck-abcfe369",
+    "fingerprint": "bdaa3f3a17b26d5a5ea9648dfd89bfbcf89ded7237c923f5b9feee1ddaf49aad",
+    "independentLog": ".qa/handovers/passenger-deck-independent.log"
+  },
+  "limits": "Offline evidence only, audits paused. Single centre ray is not complete exit-footprint or continuous stability proof; bridge/road proxy identity and modded support need physical verification. No whole-source/combined-arms parity or measured performance claim. Native query cost unchanged, support reads added only to existing water case.",
+  "nextRequiredReview": "Trace source registerJob/tracked passenger element and updateJob->updateSupport->releaseJob/releaseVehicle route/movement writers. Compare existing CBE passenger task owner; define one finite mechanised-support operation before coding. Retain current verified candidate and preserve newer authored/Zeus/specialist tasks.",
+  "supportPositioningFollowup20261027": {
+    "baseline": "cb523ae73231be4776b378f9012b50e4662fb118",
+    "runtimeChanges": false,
+    "sourceExecution": [
+      "supportPosition uses coordinate median of mobile non-incapacitated tracked dismounts, falling back to all on-foot members only if none are mobile. A50% centre blend applies when the prior centre is within100m. It picks a real nearest soldier for traces, but the leader does not control centre/direction. Support target lies15m(default,min12) short of the infantry body along vehicle-to-centre bearing. Water and normalZ<0.55 refuse.",
+      "findOverwatchPosition tests5rear rings*9angles=45candidates, behind the infantry median relative to a live threat,>=10m from friendly infantry, dry/slope/native object clearance and2D friendly path corridor, then current target LOS from hypothetical2.5m height. It sorts travel/radius/offset score.",
+      "updateSupport queries friendly infantry250m around vehicle, chooses nearest supplied current/shared threat, caches success AND failure for15s or15m body motion/changed threat identity. It may fall back to two rear corners, uses10m immediate run-over zone and repeated straight-segment tests, commands hold or at3s intervals forceSpeed+driver doMove. Default pace12/catchup30kmh, near25m infantry cap8,12m arrival hold. holdVehicle writes forceSpeed0.",
+      "Selected updateJob ENGAGING and later support call sites located; entire updateJob/registration/release graph is not yet reviewed. Helper behaviour does not establish caller authority, native route identity or retirement proof."
+    ],
+    "cbeSemanticBoundary": "CortexCombinedArmsServer assigns first vehicle GROUND_FIRE and uses that vehicle position as _groundAnchor/context for second GROUND_MANOEUVRE. CortexCombinedArmsLocal protects that support-to-target firing lane via CortexSelectAvenue. This context is NOT the dismounted troop median. Replacing it with a troop median would silently remove an existing friendly-fire-lane constraint.",
+    "capabilityStatus": "UNIMPLEMENTED_SOURCE_SPECIFIC_TROOP_BODY_ESCORT: CBE existing dismount/remount, ground fire/manoeuvre and infantry braking do not establish continuous transport support behind a tracked dismounted element with source median/overwatch intent.",
+    "selection": "Retain robust troop-body anchor, behind-element candidate plane, negative-result cache, useful overwatch and continuous pacing ideas. Integrate as a distinct mechanised-support intent under existing vehicle movement/operation ownership only after tracing passenger element and original native route/release writers. Preserve existing live-fire corridor rather than relabelling its anchor. Do not copy fixed2D path proof, unbounded source infantry loop, live hidden target position, forceSpeed0 or repeated doMove without original operation identity and finite handback.",
+    "limits": "Read-only source/CBE comparison, no new runtime/candidate/build or claimed parity/physical acceptance. Source straight segment is not native planned route or swept-volume proof. Source returned true/arrival radius is not native writer retirement.",
+    "nextConcreteWork": "Trace source registerJob/tracked passenger element and updateJob->updateSupport->releaseJob/releaseVehicle route/movement writers. Compare existing CBE passenger task owner; define one finite mechanised-support operation before coding. Retain current verified candidate and preserve newer authored/Zeus/specialist tasks."
+  }
+}

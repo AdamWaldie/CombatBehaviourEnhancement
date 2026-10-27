@@ -87,6 +87,11 @@ private _type = toUpperANSI (waypointType _waypoint);
 private _script = toLowerANSI (waypointScript _waypoint);
 private _landingType = _type in ["LAND", "UNLOAD", "TR UNLOAD", "GETOUT"];
 if (_type == "SCRIPTED" && {_script find "land" >= 0}) then {_landingType = true};
+// Full selected-node reads here are needed only after an approach timeout.
+// Active-controller order replacement remains a separate check.
+private _timedOutOrder=_helicopter getVariable ["CBE_ImprovedHelicopterLanding_TimedOutOrder",[]];
+if (_timedOutOrder isNotEqualTo [] && {_timedOutOrder isEqualTo
+    [_group,_pilot,_index,[_group,"",false,_index] call CBE_fnc_AuthoredRouteReceipt]}) exitWith {0.5};
 private _signature = [_index, _position, _type, _script];
 if !(_signature isEqualTo _lastSignature) then {
     _state set ["lastSignature", _signature];

@@ -2,6 +2,11 @@
  * Author: WaldoTheWarfighter
  * Native planner data waits and delayed search preserve existing intent and original budgets.
  * Native fleeing vetoes launcher task admission, relocation and final fire revalidation.
+ * LauncherMove owns durable request/cancellation proof outside firing gates.
+ * Relocation refuses water/steep fallback terrain. Native destination and physical arrival
+ * use absolute-height separation; cleanup retires only the exact recorded movement point.
+ * Original owner/epoch/operation/route and pre-request native state keep a delayed doMove
+ * inside its original ten-second budget. A different task cannot borrow that reservation.
  * Puts the squad's best ready loaded anti-tank gunner onto known armour, clear of backblast
  * and the shared forward friendly/civilian cone and magazine-aware blast veto.
  * Reserve-only or reloading carriers cannot monopolise selection over a ready gunner.
@@ -66,6 +71,7 @@ private _actorAvailable={
     !isNull _actor && {local _actor} && {group _actor == _group}
         && {[_actor] call CBE_fnc_CortexCombatEffective} && {!fleeing _actor}
         && {!(_actor in _protectedParticipants)}
+        && {time >= (_actor getVariable ["CBE_Cortex_LauncherAfter",-1])}
         && {!([_actor] call CBE_fnc_CortexActorMoveReserved)}
         && {!isPlayer _actor} && {isNull remoteControlled _actor}
         && {isNull (_actor getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
@@ -82,31 +88,10 @@ private _actorAvailable={
             "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
 };
 private _now = time;
-private _relocation = _state getOrDefault ["antiArmourRelocation",[]];
-private _relocationBlocks = false;
-if (count _relocation == 3) then {
-    _relocation params ["_relocating","_relocationSpot","_relocationUntil"];
-    private _stillOurs = alive _relocating && {local _relocating} && {group _relocating == _group}
-        && {((expectedDestination _relocating) select 0) distance2D _relocationSpot < 1};
-    if (_stillOurs && {_relocating distance2D _relocationSpot > 2} && {_now < _relocationUntil}) then {
-        _relocationBlocks = true;
-    } else {
-        if (!isNull _relocating && {local _relocating}) then {
-            private _actorMove=_relocating getVariable ["CBE_Cortex_ActorMove",[]];
-            if (_actorMove isEqualType [] && {count _actorMove == 3}
-                && {(_actorMove select 0) isEqualType ""} && {(_actorMove select 0) == "ANTI_ARMOUR"}
-                && {(_actorMove select 1) isEqualType []} && {count (_actorMove select 1) == 3}
-                && {(_actorMove select 1) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
-                && {(_actorMove select 2) isEqualType 0} && {finite (_actorMove select 2)}
-                && {(_actorMove select 1) distance2D _relocationSpot < 1}
-                && {(_actorMove select 2) == _relocationUntil}) then {
-                _relocating setVariable ["CBE_Cortex_ActorMove",nil];
-            };
-        };
-        _state deleteAt "antiArmourRelocation";
-        if (_now >= _relocationUntil || {!_stillOurs}) then {[_state,"antiArmourMove",10] call CBE_fnc_CortexCooldown};
-    };
-};
+// Public launcher proof outlives this local group-state entry and firing admission.
+private _relocationBlocks=(units _group) findIf {
+    (_x getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap
+} >= 0;
 if (_relocationBlocks || {[_state,"antiArmourMove"] call CBE_fnc_CortexCooldown}) exitWith {false};
 private _drill = _state getOrDefault ["drill",createHashMap];
 private _moving = if ((_drill getOrDefault ["stage",""]) in ["START","MOVE"]) then {
@@ -188,10 +173,19 @@ if (_blocked) exitWith {
     if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};
     if !([_gunner] call _actorAvailable) exitWith {false};
     private _spot = ([(getPosATL _gunner) getPos [6, (_enemyPos getDir _gunner) + selectRandom [-70, 70]], _enemyPos, 8, [], _group,"COVER",_gunner] call CBE_fnc_CortexFindCover) select 0;
+    // FindCover returns its input seed when no screened cover exists. Open-ground
+    // sidestepping may still free backblast, but the fallback is not validated terrain.
+    if (surfaceIsWater _spot || {(surfaceNormal _spot select 2) < 0.55}) exitWith {
+        [_state,"antiArmourMove",3] call CBE_fnc_CortexCooldown;
+        false
+    };
     if (!call _mayRelocate || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _relocationRoute}) exitWith {false};
-    _gunner doMove _spot;
-    _gunner setVariable ["CBE_Cortex_ActorMove",["ANTI_ARMOUR",+_spot,_now+10]];
-    _state set ["antiArmourRelocation",[_gunner,+_spot,_now+10]];
+    private _requestDestination=expectedDestination _gunner;
+    private _requestBefore=[currentCommand _gunner,
+        [+(_requestDestination select 0),_requestDestination select 1,_requestDestination select 2],formLeader _gunner];
+    private _requestContext=[_group,clientOwner,_group getVariable ["CBE_AIPass_Epoch",0],
+        _group getVariable ["CBE_OperationGeneration",0],_relocationRoute];
+    ["START",_gunner,_spot,_requestContext,_requestBefore] call CBE_fnc_LauncherMove;
     false
 };
 if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};

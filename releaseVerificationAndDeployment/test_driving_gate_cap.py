@@ -83,6 +83,17 @@ class DrivingGateCapTests(unittest.TestCase):
         self.assertIn('!_leadTrafficBlocked',convoy)
         self.assertIn('!_trafficBlocked',convoy)
     def test_opening_request_has_server_authority_and_complete_named_payload(self):
+        for name in ('drivingGateRequest','drivingGateOpenServer','drivingGateCloseServer'):
+            body=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text(encoding='utf-8')
+            self.assertIn('[getPosWorld _gate,vectorDir _gate,vectorUp _gate,getObjectScale _gate]',body)
+            self.assertNotIn('[getPosWorld _gate,vectorDir _gate,vectorUp _gate]',body)
+            self.assertIn('isObjectHidden _gate',body)
+        close=(ROOT/'addons/vehicles/functions/drivingGateCloseServer.sqf').read_text(encoding='utf-8')
+        self.assertLess(close.index('["GATE_HIDDEN"] call _retire'),close.index('== "CLOSING"'))
+        self.assertLess(close.index('["GATE_HIDDEN"] call _retire'),close.index('_gate animateSource'))
+        retired=close.split('private _retire=',1)[1].split('if (isNull _gate',1)[0]
+        self.assertIn('_reason == "CLOSED_OBSERVED"',retired)
+        self.assertNotIn('GATE_HIDDEN',retired)  # Hiding cannot publish a closure proof.
         owner=(ROOT/'addons/vehicles/functions/drivingGateRequest.sqf').read_text()
         server=(ROOT/'addons/vehicles/functions/drivingGateOpenServer.sqf').read_text()
         for key in ['group','vehicle','gate','route','transform','driver','commander','convoyRevision','expires']:

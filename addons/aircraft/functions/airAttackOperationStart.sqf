@@ -8,6 +8,8 @@
  * can resume cleanup/egress after target deletion. Ended jobs with lost lease/crew epoch retire
  * through exact failure cleanup instead of leaving the attack-active flag stranded.
  * A new generation invalidates older local work after replacement or locality adoption.
+ * Fresh brains require native aircraft mobility and positive fuel. Existing jobs retain their
+ * original lifecycle so their executor can perform exact owned cleanup after readiness is lost.
  * Arguments: 0 attack job <HASHMAP>; 1 initial delay <NUMBER>, default 0.
  * Return Value: Boolean - true when an active brain exists for the aircraft.
  * Current callers: CBE_fnc_CortexDiscover and CBE_fnc_CortexCombinedArmsLocal.
@@ -75,6 +77,9 @@ if (count _current > 0 && {!(_current getOrDefault ["cancelled",false])} && {!(_
     if (!_started) then {[_current,"FSM_RESTART_FAILED"] call _retireExecutor};
     _started
 };
+// Do not borrow a flight lease or start a new FSM for an aircraft unable to make a powered run.
+// Keep this after the existing-job path: an old live job must still reach its owned retirement.
+if (!alive _aircraft || {!canMove _aircraft} || {fuel _aircraft <= 0}) exitWith {false};
 if (count _current > 0) then {_current set ["cancelled",true];_current set ["cancelReason","REPLACED"]};
 // Bind only a new job; repeated admission must not rewrite the active job's
 // original group before its identity check.

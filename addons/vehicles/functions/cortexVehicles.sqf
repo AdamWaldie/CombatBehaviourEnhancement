@@ -6,6 +6,10 @@
  * Passenger stop/continuation proof retains the full current native waypoint identity;
  * same-position policy, script, attachment or synchronization edits end old cooperation.
  * Reactive mortar reports carry current native believed geometry and its server-time observation.
+ * A heavily suppressed static-mortar gunner prefers reachable classified smoke when enabled;
+ * otherwise its existing HE request remains. Selection is once per fresh danger generation,
+ * using current local crew suppression and the existing ammunition query/mission owner.
+ * No random ammunition choice, hidden live aim point or additional firing worker is added.
  * Active vehicle manoeuvres cancel on their master or owning feature gate before outcome evaluation.
  * Active jinks retire when either original movement-control seat changes or gains a protected task.
  * Refused standoff native admission releases its exact attempted generation and leases;
@@ -117,6 +121,9 @@
  */
 
 params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_enemies", [], [[]]], ["_lifecycleOnly",false,[true]]];
+if ((_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap) then {
+    [_group,"SERVICE"] call CBE_fnc_VehicleTurnRetire;
+};
 private _vehicleMove = _state getOrDefault ["movementLease",[]];
 private _activeVehicleMove = false;
 if (_vehicleMove isNotEqualTo []) then {
@@ -320,22 +327,7 @@ if (_vehicleMove isNotEqualTo []) then {
                 };
             };
             if (_finishedOwner == "VEHICLE_ORIENT") then {
-                private _orientState=_state getOrDefault ["vehicleDangerOrient",[]];
-                private _orientVehicle=_orientState param [1,objNull,[objNull]];
-                if (!isNull _orientVehicle && {local _orientVehicle}) then {
-                    private _marker=_orientVehicle getVariable ["CBE_Danger_VehicleOrient",[]];
-                    if (_marker param [1,grpNull,[grpNull]] == _group
-                        && {(_marker param [4,-1,[0]]) == _generation}) then {
-                        if (!_orientControllerExternal && {!_orientDriverProtected} && {!_orientCommanderProtected} && {!_orientOrderChanged} && {!_orientOperationChanged} && {!_orientInputChanged}
-                            && {private _cleanupInput=vehicleMoveInfo _orientVehicle;
-                                !(toUpperANSI (_cleanupInput param [0,"",[""]]) in ["BACK","DIRECTBYCOMANDER"])
-                                    && {toUpperANSI (_cleanupInput param [1,"",[""]]) == (_marker param [8,"",[""]])}}
-                            && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
-                            _orientVehicle sendSimpleCommand "STOPTURNING";
-                        };
-                        _orientVehicle setVariable ["CBE_Danger_VehicleOrient",nil,true];
-                    };
-                };
+                [_group,"RELEASE"] call CBE_fnc_VehicleTurnRetire;
                 _state deleteAt "vehicleDangerOrient";
             };
             [_group,_finishedOwner,false] call CBE_fnc_CortexOwnershipLease;
@@ -350,6 +342,7 @@ if (_vehicleMove isNotEqualTo []) then {
 // Movement ownership blocks only another destination. Reporting, dismount handling and
 // gunnery remain composable for the duration of the physical move.
 private _movementOwned = _activeVehicleMove
+    || {(_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap}
     || {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []};
 if (_lifecycleOnly) exitWith {_movementOwned};
 private _vehicles = [];
@@ -707,7 +700,22 @@ if (_dangerDismount isNotEqualTo []) then {
                     && {[] call _mayIssueVehicle}) then {
                     _state set ["vehicleDangerReaction",[_dangerGeneration,_vehicle,_dangerSource,serverTime]];
                     _vehicle setVariable ["CBE_Danger_VehicleReaction",[_dangerGeneration,_gunner,_dangerSource,serverTime],true];
-                    [_vehicle,+_dangerBelief,25,"HE",1,false,"DANGER",objNull,_dangerSource,grpNull,serverTime] call CBE_fnc_CortexArtilleryFire;
+                    // Smoke is a purposeful screening response under heavy crew pressure,
+                    // not a random substitute for HE or a second mission after rejection.
+                    // The existing owner rechecks smoke epochs, rounds, range and safety.
+                    private _dangerMode="HE";
+                    if (!isNull _gunner && {local _gunner} && {getSuppression _gunner >= 0.5}
+                        && {[_group,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+                        && {([_vehicle,true,_dangerBelief] call CBE_fnc_CortexArtilleryAmmo) != ""}) then {
+                        _dangerMode="SMOKE";
+                    } else {
+                        if (!isNull _gunner && {local _gunner} && {getSuppression _gunner < 0.5}
+                            && {(getPosATL _vehicle) getEnvSoundController "night" > 0.7}
+                            && {([_vehicle,"ILLUM",_dangerBelief] call CBE_fnc_CortexArtilleryAmmo) != ""}) then {
+                            _dangerMode="ILLUM";
+                        };
+                    };
+                    [_vehicle,+_dangerBelief,25,_dangerMode,1,false,"DANGER",objNull,_dangerSource,grpNull,serverTime] call CBE_fnc_CortexArtilleryFire;
                 };
                 if (_knownHostile && {_freshGeneration} && {!(_emplacementUnsafe || {_disabledUnsafe})}
                     && {!(_vehicle isKindOf "LandVehicle") || {!_combinedGroundFireOwned}}

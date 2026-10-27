@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Alternative-entry and yielding budgets require the exact visit nonce; unbound records
  * cannot grant fresh work. Search/yield limits and original server clocks remain finite.
  * Grenade evasion retains an exact owned HOLD during its initial native-ack wait;
@@ -901,9 +902,10 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
         _result
     };
     private _building=_job get "building";
+    if (isObjectHidden _building) exitWith {[true,"BUILDING_HIDDEN"] call _finish};
     private _buildingTransform=_job getOrDefault ["buildingTransform",[]];
     if (_buildingTransform isNotEqualTo []
-        && {_buildingTransform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}) exitWith {
+        && {_buildingTransform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}) exitWith {
         [true,"BUILDING_MOVED"] call _finish
     };
     private _operationGeneration=_job getOrDefault ["operationGeneration",-1];
@@ -942,7 +944,7 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
             && {!isNull _building} && {alive _building}
             && {!([_group] call CBE_fnc_CortexExternalTakeover)}
             && {_buildingTransform isEqualTo []
-                || {_buildingTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}
+                || {_buildingTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}}
             && {_nativeOrderReceipt isEqualTo []
                 || {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _nativeOrderReceipt}}
     };
@@ -3298,6 +3300,26 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                     private _pointFloor=(getPosASL _point) select 2;
                     if (!_approachingEntry && {_entered || {abs (_pointFloor-_targetFloor) > 1.5}}
                         && {(_approach param [0,-1]) != _positionIndex}) then {
+                        // Budget relevant floor candidates, not an arbitrary prefix of the model.
+                        // Large buildings may list every lower-floor node before an upper landing.
+                        // Scan only the admitted512-position domain; stop once the old24/32
+                        // candidate allowance is full. No additional geometry probes are granted.
+                        private _floorCandidates={
+                            params ["_nodes","_floor","_band","_limit",["_indices",false]];
+                            private _matches=[];
+                            {
+                                if (count _matches >= _limit) exitWith {};
+                                if (_indices && {!(_x isEqualType 0) || {!finite _x}
+                                    || {_x < 0} || {_x != floor _x} || {_x >= count _positions}}) then {continue};
+                                private _node=if (_indices) then {_positions select _x} else {_x};
+                                if (_node isEqualType [] && {count _node == 3}
+                                    && {_node findIf {isNil "_x" || {!(_x isEqualType 0)} || {!finite _x}} < 0}
+                                    && {abs (((AGLToASL _node) select 2)-_floor) <= _band}) then {
+                                    _matches pushBack _x;
+                                };
+                            } forEach (_nodes select [0,512]);
+                            _matches
+                        };
                         // Retain actor-specific entry and vertical access history. An actor
                         // already inside on the destination floor need not revisit its buddy's
                         // occupied security node before requesting the next room.
@@ -3323,7 +3345,7 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                             && {(_probes getOrDefault [_probeKey,-1]) != count _cleared}) then {
                             _probes set [_probeKey,count _cleared];
                             _job set ["interiorAccessProbes",_probes];
-                            private _accessNodes=_cleared select [0,24];
+                            private _accessNodes=[_cleared,_targetFloor,1.5,24,true] call _floorCandidates;
                             private _nearest=1e12;
                             {
                                 private _node=_positions select _x;
@@ -3356,20 +3378,19 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                                 if (abs (((AGLToASL _node) select 2)-_pointFloor) <= 0.75) then {
                                     _sourceRanks pushBack [0,(getPosASL _point) vectorDistance (AGLToASL _node),+_node];
                                 };
-                            } forEach (_cleared select [0,24]);
+                            } forEach ([_cleared,_pointFloor,0.75,24,true] call _floorCandidates);
                             {
                                 if (abs (((AGLToASL _x) select 2)-_pointFloor) <= 0.75) then {
                                     _sourceRanks pushBack [1,(getPosASL _point) vectorDistance (AGLToASL _x),+_x];
                                 };
-                            } forEach ((_job getOrDefault ["transitPositions",[]]) select [0,32]);
+                            } forEach ([_job getOrDefault ["transitPositions",[]],_pointFloor,0.75,32] call _floorCandidates);
                             _sourceRanks sort true;
                             private _sourceNode=if (_sourceRanks isNotEqualTo []) then {+((_sourceRanks select 0) select 2)} else {[]};
                             private _bridgeKey=str [_entryIndex,round (_pointFloor/1.5),round (_targetFloor/1.5),_sourceNode];
                             if (_targetFloor > _pointFloor+1.5 && {!(_bridgeKey in _bridges)} && {count _bridges < 8}) then {
                                 private _bridge=[];
                                 if (_sourceNode isNotEqualTo []) then {
-                                    private _landingNodes=(_job getOrDefault ["navigationPositions",[]]) select [0,32];
-                                    _landingNodes=_landingNodes select {abs (((AGLToASL _x) select 2)-_targetFloor) <= 0.75};
+                                    private _landingNodes=[_job getOrDefault ["navigationPositions",[]],_targetFloor,0.75,32] call _floorCandidates;
                                     private _landingRanks=_landingNodes apply {[_sourceNode vectorDistance _x,_x]};
                                     _landingRanks sort true;
                                     if (_landingRanks isNotEqualTo []) then {
@@ -3422,7 +3443,7 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
                             private _accessCache=_job getOrDefault ["transitAccessCache",createHashMap];
                             if (!(_floorKey in _accessCache) && {count _accessCache < 8}) then {
                                 private _access=[];
-                                private _transit=(_job getOrDefault ["transitPositions",[]]) select [0,32];
+                                private _transit=[_job getOrDefault ["transitPositions",[]],_targetFloor,0.75,32] call _floorCandidates;
                                 {
                                     if (_access isNotEqualTo []) exitWith {};
                                     if (abs (((AGLToASL _x) select 2)-_targetFloor) <= 0.75) then {

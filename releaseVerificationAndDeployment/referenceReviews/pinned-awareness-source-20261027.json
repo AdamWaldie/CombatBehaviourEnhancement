@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-27T07:48:11.135983+00:00",
+  "workshopId": "3785056303",
+  "name": "Pinned Down Combat Awareness",
+  "sourceBase": "eec088d84f704d062bb279f45e72b71a0625128b",
+  "source": {
+    "archiveRoot": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708",
+    "snapshot": "3785056303/extracted-20261011/pd_combat_awareness",
+    "declaredVersion": "0.1.1 TEST12 INTEGRAL SUPPRESSOR RESOLVER",
+    "bodyComments": "hearGunfire describes TEST15 group processing; comments do not establish a later installed version.",
+    "manifestSHA256": "95c18276b0b4c5ba0903e94bf8226aef329bbfb76f507bd44351e468210f956a",
+    "archiveFilesVerifiedBeforeAndAfter": 320,
+    "archiveFailures": 0,
+    "readableFilesReviewed": 14,
+    "sourceHashes": {
+      "BIS_AddonInfo.hpp": "0dab6159f1b5468ea2bc1c17e3ab886fe8b440a042d42519263d4d463184eb45",
+      "config.cpp": "6d570834d42994dfad7df013b19a9a1742123e207bf3a9499c3d45d6c7238c66",
+      "functions/fn_hearGunfire.sqf": "62a3a4b5222466f108c60df6d26acfe688f4be93010613e54b29a88549e650fe",
+      "functions/fn_initDebugActions.sqf": "ba1a7801737492eb34632015c430e9a3f9fac2a118a9f42c973853d75d24fe12",
+      "functions/fn_installScriptErrorTracer.sqf": "b3502c9b85225fde4c9311f3986b5efd70ebacc85a891f171ecef703b4393650",
+      "functions/fn_postInit.sqf": "e65c0edfea17d42e1a531fdb47253ee71200a79c793ebd365a323bd948750eb0",
+      "functions/fn_preInit.sqf": "b503d36fe6ceb12d3d8dbdb55fb151cc0e167009a5a60e6022d1fbbee68cba32",
+      "functions/fn_resetTraceCounters.sqf": "96f1879e793eea76b7a0327f6b44a25e23bc651a953e4bfa70c5496228cfe7b5",
+      "functions/fn_syncSettings.sqf": "527ba2be4846522a72e074746ed20eb533c15f734616cd68d2e61710382c0974",
+      "functions/fn_trace.sqf": "f6605b10f21995715a32cedc4f7b531a69c6a28e8ad8393946330731d386a421",
+      "functions/fn_traceCounter.sqf": "281abdb0db7a8f1e7b0033c37391f5fcca10ee061eeeb3cb339a2571d3402394",
+      "functions/fn_traceSummary.sqf": "147360770e17c487d6ce69338e70fc24fe47c8f120b2cb81cec3887d90e49a63",
+      "XEH_postInit.sqf": "6643d39e981463852f6e327ec9002c027d57824efa0eb3452cfe09825b6eb292",
+      "XEH_preInit.sqf": "62a992c6b91eba9671cfe24938b44585d10d0fb04ae1f073c34b27c9d5ee187e"
+    },
+    "originalPbosOrSignaturesRecovered": false,
+    "upstreamCodeExecuted": false,
+    "archiveChanged": false
+  },
+  "scope": "All14 recovered readable config/startup/settings/runtime/debug bodies inspected. Only this extracted snapshot, not missing PBO packaging/compiled equivalence, licence clearance or physical acceptance. CBE HearingLocal fully read; selected listener init/stop/locality and area-report contract compared, not every downstream area-response executor.",
+  "dispositions": [
+    {
+      "files": [
+        "config.cpp",
+        "BIS_AddonInfo.hpp",
+        "XEH_preInit.sqf",
+        "XEH_postInit.sqf",
+        "functions/fn_preInit.sqf",
+        "functions/fn_postInit.sqf"
+      ],
+      "source": "Explicit compile/XEH startup; CAManBase/LandVehicle/Air/Ship Fired class handlers; per-machine init guard; CBA settings registration.",
+      "decision": "Retain event-driven locality intent through existing CBE leader FiredNear listener and its owner cleanup. Do not add a second global Fired intake or import startup/config dependencies."
+    },
+    {
+      "files": [
+        "functions/fn_hearGunfire.sqf"
+      ],
+      "source": "Normalises Fired layouts5/6 and actual gunner group; one accepted event per firing-group cooldown before sound classification; scans allGroups and filters local hearing groups, optional player exclusion and friendly-fire hearing.",
+      "decision": "Keep native source/platform eligibility and recipient locality intent. Existing CBE native FiredNear callback has a different documented layout and range. Reject global allGroups scans; sender-group gating can let a quiet first shot suppress a later loud source-group cue. Keep CBE recipient cadence and uncertain area, no new sender roster."
+    },
+    {
+      "files": [
+        "functions/fn_hearGunfire.sqf"
+      ],
+      "source": "Attachment presence, mode soundTypeIndex, sound-name signatures, low audibleFire and hard-coded SOG weapon aliases classify quiet fire. Generic two-entry sounds alone is explicitly not sufficient, but name signatures can still overclassify.",
+      "decision": "Adapt selected-sound intent, improve metadata resolution. Use native ItemInfo soundTypeIndex to select the actual event muzzle/mode sounds entry; no arbitrary presence or substring/weapon-name alias. Supported quiet class must exist. Existing low positive audibleFire policy remains. Unknown/legacy/custom metadata needs separate evidence, not guessed compatibility."
+    },
+    {
+      "files": [
+        "functions/fn_hearGunfire.sqf"
+      ],
+      "source": "Within configured1000m/100m ranges, leader spotDistance/spotTime skillFinal affects tiny reveal gain; unbounded hearingKnowledge rows accumulate per source group with no decay and reveal the current firing platform up to knowledge4.",
+      "decision": "Reject indefinite source-group identity accumulation and object reveal from anonymous sound. Preserve authored skills and existing quantised50m CBE area reports with20s expiry; actual native FiredNear reach and10s accepted recipient cadence remain. Wider anonymous hearing remains a capability gap, not full source parity."
+    },
+    {
+      "files": [
+        "functions/fn_syncSettings.sqf"
+      ],
+      "source": "Every sync writes each local setting publicly; callbacks can originate on each machine.",
+      "decision": "Do not import a parallel settings transport or let joining machines rebroadcast stale defaults. Existing CBE authoritative CBA configuration remains."
+    },
+    {
+      "files": [
+        "functions/fn_trace.sqf",
+        "functions/fn_traceCounter.sqf",
+        "functions/fn_traceSummary.sqf",
+        "functions/fn_resetTraceCounters.sqf",
+        "functions/fn_installScriptErrorTracer.sqf",
+        "functions/fn_initDebugActions.sqf"
+      ],
+      "source": "Bounded trace/error text, counters and clipboard actions. Debug installs a0.5s PFH that remains installed when disabled; error/action cleanup is not a complete lifecycle.",
+      "decision": "Use existing CBE diagnostics. Do not import permanent per-source debug workers, player addAction/hint surfaces or raw source UI."
+    }
+  ],
+  "implementation": {
+    "owner": "addons/infantry/functions/cortexHearingLocal.sqf existing owner-local leader FiredNear listener",
+    "change": "Infantry inspect at most16 native weapon rows, select the event weapon attachment and read ItemInfo soundTypeIndex (default0 absent). Resolve event muzzle/mode with weapon-mode fallback. Finite nonnegative integer in-range index selects one sounds entry; only an existing canonical quiet sound class qualifies. A sole/first quiet mode handles integral weapons; normal paired modes with index0 remain ordinary. Vehicle events skip infantry inventory.",
+    "preserved": "No global hook, world/group scan, identity/reveal/skill write, new cache/controller/worker/timer or hearing-range increase. Existing eligibility, hostile source-side, cooldown,20m quiet cutoff,50m quantisation and20s report expiry remain."
+  },
+  "nativeConfigEvidence": {
+    "snapshot": ".qa/native-ammo-classification-20261027/weapons_f-config.json",
+    "sha256": "45841d684b1efe215d96fd91b06e1f7687378516bde06840493a9b2fc1bf71b6",
+    "Mode_SemiAuto_sounds": [
+      "StandardSound",
+      "SilencedSound"
+    ],
+    "meaning": "Normal native base modes expose both variants; presence of SilencedSound is not evidence that it is selected. Config snapshot only, not final merged runtime config.",
+    "documentation": [
+      "https://community.bistudio.com/wiki/Arma_3%3A_Weapon_Config_Guidelines",
+      "https://community.bistudio.com/wiki/Arma_3_Sound%3A_ExampleWeaponConfig"
+    ]
+  },
+  "validation": {
+    "fullTests": 1498,
+    "compiledSQF": 449,
+    "pboCount": 11,
+    "newTestCases": 0,
+    "focusedExistingChecks": 1,
+    "regressionBefore": ".qa/handovers/pinned-awareness-hearing-regression-before.log",
+    "buildLog": ".qa/handovers/pinned-awareness-hearing-build-eec088d8.log",
+    "candidate": ".qa/candidates/pinned-awareness-hearing-eec088d8",
+    "fingerprint": "9f9959564a7603605d69cbd7f316d31132067b4209d003f1e8a3a414298751e2",
+    "independentLog": ".qa/handovers/pinned-awareness-hearing-independent.log",
+    "meaning": "Static source contracts and compilation/package verification; no Arma execution or acoustic propagation proof."
+  },
+  "remaining": [
+    "Native/legacy/custom sound metadata and actual perceived audibility require physical testing. Canonical sound names are declared intent, not measured volume.",
+    "Long-range anonymous sound observation, skill-sensitive uncertainty and broader sensing remain independent capability decisions; no source-wide behaviour parity claimed.",
+    "Recipient owner/leader changes, normal/HC, repeated cue balance and whole-runtime performance remain unverified.",
+    "Original PBO/container history and reuse licensing are separate from readable extracted-source availability."
+  ],
+  "physicalAcceptance": false,
+  "performanceMeasured": false,
+  "scoresChanged": false,
+  "audits": "PAUSED"
+}

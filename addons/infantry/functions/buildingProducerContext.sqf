@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Verify the original private clearance producer for component serialization.
  * Locality/authority: Local read-only check. LIVE requires current group locality;
  * FROZEN requires actual locality loss, original producer identity and the existing
@@ -29,7 +30,7 @@ isNil {
             || {!((_context select 3) isEqualType "")} || {(_context select 3) == ""}
             || {_context isNotEqualTo (_group getVariable ["CBE_Cortex_ClearVisitContext",[]])}
             || {(_context select 0) isNotEqualTo _building}
-            || {(_context select 1) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+            || {(_context select 1) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
             || {(_context select 2) isNotEqualTo (_job getOrDefault ["hardDeadline",-1])}) exitWith {false};
         private _until=if (_phase == "EGRESS") then {_job getOrDefault ["egressDeadlineServer",-1]}
             else {_job getOrDefault ["hardDeadline",-1]};

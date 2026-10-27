@@ -8,6 +8,8 @@
  * controller, pending/active Cortex attack, or missile-defence lease cancels this correction before
  * another impulse is applied. Terrain clearance, pilot, damage, sling-load, locality and timeout
  * checks also fail safe by releasing immediately.
+ * Full authored waypoint identity includes conditions, timeouts, attachment and synchronization edits.
+ * It is re-read at observation and the final impulse boundary, with no cross-sleep authority cache.
  * Pilot/group replacement, waypoint edits and any player, curator or specialist takeover cancel
  * the current correction.
  * Locality and authority: Scheduled only on the current aircraft owner. It changes velocity
@@ -42,14 +44,16 @@ if (_generation < 0) then {_generation=_aircraft getVariable ["CBE_HelicopterDec
 private _entryPilot=currentPilot _aircraft;
 if (isNull _entryPilot) exitWith {false};
 private _entryGroup=group _entryPilot;
-private _orderSignature={
-    private _index=currentWaypoint _entryGroup;
-    if (_index >= count waypoints _entryGroup) exitWith {[_index,count waypoints _entryGroup]};
-    private _wp=[_entryGroup,_index];
-    [_index,count waypoints _entryGroup,waypointPosition _wp,waypointType _wp,waypointScript _wp,waypointSpeed _wp]
-};
+// Use the same complete authored identity as other finite task owners. A same-index
+// condition/timeout/synchronization edit is a new mission intent, even at the same position.
+private _orderSignature={[_entryGroup] call CBE_fnc_NativeOrderReceipt};
 private _entryOrder=call _orderSignature;
-private _brakingTarget=if (count _entryOrder > 2 && {(_entryOrder select 3) == "MOVE"}) then {+(_entryOrder select 2)} else {[]};
+private _entryWaypoint=[_entryGroup,currentWaypoint _entryGroup];
+// The receipt is opaque identity. Read the optional braking point independently;
+// implicit spawn nodes do not establish an authored approach destination.
+private _brakingTarget=if ((_entryOrder param [1,-1]) >= 0 && {waypointType _entryWaypoint == "MOVE"}) then {
+    +(waypointPosition _entryWaypoint)
+} else {[]};
 private _entryDistance=if (_brakingTarget isEqualTo []) then {0} else {_aircraft distance2D _brakingTarget};
 private _entryVelocity=velocity _aircraft;
 private _entryHorizontal=sqrt ((_entryVelocity select 0)^2+(_entryVelocity select 1)^2);

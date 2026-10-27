@@ -33,5 +33,11 @@
   "validation": "Preserved source/current interface hashes recorded; JSON and HBQ index checked. Runtime unchanged; reuse operation-bounded-admission-17c7f3d8/a6ae3d5a37e1ed0b950054046b8e9d80380cb5f3971dc602ecc5953ad18ee83d offline candidate with existing dirty-source limits. No repeat full build.",
   "acceptance": false,
   "scoresChanged": false,
-  "audits": "PAUSED"
+  "audits": "PAUSED",
+  "primaryEvidenceRecheck20261026": {
+    "url": "https://dev.arma3.com/post/spotrep-00064",
+    "result": "Official note still documents negative car/tank values and bounding-box-centre car semantics. No current tank/modded calibration recovered. Do not remove WET_SUPPORT.",
+    "independentWork": "Current convoy pacing already has continuous onset/outer-band reserve and capture; no speculative retuning. Recovered3496308284 and fixed its CBE order lifecycle instead.",
+    "runtimeFordChange": false
+  }
 }

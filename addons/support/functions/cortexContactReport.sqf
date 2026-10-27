@@ -3,6 +3,8 @@
  * Shares what a squad in contact can see with nearby friendly squads, by radio or by voice.
  *
  * Up to three recent believed positions are sent through the server to current receiving owners.
+ * The recorded contact side lets an allied receiver reject reports about its own allies.
+ * It is observation metadata, not a target object or permission to engage.
  * Report confidence comes from one native group-knowledge lookup per contact. Unit knowsAbout
  * reads shared group knowledge too; sampling squad members repeats the same query.
  * Receivers store an expiring area report for investigation, never reveal or track a target object.
@@ -33,7 +35,7 @@ if ((units _group) findIf {alive _x && {local _x} && {!isPlayer _x}} < 0) exitWi
 private _reports = (_visible select [0,3]) apply {
     private _target=_x select 0;
     private _confidence=_group knowsAbout _target;
-    [+(_x select 1),1 min _confidence,serverTime - (_x select 2)]
+    [+(_x select 1),1 min _confidence,serverTime - (_x select 2),side _target]
 };
 [_group,_reports,serverTime] remoteExecCall ["CBE_fnc_CortexReportServer",2];
 count _reports
