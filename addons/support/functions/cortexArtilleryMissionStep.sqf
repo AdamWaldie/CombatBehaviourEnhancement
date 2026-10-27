@@ -75,6 +75,9 @@ private _crewGroup=if (isNull gunner _battery) then {grpNull} else {group gunner
 private _requesterBlocked=!isNull _requester && {!([_requester,"CBE_AIPass_Artillery_Enable",false] call CBE_fnc_CortexFeatureEnabled) || {!([_requester,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)}};
 private _smokeBlocked=(_mission get "mode") == "SMOKE"
     && {!([_crewGroup,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)};
+private _illuminationBlocked=(_mission get "mode") == "ILLUM"
+    && {!_danger || {!(_battery isKindOf "StaticMortar")}
+        || {(getPosATL _battery) getEnvSoundController "night" <= 0.7}};
 private _counterExpired=(_mission get "purpose") == "COUNTER"
     && {(_mission getOrDefault ["counterGeneration",-1]) != (missionNamespace getVariable ["CBE_AIPass_CounterGeneration",0])};
 private _fireGenerationName=switch (_mission get "purpose") do {
@@ -117,7 +120,7 @@ if ((_mission getOrDefault ["positionSession",[]]) isNotEqualTo [] && {(_mission
             || {serverTime >= (_session select 9)};
     };
 };
-private _blocked = _counterExpired || {_fireExpired} || {_smokeExpired} || {_smokeBlocked} || {_positionLost} || {_requesterBlocked} || {!alive _battery} || {!alive gunner _battery}
+private _blocked = _counterExpired || {_fireExpired} || {_smokeExpired} || {_smokeBlocked} || {_illuminationBlocked} || {_positionLost} || {_requesterBlocked} || {!alive _battery} || {!alive gunner _battery}
     || {combatMode group gunner _battery == "BLUE"} || {unitCombatMode gunner _battery == "BLUE"} || {time > (_mission get "deadline")}
     || {side group gunner _battery != (_mission get "side")}
     || {!([group gunner _battery] call CBE_fnc_CortexIsEligible)}

@@ -1289,7 +1289,8 @@
     "fingerprint": "5f5e592af6bb55fd46b847f8574b68d4f4d0c1576a561f7f24300daef9bad2b2",
     "buildLog": ".qa/handovers/reactive-mortar-smoke-9951c12d.log",
     "independentLog": ".qa/handovers/reactive-mortar-smoke-independent.log",
-    "remaining": "Illumination classification/selection and broader contextual mortar smoke planning remain gaps. Actual screen placement/effects, pressure threshold balance, HC execution/cancellation and measured cost remain unverified. No whole-source parity or acceptance increase. Audits paused. Unsigned development candidate from9951c12d plus working runtime; engineering notes postdate packaging."
+    "remaining": "Illumination classification/selection and broader contextual mortar smoke planning remain gaps. Actual screen placement/effects, pressure threshold balance, HC execution/cancellation and measured cost remain unverified. No whole-source parity or acceptance increase. Audits paused. Unsigned development candidate from9951c12d plus working runtime; engineering notes postdate packaging.",
+    "followup": "Illumination classification and initial reactive nighttime selection are implemented in reactiveMortarIllumination20261027. Earlier remaining list is historical; broader smoke planning and physical/balance/performance gaps remain."
   },
   "informationSharingAndOverwatch20261026": {
     "status": "ALLIED_AREA_REPORTING_IMPLEMENTED_OFFLINE_PHYSICAL_UNVERIFIED",
@@ -1476,5 +1477,29 @@
       "independentLog": ".qa/handovers/firing-position-final-bounded-independent.log",
       "sourceNote": "Unsigned dirty development from feddc020 plus this runtime patch. Final package includes the lifecycle description; engineering records postdate packaging. Not a clean release or physical acceptance. Earlier firing-position candidates/logs are superseded before the final pending-outcome publication correction."
     }
+  },
+  "reactiveMortarIllumination20261027": {
+    "status": "IMPLEMENTED_OFFLINE_PHYSICAL_PENDING",
+    "registeredGap": "mountedReadinessAndReactiveSmoke20261026.remaining: illumination classification/selection",
+    "source": "LAMBS brainVehicle static mortar branch. Retain nighttime native illumination intent; replace name heuristics, random ammo choice and unowned delayed repeat with CBE existing danger-fire owner.",
+    "baselineToPreserve": "Smoke priority under suppression, original danger fix/generation/expiry,120s danger cooldown, one mission/shot sequence, ammunition/range/ETA and friendly safety, explicit owner/crew/ROE/token/shot confirmation. Rejected illumination must never become HE.",
+    "change": "Explicit ILLUM ammunition selector and mission mode restricted to reactive static mortars at night. Classify every deployer branch as illumination without explosive/mixed payloads. Preserve bool HE/smoke callers. Carry mode through server admission and final owner shot; use existing Danger/VehicleGunnery controls, no new worker or forced crew policy.",
+    "cost": "Config-cached bounded smoke/illumination classification, native available-ammo/range queries and current environment night checks. No extra mission, timer, world discovery or spawned light. Costs unmeasured.",
+    "exit": "Relevant existing payload/range/danger admission and final shot contracts, complete offline build and independent verification. Physical light delivery, cancellation/locality, safety/balance/performance remain pending while audits paused.",
+    "classification": "Explicit HE/SMOKE/ILLUM mode; existing bool callers preserved. Every illumination leaf is native shotIlluminating with zero indirect/explosive effect. Weighted/string payload branches retain4-level/64-read bounds per kind, including zero-probability branches; mixed/unknown trees refuse. Smoke retains its previous explosive-field policy. Four-field profile cache rebuilds older shape; actual rounds/range stay live. Exact-magazine filter verifies the requested shell at owner issue without re-ranking to a different class.",
+    "lifecycle": "Quiet local gunner (suppression<0.5), native night controller>0.7 and a reachable available classified flare select ILLUM; heavy-pressure smoke retains priority. Restrict ILLUM to DANGER StaticMortar at server admission, continuation and final owner shot; recheck exact magazine there. Keep original10s danger-fix expiry, generation/mission/shot receipts,120s danger cooldown, one burst, existing round policy/range/ETA/friendly-distance and actual Fired confirmation. No mode replacement on rejection, no new mission/worker/setting or spawned light.",
+    "verification": {
+      "tests": 1498,
+      "compiledSQF": 449,
+      "PBOs": 11,
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/reactive-mortar-illumination-8f68d652",
+      "fingerprint": "ebc26d6999ffae7694bf55dfa447651e028a00120ea9fa3159b059474e01b28b",
+      "buildLog": ".qa/handovers/mortar-illumination-build-8f68d652.log",
+      "independentLog": ".qa/handovers/mortar-illumination-independent.log",
+      "sourceNote": "Unsigned dirty development from8f68d652 plus this runtime patch. Lifecycle docs included; engineering records postdate package. Not a clean release or physical acceptance."
+    },
+    "limits": "No physical flare delivery, effective lighting, native payload descent, modded ammunition coverage, dawn cancellation, HC locality, tactical balance or measured performance proof. Existing conservative normal artillery friendly radius may reject otherwise useful illumination. Source nickname/name heuristics and random/delayed-repeat firing were not copied. Broader contextual smoke planning remains open; no whole LAMBS parity uplift.",
+    "engineReference": "https://community.bistudio.com/wiki/Arma_3_Lights"
   }
 }

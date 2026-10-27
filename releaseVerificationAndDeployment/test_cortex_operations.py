@@ -11126,6 +11126,12 @@ class CortexOperations(unittest.TestCase):
                       '_dangerMode="SMOKE"','25,_dangerMode,1,false,"DANGER"'):
             self.assertIn(proof,selection)
         self.assertLess(selection.index('CBE_AIPass_ArtillerySmoke_Enable'),selection.index('CBE_fnc_CortexArtilleryAmmo'))
+        self.assertIn('_dangerMode="ILLUM"',selection)
+        self.assertIn('getSuppression _gunner < 0.5',selection)
+        self.assertIn('getEnvSoundController "night" > 0.7',selection)
+        self.assertIn('[_vehicle,"ILLUM",_dangerBelief] call CBE_fnc_CortexArtilleryAmmo',selection)
+        self.assertLess(selection.index('_dangerMode="SMOKE"'),selection.index('_dangerMode="ILLUM"'))
+
         self.assertNotIn('random',selection)
         self.assertEqual(danger.count('call CBE_fnc_CortexArtilleryFire'),1)
         for owner in (fire,step,shot):

@@ -23,6 +23,8 @@
  * which its effective commander already knows. It uses the same token, safety, warning and shot
  * confirmation path as other fire missions, but does not require the optional support-artillery
  * feature. Danger, Vehicles and Vehicle Gunnery are its three live gates.
+ * HE and SMOKE retain their existing purposes; ILLUM is only a nighttime DANGER static-mortar
+ * request. Missing or rejected illumination never schedules a second HE mission.
  * Arguments: 0: battery <OBJECT>, objNull selects a same-side gun for the spotter; 1: reported ATL <ARRAY>; 2: error <NUMBER>, 0; 3: mode <STRING>, HE; 4: rounds <NUMBER>, -1; 5: scoot <BOOL/NUMBER>, -1; 6: purpose <STRING>, SUPPORT; 7: spotter <OBJECT>, objNull; 8: enemy <OBJECT>, objNull; 9: retreat requester <GROUP>, grpNull (SUPPORT SMOKE only); 10: danger belief/counter observer server time <NUMBER>, -1 (local legacy calls derive native last-seen time; remote observer calls require it).
  * 11: counter observation generation <NUMBER>, -1 (required on remote COUNTER requests;
  * local server scripts may omit it). Counter missions retain that generation through queued shots.
@@ -49,10 +51,13 @@ if (remoteExecutedOwner > 2) then {
     if (_hc < 0 || {if (_retreatSmoke) then {remoteExecutedOwner != groupOwner _requester} else {if (isNull _spotter) then {remoteExecutedOwner != owner _battery} else {remoteExecutedOwner != owner _spotter}}}) then {_purpose = ""};
 };
 // Validate before range/aim planning and any token, busy or observer cooldown mutation.
-if (!(_purpose in ["SUPPORT", "COUNTER", "DANGER"]) || {!(_mode in ["HE", "SMOKE"])}
+if (!(_purpose in ["SUPPORT", "COUNTER", "DANGER"]) || {!(_mode in ["HE", "SMOKE", "ILLUM"])}
     || {!(count _target in [2,3])} || {_target findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
     || {!finite _error} || {!finite _rounds} || {_scoot isEqualType 0 && {!finite _scoot}}
     || {!(missionNamespace getVariable ["CBE_AIPass_Active", false])} || {[] call CBE_fnc_CortexIsPaused}) exitWith {false};
+// Illumination is one reactive mortar mission, never a counter-battery or generic HE alias.
+if (_mode == "ILLUM" && {!_danger || {!(_battery isKindOf "StaticMortar")}
+    || {(getPosATL _battery) getEnvSoundController "night" <= 0.7}}) exitWith {false};
 if (_retreatSmoke && {isNull ([_requester] call CBE_fnc_CortexGroupTransmitter)
     || {!([_requester] call CBE_fnc_CortexIsEligible)}
     || {!([_requester,"CBE_AIPass_Artillery_Enable",false] call CBE_fnc_CortexFeatureEnabled)}
@@ -144,7 +149,7 @@ if (isNull _battery) then {
         && {[group gunner _x,_feature,false] call CBE_fnc_CortexFeatureEnabled}
         && {_mode != "SMOKE" || {[group gunner _x,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled}}
         && {combatMode group gunner _x != "BLUE" && {unitCombatMode gunner _x != "BLUE"}}
-        && {([_x, _mode == "SMOKE",_target] call CBE_fnc_CortexArtilleryAmmo) != ""}
+        && {([_x, _mode,_target] call CBE_fnc_CortexArtilleryAmmo) != ""}
     };
     if (_index >= 0) then {_battery = _candidates select _index} else {
         private _mobileIndex=_candidates findIf {
@@ -154,7 +159,7 @@ if (isNull _battery) then {
                 && {[group gunner _x,_feature,false] call CBE_fnc_CortexFeatureEnabled}
                 && {combatMode group gunner _x != "BLUE" && {unitCombatMode gunner _x != "BLUE"}}
                 && {_mode != "SMOKE" || {[group gunner _x,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled}}
-                && {([_x,_mode == "SMOKE"] call CBE_fnc_CortexArtilleryAmmo) != ""}
+                && {([_x,_mode] call CBE_fnc_CortexArtilleryAmmo) != ""}
         };
         if (_mobileIndex >= 0) then {_battery=_candidates select _mobileIndex};
     };
@@ -166,9 +171,9 @@ if (isNull _battery || {!alive gunner _battery} || {!([_battery] call _batteryCr
     || {_mode == "SMOKE" && {!([group gunner _battery,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)}}
     || {!isNull _spotter && {side group _spotter != side group gunner _battery}}
     || {_retreatSmoke && {_requestSide != side group gunner _battery}}) exitWith {false};
-private _magazine = [_battery, _mode == "SMOKE",_target] call CBE_fnc_CortexArtilleryAmmo;
+private _magazine = [_battery, _mode,_target] call CBE_fnc_CortexArtilleryAmmo;
 private _positioning=_magazine == "" && {[_battery] call _mayPosition};
-if (_positioning) then {_magazine=[_battery,_mode == "SMOKE"] call CBE_fnc_CortexArtilleryAmmo};
+if (_positioning) then {_magazine=[_battery,_mode] call CBE_fnc_CortexArtilleryAmmo};
 private _fixAt=if (finite _observedAt && {_observedAt >= 0}) then {_observedAt} else {serverTime};
 private _positionFixLifetime=if (!_counter) then {300} else {[10,120] select isNull _spotter};
 private _positionUntil=(serverTime+300) min (_fixAt+_positionFixLifetime);

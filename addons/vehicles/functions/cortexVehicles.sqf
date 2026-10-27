@@ -708,6 +708,12 @@ if (_dangerDismount isNotEqualTo []) then {
                         && {[_group,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled}
                         && {([_vehicle,true,_dangerBelief] call CBE_fnc_CortexArtilleryAmmo) != ""}) then {
                         _dangerMode="SMOKE";
+                    } else {
+                        if (!isNull _gunner && {local _gunner} && {getSuppression _gunner < 0.5}
+                            && {(getPosATL _vehicle) getEnvSoundController "night" > 0.7}
+                            && {([_vehicle,"ILLUM",_dangerBelief] call CBE_fnc_CortexArtilleryAmmo) != ""}) then {
+                            _dangerMode="ILLUM";
+                        };
                     };
                     [_vehicle,+_dangerBelief,25,_dangerMode,1,false,"DANGER",objNull,_dangerSource,grpNull,serverTime] call CBE_fnc_CortexArtilleryFire;
                 };

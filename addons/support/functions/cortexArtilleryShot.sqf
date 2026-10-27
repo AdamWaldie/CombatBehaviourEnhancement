@@ -18,6 +18,8 @@
  * 10 danger fix expiry <NUMBER, -1>, required original server-time boundary for DANGER.
  * Exact duplicate and older serials are consumed without fire or rejection callbacks; a
  * conflicting same-serial payload refuses without cancelling the genuine pending command.
+ * ILLUM is restricted to reactive static mortars at night; the actual magazine is reclassified
+ * at final issue, with no HE substitute.
  * Final native issue rechecks current generation, live feature/ROE and crew/token atomically.
  * No command can undo a projectile or native shot already issued before cancellation.
  * Return Value: Boolean, command issued or exact duplicate/older request consumed; never firing proof.
@@ -25,7 +27,7 @@
  * Example: [_gun, _aim, _mag, "SUPPORT", "HE", _token,-1,1,_supportGeneration,-1] remoteExecCall ["CBE_fnc_CortexArtilleryShot", owner _gun];
  */
 params ["_battery", "_aim", "_magazine", "_purpose", "_mode", "_token",["_counterGeneration",-1,[0]],["_shotSerial",-1,[0]],["_fireGeneration",-1,[0]],["_smokeGeneration",-1,[0]],["_dangerUntil",-1,[0]]];
-if (remoteExecutedOwner != 2) exitWith {false};
+if (remoteExecutedOwner != 2 || {!(_mode in ["HE","SMOKE","ILLUM"])}) exitWith {false};
 if (!finite _shotSerial || {_shotSerial < 1} || {_shotSerial != floor _shotSerial}) exitWith {false};
 // Malformed geometry cannot consume a shot receipt or reject a genuine pending shot.
 if (!(_aim isEqualType []) || {!(count _aim in [2,3])}
@@ -75,7 +77,9 @@ private _fireGenerationName=switch (_purpose) do {
     default {"CBE_AIPass_CounterGeneration"};
 };
 private _fireSessionCurrent={
-    finite _fireGeneration && {_fireGeneration >= 0}
+    (_mode != "ILLUM" || {_purpose == "DANGER" && {_battery isKindOf "StaticMortar"}
+        && {(getPosATL _battery) getEnvSoundController "night" > 0.7}})
+        && {finite _fireGeneration} && {_fireGeneration >= 0}
         && {_purpose != "DANGER" || {finite _dangerUntil && {serverTime < _dangerUntil}}}
         && {_fireGeneration == (missionNamespace getVariable [_fireGenerationName,0])}
         && {_mode != "SMOKE" || {finite _smokeGeneration && {_smokeGeneration >= 0}
@@ -192,6 +196,9 @@ if (!(call _fireSessionCurrent) || {!(call _positionCurrent)} || {!(call _operat
     || {(_battery getVariable ["CBE_AIPass_FireToken",""]) != _token}
     || {!([group _operator] call CBE_fnc_CortexIsEligible)}
     || {_mode == "SMOKE" && {!([group _operator,"CBE_AIPass_ArtillerySmoke_Enable",true] call CBE_fnc_CortexFeatureEnabled)}}) exitWith {call _reject};
+// Reconfirm the actual classified illumination magazine at the final owner boundary.
+// Failure rejects this mission; it never substitutes another payload or mode.
+if (_mode == "ILLUM" && {([_battery,"ILLUM",_aim,_magazine] call CBE_fnc_CortexArtilleryAmmo) != _magazine}) exitWith {call _reject};
 // Retain one public last-issued receipt across locality changes; never mark it as fired.
 _battery setVariable ["CBE_AIPass_ShotReceipt",[_token,_shotSerial,_signature,serverTime],true];
 _battery doArtilleryFire [_aim, _magazine, 1];
