@@ -1,6 +1,11 @@
 /*
  * Author: WaldoTheWarfighter
  * Installs optional local FiredNear hearing on group leaders, recording uncertain areas rather than targets.
+ * Quiet fire resolves the actual attachment sound index into the fired muzzle/mode sound
+ * class, or uses the existing low audibleFire policy. Paired normal/quiet sound variants
+ * and an arbitrary muzzle item alone are not evidence of suppressed fire.
+ * Work: one native weapon inventory read for infantry (at most16 rows inspected), fixed config
+ * lookups after existing group cooldown/eligibility; no global shooter scan or cache.
  * Zeus waypoint chains may retain this observation-only listener. It never starts movement or
  * reveals an enemy; direct edits, remote control, players and specialist ownership still yield.
  * Locality/authority: each AI owner installs only on its current eligible leader; no remote reveal.
@@ -35,9 +40,30 @@ private _handler = _leader addEventHandler ["FiredNear",{
         // hostile platform fire is neither discarded nor treated as an infantry-only event.
         || {(side _group) getFriend (side _firer) >= 0.6}
         || {serverTime < (_group getVariable ["CBE_AIPass_HearingDue",0])}) exitWith {};
-    private _items = weaponsItems _firer;
+    private _items = if (_firer isKindOf "CAManBase") then {(weaponsItems _firer) select [0,16]} else {[]};
     private _index = _items findIf {(_x select 0) == _weapon};
-    private _suppressed = _index >= 0 && {((_items select _index) param [1,""]) != ""};
+    private _muzzleItem=if (_index >= 0) then {(_items select _index) param [1,"",[""]]} else {""};
+    // A muzzle accessory is not necessarily a suppressor. Use its native sound
+    // selection metadata, not presence or translated/classname substring guesses.
+    private _soundIndex=getNumber (configFile >> "CfgWeapons" >> _muzzleItem >> "ItemInfo" >> "soundTypeIndex");
+    private _weaponConfig=configFile >> "CfgWeapons" >> _weapon;
+    private _muzzleConfig=if (_muzzle != "" && {_muzzle != "this"} && {isClass (_weaponConfig >> _muzzle)}) then {
+        _weaponConfig >> _muzzle
+    } else {_weaponConfig};
+    private _modeConfig=_muzzleConfig >> _mode;
+    if (!isClass _modeConfig) then {_modeConfig=_weaponConfig >> _mode};
+    private _sounds=getArray (_modeConfig >> "sounds");
+    // Resolve the selected entry, rather than treating index1 or the presence
+    // of both variants as inherently quiet. Without an attachment, native index0
+    // also covers integral weapons whose first/only sound class is SilencedSound.
+    private _suppressed=false;
+    if (finite _soundIndex && {_soundIndex >= 0} && {_soundIndex == floor _soundIndex}
+        && {_soundIndex < count _sounds}) then {
+        private _selectedSound=_sounds select _soundIndex;
+        _suppressed=_selectedSound isEqualType ""
+            && {toLowerANSI _selectedSound in ["silencedsound","suppressedsound"]}
+            && {isClass (_modeConfig >> _selectedSound)};
+    };
     private _audible = getNumber (configFile >> "CfgAmmo" >> _ammo >> "audibleFire");
     if ((_suppressed || {_audible > 0 && {_audible <= 3}}) && {_distance > 20}) exitWith {};
     _group setVariable ["CBE_AIPass_HearingDue",serverTime+10];
