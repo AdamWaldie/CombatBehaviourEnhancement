@@ -1224,5 +1224,33 @@
       "addons/vehicles/functions/drivingNativeRecoveryAdopt.sqf": "e1dbff29d77b2e3f9205b7dcde49a0999ebd234ba208cdadccb2a031f6e80901",
       "addons/vehicles/functions/drivingRecoveryRelease.sqf": "20842fb4b0d480d2cf744298fd48445a05c820ae53b607a8ef1a1edbff0cd7ac"
     }
+  },
+  "queueTerminalDelivery20261027": {
+    "status": "TERMINAL_DELIVERY_IMPLEMENTED_OFFLINE_PHYSICAL_PENDING",
+    "registeredGap": "queueNativeWriterTrace20261027: cooperative-queue retirement across owner changes; this contribution fixes terminal delivery only, not migration/adoption.",
+    "scope": "Selected complete server _send/expiry/RELEASE/common admission and owner terminal RESULT paths. Existing owner terminal handler closes tokens before requiring local participants and clears only exact matching token/request. No changed reverse/crossing/native return guards.",
+    "defect": "Broker _send sends terminal results only to the original record owners. Current vehicle owners after migration can miss closure entirely, leaving negative token admission dependent on other context guards and expiry.",
+    "change": "Only REFUSED/RELEASED delivery unions original recipients with current owners of the original at-most4 nondeleted vehicles. Copy/deduplicate recipient ids; require id>=2 to avoid owner0 broadcast semantics. At most8 recipients. Nonterminal RESULT messages keep original recipients; other existing message-routing logic is unchanged; record owners/authentication are never widened.",
+    "baselineToPreserve": "Original token/context/payload/expiry and deadline, broker phase timers, owner server-authentication, exact-token local cleanup, private original route/orders, every movement/hold/reverse/crossing guard and ordinary NativeRecoveryAdopt queueBinding refusal.",
+    "cost": "At most4 current owner observations and4 bounded unique insertions on a terminal notification; no world scan, worker, timer, new state registry, handshake or native command.",
+    "exit": "Existing queue expiry/proposal contracts extended for phase-restricted recipient union and exact owner cleanup; full offline build and independent package verification pass.",
+    "limits": "Current-at-send owners only; later ownership changes, positive durable broker retirement, original route/command custody and all-writer/native quiescence remain open. DrivingQueueTokenClosed remains fail-closed admission, never positive retirement proof. Audits paused.",
+    "verification": {
+      "queueContracts": 16,
+      "tests": 1498,
+      "compiledSQF": 449,
+      "PBOs": 11,
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/queue-terminal-owner-d3d88472",
+      "fingerprint": "f5b8665604ddaf7db2ff0d4a98dfc029411c79d82149517c331b142e4c41de23",
+      "buildLog": ".qa/handovers/queue-terminal-owner-build-d3d88472.log",
+      "independentLog": ".qa/handovers/queue-terminal-owner-independent.log",
+      "sourceNote": "Unsigned dirty development fromd3d88472 plus terminal-delivery patch. Lifecycle docs included; engineering records postdate package. No physical delivery/handover or performance acceptance; no new test case."
+    },
+    "cbeFileHashes": {
+      "drivingQueueAgreementServer.sqf": "10975b588e92eef4a8533ab2345f8c60c58a1205c837019acff204747a536336",
+      "drivingQueueAgreementOwner.sqf": "3b264f571e7b7639bb5f320f0445b4bcb814c96661802e9e58e5d3ca5dce0abe",
+      "drivingQueueTokenClosed.sqf": "8054f5f298e7259e028276d33fe0d88307ac1cc5ba6e8365392d660080c87281"
+    }
   }
 }

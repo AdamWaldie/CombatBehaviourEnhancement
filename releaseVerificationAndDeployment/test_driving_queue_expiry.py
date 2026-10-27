@@ -12,6 +12,35 @@ class DrivingQueueExpiry(unittest.TestCase):
         self.assertLess(timer.index('isNil {'),timer.index('_live set ["phase","RELEASED"]'))
         self.assertIn('(_until-serverTime) max 0] call CBA_fnc_waitAndExecute',timer)
         self.assertEqual(s.count('call _scheduleExpiry'),2)
+        send=s.split('private _send=',1)[1].split('// Fixed one-shot retirement',1)[0]
+        self.assertIn('private _recipients=+(_record get "owners")',send)
+        terminal=send.split('if ((_record get "phase") in ["REFUSED","RELEASED"]) then {',1)[1]
+        for guard in ('!isNull _x','owner _x','_currentOwner >= 2',
+                      '_recipients pushBackUnique _currentOwner','forEach (_record get "vehicles")'):
+            self.assertIn(guard,terminal)
+        self.assertIn('forEach _recipients',send)
+        self.assertNotIn('_record set',send)
+        # Current owners gain only terminal delivery, never agreement/command authority.
+        original=[2,4]
+        for phase,current,expected in (('AGREED',[5,6],[2,4]),
+                                       ('RELEASED',[4,5],[2,4,5]),
+                                       ('REFUSED',[0,None,5,5],[2,4,5]),
+                                       ('RELEASED',[0,1,None],[2,4])):
+            recipients=original.copy()
+            if phase in ('REFUSED','RELEASED'):
+                for owner in current:
+                    if owner is not None and owner>=2 and owner not in recipients:
+                        recipients.append(owner)
+            self.assertEqual(recipients,expected)
+            self.assertEqual(original,[2,4])
+        owner=source('drivingQueueAgreementOwner')
+        self.assertIn('remoteExecutedOwner != 2',owner)
+        cleanup=owner.split('// Terminal token cleanup',1)[1].split('if (_owned isEqualTo [])',1)[0]
+        self.assertIn('call CBE_fnc_DrivingQueueTokenClosed',cleanup)
+        self.assertIn('(_old getOrDefault ["token",""]) == _token',cleanup)
+        for forbidden in ('doMove','doStop','setDriveOnPath','forceSpeed','call _scheduleExpiry'):
+            self.assertNotIn(forbidden,send)
+
         self.assertNotIn('call CBE_fnc_DrivingQueueProposalCurrent',timer)
         for forbidden in ('doMove','doStop','forceSpeed','nearEntities','setDriveOnPath'):
             self.assertNotIn(forbidden,timer)

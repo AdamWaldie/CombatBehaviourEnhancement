@@ -2,6 +2,8 @@
  * Author: WaldoTheWarfighter
  * Purpose: Brokers bounded queue-role consent, explicit root commit and measured hold readiness.
  * Consent/READY never authorizes a reverse leg; dependency execution remains separate.
+ * Terminal results also reach current participant vehicle owners after transfer, without
+ * widening agreement recipients or the original authenticated owner set. At most8 recipients.
  * All-ready observation sends one metadata-only PREPARE to all participant owners at original expiry; each acknowledges its own applied holds.
  * Locality/authority: Authenticated server remote calls only; BEGIN requires current initiator vehicle/crew/group owner, ACK its expected actual owner.
  * Repeat/JIP: Private32episode registry, fixed2s handshake/90s maximum consent; idempotent replies and exact-token release.
@@ -43,7 +45,18 @@ private _send={params ["_record"];
     private _message=[_record get "token",_record get "serial",_record get "vehicles",_record get "roles",
         _record get "dependencies",_record get "context",_record get "deadline",_record get "expires",_record get "phase"];
     if ("completionBinding" in _record) then {_message pushBack (_record get "completionBinding")};
-    {["RESULT",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach (_record get "owners");
+    private _recipients=+(_record get "owners");
+    if ((_record get "phase") in ["REFUSED","RELEASED"]) then {
+        // A migrated owner needs the terminal token even without original private consent.
+        // This only denies stale admission; it grants no native return or new agreement.
+        {
+            if (!isNull _x) then {
+                private _currentOwner=owner _x;
+                if (_currentOwner >= 2) then {_recipients pushBackUnique _currentOwner};
+            };
+        } forEach (_record get "vehicles");
+    };
+    {["RESULT",_message] remoteExecCall ["CBE_fnc_DrivingQueueAgreementOwner",_x]} forEach _recipients;
 };
 // Fixed one-shot retirement remains independent of tactical scheduling/owner disconnect.
 // A delayed callback may revoke only its original phase, never renew or restore consent.
