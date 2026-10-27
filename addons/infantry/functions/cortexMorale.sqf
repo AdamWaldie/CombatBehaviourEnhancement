@@ -11,8 +11,11 @@
  * seen in the last 30 s (15%), known armour within 400 m with no anti-tank gunner in the squad (20%)
  * and average wounds (10%). Average courage skill offsets it, so AI Rebalance profiles and mission
  * skills still matter. CBE_AIPass_Cohesion (AI Tuning, default 1) divides the pressure, so squads
- * hold longer above 1 and break sooner below it. Morale falls quickly towards the pressure and recovers slowly (60% versus 10%
- * of the gap per step). The thresholds come from the group's behaviour profile
+ * hold longer above 1 and break sooner below it. Morale falls quickly towards the pressure and
+ * recovers slowly:60% versus10% of the gap per nominal two seconds, scaled by elapsed time.
+ * Duplicate same-time observations do not compound pressure. First/invalid/over10s sample gaps
+ * use one nominal step rather than extrapolating unobserved pressure through a pause.
+ * The thresholds come from the group's behaviour profile
  * (CBE_fnc_CortexProfile): STEADY at moraleShaken or more, SHAKEN above moraleBroken, BROKEN below
  * it. A broken squad must recover 0.1 above moraleBroken before it counts as shaken again, so it
  * cannot flicker. With the shipped table, MILITIA breaks much sooner than ELITE.
@@ -53,6 +56,15 @@ private _livingCount=count _alive;
 private _fighters=_alive select {[_x] call CBE_fnc_CortexCombatEffective};
 private _count = count _fighters;
 if (_count == 0) exitWith {""};
+// Group jobs can wake more often for danger/operations. Their cadence must not
+// make the same pressure break or recover a squad faster. serverTime survives
+// supported ownership changes; a long unobserved gap earns no bulk catch-up.
+private _now=serverTime;
+private _sampleAt=_state getOrDefault ["moraleSampleAt",-1];
+private _elapsed=2;
+if (_sampleAt isEqualType 0 && {finite _sampleAt} && {_sampleAt >= 0}
+    && {_sampleAt <= _now} && {_now-_sampleAt <= 10}) then {_elapsed=_now-_sampleAt};
+_state set ["moraleSampleAt",_now];
 private _peak = (_group getVariable ["CBE_AIPass_PeakSize", _livingCount]) max _livingCount;
 private _courage = 0;
 private _suppression = 0;
@@ -106,7 +118,9 @@ private _pressure = 0.45 * (1 - _count / _peak) + 0.2 * _suppression + 0.1 * _le
 _pressure = _pressure / ((missionNamespace getVariable ["CBE_AIPass_Cohesion", 1]) max 0.1);
 private _target = ((1 - _pressure) max 0) min 1;
 private _morale = _state getOrDefault ["morale", 1];
-_morale = if (_target < _morale) then {_morale + (_target - _morale) * 0.6} else {_morale + (_target - _morale) * 0.1};
+private _retention=[0.9,0.4] select (_target < _morale);
+private _blend=1 - (_retention ^ (_elapsed / 2));
+_morale = _morale + (_target - _morale) * _blend;
 _state set ["morale", _morale];
 private _previous = _state getOrDefault ["moraleState", "STEADY"];
 private _profile = [_group] call CBE_fnc_CortexProfile;

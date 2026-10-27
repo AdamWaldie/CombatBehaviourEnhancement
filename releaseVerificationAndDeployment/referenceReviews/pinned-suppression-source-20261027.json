@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-27",
+  "workshopId": "3559900745",
+  "name": "Pinned Down Combat Suppression",
+  "baseline": "d2bbc2ae70bc7a5d03a1bb8631c5c50f7d5f9fbc",
+  "sourceRoot": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\PinnedDown\\20261013-013708\\3559900745\\extracted-20261011\\PinnedDown",
+  "preservation": "Recovered extracted snapshot only; original PBO/signatures unavailable. Entire archive320 files verified0 failures before review; no upstream code executed or source modified.",
+  "scope": "Five complete selected readable helpers plus selected AIsuppression startup/event/recovery regions. Not complete32-file review, FSM review or later3820871877 version equivalence. Player effects excluded from selected integration.",
+  "sources": [
+    {
+      "path": "functions/fn_closeFireReaction.sqf",
+      "sha256": "1735f60253ceb3e183af2284cfee47ac57ceeba1bdae55d6239fe5965d07b26e",
+      "scope": "Complete readable body reviewed"
+    },
+    {
+      "path": "functions/fn_degradeSkills.sqf",
+      "sha256": "d755683eff5e206998403a08adbced67d18ac3511b2a3a97853f0810f9cc7168",
+      "scope": "Complete readable body reviewed"
+    },
+    {
+      "path": "functions/fn_releaseAI.sqf",
+      "sha256": "e5742062981c63198b80018adfb09c2359c0929bf7fc835131f0b20c001609d6",
+      "scope": "Complete readable body reviewed"
+    },
+    {
+      "path": "functions/fn_releaseOwnedStance.sqf",
+      "sha256": "ef0d077ccacb5d8bebd0f1621a9c1c8a66b969fc980150d8f0b2e6931111c29c",
+      "scope": "Complete readable body reviewed"
+    },
+    {
+      "path": "functions/fn_isSupportAware.sqf",
+      "sha256": "052dae729df58529c9582acd0c9ef9ce4911d66d01cd13e3e9a6d1f00ff9b08f",
+      "scope": "Complete readable body reviewed"
+    },
+    {
+      "path": "functions/fn_AIsuppression.sqf",
+      "sha256": "47d2a042beffed612a6ebcda4c0d378427f3e0479f464a0248b47196867a1347",
+      "scope": "Selected event/startup and shared recovery walker regions reviewed; complete body and FSM/caller graph not closed. Recovery lines379..416 inspected with elapsed source near shared walker setup."
+    }
+  ],
+  "dispositions": [
+    {
+      "intent": "Elapsed-time recovery with courage affecting resilience without degrading courage itself.",
+      "source": "Shared skill walker computes 0.5^(_elapsed/(_baseHalfLife*_courageScale)); degradeSkills changes only aimingAccuracy/Shake/Speed against captured baseline.",
+      "decision": "Adapt elapsed-time retention principle in existing CortexMorale; retain native courage input without another skill writer. Source latched stress/half-life is not asserted equivalent to group morale."
+    },
+    {
+      "intent": "Separate information-only hearing from real incoming fire and cooperating groups.",
+      "source": "closeFireReaction avoids recent real suppression and support-aware groups, but sets synthetic raw suppression floor3 and walker refreshes it until hold expires; support path may write suppression0.",
+      "decision": "Keep useful distinction via existing uncertain hearing and confirmed danger/operation owners; do not import synthetic native suppression or unconditional zeroing. Source timestamps and floor ownership cannot prove absence of another native writer."
+    },
+    {
+      "intent": "Release only owned stance/skills and stop new suppression bursts.",
+      "source": "releaseOwnedStance compares current to applied; releaseAI disables callbacks, terminates retained FSM, removes own EHs, restores captured skills, suppressFor0 and roster removal.",
+      "decision": "Retain exact-value ownership principle under existing CBE lifecycle. Reject unconditionally restoring stale captured skills and support-source arrays as command-retirement proof; preserve CBE observed-external-edit skill latch. Same-value native edits remain indistinguishable."
+    }
+  ],
+  "confirmedCBEIssue": "CortexMorale applied fixed0.6 pressure/0.1 recovery every callback. CortexGroupTick contact interval is normally2s and danger may reduce it to0.5s, so callback rate changed break/recovery timing independently of observed pressure.",
+  "implementation": "Existing state gains serverTime moraleSampleAt; retention0.4 for falling morale or0.9 for recovery raised to elapsed/2. At2s existing balance unchanged; duplicate same-time samples do not compound. First/invalid/future/over10s gaps use one nominal2s step, not unobserved catch-up. Sample stored before immediate overmatch branch. Existing courage/weights/hysteresis/hold/surrender/armour outcome remain. No skill/suppression writes, new worker/scan/event/deadline.",
+  "verification": {
+    "fullTests": 1498,
+    "compiledSQF": 449,
+    "pboCount": 11,
+    "newTestCases": 0,
+    "regressionBefore": ".qa/handovers/morale-time-regression-before.log",
+    "initialBuildFailure": ".qa/handovers/morale-time-build-d2bbc2ae.log",
+    "initialFailureReason": "Product documentation named upstream source; removed from product text and retained attribution in engineering review. Boundary test unchanged.",
+    "buildLog": ".qa/handovers/morale-time-final-build-d2bbc2ae.log",
+    "candidate": ".qa/candidates/morale-elapsed-d2bbc2ae",
+    "independentLog": ".qa/handovers/morale-time-independent.log",
+    "fingerprint": "9e53249b30969afb7acb50ef6cf878d2af28c1dbc621218192ea76b8332bc688"
+  },
+  "limits": "Offline algebra/source/config/compile/package evidence only. No Arma audit or whole-mod parity. Changed pressure between samples is not reconstructed. First/long-gap policy deliberately preserves one nominal adjustment. Physical morale/retreat/recovery/surrender balance and normal/HC performance remain unverified.",
+  "nextRequiredReview": "Read full remaining AIsuppression, attachSP/startup, fn_Pinned.fsm runtime and release/repeat/locality paths. Reconcile remaining AI capabilities and3820871877 version before whole-source claims. Do not add parallel skill/stance walkers or player visual effects."
+}

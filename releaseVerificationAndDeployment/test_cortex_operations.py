@@ -4650,6 +4650,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_suppression + ((getSuppression _x) max 0 min 1)',morale)
         self.assertNotIn('_suppression + getSuppression _x',morale)
         self.assertIn('0.2 * _suppression',morale)
+        for proof in ('"moraleSampleAt"','serverTime','_elapsed / 2',
+                      '1 - (_retention ^','_now-_sampleAt <= 10'):
+            self.assertIn(proof,morale)
+        self.assertNotIn('(_target - _morale) * 0.6',morale)
+        self.assertNotIn('(_target - _morale) * 0.1',morale)
+        # The closed-form retention law must compose across ordinary wake intervals.
+        # This checks the chosen balance equation, not native tactical behaviour.
+        for retention in (0.4,0.9):
+            self.assertAlmostEqual((retention ** (0.5/2)) ** 4,retention)
+            self.assertAlmostEqual((retention ** (1/2)) ** 2,retention)
+            self.assertAlmostEqual(retention ** 0,1)
         flank=source('cortexFlankStart')
         self.assertIn('private _onFoot = _strengthFoot select',flank)
         self.assertIn('if (count _strengthFoot /',flank)
