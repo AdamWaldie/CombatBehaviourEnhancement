@@ -802,7 +802,7 @@
         "disposition": "Retain bounded retry/progress and intentional-wait vetoes. Require original native-order ownership and real handback; do not import wholesale waypoint recreation or assume request acknowledgement equals travel."
       }
     ],
-    "nextConcreteWork": "Trace the existing CBE queue reverse/crossing cancellation and final native handback as one lifecycle, including expiry, newer route, stop, and locality transfer. Repair only a demonstrated missing ownership/cleanup path before extending convoy-level cooperation. Remaining unread HBQ main branches stay in the source queue.",
+    "nextConcreteWork": "The selected CBE expiry/cleanup-service/Finish/Adopt paths are now reconciled in queueCleanupServiceReconciliation20261027. Cooperative queue-return migration and physical continuity remain unresolved; do not repeat completed readable cleanup bodies without changed evidence.",
     "cbeSourceHashes": {
       "addons/vehicles/functions/drivingFollowingCap.sqf": "39ce8281f2d8f55ffab3e84237b20009af95364940b77bbb74bf62e55f3b0378",
       "addons/vehicles/functions/drivingQueueAutoStep.sqf": "d0c5fac9f465b5af7827f033eaf05692450941e79e969736afed7b2e01c8876b",
@@ -1135,5 +1135,53 @@
       "Full HBQ/CBE all-writer handover reconciliation, same-value native intent ambiguity and actual external-provider quiescence remain open.",
       "Shallow fords still require vehicle-specific native depth/support admission; dry/deck corridor support is not ford implementation."
     ]
+  },
+  "queueCleanupServiceReconciliation20261027": {
+    "date": "2026-10-27",
+    "baseCommit": "5ac826a9f45910788ce60905d95e2ee518320013",
+    "sourceScope": "Rechecked fn_driveAssist.sqf1383-1534 traffic release, delayed route refresh, rear/jam push and jam replan; this source region was already reviewed. This continuation closes previously untraced CBE cleanup-service descendants rather than earning new source-body coverage.",
+    "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "cbeScope": {
+      "completeBodies": [
+        "drivingRecoveryCleanup.sqf",
+        "drivingOperationFinish.sqf",
+        "drivingRecoveryAdopt.sqf",
+        "drivingQueueHold.sqf",
+        "drivingQueueAgreementRelease.sqf"
+      ],
+      "selectedRegions": [
+        "DrivingAssistStart250-314 queue expiry/crossing release and native-mode checks",
+        "DrivingRecoveryRelease155-227 native return observation and365-478 native STOP/rest/forward handback",
+        "DrivingNativeRecoveryAdopt header/admission1-140: native-route edge proof and explicit queue refusal",
+        "DrivingQueueAutoStep admission/abandon/commit/expiry paths"
+      ],
+      "notComplete": "Queue broker/ReverseCurrent/ReverseCommit and all child release/adoption executors are not fully re-reviewed by this section. No end-to-end physical or all-writer handover claim."
+    },
+    "executionFindings": [
+      "DrivingOperationFinish retires exact original private queue/pass consent before its current-brain/locality native cleanup guard; the old machine does not receive native authority from that metadata release.",
+      "Queue expiry/token retirement enters existing DrivingAssistRelease, not an ordinary forward retry. A changed crossing work record defers new acquisition to a later ordinary callback.",
+      "The shared recovery service validates ticket identity and current receipt signature, handles at most4 queued tickets per service callback and retires local tickets on replaced/migrated/unresolved records. Empty registries clear queue/head. No rear movement worker was added.",
+      "Queue Hold requires exact applied zero cap plus measured linear/angular rest. It withdraws consent if a ready participant loses stillness or cap ownership. Readiness reporting is bounded to2 reports, not evidence of successful queue traversal.",
+      "SIMPLE_BACK release requests STOP once, records observed STOP so a later BACK is not reclaimed, and waits for measured rest. Native return must be issued within the original hard deadline; expiry can remain explicitly unresolved rather than acquire late movement authority.",
+      "QUEUE_RETURN/PASS_RETURN are excluded from ordinary FINAL-budget continuation. An observed return is metadata evidence and not proof of authored-route travel.",
+      "NativeRecoveryAdopt explicitly refuses queueBinding children; the generic5-second real-locality-edge adoption path must not be reported as cooperative queue migration support. RecoveryAdopt can offer pending REVERSE cleanup but this does not by itself prove a QUEUE_RETURN rebind. Full cooperative queue return across ownership migration remains unresolved."
+    ],
+    "disposition": "Keep current finite guarded native cleanup. No demonstrated missing command guard in the inspected paths warrants another controller or a deadline extension. Do not copy HBQ unrestricted forceSpeed release, physics push or1.5-second deferred waypoint reconstruction. Retain native queue-return migration and physical continuity as capability gaps.",
+    "runtimeChanged": false,
+    "additionalTestsAdded": false,
+    "packageRebuilt": false,
+    "validationBoundary": "Source/code path review only; previous5ac826a9 runtime candidate remains authoritative offline evidence. Audits remain paused. No physical acceptance, performance or implementation percentage uplift.",
+    "nextConcreteWork": "Do not repeat the now-reviewed Cleanup registration/dispatch and Finish/Adopt bodies without a changed source or defect. A future cooperative-queue migration implementation needs exact original participant/route/command custody and broker retirement, not generic ordinary-recovery adoption; keep this gap explicit. Continue independent registered building blocks while physical queue/convoy validation is paused.",
+    "cbeHashes": {
+      "drivingRecoveryCleanup.sqf": "9a9dc7ee38259b178c34f4993ee9b312047aec36ee429b84cbdbd90eca1cc5e1",
+      "drivingOperationFinish.sqf": "bce811c3534a8b9cc4cddc2b7f8a3b7cc6240a00cd937f63e36bc743dbe10918",
+      "drivingRecoveryAdopt.sqf": "1c2fd4de4e9ec1d0eda130b8db4acd58d152c1bd1a2e450a3fdd2bab59fe0959",
+      "drivingQueueHold.sqf": "4400459fabc65c3cfa0ceee7dc234716ab472bdbd22cc6cd728a65df2c41793f",
+      "drivingQueueAgreementRelease.sqf": "958f7d7113642692884369b3585e9e1bdeb6826af57811807cbec2a3335c5106",
+      "drivingNativeRecoveryAdopt.sqf": "e1dbff29d77b2e3f9205b7dcde49a0999ebd234ba208cdadccb2a031f6e80901",
+      "drivingAssistStart.sqf": "ed68bb5fe799209d57f7f223d59713affdb65fce7cdf809c7abfeadaae88bd8a",
+      "drivingRecoveryRelease.sqf": "20842fb4b0d480d2cf744298fd48445a05c820ae53b607a8ef1a1edbff0cd7ac",
+      "drivingQueueAutoStep.sqf": "d0c5fac9f465b5af7827f033eaf05692450941e79e969736afed7b2e01c8876b"
+    }
   }
 }

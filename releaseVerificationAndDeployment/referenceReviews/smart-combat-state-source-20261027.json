@@ -1,0 +1,676 @@
+{
+  "date": "2026-10-27",
+  "workshopId": "3800356547",
+  "name": "Smart Combat AI - Realistic Reactions & Tactics V2",
+  "version": "8.0.1",
+  "status": "PROVENANCE_RECOVERED_SELECTED_STATE_POLICY_SOUND_SCHEDULER_REVIEWED_REMAINING_OPEN",
+  "provenance": {
+    "original": "E:/SteamLibrary/steamapps/workshop/content/107410/3800356547/addons/smart_combat_ai.pbo",
+    "snapshot": ".qa/smart-combat-installed-20261027",
+    "packageSha256": "1806c5a59e3225aeb5e47bbfadff9fd1cd0dd7d8509ad30114adb91b0164d943",
+    "originalBeforeAfterHashMatched": true,
+    "memberManifest": ".qa/smart-combat-installed-20261027/manifest.json",
+    "members": 146,
+    "readableSqf": 143,
+    "compiledExecutionEquivalence": "Not established",
+    "reuse": "Protected research copy only; no source code/assets imported; reuse permissions not established by installed availability."
+  },
+  "reviewedFullBodies": [
+    "XEH_postInit.sqf",
+    "functions/actions/fn_hearGunfire.sqf",
+    "functions/actions/fn_observeGunfire.sqf",
+    "functions/actions/fn_recordGunfire.sqf",
+    "functions/policy/fn_hasMissionOrders.sqf",
+    "functions/policy/fn_isEligible.sqf",
+    "functions/registry/fn_unregisterUnit.sqf",
+    "functions/scheduler/fn_tick.sqf",
+    "functions/state/fn_acquireMovementControl.sqf",
+    "functions/state/fn_beginState.sqf",
+    "functions/state/fn_cancelState.sqf",
+    "functions/state/fn_endState.sqf",
+    "functions/state/fn_getState.sqf",
+    "functions/state/fn_releaseMovementControl.sqf",
+    "functions/state/fn_updateState.sqf",
+    "config.cpp"
+  ],
+  "partialBodies": {
+    "cfgFunctions.hpp": "First55lines registration; remaining registration unread",
+    "functions/scheduler/fn_processUnit.sqf": "First110lines; remainder and downstream action helpers unread"
+  },
+  "bodyQueue": {
+    "functions/actions/fn_deployGrenade.sqf": {
+      "sha256": "88065441a74951ff22049c18b04a8284fae8eaea8e1ef91ff2231c22fc59e6f1",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/actions/fn_deploySmoke.sqf": {
+      "sha256": "20e3ca989a4e5d311df7596a58d4dcded0e06ac52702154cfb6a647fbe8d9826",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/actions/fn_findCover.sqf": {
+      "sha256": "30511232e3fd5353c1fda62b36187188889bbaf272ab804595a03c901221bf10",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/actions/fn_hearGunfire.sqf": {
+      "sha256": "e8fc82cf57580d8b64ae5db14d56e6a324aebda430e3e11c57ffa339e227b3b2",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/actions/fn_investigateContact.sqf": {
+      "sha256": "77c4c9ce790a70e58089a1d176c72bcb7e52829af771317493c0282174e8afb4",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/actions/fn_moveAwayFromArmor.sqf": {
+      "sha256": "ecb3a40ec16fc8fa68f03db3012808eb67f3a47b1a6606aeca4742515b676359",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/actions/fn_moveToCover.sqf": {
+      "sha256": "fecfc436e996eada9deb06d86dc73b445876209f27bbbceba2644f8a251cdeb9",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/actions/fn_observeGunfire.sqf": {
+      "sha256": "c39c28011e187ae986c2ade4d9b467ce3d3737d3af9af97e07207fe3d524c446",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/actions/fn_reactToArmor.sqf": {
+      "sha256": "4004898388f8f265f634579554c44e35ffa1a28059efd9ce99e2873daae55ebd",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/actions/fn_recordGunfire.sqf": {
+      "sha256": "4e9ef13a6da8cbbac33450f4f67dcd6956702c228fcc08fd2910e34632f62f8d",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/actions/fn_updateContactState.sqf": {
+      "sha256": "f42477eeeb49fb866f8d7bfb90e84642ecd73a49f83f626fb7dbdf2aa8df1261",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/antiarmor/fn_coordinateAntiArmor.sqf": {
+      "sha256": "b744fffdef5eb41d2b4cd2a54f241513b4e79aaaed9898e55e67c53536d7a5bf",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/antiarmor/fn_disengageFromArmor.sqf": {
+      "sha256": "892d7827b7cb0961037a1229a29f01d598b906a985b74c6bf44565391ed8d874",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/antiarmor/fn_findAntiArmorPosition.sqf": {
+      "sha256": "8e50b3b44cfa5927175526563f8bb6148a5bfb1b1288cc7fe3955c983e7c9adb",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/antiarmor/fn_getAntiArmorWeapon.sqf": {
+      "sha256": "f131591970e9e560c4338f7dca5c00ebc206c72ece4cc2f4ced8897c9aa080a6",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/antiarmor/fn_isBackblastSafe.sqf": {
+      "sha256": "f26e6e5eb15b85b75b0229f403e2a5726b04033f5104980eccb30928050c1afa",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/antiarmor/fn_updateAntiArmorState.sqf": {
+      "sha256": "1fb9fd85733852ad5e766e59d07764226778a555f451c1ddc32d17d94b2de97b",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/assault/fn_advanceAssaultPhase.sqf": {
+      "sha256": "a83c1427f2f550d5d3337f1ecf8146d4b3c9120e2c8828d273c24f1776e63be9",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/assault/fn_coordinateAssault.sqf": {
+      "sha256": "fe043a755aab0cbed189eda3f4b9ffde75278fb7b0932fffe9e10b7e50e36037",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/assault/fn_findAssaultPosition.sqf": {
+      "sha256": "d8c487a21c4e4236d24662204ec1efbb4639f74a2059ad822c71d0808be3b2dd",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/assault/fn_releaseAssaultPlan.sqf": {
+      "sha256": "8207ff051fc21519fd7da133a76fc0cbbd50ab5cad939dd159956ecde8826020",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/assault/fn_updateAssaultState.sqf": {
+      "sha256": "860d8e8af61bd3b19b780038a980d54400a2ab5ab4cda4e4a7b1e268761d2a72",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/bootstrap/fn_log.sqf": {
+      "sha256": "24ab9e59dc6d0373917423406e9372999b2da30216e90d9709135a1ea2625d72",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/bootstrap/fn_postInit.sqf": {
+      "sha256": "1e7a1e7ea5701799b6e009de0c8012a04b5d32b17ae5d8fe8a54e91f43880a8d",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/bootstrap/fn_preInit.sqf": {
+      "sha256": "1ebbafc12c15d31ff7188863618d482d448a4b99ae970b549e4b313a7347816c",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/bootstrap/fn_start.sqf": {
+      "sha256": "2de44e1a5cc4913bbb000c7e1c97ab26e12d6705fafaf6d402d6db6920ca92f3",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/bootstrap/fn_stop.sqf": {
+      "sha256": "f8015c4819c8f05973f896316dfefd2d8eddd82f7cf6a55f005996c13e2f37c7",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/buildings/fn_cachedBuildingPositions.sqf": {
+      "sha256": "a84ef0b0fb26a53279b478d4714d41d926e20e24b4d156d90c5a44f2d35f5851",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/buildings/fn_canIdleGarrison.sqf": {
+      "sha256": "de36ca9427b763d106017d265184da200f9274d6b33ff1fe1ff88d8505973378",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/buildings/fn_coordinateBuildingClear.sqf": {
+      "sha256": "421fc861cea5480f9f4d51e6e1e170dab0a58ccb853528e39f64fdcc4463a175",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/buildings/fn_coordinateGarrison.sqf": {
+      "sha256": "d673809c71b132f06a207cf861ddb2bae2eddc70c8461d76dce4135ac437db89",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/buildings/fn_findGarrisonPositions.sqf": {
+      "sha256": "d35a4b5d9b7008de1b7284586cb87ce74d833c422dd6b0c5a41fc3fa1f4dc071",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/buildings/fn_findThreatBuilding.sqf": {
+      "sha256": "48e6cd44c1f5abe317f6c0b2c204aaeeb0a6d5974020ac4ec1f2383030b6638a",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/buildings/fn_getBuildingPlan.sqf": {
+      "sha256": "cc96e05afeec4f352444b921a0a91e870e395a9431ecd281b6083cab4bcc631f",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/buildings/fn_releaseBuildingPlan.sqf": {
+      "sha256": "d088301d951ac20beceabfedf0a1445a0dd9c82afd4ee0d27c069225f6a178a6",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/buildings/fn_updateBuildingState.sqf": {
+      "sha256": "180474a2e38af8bafb2b507f404c7a2d9c4ed39b6d3b3f079f0d5b6d6c5dde34",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/buildings/fn_updateGarrisonState.sqf": {
+      "sha256": "ba9eab88eb9fcf3a1b2a733af3909ba802cef1e83dcdaf0644747bed9a953e97",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/contacts/fn_hasContactLink.sqf": {
+      "sha256": "a80170ed3973f0a00c94397c7788edf14e435d71307aa347161712fb605c9722",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/contacts/fn_processContactReports.sqf": {
+      "sha256": "4bc0e6d241a1c453a59cf75236f724e2b9b1b5fba1221061bbfdaf84850f570f",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/contacts/fn_queueContactReport.sqf": {
+      "sha256": "5ba4ea20a447f2361de6af638764a340c55bd3e366bf626df7581221e73c7aa3",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/contacts/fn_releaseSupportPlan.sqf": {
+      "sha256": "0a21f93e857a4c742320618dce9c3da13f267266fb2042a20044a072e90fc1fc",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/contacts/fn_respondToContact.sqf": {
+      "sha256": "c203cb45bc2264e602b65bc7e218fe57b090eb997f4d4c2845132c21ae289ebc",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/contacts/fn_shareContactReports.sqf": {
+      "sha256": "cff2576f5ad52e0ae276271d7d276094a6fcad7c591580e913bd5ee9e6fc9ab4",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/contacts/fn_updateSupportState.sqf": {
+      "sha256": "115b6cb016ee38c6389899fe6f9c254db52af274d120022c898a3066d99382e7",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/coordination/fn_coordinateGroups.sqf": {
+      "sha256": "8b8c27ede833dd23a1c4b1b17ab38d84476d1a1607c3b0439fe9185a8288f1cc",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/coordination/fn_hasCoordinationLink.sqf": {
+      "sha256": "7e7255c1f6fe66008a2198b4271a3ea9618f6a47f1495e90f1c97cdf790df78d",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/coordination/fn_releaseCoordinationPlan.sqf": {
+      "sha256": "53d4461d4c05b0958140aea6d6e026d336978899437435ae9521960b730fbf71",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/coordination/fn_updateCoordinationState.sqf": {
+      "sha256": "e973db7fbf6df53c34cbcfbe992ee5764761ddf5cc566591132e5a602bfcb5b6",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/defense/fn_coordinateDefense.sqf": {
+      "sha256": "6c5f2094ee0188198d45d03613456813610b792fdf3ddbba4dbaa60718977dbe",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/defense/fn_findDefensivePosition.sqf": {
+      "sha256": "929fb537b4abe2cb87c0e12e43b72b13880ae93da707993ed305262b2ca55dbb",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/defense/fn_releaseDefensePlan.sqf": {
+      "sha256": "0383c609c74b7b4267e78eb6fbb79edb98f64c3c93aa149d96b48e7ce833ede0",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/defense/fn_updateDefenseState.sqf": {
+      "sha256": "ecb1df722e42bef72f0d5b8f0963eb44e0ab99f470e42c007dd55a406596f9bb",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/firecontrol/fn_assignEngagementTarget.sqf": {
+      "sha256": "ee774dc6b018eaaced4ed5641715fb48525ed48d56a6cd67734b58e9e72b6a90",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/firecontrol/fn_focusTarget.sqf": {
+      "sha256": "fcf929c91de2fe50599d7a80269efcbe96754e2d1bc06f24b4373458c26aec94",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/firecontrol/fn_getSuppressionCapability.sqf": {
+      "sha256": "fefef72b5c83ec2f06601381c25e963187041336412bc1b4c31d7c11640ef512",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/firecontrol/fn_isLineOfFireSafe.sqf": {
+      "sha256": "ff02c97184440092172bfd515be55037f87e1c5fed8049a3b035efe722b5ced7",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/firecontrol/fn_issueSuppression.sqf": {
+      "sha256": "5adadd5878522561e31a81dcde76638efe21e0d727887e02bd02217c4399c80a",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/firecontrol/fn_releaseTargetAssignment.sqf": {
+      "sha256": "4f91038d537317ac6adf292aef99f8fd27858a964c06ed1c28b4c4ab1ecc8e8c",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/firecontrol/fn_selectSuppressors.sqf": {
+      "sha256": "08add4e6fb48126d10c748b7f26c8e4c2035cd461a8238387a8199e683b7ca13",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/hazards/fn_findEvasionPosition.sqf": {
+      "sha256": "d54f26b248878c0e8bbb0cd0b50cf9bbfa69474a60f9bd017c3b61c0fccb84e1",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/hazards/fn_reactToHazard.sqf": {
+      "sha256": "0aa116491e191a61776a26189bc4413d5856df7acd5a3fd3bd2e4f44a9250966",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/hazards/fn_registerProjectile.sqf": {
+      "sha256": "e2e0be2f45578d0744311093d683352b21a395e959e91b0a9873330861f831b9",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/hazards/fn_updateHazardState.sqf": {
+      "sha256": "17d744dc14e4542df6aa2981ad6740161e3c810c80f6df69cd1a6ad4503618a2",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/logistics/fn_coordinateResupply.sqf": {
+      "sha256": "1803fc033ba10a32824ea0616464106a4b43dd055df82dd8c12a55450aff2785",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/logistics/fn_findAmmoSource.sqf": {
+      "sha256": "9fe2e9cef461e96cd5a2c665a49145763e63e6c71e85a95fbd8bf0644caa6844",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/logistics/fn_getAmmoStatus.sqf": {
+      "sha256": "205a01c23abc2d77a1d1114716f0d7ec2a1692c8a9d6777958a555741919d989",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/logistics/fn_releaseResupplyPlan.sqf": {
+      "sha256": "60efa31862179c9a060de4e6541ecda331945c54c07686e2fb79356e26278b2e",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/logistics/fn_transferMagazine.sqf": {
+      "sha256": "a654255f209436af20131149b0c391fd1135f45793cdebeaafa3c8e87d3bc24f",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/logistics/fn_updateLogisticsState.sqf": {
+      "sha256": "383c9ed071719de88c2e0fd398688dc5348e80d001117987fada3fe36978d9c9",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/medical/fn_coordinateMedicalAid.sqf": {
+      "sha256": "7dd73187046563c5233146935038cc8588b9f7b2284384d2a1f7501ea678d0ef",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/medical/fn_findCasualty.sqf": {
+      "sha256": "9f5641d820091cdb60ea1d1179662d4ef19d0d9ba3f6980e544cfbb4236abe4e",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/medical/fn_findTreatmentPosition.sqf": {
+      "sha256": "73424464c881a53f9f1e540b6568b246c86d1930e249f93c0f07e67fa04a0f30",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/medical/fn_releaseMedicalPlan.sqf": {
+      "sha256": "ba2baf28fbe44481537f7440ecf6ed46af5ede385aebe9c7e5d14f68dacaf4ba",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/medical/fn_selectMedic.sqf": {
+      "sha256": "fddc0f96874f50cf4095ed86f3fce56dea4798eef86670c6bf448ceecb13625a",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/medical/fn_updateMedicalState.sqf": {
+      "sha256": "64c503459b2e5b3b5633c73f495adc4abea31af80e5e941c5f71187bedd540d7",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/morale/fn_evaluateGroupMorale.sqf": {
+      "sha256": "c71abf82f92ba0d94643aef1a69c4484dc14136e6c80330f031fd004c5f3ce14",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/morale/fn_findRetreatPosition.sqf": {
+      "sha256": "66e3e5db2267d9a09d546a6aa1ec00b7880da9bdc6ed7150c81a4ab7d9213b09",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/morale/fn_startGroupRetreat.sqf": {
+      "sha256": "875e4c3d06b535e59ea2c1e1e56c0ba94d26b52bcb5fe3e9b59d3bc20ad9d8b7",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/morale/fn_updateMoraleState.sqf": {
+      "sha256": "2bc36f4854fe5fefa217936203b32923135cb2b3c7749390db4a6f5cd54f8e45",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/policy/fn_getFeatureOwner.sqf": {
+      "sha256": "d7ac74732a638ab9328d8d36745a5ff600d8d23c3cd74b4abcac53f454653b84",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/policy/fn_hasMissionOrders.sqf": {
+      "sha256": "ee87505a6504f570577afa03f9b4a34af7b5c73c3ba723d7d139d4eae85c489f",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/policy/fn_isEligible.sqf": {
+      "sha256": "eefc1b30399fe24e7b055de5aa0773aaed9801d4bd3eb3be9bfe1babf8ebe6c6",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/policy/fn_isHostile.sqf": {
+      "sha256": "e5ed86e00c0d7cdfb4980c4ee7e91b75fa84518d4566b68e8f68b5452baa9c57",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/policy/fn_isPlayerGroup.sqf": {
+      "sha256": "0d4d1597f6b6ef615bc5dfa16002e1b214219bba1d9b22227f4329707f42def7",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/public/fn_checkModCompat.sqf": {
+      "sha256": "a3dd3d1cbceb949552f3865a27b0d10aeb09cea85cf1e34116c01ebb88c42415",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/public/fn_disableForUnit.sqf": {
+      "sha256": "8ad663ad1c7fa52de45669eba702fd3c2a169ff3c84ac1c845ef88c2d6abf712",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/public/fn_enableForUnit.sqf": {
+      "sha256": "918f3b697ffc8ab867f539723c0b8aec72d04f9242297c33667f1f73a395dbc7",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/public/fn_forceReset.sqf": {
+      "sha256": "d048530dc770a5de7fb78acd2d49364c8aa2028ab3d5c44f56077280d5cb3605",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/public/fn_getManagedCount.sqf": {
+      "sha256": "7c30811cfa07981492d1a034552a87443dbb8b0a94a7be7858bc5e502a9426ce",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/public/fn_getUnitStatus.sqf": {
+      "sha256": "c0ef9f36001d0496fc19034f561eda2e97f237c510e9d77b0712561cbc8a812e",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/public/fn_getVersion.sqf": {
+      "sha256": "d2f5e97078923624c92c4130e88666dce07d73736801fb16c5e92de361025451",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/registry/fn_addUnitHandlers.sqf": {
+      "sha256": "939439b5964ad616fe44fb926df74cd5be3004fcf6beb7ce601ca1932059acdc",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/registry/fn_discoverUnits.sqf": {
+      "sha256": "b040c62375939e64ad570c96fdc181a276ff80666b10b698a5ffbb2392908b1b",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/registry/fn_registerUnit.sqf": {
+      "sha256": "9400a6cda3c1daca3381d1b456f5c72391d50223d98ed935f661a3a84b309f70",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/registry/fn_unregisterUnit.sqf": {
+      "sha256": "4f6510ecd7b91bfea6ecfacf00ac4e5a2738f1e5342baf322e08b6dc2be50d30",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/scheduler/fn_maintenance.sqf": {
+      "sha256": "e169100abcd85f71a92c5ed46668024100dd1d86c5fcd3cf225c44acfbb8e421",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/scheduler/fn_processUnit.sqf": {
+      "sha256": "049abd17daab60c223b994399fb838d4ca4cdd1f9824ce4823e7e4a749eee634",
+      "reviewStatus": "PARTIAL_READ"
+    },
+    "functions/scheduler/fn_tick.sqf": {
+      "sha256": "24219d1d6f9eed356740f33e4044212f6f222d961343e0003b65026e121e13ce",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/sensors/fn_canSee.sqf": {
+      "sha256": "8d6d11b1d77f0f2b974cf3153e2de69d5906ec491d2f35370c299df700f940bc",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/sensors/fn_findArmorThreat.sqf": {
+      "sha256": "7ab08f5c16ad5ed0c1ef7760e106f8408bda61ddf4412c3cf693ce5956cc8432",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/sensors/fn_findEnemy.sqf": {
+      "sha256": "322e2e545a5d0e4700d12fdc0bb9884e8eff55766d8268e7345aa77317c9f558",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/sensors/fn_getLineOfSight.sqf": {
+      "sha256": "07fb103d6ba5705f0fab48cff39c24333bdca17646aee7915950bf56f4a3550b",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/sensors/fn_getVisibilityFactor.sqf": {
+      "sha256": "d163bc159e0f5d692cc00280ce843ecf4f54d3874646ce61bd0b77b0da2a75d1",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/sensors/fn_hasAntiVehicle.sqf": {
+      "sha256": "123b75e9d31cdf63fe2d5ce5dc5c74f638b66e9810b16113d58a9e65773300c3",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/sensors/fn_hasGroupContact.sqf": {
+      "sha256": "cad2f6be79796b45bc9f84a69bdecb9c70358becd83b61a9a597bc9af22faea9",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/sensors/fn_scanVisibleThreat.sqf": {
+      "sha256": "d989dc227ed14b49cd211a55274570b388db0204e314703884297998a0c2a9c2",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_drawDebug.sqf": {
+      "sha256": "bce5003e754d6ac1bbef86847533f56a5686cddb9a607a06f2111d981cc31d54",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_loadDefaults.sqf": {
+      "sha256": "9f784f3a60bd4b86bbe05a8307e5006756c2c12a3081c9164fee98c82cfd3bff",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerAntiArmorSettings.sqf": {
+      "sha256": "2eef9cb62a5d55d58766f0a98082a08470a6d2bcba24c1db6b8f9ac9cac7f1fd",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerAssaultSettings.sqf": {
+      "sha256": "80b9a7c3c073297a555a3389118fd3bc3320d6277a78b02aa70c3e25c99086e6",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerBuildingSettings.sqf": {
+      "sha256": "cfd96a584a3fe61e34f5be2a65ec7d9d8f2221b18c3dbdec2220df43e1e70e21",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerContactSettings.sqf": {
+      "sha256": "83860a4358c565a4df4d196e1ddeddb4f3849b7c986f5476974f2f9ffb1bae32",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerCoordinationSettings.sqf": {
+      "sha256": "cc456fcefe4e107f5bee19f7315857f8a9ee78382203094ad212254fe3b03509",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerDebugSettings.sqf": {
+      "sha256": "ace8185f99c05b1e818897cdb0cbfff2314e4ceda6260620d83c21b8bf7765b3",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerDefenseSettings.sqf": {
+      "sha256": "4446a64222032f2700c5481e0b610a8b9777570431c0fe97f2c3cce8e7838b1f",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerFactionSkillSettings.sqf": {
+      "sha256": "4177e84eb0bf4ebe9eb6d2a6839596fe4231d38e436dd5e7bfbaefa6d315a548",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerFireControlSettings.sqf": {
+      "sha256": "d8c6a4dff30032571fbbca4c69d7e44a47c171a9e48566c1b60d006e9f2502b9",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerFireSafetySettings.sqf": {
+      "sha256": "5bff78f385d68e6b8eb1409a2defb950d84071837a32ce41704bdee566781760",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerHazardSettings.sqf": {
+      "sha256": "64a313a4d2968576c83cc381a5380742fd614e4b4d8e0abd56d04107f1f58b93",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerLogisticsSettings.sqf": {
+      "sha256": "f57f44d230ca661a4c0bfbd34986526384c4e3ad1f834fe3a7375a6615457085",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerMedicalSettings.sqf": {
+      "sha256": "1311c5b2abc140c2e1dd1a2b19029084c0e2944f5a1e5742506b61a3d9874a34",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerMoraleSettings.sqf": {
+      "sha256": "69cf1b353c0606d02694e47a8b2713d2d245960635a36560806775d801548d32",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerSettings.sqf": {
+      "sha256": "5930d4d220919c32eb91f8d6ed4c0f82f5f84dacd0a369ef43467e4519456ac6",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerTacticSettings.sqf": {
+      "sha256": "d2c86c704e028f4f4879a30130e1d6cbb6bfa865cc71df888d10f4508a556b44",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_registerTargetDistributionSettings.sqf": {
+      "sha256": "f58bc26651a610ce70328cba610807a5c6d91b055084152770c6ffbf9eca44af",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_updateDebugData.sqf": {
+      "sha256": "74557dbcac9c9c6484546da4a56ec116ac38fe3c3ba9fdcaf88c18f7d5069c8d",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/settings/fn_updateFactionSkills.sqf": {
+      "sha256": "6f76b96a4567587068d909201c28c9c4105411bb0103fee8a3f4cf483986ed59",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/state/fn_acquireMovementControl.sqf": {
+      "sha256": "1ebed78bf92b246a11c7da40921842fddbcdaf00f5e1b646d9f9bedaf7285188",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/state/fn_beginState.sqf": {
+      "sha256": "0a2b615e5ecf69fddbe0d4af0ea028cc71bff0fd3f2170d9fe2f7478b339e69b",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/state/fn_cancelState.sqf": {
+      "sha256": "42c7f44efb7c5e4e0a280e61955bd43ddd2c74fd90419ab2d0b66ddb55e541af",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/state/fn_endState.sqf": {
+      "sha256": "2a11dea81b3d522b675f8b1cdca1ca67b1f6be7e6ea5f9d904566c521b02c29d",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/state/fn_getState.sqf": {
+      "sha256": "7786737a8afa39cd69e530e685174566914659b9a6f23d4d9ac7995e00800dc5",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/state/fn_releaseMovementControl.sqf": {
+      "sha256": "49604510af841feb18d171060989615672b47936d80aeae97fd1113f277ed44a",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/state/fn_updateState.sqf": {
+      "sha256": "f3acf9a80d42450b32df18c136e718fd41ac7f1de27bc36d7230d2626bf48e66",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "functions/tactics/fn_coordinateBoundingAdvance.sqf": {
+      "sha256": "6956d9a7ae0d5be1de114393209efb362c837ce43b8207ef51d64f4bd669c3e0",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/tactics/fn_coordinateGroup.sqf": {
+      "sha256": "878c6ffb09434984a81e46809e5a32b2cbb27f5cdc8a96df326ddc94fdce964d",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/tactics/fn_findBoundPosition.sqf": {
+      "sha256": "11a9b9fe8f47af8d2810c91b36d9a936b3e98396704f6f4a7391d5d234867c08",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/tactics/fn_findFlankPosition.sqf": {
+      "sha256": "274e59167e758eee38d3af4c3487bab0627cb435378ff5baca9177a39314aad4",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/tactics/fn_releaseBoundingPlan.sqf": {
+      "sha256": "f4b2845b47052b4320a7d002d21ee08545f4f733c893dc22250b272c0b6ffd8d",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/tactics/fn_updateBoundingState.sqf": {
+      "sha256": "70df0c65e39b91a0782791a06a6177e45db492ce044294be5fc140e7de5cabe5",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "functions/tactics/fn_updateTacticState.sqf": {
+      "sha256": "eee71eeadf317ea04a723650dd24d94c6e7d893498d7005ffa17fc4104a72e76",
+      "reviewStatus": "UNREVIEWED"
+    },
+    "XEH_postInit.sqf": {
+      "sha256": "2acce7b5f0073ee920f583a1f75672a797fb5679f44773afce142a4b79843b8f",
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
+    },
+    "XEH_preInit.sqf": {
+      "sha256": "4f7db6337edce91a83e4a0b1ff8102d823a442cd7b99e1af066267a043b73c8c",
+      "reviewStatus": "UNREVIEWED"
+    }
+  },
+  "findings": [
+    {
+      "source": "state/beginState/getState/cancelState/endState",
+      "intent": "Explicit priority, token and deadline give one actor a current semantic task, with preemption and termination.",
+      "finding": "Duration<=0 creates no deadline. Cleanup is scoped to active state token but does not generally bind exact native movement/feature ownership. Several branches unconditionally reset TARGET/AUTOTARGET/posture/watch/forceSpeed or follow the current leader.",
+      "disposition": "Retain single-owner finite-state/preemption intent through existing CBE operations/actor reservations; do not add the source parallel state machine or blanket restoration. Nonpositive durations and branch-specific semantics require caller review, not a claim every source task is unbounded."
+    },
+    {
+      "source": "state/acquireMovementControl/releaseMovementControl",
+      "intent": "Temporarily reduce native combat interference during deliberate movement and restore the previous feature/posture policy.",
+      "finding": "Baseline captured once locally, then repeated acquire writes disableAI/posture/forceSpeed. Release restores saved features/posture without testing whether they are still owned and resets speed to-1 without capturing its prior value. Nonlocal release discards baseline metadata without native restoration.",
+      "disposition": "Reject blanket resets and ownership-blind cleanup. Keep exact CBE lease/receipt/epoch/native-order checks. Locality transfer cannot be treated as successful restoration from this source layer alone."
+    },
+    {
+      "source": "state/updateState",
+      "intent": "Confirm a real carried grenade was consumed, retry at most2 requests, observe movement progress and stop stalled work.",
+      "finding": "Expiry is checked after throw preparation/release processing. Native forceWeaponFire is a request; magazine-count decrease corroborates consumption but does not alone prove the requested projectile/target result. Generic movement uses horizontal arrival2.5m, progress0.75m and8s stall.",
+      "disposition": "Keep intent through CBE original-expiry-before-queued/native-boundary checks and FiredMan/projectile evidence. Do not copy late timeout ordering, horizontal room-arrival proof or fixed stall constants into CQB. Caller-specific movement updater bodies remain unread."
+    },
+    {
+      "source": "policy/isEligible/hasMissionOrders",
+      "intent": "Respect mission/player/high-command control and allow limited combat initiative around ordinary MOVE orders.",
+      "finding": "Eligibility enumerates allPlayers HC groups. Mission protection infers framework task state from several marker names, while combat waypoint override can retain only an index during active plans or infer permission from COMBAT/nearby known infantry. Same-index edits are not distinguished by this policy.",
+      "disposition": "Keep CBE exact native route/task identity and specialist/Zeus boundaries; do not adopt index-only permission or the source framework marker list as general authority. Useful balance of combat initiative remains a gameplay comparison objective, not completed parity."
+    },
+    {
+      "source": "scheduler/tick and selected processUnit1-110",
+      "intent": "Bound per-frame actor work, cache registry snapshots, leave quiet followers native, prioritize immediate hazards and armour over long tactical actions.",
+      "finding": "Tick3ms budget is tested before actor visits after pending-shot/contact/discovery/maintenance/telemetry work. First visit can execute even after preceding work consumes the budget. Full helper costs and scheduler startup/stop remain unread.",
+      "disposition": "Do not claim a hard global source budget or import another scheduler. Compare quiet/focused activation and hazard priority with existing CBE actor/danger owner when the selected reaction descendants are reviewed."
+    },
+    {
+      "source": "actions/recordGunfire/hearGunfire/observeGunfire",
+      "intent": "Provide approximate acoustic contact areas without revealing a precise enemy object; reduce suppressed-primary shot radius.",
+      "finding": "Per-shooter1s and per-group3s throttles; radius220m or65m for primary muzzle attachment,8-20m random contact error; no target object is sent. Spatial query and side filter do not prove acoustic propagation or sensed allegiance. Observer installs FiredMan once; handler removal/registration/locality callers not reviewed.",
+      "disposition": "Retain approximate-area/age/throttle intent for comparison with CBE danger/contact evidence. Do not copy world shot-discovery/handler infrastructure or label these radii physically realistic. No sound handler installed by this review."
+    },
+    {
+      "source": "registry/unregisterUnit",
+      "intent": "Retire registry and dependent group plans when an actor leaves management.",
+      "finding": "Cancellation occurs only for a living local actor, while several group release helpers run before that guard. Those helper bodies are not reviewed here.",
+      "disposition": "Trace registry/event/locality and actual dependent release writers before implementing any integration; this body alone is not handover proof."
+    }
+  ],
+  "cbeComparison": {
+    "baseCommit": "5ac826a9f45910788ce60905d95e2ee518320013",
+    "scope": "Selected ThrowGrenade queued callback193-215 and306-321, PointActorOperation header/admission, full ActorMoveReserved predicate. Not a complete CBE lifecycle audit.",
+    "files": {
+      "addons/infantry/functions/cortexThrowGrenade.sqf": "a706b5048aa32cf8d9919af5d16814823fc38bab57d39a9b27ee7c515c9b3090",
+      "addons/infantry/functions/pointActorOperation.sqf": "cd1aceb53fffda540af20fa31a82f17810e655eea49357c6ddfc505d8948c529",
+      "addons/infantry/functions/cortexActorMoveReserved.sqf": "1606a8e19d1ecc600faf51c0c9c679492ea7009abc259d6a64cfd4ea88b2f52d"
+    },
+    "result": "Existing CBE selected paths retain original expiry/generation/owner policy and FiredMan evidence rather than adding this source state controller. Source-specific unique reaction, hazard, support, medical, logistics, building and coordination methods remain to be examined in their actual bodies."
+  },
+  "nextConcreteWork": "Trace source bootstrap/registry Local/EH removal and movement-owning callers of the reviewed state helpers. Then evaluate hazard, contact/gunfire and building/task descendants for unique useful decisions against existing CBE owners. Preserve foundations-first; do not import all143files or score inventory as implemented behaviour.",
+  "validation": {
+    "runtimeChanged": false,
+    "audits": "PAUSED",
+    "packageRebuilt": false,
+    "implementationReassessedByThisMap": false,
+    "boundary": "Only listed bodies reviewed; remaining source queue explicit. No whole-mod parity/percentage, in-engine or performance acceptance. Previous5ac826a9 candidate unchanged."
+  }
+}
