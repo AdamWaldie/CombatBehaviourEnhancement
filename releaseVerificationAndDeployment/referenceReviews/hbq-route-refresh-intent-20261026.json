@@ -1252,5 +1252,27 @@
       "drivingQueueAgreementOwner.sqf": "3b264f571e7b7639bb5f320f0445b4bcb814c96661802e9e58e5d3ca5dce0abe",
       "drivingQueueTokenClosed.sqf": "8054f5f298e7259e028276d33fe0d88307ac1cc5ba6e8365392d660080c87281"
     }
+  },
+  "gateGeometryLifecycle20261027": {
+    "baseline": "85055cf1a25c11b8a7ca943ad74a02e847d23996",
+    "source": "Protected fn_driveAssist.sqf SHA2562e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931 reverified. Prior complete branch dispositions remain; this batch traces selected current gate and queue terminal writers, not a new full upstream review.",
+    "finding": "Gate request/open/close contexts omitted scale and did not refuse a mission-hidden gate. A scale change can stale the retained aperture/whole-hull context; hiding a gate during an owner-evidence exchange or passage observation must not authorize a new animation or observed closure result.",
+    "implementation": "GateRequest, GateOpenServer admission/final commit and GateCloseServer waiting/CLOSING checks now compare position/direction/up/scale. Request/open refuse hidden gates; close work reportsGATE_HIDDEN before CLOSING observation or new animation. Existing CLOSED_OBSERVED-only proof publication remains; an already-issued engine animation is neither reversed nor claimed cancelled. No new worker, registry, deadline, vehicle command or queue permission.",
+    "queueBoundary": "Selected QueueAgreementServer terminal send/delete and owner/TokenClosed/release paths inspected. Terminal delivery and private token closure are not positive native-stop/all-writer retirement proof. NativeRecoveryAdopt queueBinding refusal remains; no wrapper, migration permission or broker-retirement assumption is added.",
+    "validation": {
+      "focusedGateTests": 14,
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "buildLog": ".qa/handovers/gate-geometry-lifecycle-build-85055cf1.log",
+      "candidate": ".qa/candidates/gate-geometry-lifecycle-85055cf1",
+      "fingerprint": "5da35c1911be9dfba51d8c9844bef1790c23f7bb373ded591356f22e5902c217",
+      "independentLog": ".qa/handovers/gate-geometry-lifecycle-independent.log"
+    },
+    "limits": "Offline source/build evidence only. Physical gate edits, native animation interruption/clearance, traffic, remote owner delivery, HC and measured cost remain unverified. Cooperative queue native return/migration/all-writer proof remains incomplete. No driving/HBQ parity or score increase.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

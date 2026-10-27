@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Gate identity includes scale; hidden gates refuse new or continued gate work.
  * Purpose: Serialise one finite, current-owner request to open a recognised unlocked gate.
  * Locality/authority: Server only. Authenticating the vehicle/group owner is followed by live
  * route, driver, feature, gate-transform, lock and direction-qualified geometry validation before mutation.
@@ -53,7 +54,7 @@ if (!(_travelDirection isEqualType 0) || {!(_travelDirection in [-1,1])}
     || {!finite _revision} || {_revision != floor _revision} || {_revision < -1}
     || {!(_expires isEqualType 0)} || {!finite _expires} || {_expires <= serverTime} || {_expires > serverTime+5}
     || {!(_unlockReceipt isEqualType 0)} || {!finite _unlockReceipt}
-    || {isNull _group} || {isNull _vehicle} || {isNull _gate} || {!alive _gate}) exitWith {false};
+    || {isNull _group} || {isNull _vehicle} || {isNull _gate} || {!alive _gate} || {isObjectHidden _gate}) exitWith {false};
 private _sender=remoteExecutedOwner;
 if (_sender > 0 && {_sender != 2}
     && {_sender != groupOwner _group || {_sender != owner _vehicle} || {_sender != owner driver _vehicle}}) exitWith {false};
@@ -72,7 +73,8 @@ if (isNull _driver || {_driver != _requestedDriver} || {_commander != _requested
     || {!([_group,false,false,_revision >= 0] call CBE_fnc_CortexIsEligible)}
     || {[] call CBE_fnc_CortexIsPaused}
     || {_route isEqualTo []} || {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateRouteMatches)}
-    || {_transform isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate]}
+    || {_transform isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate,getObjectScale _gate]}
+    || {isObjectHidden _gate}
     || {abs speed _vehicle > 8}) exitWith {false};
 // Native destination evidence is sampled only on the operating owner. A server-local
 // private witness is consumed once; caller-supplied tokens alone grant no permission.
@@ -276,7 +278,8 @@ isNil {
         || {!isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
         || {_sender > 0 && {_sender != 2} && {_sender != groupOwner _group
             || {_sender != owner _vehicle} || {_sender != owner _driver} || {_sender != owner _liveCommander}}}
-        || {_transform isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate]}
+        || {_transform isNotEqualTo [getPosWorld _gate,vectorDir _gate,vectorUp _gate,getObjectScale _gate]}
+        || {isObjectHidden _gate}
         || {!([_group,_vehicle,_route] call CBE_fnc_DrivingGateRouteMatches)}
         || {[] call CBE_fnc_CortexIsPaused}
         || {[_group] call CBE_fnc_CortexExternalTakeover}
