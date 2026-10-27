@@ -6388,6 +6388,50 @@ class CortexOperations(unittest.TestCase):
         release_available=indoor.split('private _releaseAvailable=',1)[1].split('private _',1)[0]
         self.assertNotIn('CortexActorMoveReserved',release_available)
 
+    def test_firing_position_task_has_finite_native_issue_and_observed_retirement(self):
+        task=source('firingPositionOperation')
+        fire=source('cortexFireControl')
+        self.assertIn('["ASSESS",_unit,_targetASL] call CBE_fnc_FiringPositionOperation',fire)
+        self.assertEqual(task.count('_actor doMove _point;'),1)
+        self.assertEqual(task.count('_actor doFollow (_before select 2);'),1)
+        for proof in ('time-(_sample select 2) < 6','time+10','serverTime+18',
+                      'serverTime >= _until+8','[6,90],[6,-90],[10,90],[10,-90]',
+                      'call CBE_fnc_CortexSelectAvenue','terrainIntersectASL',
+                      '"FIRE","GEOM"','vectorDistance _to <= 3','"MOVE","RETURN"',
+                      '"NATIVE_UNRESOLVED"','"RETURN_UNRESOLVED"','unitReady _actor',
+                      'vectorDistance (AGLToASL _point) < 1.5',
+                      '([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _route'):
+            self.assertIn(proof,task)
+        self.assertLess(task.index('isNil {'),task.index('_actor doMove _point;'))
+        self.assertLess(task.index('_returnOrder set [8,"RETURN"]'),task.index('_actor doFollow'))
+        self.assertIn('count (_group getVariable ["CBE_Operation",createHashMap]) == 0',task)
+        self.assertIn('call CBE_fnc_IndoorActorGroupAvailable',task)
+        self.assertIn('behaviour _actor != "STEALTH"',task)
+        self.assertIn('unitCombatMode _actor in ["YELLOW","RED"]',task)
+        arrived=task.split('private _arrived=',1)[1].split('if (_arrived)',1)[0]
+        self.assertIn('_ownsLeg ||',arrived)
+        self.assertIn('abs speed _actor < 0.5',arrived)
+        self.assertIn('unitReady _actor',arrived)
+        return_commit=task.split('// A scheduled administrative caller',1)[1].split('_actor doFollow',1)[0]
+        for proof in ('call _available','isNotEqualTo _order','isNotEqualTo _route',
+                      'currentCommand _actor != "MOVE"','_currentGoal vectorDistance _point > 0.25',
+                      'isNotEqualTo _marker'):
+            self.assertIn(proof,return_commit)
+
+        return_phase=task.split('if (_phase == "RETURN") exitWith {',1)[1].split('private _arrived=',1)[0]
+        self.assertIn('currentCommand _actor == "FOLLOW"',return_phase)
+        self.assertNotIn('doFollow',return_phase)
+        self.assertNotIn('doMove',return_phase)
+        pending=task.split('private _reportPending=',1)[1].split('private _goal=',1)[0]
+        self.assertLess(pending.index('(_prior select 0) != _generation'),pending.index('setVariable'))
+        self.assertLess(pending.index('(_prior select 1) != _reason'),pending.index('setVariable'))
+        for command in ('forceSpeed','setUnitPos','disableAI','setPos','setSkill','addWaypoint','setBehaviour'):
+            self.assertNotIn(command,task)
+        predicate=source('cortexActorMoveReserved')
+        self.assertLess(predicate.index('CBE_FiringPosition_Order'),predicate.index('private _lease='))
+        for name in ('cortexDiscover','cortexStop','cortexLocality','cortexReleaseGroup','cortexOrderLocal'):
+            self.assertIn('call CBE_fnc_FiringPositionOperation',source(name))
+
     def test_combined_ground_preserves_protected_individual_tasks(self):
         guard=source('cortexActorFireTaskAvailable')
         self.assertIn('CBE_fnc_CortexActorMoveReserved',guard)

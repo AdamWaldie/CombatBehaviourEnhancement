@@ -216,6 +216,9 @@ if (!isNil "_civilianCreated") then {
         if (local _x && {(_x getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap}) then {
             ["RELEASE",_x] call CBE_fnc_LauncherMove;
         };
+        if ((_x getVariable ["CBE_FiringPosition_Order",[]]) isNotEqualTo []) then {
+            ["RETIRE",_x] call CBE_fnc_FiringPositionOperation;
+        };
         private _point=_x getVariable ["CBE_PointActor_Brain",createHashMap];
         if (count _point > 0 || {(_x getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
             ["FINISH",_x,_point] call CBE_fnc_PointActorOperation;

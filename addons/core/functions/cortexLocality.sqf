@@ -206,6 +206,9 @@ isNil {
 };
 {
         private _unit = _x;
+        if ((_unit getVariable ["CBE_FiringPosition_Order",[]]) isNotEqualTo []) then {
+            ["TRANSFER",_unit] call CBE_fnc_FiringPositionOperation;
+        };
         private _point=_unit getVariable ["CBE_PointActor_Brain",createHashMap];
         if (count _point > 0 || {(_unit getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []}) then {
             ["TRANSFER",_unit,_point] call CBE_fnc_PointActorOperation;

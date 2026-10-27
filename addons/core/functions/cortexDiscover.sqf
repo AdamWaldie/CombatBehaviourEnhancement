@@ -155,6 +155,17 @@ if (_tacticalReference isEqualType [] && {count _tacticalReference == 5}) then {
     };
     if (local _group && {(units _group) findIf {alive _x} >= 0}) then {
         _spotters append ((units _group) select {alive _x && {_x getVariable ["CBE_AIPass_Spotter", false]}});
+        // Passive finite-task reconciliation uses the already discovered group roster.
+        // It observes journals after migration, group joins or hard expiry without replaying MOVE.
+        private _firingActor=_group getVariable ["CBE_FiringPosition_Actor",objNull];
+        if (isNull _firingActor || {!alive _firingActor} || {group _firingActor != _group}) then {
+            _group setVariable ["CBE_FiringPosition_Actor",nil,true];
+        };
+        {
+            if (local _x && {(_x getVariable ["CBE_FiringPosition_Order",[]]) isNotEqualTo []}) then {
+                ["REAP",_x] call CBE_fnc_FiringPositionOperation;
+            };
+        } forEach units _group;
         private _pointActor=_group getVariable ["CBE_PointActor_Actor",objNull];
         // A deleted, dead or regrouped investigator cannot occupy this group's sole slot.
         if (!isNull _pointActor && {!alive _pointActor || {group _pointActor != _group}}) then {

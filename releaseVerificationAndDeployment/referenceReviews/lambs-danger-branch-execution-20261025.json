@@ -1396,7 +1396,8 @@
     "scope": "Current selected FireControl suppression issue, DangerCoverStep selection/continuation and TacticalReposition endpoint ownership. No runtime changes to firing-position movement in this batch.",
     "finding": "FireControl has bounded failed-lane rotation but issues no movement. DangerCoverStep selects incoming-threat screening and is tied to hazard generations, so admitting a firing-position request into it would not prove an outgoing lane or original native handback. TacticalReposition moves the whole group, not one blocked rifleman.",
     "next": "Define persistent occlusion and prospective usable outgoing-lane evidence together with one finite actor command/retirement path before adding fire-to-movement delegation. Existing CQB/cover/point/launcher owners must remain disjoint; do not import LAMBS unleased recurring doMove/forceSpeed fallback.",
-    "remaining": "General per-actor firing-position improvement remains unimplemented and physically unverified. The independent garrison failed-post change does not close this capability."
+    "remaining": "General per-actor firing-position improvement remains unimplemented and physically unverified. The independent garrison failed-post change does not close this capability.",
+    "followup": "firingPositionImplementation20261027 implements the initial finite nonleader suppression-lane path. Earlier finding is historical; broader tactical variants and physical evidence remain open."
   },
   "civilianArrivalLifecycle20261027": {
     "status": "IMPLEMENTED_OFFLINE_PHYSICAL_PENDING",
@@ -1444,6 +1445,36 @@
       "buildLog": ".qa/handovers/actor-journal-build-c76da57f.log",
       "independentLog": ".qa/handovers/actor-journal-independent.log",
       "sourceNote": "Unsigned dirty development candidate from c76da57f plus journal admission patch. Engineering notes postdate packaging. Physical handback/repeat/locality/performance unverified."
+    }
+  },
+  "firingPositionImplementation20261027": {
+    "status": "INITIAL_FINITE_PATH_IMPLEMENTED_OFFLINE_PHYSICAL_PENDING",
+    "intent": "Evolve LAMBS blocked-fire movement intent and selected Smart Combat cover/flank selection into one separate finite actor task, rather than abusing hazard cover or casualty investigation.",
+    "sourceReferences": [
+      "firingPositionOwnerBoundary20261027",
+      "smart-combat-state-source-20261027.json#firingAndCoverSelection20261027"
+    ],
+    "owner": "FiringPositionOperation owner-local SQF MOVE/RETURN state machine; existing CortexQueueJob scheduling and strict actor reservation. No new native engine FSM attachment or permanent loop.",
+    "change": "Existing suppression candidates with an obstructed aim may accumulate six seconds of same-belief/stationary-origin evidence. At most one nonleader per group chooses among four6/10m lateral prospective firing points once per10s search admission. Existing avenue safety remains. Atomic exact journal precedes one native move; observed native readiness/rest/proximity and actual lane precede ARRIVED. Original18+8s budgets, once-only original-anchor follow, explicit unresolved custody, exact replacement yielding and passive discovery/locality/stop/release integration.",
+    "cost": "At most4 prospective ray pairs plus one existing bounded avenue selection per admitted search; one finite0.5s observer per group up to26s. Existing discovered group roster is read for journal reconciliation, with no extra world scan. Current-lane confirmation is bounded by the existing3 suppression candidates. Cost unmeasured.",
+    "safeguards": "No hidden live target position, forceSpeed, forced stance/animation, skill/feature/waypoint/formation mutation, native move retry, replacement anchor, renewed deadline or inferred success from expiry. Point/indoor/flight/launcher journals stay disjoint. New group operations, mission orders, specialist/Zeus ownership and replacement markers win. Passive reconciliation publishes an unresolved outcome only when generation/reason changes; it does not refresh result timestamps every discovery pass.",
+    "limits": [
+      "Only the initial eligible nonleader suppression-lane path is implemented; broad per-actor fire/overwatch parity remains incomplete.",
+      "Prospective1.4m eye and final near-belief face allowance are sparse geometry, not native access, posture quality or future fire-safety proof.",
+      "Unknown native requests remain reserved; a missing/dead original anchor is not force-repaired. Actual engine transition/arrival/return and dynamic group/leadership cases need physical evidence.",
+      "No audits or performance measurements run. The5% median/10% p95 target is unproven."
+    ],
+    "primaryEngineReference": "https://community.bistudio.com/wiki/unitReady?useskin=vector",
+    "verification": {
+      "tests": 1498,
+      "compiledSQF": 449,
+      "PBOs": 11,
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/firing-position-final-bounded-feddc020",
+      "fingerprint": "050dc3ca8c1c953a6b84eccae116abaa422a4fd3a9cc87cc33f1ea570c411868",
+      "buildLog": ".qa/handovers/firing-position-final-bounded-build-feddc020.log",
+      "independentLog": ".qa/handovers/firing-position-final-bounded-independent.log",
+      "sourceNote": "Unsigned dirty development from feddc020 plus this runtime patch. Final package includes the lifecycle description; engineering records postdate packaging. Not a clean release or physical acceptance. Earlier firing-position candidates/logs are superseded before the final pending-outcome publication correction."
     }
   }
 }

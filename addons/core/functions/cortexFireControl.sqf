@@ -4,6 +4,9 @@
  * Fleeing actors receive no injected target/fire/suppression; the shared task gate repeats at issue.
  * Native CANFIRE accepts current eight-field observations only while their original identity
  * witness and source expiry remain valid; legacy six/seven-field records use their event expiry.
+ * Persistently obstructed eligible nonleaders may request one finite lateral firing-position
+ * task per group; selection, native movement/return and unresolved custody use FiringPositionOperation.
+ * No task, stance or settings reset is inferred from a suppression timestamp.
  * Suppression assesses at most three actor lanes per pass: terrain veto, one FIRE/GEOM hit,
  * near-objective cover face within three metres, then the protected-actor cone at the issued point.
  * Both belief proxy and resolved face remain outside the existing20m close-threat domain.
@@ -331,6 +334,12 @@ if (_suppressPos isNotEqualTo [] && {!(formation _group in ["FILE","DIAMOND"])})
                     if (count _spare >= 2 && {_rounds >= 60}) then {
                         _geometryChecks=_geometryChecks+1;
                         private _aimASL=[_unit,_targetASL,20] call CBE_fnc_CortexSuppressionAim;
+                        if (_aimASL isEqualTo []) then {
+                            if (["ASSESS",_unit,_targetASL] call CBE_fnc_FiringPositionOperation) then {
+                                _issued=true;_geometryChecks=3;_orders=_orders+1;
+                                _group setVariable ["CBE_AIPass_NextSuppress",_now+4];
+                            };
+                        } else {_unit setVariable ["CBE_FiringPosition_Blocked",nil]};
                         if (_aimASL isNotEqualTo []
                             && {[_unit, _aimASL,_magazine] call CBE_fnc_CortexLineOfFireClear}
                             && {[_unit] call CBE_fnc_CortexActorFireTaskAvailable}) then {

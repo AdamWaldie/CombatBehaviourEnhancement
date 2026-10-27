@@ -18,7 +18,9 @@
   "reviewedFullBodies": [
     "XEH_postInit.sqf",
     "config.cpp",
+    "functions/actions/fn_findCover.sqf",
     "functions/actions/fn_hearGunfire.sqf",
+    "functions/actions/fn_moveToCover.sqf",
     "functions/actions/fn_observeGunfire.sqf",
     "functions/actions/fn_recordGunfire.sqf",
     "functions/bootstrap/fn_log.sqf",
@@ -47,6 +49,7 @@
     "functions/registry/fn_registerUnit.sqf",
     "functions/registry/fn_unregisterUnit.sqf",
     "functions/scheduler/fn_maintenance.sqf",
+    "functions/scheduler/fn_processUnit.sqf",
     "functions/scheduler/fn_tick.sqf",
     "functions/state/fn_acquireMovementControl.sqf",
     "functions/state/fn_beginState.sqf",
@@ -54,11 +57,13 @@
     "functions/state/fn_endState.sqf",
     "functions/state/fn_getState.sqf",
     "functions/state/fn_releaseMovementControl.sqf",
-    "functions/state/fn_updateState.sqf"
+    "functions/state/fn_updateState.sqf",
+    "functions/tactics/fn_coordinateGroup.sqf",
+    "functions/tactics/fn_findFlankPosition.sqf",
+    "functions/tactics/fn_updateTacticState.sqf"
   ],
   "partialBodies": {
-    "cfgFunctions.hpp": "First55lines registration; remaining registration unread",
-    "functions/scheduler/fn_processUnit.sqf": "First110lines; remainder and downstream action helpers unread"
+    "cfgFunctions.hpp": "First55lines registration; remaining registration unread"
   },
   "bodyQueue": {
     "functions/actions/fn_deployGrenade.sqf": {
@@ -71,7 +76,7 @@
     },
     "functions/actions/fn_findCover.sqf": {
       "sha256": "30511232e3fd5353c1fda62b36187188889bbaf272ab804595a03c901221bf10",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/actions/fn_hearGunfire.sqf": {
       "sha256": "e8fc82cf57580d8b64ae5db14d56e6a324aebda430e3e11c57ffa339e227b3b2",
@@ -87,7 +92,7 @@
     },
     "functions/actions/fn_moveToCover.sqf": {
       "sha256": "fecfc436e996eada9deb06d86dc73b445876209f27bbbceba2644f8a251cdeb9",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/actions/fn_observeGunfire.sqf": {
       "sha256": "c39c28011e187ae986c2ade4d9b467ce3d3737d3af9af97e07207fe3d524c446",
@@ -447,7 +452,7 @@
     },
     "functions/scheduler/fn_processUnit.sqf": {
       "sha256": "049abd17daab60c223b994399fb838d4ca4cdd1f9824ce4823e7e4a749eee634",
-      "reviewStatus": "PARTIAL_READ"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/scheduler/fn_tick.sqf": {
       "sha256": "24219d1d6f9eed356740f33e4044212f6f222d961343e0003b65026e121e13ce",
@@ -603,7 +608,7 @@
     },
     "functions/tactics/fn_coordinateGroup.sqf": {
       "sha256": "878c6ffb09434984a81e46809e5a32b2cbb27f5cdc8a96df326ddc94fdce964d",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/tactics/fn_findBoundPosition.sqf": {
       "sha256": "11a9b9fe8f47af8d2810c91b36d9a936b3e98396704f6f4a7391d5d234867c08",
@@ -611,7 +616,7 @@
     },
     "functions/tactics/fn_findFlankPosition.sqf": {
       "sha256": "274e59167e758eee38d3af4c3487bab0627cb435378ff5baca9177a39314aad4",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "functions/tactics/fn_releaseBoundingPlan.sqf": {
       "sha256": "f4b2845b47052b4320a7d002d21ee08545f4f733c893dc22250b272c0b6ffd8d",
@@ -623,7 +628,7 @@
     },
     "functions/tactics/fn_updateTacticState.sqf": {
       "sha256": "eee71eeadf317ea04a723650dd24d94c6e7d893498d7005ffa17fc4104a72e76",
-      "reviewStatus": "UNREVIEWED"
+      "reviewStatus": "FULL_READABLE_BODY_REVIEWED"
     },
     "XEH_postInit.sqf": {
       "sha256": "2acce7b5f0073ee920f583a1f75672a797fb5679f44773afce142a4b79843b8f",
@@ -688,7 +693,7 @@
     },
     "result": "Existing CBE selected paths retain original expiry/generation/owner policy and FiredMan evidence rather than adding this source state controller. Source-specific unique reaction, hazard, support, medical, logistics, building and coordination methods remain to be examined in their actual bodies."
   },
-  "nextConcreteWork": "Continue unread actual feature callers/settings and group cleanup methods or select another concrete registered gap; building/garrison readable helpers listed complete need no repetition without change. Quiet shelter/failed-position reuse remain candidates, not automatic defaults. Physical detours versus circling, native/placed/modded CQB flow, casualty/isolation/egress/repeat and measured cost remain pending under audit pause.",
+  "nextConcreteWork": "Use firingAndCoverSelection20261027 for the completed cover/flank/actor-scheduler trace and remaining finite per-actor firing-position work; continue other unread feature descendants/settings without repeating completed bodies absent a changed source or specific unresolved path. Whole-source parity and physical evidence remain open.",
   "validation": {
     "runtimeChanged": true,
     "audits": "PAUSED",
@@ -816,5 +821,35 @@
       "independent": ".qa/handovers/garrison-failed-post-independent.log",
       "reason": "Passed intermediate source, superseded by expiry-before-native-transform/scale-query correction. Final complete build rerun covers the correction."
     }
+  },
+  "firingAndCoverSelection20261027": {
+    "scope": "Six full readable bodies listed by hashes. processUnit first110 lines were reviewed previously; this pass completes111-225 and traces the actual cover/flank/tactic-update caller locations. Other feature descendants/settings, compiled equivalence and whole-source parity remain open.",
+    "hashes": {
+      "functions/actions/fn_findCover.sqf": "30511232e3fd5353c1fda62b36187188889bbaf272ab804595a03c901221bf10",
+      "functions/actions/fn_moveToCover.sqf": "fecfc436e996eada9deb06d86dc73b445876209f27bbbceba2644f8a251cdeb9",
+      "functions/tactics/fn_findFlankPosition.sqf": "274e59167e758eee38d3af4c3487bab0627cb435378ff5baca9177a39314aad4",
+      "functions/tactics/fn_coordinateGroup.sqf": "878c6ffb09434984a81e46809e5a32b2cbb27f5cdc8a96df326ddc94fdce964d",
+      "functions/tactics/fn_updateTacticState.sqf": "eee71eeadf317ea04a723650dd24d94c6e7d893498d7005ffa17fc4104a72e76",
+      "functions/scheduler/fn_processUnit.sqf": "049abd17daab60c223b994399fb838d4ca4cdd1f9824ce4823e7e4a749eee634"
+    },
+    "originalPboHashReverified": true,
+    "cover": "findCover enumerates terrain and ordinary objects, deduplicates and truncates32 after engine enumeration; one threat-away point per object uses bounding extents, findEmptyPosition, slope/water/occupancy filters, a30-second failed-destination exclusion, VIEW/FIRE obstruction and travel/road scoring. It forces candidate terrain-relative height to0 before empty-position selection. moveToCover obtains a source state token and immediately doMove; do not confuse token admission with native arrival/cleanup proof.",
+    "flank": "coordinateGroup requires leader/mission-order/morale/range/knowledge/group-contact gates, chooses1 or2 idle local flankers with low suppression/proximity and at least2 supporting actors. Probes both sides then independently chooses spaced actor destinations. findFlankPosition considers3 positions, current live target position/eye, nearby cover density and travel; an outgoing ray is a25-point bonus, not mandatory. A high-scoring occluded destination can still win. Object ray omits separate terrain test. Spatial separation checks current men, not reserved future destinations.",
+    "execution": "Flanker doMove commands issue before all remaining actor states succeed. Supporting states invoke focus/suppression. Partial admission cancels already-started states; cancellation is not an authenticated all-writer native acknowledgement. updateTacticState refreshes shared group last-contact from an actual unit LOS check, ends target-loss/contact-loss state and repeats suppression. Generic state/update/movement cleanup was reviewed previously; this pass does not establish safe rollback/native cancellation or entire descendant execution.",
+    "callerOrder": "processUnit updates active states before new actions. At fresh leader tactical planning it tries coordinateGroups, pressured defense, assault, bounding advance, then coordinateGroup and defense fallback. A2-second leader next-plan marker limits this tactical chain. Cover admission is suppression-driven after optional smoke; not a persistent blocked-fire detector. These positions in the chain matter: helper availability alone does not establish that it regularly executes.",
+    "retainOrAdapt": [
+      "Separate protected cover from useful outgoing firing positions; select on authenticated belief rather than hidden live target pose.",
+      "Retain low-suppression assault selection, complementary support roles, finite contact-loss policy and route/road/occupancy considerations through existing CBE owners.",
+      "For a dedicated firing-position request require prospective lane evidence, not just cover density or a score bonus. Preserve approach terrain/support-lane safety and actual arrival checks."
+    ],
+    "rejectOrReplace": [
+      "Do not copy repeated unowned doMove, hidden live target pose, unconditional feature/posture reset or state cancellation as native handback.",
+      "Do not call whole-group TacticalReposition to claim a single blocked rifleman was repaired, or route outgoing-fire intent into incoming-hazard DangerCoverStep.",
+      "No whole-mod import, new persistent controller, extra world scan or forced movement."
+    ],
+    "cbeComparison": "Existing FireControl rotates at most3 failed suppressor lanes and issues no movement. TacticalReposition and FlankStart use finite group/drill owners and bounded terrain/support-lane selection, not a general single-actor relocation. Elevated firing endpoint rays already exist for the specific elevated-contact group request. feddc020 protects point/indoor journals beyond ordinary actor lease expiry; it adds no firing movement.",
+    "nextConcreteWork": "Implement the general per-actor firing-position capability as one complete finite actor execution path: persistent authenticated lane obstruction, bounded prospective point/route selection, current command admission and exact journal, native issue/observation, bounded cancellation/return and repeat/locality policy. Reuse CBE shared scheduling/ownership; keep casualty point and indoor/hazard semantics distinct. Do not mark complete from selector-only or receipt-only code.",
+    "validation": "Selected member hashes match preserved manifest and existing queue; installed original PBO hash unchanged. Documentation checker only for this source-only record. No runtime change or unchanged full build repeated; last candidate remains actor-journal-c76da57f. Physical behaviour/performance unverified; audits paused.",
+    "implementationFollowup": "Initial CBE finite nonleader suppression-lane path is implemented in lambs-danger-branch-execution-20261025.json#firingPositionImplementation20261027; broader variants and physical proof remain open."
   }
 }

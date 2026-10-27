@@ -26,6 +26,7 @@ if ((_actor getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo 
 // ordinary admission cannot claim the actor until that owner actually retires the journal.
 if ((_actor getVariable ["CBE_PointActor_Order",[]]) isNotEqualTo []) exitWith {true};
 if ((_actor getVariable ["CBE_IndoorActor_Order",[]]) isNotEqualTo []) exitWith {true};
+if ((_actor getVariable ["CBE_FiringPosition_Order",[]]) isNotEqualTo []) exitWith {true};
 private _lease=_actor getVariable ["CBE_Cortex_ActorMove",[]];
 if (_lease isEqualTo []) exitWith {false};
 private _expired=_lease isEqualType [] && {count _lease == 3}

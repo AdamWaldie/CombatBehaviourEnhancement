@@ -208,6 +208,7 @@ class CfgFunctions {
             class IndoorActorNativeContext {file = "\z\cbe\addons\infantry\functions\indoorActorNativeContext.sqf";};
             class CasualtyWeaponRecover {file = "\z\cbe\addons\infantry\functions\casualtyWeaponRecover.sqf";};
             class CasualtyObservationSelect {file = "\z\cbe\addons\infantry\functions\casualtyObservationSelect.sqf";};
+            class FiringPositionOperation {file = "\z\cbe\addons\infantry\functions\firingPositionOperation.sqf";};
             class PointActorOperation {file = "\z\cbe\addons\infantry\functions\pointActorOperation.sqf";};
             class IndoorActorOperation {file = "\z\cbe\addons\infantry\functions\indoorActorOperation.sqf";};
             class IndoorActorNodeSelect {file = "\z\cbe\addons\infantry\functions\indoorActorNodeSelect.sqf";};
