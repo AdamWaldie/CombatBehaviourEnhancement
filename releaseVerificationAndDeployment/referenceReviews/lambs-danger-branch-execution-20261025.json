@@ -1739,5 +1739,37 @@
     "performanceMeasured": false,
     "scoresChanged": false,
     "limits": "No physical Arma disable/re-enable/locality proof. Native movement can continue after CBE stops observing it; metadata retirement is not cancellation or safe arrival."
+  },
+  "civilianWitnessedCasualty20261027": {
+    "baseline": "43709fda61822c37b7b2b54604c8a644b6bcec61",
+    "sourceReference": "civilianFSMReview20261026: native own-group casualty/body danger and response diversity; civilianNativeCueBoundary20261027",
+    "sourceHashes": {
+      "lambs_dangerCivilian.fsm": "417327c6e514538ec4f81b3c4bd182e15c89524b04fabfbfc94b441099936285",
+      "fnc_doCheckBody.sqf": "be58252ed15228047ec673df09a0f7d3642df372ed21504309b537d4c501433c"
+    },
+    "selectedIntent": "Adapt own-group casualty awareness into existing CBE finite civilian refuge; reject allDeadMen discovery, body-looting and detached approach/stance writers. This does not replace or override the native civilian danger FSM.",
+    "execution": "Existing owner-local EntityKilled handler, inside newly retained casualty identity, considers civilian groups <=16 and local living unarmed on-foot nonplayer simulated visible witnesses. Hidden casualties refuse. Range uses existing reaction radius capped at45m; forward eye dot>=0.25, clear terrain and VIEW rays precede CASUALTY priority2 with only observed body ATL. Equal/stronger unexpired reactions skip observation/search work. CortexCivilianReact retains final native-command/route/owner/care/feature/refuge admission and existing generation/deadline/retry policy.",
+    "bounds": "One existing death event; <=16 roster members and terrain/VIEW ray pairs. No world discovery, added handler, repeating scan, worker/timer, persistent attention state or killer reveal. Successful reactions coalesce later equal/lesser cues under existing cooldown. Synchronous event bound is not measured frame-time acceptance.",
+    "verification": {
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "focused": "Existing civilian lifecycle case extended and passed; static source contract, not engine execution.",
+      "buildLog": ".qa/handovers/civilian-witness-build-43709fda.log",
+      "candidate": ".qa/candidates/civilian-witness-43709fda",
+      "fingerprint": "b9be28c623449f7451ac506e57a4ed34554b9f46bc8699fd2e9d5e66a4a9a3ab",
+      "independentLog": ".qa/handovers/civilian-witness-independent.log"
+    },
+    "limits": "Scripted forward clear-view approximation, not native perception; no lighting/attention modelling, later corpse discovery, non-group death search, scream or vehicle escape. Oversized/split-locality groups retain native behaviour. Physical visibility, danger/refuge choices, event bursts, repeat/locality and performance remain unverified. Original death list is finite rolling provenance, not durable all-death memory.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
+  },
+  "vehicleSourceSummaryReconciliation20261027": {
+    "scope": "Correct obsolete next-action summaries after tracing current executors; no new vehicle implementation or whole-source review.",
+    "current": "VehicleTurnRetire already implements bounded native turn retirement; its physical limits remain. CortexGroundReload already requests/observes finite native reserve-magazine loading in routine and combined gunnery, including exact role/route/owner and original expiry. GroundFireReady/SelectMuzzle intentionally remain loaded-state predicates/selectors. Reactive mortar smoke/illumination is implemented in reactiveMortarIllumination20261027 with later nativeAmmoProfileCorrection20261027.",
+    "historicalSummary": "vehicleDecisionDelegationReview20261026 branches describe the code at that review, not current absence of these capabilities. Do not duplicate a loading or turn controller based on those older strings.",
+    "remaining": "Native travel/stop/reload and repeated handback/performance unverified; reserve/muzzle policy remains bounded, not all top-down/laser/custom-station behaviour. See existing armour-legacy-missile-reserve-20261025.json and vehicleTurnRetirementImplementation20261026 for exact limits."
   }
 }

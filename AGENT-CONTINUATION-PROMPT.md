@@ -1,3 +1,15 @@
+## 2026-10-27: civilian witnessed own-group casualties
+
+From 43709fda, existing CortexInit EntityKilled work passes CASUALTY priority2 and only body location to CortexCivilianReact for eligible own-group local civilian witnesses. Newly retained death identity, group <=16, reaction radius capped45m, visible corpse, living/unarmed/on-foot/simulated visible nonplayer witness, forward eye dot>=0.25 and clear terrain/VIEW rays. Equal/stronger live reactions skip ray/search work. No killer reveal, allDeadMen/world query, new handler/timer/controller or native movement outside existing refuge owner. Actual command/route/care/specialist/feature admission remains in React; original finite generation/deadline/retry semantics remain.
+
+This is a scripted clear-view approximation, not native perception/FSM parity; no lighting/attention, scream, later corpse discovery or non-group world search. Oversized/split-locality cases remain native. Event bound <=16 roster/ray pairs is not measured frame-time acceptance. Physical choices, obstruction, normal/HC/repeat/locality and cost remain unverified. Audits PAUSED; no Arma launch/staging. Full production goal ACTIVE/INCOMPLETE.
+
+LAMBS civilian FSM417327c6 and doCheckBody be58252e preserved hashes verified. Evidence: lambs-danger-branch-execution-20261025.json#civilianWitnessedCasualty20261027; source map selected evidence linked, no score reassessment. Existing GroundReload/turn/mortar implementations also traced; obsolete vehicle source summaries annotated so future work does not add duplicate owners.
+
+Full 1,498 tests / 449 compiled SQF / 11 PBOs and independent verify PASS. Candidate .qa/candidates/civilian-witness-43709fda; fingerprint b9be28c623449f7451ac506e57a4ed34554b9f46bc8699fd2e9d5e66a4a9a3ab. Logs .qa/handovers/civilian-witness-build-43709fda.log and .qa/handovers/civilian-witness-independent.log. Unsigned development from43709fda plus runtime/docs/test patch; final source/review/handover notes postdate packaging. Current commit/push/PR state: consult live Git and .qa/handovers/checkpoint-current.json; PR19 must stay draft, no merge/release/Steam/manualCI.
+
+Continue source-register foundations-up required build-out. Do not expand this completed witness batch with optional refinements; retain native corpse/scream, provider handover and other registered gaps. Use IMPLEMENTATION-GOAL.md, source-review-map.json, linked LAMBS/HBQ/Protocol records and protected stores listed below. Correct checkout remains C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks, not WMP. Preserve unrelated dirt.
+
 ## 2026-10-27: foundation-first goal and civilian disable regression repair
 
 Read IMPLEMENTATION-GOAL.md Governing execution rule before choosing work: registered source intent -> existing owner/lifecycle -> finite change -> regression checks -> recorded remaining gaps. Foundations, then individuals, pairs/squads and combined arms. Full production objective remains ACTIVE/INCOMPLETE. Audits PAUSED; no Arma launch or installed-game staging. Preserve protected stores and unrelated changes; this checkout is C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks, not WMP.

@@ -50,6 +50,12 @@
       "civilianIdleShelter20261027": {
         "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianIdleShelter20261027",
         "scope": "Selected negative gunfire-response deduplication at an observed idle roofed position, not a hold controller or whole-LAMBS acceptance."
+      },
+      "civilianWitnessedCasualty20261027": {
+        "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianWitnessedCasualty20261027",
+        "implementation": "Own-group death-event forward clear-view cues reuse the existing finite civilian refuge owner; <=16 roster, <=45m, no killer reveal or polling.",
+        "remaining": "Native civilian FSM body/scream/late-discovery parity, physical witnessing/refuge and measured performance remain unverified.",
+        "scoresChanged": false
       }
     },
     {

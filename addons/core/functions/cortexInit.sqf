@@ -10,7 +10,9 @@
  * - one EntityKilled mission handler retains up to64 death identities for the current finite
  *   clearance episode, separately from up to eight five-minute own-group casualty
  *   identities and passes kills to survivor regroup. Exact clearance context can corroborate a
- *   deleted exterior guard; public provenance alone never dispatches movement;
+ *   deleted exterior guard; public provenance alone never dispatches movement. A current
+ *   visible death in a civilian group of at most16 may request the existing finite refuge
+ *   response for local witnesses within45m; at most16 terrain/VIEW ray pairs, no world scan;
  * - the CBE_fnc_CortexDiscover sweep job, which brings local groups under the pass;
  * - a ProjectileCreated handler for grenade evasion, only while CBE_AIPass_GrenadeEvasion_Enable is
  *   on (it would otherwise run for every projectile);
@@ -137,6 +139,44 @@ if (isNil {missionNamespace getVariable "CBE_AIPass_KilledHandler"}) then {
             };
             _casualties pushBack [_unit,serverTime,serverTime+300,netId _unit,+_clearContext];
             _group setVariable ["CBE_Danger_Casualties",_casualties,true];
+            // A death event is not shared perception. Only a current local civilian
+            // who can see this own-group casualty receives the finite refuge cue.
+            // Use the bounded existing roster, not allDeadMen/nearby-world discovery.
+            if (side _group == civilian && {!isObjectHidden _unit}
+                && {missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Enable",true]}
+                && {!([] call CBE_fnc_CortexIsPaused)}) then {
+                private _witnesses=units _group;
+                if (count _witnesses <= 16) then {
+                    private _bodyATL=getPosATL _unit;
+                    private _bodyASL=(getPosASL _unit) vectorAdd [0,0,0.5];
+                    private _radius=(missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Radius",45]) max 0 min 45;
+                    {
+                        private _witness=_x;
+                        private _active=_witness getVariable ["CBE_Cortex_CivilianReaction",[]];
+                        // Coalesce casualties behind an equal/stronger live reaction.
+                        // No repeated searches or renewed deadlines from the same death.
+                        private _reacting=_active isNotEqualTo []
+                            && {serverTime < (_active param [0,0,[0]])}
+                            && {(_active param [1,0,[0]]) >= 2};
+                        if (!_reacting && {_witness != _unit} && {local _witness}
+                            && {alive _witness} && {!isPlayer _witness}
+                            && {simulationEnabled _witness} && {!isObjectHidden _witness}
+                            && {isNull objectParent _witness}
+                            && {primaryWeapon _witness == "" && {secondaryWeapon _witness == ""} && {handgunWeapon _witness == ""}}
+                            && {_witness distance _bodyATL <= _radius}) then {
+                            private _eye=eyePos _witness;
+                            private _towardBody=vectorNormalized (_bodyASL vectorDiff _eye);
+                            // A clear ray behind the actor is not a visual witness.
+                            if ((eyeDirection _witness) vectorDotProduct _towardBody >= 0.25
+                                && {!terrainIntersectASL [_eye,_bodyASL]}
+                                && {lineIntersectsSurfaces [_eye,_bodyASL,_witness,_unit,true,1,"VIEW","NONE"] isEqualTo []}) then {
+                                // Supply only the observed casualty location, never killer identity.
+                                [_witness,_bodyATL,"CASUALTY",2] call CBE_fnc_CortexCivilianReact;
+                            };
+                        };
+                    } forEach _witnesses;
+                };
+            };
         };
         [_group, _unit] call CBE_fnc_CortexRegroupOnKill;
     }]];

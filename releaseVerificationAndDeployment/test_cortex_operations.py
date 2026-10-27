@@ -6095,6 +6095,22 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _civilianSettingsPreserved=',qa)
         self.assertIn('_enabledIssued && {_fled} && {_civilianSettingsPreserved}',qa)
         self.assertIn('"EntityCreated"',init)
+        witnessed=init.split('// A death event is not shared perception.',1)[1].split('[_group, _unit] call CBE_fnc_CortexRegroupOnKill;',1)[0]
+        for proof in ('side _group == civilian','!isObjectHidden _unit','CivilianReaction_Enable','CortexIsPaused',
+                      'units _group','count _witnesses <= 16','max 0 min 45',
+                      '(_active param [1,0,[0]]) >= 2','local _witness','!isPlayer _witness',
+                      'simulationEnabled _witness','!isObjectHidden _witness',
+                      'isNull objectParent _witness','_witness distance _bodyATL <= _radius',
+                      '(eyeDirection _witness) vectorDotProduct _towardBody >= 0.25',
+                      'terrainIntersectASL [_eye,_bodyASL]',
+                      'lineIntersectsSurfaces [_eye,_bodyASL,_witness,_unit,true,1,"VIEW","NONE"]',
+                      '[_witness,_bodyATL,"CASUALTY",2] call CBE_fnc_CortexCivilianReact'):
+            self.assertIn(proof,witnessed)
+        self.assertLess(init.index('_casualties findIf {(_x select 0) == _unit} < 0'),init.index('// A death event is not shared perception.'))
+        self.assertLess(witnessed.index('lineIntersectsSurfaces'),witnessed.index('call CBE_fnc_CortexCivilianReact'))
+        for forbidden in (' reveal ','getPosATL _killer','nearEntities','nearestObjects',
+                          'doMove','addMissionEventHandler','CBA_fnc_waitAndExecute'):
+            self.assertNotIn(forbidden,witnessed)
         self.assertIn('CBE_Cortex_CivilianCreatedHandler',stop)
         settings=source('aiTweaksSettingChanged')
         self.assertIn('CBE_AIPass_CivilianReaction_Enable',settings)

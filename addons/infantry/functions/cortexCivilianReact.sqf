@@ -34,7 +34,8 @@
  *
  * Indoor destinations exclude up to16 current same-group escape destinations; larger rosters
  * keep the exterior/escape policy. No room capacity or route-access guarantee is inferred.
- * Current callers: FiredNear, Suppressed, Explosion and Hit handlers installed by CBE_fnc_CortexCivilianSetup,
+ * Current callers: own-group visible casualty event in CortexInit; FiredNear, Suppressed, Explosion
+ * and Hit handlers installed by CBE_fnc_CortexCivilianSetup,
  * plus the focused audit endpoint.
  *
  * Example:
