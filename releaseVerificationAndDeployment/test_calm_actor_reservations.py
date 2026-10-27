@@ -668,12 +668,12 @@ class DrillThrowContextTests(unittest.TestCase):
         admission=source.split('if (_muzzleIndex >= 0) then {',1)[1]
         self.assertLess(admission.index('isNil {'),admission.index('CBE_Cortex_ThrowGeneration'))
         self.assertLess(admission.index('call _contextMatches'),admission.index('private _throwGeneration='))
-        self.assertIn('_ownerEpoch,_contextMatches,_fireAllowed]] call CBA_fnc_execNextFrame',source)
+        self.assertIn('_ownerEpoch,_contextMatches,_fireAllowed,false,+_nativeOrder]] call CBA_fnc_execNextFrame',source)
         self.assertEqual(source.count('if (time > _expires) exitWith {["AIM_WINDOW_EXPIRED"] call _cancel};'),2)
         self.assertIn('CBE_AIPass_CoordinatedAssault_Enable',helper)
         self.assertIn('CBE_fnc_CortexFeatureEnabled',helper)
         self.assertLess(source.index('if !([_unit,_context] call _contextMatches) exitWith {["DRILL_REPLACED"] call _cancel}'),source.index('_unit doWatch _towards'))
-        release=source.split('// Safety geometry above stays scheduled.',1)[1]
+        release=source.split('// After safety geometry,',1)[1]
         self.assertLess(release.index('isNil {'),release.index('addEventHandler'))
         self.assertLess(release.index('call _contextMatches'),release.index('forceWeaponFire'))
         self.assertNotIn('nearEntities',release.split('[_release,',1)[0])

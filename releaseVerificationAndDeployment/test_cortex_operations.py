@@ -6835,14 +6835,25 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(guard,callback)
         self.assertLess(callback.index('CBE_AIPass_ZeusHold'),callback.index('forceWeaponFire'))
         self.assertLess(callback.index('!= _drillToken'),callback.index('forceWeaponFire'))
+        self.assertIn('private _requestGroup=group _unit;',text)
+        self.assertIn('private _nativeOrder=[_requestGroup] call CBE_fnc_NativeOrderReceipt;',text)
+        self.assertLess(text.index('private _nativeOrder='),text.index('private _throwConfig'))
+        self.assertIn('group _unit != _requestGroup',text)
+        self.assertIn('_nativeOrder isNotEqualTo ([_requestGroup] call CBE_fnc_NativeOrderReceipt)',text)
+        order_guard='if (_nativeOrder isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)) exitWith {["NATIVE_ORDER_CHANGED"] call _cancel};'
+        self.assertEqual(callback.count(order_guard),1)
+        self.assertLess(callback.index(order_guard),callback.index('_unit doWatch _towards;'))
+        self.assertLess(callback.index(order_guard),callback.index('addEventHandler ["FiredMan"'))
+        self.assertLess(callback.index(order_guard),callback.index('forceWeaponFire'))
+        self.assertIn('_this set [16,true]',callback)
         policy=text.split('private _fireAllowed=',1)[1].split('if !([_unit,_kind] call _fireAllowed)',1)[0]
         for guard in ('checkAIFeature "FIREWEAPON"','!fleeing _actor',
                       '_type != "FRAG"','unitCombatMode _actor in ["YELLOW","RED"]',
                       'combatMode group _actor in ["YELLOW","RED"]'):
             self.assertIn(guard,policy)
         self.assertLess(callback.index('FIRE_POLICY_OR_FLIGHT_CHANGED'),callback.index('_unit doWatch _towards'))
-        self.assertIn('_ownerEpoch,_contextMatches,_fireAllowed]] call CBA_fnc_execNextFrame',text)
-        self.assertIn('"_contextMatches", "_fireAllowed", ["_aimIssued",false,[true]]]',callback)
+        self.assertIn('_ownerEpoch,_contextMatches,_fireAllowed,false,+_nativeOrder]] call CBA_fnc_execNextFrame',text)
+        self.assertIn('"_contextMatches", "_fireAllowed", ["_aimIssued",false,[true]],["_nativeOrder",[],[[]]]]',callback)
         import math
         # Native weapon activity belongs to the engine before and after queuing.
         # A settled empty magazine is distinct from a reload; malformed/partial
@@ -6851,7 +6862,7 @@ class CortexOperations(unittest.TestCase):
                       '(_native select 6) == 0','(_native select 5) == 0',
                       '(_native select 5) == -1','(_native select 3) == ""'):
             self.assertIn(guard,policy)
-        final=callback.split('// Safety geometry above stays scheduled.',1)[1]
+        final=callback.split('// After safety geometry,',1)[1]
         self.assertLess(final.index('call _fireAllowed'),final.index('addEventHandler ["FiredMan"'))
         self.assertLess(text.index('call _fireAllowed'),text.index('private _throwConfig'))
         def native_idle(state):

@@ -1771,5 +1771,31 @@
     "current": "VehicleTurnRetire already implements bounded native turn retirement; its physical limits remain. CortexGroundReload already requests/observes finite native reserve-magazine loading in routine and combined gunnery, including exact role/route/owner and original expiry. GroundFireReady/SelectMuzzle intentionally remain loaded-state predicates/selectors. Reactive mortar smoke/illumination is implemented in reactiveMortarIllumination20261027 with later nativeAmmoProfileCorrection20261027.",
     "historicalSummary": "vehicleDecisionDelegationReview20261026 branches describe the code at that review, not current absence of these capabilities. Do not duplicate a loading or turn controller based on those older strings.",
     "remaining": "Native travel/stop/reload and repeated handback/performance unverified; reserve/muzzle policy remains bounded, not all top-down/laser/custom-station behaviour. See existing armour-legacy-missile-reserve-20261025.json and vehicleTurnRetirementImplementation20261026 for exact limits."
+  },
+  "grenadeAuthoredOrderOwnership20261027": {
+    "baseline": "4d69fffabf4e3b915a0f307466539aeb519bdcd4",
+    "sourceReference": "LAMBS main UnitAction/fnc_doSmoke.sqf, complete selected readable body; doSmoke performs doWatch followed by an unguarded one-second deferred forceWeaponFire. Adapt smoke intent under the existing CBE finite throw owner, not that stale callback model.",
+    "sourceSHA256": "56677056138867f70c4b43ef857b469708811fababad36053951eaeee9e40474",
+    "defect": "CBE guarded operation generations/epoch, task, feature and specialist transitions but did not retain the request authored waypoint receipt. A native route edit during queued aiming need not change a CBE operation generation and could leave the old throw authorised.",
+    "implementation": "Capture original request group and NativeOrderReceipt before inventory/safety work. Queue commitment compares current group/route before markers. Append original receipt after the existing aim-issued bit at payload index16. Each real next-frame/alignment callback compares the original receipt before watch/listener/native release and cancels NATIVE_ORDER_CHANGED through existing request cleanup. Existing callback retries preserve payload and original1.5s deadline. No new controller, event handler, timer, scan or native stop/watch reset.",
+    "bounds": "Two admission receipt reads and one current authored receipt comparison per actual deferred callback; the existing 0.25s retry and original1.5s window remain unchanged. No repeated guard justified by an assumed intra-call scheduling race.",
+    "verification": {
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "focusedExistingChecks": 5,
+      "regressionBefore": ".qa/handovers/grenade-authored-order-regression-before.log",
+      "retainedInitialBuildFailure": ".qa/handovers/grenade-authored-order-build-4d69fffa.log",
+      "initialFailureReason": "Second existing successor-drill contract expected the old callback suffix; updated for the explicit original-order argument and clarified comment anchor while retaining all original context/ownership checks.",
+      "buildLog": ".qa/handovers/grenade-authored-order-final-build-4d69fffa.log",
+      "candidate": ".qa/candidates/grenade-authored-order-4d69fffa",
+      "fingerprint": "c9538abfb2441a808aef15d9f4bc698ea91113683400a6ea4d8025569e39742c",
+      "independentLog": ".qa/handovers/grenade-authored-order-independent.log"
+    },
+    "limits": "Authored waypoint count/index/current metadata identity only. Same-value native edits, independent actor commands without route change and physical aiming/release/native watch retirement remain unverified or outside this receipt. No late undo of a watch or already-released grenade. Full native suppression/throw parity and measured performance remain incomplete. Audits paused.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

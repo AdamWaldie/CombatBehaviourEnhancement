@@ -18,7 +18,10 @@
  * Locality and authority: call where the unit is local (forceWeaponFire is local-argument).
  *
  * Repeat/JIP: a maximum 1.5-second aiming window with 0.25-second retries rechecks ownership, medical/captivity status, Zeus takeover, drill replacement/cancellation, ammunition and frag safety;
- * Replacement operation generations, owner epochs and native protected tasks cancel queued throws.
+ * Replacement operation generations, owner epochs, authored waypoint orders and native protected
+ * tasks cancel queued throws. The original authored-order receipt travels with each queued
+ * callback; alignment retries never adopt a new route or renew the request. Same-value edits
+ * and independent actor orders without a changed route remain outside that receipt proof.
  * Danger smoke rechecks the shared typed movement reservation at every queued release/retry;
  * unknown or malformed leases remain reserved and cancel before facing or weapon commands.
  * A cancelled queued fragmentation throw records its drill token so assault may continue without it.
@@ -117,6 +120,10 @@ private _contextMatches={
         && {(_operation getOrDefault ["phase",""]) != "CANCELLED"}
 };
 if !([_unit,_context] call _contextMatches) exitWith {false};
+// Retain authored order identity before inventory/safety work. CBE generations do
+// not change when a mission or Zeus script edits an ordinary native waypoint.
+private _requestGroup=group _unit;
+private _nativeOrder=[_requestGroup] call CBE_fnc_NativeOrderReceipt;
 private _simulations = if (_kind == "FRAG") then {["shotGrenade"]} else {["shotSmoke", "shotSmokeX"]};
 if (toUpperANSI _kind == "FRAG") then {
     private _distance = _unit distance2D _towards;
@@ -154,6 +161,8 @@ private _thrown = false;
         if (_muzzleIndex >= 0) then {
             isNil {
             if (!([_unit,_context] call _contextMatches) || {!local _unit}
+                || {group _unit != _requestGroup}
+                || {_nativeOrder isNotEqualTo ([_requestGroup] call CBE_fnc_NativeOrderReceipt)}
                 || {!simulationEnabled _unit} || {isObjectHidden _unit}
                 || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
                 || {!([_unit] call CBE_fnc_CortexCombatEffective)}
@@ -170,7 +179,7 @@ private _thrown = false;
             private _operationGeneration=(group _unit) getVariable ["CBE_OperationGeneration",0];
             private _ownerEpoch=(group _unit) getVariable ["CBE_AIPass_Epoch",0];
             private _release = {
-                params ["_unit", "_muzzle", "_magazine", "_group", "_hold", "_kind", "_towards", "_drillToken", "_context", "_expires", "_retry", "_throwGeneration", "_operationGeneration", "_ownerEpoch", "_contextMatches", "_fireAllowed", ["_aimIssued",false,[true]]];
+                params ["_unit", "_muzzle", "_magazine", "_group", "_hold", "_kind", "_towards", "_drillToken", "_context", "_expires", "_retry", "_throwGeneration", "_operationGeneration", "_ownerEpoch", "_contextMatches", "_fireAllowed", ["_aimIssued",false,[true]],["_nativeOrder",[],[[]]]];
                 // A newer request supersedes this queued attempt without cancelling its frag token.
                 if ((_unit getVariable ["CBE_Cortex_ThrowGeneration",-1]) != _throwGeneration) exitWith {};
                 // No diagnostic/cancellation write may survive the original owner episode.
@@ -204,6 +213,9 @@ private _thrown = false;
                 if (time > _expires) exitWith {["AIM_WINDOW_EXPIRED"] call _cancel};
                 if !([_unit,_kind] call _fireAllowed) exitWith {["FIRE_POLICY_OR_FLIGHT_CHANGED"] call _cancel};
                 if !([_unit,_context] call _contextMatches) exitWith {["DRILL_REPLACED"] call _cancel};
+                // Each real next-frame/alignment callback must retain the request's
+                // original authored route; do not adopt the latest order as a baseline.
+                if (_nativeOrder isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)) exitWith {["NATIVE_ORDER_CHANGED"] call _cancel};
                 if (!simulationEnabled _unit || {isObjectHidden _unit}
                     || {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}) exitWith {
                     ["ACTOR_UNAVAILABLE"] call _cancel;
@@ -306,7 +318,7 @@ private _thrown = false;
                         } >= 0};
                 };
                 if (_unsafeRelease) exitWith {["UNSAFE_RELEASE",[_unit distance2D _towards,_safetyRadius]] call _cancel};
-                // Safety geometry above stays scheduled. Bind listener setup and native
+                // After safety geometry, bind listener setup and native
                 // weapon release to the original caller context in this final transaction.
                 isNil {
                 if ((_unit getVariable ["CBE_Cortex_ThrowGeneration",-1]) != _throwGeneration) exitWith {};
@@ -420,7 +432,7 @@ private _thrown = false;
                 };
                 };
             };
-            [_release, [_unit,_muzzle,_magazine,group _unit,+(group _unit getVariable ["CBE_AIPass_ZeusHold",[]]),_kind,+_towards,_drillToken,+_context,time+1.5,_release,_throwGeneration,_operationGeneration,_ownerEpoch,_contextMatches,_fireAllowed]] call CBA_fnc_execNextFrame;
+            [_release, [_unit,_muzzle,_magazine,group _unit,+(group _unit getVariable ["CBE_AIPass_ZeusHold",[]]),_kind,+_towards,_drillToken,+_context,time+1.5,_release,_throwGeneration,_operationGeneration,_ownerEpoch,_contextMatches,_fireAllowed,false,+_nativeOrder]] call CBA_fnc_execNextFrame;
             _thrown = true;
             };
         };
