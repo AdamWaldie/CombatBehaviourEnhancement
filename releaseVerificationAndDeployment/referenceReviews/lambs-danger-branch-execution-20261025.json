@@ -1820,5 +1820,41 @@
       "independentLog": ".qa/handovers/point-return-observer-independent.log"
     },
     "limits": "Offline evidence only; no Arma launch. FOLLOW acknowledgement does not prove physical return or restored formation. Same-value native edits, public-journal delivery ordering across owners and all external-writer quiescence remain unproven. A changed MOVE destination after requested FOLLOW is ambiguous and retains custody. Sampling can still miss brief native state; timeout is not success. Legacy malformed/eleven-field journals are not silently accepted. No whole-mod parity, behavioural acceptance or measured performance claim."
+  },
+  "infantryNativeFlareSelection20261027": {
+    "baseline": "b517d113",
+    "sourceReference": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doUGL.sqf; complete selected readable body reviewed. Caller sites tacticsAssess:211, tacticsReinforce:150 and delayed tacticsAssault:114 read; not a new whole-caller-graph review.",
+    "sourceSHA256": "d9a617b963a790a8da98d46d9f4e2ca528148f4d93075fcc614e822a37d80fb1",
+    "sourceIntent": "Find a suitable grenadier and available illumination or smoke, including magazine wells. The source chooses the first nonprimary muzzle, classifies simulation by substring, forces stop/posture/movement policy, spawns/reveals a dummy target, edits magazines, then after2s forces a shot and unconditionally clears watch/follows leader. Assess/reinforce request nighttime flares; assault queues smoke after3s.",
+    "disposition": "Retain useful carried illumination intent inside existing CortexIlluminationStep. Reject dummy identity reveal, inventory replacement, unowned movement/watch reset and delayed force-fire callback. CBE uses its bounded native inventory, owner/epoch/route/ROE/settled weapon checks and finite release observation. UGL smoke, wider caller contexts, native selection/handback and physical effectiveness remain separate gaps; this is not full doUGL parity.",
+    "defects": [
+      "Infantry required hit=0 and indirectHit=0, rejecting native F_40mm_White inherited FlareCore hit5/indirectHit2/radius0.2. Artillery already had the correct bounded native allowance.",
+      "Compatible positive rounds from magazinesAmmoFull were treated as reload supply even if loaded in another muzzle. First inventory class could displace an already suitable loaded flare."
+    ],
+    "nativeEvidence": {
+      "binConfig": ".qa/native-ammo-classification-20261027/bin-config.json",
+      "binSHA256": "a310b6caa2704fea7db230fe6a28370483844f7069f8e03b7183c87c0616a447",
+      "weaponConfig": ".qa/native-ammo-classification-20261027/weapons_f-config.json",
+      "weaponSHA256": "45841d684b1efe215d96fd91b06e1f7687378516bde06840493a9b2fc1bf71b6",
+      "inheritance": "F_40mm_White -> FlareBase -> FlareCore. Leaf and intermediate do not override native impact fields.",
+      "inventoryContract": "https://community.bistudio.com/wiki/magazinesAmmoFull",
+      "reloadContract": "https://community.bistudio.com/wiki/reload"
+    },
+    "implementation": "Direct shotIlluminating only, finite nonnegative impact fields up to5/2/0.2, explosive0, no text/array submunition. Qualify only carried unloaded spares or positive loaded records whose muzzle location and native weaponState agree. Prefer existing qualifying loaded class before first spare. Same at-most128 inventory reads per candidate muzzle,8 muzzles/16 actors, original25s deadline and60s cadence. No new worker, callback, inventory edits or task admission.",
+    "verification": {
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "regressionBefore": [
+        ".qa/handovers/illumination-muzzle-regression-before.log",
+        ".qa/handovers/illumination-native-flare-regression-before.log"
+      ],
+      "buildLog": ".qa/handovers/illumination-native-flare-build-b517d113.log",
+      "candidate": ".qa/candidates/illumination-native-flare-b517d113",
+      "independentLog": ".qa/handovers/illumination-native-flare-independent.log",
+      "fingerprint": "a4671c97aeec717facc7723980ddc5a3ab6fd320525153b134fed05f3880193c"
+    },
+    "limits": "Offline source/config/compile/package evidence only; no audit. Flares retain small impact damage, not harmlessness. Modded muzzle naming, actual native reload/selection/release, upward aiming, weapon handback and useful light/performance remain unverified. Default-off unchanged. No whole-mod or LAMBS parity percentage."
   }
 }

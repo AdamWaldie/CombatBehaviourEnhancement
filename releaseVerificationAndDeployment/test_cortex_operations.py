@@ -9651,7 +9651,8 @@ class CortexOperations(unittest.TestCase):
         admission=text.split('private _beforeState=',1)[1].split('private _sky=',1)[0]
         self.assertIn('[_beforeState,true] call _settledWeapon',admission)
         self.assertIn('[_loaded,true] call _settledWeapon',admission)
-        self.assertIn('[_actor weaponState _muzzle,true] call _settledWeapon',text)
+        self.assertIn('private _loaded=_actor weaponState _muzzle;',text)
+        self.assertIn('if (!([_loaded,true] call _settledWeapon)) then {continue}',text)
         import math
         def ready(state,allow_empty=False):
             return (len(state)>=7 and all(isinstance(state[i],str) and state[i] for i in (0,1,2))
@@ -9683,6 +9684,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('then {continue}',unresolved)
         self.assertNotIn('selectWeapon',unresolved)
         self.assertNotIn('serverTime+',unresolved)
+        for proof in ('private _hit=getNumber (_ammo >> "hit")',
+                      '!finite _hit','_hit > 5','!finite _indirect','_indirect > 2',
+                      '!finite _radius','_radius > 0.2','!finite _explosive','_explosive != 0'):
+            self.assertIn(proof,text)
+        ammo_choice=text.split('private _compatible=compatibleMagazines',1)[1].split('if (_choice isNotEqualTo [])',1)[0]
+        self.assertIn('private _loadedHere=',ammo_choice)
+        self.assertIn('toLowerANSI (_x select 4) == toLowerANSI _muzzle',ammo_choice)
+        self.assertIn('if ((_x select 2) && {!_loadedHere}) then {continue}',ammo_choice)
+        self.assertIn('if (_magazine == "") then {_magazine=_class}',ammo_choice)
+        self.assertIn('if (_class == (_loaded param [3,"",[""]])) exitWith {_magazine=_class}',ammo_choice)
         self.assertEqual(text.count('forceWeaponFire'),1)
         selection=text.split('private _illuminationRoster=',1)[1].split('if (_choice isEqualTo [])',1)[0]
         self.assertIn('(units _group) select [0,16]',selection)
