@@ -5,6 +5,9 @@
  * retires. Arrival needs less than two metres of 3D point proximity; the separate six-metre
  * native-goal matching tolerance does not establish arrival or material-cover protection.
  * New native tasks, routes or destinations end observation without a retry.
+ * Indoor shelter geometry is checked before arrival/retry; a change retires observation,
+ * retaining only exact native MOVE identity for a later fresh danger redirect.
+ * Progress uses absolute ASL distance so movement on stairs counts within the original budget.
  * No temporary behaviour, group pace or posture is applied, so retirement restores no settings.
  * A superseding task retires only this generation's metadata; no restoration or movement replay.
  * Observation deadline or exhausted retry retains an exact ongoing escape MOVE receipt for
@@ -35,6 +38,7 @@ private _unit=_state getOrDefault ["unit",objNull];
 private _group=_state getOrDefault ["group",grpNull];
 private _generation=_state getOrDefault ["generation",-1];
 private _destination=_state getOrDefault ["destination",[]];
+private _shelter=_state getOrDefault ["shelter",[]];
 private _arrivalRadius=2;
 private _observer=_unit getVariable ["CBE_Cortex_CivilianObserver",[]];
 if ((_state getOrDefault ["observerOwner",-1]) != clientOwner || {count _observer != 5}
@@ -58,8 +62,8 @@ private _finish={
         && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
         private _receipt=_unit getVariable ["CBE_Cortex_CivilianReaction",[]];
         private _currentGoal=(expectedDestination _unit) param [0,[],[[]]];
-        private _retain=_reason in ["DEADLINE_EXPIRED","STALLED_AFTER_RETRY","FEATURE_DISABLED","RETRY_PROOF_MISSING"]
-            && {count _receipt == 7} && {(_receipt select 2) == _generation}
+        private _retain=_reason in ["DEADLINE_EXPIRED","STALLED_AFTER_RETRY","FEATURE_DISABLED","RETRY_PROOF_MISSING","SHELTER_CHANGED"]
+            && {count _receipt == 8} && {(_receipt select 2) == _generation}
             && {(_receipt select 6) == _group} && {group _unit == _group}
             && {(_receipt select 4) isEqualTo _destination}
             && {(_receipt select 5) isEqualTo _nativeOrder}
@@ -72,6 +76,26 @@ private _finish={
         if (!_retain) then {
             _unit setVariable ["CBE_Cortex_CivilianReaction",[],true];
             _unit setVariable ["CBE_Cortex_CivilianReactionUntil",nil,true];
+        };
+        // Reuse bounded actor-local node failure memory after an actual stalled issued leg.
+        // A temporary observation is not a permanent inaccessible-building verdict.
+        if (_reason == "STALLED_AFTER_RETRY" && {count _shelter == 2}
+            && {(_receipt param [7,[],[[]]]) isEqualTo _shelter}) then {
+            private _house=_shelter select 0;private _frame=_shelter select 1;
+            if (!isNull _house && {alive _house} && {!isObjectHidden _house}
+                && {_frame isEqualTo [getPosWorld _house,vectorDir _house,vectorUp _house,getObjectScale _house]}) then {
+                private _failed=_unit getVariable ["CBE_IndoorActor_NodeFailures",[]];
+                if !(_failed isEqualType []) then {_failed=[]};
+                _failed=(_failed select [0,4]) select {
+                    _x isEqualType [] && {count _x == 5}
+                        && {(_x select 3) isEqualType 0} && {finite (_x select 3)} && {serverTime < (_x select 3)}
+                        && {!((_x select [0,3]) isEqualTo [_house,_frame,_destination])}
+                };
+                _failed pushBack [_house,_frame apply {if (_x isEqualType []) then {+_x} else {_x}},+_destination,
+                    serverTime+60,_group getVariable ["CBE_AIPass_Epoch",0]];
+                if (count _failed > 4) then {_failed deleteAt 0};
+                _unit setVariable ["CBE_IndoorActor_NodeFailures",_failed];
+            };
         };
         private _outcome=if (_retain) then {_reason+"_NATIVE_MOVE_RETAINED"} else {_reason};
         _unit setVariable ["CBE_Cortex_CivilianResult",[_generation,_outcome,serverTime],true];
@@ -104,14 +128,24 @@ private _taskOwned=group _unit == _group && {simulationEnabled _unit} && {!isObj
 if (!_taskOwned) exitWith {["NATIVE_TASK_OR_ORDER_CHANGED"] call _finish};
 if (!(missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Enable",true])
     || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])} || {[] call CBE_fnc_CortexIsPaused}) exitWith {["FEATURE_DISABLED"] call _finish};
+// A moved, rescaled, hidden or destroyed shelter cannot authorise a stale retry/arrival.
+// Retaining an exact old MOVE permits a later fresh danger redirect, not movement replay.
+private _shelterCurrent=((_unit getVariable ["CBE_Cortex_CivilianReaction",[]]) param [7,false]) isEqualTo _shelter
+    && {_shelter isEqualType []} && {_shelter isEqualTo [] || {
+    count _shelter == 2 && {(_shelter select 0) isEqualType objNull}
+        && {!isNull (_shelter select 0)} && {alive (_shelter select 0)}
+        && {!isObjectHidden (_shelter select 0)}
+        && {(_shelter select 1) isEqualTo [getPosWorld (_shelter select 0),vectorDir (_shelter select 0),vectorUp (_shelter select 0),getObjectScale (_shelter select 0)]}
+}};
+if (!_shelterCurrent) exitWith {["SHELTER_CHANGED"] call _finish};
 if (_atDestination) exitWith {["ARRIVED"] call _finish};
 if (_destination isEqualTo [] || {serverTime >= (_state getOrDefault ["until",0])}) exitWith {
     ["DEADLINE_EXPIRED"] call _finish
 };
 
-private _position=getPosATL _unit;
+private _position=getPosASL _unit;
 private _lastPosition=_state getOrDefault ["lastPosition",_position];
-if (_position distance2D _lastPosition >= 3) then {
+if (_position vectorDistance _lastPosition >= 3) then {
     _state set ["lastPosition",_position];
     _state set ["lastProgressAt",serverTime];
 };

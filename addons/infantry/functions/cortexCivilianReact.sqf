@@ -2,7 +2,9 @@
  * Author: WaldoTheWarfighter
  * Gives an unarmed civilian one finite, priority-aware escape response away from nearby danger.
  * One local exterior material-cover search first considers a route-screened refuge farther
- * from danger. Otherwise three separated escape headings use the bounded terrain selector and a safe-position
+ * from danger. If none qualifies, one bounded screened indoor search may use a native room point.
+ * The original building geometry is retained; inaccessible rooms get no extra retry or success credit.
+ * Otherwise three separated escape headings use the bounded terrain selector and a safe-position
  * adjustment is accepted only when its complete route remains passable. This avoids sending a
  * civilian into water, a cliff or an abrupt grade without installing a continuous path controller.
  * It does not install an FSM, force an animation, reserve a vehicle or continually steer the unit.
@@ -13,7 +15,7 @@
  * Native tasks and actor reservations refuse new escape work. Native group pace, behaviour
  * and actor posture remain unchanged; this route does not acquire settings ownership.
  * The final write rechecks the observed command, destination and authored route atomically.
- * Repeat/JIP: Seven-field receipts retain the original group. Expired observation can retain
+ * Repeat/JIP: Eight-field receipts retain the original group. Expired observation can retain
  * exact native MOVE identity so fresh danger may redirect that escape after cooldown; it cannot
  * claim a transferred actor or a replaced destination. No expired job or movement is replayed.
  * Reactions are generation owned and cooldown limited. A stronger danger may replace a
@@ -28,6 +30,8 @@
  * Return Value:
  * Boolean - true when a real flee order was issued.
  *
+ * Indoor destinations exclude up to16 current same-group escape destinations; larger rosters
+ * keep the exterior/escape policy. No room capacity or route-access guarantee is inferred.
  * Current callers: FiredNear, Suppressed, Explosion and Hit handlers installed by CBE_fnc_CortexCivilianSetup,
  * plus the focused audit endpoint.
  *
@@ -37,7 +41,7 @@
  */
 
 params [["_unit",objNull,[objNull]],["_threat",objNull,[objNull,[]]],["_cause","MANUAL",[""]],["_priority",1,[0]]];
-if (isNull _unit || {!local _unit} || {!([_unit] call CBE_fnc_CortexCombatEffective)} || {isPlayer _unit}
+if (!finite _priority || {_priority < 0} || {isNull _unit} || {!local _unit} || {!([_unit] call CBE_fnc_CortexCombatEffective)} || {isPlayer _unit}
     || {side group _unit != civilian}
     || {primaryWeapon _unit != "" || {secondaryWeapon _unit != ""} || {handgunWeapon _unit != ""}}
     || {!(missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Enable",true])}
@@ -60,7 +64,7 @@ private _active=_unit getVariable ["CBE_Cortex_CivilianReaction",[]];
 if (_active isNotEqualTo [] && {serverTime < (_active param [0,0,[0]])}
     && {_priority <= (_active param [1,0,[0]])}) exitWith {false};
 // Ordinary native MOVE is mission ownership unless this exact active escape still owns its goal.
-private _ownMove=_commandBefore == "MOVE" && {count _active == 7}
+private _ownMove=_commandBefore == "MOVE" && {count _active == 8}
     && {(_active param [6,grpNull,[grpNull]]) == _group}
     && {(_active param [2,-1,[0]]) == (_unit getVariable ["CBE_Cortex_CivilianGeneration",-2])}
     && {(_active param [5,[],[[]]]) isEqualTo _orderBefore}
@@ -73,6 +77,7 @@ if (!(_commandBefore in ["","WAIT","FOLLOW"]) && {!_ownMove}) exitWith {false};
 private _threatPos=if (_threat isEqualType objNull) then {
     if (isNull _threat) then {getPosATL _unit vectorAdd [sin (random 360),cos (random 360),0]} else {getPosATL _threat}
 } else {+_threat};
+if (count _threatPos != 3 || {_threatPos findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {false};
 private _origin=getPosATL _unit;
 private _away=_origin vectorDiff _threatPos;
 _away set [2,0];
@@ -81,20 +86,49 @@ _away=vectorNormalized _away;
 private _distance=(missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Distance",180])*(0.75+random 0.5);
 private _escapeBearing=_origin getDir (_origin vectorAdd _away);
 private _threatObject=if (_threat isEqualType objNull) then {_threat} else {objNull};
-private _destination=[];
+private _destination=[];private _shelterBinding=[];
 // Prefer a short material-screened exterior refuge over a long exposed escape. The shared
 // cover selector considers at most10 objects inside25m, excludes this actor from occupancy/rays,
 // and never treats another person as protection. A refuge must also gain distance from danger.
 private _shelter=[_origin,false];
 // Failed escape plans have no active reaction cooldown. Bound this additional search under
 // repeated gunfire too; this local admission timestamp grants no movement or retry authority.
-if (serverTime >= (_unit getVariable ["CBE_Cortex_CivilianShelterSearchAfter",0])) then {
+private _searchShelter=serverTime >= (_unit getVariable ["CBE_Cortex_CivilianShelterSearchAfter",0]);
+if (_searchShelter) then {
     _unit setVariable ["CBE_Cortex_CivilianShelterSearchAfter",serverTime+5];
     _shelter=[_origin,_threatPos,25,[],_group,"COVER",_unit] call CBE_fnc_CortexFindCover;
 };
 if (_shelter select 1 && {(_shelter select 0) distance2D _threatPos > (_origin distance2D _threatPos)+2}) then {
     private _shelterRoute=[_origin,[[+(_shelter select 0)]],_threatPos,[],_threatObject,"INFANTRY"] call CBE_fnc_CortexSelectAvenue;
     if (_shelterRoute isNotEqualTo []) then {_destination=+(_shelterRoute select 0)};
+};
+// Reuse the existing roofed-node selector; native pathfinding, not a straight exterior
+// terrain segment, owns doorway/stair access. Selection is not physical entry proof.
+if (_searchShelter && {_destination isEqualTo []} && {count units _group <= 16}) then {
+    private _reserved=[];
+    {
+        if (_x != _unit) then {
+            private _other=_x getVariable ["CBE_Cortex_CivilianReaction",[]];
+            if (_other isEqualType [] && {count _other == 8}
+                && {(_other param [0,-1,[0]]) > serverTime}
+                && {(_other param [6,grpNull,[grpNull]]) == _group}
+                && {(_other param [2,-1,[0]]) == (_x getVariable ["CBE_Cortex_CivilianGeneration",-2])}) then {
+                _reserved pushBack (_other param [4,[],[[]]]);
+            };
+        };
+    } forEach units _group;
+    private _indoor=[_unit,_origin,_threatPos,true,_reserved] call CBE_fnc_DangerRefugeSelect;
+    if (count _indoor == 3) then {
+        _destination=+(_indoor select 0);
+        _shelterBinding=[_indoor select 1,_indoor select 2];
+    };
+};
+private _shelterCurrent={
+    _shelterBinding isEqualTo [] || {
+        private _house=_shelterBinding select 0;
+        !isNull _house && {alive _house} && {!isObjectHidden _house}
+            && {(_shelterBinding select 1) isEqualTo [getPosWorld _house,vectorDir _house,vectorUp _house,getObjectScale _house]}
+    }
 };
 // Never apply the broad safe-position adjustment to a screened refuge: it could move the
 // destination out from behind the protecting object. Refusal uses the original escape policy.
@@ -123,14 +157,14 @@ if (!local _unit || {!local _group} || {group _unit != _group}
     || {(_unit getVariable ["CBE_Cortex_CivilianReaction",[]]) isNotEqualTo _active}
     || {currentCommand _unit != _commandBefore} || {(expectedDestination _unit) isNotEqualTo _goalBefore}
     || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _orderBefore}
-    || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {};
+    || {[_group] call CBE_fnc_CortexExternalTakeover} || {!(call _shelterCurrent)}) exitWith {};
 private _generation=(_unit getVariable ["CBE_Cortex_CivilianGeneration",0])+1;
 private _until=serverTime+(_cooldown max 2);
 // Stronger danger replaces only its own route. Native behaviour, group pace,
 // posture and skill settings remain mission-owned throughout the escape.
 _unit setVariable ["CBE_Cortex_CivilianGeneration",_generation,true];
 _unit setVariable ["CBE_Cortex_CivilianReactionUntil",_until,true];
-_unit setVariable ["CBE_Cortex_CivilianReaction",[_until,_priority,_generation,toUpperANSI _cause,_destination,+_orderBefore,_group],true];
+_unit setVariable ["CBE_Cortex_CivilianReaction",[_until,_priority,_generation,toUpperANSI _cause,_destination,+_orderBefore,_group,_shelterBinding],true];
 // Publish the original retry allowance before movement and observation admission.
 _unit setVariable ["CBE_Cortex_CivilianRetrySpent",[_generation,_until,_group,false],true];
 _unit doMove _destination;

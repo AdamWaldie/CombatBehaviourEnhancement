@@ -4,6 +4,7 @@
  * Locality/authority: Actual actor/group owner; admission issues no native movement. The existing
  * CivilianStep rechecks current task/route and the shared once-per-generation retry receipt.
  * Repeat/JIP: Private observer serial and existing keyed scheduler prevent duplicate callbacks.
+ * Indoor binding must still match the original visible living building and scale on adoption.
  * The original server-time deadline is never renewed. Native actor/group Local edges permit a
  * coalesced two-second receipt-delivery check; it cannot authorise travel or extend that deadline.
  * No permanent worker, world scan or periodic progress publication. A new owner samples fresh
@@ -47,7 +48,7 @@ private _wait={
 private _group=group _unit;
 private _receipt=_unit getVariable ["CBE_Cortex_CivilianReaction",[]];
 if (!local _group || {_receipt isEqualTo []}) exitWith {call _wait};
-private _typed=_receipt isEqualType [] && {count _receipt == 7}
+private _typed=_receipt isEqualType [] && {count _receipt == 8}
     && {[0,1,2] findIf {!((_receipt select _x) isEqualType 0) || {!finite (_receipt select _x)}} < 0}
     && {(_receipt select 2) >= 0} && {(_receipt select 2) == floor (_receipt select 2)}
     && {(_receipt select 3) isEqualType ""} && {(_receipt select 4) isEqualType []}
@@ -55,6 +56,14 @@ private _typed=_receipt isEqualType [] && {count _receipt == 7}
     && {(_receipt select 4) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
     && {(_receipt select 5) isEqualType []} && {(_receipt select 5) isNotEqualTo []}
     && {(_receipt select 6) isEqualType grpNull} && {(_receipt select 6) == _group};
+// Binding is either absent for an exterior escape, or the exact current indoor geometry.
+private _shelter=if (_typed) then {_receipt param [7,false]} else {false};
+_typed=_typed && {_shelter isEqualType []} && {_shelter isEqualTo [] || {
+    count _shelter == 2 && {(_shelter select 0) isEqualType objNull}
+        && {!isNull (_shelter select 0)} && {alive (_shelter select 0)}
+        && {!isObjectHidden (_shelter select 0)}
+        && {(_shelter select 1) isEqualTo [getPosWorld (_shelter select 0),vectorDir (_shelter select 0),vectorUp (_shelter select 0),getObjectScale (_shelter select 0)]}
+}};
 if (!_typed || {serverTime >= (_receipt select 0)}
     || {(_receipt select 2) != (_unit getVariable ["CBE_Cortex_CivilianGeneration",-1])}
     || {side _group != civilian} || {!([_unit] call CBE_fnc_CortexCombatEffective)}
@@ -81,8 +90,9 @@ if (!(_retry isEqualType []) || {count _retry != 4}
     || {!((_retry select 3) isEqualType true)}) exitWith {call _wait};
 private _used=_retry select 3;
 private _state=createHashMapFromArray [["group",_group],["unit",_unit],["generation",_generation],
+    ["shelter",if (_shelter isEqualTo []) then {[]} else {[_shelter select 0,(_shelter select 1) apply {if (_x isEqualType []) then {+_x} else {_x}}]}],
     ["destination",+(_receipt select 4)],["until",_until],["nativeOrder",+(_receipt select 5)],
-    ["lastPosition",getPosATL _unit],["lastProgressAt",serverTime],["reissued",_used],
+    ["lastPosition",getPosASL _unit],["lastProgressAt",serverTime],["reissued",_used],
     ["observerOwner",clientOwner],["observerSerial",_serial],["completed",false],["cancelled",false],["subsystem","TACTICS"]];
 _unit setVariable ["CBE_Cortex_CivilianObserver",[_generation,clientOwner,_epoch,_serial,_state]];
 _unit setVariable ["CBE_Cortex_CivilianAdoptTicket",nil];

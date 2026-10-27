@@ -1660,5 +1660,26 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "civilianIndoorRefuge20261027": {
+    "baseline": "11ea8375be942df4ca898e3dbdd42bae976f6249",
+    "sourceSHA256": "8f776e10fcf61d521d73b162622c484357dc603ff65ddeaab35d20e84cebd9fe",
+    "selectedIntent": "LAMBS doHide and civilian FSM use nearby building positions as an alternative to exposed flight. Adapt shelter selection inside existing CBE finite civilian event response; do not copy unslept scanning, forced pace/posture, unowned delayed writes or random success assumptions.",
+    "implementation": "CivilianReact retains exterior cover priority, then calls existing DangerRefugeSelect for one screened roofed native point within18m, considering at most2 houses under the existing5s search throttle. Groups<=16 exclude other current same-group escape destinations; node selection retains body/roof/failed-node checks. Larger groups retain existing exterior/escape behaviour. Helper defaults remain a point-only return; explicit withBinding returns point/building/geometry and accepts at most16 reserved points. No new native route controller or door manipulation.",
+    "lifecycle": "Eight-field original-deadline/generation/route/group receipt adds empty or[building,position-direction-up-scale] binding. Final issue, owner adoption and active steps validate geometry. Changed/hidden/destroyed shelter stops observation before retry/arrival; exact pending MOVE identity may remain for fresh danger redirect, never automatic replay/cancellation proof. Existing one retry and original cooldown/deadline survive owner transfer. ASL progress counts stairs. STALLED_AFTER_RETRY records a60s actor-local failed node using existing4-row owner-epoch/geometry memory; no permanent unreachable verdict. Input danger vectors and priorities must be finite.",
+    "validation": {
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "buildLog": ".qa/handovers/civilian-indoor-refuge-build-11ea8375.log",
+      "candidate": ".qa/candidates/civilian-indoor-refuge-11ea8375",
+      "fingerprint": "26117823411b4003feac4334c886b6c722b9bdfa7d3ab55e6938abe50c50679d",
+      "independentLog": ".qa/handovers/civilian-indoor-refuge-independent.log"
+    },
+    "limits": "Build-out only; no Arma run. Native doorway/stair/placed/modded building access, safe interior arrival, civilian group flow, changed-shelter native handback, repeat/HC/JIP and runtime cost remain unverified. Arrival reports point proximity, not cleared/safe rooms. Reservations cover one group only; no cross-group capacity guarantee. Civilians already indoors are not yet guaranteed a stay-in-place shelter policy. Body/scream and broader civilian parity remain incomplete.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

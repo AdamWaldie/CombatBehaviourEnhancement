@@ -16,7 +16,7 @@
       "priority": "0 Foundations",
       "candidateContribution": "Standalone danger FSM, reactions, assault and task lifecycle",
       "reviewStatus": "All41 readable danger-addon SQF body dispositions and civilian FSM runtime branches reviewed; selected main helpers reviewed; whole-source descendants remain incomplete",
-      "nextSourceReview": "Reconcile remaining main/wp helpers and concrete capabilities with existing owners. Civilian exterior refuge selection is implemented but physically unverified; indoor shelter/body/scream remain incomplete. Settings modules are not a parity target.",
+      "nextSourceReview": "Reconcile remaining main/wp helpers and concrete capabilities with existing owners. Civilian exterior and bounded indoor refuge selection are implemented but physically unverified; stay-in-place indoor policy, body/scream and broader civilian functionality remain incomplete. Settings modules are not a parity target.",
       "recordedImplementationStatus": "PARTIAL_IMPLEMENTATION_WHOLE_SOURCE_INCOMPLETE",
       "recordedRemaining": "Whole-source parity and remaining execution branches incomplete; physical reliability and performance separate.",
       "implementationAssessmentCommit": "ca778db2",
@@ -42,7 +42,11 @@
         "civilianObservationFollowup": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianObservationAdoption20261026"
       },
       "civilianExteriorRefugeEvidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianExteriorRefuge20261026",
-      "combinedGroundFiringAreaEvidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#combinedGroundFiringAreas20261026"
+      "combinedGroundFiringAreaEvidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#combinedGroundFiringAreas20261026",
+      "civilianShelterImplementation20261027": {
+        "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianIndoorRefuge20261027",
+        "scope": "Selected bounded civilian indoor fallback; not whole-LAMBS parity or physical acceptance. Existing source version/hash retained; no whole-map score reassessment."
+      }
     },
     {
       "workshopId": "3812620045",

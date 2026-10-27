@@ -5990,11 +5990,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(expectedDestination _unit) isNotEqualTo _goalBefore',react)
         self.assertIn('isNotEqualTo _orderBefore',react)
         self.assertIn('private _ownMove=',react)
-        self.assertIn('count _active == 7',react)
+        self.assertIn('count _active == 8',react)
         own_move=react.split('private _ownMove=',1)[1].split('if (!(_commandBefore',1)[0]
         self.assertIn('(_active param [6,grpNull,[grpNull]]) == _group',own_move)
         self.assertNotIn('serverTime <',own_move)
-        self.assertIn('_destination,+_orderBefore,_group],true]',react)
+        self.assertIn('_destination,+_orderBefore,_group,_shelterBinding],true]',react)
         for proof in ('DEADLINE_EXPIRED','STALLED_AFTER_RETRY','FEATURE_DISABLED','ARRIVED',
                       'NATIVE_MOVE_RETAINED','(_receipt select 6) == _group',
                       '(_receipt select 5) isEqualTo _nativeOrder','if (!_retain) then',
@@ -6009,6 +6009,25 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('["restore",',react+step)
         self.assertIn('CBE_Cortex_CivilianReaction",[],true',step)
         self.assertIn('CBE_Cortex_CivilianResult',step)
+        self.assertIn('[_unit,_origin,_threatPos,true,_reserved] call CBE_fnc_DangerRefugeSelect',react)
+        self.assertIn('count units _group <= 16',react)
+        self.assertIn('if (_searchShelter && {_destination isEqualTo []}',react)
+        self.assertIn('call _shelterCurrent',react)
+        self.assertIn('count _receipt == 8',adopt)
+        self.assertIn('["shelter",if (_shelter isEqualTo [])',adopt)
+        for body in (react,adopt,step):
+            self.assertIn('getObjectScale',body)
+        self.assertLess(step.index('["SHELTER_CHANGED"] call _finish'),step.index('["ARRIVED"] call _finish'))
+        self.assertLess(step.index('["SHELTER_CHANGED"] call _finish'),step.index('_unit doMove _destination'))
+        self.assertIn('"RETRY_PROOF_MISSING","SHELTER_CHANGED"',step)
+        self.assertIn('_reason == "STALLED_AFTER_RETRY"',step)
+        self.assertIn('CBE_IndoorActor_NodeFailures',step)
+        self.assertIn('if (count _failed > 4)',step)
+        self.assertIn('serverTime+60',step)
+        self.assertIn('["lastPosition",getPosASL _unit]',adopt)
+        self.assertIn('_position vectorDistance _lastPosition >= 3',step)
+        self.assertIn('count _threatPos != 3',react)
+        self.assertIn('!finite _priority',react)
         for proof in ('CBE_Cortex_CivilianObserverSerial','observerOwner','observerSerial',
                       'CBE_Cortex_CivilianRetrySpent','(_receipt select 6) == _group',
                       'serverTime >= (_receipt select 0)','CBE_Cortex_CivilianAdoptTicket',

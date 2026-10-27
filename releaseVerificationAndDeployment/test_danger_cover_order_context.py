@@ -62,7 +62,7 @@ class CoverOrderContextTests(unittest.TestCase):
         self.assertIn('call CBE_fnc_DangerRefugeSelect',flight)
         self.assertIn('CBE_AIPass_BuildingCombat_Enable',refuge)
         self.assertIn('forEach (_refugeHouses select [0,2])',refuge)
-        self.assertIn('[_actor,_refugeHouse,_origin,[]] call CBE_fnc_IndoorActorNodeSelect',refuge)
+        self.assertIn('[_actor,_refugeHouse,_origin,_reserved] call CBE_fnc_IndoorActorNodeSelect',refuge)
         self.assertIn('_refugeFrame isEqualTo',refuge)
         self.assertIn('call CBE_fnc_CortexCoverScreened',refuge)
         self.assertNotIn('doMove',refuge)
