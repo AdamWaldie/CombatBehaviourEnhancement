@@ -6,7 +6,7 @@
   "baseline": "d2bbc2ae70bc7a5d03a1bb8631c5c50f7d5f9fbc",
   "sourceRoot": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\PinnedDown\\20261013-013708\\3559900745\\extracted-20261011\\PinnedDown",
   "preservation": "Recovered extracted snapshot only; original PBO/signatures unavailable. Entire archive320 files verified0 failures before review; no upstream code executed or source modified.",
-  "scope": "Five initial complete AI helpers plus complete attachment body and complete six-state/eight-link suppression FSM runtime reviewed. AIsuppression and bootstrap remain selected-region only. Not complete32-file review or later3820871877 version equivalence; player effects excluded.",
+  "scope": "Core preserved AI execution chain reviewed: ten SQF helper bodies plus6-state/8-link FSM runtime; AI config/settings transport and live reconciliation sections reviewed. This is not a complete32-file player/debug/asset review. Current3820871877 selected AI path comparison recorded separately.",
   "sources": [
     {
       "path": "functions/fn_closeFireReaction.sqf",
@@ -36,7 +36,7 @@
     {
       "path": "functions/fn_AIsuppression.sqf",
       "sha256": "47d2a042beffed612a6ebcda4c0d378427f3e0479f464a0248b47196867a1347",
-      "scope": "Selected event/startup and shared recovery walker regions reviewed; complete body and FSM/caller graph not closed. Recovery lines379..416 inspected with elapsed source near shared walker setup."
+      "scope": "Complete preserved readable execution body reviewed; debug strings inspected, upstream code not executed."
     },
     {
       "path": "functions/fn_Pinned.fsm",
@@ -51,7 +51,32 @@
     {
       "path": "functions/fn_PinnedRev_Init.sqf",
       "sha256": "5ff8c2852860740e9dcd54bc60168fecd85a1a83177e2467968739d456b74c39",
-      "scope": "Startup and reconciliation introduction lines1..175; remaining queue/reconciliation implementation not fully reviewed."
+      "scope": "Complete preserved readable execution body reviewed; debug strings inspected, upstream code not executed."
+    },
+    {
+      "path": "functions/fn_isPlayerGroupAI.sqf",
+      "sha256": "6b81d04d447066cfa8da66fd01be88d7989ed3aeed75263f8e2c7cc98761d646",
+      "scope": "Complete16-line helper reviewed."
+    },
+    {
+      "path": "functions/fn_postInit.sqf",
+      "sha256": "a418c0c24fb3db7d68ed852f21a0e598b71fdd90a955bc0761862cbb4dee749b",
+      "scope": "Complete34-line preserved body reviewed."
+    },
+    {
+      "path": "config.cpp",
+      "sha256": "91699c5084a3104baf758e4de8391c1daff5a8de9e29b223ede36d828f8abc6b",
+      "scope": "AI CfgBrains, registration, startup and remote-execution declaration regions reviewed; not all product metadata."
+    },
+    {
+      "path": "functions/fn_syncSettings.sqf",
+      "sha256": "63aa3b430d99968ddb6b1ee216da074dc43a25a1ed81bfe8dfb4545975b19197",
+      "scope": "Settings transport helpers, AI mirrors and full live AI reconciliation tail reviewed; player handling excluded."
+    },
+    {
+      "path": "XEH_preInit.sqf",
+      "sha256": "8bebd805c89668aa05fba354d1c73643daa9c8494d13b9bb720bb34bd3c29b00",
+      "scope": "AI settings range/default/callback sections reviewed; player visual/handling settings excluded."
     }
   ],
   "dispositions": [
@@ -87,7 +112,7 @@
     "fingerprint": "9e53249b30969afb7acb50ef6cf878d2af28c1dbc621218192ea76b8332bc688"
   },
   "limits": "Offline algebra/source/config/compile/package evidence only. No Arma audit or whole-mod parity. Changed pressure between samples is not reconstructed. First/long-gap policy deliberately preserves one nominal adjustment. Physical morale/retreat/recovery/surrender balance and normal/HC performance remain unverified.",
-  "nextRequiredReview": "Complete remaining AIsuppression body, remaining startup/reconciliation and relevant settings/locality/repeat paths. Suppression FSM runtime and attachSP have now been reviewed; do not restart unchanged review. Compare3820871877 before whole-source claims.",
+  "nextRequiredReview": "Core preserved AI execution, FSM, attachment/bootstrap/recovery now reviewed; do not restart unchanged bodies. Remaining: source-specific precision/stress contribution under existing mission-aware profile ownership, relevant diagnostics/performance cost, wider registered sources and physical acceptance. Player-only effects remain excluded. Current3820871877 AI delta is in its dedicated currentSnapshot20261027 record.",
   "suppressionFSMFollowup20261027": {
     "baseline": "43d46c29f69b49bc75eaf4f7e697f2febf75ee3d",
     "states": [
@@ -117,5 +142,28 @@
       "independentLog": ".qa/handovers/suppression-ready-independent.log"
     },
     "limits": "No physical suppression effectiveness/readiness/burst retirement or scale acceptance. Source target claims are machine-local and can fall back to shared target, not proven cross-owner allocation. Indoor cache lacks transform/context identity; source forced stance and stale skill reset are not copied. Next remaining source review is full AIsuppression body, remaining PinnedRev_Init/reconciliation, settings/startup changes and later3820871877 version."
-  }
+  },
+  "startupRecoveryReconciliation20261027": {
+    "baseline": "f59bb72a4f0321e10e91c3b2effadcd6764ba705",
+    "runtimeChanges": false,
+    "confirmedSourceExecution": [
+      "PinnedRev_Init is server-only, installs EntityCreated/Respawned callbacks and initial allUnits sweep, then drains a localNamespace one-frame queue and stance-settle queue in the shared PFH; stance sampling0.25s,4s stable/15s cap, suppression bypass. Reconciliation allUnits sweep every4s tests PD_ai_attached, despite comment describing the separate PD_attached_real flag.",
+      "attachSP forwards to actual owner and enqueues the stance-settle entry in that owner localNamespace. No owner-side reconcile installer is present in the reviewed config/attach/bootstrap chain. A remote-owner queue can therefore lack its consumer; no HC runtime success is inferred.",
+      "AIsuppression captures three skill baselines once, starts retained terminable FSM, installs Suppressed/Hit/FiredNear EHs and one machine-local monitored walker. Event-specific danger timers cap holds; walker does not recheck local unit before skill/synthetic-suppression writes. It removes only dead/null members, not units which changed owner.",
+      "FSM launch failure can clear the handle while attach marker remains set; reconcile attachment boolean alone does not prove a live executor. Global disable/skill opt-out repeatedly restores captured baseline; skill edits after capture can be overwritten. Completed stance release guards are useful but do not establish movement/native-fire command retirement."
+    ],
+    "cbeDisposition": [
+      "Keep CBE actual-owner CBA startup and owner-local epoch/generation group jobs. CortexDiscover starts/replaces current local group FSMs; GroupBrainStep refuses nonlocal/epoch/superseded/ended handles. Do not import server-only local-queue installation, global4s unit reconciliation or stale attach-marker proof.",
+      "Preserve exact native task/operation reservations and finite danger stance. Do not reproduce indefinite per-unit FSM posture or synthetic raw3 suppression/zero reset.",
+      "Preserve AIProfileYield/AIRestoreProfile complete original/applied pairs and observed-external-edit latch, rather than repeated stale three-skill baseline writes. Native policy optional already supplies selected recovery/aiming behaviour, not full source equivalence.",
+      "Useful elapsed-time recovery and suppression timing/ammunition safety principles are integrated in prior43d46c29/f59bb72a checkpoints. No additional implementation is justified merely by reading identical source."
+    ],
+    "remainingCapabilityGaps": [
+      "Source dynamic three-skill stress is not claimed implemented; any selected equivalent must use current mission baseline and existing profile owner, with reliable release/locality before integration.",
+      "Hearing-only physical stress should remain uncertain information and finite tactical reaction, not native suppression injection. Exact shooter identity accumulation is not a required implementation mechanism.",
+      "Physical suppression, stance recovery, repeated ownership and performance remain unverified while audits paused. Relevant debug/performance tools and remaining whole-source scope are not scored complete."
+    ],
+    "sourceChainCrossCheck": "All current extracted references to PD_ReconcilePFH/stance queue/bootstrap located; only PinnedRev_Init installs consumer. Complete current SUPclientInit84-line body checked solely to exclude an owner-side AI installer; its player behaviour is excluded."
+  },
+  "currentOriginalArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261027-3820871877-5793e970"
 }

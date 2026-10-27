@@ -428,8 +428,8 @@
       "name": "Pinned Down Combat Suppression",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Combat suppression response",
-      "reviewStatus": "Six selected AI helpers and complete6-state/8-link suppression FSM runtime reviewed; event/recovery/startup regions partial; whole-source/version reconciliation incomplete",
-      "nextSourceReview": "Complete remaining AIsuppression and startup/reconciliation/settings/locality paths; compare3820871877. Do not restart unchanged FSM/attachment review. Existing morale elapsed-time and bounded native suppressor readiness integrated; physical effects pending.",
+      "reviewStatus": "Core AI execution chain reviewed:10SQF bodies plus6-state/8-link FSM; selected AI config/settings paths. Whole player/debug/source scope and physical acceptance not complete.",
+      "nextSourceReview": "Do not repeat completed AIsuppression/bootstrap/FSM bodies. Evaluate remaining mission-aware stress/precision contribution and diagnostics cost if required; compare current3820871877 delta record. Source ownership/skill-writer defects are explicitly rejected, not CBE implementation.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
@@ -968,8 +968,8 @@
       "name": "Pinned Down Combat Suppression",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "AI-only combat suppression improvements",
-      "reviewStatus": "Initial comparison; deep review pending",
-      "nextSourceReview": "Complete deep AI review and reconcile archived version with3559900745; exclude player effects.",
+      "reviewStatus": "Current5793e970 PBO preserved;14selected file comparison and changed AI event/postInit/settings/config delta reviewed. Core FSM/attachment/bootstrap unchanged from reviewed archive; player scope excluded.",
+      "nextSourceReview": "Use current T66 snapshot and recorded dispositions; no blind identity reveal/permanent per-source knowledge or source server-only queue. Remaining mission-aware precision/stress and physical/performance gaps stay explicit.",
       "recordedImplementationStatus": "initial_ai_source_comparison_complete_deep_review_pending",
       "recordedRemaining": "Deep AI source evaluation and implementation pending; player effects excluded.",
       "implementationAssessmentCommit": "ca778db2",
@@ -981,6 +981,12 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "currentOriginalArchive": {
+        "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261027-3820871877-5793e970",
+        "filesVerified": 12,
+        "bisignFiles": 2,
+        "mainPboSHA256": "5793e97068c6a06c8ac6aa30dc3a750c9d15c9bdbde28d12ff4690f21be3da79"
       }
     },
     {
