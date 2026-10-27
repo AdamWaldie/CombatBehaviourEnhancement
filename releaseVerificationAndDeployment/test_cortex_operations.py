@@ -6028,6 +6028,27 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_position vectorDistance _lastPosition >= 3',step)
         self.assertIn('count _threatPos != 3',react)
         self.assertIn('!finite _priority',react)
+        stay=react.split('// Gunfire alone need not eject',1)[1].split('// Reuse the existing roofed-node selector',1)[0]
+        for proof in ('["FIRED_NEAR","SUPPRESSED"]','_priority <= 2','unitReady _unit',
+                      'abs speed _unit <= 0.5','CBE_AIPass_BuildingCombat_Enable',
+                      'serverTime < (_coverObservation select 1)','isEqualTo clientOwner',
+                      'isEqualTo _group','getObjectScale','isEqualTo damage',
+                      '_eye vectorAdd [0,0,8]','true,1,"GEOM","NONE"',
+                      'call CBE_fnc_CortexCoverScreened','if (_keepShelter) exitWith {false}'):
+            self.assertIn(proof,stay)
+        cached=stay.split('private _coverObservation=',1)[1].split('private _keepShelter=false;',1)[0]
+        for write in ('setVariable','doMove','doStop','doFollow'):
+            self.assertNotIn(write,cached)
+        self.assertNotIn('"EXPLOSION"',stay)
+        self.assertNotIn('"HIT"',stay)
+        self.assertLess(stay.index('if (_keepShelter) exitWith {false}'),stay.index('private _shelterRoute='))
+        def retained(cause,priority,idle,ready,roof,screened):
+            return cause in ('FIRED_NEAR','SUPPRESSED') and priority<=2 and idle and ready and roof and screened
+        self.assertTrue(retained('FIRED_NEAR',1,True,True,True,True))
+        for row in [('HIT',3,True,True,True,True),('EXPLOSION',2,True,True,True,True),
+                    ('FIRED_NEAR',1,False,True,True,True),('SUPPRESSED',2,True,False,True,True),
+                    ('SUPPRESSED',2,True,True,False,True),('SUPPRESSED',2,True,True,True,False)]:
+            self.assertFalse(retained(*row))
         for proof in ('CBE_Cortex_CivilianObserverSerial','observerOwner','observerSerial',
                       'CBE_Cortex_CivilianRetrySpent','(_receipt select 6) == _group',
                       'serverTime >= (_receipt select 0)','CBE_Cortex_CivilianAdoptTicket',

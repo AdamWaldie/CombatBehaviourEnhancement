@@ -7,6 +7,8 @@
  * Otherwise three separated escape headings use the bounded terrain selector and a safe-position
  * adjustment is accepted only when its complete route remains passable. This avoids sending a
  * civilian into water, a cliff or an abrupt grade without installing a continuous path controller.
+ * Idle roofed/material-screened positions may be retained for gunfire observations; a local
+ * five-second observation receipt never renews on duplicate events or grants hold authority.
  * It does not install an FSM, force an animation, reserve a vehicle or continually steer the unit.
  * Player, Zeus, specialist and neutral external-control ownership always takes priority.
  *
@@ -94,10 +96,48 @@ private _shelter=[_origin,false];
 // Failed escape plans have no active reaction cooldown. Bound this additional search under
 // repeated gunfire too; this local admission timestamp grants no movement or retry authority.
 private _searchShelter=serverTime >= (_unit getVariable ["CBE_Cortex_CivilianShelterSearchAfter",0]);
+// Gunfire alone need not eject an idle civilian from existing roofed material cover.
+// This is short-lived observation deduplication, not a hold command or task reservation.
+// Injury, explosions and an active native MOVE always retain the escape policy.
+private _stayEligible=toUpperANSI _cause in ["FIRED_NEAR","SUPPRESSED"] && {_priority <= 2}
+    && {_commandBefore in ["","WAIT","FOLLOW"]} && {unitReady _unit} && {abs speed _unit <= 0.5}
+    && {[_group,"CBE_AIPass_BuildingCombat_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+private _coverObservation=_unit getVariable ["CBE_Cortex_CivilianCoverObservation",[]];
+if (_stayEligible && {_coverObservation isEqualType []} && {count _coverObservation == 8}
+    && {(_coverObservation select 0) isEqualTo clientOwner}
+    && {(_coverObservation select 1) isEqualType 0} && {finite (_coverObservation select 1)}
+    && {serverTime < (_coverObservation select 1)} && {(_coverObservation select 1) <= serverTime+5}
+    && {(_coverObservation select 2) isEqualTo _group}
+    && {(_coverObservation select 3) isEqualType []} && {count (_coverObservation select 3) == 3}
+    && {(_coverObservation select 4) isEqualType []} && {count (_coverObservation select 4) == 3}
+    && {[3,4] findIf {(_coverObservation select _x) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0} < 0}
+    && {(getPosASL _unit) vectorDistance (_coverObservation select 3) <= 0.5}
+    && {_threatPos vectorDistance (_coverObservation select 4) <= 0.5}
+    && {(_coverObservation select 5) isEqualType objNull} && {!isNull (_coverObservation select 5)}
+    && {alive (_coverObservation select 5)} && {!isObjectHidden (_coverObservation select 5)}
+    && {(_coverObservation select 6) isEqualTo [getPosWorld (_coverObservation select 5),vectorDir (_coverObservation select 5),vectorUp (_coverObservation select 5),getObjectScale (_coverObservation select 5)]}
+    && {(_coverObservation select 7) isEqualTo damage (_coverObservation select 5)}) exitWith {false};
+private _keepShelter=false;
 if (_searchShelter) then {
     _unit setVariable ["CBE_Cortex_CivilianShelterSearchAfter",serverTime+5];
-    _shelter=[_origin,_threatPos,25,[],_group,"COVER",_unit] call CBE_fnc_CortexFindCover;
+    if (_stayEligible) then {
+        private _eye=eyePos _unit;
+        private _roof=lineIntersectsSurfaces [_eye,_eye vectorAdd [0,0,8],_unit,objNull,true,1,"GEOM","NONE"];
+        if (_roof isNotEqualTo []) then {
+            private _hit=_roof select 0;
+            private _house=if (!isNull (_hit select 3)) then {_hit select 3} else {_hit select 2};
+            if (!isNull _house && {_house isKindOf "House"} && {alive _house} && {!isObjectHidden _house}
+                && {[(AGLToASL _threatPos) vectorAdd [0,0,1.6],_eye,_unit,"COVER",_threatObject] call CBE_fnc_CortexCoverScreened}) then {
+                _keepShelter=true;
+                _unit setVariable ["CBE_Cortex_CivilianCoverObservation",[clientOwner,serverTime+5,_group,getPosASL _unit,+_threatPos,
+                    _house,[getPosWorld _house,vectorDir _house,vectorUp _house,getObjectScale _house],damage _house]];
+            };
+        };
+    };
+    if (!_keepShelter) then {_shelter=[_origin,_threatPos,25,[],_group,"COVER",_unit] call CBE_fnc_CortexFindCover};
 };
+// Return at function scope. An exit inside the search block would still issue escape below.
+if (_keepShelter) exitWith {false};
 if (_shelter select 1 && {(_shelter select 0) distance2D _threatPos > (_origin distance2D _threatPos)+2}) then {
     private _shelterRoute=[_origin,[[+(_shelter select 0)]],_threatPos,[],_threatObject,"INFANTRY"] call CBE_fnc_CortexSelectAvenue;
     if (_shelterRoute isNotEqualTo []) then {_destination=+(_shelterRoute select 0)};

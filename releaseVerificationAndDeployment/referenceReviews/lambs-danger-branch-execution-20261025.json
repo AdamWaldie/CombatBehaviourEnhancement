@@ -1681,5 +1681,25 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "civilianIdleShelter20261027": {
+    "baseline": "f09909eba2ffd1925fe3949c5f0ded965b81e512",
+    "sourceIntent": "Adapt doHide already-indoor shelter intent without random native STOP, forced posture/pace or an unowned restoration callback. Use current roof/material observations and leave native mission control free.",
+    "implementation": "For FIRED_NEAR/SUPPRESSED priorities<=2 only, a ready stationary civilian with current empty/WAIT/FOLLOW command may keep an observed roofed/material-screened position. One upward8m roof query and existing COVER screening occur under the existing5s shelter-search throttle. A successful observation skips destination searches and returnsfalse because no movement was issued. HIT/EXPLOSION/active MOVE/higher priority do not qualify.",
+    "lifecycle": "One local8-field observation retains client owner,original expiry,group,actor ASL,threat ATL,roof-house,position/direction/up/scale and damage. Reuse requires same owner/group, eligibility, actor/threat displacement<=0.5m and unchanged visible living house/geometry/damage. Duplicates do not renew or publish it. It grants no HOLD/STOP/lease/cleanup/arrival authority and installs no timer/worker/JIP replay. New owner obtains its own observation.",
+    "validation": {
+      "tests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "buildLog": ".qa/handovers/civilian-idle-shelter-build-f09909eb.log",
+      "candidate": ".qa/candidates/civilian-idle-shelter-f09909eb",
+      "fingerprint": "176e66cc546ae5861b9cac12f4dd70e00acff75cd34a15926bef850965e00fda",
+      "independentLog": ".qa/handovers/civilian-idle-shelter-independent.log"
+    },
+    "limits": "No physical acceptance. Recent screening may change through an intervening door/nearby object during the five-second observation window. This intentionally avoids immediate repeated gunfire churn; it is not invulnerability, a safe-room verdict or a native hold command. Tall roofs outside8m, moving/unready civilians and other causes retain existing escape behaviour. Native mission control may move a civilian out of cover. Body/scream, broader civilian/LAMBS parity, HC/repeat behaviour and measured cost remain incomplete.",
+    "physicalAcceptance": false,
+    "performanceMeasured": false,
+    "scoresChanged": false
   }
 }

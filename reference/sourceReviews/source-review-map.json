@@ -16,7 +16,7 @@
       "priority": "0 Foundations",
       "candidateContribution": "Standalone danger FSM, reactions, assault and task lifecycle",
       "reviewStatus": "All41 readable danger-addon SQF body dispositions and civilian FSM runtime branches reviewed; selected main helpers reviewed; whole-source descendants remain incomplete",
-      "nextSourceReview": "Reconcile remaining main/wp helpers and concrete capabilities with existing owners. Civilian exterior and bounded indoor refuge selection are implemented but physically unverified; stay-in-place indoor policy, body/scream and broader civilian functionality remain incomplete. Settings modules are not a parity target.",
+      "nextSourceReview": "Reconcile remaining main/wp helpers and concrete capabilities with existing owners. Civilian exterior/indoor refuge selection, migration observation and idle roofed gunfire retention are implemented but physically unverified; body/scream and broader civilian functionality remain incomplete. Settings modules are not a parity target.",
       "recordedImplementationStatus": "PARTIAL_IMPLEMENTATION_WHOLE_SOURCE_INCOMPLETE",
       "recordedRemaining": "Whole-source parity and remaining execution branches incomplete; physical reliability and performance separate.",
       "implementationAssessmentCommit": "ca778db2",
@@ -46,6 +46,10 @@
       "civilianShelterImplementation20261027": {
         "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianIndoorRefuge20261027",
         "scope": "Selected bounded civilian indoor fallback; not whole-LAMBS parity or physical acceptance. Existing source version/hash retained; no whole-map score reassessment."
+      },
+      "civilianIdleShelter20261027": {
+        "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#civilianIdleShelter20261027",
+        "scope": "Selected negative gunfire-response deduplication at an observed idle roofed position, not a hold controller or whole-LAMBS acceptance."
       }
     },
     {
