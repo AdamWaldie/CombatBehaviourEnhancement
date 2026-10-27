@@ -737,13 +737,13 @@
       "name": "Pinned Down Tracks and Boots",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Infantry and vehicle cooperation to evaluate",
-      "reviewStatus": "Verified extracted source available; deep review unreconciled",
-      "nextSourceReview": "Use the verified extracted snapshot to establish actual AI scope, then compare useful movement and combined-arms methods.",
+      "reviewStatus": "Selected3path/water helpers complete and overwatch caller region reviewed; whole passenger/support state machine source remains incomplete",
+      "nextSourceReview": "Complete overwatch/support positioning and actual writers, then passenger state machine and cleanup/locality. Existing pedestrian hull-speed control retained; routine static-deck qualification repaired. No whole-mod acceptance uplift.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
-      "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
-      "evidenceFilePresent": false,
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/pinned-tracks-boots-source-20261027.json",
+      "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "installedDirectoryObservation": {
         "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3776232873",
@@ -758,7 +758,8 @@
         "readableSourceFiles": 62,
         "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
       },
-      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
+      "currentSelectedIntegration": "CortexPassengerReady resolves static non-vehicle deck parent, height/normal and linear/angular rest in its existing single-ray water exception. Existing CortexInfantrySpeed already handles bounded friendly hull braking; no source controller imported."
     },
     {
       "workshopId": "3778948165",

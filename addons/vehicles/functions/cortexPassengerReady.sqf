@@ -11,6 +11,9 @@
  * boarding tasks yield without issuing seat or movement commands.
  * Hidden/suspended actors or vehicles refuse routine transitions. Boarding additionally
  * preserves explicit STOP and disabled MOVE/PATH; no path request is issued for them.
+ * Over water, one downward ray must identify a static non-vehicle parent/deck above0.5m
+ * with normalZ>=0.85 and measured rest. Unknown, vehicle/person or moving/rotating support
+ * does not admit a routine seat transition. This is not full dismount-footprint clearance.
  * Arguments: 0: soldier <OBJECT>, objNull; 1: vehicle <OBJECT>, objNull; 2: boarding <BOOL>, false.
  * Return Value: Boolean.
  * Current callers: ConvoyCrewLocal, Vehicles and RestoreCalm.
@@ -47,7 +50,14 @@ private _wet = surfaceIsWater _position;
 if (_wet) then {
     private _deck = lineIntersectsSurfaces [_position vectorAdd [0,0,0.5], _position vectorAdd [0,0,-3], _vehicle, _unit, true, 1, "GEOM", "NONE"];
     if (_deck isEqualTo []) exitWith {};
-    _wet = (((_deck select 0) select 0) select 2) <= 0.5;
+    private _hit=_deck select 0;
+    private _supportObject=if (!isNull (_hit select 3)) then {_hit select 3} else {_hit select 2};
+    // Another hull or a moving prop is not a bridge, even above the waterline.
+    _wet = isNull _supportObject || {_supportObject isKindOf "AllVehicles"}
+        || {vectorMagnitude velocity _supportObject > 0.1}
+        || {vectorMagnitude angularVelocity _supportObject > 0.01}
+        || {((_hit select 0) select 2) <= 0.5}
+        || {((_hit select 1) select 2) < 0.85};
 };
 if (_wet) exitWith {false};
 if (_boarding) exitWith {vehicle _unit == _unit && {canMove _vehicle} && {_vehicle emptyPositions "cargo" > 0}};

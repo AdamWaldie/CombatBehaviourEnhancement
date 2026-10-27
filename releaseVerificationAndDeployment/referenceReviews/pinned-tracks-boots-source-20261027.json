@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-27",
+  "workshopId": "3776232873",
+  "baseline": "abcfe36913fbd1906917d4ab8a8809b9c282c603",
+  "sourceRoot": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\PinnedDown\\20261013-013708\\3776232873\\extracted-20261011\\pd_tracks_and_boots",
+  "scope": "Three small source helpers complete, selected overwatch caller region. Not whole-mod, passenger state machine or physical acceptance. Preserved archive only, originals PBO/signatures unavailable.",
+  "sources": [
+    {
+      "path": "functions/fn_pathBlockedByInfantry.sqf",
+      "sha256": "76efd8895840df048d3e619239c91edfe034b5b1f3661070dcc3d262b124afc7",
+      "scope": "Complete33-line readable helper"
+    },
+    {
+      "path": "functions/fn_waterContact.sqf",
+      "sha256": "9ffb6ae04b7c175cd16748078c8a5844f83b8c7e7c4136c6723442040587fc8f",
+      "scope": "Complete17-line readable helper; source method not imported"
+    },
+    {
+      "path": "functions/fn_waterDepth.sqf",
+      "sha256": "dd48dcfe00e27489440583d2564f7f74a480efcefa6de911d3277c90b2878436",
+      "scope": "Complete7-line readable helper; no depth-policy equivalence inferred"
+    },
+    {
+      "path": "functions/fn_findOverwatchPosition.sqf",
+      "sha256": "6450fca27087677d08814ae8f818d4f882efe8b9c98a93c090b6b91f8ab6a50f",
+      "scope": "Selected candidate/path-clearance region35..80 only; full helper and writer chain remain pending"
+    }
+  ],
+  "findings": [
+    {
+      "intent": "Vehicles should not advance through friendly dismounted infantry.",
+      "source": "pathBlockedByInfantry projects supplied unit centres onto2D segment with fixed corridor width. Selected overwatch caller requires candidate behind infantry body,10m destination separation and path helper.",
+      "cbe": "Existing CortexInfantrySpeed is read-only, bounds32pedestrians, uses world-metre hull/vertical overlap and speed-dependent braking, consumed by driving and convoy owners. Source fixed2D segment is not footprint/crossing-time/native path proof; no duplicate helper imported."
+    },
+    {
+      "intent": "Wet vehicle footprint must affect transport decisions.",
+      "source": "waterContact samples centre and four model-offset points; waterDepth transforms terrain height. Several dismount/boarding/disabled-transport callers consume these.",
+      "cbe": "CortexPassengerReady centre water/deck check already exists; full footprint and transport state-machine scope remains open. No source water formula, forced dismount or independent passenger controller imported."
+    }
+  ],
+  "confirmedCBEGap": "Existing routine passenger bridge exception accepted any downward geometry hit above0.5m, including another vehicle/person or moving support, without parent resolution or surface normal qualification.",
+  "implementation": "Reuse static-support intent from existing DrivingPathGeometry. Same one downward ray now resolves parent/direct object; unidentified/AllVehicles support refuses. Require height above0.5m, normalZ>=0.85, linear speed<=0.1m/s and angular speed<=0.01rad/s. Existing native actor/vehicle motion, care, reservations, boarding tasks and ownership remain. No new scan/worker/ray/command or emergency-bailout policy.",
+  "verification": {
+    "fullTests": 1498,
+    "compiledSQF": 449,
+    "pboCount": 11,
+    "newTestCases": 0,
+    "regressionBefore": ".qa/handovers/passenger-deck-regression-before.log",
+    "buildLog": ".qa/handovers/passenger-deck-build-abcfe369.log",
+    "candidate": ".qa/candidates/passenger-static-deck-abcfe369",
+    "fingerprint": "bdaa3f3a17b26d5a5ea9648dfd89bfbcf89ded7237c923f5b9feee1ddaf49aad",
+    "independentLog": ".qa/handovers/passenger-deck-independent.log"
+  },
+  "limits": "Offline evidence only, audits paused. Single centre ray is not complete exit-footprint or continuous stability proof; bridge/road proxy identity and modded support need physical verification. No whole-source/combined-arms parity or measured performance claim. Native query cost unchanged, support reads added only to existing water case.",
+  "nextRequiredReview": "Complete findOverwatchPosition and supportPosition plus actual callers/writers; then passenger command/state ownership, dismount/remount/disabled transport and original-clocks cleanup. Keep source archive immutable and reject forced teleports/physics or duplicate movement owners."
+}

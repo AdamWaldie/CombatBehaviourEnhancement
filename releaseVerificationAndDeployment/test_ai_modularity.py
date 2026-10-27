@@ -124,6 +124,14 @@ class AIModularityContracts(unittest.TestCase):
         text = src('cortexPassengerReady')
         for check in ['simulationEnabled _vehicle','isObjectHidden _unit','_boarding && {_command == "STOP"','checkAIFeature "MOVE"','checkAIFeature "PATH"','local _unit','isPlayer','CBE_fnc_CortexCombatEffective','vectorMagnitude velocity _vehicle','vectorMagnitude angularVelocity _vehicle','surfaceIsWater','lineIntersectsSurfaces','fullCrew','emptyPositions']:
             self.assertIn(check,text)
+        deck=text.split('private _deck = lineIntersectsSurfaces',1)[1].split('if (_wet) exitWith {false}',1)[0]
+        for proof in ('private _supportObject=', '_hit select 3','_hit select 2',
+                      'isNull _supportObject','isKindOf "AllVehicles"',
+                      'vectorMagnitude velocity _supportObject > 0.1',
+                      'vectorMagnitude angularVelocity _supportObject > 0.01',
+                      '((_hit select 1) select 2) < 0.85'):
+            self.assertIn(proof,deck)
+        self.assertEqual(text.count('lineIntersectsSurfaces'),1)
         dismount = src('convoyDismountLocal')
         self.assertIn('CBE_fnc_CortexExternalTakeover',dismount)
         self.assertIn('private _operator =',dismount)

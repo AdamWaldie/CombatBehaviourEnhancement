@@ -2220,3 +2220,10 @@ Danger-driven half-second wakes no longer multiply morale loss merely by increas
 Scripted infantry suppression now requires both native round-cycling and magazine-reload phases to be finite and settled at zero. The selected weaponState magazine must agree with the current magazine used for ammunition accounting. A positive loaded-round count alone does not admit suppression while a round is cycling or native state is inconsistent.
 
 Before scanning loose reserves, the existing action refuses candidates with over128 compatible magazine classes or128 inventory rows. Native inventory retrieval cost itself is not measured by this bound. The existing two-spare/60-round requirement, three-lane geometry allowance, ammunition compatibility, friendly/civilian safety, rotating cursor, burst spacing and active native-command limit remain. These gates issue no reload, weapon selection, suppression reset or movement and do not disable native firing. Physical timing and combat/performance balance remain unverified while audits are paused.
+
+
+## Routine passenger transitions over water
+
+The existing one-ray bridge exception now requires identified static support. Its resolved parent/direct object must be non-vehicle, above0.5m ASL, with an upward surface normal of at least0.85, total linear speed at most0.1m/s and angular speed at most0.01rad/s. Person/vehicle hulls, moving props, steep surfaces and unidentified support cannot make routine boarding or dismount safe merely by appearing above the waterline.
+
+This adds no ray, scan, movement order, forced seat change or recovery worker. Existing actor/vehicle motion, medical, native task, reservation and ownership checks still apply. Emergency native bailouts remain independent. The centre support observation does not prove the complete dismount footprint, an unobstructed exit or future platform stability. Physical bridge/proxy, modded-support and shore transitions remain unverified while audits are paused.
