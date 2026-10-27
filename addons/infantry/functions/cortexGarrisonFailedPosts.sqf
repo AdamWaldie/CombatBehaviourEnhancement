@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Remember a group's recently exhausted interior garrison posts for bounded replanning.
  * Locality/authority: Current group owner only; trusted internal call or server-dispatched order.
  * This is advisory selection data, never movement, arrival or universal inaccessibility proof.
@@ -25,7 +26,7 @@ private _validSignature={
         && {_point findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
         && {_bearing isEqualType 0} && {finite _bearing}
         && {_building isEqualType objNull} && {!isNull _building} && {alive _building}
-        && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+        && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
 };
 private _saved=_group getVariable ["CBE_Cortex_GarrisonFailedPosts",[]];
 if !(_saved isEqualType []) then {_saved=[]};

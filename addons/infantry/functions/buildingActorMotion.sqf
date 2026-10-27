@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Records or adopts existing clearance-owned native movement/holds without replay.
  * Locality / Authority: Current actor owner; ADOPT/write also require current local CLEAR
  * operation, actor membership/eligibility, original visit nonce, building transform and route.
@@ -140,7 +141,7 @@ isNil {
             || {(_context select 0) isNotEqualTo _building}
             || {(_context select 1) isNotEqualTo (_job getOrDefault ["buildingTransform",[]])}
             || {(_context select 2) isNotEqualTo (_job getOrDefault ["hardDeadline",-1])}
-            || {(_job getOrDefault ["buildingTransform",[]]) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+            || {(_job getOrDefault ["buildingTransform",[]]) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
             || {(_job getOrDefault ["nativeOrderReceipt",[]]) isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}) exitWith {false};
         private _command=toUpperANSI currentCommand _actor;
         private _native=(expectedDestination _actor) param [0,[],[[]]];

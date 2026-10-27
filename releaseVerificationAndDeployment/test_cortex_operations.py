@@ -4691,10 +4691,10 @@ class CortexOperations(unittest.TestCase):
     def test_garrison_duck_checks_live_building_transform_at_both_boundaries(self):
         duck=source('cortexGarrisonApplyLocal').split('private _duck = {',1)[1].split('CBE_AIPass_GarrisonHandlerIds',1)[0]
         event, delayed=duck.split('params ["_unit", "_until", "_priorStance",',1)
-        self.assertIn('_duckTransform isNotEqualTo [getPosWorld _duckBuilding,vectorDir _duckBuilding,vectorUp _duckBuilding]',event)
+        self.assertIn('_duckTransform isNotEqualTo [getPosWorld _duckBuilding,vectorDir _duckBuilding,vectorUp _duckBuilding,getObjectScale _duckBuilding]',event)
         self.assertIn('isNull _duckBuilding',event)
         self.assertLess(event.index('private _duckTransform='),event.index('[["STANCE",_duckStance]]'))
-        self.assertIn('_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]',delayed)
+        self.assertIn('_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]',delayed)
         self.assertIn('!isNull _building',delayed)
         self.assertLess(delayed.index('private _transform='),delayed.index('call CBE_fnc_CortexGarrisonSettings'))
 
@@ -12494,7 +12494,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_garrison_world_position_cache_invalidates_building_transforms(self):
         text=source('cortexGarrisonApplyLocal')
-        self.assertIn('private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building]',text)
+        self.assertIn('private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]',text)
         self.assertIn('(_cached select 2) isNotEqualTo _transform',text)
         self.assertIn('_cached=[_damage,+(_building buildingPos -1),_transform]',text)
         self.assertIn('count _cached < 3',text)
@@ -12503,7 +12503,7 @@ class CortexOperations(unittest.TestCase):
         text=source('buildingOperationStep')
         self.assertLess(text.index('private _actorTaskFree={'),text.index('private _finish = {'))
         self.assertLess(text.index('[true,"BUILDING_MOVED"] call _finish'),text.index('== "EGRESS"'))
-        self.assertIn('_buildingTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]',text)
+        self.assertIn('_buildingTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]',text)
         self.assertIn('["buildingTransform",+_admissionTransform]',source('cortexClearBuilding'))
         self.assertLess(text.index('[true,"BUILDING_HIDDEN"] call _finish'),text.index('== "EGRESS"'))
         admission=source('cortexClearBuilding')
@@ -12513,6 +12513,39 @@ class CortexOperations(unittest.TestCase):
         live=actor.split('private _building=_brain get "building";',1)[1].split('private _contact=',1)[0]
         self.assertIn('isObjectHidden _building',live)
         self.assertLess(live.index('isObjectHidden _building'),live.index('["BUILDING_CHANGED"] call _finish'))
+        # Geometry producers, live readers and outgoing journals must agree on scale.
+        # In particular, natural indoor door assistance must not compare a four-part
+        # actor identity with a three-part door identity after a geometry upgrade.
+        import re
+        names=('buildingActorMotion','buildingLaneJournal','buildingOperationStart',
+               'buildingProducerContext','buildingProducerRegister','cortexBuildingDoor',
+               'cortexClearBuilding','cortexClearSettingsApply','cortexGarrison',
+               'cortexGarrisonApplyLocal','cortexGarrisonFailedPosts','cortexGarrisonRefill',
+               'cortexGarrisonSettings','cortexGroupTick')
+        for name in names:
+            body=source(name)
+            self.assertIn('getObjectScale',body,name)
+            self.assertIsNone(re.search(r'\[getPosWorld ([^,\n]+),vectorDir \1,vectorUp \1\]',body),name)
+        for name in ('buildingEarlyExitJournal','buildingEgressJournal','buildingFollowJournal',
+                     'buildingReliefJournal','buildingRoomJournal','buildingStageJournal'):
+            body=source(name)
+            for proof in ('count _transform != 4','(_transform select [0,3]) findIf',
+                          'finite (_transform select 3)','(_transform select 3) <= 0'):
+                self.assertIn(proof,body,name)
+            self.assertNotIn('_transform apply {+_x}',body,name)
+        door=source('cortexBuildingDoor')
+        self.assertIn('count _visibilityProof == 6',door)
+        self.assertIn('_visibilityProof select [0,4]',door)
+        self.assertIn('(eyePos _unit) vectorDistance (_visibilityProof select 4)',door)
+        self.assertIn('time-(_visibilityProof select 5) <= 0.5',door)
+        import copy
+        geometry=[[1,2,0],[0,1,0],[0,0,1],1.0]
+        captured=copy.deepcopy(geometry)
+        geometry[0][0]=99
+        geometry[3]=2.0
+        self.assertEqual(captured,[[1,2,0],[0,1,0],[0,0,1],1.0])
+        self.assertNotEqual(captured,geometry)
+        self.assertNotEqual(captured,captured[:3])
 
 
     def test_clearance_building_transform_audit_requires_real_cancel_and_entry(self):

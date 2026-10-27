@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Refills one vacant interior garrison post after the arrival job has settled.
  * Locality/authority: current group owner only, through the existing group scheduler. Eligibility,
  * actor reservations and native service/movement commands are checked before replacing a slot.
@@ -46,7 +47,7 @@ private _vacancy=[];
     private _building=_candidate param [2,objNull];
     private _transform=_candidate param [3,[]];
     if (!((_candidate select [0,4]) in _failedPosts) && {!isNull _building} && {alive _building}
-        && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+        && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
         && {_occupiedPosts findIf {
             (_x select 0) == _building
                 && {(_x select 1) vectorDistance (_candidate select 0) < 1}

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Preserve original follow-through legs and spent search/exhaustion history.
  * Locality/authority: Pure local data conversion; caller owns live budget publication
  * or verifies the exact fenced original producer. No native/incoming authority.
@@ -27,8 +28,10 @@ isNil {
             && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}};
         if (!(_building isEqualType objNull) || {isNull _building}
             || {!(_hard isEqualType 0)} || {!finite _hard} || {_hard < 0}
-            || {!(_transform isEqualType [])} || {count _transform != 3}
-            || {_transform findIf {!(_x call _vector)} >= 0}
+            || {!(_transform isEqualType [])} || {count _transform != 4}
+            || {(_transform select [0,3]) findIf {!(_x call _vector)} >= 0}
+            || {!((_transform select 3) isEqualType 0)} || {!finite (_transform select 3)}
+            || {(_transform select 3) <= 0}
             || {!(_context isEqualType [])} || {count _context != 4}
             || {(_context select 0) isNotEqualTo _building} || {(_context select 1) isNotEqualTo _transform}
             || {(_context select 2) isNotEqualTo _hard}
@@ -77,7 +80,7 @@ isNil {
             _budgetRows pushBack [_x,+_indices,_x in _spent];
         } forEach keys _failures;
         if (!_valid) exitWith {[]};
-        private _contextCopy=[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3];
+        private _contextCopy=[_context select 0,(_context select 1) apply {if (_x isEqualType []) then {+_x} else {_x}},_context select 2,_context select 3];
         private _yield=_job getOrDefault ["yieldReceipt",[]];
         private _yieldCopy=[];
         if (_yield isEqualType [] && {count _yield == 2}
@@ -86,10 +89,10 @@ isNil {
             && {(_yield select 1) isEqualType []} && {count (_yield select 1) <= 64}
             && {(_yield select 1) findIf {isNil "_x" || {!(_x isEqualType "")} || {_x in ["","0:0"]}} < 0}
             && {count ((_yield select 1) arrayIntersect (_yield select 1)) == count (_yield select 1)}) then {
-            _yieldCopy=[[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3],+(_yield select 1)];
+            _yieldCopy=[[_context select 0,(_context select 1) apply {if (_x isEqualType []) then {+_x} else {_x}},_context select 2,_context select 3],+(_yield select 1)];
         };
-        [2,_contextCopy,_legRows,[_building,_hard,_transform apply {+_x},_budgetRows,
-            [_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3]],_yieldCopy]
+        [2,_contextCopy,_legRows,[_building,_hard,_transform apply {if (_x isEqualType []) then {+_x} else {_x}},_budgetRows,
+            [_context select 0,(_context select 1) apply {if (_x isEqualType []) then {+_x} else {_x}},_context select 2,_context select 3]],_yieldCopy]
     };
     false
 };

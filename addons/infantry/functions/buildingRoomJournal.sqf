@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Copy the original private clearance room progress for outgoing capture.
  * Locality/authority: Pure local data conversion. CortexLocality must first fence and
  * validate the original producer through BuildingProducerContext FROZEN. This grants no
@@ -33,8 +34,10 @@ isNil {
         private _vector={_this isEqualType [] && {count _this == 3}
             && {_this findIf {!(_x isEqualType 0) || {!finite _x}} < 0}};
         if (!(_building isEqualType objNull) || {isNull _building}
-            || {!(_transform isEqualType [])} || {count _transform != 3}
-            || {_transform findIf {!(_x call _vector)} >= 0}
+            || {!(_transform isEqualType [])} || {count _transform != 4}
+            || {(_transform select [0,3]) findIf {!(_x call _vector)} >= 0}
+            || {!((_transform select 3) isEqualType 0)} || {!finite (_transform select 3)}
+            || {(_transform select 3) <= 0}
             || {!(_context isEqualType [])} || {count _context != 4}
             || {(_context select 0) isNotEqualTo _building}
             || {(_context select 1) isNotEqualTo _transform}
@@ -105,7 +108,7 @@ isNil {
             _visitRows pushBack [_x,+_indices];
         } forEach _visitKeys;
         if (!_valid) exitWith {[]};
-        [3,[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3],
+        [3,[_context select 0,(_context select 1) apply {if (_x isEqualType []) then {+_x} else {_x}},_context select 2,_context select 3],
             _positions apply {+_x},+_cleared,+_unreachable,count _retries,_retryRows,
             _failureRows,_deadline,_progress,+_entered,_visitRows,_identityRows]
     };

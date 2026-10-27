@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Validate/copy the original private finite casualty-relief attempt receipt.
  * Locality/authority: Pure data conversion. Caller owns preparation, current live work
  * or exact fenced source capture. No casualty/native/arrival or incoming authority.
@@ -24,8 +25,10 @@ isNil {
             && {_this findIf {isNil "_x" || {!(_x isEqualType 0)} || {!finite _x}} < 0}};
         if (!(_building isEqualType objNull) || {isNull _building}
             || {!(_hard isEqualType 0)} || {!finite _hard} || {_hard < 0}
-            || {!(_transform isEqualType [])} || {count _transform != 3}
-            || {_transform findIf {!(_x call _vector)} >= 0}
+            || {!(_transform isEqualType [])} || {count _transform != 4}
+            || {(_transform select [0,3]) findIf {!(_x call _vector)} >= 0}
+            || {!((_transform select 3) isEqualType 0)} || {!finite (_transform select 3)}
+            || {(_transform select 3) <= 0}
             || {!(_context isEqualType [])} || {count _context != 4}
             || {[0,1,2,3] findIf {isNil {_context select _x}} >= 0}
             || {(_context select 0) isNotEqualTo _building} || {(_context select 1) isNotEqualTo _transform}
@@ -35,7 +38,7 @@ isNil {
             || {isNil {_source select 0}} || {isNil {_source select 1}}
             || {(_source select 0) isNotEqualTo _context}
             || {!((_source select 1) isEqualType [])} || {count (_source select 1) > 8}) exitWith {[]};
-        private _contextCopy=[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3];
+        private _contextCopy=[_context select 0,(_context select 1) apply {if (_x isEqualType []) then {+_x} else {_x}},_context select 2,_context select 3];
         if ((_source select 1) isEqualTo []) exitWith {[_contextCopy,[]]};
         private _entries=_job getOrDefault ["securityEntries",[]];
         if (!(_entries isEqualType []) || {count _entries > 16}) exitWith {[]};

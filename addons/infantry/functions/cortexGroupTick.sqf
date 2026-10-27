@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Shared movement reservations protect pending flight/naval/selected-crew cleanup during contact,
  * search, consolidation and stalled-actor selection without renewing recovery budgets.
  * Tactical-route and withdrawal retries preserve native STOP; these callers have no owned-stop receipt.
@@ -206,7 +207,7 @@ if ((_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []) then {
         private _transform=_assignment param [3,[]];
         private _building=_assignment param [2,objNull];
         local _x && {_transform isNotEqualTo []}
-            && {isNull _building || {_transform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}
+            && {isNull _building || {_transform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}}
     };
     if (_invalidBuildingActors isNotEqualTo []) then {[_group,true,_invalidBuildingActors] call CBE_fnc_CortexGarrisonRelease};
     private _diverted=_alive select {

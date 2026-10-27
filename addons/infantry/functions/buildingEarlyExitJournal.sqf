@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Encode original early exits for live publication and outgoing capture.
  * Locality/authority: Pure local conversion. Caller owns live publication or verifies
  * the fenced original producer; no native command, arrival proof or replay authority.
@@ -66,8 +67,10 @@ isNil {
         private _optionalVector={_this isEqualType [] && {_this isEqualTo [] || {_this call _vector}}};
         if (!(_building isEqualType objNull) || {isNull _building}
             || {!(_hard isEqualType 0)} || {!finite _hard} || {_hard < 0}
-            || {!(_transform isEqualType [])} || {count _transform != 3}
-            || {_transform findIf {!(_x call _vector)} >= 0}
+            || {!(_transform isEqualType [])} || {count _transform != 4}
+            || {(_transform select [0,3]) findIf {!(_x call _vector)} >= 0}
+            || {!((_transform select 3) isEqualType 0)} || {!finite (_transform select 3)}
+            || {(_transform select 3) <= 0}
             || {!(_context isEqualType [])} || {count _context != 4}
             || {(_context select 0) isNotEqualTo _building} || {(_context select 1) isNotEqualTo _transform}
             || {(_context select 2) isNotEqualTo _hard}
@@ -90,7 +93,7 @@ isNil {
             _rows pushBack _copy;_keyedRows pushBack [_key,_copy];
         } forEach keys _exits;
         if (!_valid) exitWith {[]};
-        private _contextCopy=[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3];
+        private _contextCopy=[_context select 0,(_context select 1) apply {if (_x isEqualType []) then {+_x} else {_x}},_context select 2,_context select 3];
         if (_mode == "PUBLIC") exitWith {[_contextCopy,_rows]};
         private _motion=_job getOrDefault ["earlyExitMotion",false];
         private _views=_job getOrDefault ["earlyExitViewChecks",false];

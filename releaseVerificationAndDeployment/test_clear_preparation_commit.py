@@ -434,7 +434,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('private _journal=[_job] call CBE_fnc_BuildingEgressJournal',step)
         for guard in ('count _assignments+count _pending > 8','count _records != 1',
                       'count _uses > 4','count _moves > 64','_next > _until',
-                      '_rows apply {+(_x select 1)}','_transform apply {+_x}'):
+                      '_rows apply {+(_x select 1)}','_transform apply {if (_x isEqualType []) then {+_x} else {_x}}'):
             self.assertIn(guard,egress)
         for effect in ('setVariable','doMove','setDestination','spawn','serverTime+'):
             self.assertNotIn(effect,egress)
@@ -471,7 +471,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertLess(tail.index('if (_export) exitWith {_journal}'),tail.index('_job set'))
         self.assertLess(tail.index('if (_export) exitWith {_journal}'),tail.index('setVariable'))
         self.assertIn('if (_export && {!(_result isEqualType [])}) then {[]} else {_result}',journal)
-        self.assertIn('(_context select 1) apply {+_x}',journal)
+        self.assertIn('(_context select 1) apply {if (_x isEqualType []) then {+_x} else {_x}}',journal)
         self.assertIn('_contextCopy,_positions apply {+_x}',journal)
         # Export advances no source clock; changing a nested returned transform or
         # request target must leave the private producer data untouched.

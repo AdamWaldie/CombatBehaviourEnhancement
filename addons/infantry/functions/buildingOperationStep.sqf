@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Alternative-entry and yielding budgets require the exact visit nonce; unbound records
  * cannot grant fresh work. Search/yield limits and original server clocks remain finite.
  * Grenade evasion retains an exact owned HOLD during its initial native-ack wait;
@@ -904,7 +905,7 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
     if (isObjectHidden _building) exitWith {[true,"BUILDING_HIDDEN"] call _finish};
     private _buildingTransform=_job getOrDefault ["buildingTransform",[]];
     if (_buildingTransform isNotEqualTo []
-        && {_buildingTransform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}) exitWith {
+        && {_buildingTransform isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}) exitWith {
         [true,"BUILDING_MOVED"] call _finish
     };
     private _operationGeneration=_job getOrDefault ["operationGeneration",-1];
@@ -943,7 +944,7 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
             && {!isNull _building} && {alive _building}
             && {!([_group] call CBE_fnc_CortexExternalTakeover)}
             && {_buildingTransform isEqualTo []
-                || {_buildingTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}
+                || {_buildingTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}}
             && {_nativeOrderReceipt isEqualTo []
                 || {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _nativeOrderReceipt}}
     };

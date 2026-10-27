@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Serialize original private final-egress state without renewing its clocks.
  * Locality/authority: Pure local data conversion; caller owns actual live publication
  * or the fenced original producer context. No incoming/native authority is granted.
@@ -27,8 +28,10 @@ isNil {
         private _optionalVector={_this isEqualType [] && {_this isEqualTo [] || {_this call _vector}}};
         if ((_job getOrDefault ["phase",""]) != "EGRESS"
             || {!(_building isEqualType objNull)} || {isNull _building}
-            || {!(_transform isEqualType [])} || {count _transform != 3}
-            || {_transform findIf {!(_x call _vector)} >= 0}
+            || {!(_transform isEqualType [])} || {count _transform != 4}
+            || {(_transform select [0,3]) findIf {!(_x call _vector)} >= 0}
+            || {!((_transform select 3) isEqualType 0)} || {!finite (_transform select 3)}
+            || {(_transform select 3) <= 0}
             || {!(_context isEqualType [])} || {count _context != 4}
             || {(_context select 0) isNotEqualTo _building} || {(_context select 1) isNotEqualTo _transform}
             || {(_context select 2) isNotEqualTo _hard}
@@ -81,9 +84,9 @@ isNil {
             _useRows pushBack [_x,_count];
         } forEach keys _uses;
         if (!_valid) exitWith {[]};
-        ["EGRESS",_rows apply {+(_x select 1)},_started,_rows,_building,_transform apply {+_x},_hard,
+        ["EGRESS",_rows apply {+(_x select 1)},_started,_rows,_building,_transform apply {if (_x isEqualType []) then {+_x} else {_x}},_hard,
             _until,_failed,_entryFailed,5,_pendingRows,_useRows,
-            [_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3]]
+            [_context select 0,(_context select 1) apply {if (_x isEqualType []) then {+_x} else {_x}},_context select 2,_context select 3]]
     };
     false
 };

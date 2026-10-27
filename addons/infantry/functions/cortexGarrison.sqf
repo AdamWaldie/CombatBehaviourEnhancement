@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Repeat/JIP: A new garrison releases prior assignments; published positions support adoption by a new owner, including a joining HC.
  * Orders an AI group to garrison the buildings around a point.
  *
@@ -141,7 +142,7 @@ if (_inPlace) then {
         };
     } forEach (_buildings select [0,64]);
     _candidates sort true;
-    _candidateAssignments=_candidates apply {[_x select 3,(_x select 4) getDir (_x select 3),_x select 5,[getPosWorld (_x select 5),vectorDir (_x select 5),vectorUp (_x select 5)]]};
+    _candidateAssignments=_candidates apply {[_x select 3,(_x select 4) getDir (_x select 3),_x select 5,[getPosWorld (_x select 5),vectorDir (_x select 5),vectorUp (_x select 5),getObjectScale (_x select 5)]]};
 };
 // Walking orders avoid this group's recently exhausted exact post. A changed building
 // transform/scale or the original short expiry permits a new approach assessment.
@@ -190,7 +191,7 @@ if (_teleport) then {
             && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!(currentCommand _unit in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
             && {!isNull _building} && {alive _building}
-            && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}) then {
+            && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}) then {
             _unit setPosATL (_assignment select 0);
         };
     } forEach _units;

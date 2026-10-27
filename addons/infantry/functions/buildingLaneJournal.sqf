@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Save/adopt a clearance lane journal or export current producer lane data without publication.
  * Locality/authority: Current group owner and current CLEAR generation/epoch. CHECK validates
  * prospective resume data before an operation exists; SAVE/ADOPT/EXPORT require its exact operation.
@@ -52,7 +53,7 @@ _result=call {
         || {!((_context select 3) isEqualType "")} || {(_context select 3) == ""} || {isNull _building} || {!alive _building}
         || {_context isNotEqualTo (_group getVariable ["CBE_Cortex_ClearVisitContext",[]])}
         || {(_context select 0) isNotEqualTo _building}
-        || {(_context select 1) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+        || {(_context select 1) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
         || {(_context select 2) isNotEqualTo (_job getOrDefault ["hardDeadline",-1])}
         || {serverTime >= (_job getOrDefault ["hardDeadline",-1])}
         || {(_job getOrDefault ["generation",-1]) != (_group getVariable ["CBE_AIPass_ClearGeneration",-2])}
@@ -228,7 +229,7 @@ _result=call {
         _job set ["entries",_entryNodes apply {+_x}];_job set ["entry",+_entryGoal];true
     };
     // Export must not alias the producer's nested building-transform vectors.
-    private _contextCopy=[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3];
+    private _contextCopy=[_context select 0,(_context select 1) apply {if (_x isEqualType []) then {+_x} else {_x}},_context select 2,_context select 3];
     private _journal=[1,_group,_contextCopy,_positions apply {+_x},_pairs apply {+_x},_copyRoutes,_copyStates,+_pending,_phase,_entryNodes apply {+_x},+_entryGoal,
         _requests apply {[_x select 0,[+((_x select 1) select 0),(_x select 1) select 1]]},
         _entryTargets apply {[_x select 0,+(_x select 1)]}];

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Validate and copy original reserve native-order admission baselines.
  * Locality/authority: Pure data conversion; caller verifies preparation or fenced
  * original producer authority. This grants no native command or incoming readiness.
@@ -65,7 +66,7 @@ isNil {
                 [+(_destination select 0),_destination select 1,_destination select 2],_formationLeader]];
         } forEach _source;
         if (!_valid) exitWith {[]};
-        [1,[_context select 0,(_context select 1) apply {+_x},_context select 2,_context select 3],_rows]
+        [1,[_context select 0,(_context select 1) apply {if (_x isEqualType []) then {+_x} else {_x}},_context select 2,_context select 3],_rows]
     };
 };
 _result

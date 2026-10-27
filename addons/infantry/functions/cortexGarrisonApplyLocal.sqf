@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Dormant/hidden actors and queued medical healers retain assignment identity but yield
  * approach and event/delayed duck commands. Native flight also owns all four command boundaries.
  * No queue is cleared, morale changed or deadline renewed.
@@ -97,7 +98,7 @@ private _assignmentValid = {
     private _transform=_assignment param [3,[]];
     if (_transform isEqualTo []) exitWith {true};
     private _building=_assignment param [2,objNull];
-    !isNull _building && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+    !isNull _building && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
 };
 private _invalidActors=(units _group) select {
     local _x && {!([_x getVariable ["CBE_AIPass_GarrisonPos",[]]] call _assignmentValid)}
@@ -191,7 +192,7 @@ private _buildingAnchor = {
     private _cached=_buildingTopologyCache getOrDefault [_cacheKey,[]];
     // Cached positions are world-space: curator movement invalidates them even
     // when the building remains undamaged. Old receipts rebuild once on use.
-    private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building];
+    private _transform=[getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building];
     if (count _cached < 3 || {abs ((_cached select 0)-_damage) > 0.05}
         || {(_cached select 2) isNotEqualTo _transform}) then {
         _cached=[_damage,+(_building buildingPos -1),_transform];
@@ -255,7 +256,7 @@ private _buildingAnchor = {
                 private _duckBuilding=_duckAssignment param [2,objNull];
                 private _duckTransform=_duckAssignment param [3,[]];
                 if (_duckTransform isNotEqualTo [] && {isNull _duckBuilding
-                    || {_duckTransform isNotEqualTo [getPosWorld _duckBuilding,vectorDir _duckBuilding,vectorUp _duckBuilding]}}) exitWith {};
+                    || {_duckTransform isNotEqualTo [getPosWorld _duckBuilding,vectorDir _duckBuilding,vectorUp _duckBuilding,getObjectScale _duckBuilding]}}) exitWith {};
                 private _until = time + 4 + random 4;
                 _unit setVariable ["CBE_AIPass_DuckUntil", _until];
                 private _duckStance=["MIDDLE", "DOWN"] select ((unitPos _unit) == "MIDDLE");
@@ -287,7 +288,7 @@ private _buildingAnchor = {
                             private _building=_duckAssignment param [2,objNull];
                             private _transform=_duckAssignment param [3,[]];
                             _transform isEqualTo [] || {!isNull _building
-                                && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}}
+                                && {_transform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}}
                         }
                         && {[group _unit] call CBE_fnc_CortexIsEligible}
                         && {!([group _unit,false,_unit] call CBE_fnc_CortexExternalTakeover)}) then {
@@ -469,7 +470,7 @@ private _buildingAnchor = {
                         _actor setVariable ["CBE_Cortex_GarrisonExteriorTargets",_targetHistory,true];
                         if (_valid && {[_actor] call _mayIssueMovement}) then {
                             _assignment=[+_target,_target getDir _watch,_building,
-                                [getPosWorld _building,vectorDir _building,vectorUp _building],"EXTERIOR",+_watch,+_entry,_covered];
+                                [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building],"EXTERIOR",+_watch,+_entry,_covered];
                             _actor setVariable ["CBE_AIPass_GarrisonPos",_assignment,true];
                             (_job get "routes") set [netId _actor,[+_target,false,getPosATL _actor,time,0,[str _target],0,[],-1,[],false]];
                             if (([_actor,group _actor,"APPLY",createHashMapFromArray [["STANCE","UP"]]] call CBE_fnc_CortexGarrisonSettings) == "APPLIED"

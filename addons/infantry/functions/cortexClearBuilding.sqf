@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Resume settings preflight preserves the durable order on known partial/native mismatch,
  * rechecking original canonical/mirror/motion snapshots before operation mutation.
  * Resume startup refuses known actor settings/motion adoption failures; this is not
@@ -189,7 +190,7 @@ if !(missionNamespace getVariable ["CBE_AIPass_Active", false]) exitWith {
     false
 };
 // Bind geometry and durable visit indices to this actual object pose, not a later resume pose.
-private _admissionTransform=[getPosWorld _building,vectorDir _building,vectorUp _building];
+private _admissionTransform=[getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building];
 if (_resumeRequested && {(_previous param [13,[],[[]]]) isNotEqualTo _admissionTransform}) exitWith {
     // Unknown/changed pose cannot carry old room visits into a new world location.
     // Retire only the order this call actually observed, never a successor clear.
@@ -211,7 +212,7 @@ if (_resumeRequested && {!(_resumeRosterContext isEqualType [])
 if (_resumeRosterContext isEqualType []) then {_resumeRosterContext=+_resumeRosterContext};
 private _admissionStable={
     !isNull _building && {alive _building} && {!isObjectHidden _building}
-        && {_admissionTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building]}
+        && {_admissionTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
 };
 private _allPositions = _building buildingPos -1;
 if (count _allPositions > 512) exitWith {["POSITION_BUDGET_EXCEEDED"] call _refuse};

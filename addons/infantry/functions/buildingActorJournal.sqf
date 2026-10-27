@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Purpose: Copy original actor setting baselines and clearance motion at the fenced producer.
  * Locality/authority: Read-only local metadata after actual group locality loss. Requires the
  * original BuildingProducerContext FROZEN fence and acknowledged original registration.
@@ -53,7 +54,7 @@ isNil {
             if (_property == "STANCE") exitWith {_data isEqualType "" && {_data in ["AUTO","UP","MIDDLE","DOWN"]}};
             _property == "SPEED" && {_data isEqualType 0} && {finite _data} && {_data == -1 || {_data >= 0}}
         };
-        private _copyVisit={params ["_source"];[_source select 0,(_source select 1) apply {+_x},_source select 2,_source select 3]};
+        private _copyVisit={params ["_source"];[_source select 0,(_source select 1) apply {if (_x isEqualType []) then {+_x} else {_x}},_source select 2,_source select 3]};
         private _copiedVisit=[_visit] call _copyVisit;
         // Preserve original group permission and task policy, never a new-owner native read.
         private _operation=_group getVariable ["CBE_Operation",createHashMap];
