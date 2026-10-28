@@ -2397,3 +2397,9 @@ Owner-local artillery shot admission also requires a matching carried-static rec
 ### Buddy refill and native movement
 
 Casualty refill does not recruit a reserve outside the current element while it has a native MOVE with no CBE command receipt. Already-admitted participants retain their initial movement admission, and recorded owned moves still require their existing destination/formation proof. Idle available soldiers can fill vacancies through the existing pair-aware selector. This creates no new movement controller or waiting period; if there is insufficient eligible strength, the drill keeps its existing finite recovery/termination policy. Native command origin and same-value replacements remain limits.
+
+### Initial tactical-drill admission
+
+An accepted drill records the actor's existing command, native destination policy and formation leader before its first bound. Reserve additions record the same observation at roster commitment. Direct travel keeps its original point; formation travel can keep a moving goal under the same planning policy and formation leader. A missing observation does not permit a native MOVE. Same-value orders and edits retaining the same formation policy remain indistinguishable.
+
+These ADMISSION rows are observations, not CBE-issued movement. Cleanup never uses them to order a return, follow or hold. Exact settings restoration is independent. Standalone locality resume checks source-bound observations and issued-leg proof on the incoming owner without replaying commands or acknowledgement grace; missing MOVE proof refuses admission. Native publication and physical first-bound/migration behaviour remain unverified.

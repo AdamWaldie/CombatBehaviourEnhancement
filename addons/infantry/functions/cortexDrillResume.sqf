@@ -6,6 +6,7 @@
  * Purpose: Reconstructs an unfinished standalone flank, advance or assault on its new owner.
  * Locality/authority: Current group owner only, after CortexLocality releases previous-owner leases.
  * Repeat/JIP: Source generation is consumed once. JIP observes checkpoints without starting work.
+ * Native admission/issued-leg observations retain source identity across migration; missing MOVE proof refuses.
  * Committed route, actor destinations and absolute deadline survive; local commands and FSM handles do not.
  * Full original authored waypoint metadata must still match before inspect or resume admission.
  * Only matching passive source HOLD proof can admit native STOP after actual actor locality settles.
@@ -120,6 +121,18 @@ if (_holdIssuerValid && {_holdRows isEqualType []} && {count _holdRows <= 64}) t
         };
     } forEach _holdRows;
 };
+// Source-bound observations are rechecked locally, never captured afresh as a MOVE baseline.
+private _nativeRows=_drill getOrDefault ["resumeNativeCommands",[]];
+if (_holdIssuerValid && {_nativeRows isEqualType []} && {count _nativeRows <= 64}) then {
+    {
+        if (_x isEqualType [] && {count _x == 7} && {(_x select 0) in _living}
+            && {!((netId (_x select 0)) in _resumeCommands)}
+            && {[_x select 0,_x] call CBE_fnc_CortexDrillNativeCurrent}) then {
+            private _row=+_x;_row set [4,-1];_row set [5,[]];
+            _resumeCommands set [netId (_x select 0),_row];
+        };
+    } forEach _nativeRows;
+};
 private _resumeUnavailable=_drill getOrDefault ["resumeUnavailable",[]];
 private _capable=_living select {
     simulationEnabled _x && {!isObjectHidden _x}
@@ -132,6 +145,7 @@ private _capable=_living select {
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
         && {!(currentCommand _x in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {currentCommand _x != "STOP" || {netId _x in _resumeCommands}}
+        && {currentCommand _x != "MOVE" || {netId _x in _resumeCommands}}
 };
 if (count _capable < 2) exitWith {false};
 if !([_group,"TACTICAL_DRILL",true,serverTime+90] call CBE_fnc_CortexOwnershipLease) exitWith {false};
@@ -162,6 +176,7 @@ _drill set ["units",_capable];
 _drill set ["nativeAdmissionChecked",true];
 _drill set ["nativeCommands",_resumeCommands];
 _drill deleteAt "resumeNativeHolds";
+_drill deleteAt "resumeNativeCommands";
 _drill deleteAt "resumeHoldIssuer";
 _drill set ["disabled",[]];
 _drill set ["spots",[]];

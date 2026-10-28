@@ -1783,6 +1783,57 @@
     "verification": "Current source/caller/receipt inspection and primary native command documentation only. No runtime change, new test case, repeated full build or physical/performance acceptance. Candidate buddy-refill-native-20261028-411dd74d remains current.",
     "audits": "PAUSED",
     "physicalAcceptance": false,
-    "performanceMeasured": false
+    "performanceMeasured": false,
+    "implementationFollowup": "firstBoundNativeAdmissionImplementation20261028 resolves selected start/refill/standalone resume/cleanup code path; earlier assessment remains historical. Physical/native publication limits remain."
+  },
+  "firstBoundNativeAdmissionImplementation20261028": {
+    "base": "7a6b06ab4457313e15777be49be46313e96eb4d0",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "registeredGap": "firstBoundNativeAdmissionAssessment20261028: original direct MOVE and subsequent initial-actor/refill task changes before first CBE-issued native row; keep formation travel and cleanup distinct.",
+    "protectedSource": {
+      "dangerPackageSha256": "252066f2c36108f55cbfea3506543f9583345d74e1351028f6269bdf2a7a0269",
+      "path": "functions/fnc_tacticsAttack.sqf",
+      "sha256": "e055293415cefa99a2a9fa600ed429dc6c3f75310a8c9e4bac8d48e14abcdfc3",
+      "scope": "Prior complete readable tacticsAttack and current accepted drill start/step/checkpoint/resume/cleanup source comparison. Source issues native attack/firing and delayed group policy reset without CBE original task receipt; do not copy those writes or add a second actor controller."
+    },
+    "nativeContract": "https://community.bistudio.com/wiki/expectedDestination: destination PositionAGL, planningMode STRING, forceReplan BOOL; planning mode is not authenticated command origin.",
+    "implementation": [
+      "Original current-command/native destination/formLeader observation is frozen as ADMISSION in the existing7-field nativeCommands map before shared FSM launch. Exact old HOLD transfer wins; existing rows are never replaced on repeat start.",
+      "New reserves freeze their observation within the existing atomic roster commit before teams/units publication. Missing-row MOVE is never permission, even for current roster membership.",
+      "One read-only CortexDrillNativeCurrent validates actor/locality/shape and original native state. ADMISSION remains distinct from issued MOVE. A direct LEADER PLANNED/LEADER DIRECT goal matches original absolute3D point within0.25m; original DoNotPlan/DoNotPlanFormation/FORMATION PLANNED permits moving points only while original command, planning policy/forceReplan and formation leader remain. No grace or deadline is introduced.",
+      "Existing owned MOVE/HOLD observation and acknowledgement paths remain. Actual native writers replace ADMISSION through the existing _recordNativeCommand boundary.",
+      "Standalone checkpoints export at most64 currently matching ADMISSION/issued-MOVE rows beside existing passive HOLD proof, under the same source token/owner/epoch/generation issuer. Incoming owner rechecks proof locally, removes any acknowledgement clock and refuses current MOVE with no transferred proof. It does not capture a missing MOVE baseline afresh.",
+      "FlankEnd rejects ADMISSION before any native movement/hold recall, including non-MOVE labels. Earlier exact settings restoration and event cleanup remain independent. Observation cannot become a return/follow/stop right."
+    ],
+    "coordinatedBoundary": "Coordinated support retains its existing separately validated source HOLD/MOVE role transfer and no replay/grace policy. No new coordinated ADMISSION transport added; an unissued local observation is not source-issued MOVE proof.",
+    "cost": "At most64 existing-map admission rows at start/checkpoint/resume; refill touches only proposed replacements. No world scan, new job, native movement site, timer or phase budget. Only existing command boundaries read the helper. Actual overhead unmeasured.",
+    "verification": {
+      "red": ".qa/handovers/drill-native-admission-red-20261028.log: existing lifecycle/refill checks fail old missing reader/policy.",
+      "initialFocusedFinding": ".qa/handovers/drill-native-admission-focused-20261028.log: stale test comment anchor after HOLD checkpoint now also carries matching observations. Corrected anchor with existing ownership assertions retained.",
+      "focused": ".qa/handovers/drill-native-admission-focused-final-20261028.log:617existing checks PASS. Extended current lifecycle/refill/migration/cleanup cases and symbolic direct/formation/floor/STOP/leader policy. Not native SQF execution.",
+      "newTestCases": 0,
+      "physical": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_RUN",
+      "fullBuild": ".qa/handovers/drill-native-admission-build-20261028.log:1505existing tests/459production SQF/11PBO and complete build gates PASS; session49913 terminal exit0.",
+      "independent": ".qa/handovers/drill-native-admission-independent-20261028.log:PASS",
+      "candidate": ".qa/candidates/drill-native-admission-20261028-7a6b06ab",
+      "fingerprint": "5f66ce927f7cb180144a6a77cf151ed86c66d0bb6104028c933eec119371ebbb",
+      "provenance": "7a6b06ab4457313e15777be49be46313e96eb4d0 plus dirty runtime; engineering/handover metadata finalized after build. Unsigned development candidate, not a clean release or physical acceptance.",
+      "referenceIndex": "HBQ local evidence index PASS unchanged29sources/103readable pointers/31unresolved historical texts; no parity credit"
+    },
+    "productHashes": {
+      "addons/infantry/functions/cortexDrillNativeCurrent.sqf": "3c403368eac19513a36c84f5a6258278a42e84b8d08b5ecbabccb63acbf3dfc3",
+      "addons/infantry/functions/cortexDrillStart.sqf": "1fd516dfc9c2b73fab9b714293a0c0a3b197ae11e529c43d55efd4aa7bdcffa2",
+      "addons/infantry/functions/cortexFlankStep.sqf": "8b50036d32efd637513415c2a61c8d5fbbf0dcb9299a9768d13beb38ab41164f",
+      "addons/infantry/functions/cortexFlankEnd.sqf": "a4c17a11124b3706c776dd4975f9e85a5fb2bda0a9de9b44cd7457763830c847",
+      "addons/infantry/functions/cortexCheckpoint.sqf": "1c3f1e7d1f889d382e05f017228c4b4d551d61d67e703a5e7ed1e64ba9f17590",
+      "addons/infantry/functions/cortexDrillResume.sqf": "c6fcfdeb82d057adfae64cb82ad92e3e2b8cecf8cf64ae8e8360b1fa2239b07c",
+      "addons/main/CfgFunctions.hpp": "ec2cd0fe17aff94d64e5609ef27cb7c905f7525a615341e91a36e2d54b65520e"
+    },
+    "remaining": [
+      "Same-value direct replacement and same-mode formation edits are not distinguishable from native observations; formation policy is deliberate, not universal task-origin proof.",
+      "Missing native data or source proof can refuse migration; actor locality settling and actual native goal publication/order need physical evidence. No new polling/grace renewal added.",
+      "Actual first-bound direct replacement, moving formation, reserve later-task interruption, abort cleanup, normal/HC/Zeus migration and tactical/performance balance remain unverified. No whole LAMBS/Protocol parity or provider all-writer handover claim."
+    ]
   }
 }

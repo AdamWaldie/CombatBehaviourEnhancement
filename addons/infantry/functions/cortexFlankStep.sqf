@@ -29,7 +29,8 @@
  * Casualty refill admits only local actors with empty or fully typed expired movement leases;
  * unknown or malformed reservations remain owned and cannot be added to the drill roster.
  * A reserve outside the current element with an unrecorded native MOVE is also unavailable;
- * existing admitted participants and separately verified owned native receipts retain their paths.
+ * admitted participants require their original ADMISSION observation until the first own command;
+ * separately verified owned native receipts retain their paths. Formation travel may retain a moving goal.
  * Reserve refill reuses bounded pair-aware element selection, keeping intact available buddies
  * together where vacancies permit, preferring eligible buddies of existing team members.
  * Same-bound casualty rebuilds retain incumbent actor destinations, progress clocks and spent
@@ -251,13 +252,13 @@ private _nativeCommandAvailable={
     // Coordinated and resumed starts transfer only their exact separately validated HOLD proof.
     if (_row isEqualTo []) exitWith {
         !(_drill getOrDefault ["nativeCommandsFull",false])
+            && {_command != "MOVE"}
             && {_command != "STOP" || {!(_drill getOrDefault ["nativeAdmissionChecked",false])}}
-            // Initial participants retain their admitted native travel. A reserve
-            // with no CBE command receipt cannot donate somebody else's MOVE to
-            // casualty refill merely because there is now a vacant buddy role.
-            && {_command != "MOVE" || {_actor in (_drill getOrDefault ["units",[]])}}
     };
     if (count _row != 7 || {(_row select 0) != _actor}) exitWith {false};
+    if ((_row select 1) == "ADMISSION") exitWith {
+        [_actor,_row] call CBE_fnc_CortexDrillNativeCurrent
+    };
     private _native=expectedDestination _actor;
     private _acknowledging=serverTime <= (_row select 4);
     if (_command == "MOVE") exitWith {
@@ -610,6 +611,15 @@ isNil {
             currentCommand _actor != _command || {(expectedDestination _actor) isNotEqualTo _destination}
                 || {formLeader _actor != _leader}
         } >= 0}) exitWith {};
+// New reserves freeze their pre-command observation under this same roster commit.
+// Never replace a retained original row when rebalancing or rebuilding a bound.
+private _admissions=_drill getOrDefault ["nativeCommands",createHashMap];
+{
+    if (!(netId _x in _admissions) && {count _admissions < 64}) then {
+        _admissions set [netId _x,[_x,"ADMISSION",+(expectedDestination _x),formLeader _x,-1,[],[currentCommand _x]]];
+    };
+} forEach _reinforcements;
+_drill set ["nativeCommands",_admissions];
 _drill set ["teams",_teams];
 _drill set ["units",_units];
 if (_operationGeneration >= 0) then {

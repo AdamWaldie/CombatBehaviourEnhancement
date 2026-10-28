@@ -371,6 +371,7 @@ class CfgFunctions {
             class CortexFlankStep {file = "\z\cbe\addons\infantry\functions\cortexFlankStep.sqf";};
             class CortexDrillResume {file = "\z\cbe\addons\infantry\functions\cortexDrillResume.sqf";};
             class CortexDrillStart {file = "\z\cbe\addons\infantry\functions\cortexDrillStart.sqf";};
+            class CortexDrillNativeCurrent {file = "\z\cbe\addons\infantry\functions\cortexDrillNativeCurrent.sqf";};
             class CortexDrillSetStage {file = "\z\cbe\addons\infantry\functions\cortexDrillSetStage.sqf";};
             class CortexSetPhase {file = "\z\cbe\addons\infantry\functions\cortexSetPhase.sqf";};
             class CortexGarrison {file = "\z\cbe\addons\infantry\functions\cortexGarrison.sqf";};

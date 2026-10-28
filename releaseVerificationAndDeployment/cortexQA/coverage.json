@@ -98,6 +98,7 @@
         "addons/vehicles/functions/zenConvoyModule.sqf",
         "addons/vehicles/functions/moduleConvoy.sqf",
         "addons/infantry/functions/cortexDrillStart.sqf",
+        "addons/infantry/functions/cortexDrillNativeCurrent.sqf",
         "addons/main/XEH_postInit.sqf",
         "addons/main/XEH_preInit.sqf",
         "addons/main/bootstrap/zenRegister.sqf",

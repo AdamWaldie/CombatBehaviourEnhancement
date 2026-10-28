@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * ADMISSION observations grant no actor recall/hold authority; exact settings restoration is separate.
  * Group policy restoration respects native tasks; unresolved pairs are historical evidence only.
  * Native STOP cleanup requires a matching current-drill HOLD receipt; MOVE cleanup requires
  * the actual requested destination. Unknown/changed tasks remain untouched. Restoring owned
@@ -156,9 +157,12 @@ private _returnElement={
 // The acknowledgement interval grants no cleanup right over an unconfirmed native MOVE.
 private _ownsNativeMovement={
     params ["_actor"];
+    private _row=(_drill getOrDefault ["nativeCommands",createHashMap]) getOrDefault [netId _actor,[]];
+    // Admission observed a task but issued none. Settings restoration above stays
+    // independent; this actor receives no movement/hold recall from that observation.
+    if (_row isEqualType [] && {count _row == 7} && {(_row select 1) == "ADMISSION"}) exitWith {false};
     private _command=currentCommand _actor;
     if !(_command in ["STOP","MOVE"]) exitWith {true};
-    private _row=(_drill getOrDefault ["nativeCommands",createHashMap]) getOrDefault [netId _actor,[]];
     if (count _row != 7 || {(_row select 0) != _actor} || {formLeader _actor != (_row select 3)}) exitWith {false};
     private _native=expectedDestination _actor;
     if (_command == "STOP") exitWith {(_row select 1) == "HOLD" && {_native isEqualTo (_row select 2)}};

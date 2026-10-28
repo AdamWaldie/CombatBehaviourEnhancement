@@ -349,5 +349,10 @@
       "A stale but exact-looking owned destination or same-value command is not distinguishable through native observations alone.",
       "Actual casualty refill/opposite roles/covering fire/arrival and interrupted normal/HC/Zeus/locality behaviour, tactical balance and measured overhead remain unverified. Independent per-pair waves remain optional and not implemented by this repair."
     ]
+  },
+  "firstBoundAdmissionFollowup20261028": {
+    "review": "lambs-fsm-foundations-20261020.json#firstBoundNativeAdmissionImplementation20261028",
+    "scope": "Shared start/refill original ADMISSION observation, mode-aware direct/formation reader, source-bound standalone resume and explicit no-recall cleanup now implement the earlier initial-participant code gap. Exact owned MOVE/HOLD retain their independent write proof. Not new pair timing or physical/parity evidence.",
+    "physicalAcceptance": false
   }
 }

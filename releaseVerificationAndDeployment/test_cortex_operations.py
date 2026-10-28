@@ -262,7 +262,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(support_apply.index('if (_ownerDelivery) exitWith'),support_apply.index('call CBE_fnc_OperationStart'))
 
 
-        hold_checkpoint=checkpoint.split('// Carry passive HOLD provenance only.',1)[1].split('_payload pushBack ["resumeSpots"',1)[0]
+        hold_checkpoint=checkpoint.split('// Carry passive HOLD and currently matching admission/issued-leg provenance.',1)[1].split('_payload pushBack ["resumeSpots"',1)[0]
         for proof in ('count _nativeCommands <= 64','(_row select 1) == "HOLD"',
                       'currentCommand _actor == "STOP"','formLeader _actor == (_row select 3)',
                       '"resumeNativeHolds"','"resumeHoldIssuer"'):
@@ -7654,6 +7654,47 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('_handle <= 0',launcher)
         self.assertLess(launcher.index('"FSM_EXECUTOR_ENDED"'),launcher.index('private _handle='))
         self.assertLess(launcher.index('operationGeneration'),launcher.index('private _existing='))
+        admission=source('cortexDrillNativeCurrent')
+        for marker in ('"ADMISSION"','"FORMATION PLANNED"','"DoNotPlanFormation"',
+                       'formLeader _actor','currentCommand _actor','AGLToASL',
+                       '_originalCommand','_goal vectorDistance _position <= 0.25'):
+            self.assertIn(marker,admission)
+        for forbidden in ('setVariable','doMove','doFollow','doStop','serverTime+','time+'):
+            self.assertNotIn(forbidden,admission)
+        self.assertIn('[_actor,"ADMISSION",+(expectedDestination _actor)',launcher)
+        self.assertLess(launcher.index('"ADMISSION"'),launcher.index('private _handle='))
+        step=source('cortexFlankStep')
+        commit=step.split('private _rosterCommitted=false;',1)[1]
+        self.assertLess(commit.index('"ADMISSION"'),commit.index('_drill set ["units",_units]'))
+        self.assertIn('call CBE_fnc_CortexDrillNativeCurrent',step)
+        checkpoint=source('cortexCheckpoint')
+        resume=source('cortexDrillResume')
+        for part in (checkpoint,resume):
+            self.assertIn('resumeNativeCommands',part)
+            self.assertIn('call CBE_fnc_CortexDrillNativeCurrent',part)
+        self.assertIn('currentCommand _x != "MOVE" || {netId _x in _resumeCommands}',resume)
+        end=source('cortexFlankEnd').split('private _ownsNativeMovement=',1)[1].split('// Listener cleanup',1)[0]
+        self.assertIn('(_row select 1) == "ADMISSION"}) exitWith {false}',end)
+        self.assertLess(end.index('"ADMISSION"'),end.index('exitWith {true}'))
+        # Native-policy model: formation goals may follow the leader, direct goals
+        # retain their absolute floor/point. This is not an engine playback test.
+        from math import dist
+        def admitted(original,current,mode,live_mode,start,end,leader_same=True):
+            if original!=current or current=='STOP' or not leader_same:return False
+            if current!='MOVE':return True
+            if mode!=live_mode:return False
+            if mode in ('DoNotPlan','DoNotPlanFormation','FORMATION PLANNED'):return True
+            return mode in ('LEADER PLANNED','LEADER DIRECT') and dist(start,end)<=0.25
+        self.assertTrue(admitted('MOVE','MOVE','FORMATION PLANNED','FORMATION PLANNED',(0,0,0),(5,0,0)))
+        self.assertFalse(admitted('MOVE','MOVE','LEADER PLANNED','LEADER PLANNED',(0,0,0),(5,0,0)))
+        self.assertTrue(admitted('MOVE','MOVE','LEADER PLANNED','LEADER PLANNED',(0,0,0),(0.1,0,0)))
+        self.assertFalse(admitted('MOVE','MOVE','LEADER PLANNED','LEADER PLANNED',(0,0,0),(0,0,3)))
+        self.assertFalse(admitted('','MOVE','DoNotPlan','LEADER PLANNED',(0,0,0),(0,0,0)))
+        self.assertFalse(admitted('MOVE','STOP','LEADER PLANNED','LEADER PLANNED',(0,0,0),(0,0,0)))
+        self.assertFalse(admitted('MOVE','MOVE','FORMATION PLANNED','LEADER PLANNED',(0,0,0),(0,0,0)))
+        self.assertFalse(admitted('MOVE','MOVE','FORMATION PLANNED','FORMATION PLANNED',(0,0,0),(0,0,0),False))
+
+
         for name in ['cortexFlankStart','cortexAdvanceStart','cortexSupportBoundStart']:
             start=source(name)
             self.assertIn('call CBE_fnc_CortexDrillStart',start)
@@ -9370,7 +9411,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(refill.index('call _rankCandidates'),refill.index('_units pushBack _x'))
         available=step.split('private _nativeCommandAvailable={',1)[1].split('private _actorTaskFree=',1)[0]
         fresh=available.split('if (_row isEqualTo []) exitWith {',1)[1].split('};',1)[0]
-        self.assertIn('_actor in (_drill getOrDefault ["units",[]])',fresh)
+        self.assertNotIn('_actor in (_drill getOrDefault ["units",[]])',fresh)
         self.assertIn('_command != "MOVE"',fresh)
         self.assertIn('_command != "STOP"',fresh)
         fit=step.split('private _fitSquad=',1)[1].split('private _rosterNative=',1)[0]
@@ -9380,13 +9421,13 @@ class CortexOperations(unittest.TestCase):
         # Existing participants keep their initial admission; explicit owned receipts
         # follow the independent matching-goal branch, not this missing-row policy.
         def missing_receipt(command,incumbent,checked=True,full=False):
-            return not full and (command!='STOP' or not checked) and (command!='MOVE' or incumbent)
+            return not full and command=='STOP' and not checked
         self.assertFalse(missing_receipt('MOVE',False))
-        self.assertTrue(missing_receipt('MOVE',True))
+        self.assertFalse(missing_receipt('MOVE',True))
         self.assertFalse(missing_receipt('STOP',False))
         self.assertFalse(missing_receipt('MOVE',True,full=True))
-        for command in ('','WAIT','ATTACK','FIRE'):
-            self.assertTrue(missing_receipt(command,False))
+        # Other commands return through the existing early non-MOVE/STOP branch.
+        self.assertIn('if !(_command in ["STOP","MOVE"]) exitWith {true}',available)
 
 
     def test_drill_steps_cannot_adopt_a_replacement_action(self):
