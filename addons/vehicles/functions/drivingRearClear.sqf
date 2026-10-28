@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Observes the swept rear body corridor before and during an owned native reverse leg.
+ * Aircraft/boat hulls and their wrecks share existing land-vehicle overlap and motion tests;
+ * live infantry remains separate so corpses cannot consume the active-person budget.
  * Locality / Authority: Read-only on the current vehicle owner. It issues no movement, speed,
  * collision, physics or crew command. The consuming finite operation retains movement authority.
  * Repeat/JIP: No retained clearance or handlers. Each command boundary obtains fresh geometry;
@@ -100,7 +102,7 @@ private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
 // Keep corpse density out of the live-person budget without dropping wrecked vehicles.
 // Two bounded-envelope native queries per reverse admission or active-leg safety sample.
 private _actors=(_vehicle nearEntities ["CAManBase",_radius])
-    +(_area nearEntities [["LandVehicle"],false,false,false]);
+    +(_area nearEntities [["LandVehicle","Air","Ship"],false,false,false]);
 if (count _actors > 64) exitWith {[false,"DENSE_REAR_TRAFFIC",time,0]};
 // Pure simultaneous overlap intervals. Keep the original rear test; an additional
 // full-body test may veto a new approaching actor without rejecting separation from
@@ -133,7 +135,8 @@ private _occupied=_actors findIf {
         };
         !(_thisActor in _ownCrew)
     }
-        && {alive _thisActor || {_thisActor isKindOf "LandVehicle"}}
+        && {alive _thisActor || {_thisActor isKindOf "LandVehicle"}
+            || {_thisActor isKindOf "Air"} || {_thisActor isKindOf "Ship"}}
     && {private _hull=[_thisActor,_frameOrigin,_side,_forward,_up] call CBE_fnc_DrivingHullInterval;
         if (count _hull != 6) exitWith {_actorObservationUnknown=true;true};
         _hull params ["_minX","_maxX","_minY","_maxY","_minZ","_maxZ"];

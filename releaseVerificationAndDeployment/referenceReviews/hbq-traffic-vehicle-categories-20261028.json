@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-28",
+  "sourceBase": "bb9dea1dacf4ecbcd24e8b670ae6f0b3dda3b188",
+  "workshopId": "3812620045",
+  "scope": "Complete preserved nearestThreat body and current CBE traffic/geometry observation; selected vehicle-category gap only, not whole-controller parity.",
+  "sourceRoot": ".qa/hbq-complete-source-20261025",
+  "sourceWitnesses": [
+    {
+      "path": "functions/fn_nearestThreat.sqf",
+      "sha256": "db2d82840137c2ee19eb8b1131c103771325ad84b6ecef023ac4320673a14ec5",
+      "scope": "Complete108-line readable helper: sector, placed-object grid, crewed/empty vehicle discovery and allDead wreck categories."
+    }
+  ],
+  "finding": "HBQ nearestThreat explicitly includes destroyed Air and Ship objects as potential obstacles, whereas CBE FollowingCap admitted only LandVehicle to its full-hull/crossing observer. CBE GeometryCap separately observes solid ray hits but is not a substitute for that hull/crossing prediction.",
+  "implementation": [
+    "ADAPTED source obstacle-category intent through existing CBE FollowingCap observer: one area nearEntities query includes LandVehicle, Air and Ship, with dead entities enabled.",
+    "IMPROVED category consistency: actual moving or stationary aircraft/boat hulls use the same projection, vertical/lane overlap, measured crossing course and cap policy rather than limiting categories to wreck state.",
+    "The existing rear swept-hull observer now discovers the same three vehicle categories and retains dead Air/Ship hulls through actor admission. Live infantry stays separate. Existing64actor/250metre limits, overlap windows, turning sweep and independent rays remain unchanged.",
+    "RETAINED bounded discovery radius,256 hull projections/64 retained predictions, dense/scheduled refusal, reaction headroom, predecessor/queue authority and independent geometry sensing. No extra scan, cache, worker or command writer.",
+    "REJECTED source global allDead iteration and60second placed-object grid as required collision authority; current live area discovery/geometry retains existing owner and no cached-clearance permission."
+  ],
+  "remaining": [
+    "Physical road crossing/taxiing aircraft, grounded boat/wreck, vertically separated traffic, modded bounding boxes and performance unverified; audits paused.",
+    "Hull projection is conservative box occupancy, not exact surface or route clearance. Standard class discovery may not retain every engine replacement wreck class; geometry sampling remains independent.",
+    "External provider all-writer quiescence, precision/distance LOD and complete HBQ integration remain open.",
+    "Passing/bypass/queue planners retain independent geometry/occupancy contracts; this scoped observer correction does not prove their whole-route clearance or every vehicle category across the mod."
+  ],
+  "verification": {
+    "focused": "PASS:20 existing traffic tests and3 existing full-hull projection tests",
+    "fullBuild": "PASS",
+    "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+    "measuredPerformance": "NOT_MEASURED",
+    "fullTests": 1504,
+    "compiledSQF": 456,
+    "pboCount": 11,
+    "buildLog": ".qa/handovers/traffic-categories-build-20261028.log",
+    "candidate": ".qa/candidates/traffic-categories-20261028-bb9dea1d",
+    "fingerprint": "5f4d2795db65f9815c2d218e3f2757b6781560677b55421e350fa78380da5847",
+    "independentVerification": "PASS",
+    "independentLog": ".qa/handovers/traffic-categories-independent-20261028.log",
+    "buildProvenance": "bb9dea1dacf4ecbcd24e8b670ae6f0b3dda3b188 plus dirty input snapshot. Only engineering/handover metadata updated after packaging; recorded runtime hashes pin build input. Normalize Git line endings when matching committed source."
+  },
+  "cost": "No new query or cadence. Broader native category results can increase discovery/projection work or reach existing conservative density refusal sooner. The existing radius and post-query projection/prediction limits remain; measured native query cost is unknown.",
+  "productHashes": {
+    "addons/vehicles/functions/drivingFollowingCap.sqf": "5448527c8060b8d9c40975e3d8413c02e27195179361ab5091f114733df33786",
+    "addons/vehicles/functions/drivingRearClear.sqf": "e88d35703cd4acea2e777a5703807737e7f33ba2678eb178245542e9c91da32b"
+  }
+}

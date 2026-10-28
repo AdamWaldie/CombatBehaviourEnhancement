@@ -12,12 +12,19 @@ class DrivingTrafficTests(unittest.TestCase):
             # Documentation mentions the caller speed policy; executable observer must not write.
             executable=s.split('params [[',1)[1]
             self.assertNotIn(command,executable)
-    def test_destroyed_vehicle_hulls_are_not_removed_by_scan_or_alive_filter(self):
+    def test_land_air_and_ship_hulls_include_wrecks_without_alive_or_heading_filter(self):
         s=src('drivingFollowingCap')
         self.assertIn('_area=[getPosATL _vehicle,_radius,_radius,0,false,_radius]',s)
-        self.assertIn('_area nearEntities [["LandVehicle"],false,false,false]',s)
+        self.assertIn('_area nearEntities [["LandVehicle","Air","Ship"],false,false,false]',s)
         admission=s.split('if (_other != _vehicle',1)[1].split('then {',1)[0]
         self.assertNotIn('alive _other',admission)
+        self.assertNotIn('isKindOf',admission)
+        executable=s.split('params [[',1)[1]
+        self.assertEqual(executable.count('nearEntities'),1)
+        self.assertNotIn('allDead',executable)
+        self.assertIn('[_other,_otherLow,_otherHigh] call _projectTrafficHull',s)
+        self.assertIn('count _candidates > 256',s)
+        self.assertIn('_sameHeight && {_otherSpeed > 0.8}',s)
         self.assertIn('((vectorDir _other) vectorDotProduct _forward) > 0.7',s)
         self.assertIn('_sameHeight',s)
         self.assertIn('count _candidates > 64',s)
@@ -150,9 +157,10 @@ class DrivingTrafficTests(unittest.TestCase):
 
     def test_reverse_overlap_includes_destroyed_vehicles_without_treating_dead_infantry_as_live(self):
         s=src('drivingRearClear')
-        self.assertIn('_area nearEntities [["LandVehicle"],false,false,false]',s)
+        self.assertIn('_area nearEntities [["LandVehicle","Air","Ship"],false,false,false]',s)
         self.assertIn('_vehicle nearEntities ["CAManBase",_radius]',s)
         self.assertIn('alive _thisActor || {_thisActor isKindOf "LandVehicle"}',s)
+        self.assertIn('|| {_thisActor isKindOf "Air"} || {_thisActor isKindOf "Ship"}',s)
         self.assertIn('count _actors > 64',s)
         self.assertIn('private _scheduledObservation=canSuspend',s)
         self.assertIn('if (!_crewObserved || {_scheduledObservation})',s)

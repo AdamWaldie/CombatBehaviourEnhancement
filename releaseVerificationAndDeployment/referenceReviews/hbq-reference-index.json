@@ -828,7 +828,7 @@
         "functions/fn_driveAssist.sqf",
         "functions/fn_nearestThreat.sqf"
       ],
-      "meaning": "Selected source-to-CBE execution correction; no renewed whole-source or physical acceptance."
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-crew-proximity-20261017.json",
@@ -976,6 +976,15 @@
       "scope": "TrafficCap prediction, FromLeft and TrafficRays classification; called curvature helpers remain separately scoped",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-traffic-vehicle-categories-20261028.json",
+      "sha256": "dc8980d1b509e1cb828233a9164282b99bf21a89090afc5ae566cfaac779fa63",
+      "scope": "Complete preserved nearestThreat body and current CBE traffic/geometry observation; selected vehicle-category gap only, not whole-controller parity.",
+      "sourceFileMentions": [
+        "functions/fn_nearestThreat.sqf"
       ],
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },

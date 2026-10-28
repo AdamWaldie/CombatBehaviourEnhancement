@@ -16,6 +16,9 @@
  * Current measured velocity defines the other course;
  * desired/actual forward speed defines our approach. Current vertical overlap is required.
  * Time-window yielding never clears an occupied hull or expires into permission to drive through it.
+ * Land, aircraft and boat hulls share the same lane/height and crossing observation.
+ * This covers roadway aircraft, grounded boats and their wrecks without a world-wide dead scan.
+ * Height-separated traffic retains the existing full-hull vertical test and dense-scene refusal.
  * Empty live vehicles and destroyed vehicle entities at any heading remain obstacles;
  * destruction alone never removes their hull from this observation. No bypass route is planned.
  * A mass-adjusted closing-speed envelope adds provisional braking and cruise-sampling headroom;
@@ -105,8 +108,10 @@ private _radius=(_ownForward max _requested)*_horizon+_approachAllowance+20+(abs
 if (!finite _radius || {_radius > 500}) exitWith {[0,_vehicle,-1,time,0,true]};
 // Arma 2.18 area syntax explicitly includes dead vehicle entities. The default
 // radius syntax omits them; removing only the alive predicate would not fix discovery.
+// Aircraft/boat hulls can obstruct or cross a roadway too. Reuse this one bounded
+// observation and its vertical-occupancy checks; do not add a separate wreck/world scan.
 private _area=[getPosATL _vehicle,_radius,_radius,0,false,_radius];
-private _candidates=_area nearEntities [["LandVehicle"],false,false,false];
+private _candidates=_area nearEntities [["LandVehicle","Air","Ship"],false,false,false];
 private _denseTraffic=count _candidates > 64;
 // Dense scenes retain exact hull projection rather than guessing by centre distance.
 // Scheduled direct callers keep the original refusal: the pruning snapshot is owner
