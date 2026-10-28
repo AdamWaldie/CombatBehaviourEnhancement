@@ -2238,3 +2238,12 @@ A changed waypoint, current-node policy, script, attachment or synchronization r
 Vehicle-owner cooperation validates the same passenger order before retaining a boarding stop. On locality transfer, the incoming owner checks the original receipt before cleanup, then again afterward. Only unchanged intent is adopted under the new operation generation; the original deadline and vehicle list remain. JIP metadata does not execute boarding. Unknown older records grant no continuation authority. Identical actor commands cannot reveal who issued them, and waypoint receipts do not prove native command retirement or that a passenger physically boarded.
 
 This adds receipt comparisons to the existing finite passenger paths, without a world scan, scheduler job, movement controller or setting. Ordinary authored-route enumeration retains the existing receipt helper's route-length cost. Native slot availability, boarding paths, mission replacement, repeated contact and normal/HC transfer still require a focused in-engine pass. Audits are paused; offline checks establish integration only. Continuous mechanised escort behind dismounted troops remains separate required work.
+
+
+## Failed vehicle escape searches
+
+Vehicle withdrawal and anti-tank standoff share a bounded escape selector. A failed geometry search now stores one owner-local empty result per vehicle for eight seconds. Repeated checks within that window return no route without extending the expiry. Successful routes are always planned fresh and clear the stored failure.
+
+A different crew, owner machine, owner epoch, operation generation, threat identity, requested distance, screening mode or full native waypoint receipt invalidates the failure. Moving the vehicle or the believed threat position more than five metres, or changing vehicle heading more than fifteen degrees, also forces a fresh search. The cache reads the supplied believed contact position and never follows the hidden enemy object. It does not grant a movement lease, withdraw the vehicle, consume smoke, issue an order or add a job. It retains one fixed-size record and performs no additional world query.
+
+An obstacle changing while those inputs remain unchanged can delay another search for up to eight seconds. A cached failure is not clearance, native route proof or an accepted withdrawal. The existing tactical worker and command checks still own any subsequent move. Offline contracts cover the cache boundary; reductions in frame cost and physical reactions remain unmeasured while audits are paused.

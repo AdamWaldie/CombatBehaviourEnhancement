@@ -60,6 +60,41 @@
       "path": "functions/fn_releaseVehicle.sqf",
       "sha256": "ce1bc3c500c9b22190477a345d9b3e317c8061dcdfbb9dcbadb4ea6421455dd0",
       "scope": "Registration/state dispatch and release writers inspected; transitive helper/callback closure remains incomplete."
+    },
+    {
+      "path": "functions/fn_commandPassenger.sqf",
+      "sha256": "d21760eac61f64c8c4bcc40b03df256cc47ae49e07e4ab51c75e489bca22f903",
+      "scope": "Complete9-line unit-local dispatcher; return true is dispatch, not acknowledgement."
+    },
+    {
+      "path": "functions/fn_deferredCrewRetain.sqf",
+      "sha256": "34c24368f71cd91c989acda073cabddaad81911d73de569d426297640458f0b9",
+      "scope": "Complete80-line delayed reseat callback; validates job before dispatch but receiver has no general job validation."
+    },
+    {
+      "path": "functions/fn_setMovementOwner.sqf",
+      "sha256": "b558913e5c6e4584d76afd0fc454583865704d1b60dfd5a61981ada31e102af3",
+      "scope": "Complete39-line movement marker/release dispatcher; registry retirement does not drain remote events."
+    },
+    {
+      "path": "functions/fn_updateRouteResume.sqf",
+      "sha256": "bf937731fdd60b2648fe48ea0ec4046c73dbcb7d7762b95e768316aefe33a266",
+      "scope": "Complete176-line CURRENT/SAVED native route retry/replay helper."
+    },
+    {
+      "path": "functions/fn_commandPassengerLocal.sqf",
+      "sha256": "9308663a8ea493fe58643f090c41bb9fffdbbfde1b16ee299e6300f3ab3c9c1d",
+      "scope": "Local receiver admission plus boarding, forced recovery, crew seat, release and cancellation branches; source command pipeline evaluated, not all transitive geometry helpers."
+    },
+    {
+      "path": "functions/fn_applyPassengerAILocal.sqf",
+      "sha256": "71d89d50c4ff9607f6c8818fc70f7d4c9b242c42523cbdbd8ca51b1f1a535d50",
+      "scope": "Complete lock/unlock helper; token check covers AI restoration but not subsequent command receiver mutations."
+    },
+    {
+      "path": "functions/fn_postInit.sqf",
+      "sha256": "2abdac7786a16b0ebd78ed39341e5b907abc0639737a095c52ccfe7066b52934",
+      "scope": "Selected CBA passenger command/AI and group restore registrations, lines27..75; wider bootstrap not reviewed here."
     }
   ],
   "findings": [
@@ -88,7 +123,7 @@
     "independentLog": ".qa/handovers/passenger-deck-independent.log"
   },
   "limits": "Offline evidence only, audits paused. Single centre ray is not complete exit-footprint or continuous stability proof; bridge/road proxy identity and modded support need physical verification. No whole-source/combined-arms parity or measured performance claim. Native query cost unchanged, support reads added only to existing water case.",
-  "nextRequiredReview": "Complete source commandPassenger/deferredCrewRetain/setMovementOwner/updateRouteResume release-writer closure, then add distinct finite troop-body escort within existing vehicle tactical movement ownership, preserving the firing-vehicle corridor and newer native tasks.",
+  "nextRequiredReview": "Implement one finite troop-body support bound through existing selected-platform movement ownership. Admit only a current explicitly tracked dismounted element, derive a robust mobile infantry centre and rear hemisphere from supplied native contact belief, preserve the separate firing-vehicle corridor and infantry clearance, keep original episode deadline, and retire without source route/seat replay. Continuous multi-bound escort remains a larger open capability.",
   "supportPositioningFollowup20261027": {
     "baseline": "cb523ae73231be4776b378f9012b50e4662fb118",
     "runtimeChanges": false,
@@ -152,6 +187,48 @@
       "addons/infantry/functions/cortexGroupTick.sqf": "0462fc5d31b55c582e285eb712658e3f05f1498ebf7d5ed871230b2d39660785",
       "addons/infantry/functions/cortexRestoreCalm.sqf": "17d620198b92189b57819a5e5e24ad8551d9c8528e9a2c599eab83a03fc409ae",
       "addons/vehicles/functions/cortexVehicles.sqf": "2577c780626306bd693e2d8afa84fbea40467d6db54d8b34277c07d3f215b8e1"
+    }
+  },
+  "commandWriterFollowup20261028": {
+    "baseline": "9615e16b1c12b77470e5fa5d49d4040eb4c47dd0",
+    "scope": "Selected original registration/support/release command graph closed through unit-local CBA dispatch, delayed reseat and route-resume writers. Not whole-mod/CBA internals/transitive geometry or proven quiescence.",
+    "confirmedFindings": [
+      "postInit registers PDTB_passengerCommand as a direct call to commandPassengerLocal. commandPassenger returns true after local call/targetEvent without consuming receiver result or owner acknowledgement.",
+      "commandPassengerLocal gates only null/local/player before switch; it does not generally revalidate live vehicle job, token, native route or original group. applyPassengerAILocal can refuse a stale unlock token, but command callers ignore that result and continue unassigning/boarding/releasing.",
+      "CREW_RESEAT changes vehicle policy and assign/moveIn seat. BOARD_FORCE uses moveInCargo. DISPERSE/BOARD_RESCUE/BOARD_HAILMARY use setPos/velocity/direction or hide/reveal shortcuts. These are excluded from CBE natural movement, not implementations to reproduce.",
+      "deferredCrewRetain validates vehicle job ID, registry row, living occupants and safety before dispatch. A remote delivery may occur after release; command receiver has no corresponding general admission guard. Source release removes its job/EHs without queued-command acknowledgements.",
+      "setMovementOwner restores captured group flags and dispatches RELEASEMOVE to marked actors, then clears active boarding array. This is not proof the receiver has stopped. Local receiver RELEASEMOVE unassigns and follows regardless of current native task identity.",
+      "updateRouteResume can switch to SAVED after current waypoint advances, reissue old doMove, and declare handback from speed>2, moveToCompleted or40m arrival. Early follow resets repeat every2s;45s no-progress ends with follow. Neither returned true nor group markers prove native writer retirement.",
+      "VehicleTacticalMoveStart/Step already own finite selected-platform standoff through exact original seats, route, operation generation, owner epoch and original deadlines. They can be reused deliberately for a distinct support bound; they do not currently implement continuous troop-body escort."
+    ],
+    "selectedImprovement": "Retain negative-result caching intent from source updateSupport15s/15m cache, adapted to existing CBE escape planning rather than adding source movement loops.",
+    "confirmedCBEGap": "The shared withdrawal/standoff _selectVehicleEscape replans five candidate routes after every failed selection. Standoff has no failure cooldown before an operation is admitted; repeated contact/danger ticks can repeat unchanged geometry work.",
+    "implementation": {
+      "owner": "Existing owner-local CortexVehicles escape selector. No new executor/native command.",
+      "cache": "One local six-field record per vehicle: original eight-second expiry, owner/group/epoch/generation/crew/threat/distance/screen-mode context, vehicle ASL, supplied believed threat position, full NativeOrderReceipt, heading.",
+      "invalidation": "Changed context/route, vehicle or believed threat displacement>5m, heading delta>15deg or expiry forces fresh planning. Cache hits return [] and never refresh expiry.",
+      "success": "Successful avenue always planned fresh and deletes prior failure; a negative result cannot authorize movement, smoke or completed withdrawal.",
+      "cost": "Existing one selection and five candidate routes retained; cached miss avoids that planning. No new world scan, worker, broadcast or unbounded per-threat store. Route receipt enumeration retains its existing route-length cost.",
+      "tradeoff": "Unchanged-input dynamic obstacle changes can delay a retry by at most eight seconds; no clearance/arrival/physical performance claim."
+    },
+    "verification": {
+      "before": ".qa/handovers/escape-miss-before-20261028.log",
+      "fullBuild": "PASS",
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "buildLog": ".qa/handovers/escape-miss-build-20261028.log",
+      "candidate": ".qa/candidates/escape-miss-20261028-9615e16b",
+      "fingerprint": "3e9b804e4a8d4199aec65f1d62f20b6ccf03013eeac82f74083102017721e7da",
+      "independentLog": ".qa/handovers/escape-miss-independent-20261028.log",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "buildProvenance": "9615e16b plus dirty runtime snapshot; final review/handover changes only after successful build."
+    },
+    "nextConcreteWork": "Implement one finite troop-body support bound through existing selected-platform movement ownership. Admit only a current explicitly tracked dismounted element, derive a robust mobile infantry centre and rear hemisphere from supplied native contact belief, preserve the separate firing-vehicle corridor and infantry clearance, keep original episode deadline, and retire without source route/seat replay. Continuous multi-bound escort remains a larger open capability.",
+    "runtimeSha256": {
+      "addons/vehicles/functions/cortexVehicles.sqf": "042bc1d226a9481b734c05a05bda398522f166fc2f86c5cea8cde2eefa9dabe4"
     }
   }
 }

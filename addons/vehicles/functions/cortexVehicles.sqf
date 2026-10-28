@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Failed escape avenues cache only an empty result for eight seconds on the current owner;
+ * crew/order/epoch/generation or material believed geometry changes invalidate without renewal.
  * Calm remount intent retains its original native waypoint receipt and operation generation;
  * replacement orders retire boarding without seat cleanup, and migration keeps the original deadline.
  * Locality/authority: Current group owner; native vehicle writes require actual vehicle/crew ownership.
@@ -795,6 +797,21 @@ private _enemyPos = (_enemies select 0) select 1;
 private _selectVehicleEscape = {
     params ["_vehicle","_threatPosition","_threatObject","_distance",["_requireScreenedEndpoint",false]];
     private _origin=getPosATL _vehicle;
+    // Failed geometry is not movement permission. Reuse only the empty result within this
+    // short, non-renewing episode; every successful route still receives a fresh plan.
+    private _escapeContext=[clientOwner,_group,_group getVariable ["CBE_AIPass_Epoch",0],
+        _group getVariable ["CBE_OperationGeneration",0],driver _vehicle,effectiveCommander _vehicle,
+        _threatObject,_distance,_requireScreenedEndpoint];
+    private _escapeMiss=_vehicle getVariable ["CBE_Cortex_EscapeMiss",[]];
+    private _escapeCached=_escapeMiss isEqualType [] && {count _escapeMiss == 6}
+        && {serverTime < (_escapeMiss select 0)} && {(_escapeMiss select 0) <= serverTime+8}
+        && {_escapeContext isEqualTo (_escapeMiss select 1)}
+        && {(getPosASL _vehicle) vectorDistance (_escapeMiss select 2) <= 5}
+        && {_threatPosition vectorDistance (_escapeMiss select 3) <= 5}
+        && {private _headingDelta=abs (getDir _vehicle-(_escapeMiss select 5));
+            (_headingDelta min (360-_headingDelta)) <= 15}
+        && {(_escapeMiss select 4) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
+    if (_escapeCached) exitWith {[]};
     private _awayBearing=_threatPosition getDir _origin;
     private _candidates=[];
     {
@@ -802,7 +819,14 @@ private _selectVehicleEscape = {
     } forEach [0,-25,25,-45,45];
     private _selected=[_origin,_candidates,_threatPosition,[],_threatObject,"VEHICLE",_vehicle,_requireScreenedEndpoint]
         call CBE_fnc_CortexSelectAvenue;
-    if (_selected isEqualTo []) then {[]} else {_selected select ((count _selected)-1)}
+    if (_selected isEqualTo []) exitWith {
+        // Owner-local single-slot cache, no public/JIP replay and no timer or retry worker.
+        _vehicle setVariable ["CBE_Cortex_EscapeMiss",[serverTime+8,_escapeContext,
+            getPosASL _vehicle,+_threatPosition,[_group] call CBE_fnc_NativeOrderReceipt,getDir _vehicle]];
+        []
+    };
+    _vehicle setVariable ["CBE_Cortex_EscapeMiss",nil];
+    _selected select ((count _selected)-1)
 };
 private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
 {

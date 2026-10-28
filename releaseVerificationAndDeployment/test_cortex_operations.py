@@ -12191,6 +12191,22 @@ class CortexOperations(unittest.TestCase):
         text=source('cortexVehicles')
         section=text.split('// A rejected route is not a completed withdrawal.',1)[1].split('// Gunner priorities',1)[0]
         self.assertIn('serverTime+8,true',section)
+        escape=text.split('private _selectVehicleEscape = {',1)[1].split('private _withdrawn =',1)[0]
+        for proof in ('private _escapeContext=', 'CBE_AIPass_Epoch', 'CBE_OperationGeneration',
+                      'driver _vehicle,effectiveCommander _vehicle',
+                      'serverTime < (_escapeMiss select 0)', '(_escapeMiss select 0) <= serverTime+8',
+                      '_escapeContext isEqualTo (_escapeMiss select 1)',
+                      'vectorDistance (_escapeMiss select 2) <= 5',
+                      'vectorDistance (_escapeMiss select 3) <= 5',
+                      '_headingDelta min (360-_headingDelta)',
+                      '(_escapeMiss select 4) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)',
+                      'if (_selected isEqualTo []) exitWith', 'serverTime+8,_escapeContext',
+                      'setVariable ["CBE_Cortex_EscapeMiss",nil]'):
+            self.assertIn(proof,escape)
+        self.assertLess(escape.index('exitWith {[]}'),escape.index('call CBE_fnc_CortexSelectAvenue'))
+        hit=escape.split('if (_escapeCached) exitWith',1)[1].split('private _awayBearing=',1)[0]
+        self.assertNotIn('serverTime+',hit)
+        self.assertNotIn('setVariable',hit)
         self.assertLess(section.index('if (count _operation == 0)'),section.index('_withdrawn pushBackUnique'))
         self.assertLess(section.index('if (count _operation == 0)'),section.index('CBE_fnc_CortexFireCountermeasure'))
 
