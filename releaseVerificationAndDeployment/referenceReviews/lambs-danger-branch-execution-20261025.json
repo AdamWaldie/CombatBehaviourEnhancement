@@ -2092,5 +2092,21 @@
       "addons/infantry/functions/cortexCombinedArmsLocal.sqf": "5bb8ae1d03b4cb0957d4976c51654e0a5e166bd40aabcdc7230c98f10b46d077",
       "addons/infantry/functions/cortexCombinedGroundFallbackServer.sqf": "3c54a287e19d16c340db13eb70337998d97c24a3384d0913d197ce89d759ad4d"
     }
+  },
+  "receiverInvestigationSelection20261028": {
+    "base": "a45365df0ef89979f2f1994f6b8f2d9c15ffde30",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "source": "contactCommunicationReview20261028; complete contact/doShareInformation/getShareInformationParams/addShareInformationHandler witnesses remain as recorded. Source shares capped native target knowledge to nearby recipients; CBE deliberately retains position-only uncertain reports and current-owner task admission.",
+    "defect": "ReportLocal selected the first newer row from a three-contact batch even when outside the receiver investigation range. GroupTick refused that area while an otherwise eligible later contact was lost. Sender contact priority is not receiver investigation reach.",
+    "implementation": "Within the same <=3 validated newer rows, prefer the first inside the exact GroupTick receiver profile range: configured Investigate_Range times(0.5+0.5*investigateChance), preference>0. If none qualify retain original first-newer fallback. No row reordering, expiry renewal, target object reveal or new movement command. GroupTick still owns actual feature/order/actor/phase/cooldown and range checks at admission.",
+    "cost": "One existing read-only profile resolution and a second bounded findIf over <=3 rows per accepted delivery; no world query, worker, public schema or group cadence change. Runtime cost unmeasured.",
+    "verification": ".qa/handovers/report-actionable-focused-20261028.log:12 existing report/combined payload checks PASS; extended existing observation-age case with useful/out-of-range ordering, profile range, duplicate, no-qualifier fallback and three-row cap models. No new test case; models do not execute native SQF.",
+    "remaining": "Confidence ranking remains deliberately unchanged. Physical receiver movement/contact competition, dynamic profile/range changes, normal/HC ownership and measured cost remain unverified. Audits paused.",
+    "fullBuild": ".qa/handovers/report-actionable-build-20261028.log:1505 existing tests/460 SQF/11 PBO complete pipeline PASS; session71992 exit0.",
+    "independent": ".qa/handovers/report-actionable-independent-20261028.log:PASS",
+    "candidate": ".qa/candidates/report-actionable-20261028-a45365df",
+    "fingerprint": "32d095e38795d399955eb2fb5b5aa4f4ee1002ad64884c66bf46a987156aa309",
+    "provenance": "a45365df0ef89979f2f1994f6b8f2d9c15ffde30 plus dirty runtime; metadata finalized after build. Unsigned development, not native/performance acceptance.",
+    "sourceVerification": "All four sourceWitnesses from contactCommunicationReview20261028 rehashed and matched; originals unchanged."
   }
 }

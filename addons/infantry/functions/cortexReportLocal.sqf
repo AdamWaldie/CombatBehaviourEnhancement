@@ -10,7 +10,9 @@
  * Mounted receivers use the same eligibility contract.
  * Locality/authority: server validates shared assignments; commands run only on the current AI owner.
  * Repeat/JIP: storage and expiry retain original finite observation time, not relay time;
- * older/duplicate sightings cannot replace fresher evidence. No historical JIP commands replay.
+ * older/duplicate sightings cannot replace fresher evidence. Among newer sightings, prefer
+ * the first within the receiver profile investigation range; otherwise retain sender priority.
+ * No historical JIP commands replay.
  * Arguments: 0 receiver GROUP grpNull; 1 sender GROUP grpNull; 2 reports ARRAY []:
  * at most3 [ATL position ARRAY of3 finite NUMBERs, confidence NUMBER0..4,
  * original observed server time NUMBER>=0, reported contact SIDE west/east/resistance]; 3 sent server time NUMBER -1 (invalid default).
@@ -57,6 +59,16 @@ if (_previous isEqualType [] && {count _previous == 4}
 // suppress a fresh sighting later in this same bounded batch.
 private _newIndex=_valid findIf {(_x select 2) > _previousObserved};
 if (_newIndex < 0) exitWith {};
+// Prefer a report this receiver can investigate over an unreachable first contact.
+// Keep sender priority inside that set and retain the original fallback when none qualify.
+// This is attention selection only; GroupTick still owns all actual task admission.
+private _investigationPreference=[_receiver,"investigateChance"] call CBE_fnc_CortexProfile;
+private _investigationRange=(missionNamespace getVariable ["CBE_AIPass_Investigate_Range",300])
+    * (0.5+0.5*_investigationPreference);
+private _actionableIndex=_valid findIf {(_x select 2) > _previousObserved
+    && {_investigationPreference > 0}
+    && {leader _receiver distance2D (_x select 0) <= _investigationRange}};
+if (_actionableIndex >= 0) then {_newIndex=_actionableIndex};
 private _best = _valid select _newIndex;
 private _observed=_best select 2;
 _receiver setVariable ["CBE_AIPass_AreaReport",[+(_best select 0),_observed,_observed+30,"REPORT"],true];

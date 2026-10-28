@@ -2428,3 +2428,14 @@ crew changes, disabled features and explicit release cancel the continuation. Or
 post-contact cleanup preserves the task; cancellation never forces an exit or erases a fire token.
 An unresolved firing reservation leaves the weapon in place at expiry. This adds no control,
 setting or dependency. Native behaviour and performance remain unverified while audits are paused.
+
+
+## Receiver-relative contact attention
+
+A shared batch contains at most three recent position reports. The receiving squad prefers
+the first newer report within its current profile investigation range, preserving sender
+priority among those reachable reports. If none qualify it retains the original first-newer
+fallback. Duplicate or older observations cannot replace fresher evidence, and expiry stays
+tied to observation time. Delivery never reveals a target or starts movement: the normal
+group brain rechecks features, range, current orders, actor ownership and cooldown before
+investigation. Native movement and measured overhead remain unverified while audits are paused.
