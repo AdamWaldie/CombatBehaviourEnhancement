@@ -3,7 +3,10 @@
  * Installs the event-driven CBE civilian danger response on one owner-local unarmed civilian.
  * Player, Zeus, specialist and neutral external-control ownership is left completely untouched.
  * No per-frame or periodic civilian scan is created. FiredNear, Suppressed, Explosion and Hit request a
- * priority-aware finite reaction through the shared scheduler.
+ * priority-aware finite reaction through the shared scheduler. A positive local Hit also permits
+ * at most two nearby own-group distress probes/reactions per ten seconds, within30m. This is
+ * an injury approximation, not a native scream detector; it shares no attacker identity.
+ * No new event handler, world scan, sound, inventory or secondary movement controller.
  *
  * Locality / Authority: Shared all-machine class/Local hook calls setup; only the actual owner
  * installs reactions/adopts observation. Group Local handles split arrival order.
@@ -93,8 +96,49 @@ private _explosion=_unit addEventHandler ["Explosion",{
     [_unit,_threat,"EXPLOSION",2] call CBE_fnc_CortexCivilianReact;
 }];
 private _hit=_unit addEventHandler ["Hit",{
-    params ["_unit","_source"];
+    params ["_unit","_source",["_damage",0,[0]]];
     [_unit,_source,"HIT",3] call CBE_fnc_CortexCivilianReact;
+    // Positive local injury is a distress approximation, not native scream detection.
+    // Share the casualty location only; never disclose the attacker to nearby civilians.
+    private _group=group _unit;
+    if (!finite _damage || {_damage <= 0} || {!local _unit} || {!local _group}
+        || {side _group != civilian} || {!([_unit] call CBE_fnc_CortexCombatEffective)}
+        || {isPlayer _unit} || {!simulationEnabled _unit} || {isObjectHidden _unit}
+        || {!isNull objectParent _unit}
+        || {primaryWeapon _unit != "" || {secondaryWeapon _unit != ""} || {handgunWeapon _unit != ""}}
+        || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+        || {!(missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Enable",true])}
+        || {[] call CBE_fnc_CortexIsPaused} || {[_group] call CBE_fnc_CortexExternalTakeover}
+        || {serverTime < (_group getVariable ["CBE_Cortex_CivilianAlarmAfter",0])}) exitWith {};
+    private _peers=units _group;
+    if (count _peers > 16) exitWith {};
+    // Coalesce the group, not each wounded actor. Suppressed hits never renew this clock.
+    _group setVariable ["CBE_Cortex_CivilianAlarmAfter",serverTime+10];
+    private _injuryATL=getPosATL _unit;private _injuryEye=eyePos _unit;
+    private _radius=(missionNamespace getVariable ["CBE_AIPass_CivilianReaction_Radius",45]) max 0 min 30;
+    private _probes=0;
+    {
+        if (_probes >= 2) exitWith {};
+        private _peer=_x;
+        private _active=_peer getVariable ["CBE_Cortex_CivilianReaction",[]];
+        private _reacting=_active isNotEqualTo [] && {serverTime < (_active param [0,0,[0]])}
+            && {(_active param [1,0,[0]]) >= 1};
+        if (_peer != _unit && {!_reacting} && {local _peer} && {!isPlayer _peer}
+            && {[_peer] call CBE_fnc_CortexCombatEffective} && {simulationEnabled _peer}
+            && {!isObjectHidden _peer} && {isNull objectParent _peer}
+            && {primaryWeapon _peer == "" && {secondaryWeapon _peer == ""} && {handgunWeapon _peer == ""}}
+            && {currentCommand _peer in ["","WAIT","FOLLOW"]}
+            && {_peer distance _unit <= _radius}) then {
+            _probes=_probes+1;
+            private _eye=eyePos _peer;
+            // Conservative unobstructed proximity; no arbitrary wall/floor sound propagation.
+            // No gaze restriction: this models distress, not locating an attacker visually.
+            if (!terrainIntersectASL [_eye,_injuryEye]
+                && {lineIntersectsSurfaces [_eye,_injuryEye,_peer,_unit,true,1,"VIEW","NONE"] isEqualTo []}) then {
+                [_peer,_injuryATL,"INJURY_NEAR",1] call CBE_fnc_CortexCivilianReact;
+            };
+        };
+    } forEach _peers;
 }];
 _unit setVariable ["CBE_Cortex_CivilianHandlers",[["FiredNear",_fired],["Suppressed",_suppressed],["Explosion",_explosion],["Hit",_hit]]];
 // Group and actor ownership can arrive in either order. This group-scoped native edge

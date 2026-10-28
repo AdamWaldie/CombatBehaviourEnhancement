@@ -50,5 +50,57 @@
   },
   "retiredBuildGaps": [
     "Pending civilian settings restoration and shared temporary group pace arbitration are no longer needed for the new path: it changes none of those settings. Historical9a2b71f6 implementation and notes describing pending locks are superseded by nativeSettingsSimplification20261024."
-  ]
+  ],
+  "nearbyInjuryCue20261028": {
+    "date": "2026-10-28",
+    "sourceBase": "80ddc7fed899268db76968a2fc687f0485da341a",
+    "scope": "Selected civilian FSM cause/inspect/hide branches and complete body-check helper; existing civilian Hit/refuge/observer execution. Not whole civilian danger registration or native scream detection.",
+    "sourceWitnesses": {
+      ".qa/lambs-danger-installed-20261026/scripts/lambs_dangerCivilian.fsm": "417327c6e514538ec4f81b3c4bd182e15c89524b04fabfbfc94b441099936285",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doCheckBody.sqf": "be58252ed15228047ec673df09a0f7d3642df372ed21504309b537d4c501433c"
+    },
+    "sourceIntent": [
+      "FSM causes5/6 branch to Inspect_vs_hide; the body inspection path may approach a corpse, alter stance/behaviour and call doCheckBody. Cause7(scream),4(explosion),9(close bullet) instead branch to Hide. Body discovery and screams are not equivalent source intentions.",
+      "Complete doCheckBody scans allDeadMen near supplied position, doMoves/doWatches a body, sets forceMove, waits up to8seconds, then emits callback and can rearm/take backpack/launcher before following current leader; timeout also follows leader. It lacks original native-task/generation ownership in its delayed callbacks.",
+      "Do not implement generic panic for every body or silently arm noncombatants by copying this helper. Later body discovery/inspection remains a separate unresolved capability."
+    ],
+    "cbeFinding": "Current civilian event setup handles direct gunfire, pass-by, explosion and hit; own-group witnessed death has a separate bounded cue. A surviving nearby injured civilian provided no sympathetic peer cue. Civilian classes retain their own native FSM rather than routing through CBE military dangerEngineSubmit.",
+    "implementation": [
+      "Existing Hit handler retains original direct priority3 response, then positive finite damage on a current local/live conscious unarmed civilian may admit one own-group alarm under existing active/feature/Zeus/external gates. No new native event handler or scheduler owner.",
+      "Group-local10second timestamp coalesces multiple injuries without renewing on suppressed hits. Groups over16members refuse extra work. At most16roster entries inspected and2eligible proximity probes attempted, within min(configured radius,30m) in3D.",
+      "Peers with equal/stronger live reaction or current native command outside idle/wait/follow are skipped. Current local/life/role/unarmed/simulation/visibility/vehicle checks precede two unobstructed ASL terrain/VIEW probes. No gaze gate for this distress approximation.",
+      "Only the injured civilian position reaches CortexCivilianReact as INJURY_NEAR priority1. Existing feature/care/task/reservation/route and final command ownership are rechecked there. Existing finite shelter selection, expiry/retry and migration observation own any resulting escape. No source attacker identity, native reveal, weapon/inventory change, sound playback or forced pose."
+    ],
+    "engineReference": {
+      "url": "https://community.bistudio.com/wiki/Arma_3%3A_Event_Handlers#Hit",
+      "facts": "Hit is local, provides unit/source/damage/instigator, may not fire for a fatal hit or minor damage and does not itself prove an audible scream. Existing death cue remains separate.",
+      "checkedAt": "2026-10-28"
+    },
+    "cost": "No world query, new EH/PFH/timer/controller or periodic scan. One bounded roster walk per group10seconds after a valid local injury; at most2terrain and2VIEW tests and2existing refuge admissions. Refuge/native-query/event cost and simultaneous groups remain unmeasured.",
+    "remaining": [
+      "Actual native scream/audio localization and cross-group propagation are not implemented. This explicitly injury-based approximation is not full DCScream parity.",
+      "Later body discovery/inspection and source body-looting choices remain unresolved separately; source helper review does not authorize weaponizing civilians.",
+      "Physical perception, occlusion, event/ACE wound ordering, repeated hits, mission task replacement, casualties, group/locality transfer and balance/performance remain unverified; audits paused.",
+      "Limited first-two eligible probes may miss another unobstructed peer. No clearance/fear target or queued retry is inferred when no reaction is admitted."
+    ],
+    "verification": {
+      "focusedExistingOperations": "PASS:617 existing checks",
+      "log": ".qa/handovers/civilian-injury-focused-20261028.log",
+      "fullBuild": "PASS",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "fullTests": 1504,
+      "compiledSQF": 456,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/civilian-injury-build-20261028.log",
+      "candidate": ".qa/candidates/civilian-injury-20261028-80ddc7fe",
+      "fingerprint": "7167a63909899c7f5b03d3b288a6a4df6da9a1aa696893ab9a9bb4c965f46f9b",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/civilian-injury-independent-20261028.log",
+      "buildProvenance": "80ddc7fed899268db76968a2fc687f0485da341a plus dirty runtime snapshot. Only engineering/handover metadata follows packaging. Product hashes pin actual build inputs; normalize Git line endings when matching committed source."
+    },
+    "productHashes": {
+      "addons/infantry/functions/cortexCivilianSetup.sqf": "af18e2c27e16495e56e6c33971dc942aafaac64b8a5bf134b7e22022616bb469"
+    }
+  }
 }

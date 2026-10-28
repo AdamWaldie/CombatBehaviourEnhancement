@@ -5953,6 +5953,17 @@ class CortexOperations(unittest.TestCase):
         for disclosure in ('getPosATL _shooter','getPosATL _instigator',' reveal ',
                            'switchMove','setFriend','addPerFrameHandler'):
             self.assertNotIn(disclosure,passby)
+        injury=setup.split('private _hit=',1)[1].split('_unit setVariable ["CBE_Cortex_CivilianHandlers"',1)[0]
+        for proof in ('!finite _damage','_damage <= 0','!local _group','side _group != civilian',
+                      'count _peers > 16','_probes >= 2','min 30','CBE_Cortex_CivilianAlarmAfter',
+                      'serverTime+10','_probes=_probes+1','terrainIntersectASL',
+                      'currentCommand _peer in ["","WAIT","FOLLOW"]',
+                      '[_peer,_injuryATL,"INJURY_NEAR",1] call CBE_fnc_CortexCivilianReact'):
+            self.assertIn(proof,injury)
+        self.assertLess(injury.index('serverTime < (_group getVariable'),injury.index('serverTime+10'))
+        self.assertLess(injury.index('_probes=_probes+1'),injury.index('lineIntersectsSurfaces'))
+        for forbidden in ('getPosATL _source','nearEntities',' reveal ','doMove'):
+            self.assertNotIn(forbidden,injury)
         self.assertIn('["Suppressed",_suppressed]',setup)
         self.assertIn('removeEventHandler _x',setup)
         self.assertNotIn('CBA_fnc_addPerFrameHandler',setup+react)
