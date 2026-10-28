@@ -302,6 +302,10 @@
         "review": "protocol-aa-3809708209-20261020.json#dedicatedRole20261028",
         "scope": "Shared native config role across six consumers; preserves category, adds finite air-dominant profile policy. Generic custom-air gunnery is existing functionality. Role hint only, physical/custom/mixed balance and cost unverified.",
         "physicalAcceptance": false
+      },
+      "nativeRoleCalibration20261028": {
+        "review": "protocol-aa-3809708209-20261020.json#nativeRoleCalibration20261028",
+        "scope": "12 selected native static inheritance chains checked. Cheetah/Tigris category fallback required; custom-category mixed-profile clone remains a concrete explicit-designation gap. No runtime change or physical acceptance."
       }
     },
     {

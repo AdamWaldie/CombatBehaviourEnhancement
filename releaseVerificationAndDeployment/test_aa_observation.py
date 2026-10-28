@@ -22,6 +22,14 @@ class AAObservation(unittest.TestCase):
                         [-1,0,1],[0,0,float('nan')],[0,0,float('inf')],[0,0,'AA']):
             self.assertFalse(role('custom',weights),weights)
         self.assertTrue(role('EdSubcat_AAs',[]))
+        # Native Cheetah/Tigris inherit mixed/tied profiles; category fallback must
+        # remain, and a custom-category clone is an explicit unresolved role case.
+        for native in ([0.8,0.6,0.6],[1.0,0.6,1.0]):
+            self.assertTrue(role('EdSubcat_AAs',native))
+            self.assertFalse(role('custom',native))
+        for ordinary in ([0.8,0.8,0.3],[0,0,0],[0.7,1,0.3]):
+            self.assertFalse(role('',ordinary))
+        self.assertLess(classifier.index('isKindOf "LandVehicle"'),classifier.index('private _class='))
         for name in ('cortexAAObserve','cortexAAAllocate','cortexAAIntercept','cortexAARelocate',
                      'cortexVehicles','vehicleArmourShot'):
             s=(ROOT/'addons/vehicles/functions'/f'{name}.sqf').read_text()

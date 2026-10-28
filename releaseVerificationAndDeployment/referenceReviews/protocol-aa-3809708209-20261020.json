@@ -217,5 +217,175 @@
       "addons/vehicles/functions/vehicleArmourShot.sqf": "d8796bf192a8f6fa06dc02ab2e247f5b93fc5c8bf0498e179c30a96585a4bd8c",
       "addons/main/CfgFunctions.hpp": "9b255381736b515cae8c748e9670acf19f0a0ce8f8cc707b6e66727ef0543b54"
     }
+  },
+  "nativeRoleCalibration20261028": {
+    "date": "2026-10-28",
+    "sourceBase": "aba6784c36832c7fb783cc81d6df6c0e0c3fdffe",
+    "scope": "Static selected native authored config inheritance and current role-policy calibration. Not merged engine/DLC addon config, runtime class values, station readiness or physical behaviour.",
+    "snapshot": ".qa/native-aa-role-profiles-20261028",
+    "manifestSHA256": "62f6ba1aa9c404bac79c71a277f99cc18505ebb2a5bd0298d3d2ae49c8d2f4cf",
+    "reportSHA256": "4e22e4d610daf9eb6d3a20185916da18b72c2cc4b76767b84e05fd359b36b39c",
+    "provenance": "Native bin/weapons JSONs matched prior hashes and original PBOs; five selected vehicle config members newly extracted/derapified with HEMTT1.22.0. Original PBOs rehashed after extraction and matched. Only config members/private generated JSONs stored; no installed original changed.",
+    "selectedProfiles": [
+      {
+        "class": "LandVehicle",
+        "landVehicle": true,
+        "category": "",
+        "threat": [
+          0.8,
+          0.8,
+          0.3
+        ],
+        "airDominantProfile": false,
+        "CBEPolicyResult": false
+      },
+      {
+        "class": "Car_F",
+        "landVehicle": true,
+        "category": "",
+        "threat": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "airDominantProfile": false,
+        "CBEPolicyResult": false
+      },
+      {
+        "class": "Tank_F",
+        "landVehicle": true,
+        "category": "",
+        "threat": [
+          0.7,
+          1,
+          0.3
+        ],
+        "airDominantProfile": false,
+        "CBEPolicyResult": false
+      },
+      {
+        "class": "Wheeled_APC_F",
+        "landVehicle": true,
+        "category": "EdSubcat_APCs",
+        "threat": [
+          0.8,
+          0.6,
+          0.6
+        ],
+        "airDominantProfile": false,
+        "CBEPolicyResult": false
+      },
+      {
+        "class": "APC_Tracked_01_base_F",
+        "landVehicle": true,
+        "category": "EdSubcat_APCs",
+        "threat": [
+          0.8,
+          0.6,
+          0.6
+        ],
+        "airDominantProfile": false,
+        "CBEPolicyResult": false
+      },
+      {
+        "class": "B_APC_Tracked_01_rcws_F",
+        "landVehicle": true,
+        "category": "EdSubcat_APCs",
+        "threat": [
+          0.8,
+          0.6,
+          0.6
+        ],
+        "airDominantProfile": false,
+        "CBEPolicyResult": false
+      },
+      {
+        "class": "B_APC_Tracked_01_CRV_F",
+        "landVehicle": true,
+        "category": "EdSubcat_APCs",
+        "threat": [
+          0.8,
+          0.6,
+          0.6
+        ],
+        "airDominantProfile": false,
+        "CBEPolicyResult": false
+      },
+      {
+        "class": "B_APC_Tracked_01_AA_F",
+        "landVehicle": true,
+        "category": "EdSubcat_AAs",
+        "threat": [
+          0.8,
+          0.6,
+          0.6
+        ],
+        "airDominantProfile": false,
+        "CBEPolicyResult": true
+      },
+      {
+        "class": "O_APC_Tracked_02_cannon_F",
+        "landVehicle": true,
+        "category": "EdSubcat_APCs",
+        "threat": [
+          0.8,
+          0.6,
+          0.6
+        ],
+        "airDominantProfile": false,
+        "CBEPolicyResult": false
+      },
+      {
+        "class": "O_APC_Tracked_02_AA_F",
+        "landVehicle": true,
+        "category": "EdSubcat_AAs",
+        "threat": [
+          1.0,
+          0.6,
+          1.0
+        ],
+        "airDominantProfile": false,
+        "CBEPolicyResult": true
+      },
+      {
+        "class": "LaserTarget",
+        "landVehicle": false,
+        "category": "",
+        "threat": [
+          0.3,
+          0.3,
+          1.0
+        ],
+        "airDominantProfile": true,
+        "CBEPolicyResult": false
+      },
+      {
+        "class": "NVG_TargetBase",
+        "landVehicle": false,
+        "category": "",
+        "threat": [
+          0.3,
+          0.3,
+          1.0
+        ],
+        "airDominantProfile": true,
+        "CBEPolicyResult": false
+      }
+    ],
+    "finding": "Cheetah inherits threat[0.8,0.6,0.6]; Tigris[1,0.6,1]. Neither is strictly air-dominant, so existing AA editor-category fallback is required. Sampled ground controls stay ordinary. LaserTarget/NVG_TargetBase have air-dominant profiles but are not LandVehicle and must return false before class memo/config role work.",
+    "concreteGap": "A custom-category clone retaining those native mixed AA profiles does not qualify through air-dominance alone. Source-style explicit dedicated-role designation remains an actual unimplemented path; do not claim universal custom AA support or fix it by admitting all mixed profiles. Broader actual station/role ownership is still required.",
+    "verification": {
+      "selectedCompleteChains": 12,
+      "staticPolicyAssertions": "PASS",
+      "existingClassifierRegression": "PASS:2existing focused AA checks, native fallback/mixed-clone/non-land-boundary cases added; test case count unchanged",
+      "runtimeChanges": "NONE",
+      "fullBuild": "NOT_REPEATED_UNCHANGED_PRODUCT",
+      "retainedCandidate": ".qa/candidates/aa-role-20261028-7068618a",
+      "retainedFingerprint": "aeb60b3f2944e44afef354393836edb732dc83981270fb06b85fd649f95acedc",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "performance": "NOT_MEASURED",
+      "log": ".qa/handovers/aa-role-native-calibration-20261028.log"
+    },
+    "remaining": "Input subset/load order does not establish effective live config with all DLC/mod patches. No profile-score, native perception, role/movement/fire balance or measured cost acceptance."
   }
 }
