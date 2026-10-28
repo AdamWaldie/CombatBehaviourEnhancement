@@ -539,5 +539,100 @@
       "addons/main/CfgFunctions.hpp": "3a910c47eb4e723e7e1a9913089298dd969d84ab38d851ae25320bdd21f10bac"
     },
     "nextConcreteWork": "Repeated insertion currently needs a fresh carriage identity from an actual native boarding lifecycle. Existing local cohort can reuse old acknowledged actors/consumption within60seconds, and remote CLOSE remains terminal for the old offer. Do not reset using generation changes, elapsed time, proximity or an unproven seat flag. Trace actual GetIn/GetOut observation and existing callback ownership, then retire only the old exact cargo source before fresh real carriage acknowledgement."
+  },
+  "realBoardingSupport20261028": {
+    "scope": "Fresh cargo origin after actual native entry, preserving private owner custody, old source retirement and original remote exit horizon. No physical acceptance or sustained escort completion.",
+    "sourceEvidence": [
+      {
+        "path": "functions/fn_registerJob.sqf",
+        "sha256": "cefa1219efc7d5c741ade0461f60f668547ef9486da38a52e277016f9e7cf22a",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateJob.sqf",
+        "sha256": "9f2879f1294ff8b847b0e174ea1e6968f2530554806633da3ca7733715627f0f",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_supportPosition.sqf",
+        "sha256": "7c3be4f5a4c08157b820e8368a60451c9120316363d3625792478ce5025e37cb",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateSupport.sqf",
+        "sha256": "fe9da87d9c020df2853c0556af6220c8901bd4403cc05ae388bdfbe63a603aea",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_commandPassengerLocal.sqf",
+        "sha256": "9308663a8ea493fe58643f090c41bb9fffdbbfde1b16ee299e6300f3ab3c9c1d",
+        "matchesRecordedSource": true
+      }
+    ],
+    "engineReferences": [
+      {
+        "url": "https://community.bistudio.com/wiki/Arma_3:_Event_Handlers#GetIn",
+        "meaning": "Native entry event is separate from intra-vehicle seat changes; it also fires for external mission moveIn commands. CBE does not issue those commands."
+      },
+      {
+        "url": "https://community.bistudio.com/wiki/addEventHandler",
+        "meaning": "Engine provides _thisEvent and _thisEventHandler in immediate native callback scope."
+      },
+      {
+        "url": "https://hemtt.dev/lints/sqf.html#undefined",
+        "meaning": "Narrow ignore_variables pragma for confirmed caller-provided _thisEvent only; no broad lint/performance suppression."
+      }
+    ],
+    "sourceIntent": "Tracks and Boots registration captures actual carried troops; delayed automatic reseating and regrouping are not imported. Complete CBE repeat custody using native boarding observations, rather than renewed timers or source operation-generation guesses.",
+    "executionPath": [
+      "Existing LandVehicle GetIn callback calls Boarded, with engine event context and current occupied-seat confirmation",
+      "Actor owner removes only that actor old private exit rows and trims old public continuation while retaining other original clocks; BOARD closes old vehicle consent",
+      "Vehicle owner retires acknowledged local/remote cargo identity and captures fresh real cargo via existing OFFER",
+      "An unacknowledged boarding batch may merge actual seats into original manifest, preserving offer expiry; changed passenger owner replaces that unacknowledged row",
+      "Actual vehicle Local acquisition forgets stale private cargo/replies/offer only, without positive replay",
+      "Original mounted EXIT stores immutable60second origin horizon. TICK/EXIT can rebind to a different valid crew token, capped by origin and offer; crew manifest still proves actual carried actors. BOARD/CLOSE never retarget a newer token",
+      "Captured support workers bind vehicle carriage version. Actual tracked boarding or Local acquisition changes it; Step cancels old outward work and Continue refuses old contexts even if transient public proof disappears before sampling."
+    ],
+    "fixedDefects": [
+      "Repeated boarding could leave a passenger marked as the old owned dismount, suppressing its next real exit receipt",
+      "Local consumed cargo key and remote terminal CLOSE could keep a genuinely new insertion on the old identity",
+      "Refreshing an unacknowledged boarding batch must capture later actual entrants without resetting expiry or ignoring current group owner",
+      "A new offer visible at withdrawal must not receive the old consent CLOSE",
+      "Old owner-private carriage must not revive after a vehicle Local roundtrip",
+      "Own-group retained worker contexts could otherwise see a rapid reboard/re-exit as the same actor/vehicle rows after transient public evidence disappeared; a monotonic negative carriage fence prevents borrowing the new incident."
+    ],
+    "costAndAuthority": "Reuses existing GetIn/Local callbacks and owner ticks/relay; no extra handler, PFH, timer, movement/seat/group/skill command or world scan. At most64seat/exit rows,4groups/16original actors. Ordinary untracked boarding is a fast no-op. Actual event plus occupied seating required; native seat change/locality/clock/generation alone never create boarding proof.",
+    "limits": "Engine documents entry but does not prove walked boarding paths. Immediate event/seat view, delayed offer ordering, simultaneous native handlers, repeated actual loads, migration/disconnect and real support travel require physical checks. Audits paused. No measured performance or whole-source parity claim.",
+    "remaining": "Sustained escort episode lifetime, broader selected-source/whole HBQ and Protocol foundation reconciliation, required external-provider handovers and physical/performance validation remain open.",
+    "verification": {
+      "focusedTests": 616,
+      "focusedScope": "CortexOperations only",
+      "focusedLog": ".qa/handovers/mech-board-focused-20261028.log",
+      "fullBuild": "PASS",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "fullTests": 1503,
+      "compiledSQF": 456,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/mech-board-build-20261028.log",
+      "candidate": ".qa/candidates/mech-board-fenced-20261028-cdce864a",
+      "fingerprint": "d37c051156791d2d4ebb5350ab7e6542b9446b8357063ae5442e4f385228f410",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/mech-board-independent-final-20261028.log",
+      "buildProvenance": "cdce864a7e837c7264da0291d54b38eb96f64c3d plus dirty source snapshot. Only engineering/handover metadata changes after packaging; raw runtime hashes pin inputs; normalize Git line endings.",
+      "supersededCandidate": ".qa/candidates/mech-board-20261028-cdce864a",
+      "supersededBuildLog": ".qa/handovers/mech-board-build-before-fence-20261028.log",
+      "supersededReason": "Final own-group trace identified transient public proof/private row reuse during rapid reboard/re-exit. Added captured negative carriage version to actual worker and continuation; old passing candidate is not final evidence."
+    },
+    "runtimeSha256": {
+      "addons/vehicles/functions/cortexMechanisedBoarded.sqf": "ba8e0f469c953967b366c7d3a6612dd9dd248ae32bc7703b4ab699cb4c42e6e3",
+      "addons/vehicles/functions/cortexMechanisedRemote.sqf": "2392340fb34a104fd801e94306a1ad09f8bab4130e817ca0cd181344239da87b",
+      "addons/vehicles/functions/cortexMechanisedRemoteCrew.sqf": "627b7f5ff326c28c1476310f32f0bef1a904018331a4274484c4ce807bb8bb07",
+      "addons/main/XEH_postInit.sqf": "df8a3be16b9fdfc2f80282287e5475fa2daf69874ab60a0218b6775b9aa866da",
+      "addons/main/CfgFunctions.hpp": "46379b1d1433b884676ab2184a0392826809e21ef0be1dcb2517da191cfbc0f8",
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "5d31ab879c43c8555a7e2b2c8606fca282c3cc963145a665f15d5a3a84a3152a",
+      "addons/vehicles/functions/vehicleTacticalMoveStep.sqf": "383f58add92252d0d8fa7ec95d41d2e15a5549bfdee2a906e1bd4e84b19f459a",
+      "addons/vehicles/functions/cortexMechanisedContinue.sqf": "492042461efa0ad416b01653093fadebfe66d00869a73c0a72da6f2df9efa6e8"
+    }
   }
 }

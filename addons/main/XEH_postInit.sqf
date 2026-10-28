@@ -47,13 +47,24 @@ missionNamespace setVariable ["CBE_AITweaks_PostInitComplete", true];
     if (isNil {_vehicle getVariable "CBE_DrivingRecovery_LocalEH"}) then {
         _vehicle setVariable ["CBE_DrivingRecovery_LocalEH",_vehicle addEventHandler ["Local",{
             [_this select 0,_this select 1,0,-1,true] call CBE_fnc_DrivingRecoveryAdopt;
+            if (_this select 1) then {
+                // Forget private old-host carriage; locality itself grants no new cargo consent.
+                private _platform=_this select 0;
+                _platform setVariable ["CBE_Cortex_MechBoardSerial",(_platform getVariable ["CBE_Cortex_MechBoardSerial",0])+1];
+                _platform setVariable ["CBE_Cortex_MechCargo",nil];
+                _platform setVariable ["CBE_Cortex_MechRemoteManifest",nil];
+                _platform setVariable ["CBE_Cortex_MechRemoteReplies",nil];
+                _platform setVariable ["CBE_Cortex_MechRemoteOffer",nil,true];
+            };
         }]];
     };
     // A crew member can board or change driving seats after locality has settled.
     // Native vehicle events offer only those actual local seats to existing cleanup.
+    // GetIn also retires old cargo origin; SeatSwitched must never create a fresh carriage episode.
     if (isNil {_vehicle getVariable "CBE_DrivingRecovery_GetInEH"}) then {
         _vehicle setVariable ["CBE_DrivingRecovery_GetInEH",_vehicle addEventHandler ["GetIn",{
             params ["_vehicle","_role","_actor"];
+            [_vehicle,_actor] call CBE_fnc_CortexMechanisedBoarded;
             [_actor,true] call CBE_fnc_DrivingRecoveryCrewAdopt;
         }]];
     };

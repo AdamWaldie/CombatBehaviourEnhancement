@@ -147,6 +147,8 @@ private _sourceCurrent=!_retirementOnly && {missionNamespace getVariable ["CBE_A
 // The existing finite worker observes troop support at most once every two seconds.
 // It never follows a newly sampled destination or renews the original contact/deadline.
 private _supportContext=_work getOrDefault ["supportContext",[]];
+if (_supportContext isNotEqualTo [] && {(_work getOrDefault ["carriageSerial",-1])
+    != (_battery getVariable ["CBE_Cortex_MechBoardSerial",0])}) then {_sourceCurrent=false};
 if (_sourceCurrent && {_supportContext isNotEqualTo []}
     && {!(_phase in ["STOPPING","RETURNING"])}
     && {_phase == "ISSUE" || {serverTime >= (_work getOrDefault ["supportCheckAt",0])}}) then {

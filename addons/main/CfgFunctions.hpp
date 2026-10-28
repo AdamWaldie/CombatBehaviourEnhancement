@@ -421,6 +421,7 @@ class CfgFunctions {
             class CortexPassengerReady {file = "\z\cbe\addons\vehicles\functions\cortexPassengerReady.sqf";};
             class CortexMechanisedSupport {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedSupport.sqf";};
             class CortexMechanisedContinue {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedContinue.sqf";};
+            class CortexMechanisedBoarded {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedBoarded.sqf";};
             class CortexMechanisedCargo {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedCargo.sqf";};
             class CortexMechanisedRemote {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedRemote.sqf";};
             class CortexMechanisedRemoteServer {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedRemoteServer.sqf";};

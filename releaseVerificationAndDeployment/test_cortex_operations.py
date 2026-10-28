@@ -12297,7 +12297,7 @@ class CortexOperations(unittest.TestCase):
                       'CBE_AIPass_Epoch', '"dismounted"', '_order isEqualTo _native',
                       '_mode != "CLOSE"', 'serverTime+2', '_originalEpoch', '_until,+_actors,_serial,_phase,serverTime,clientOwner'):
             self.assertIn(proof,sender)
-        self.assertNotIn('serverTime+60',sender.split('private _sent=false;',1)[1])
+        self.assertNotRegex(sender.split('private _sent=false;',1)[1],r'_(?:until|originUntil)\s*=\s*serverTime\s*\+')
         for proof in ('!isServer', 'CBE_fnc_HeadlessResolveSender', 'groupOwner _passengers',
                       'entities "HeadlessClient_F"', '_crewOwner != owner _vehicle',
                       'CBE_fnc_CortexMechanisedRemoteCrew'):
@@ -12349,6 +12349,47 @@ class CortexOperations(unittest.TestCase):
         vehicles=source('cortexVehicles')
         self.assertIn('serverTime-(_supportEnemy select 2)],_originalContext]',vehicles)
         self.assertIn('private _supportTarget=((_supportPlan select 2) select 1) select 0',vehicles)
+
+    def test_real_boarding_retires_old_carriage_without_seat_change_or_timer_renewal(self):
+        boarded=source('cortexMechanisedBoarded')
+        for proof in ('isNil "_thisEventHandler"', '_thisEvent != "GetIn"',
+                      'objectParent _actor != _vehicle', 'fullCrew [_vehicle,"",false]',
+                      'count _seats > 64', '"dismounted"', 'CBE_Cortex_DismountContinuation',
+                      'CBE_Cortex_MechRemoteExits', '[_group,"BOARD",_vehicle,_actor]',
+                      '["CBE_Cortex_MechCargo",nil]', '["CBE_Cortex_MechRemoteManifest",nil]',
+                      '["CBE_Cortex_MechRemoteReplies",nil]', '["CBE_Cortex_MechRemoteOffer",nil,true]'):
+            self.assertIn(proof,boarded)
+        self.assertLess(boarded.index('objectParent _actor != _vehicle'),boarded.index('_state set ["dismounted"'))
+        for command in ('doMove','forceSpeed','moveInCargo','joinSilent','setPosATL','execFSM','addPerFrameHandler'):
+            self.assertNotIn(command,boarded)
+        init=(ROOT/'addons/main/XEH_postInit.sqf').read_text(encoding='utf-8')
+        getin=init.split('addEventHandler ["GetIn",{',1)[1].split('addEventHandler ["SeatSwitched",{',1)[0]
+        self.assertIn('CBE_fnc_CortexMechanisedBoarded',getin)
+        seat=init.split('addEventHandler ["SeatSwitched",{',1)[1].split('call CBA_fnc_addClassEventHandler',1)[0]
+        self.assertNotIn('CBE_fnc_CortexMechanisedBoarded',seat)
+        locality=init.split('addEventHandler ["Local",{',2)[2].split('// A crew member',1)[0]
+        self.assertIn('if (_this select 1)',locality)
+        self.assertIn('["CBE_Cortex_MechCargo",nil]',locality)
+        self.assertIn('["CBE_Cortex_MechRemoteOffer",nil,true]',locality)
+        self.assertNotIn('CBE_fnc_CortexMechanisedBoarded',locality)
+        self.assertNotIn('CBE_fnc_CortexMechanisedRemoteCrew',locality)
+        crew=source('cortexMechanisedRemoteCrew')
+        refresh=crew.split('if (_valid && {_boarding}) exitWith',1)[1].split('private _serial=',1)[0]
+        self.assertIn('_manifest set [3,_groups]',refresh)
+        self.assertNotIn('serverTime+',refresh)
+        sender=source('cortexMechanisedRemote')
+        for proof in ('serverTime < (_x select 9)', '_mode == "BOARD" && {_platform == _vehicle}',
+                      '_mode in ["TICK","EXIT"] && {_fresh isEqualType []}',
+                      '_until=_originUntil min (_fresh select 3)', '_serial=0;_due=0;_rebound=true',
+                      '_rebound || {_mode == "EXIT"', '_due},_originUntil]'):
+            self.assertIn(proof,sender)
+        self.assertNotRegex(sender.split('private _sent=false;',1)[1],r'_(?:until|originUntil)\s*=\s*serverTime\s*\+')
+        self.assertIn('CBE_Cortex_MechBoardSerial',boarded)
+        self.assertIn('["carriageSerial",_battery getVariable ["CBE_Cortex_MechBoardSerial",0]]',source('vehicleTacticalMoveStart'))
+        step=source('vehicleTacticalMoveStep').split('private _supportContext=',1)[1].split('private _coverContext=',1)[0]
+        self.assertIn('getOrDefault ["carriageSerial",-1]',step)
+        self.assertIn('_sourceCurrent=false',step)
+        self.assertIn('CBE_Cortex_MechBoardSerial',source('cortexMechanisedContinue'))
 
     def test_rejected_vehicle_escape_does_not_consume_withdrawal_or_smoke(self):
         text=source('cortexVehicles')

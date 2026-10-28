@@ -22,6 +22,7 @@ if ((_work getOrDefault ["kind",""]) != "MECH_SUPPORT"
     || {(_work getOrDefault ["phase",""]) != "RETIRED"}
     || {!((_work getOrDefault ["result",""]) in ["NATIVE_RETURN_ACKNOWLEDGED","NATIVE_RETURN_OBSERVED_AFTER_WORKER"])}
     || {_work getOrDefault ["retirementOnly",false]}
+    || {(_work getOrDefault ["carriageSerial",-1]) != (_vehicle getVariable ["CBE_Cortex_MechBoardSerial",0])}
     || {!(_leg isEqualType 0)} || {!finite _leg} || {_leg < 1} || {_leg >= 3}
     || {count _context != 5} || {!((_context select 3) isEqualType 0)} || {!finite (_context select 3)}
     || {(_context select 3) < serverTime+5}

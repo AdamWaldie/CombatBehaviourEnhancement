@@ -109,7 +109,7 @@ isNil {
             ["kind",["STANDOFF","MECH_SUPPORT"] select (_supportContext isNotEqualTo [])],["operationGeneration",_generation],["owner",clientOwner],
             ["epoch",_epoch],["reference",_reference],["crew",+_seats],
             ["route",[_group] call CBE_fnc_NativeOrderReceipt],["baseline",_baseline],
-            ["supportContext",+_supportContext],["supportLeg",if (_supportContinuation isEqualTo []) then {1} else {(_supportContinuation select 1)+1}],
+            ["supportContext",+_supportContext],["carriageSerial",_battery getVariable ["CBE_Cortex_MechBoardSerial",0]],["supportLeg",if (_supportContinuation isEqualTo []) then {1} else {(_supportContinuation select 1)+1}],
             ["supportCheckAt",serverTime+2],
             ["coverContext",if (_coverContext isEqualTo []) then {[]} else {
                 [+(_coverContext select 0),_coverContext select 1,_coverContext select 2]}],

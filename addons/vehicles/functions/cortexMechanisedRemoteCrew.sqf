@@ -9,6 +9,8 @@
  * Return: READ [proof,source] or[]; other modes BOOL. Current callers: CortexVehicles, Cargo, RemoteServer.
  * Example: ["OFFER",_apc,_crew] call CBE_fnc_CortexMechanisedRemoteCrew;
  */
+// Engine event name is supplied by the native caller scope; see Bohemia addEventHandler.
+#pragma hemtt ignore_variables ["_thisEvent"]
 params [["_mode","READ",[""]],["_vehicle",objNull,[objNull]],["_crew",grpNull,[grpNull]],["_data",[],[[]]]];
 _mode=toUpperANSI _mode;
 if (_mode == "READ" && {(_vehicle getVariable ["CBE_Cortex_MechRemoteManifest",[]]) isEqualTo []}) exitWith {[]};
@@ -17,27 +19,39 @@ if (isNull _vehicle || {!local _vehicle} || {isNull _crew} || {!local _crew}
     || {group driver _vehicle != _crew} || {group effectiveCommander _vehicle != _crew}
     || {[_crew] call CBE_fnc_CortexExternalTakeover}
     || {_mode == "RECEIVE" && {remoteExecutedOwner != 2}}
-    || {_mode != "RECEIVE" && {isRemoteExecuted}}) exitWith {[]};
+    || {_mode != "RECEIVE" && {isRemoteExecuted} && {isNil "_thisEvent" || {_thisEvent != "GetIn"}}}) exitWith {[]};
 private _context=[clientOwner,_crew getVariable ["CBE_AIPass_Epoch",-1],_crew,driver _vehicle,
     effectiveCommander _vehicle,[_crew] call CBE_fnc_NativeOrderReceipt];
 private _manifest=_vehicle getVariable ["CBE_Cortex_MechRemoteManifest",[]];
 private _valid=count _manifest == 4 && {(_manifest select 1) isEqualTo _context}
     && {serverTime < (_manifest select 2)} && {(_manifest select 2) <= serverTime+60};
 if (_mode == "OFFER") exitWith {
-    if (_valid) exitWith {true};
+    private _boarding=count _data == 1 && {(_data select 0) isEqualType objNull}
+        && {!isNil "_thisEventHandler"} && {!isNil "_thisEvent"} && {_thisEvent == "GetIn"};
+    if (_valid && {!_boarding}) exitWith {true};
     private _seats=fullCrew [_vehicle,"",false];
     if (count _seats > 64) exitWith {false};
-    private _groups=[];
+    private _groups=if (_valid && {_boarding}) then {(_manifest select 3) apply {
+        [_x select 0,_x select 1,+(_x select 2)]
+    }} else {[]};
     {
         private _person=_x select 0;private _group=group _person;private _role=_x select 1;
         if (alive _person && {!isPlayer _person} && {_group != _crew} && {!local _group}
             && {side _group == side _crew} && {_role == "cargo" || {_role == "turret" && {_x select 4}}}) then {
             private _index=_groups findIf {(_x select 0) == _group};
             if (_index < 0) then {_index=_groups pushBack [_group,groupOwner _group,[]]};
+            if (((_groups select _index) select 1) != groupOwner _group) then {
+                _groups set [_index,[_group,groupOwner _group,[]]];
+            };
             private _people=(_groups select _index) select 2;_people pushBackUnique _person;
         };
     } forEach _seats;
     if (_groups isEqualTo [] || {count _groups > 4} || {_groups findIf {count (_x select 2) > 16} >= 0}) exitWith {false};
+    if (_valid && {_boarding}) exitWith {
+        _manifest=+_manifest;_manifest set [3,_groups];
+        _vehicle setVariable ["CBE_Cortex_MechRemoteManifest",_manifest];
+        true
+    };
     private _serial=(_vehicle getVariable ["CBE_Cortex_MechRemoteSerial",0])+1;
     private _token=[clientOwner,_context select 1,_serial,"REMOTE"];
     _vehicle setVariable ["CBE_Cortex_MechRemoteSerial",_serial];
