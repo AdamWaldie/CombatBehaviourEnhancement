@@ -1542,5 +1542,44 @@
     "scope": "Seven selected decision branches traced to current actor/group executors; source-level mapping only. Individual indoor2-actor admission is distinct from whole-group CLEAR. No new runtime writer warranted by function-placement differences.",
     "physicalAcceptance": false,
     "wholeLAMBSParity": false
+  },
+  "staticFindSeatAuthority20261028": {
+    "base": "0a134fbdf866dcc5cb219887fdefe0d7b6266627",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "source": {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/GroupAction/fnc_doGroupStaticFind.sqf",
+      "sha256": "8cff7212a9714655acae6d4ff36f247ff35e14082e2856954b0cde33a85e2e13",
+      "readScope": "Complete readable main static-find helper; no whole deployment/packing or descendant review credit."
+    },
+    "registeredIntent": "Retain useful nearby-weapon manning through native boarding and one existing owner, improving mission authority over the source vacancy-only/random weapon selection.",
+    "finding": "Both the selected source helper and prior CBE discovery used physical empty gunner space without the separate native incoming assignment. CBE candidate/action/cleanup command lists also did not preserve explicit STOP. Existing native MOVE and medical/equipment ownership remain unchanged.",
+    "implementation": "Existing CortexStaticSupport uses fullCrew gunner+includeEmpty rows to require one unoccupied seat with no living assigned operator, at discovery and final commitment. First16 candidates from the existing75m native query bound new seat reads; a missing/multiple layout refuses. Recruitment excludes native STOP; active/CALM shared cleanup yields metadata without unassign/GetOut on STOP. Final native assignment, GetIn and existing lease publication run in one unscheduled block after actor task, original group route/epoch/operation, current feature and seat checks. Admission refusal uses existing3second retry without spending contact attempt; original20second boarding budget remains.",
+    "cost": "One additional assigned-seat read for each otherwise eligible candidate, capped16, plus a final seat read and two original/current native group-order receipts per opportunity discovery. Existing active lease does not add seat scans. Native nearestObjects query itself still returns its complete75m result before the inspected prefix. No recurring worker/handler, extra world query or forced seating.",
+    "disposition": "ADAPTED source nearest-ready nonleader/nearby static manning intent; RETAINED current CBE native boarding, contact attempt and existing deployment fallback; IMPROVED preservation of assigned incoming operator and explicit STOP; REJECTED source unconditional watch clear/addVehicle/forced deployment seating as part of this selection path.",
+    "verification": {
+      "red": ".qa/handovers/static-seat-authority-red-20261028.log:617existing tests, selected contract errors because old source lacks the seat predicate",
+      "focused": "617 existing operation checks PASS; final full protected-command list included in coherent full build",
+      "newTestCases": 0,
+      "fullTests": 1505,
+      "compiledSQF": 457,
+      "PBOs": 11,
+      "fullBuild": "PASS",
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/static-seat-authority-20261028-0a134fbd",
+      "fingerprint": "7a5e086990d2c0cf871732b3ba3101812b85ddd46902726586429be0e32e6b96",
+      "buildLog": ".qa/handovers/static-seat-authority-build-20261028.log",
+      "independentLog": ".qa/handovers/static-seat-authority-independent-20261028.log",
+      "sourceNote": "Unsigned development receipt base0a134fbdf866dcc5cb219887fdefe0d7b6266627 plus dirty source; engineering/handover metadata follows packaging. No clean-release or physical acceptance."
+    },
+    "productHashes": {
+      "addons/infantry/functions/cortexStaticSupport.sqf": "6bcea120f309736923447436551a00cb058bf5e65c9d9a87285d1f88f1294d7f"
+    },
+    "primaryEngineReference": "https://community.bistudio.com/wiki/fullCrew?useskin=darkvector",
+    "remaining": [
+      "Cross-host native assignment replication/atomic reservation and exact all-writer boarding cancellation remain incomplete; current checks do not solve these.",
+      "A deceased assigned operator is only replaceable while actual seat occupancy is empty; no corpse ejection is added. First16 candidate inspection may miss another weapon in a dense emplacement scene.",
+      "Lease epoch/native mission receipt throughout subsequent ACTIVE/cleanup is not expanded by this admission-only snapshot; existing late mission handback and same-value external order ambiguity remain.",
+      "Complete carried deployment/packing comparison, native assembly/seat flow, casualty/repeat/locality and measured5%median/10%p95 overhead remain unverified. Audits paused; no physical or whole LAMBS parity acceptance."
+    ]
   }
 }

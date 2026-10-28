@@ -1,7 +1,11 @@
 /*
  * Author: WaldoTheWarfighter
  * Native flight, hidden actors and simulation dormancy veto recruitment and native commands.
- * Recruitment also respects unresolved flight journals and existing native MOVE orders.
+ * Recruitment also respects unresolved flight journals and existing native MOVE/STOP orders.
+ * An empty gunner seat with a living incoming assignment is not available. Discovery inspects
+ * at most16 nearby static candidates; final unscheduled admission rechecks the original route,
+ * epoch/operation, actor command and seat before assignment/boarding/publication.
+ * A newer STOP yields cleanup without native unassign/GetOut writes.
  * Purpose: Give one otherwise uncommitted infantry actor a finite chance to occupy a nearby useful
  * empty static weapon during confirmed contact, without taking the squad's movement operation. If
  * no existing emplacement is available, delegates compatible carried weapon bags to the finite
@@ -43,7 +47,7 @@ private _release={
         private _command=toUpperANSI currentCommand _actor;
         private _ownedBoarding=_command == "GET IN" && {!isNull _weapon}
             && {assignedVehicle _actor == _weapon};
-        private _protectedTask=!_ownedBoarding && {_command in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]};
+        private _protectedTask=!_ownedBoarding && {_command in ["STOP","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]};
         private _actorMove=_actor getVariable ["CBE_Cortex_ActorMove",[]];
         private _newMove=count _actorMove == 3 && {(_actorMove param [2,-1,[0]]) > time}
             && {(_actorMove select 0) != "STATIC_SUPPORT" || {(_actorMove select 2) != (_lease select 4)}};
@@ -99,7 +103,7 @@ if (count _lease >= 7) exitWith {
     };
     if (_operationConflict || {!isNull _actor && {fleeing _actor || {!simulationEnabled _actor} || {isObjectHidden _actor}}}
         || {!isNull _actor && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}}
-        || {!isNull _actor && {currentCommand _actor in ["GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED"]}}) exitWith {
+        || {!isNull _actor && {currentCommand _actor in ["STOP","GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED"]}}) exitWith {
         [true] call _release;
         "YIELDED"
     };
@@ -144,13 +148,30 @@ if (count _retry == 2 && {(_retry select 0) == _episode} && {time < (_retry sele
 private _anchor=[_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _anchor) then {_anchor=leader _group};
 if (isNull _anchor) exitWith {"IDLE"};
+// Preserve a native incoming gunner even before that actor reaches the weapon.
+// Native fullCrew includes the assignment separately from actual seat occupancy.
+private _seatAvailable={
+    params ["_weapon"];
+    private _seats=fullCrew [_weapon,"gunner",true];
+    count _seats == 1 && {
+        private _row=_seats select 0;
+        count _row >= 6 && {isNull (_row select 0)} && {
+            private _incoming=_row select 5;
+            isNull _incoming || {!alive _incoming}
+        }
+    }
+};
+private _orderReceipt=[_group] call CBE_fnc_NativeOrderReceipt;
+private _admissionEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _admissionGeneration=_group getVariable ["CBE_OperationGeneration",0];
 private _sideIndex=switch (side _group) do {case west:{1}; case east:{0}; case independent:{2}; default {3}};
-private _weapons=(nearestObjects [_anchor,["StaticWeapon"],75,true]) select {
+private _weapons=((nearestObjects [_anchor,["StaticWeapon"],75,true]) select [0,16]) select {
     // canFire requires an operator and cannot qualify an empty emplacement.
     alive _x && {simulationEnabled _x} && {!isObjectHidden _x} && {damage _x < 0.9} && {someAmmo _x}
         && {_x emptyPositions "gunner" > 0}
         && {crew _x isEqualTo []} && {locked _x < 2}
         && {getNumber (configOf _x >> "side") in [_sideIndex,3]}
+        && {[_x] call _seatAvailable}
 };
 if (_weapons isEqualTo []) exitWith {
     private _deploy=[_group,_state,_enemies] call CBE_fnc_CortexStaticDeployStep;
@@ -177,7 +198,7 @@ private _candidates=(units _group) select {
         // Native contact commands such as TARGET and WATCH are transient observations, not an
         // external movement owner. Reject only concrete actor tasks which boarding would actually
         // interrupt; the group-level Zeus/mission-order gate above already protects authored work.
-        && {!(toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+        && {!(toUpperANSI (currentCommand _x) in ["STOP","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
         && {currentCommand _x != "MOVE"}
@@ -199,10 +220,41 @@ private _rankedActors=_candidates apply {[_x distance2D _weapon,_x]};
 _rankedActors sort true;
 private _actor=(_rankedActors select 0) select 1;
 private _deadline=time+20;
-_actor assignAsGunner _weapon;
-[_actor] orderGetIn true;
-_actor setVariable ["CBE_Cortex_ActorMove",["STATIC_SUPPORT",getPosATL _weapon,_deadline]];
-_lease=[_episode,_actor,_weapon,time,_deadline,"MOVING",getPosATL _actor];
-_group setVariable ["CBE_Danger_StaticSupport",_lease,true];
-_group setVariable ["CBE_Danger_StaticAttempt",[_episode,"MOVING",serverTime],true];
+private _commandReceipt=currentCommand _actor;
+private _issued=false;
+isNil {
+    if (!local _group || {!local _actor} || {group _actor != _group}
+        || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {isPlayer _actor}
+        || {!simulationEnabled _actor} || {isObjectHidden _actor} || {fleeing _actor}
+        || {currentCommand _actor != _commandReceipt}
+        || {_commandReceipt in ["MOVE","STOP","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
+            "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+        || {!isNull assignedVehicle _actor} || {!isNull objectParent _actor}
+        || {[_actor] call CBE_fnc_CortexActorMoveReserved}
+        || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+        || {[_actor] call CBE_fnc_CompatibilityExternalControl}
+        || {[_group] call CBE_fnc_CortexExternalTakeover}
+        || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+        || {!([_group,"CBE_AIPass_StaticSupport_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+        || {_admissionEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+        || {_admissionGeneration != (_group getVariable ["CBE_OperationGeneration",0])}
+        || {_orderReceipt isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
+        || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
+        || {(_state getOrDefault ["phase",""]) != "CONTACT"}
+        || {(_state getOrDefault ["phaseStart",-1]) != _episode}
+        || {!alive _weapon} || {!simulationEnabled _weapon} || {isObjectHidden _weapon}
+        || {crew _weapon isNotEqualTo []} || {locked _weapon >= 2}
+        || {!([_weapon] call _seatAvailable)}) exitWith {};
+    _actor assignAsGunner _weapon;
+    [_actor] orderGetIn true;
+    _actor setVariable ["CBE_Cortex_ActorMove",["STATIC_SUPPORT",getPosATL _weapon,_deadline]];
+    _lease=[_episode,_actor,_weapon,time,_deadline,"MOVING",getPosATL _actor];
+    _group setVariable ["CBE_Danger_StaticSupport",_lease,true];
+    _group setVariable ["CBE_Danger_StaticAttempt",[_episode,"MOVING",serverTime],true];
+    _issued=true;
+};
+if (!_issued) exitWith {
+    _group setVariable ["CBE_Danger_StaticRetry",[_episode,time+3]];
+    "IDLE"
+};
 "MOVING"

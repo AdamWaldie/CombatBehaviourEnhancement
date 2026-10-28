@@ -1698,6 +1698,29 @@ class CortexOperations(unittest.TestCase):
         for marker in ('fleeing _actor','simulationEnabled _actor','isObjectHidden _actor'):
             self.assertIn(marker,active)
             self.assertIn(marker,release)
+        # Physical vacancy is insufficient when a living incoming operator owns
+        # the gunner assignment; unknown/multiple gunner layouts also refuse.
+        def free(rows):
+            return len(rows)==1 and rows[0][0] is None and rows[0][1] in (None,'dead')
+        self.assertTrue(free([(None,None)]))
+        self.assertTrue(free([(None,'dead')]))
+        self.assertFalse(free([(None,'living')]))
+        self.assertFalse(free([('occupied',None)]))
+        self.assertFalse(free([]))
+        self.assertFalse(free([(None,None),(None,None)]))
+        seat=support.split('private _seatAvailable=',1)[1].split('private _sideIndex=',1)[0]
+        self.assertIn('fullCrew [_weapon,"gunner",true]',seat)
+        self.assertIn('count _seats == 1',seat)
+        self.assertIn('_row select 5',seat)
+        self.assertIn('!alive _incoming',seat)
+        self.assertIn('select [0,16]',support)
+        self.assertIn('"STOP"',admission)
+        self.assertIn('"STOP"',active)
+        self.assertIn('"STOP"',release)
+        commit=support.split('private _issued=false;',1)[1]
+        self.assertIn('isNil {',commit)
+        self.assertLess(commit.index('call _seatAvailable'),commit.index('assignAsGunner'))
+        self.assertIn('CBE_fnc_NativeOrderReceipt',commit)
         self.assertNotIn('moveInGunner',support)
         self.assertNotIn('setPos',support)
         self.assertNotIn('allowDamage',support)

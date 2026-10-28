@@ -2358,3 +2358,12 @@ Finite hull geometry retains the existing projection, spacing, crossing predicti
 Exterior cover selection preserves its existing ranked primary posts. If none qualifies, it may sample two lateral alternatives nominally2.25m either side of a primary post. The search still considers at most ten ranked objects and now checks at most sixteen posts in total. A successful primary search performs no alternate-post validation. Lateral spacing accounts for object scale; terrain projection and engine geometry still determine the actual position.
 
 Each post independently passes the same search radius, water, reservations, occupancy, footprint, roof, slope, standing-space and threat-screening policy. Cover and visual concealment remain distinct. A reserved central post therefore need not discard all useful space behind the same long wall. Existing validation settings retain their meaning. The selector returns a position only; callers keep their own formation-slot limits, route checks, native pathfinding and task ownership. This adds no movement/stance command, reservation, handler or recurring job. Failed searches can do more bounded geometry work than before. Physical movement, cover effectiveness, squad flow and measured cost remain unverified.
+
+
+### Existing emplacement recruitment authority
+
+Nearby static support inspects at most the first sixteen static candidates returned by its existing75m discovery. Physical vacancy alone does not make a gunner seat available: a living incoming assigned operator reserves it. Missing or ambiguous gunner layouts refuse recruitment. A deceased assignment can be replaced only while the actual seat is empty and all other existing checks pass.
+
+Native STOP orders exclude recruitment. Final boarding admission runs unscheduled and rechecks current actor task, group owner epoch/operation, the original mission route, feature control and live seat assignment before issuing the existing native assignment/GetIn pair and publishing its lease. A temporary admission refusal backs off three seconds without spending the contact attempt. A STOP observed during active work or cleanup yields without unassign/GetOut commands. No forced seating, new controller or new deadline is introduced.
+
+These are current-owner checks, not cross-host seat arbitration. Assignment replication can lag; CBE does not claim an atomic reservation across owners. Yielding does not prove cancellation of an earlier native GetIn command. Physical boarding, new orders, repeated contact, locality transfer and cost remain unverified.
