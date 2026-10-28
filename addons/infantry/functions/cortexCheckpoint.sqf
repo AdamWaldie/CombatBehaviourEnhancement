@@ -3,6 +3,7 @@
  * Ground-element scope and original roster accompany standalone drill intent; migration must
  * not widen a landed infantry element into its whole mixed crew/passenger group.
  * Coordinated checkpoints retain exact acknowledged MOVE observations and original progress clocks, without replay authority.
+ * Loose legacy attack flags are not transported; common operations retain their typed policy.
  * Publishes restoration data and bounded post-contact movement intent after an unscheduled AI job.
  * A missing or stale public phase is repaired through CortexSetPhase with an explicit continuity
  * record; the checkpoint never changes observable phase state outside the common transition path.
@@ -25,7 +26,7 @@ private _saved = [];
         if (_value isEqualType []) then {_value = _value apply {if (_x isEqualType []) then {+_x} else {_x}}};
         _saved pushBack [_x, _value];
     };
-} forEach ["supportHeld", "supportAuthoredOrder", "supportAuthoredRevoked", "supportAuthoredRevokedToken", "baseAttack", "attackChanged", "retreatCombatMode", "retreatSpeedMode", "baseBehaviour", "behaviourChanged", "hadContact", "baseSpeed", "speedChanged", "searchTeam", "searchMoveReceipts", "holders", "holderRecallReceipts", "dismounted"];
+} forEach ["supportHeld", "supportAuthoredOrder", "supportAuthoredRevoked", "supportAuthoredRevokedToken", "retreatCombatMode", "retreatSpeedMode", "baseBehaviour", "behaviourChanged", "hadContact", "baseSpeed", "speedChanged", "searchTeam", "searchMoveReceipts", "holders", "holderRecallReceipts", "dismounted"];
 private _retreatSpeedLease=_state getOrDefault ["retreatSpeedMode",[]];
 if (count _retreatSpeedLease == 2) then {_saved pushBack ["restoreGroupSpeedMode",+_retreatSpeedLease]};
 private _drill = _state getOrDefault ["drill", createHashMap];

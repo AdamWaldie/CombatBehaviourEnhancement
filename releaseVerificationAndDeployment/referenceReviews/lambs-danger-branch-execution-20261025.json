@@ -2145,5 +2145,26 @@
     "candidate": ".qa/candidates/leader-active-successor-20261028-2e1894ce",
     "fingerprint": "c32d95950ad686345321f9cf30c3a466de5437a6dd6c024dc84608aeb916cfcd",
     "provenance": "2e1894ce0732c182533bef031c056fa9893ffce6 plus dirty runtime; metadata finalized afterward. Unsigned development, not physical acceptance."
+  },
+  "holdAttackCleanup20261028": {
+    "base": "031416b1856486f2cba78a3cf812e969a0bb8fd5",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "registeredScope": "groupAssessHoldReview20261026 and tacticsHold source queue; native group attack-permission ownership across finite support, drill and CALM cleanup.",
+    "sourceWitness": {
+      ".qa/lambs-danger-installed-20261026/functions/fnc_tacticsHold.sqf": "3da8e86db4c590253d57cfedf2f46fcf23377c80bccca0fcd1f17eb005ec4570"
+    },
+    "sourceIntent": "tacticsHold schedules a delayed attackEnabled baseline restore, may hide damaged/suppressed idle troops through doGroupHide, randomises formDir without enemy and disables autonomous attack. Source delayed restore has no episode/owner/native-value acknowledgement. Existing CBE stationary HOLD/SENTRY, cover and fire paths remain separately owned; no duplicate hold timer is required.",
+    "finding": "CBE has no remaining producer of loose state attackChanged/baseAttack, yet SupportMaintain, FlankEnd and RestoreCalm still restored native permission from these keys with a default true baseline. CortexCheckpoint transported them. Such legacy/stale claims could issue an untyped permission change after the proper OperationRestore declined or completed; no missing first-release compatibility requirement justifies retaining this second writer. This is a source-level latent ownership defect, not a demonstrated audit failure.",
+    "implementation": "Remove the three fallback native enableAttack writes and obsolete checkpoint transport. Support and drill still release/cancel their original common operation; existing OperationAttackPolicy/OperationRestore retain typed baseline/applied boolean, current operation/epoch, actual native value, external-owner refusal and unresolved restoration observation. CALM never grants itself a separate attack restore right. Obsolete keys may be forgotten during cleanup but cannot issue a command. Genuine building-job baseAttack and aircraft-specific permission receipts are distinct and unchanged.",
+    "preserved": "Normal support/drill/CALM movement, matching holders, feature gates, mission/Zeus/medical/specialist priority, authored settings, group membership, native firing and common operation attack lifecycle. No new setting, timer, worker, scan or baseline acquisition.",
+    "checks": ".qa/handovers/attack-legacy-retirement-focused-final-20261028.log:617 existing checks PASS; .qa/handovers/attack-legacy-retirement-policy-20261028.log:5 existing policy checks PASS. Existing source contracts now reject fallback writers/transport and retain typed restoration/owner checks. Earlier focused log retained one stale removed-helper-position assertion; corrected to existing release boundary without weakening ownership. No new test cases.",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "performance": "NOT_MEASURED",
+    "remaining": "Actual contact/hold/support/drill interruption, native permission handback, normal/HC/Zeus migration and measured effects remain unverified. Full CQB/provider handover and source descendants are not closed by this cleanup.",
+    "fullBuild": ".qa/handovers/attack-legacy-retirement-build-20261028.log:1505 existing tests/460 SQF/11 PBO complete local pipeline PASS; session95620 exit0.",
+    "independent": ".qa/handovers/attack-legacy-retirement-independent-20261028.log:PASS",
+    "candidate": ".qa/candidates/attack-legacy-retirement-20261028-031416b1",
+    "fingerprint": "96888d88bf93d17d7be769e9d985aa99728302a2bc7cd9726ae389146d1a76e7",
+    "provenance": "031416b1856486f2cba78a3cf812e969a0bb8fd5 plus dirty runtime; metadata finalized after build. Unsigned development, not physical acceptance."
   }
 }

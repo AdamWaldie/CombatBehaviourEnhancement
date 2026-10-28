@@ -9,6 +9,7 @@
  * Named ordinary post-contact restoration preserves only an exact finite deferred static pack;
  * explicit release/disable/external/locality teardown still retires it without native fire theft.
  * Remount cleanup preserves a newer vehicle assignment from Zeus or another controller.
+ * Attack permission is restored only by its common operation owner, never loose state flags.
  * Returns a group to CALM and releases the engagement controls it still owns.
  * Group behaviour/combat/speed restoration shares one atomic native-task footprint gate.
  * Blocked or unconfirmed pairs survive in the latest CalmPolicyUnresolved evidence receipt;
@@ -148,9 +149,8 @@ if (count _supportLease == 6 && {(_state getOrDefault ["supportToken",""]) == (_
 private _movementOwner=(_state getOrDefault ["movementLease",[]]) param [0,""];
 if (_movementOwner != "") then {[_group,_movementOwner,false] call CBE_fnc_CortexOwnershipLease};
 {_state deleteAt _x} forEach ["supportHeld","supportBoundSequence","supportToken","responding","assaulting","respondingTo","respondUntil"];
-// Zeus may deliberately replace Cortex's disabled autonomous-attack state while taking over.
-// The external handover owns that setting, just as it owns replacement movement and ROE.
-if (!_yieldToExternal && {_state getOrDefault ["attackChanged",false]}) then {_group enableAttack (_state getOrDefault ["baseAttack",true])};
+// Native attack permission belongs to the common operation's typed receipt.
+// Loose legacy state flags cannot restore it or supply a default mission baseline.
 private _retreatModeLease = _state getOrDefault ["retreatCombatMode",[]];
 // The three group policy components restore together below, before remount admission.
 // Search movement never disables PATH. Do not enable a mission-disabled feature while

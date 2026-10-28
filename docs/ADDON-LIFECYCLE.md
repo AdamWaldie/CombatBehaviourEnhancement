@@ -2449,3 +2449,14 @@ rank wins; equal ranks keep roster order. Hidden or dormant soldiers keep their 
 and cannot displace an active survivor solely through rank. If none qualify, leader-dependent
 tactics wait. Healthy incumbent leadership is unchanged. Actual succession, locality settling
 and tactical effects remain unverified while audits are paused.
+
+
+## One owner for autonomous attack permission
+
+Finite operation attack restrictions restore through the common operation receipt: the
+original and applied permissions must be known, the operation and local owner must still
+match, and the current native value must equal the applied value. Support, drill and CALM
+cleanup do not infer permission from legacy flags or a default baseline. Checkpoints no
+longer transport those flags. A refused restore cannot be overridden by a second cleanup
+writer. Existing building-task and flight-specific permission receipts remain distinct.
+Native handback and measured performance remain unverified while audits are paused.

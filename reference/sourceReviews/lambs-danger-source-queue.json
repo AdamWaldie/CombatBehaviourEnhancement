@@ -156,8 +156,8 @@
       "path": "functions/fnc_tacticsHold.sqf",
       "sha256": "3da8e86db4c590253d57cfedf2f46fcf23377c80bccca0fcd1f17eb005ec4570",
       "area": "Tactical group layer",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected assessment mapping, execution descendants open",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable hold body reconciled in groupAssessHoldReview20261026 and holdAttackCleanup20261028; downstream/physical parity separate",
+      "next": "Keep existing stationary defence/fire and common typed attack-policy ownership. No duplicate source hold timer, random formDir or unbound baseline restore. Three legacy CBE restore writers/checkpoint flags removed; physical hold/interruption and downstream hide/callout quality remain unverified."
     },
     {
       "path": "functions/fnc_tacticsProfiles.sqf",

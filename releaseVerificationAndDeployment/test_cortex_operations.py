@@ -6872,14 +6872,15 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('set ["baseAttack",attackEnabled _group]',apply)
         self.assertNotIn('enableAttack false',source('cortexSupportBoundStart'))
         maintain=source('cortexSupportMaintain')
-        self.assertEqual(1, maintain.count('call _restoreAttack;'))
+        self.assertNotIn('call _restoreAttack;',maintain)
         # Support release has distinct lease, feature and ownership-transition paths.  Do not
         # couple this preservation check to their exact count as finite-operation cleanup adds
         # valid cancellation reasons without changing group attack ownership.
         self.assertGreaterEqual(maintain.count('call _releaseSupport;'),2)
-        self.assertIn('enableAttack (_state getOrDefault ["baseAttack",true])', maintain)
-        self.assertIn('"baseAttack", "attackChanged"', source('cortexCheckpoint'))
-        self.assertIn('enableAttack (_state getOrDefault ["baseAttack",true])', source('cortexRestoreCalm'))
+        self.assertNotIn('_group enableAttack',maintain)
+        self.assertNotIn('"baseAttack"',source('cortexCheckpoint'))
+        self.assertNotIn('"attackChanged"',source('cortexCheckpoint'))
+        self.assertNotIn('_group enableAttack',source('cortexRestoreCalm'))
 
     def test_support_reservation_requires_a_shared_executable_mode(self):
         server=source('cortexSupportServer')
@@ -6899,9 +6900,15 @@ class CortexOperations(unittest.TestCase):
     def test_zeus_handover_preserves_replacement_attack_setting(self):
         restore=source('cortexRestoreCalm')
         flank_end=source('cortexFlankEnd')
-        self.assertIn('if (!_yieldToExternal && {_state getOrDefault ["attackChanged",false]})',restore)
+        self.assertNotIn('_group enableAttack',restore)
         self.assertIn('!(_reason in ["ZEUS","OWNERSHIP_LOST","ROLE_HANDOVER"])',flank_end)
-        self.assertIn('if (_mayCommand && {_state getOrDefault ["attackChanged",false]})',flank_end)
+        self.assertNotIn('_group enableAttack',flank_end)
+        policy=source('operationRestore')
+        for proof in ('_current isNotEqualTo _operation','(_attack select 0) isEqualType true',
+                      '(_attack select 1) isEqualType true','attackEnabled _anchor != (_attack select 1)'):
+            self.assertIn(proof,policy)
+        self.assertIn('call CBE_fnc_OperationRelease',flank_end)
+        self.assertIn('call CBE_fnc_OperationCancel',flank_end)
 
     def test_zeus_takeover_releases_explicit_orders_without_waypoint(self):
         text=source('cortexGroupTick').split('if (!_generallyEligible)')[1].split('// Survivor regroup')[0]
@@ -9153,8 +9160,9 @@ class CortexOperations(unittest.TestCase):
         maintain=source('cortexSupportMaintain')
         self.assertIn('private _externalTakeover = [_group] call CBE_fnc_CortexExternalTakeover;',maintain)
         self.assertIn('private _mayRestoreGroup=!_externalTakeover && {!_authoredReplaced};',maintain)
-        self.assertIn('if (_mayRestoreGroup && {_state getOrDefault ["attackChanged",false]})',maintain)
-        self.assertLess(maintain.index('private _mayRestoreGroup='),maintain.index('private _restoreAttack='))
+        self.assertNotIn('_group enableAttack',maintain)
+        self.assertIn('call CBE_fnc_OperationCancel',maintain)
+        self.assertLess(maintain.index('private _mayRestoreGroup='),maintain.index('private _releaseSupport='))
 
     def test_coordinated_support_exits_before_a_late_external_owner_can_start_or_hold(self):
         """A support callback must retire before allocating a bound or taking PATH from a new owner."""

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native attack restoration belongs only to the common operation receipt, never loose flags.
  * Legacy PATH handback requires the actual marker; modern holder lists grant no PATH or recall authority.
  * Cover STOP and native recalls yield to queued care and dormant actors. Exact hold
  * bookkeeping/restoration stays separate; treatment queues and original deadlines never change.
@@ -115,10 +116,6 @@ private _finishOperation={
         };
     };
     _state deleteAt "supportOperationGeneration";
-};
-private _restoreAttack={
-    if (_mayRestoreGroup && {_state getOrDefault ["attackChanged",false]}) then {_group enableAttack (_state getOrDefault ["baseAttack",true])};
-    _state deleteAt "attackChanged"; _state deleteAt "baseAttack";
 };
 private _lease = _group getVariable ["CBE_AIPass_SupportLease",[]];
 private _requester = _lease param [1,grpNull,[grpNull]];
@@ -244,7 +241,8 @@ private _releaseSupport={
     if (_supportOwnsMovement) then {_state deleteAt "movementLease"};
     ["CANCELLED",_reason] call _finishOperation;
     [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
-    call _restoreAttack;
+    // Forget obsolete flags; only _finishOperation may restore typed native attack policy.
+    _state deleteAt "attackChanged"; _state deleteAt "baseAttack";
     {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting","supportBoundSettling","supportHoldAdoption","supportNativeMoves","supportCapacityRole","supportCapacityNextAt"];
 };
 // Engagement teardown requests release only; it must never consume a fresh role or start a bound.

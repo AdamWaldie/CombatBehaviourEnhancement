@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * ADMISSION observations grant no actor recall/hold authority; exact settings restoration is separate.
+ * Loose legacy attack flags never authorize permission restoration.
  * Group policy restoration respects native tasks; unresolved pairs are historical evidence only.
  * Native STOP cleanup requires a matching current-drill HOLD receipt; MOVE cleanup requires
  * the actual requested destination. Unknown/changed tasks remain untouched. Restoring owned
@@ -262,7 +263,7 @@ if !(call _stillEnding) exitWith {};
 if (_supportToken != "") then {
     _group setVariable ["CBE_Cortex_SupportBoundResult",[_supportToken,_drill get "supportSequence",_reason],true];
 } else {
-    if (_mayCommand && {_state getOrDefault ["attackChanged",false]}) then {_group enableAttack (_state getOrDefault ["baseAttack",true])};
+    // OperationRelease/Cancel below owns typed attack-policy restoration.
     _state deleteAt "attackChanged";
     _state deleteAt "baseAttack";
 };
