@@ -2004,5 +2004,40 @@
     "audits": "PAUSED",
     "physicalAcceptance": false,
     "implementationDelta": "NONE_METADATA_ONLY"
+  },
+  "nearTerrainSuppression20261028": {
+    "base": "751301c30729cd11bc71b43a6a170ae9a6941412",
+    "scope": "Selected suppression geometry primitive and its existing infantry/mounted bullet callers; independent CBE evolution, not missing LAMBS parity or whole-source delivery.",
+    "sourceWitnesses": {
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_shouldSuppressPosition.sqf": "e7e079849262c11b66a2eb430cd61981e8090d55dff8b94d6065b5f62140c824",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doSuppress.sqf": "3eeb2ab99ff564aab61ec691d9b3c93841a55a3e242a9f7c9357c056f682f9c7",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/GroupAction/fnc_doGroupSuppress.sqf": "8a4cf075f291c6c12d1c76fda655e1446404ef85c2a3bd9449e490e1a16f0417"
+    },
+    "installedMainPboSHA256": "be8e6950b6b0f1541acf5e8d1a46c0566daa365662533ae3ee57d3079db21970",
+    "sourceVerification": "Three readable files match preserved member manifest; installed original PBO matches manifest. No source originals modified.",
+    "sourceExecution": "shouldSuppressPosition permits terrain or cached blocking models close to the target and has an optional reverse check. Full doSuppress caller nevertheless vetoes terrain before that helper, caps at200m, adjusts first VIEW face and issues native suppression. doGroupSuppress recursively reuses that caller and moves failed actors forward. A permissive helper alone does not establish source end-to-end terrain suppression.",
+    "currentFinding": "CBE SuppressionAim rejected any terrain intersection before inspecting its nearest surface, then excluded null-object terrain from the3m near-belief allowance. This unnecessarily rejects a narrow crest/earth-cover face even when close to an existing believed suppression point. Actual gameplay failure is unverified.",
+    "implementation": "Use the existing single closest FIRE/GEOM surface result for either terrain or objects. Only a hit within3m in3D of the unchanged belief qualifies; aim0.05m before it. Preserve original minimum distance both before query and after face adjustment. Refuse beyond5000m native query limit rather than interpreting absent over-range results as clear. No reveal/object-pose read, movement, timer, cache, worker, task/module/setting or native firing-writer changes.",
+    "ownerTrace": "CortexFireControl -> SuppressionAim -> actual-point LineOfFireClear -> ActorFireTaskAvailable -> original doSuppressiveFire. Existing loaded primary/reserve/readiness/ROE and max3 geometry probes remain. CortexVehicles -> station suppression readiness -> SuppressionAim(min50) -> actual-point LineOfFireClear -> existing station/owner/native-command path. Mounted suppression remains nonexplosive shotBullet. Direct-fire targeting and IndoorActorNodeSelect/FiringPositionOperation lane policies are not loosened.",
+    "cost": "At most one existing nearest surface query per helper call; removes the separate boolean terrain query. Existing bounded caller probe counts/cadences unchanged. Query cost/frame-time improvement is not measured.",
+    "officialContract": "https://community.bistudio.com/wiki/lineIntersectsSurfaces: terrain returned as null intersect/parent object, nearest sorting and5000m native maximum. Checked2026-10-28.",
+    "verification": {
+      "red": ".qa/handovers/suppression-terrain-red-20261028.log:617 existing checks,1 selected regression failure on old source.",
+      "focused": ".qa/handovers/suppression-terrain-focused-20261028.log:617 existing checks PASS before simplifying duplicate geometry-model rows; full batch checks follow.",
+      "newTestCases": 0,
+      "physical": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_RUN",
+      "fullBuild": ".qa/handovers/suppression-terrain-build-20261028.log:1505 existing tests,459 compiled production SQF,11 PBO,complete local gates PASS. Session32112 terminal exit0.",
+      "independent": ".qa/handovers/suppression-terrain-independent-20261028.log:PASS",
+      "candidate": ".qa/candidates/suppression-terrain-20261028-751301c3",
+      "fingerprint": "94f303aed6fd8ed1c8b5d4a52f4748966bba5c7bda01dcb3b39bce219f74275d",
+      "provenance": "751301c30729cd11bc71b43a6a170ae9a6941412 plus dirty runtime; later engineering/handover metadata only. Unsigned development, not a signed clean release or physical acceptance."
+    },
+    "remaining": "Sparse eye-to-belief ray and3m face do not prove native fire, suppression effect, correct ballistics/penetration, crest geometry, casualty safety after movement or tactical balance. Range and near-face classification require later normal/HC runtime checks. No parity/build-out percentage raised.",
+    "productHashes": {
+      "addons/infantry/functions/cortexSuppressionAim.sqf": "dee1de97f01c6f43fb3cb33c4be95224e7d09c591653a26ee5cf7c087c272940",
+      "addons/core/functions/cortexFireControl.sqf": "d3a96de261b55cb260811cd558169b5d794cc88d8169733463ddf685bd7b7c50",
+      "addons/vehicles/functions/cortexVehicles.sqf": "60e6f534d5faaed91fbab87395f4a08065bbc45731864fec2ec4eee5c2538215"
+    }
   }
 }

@@ -8439,13 +8439,29 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(marker,suppression)
         self.assertNotIn('doMove',suppression)
         geometry=source('cortexSuppressionAim')
-        for marker in ('terrainIntersectASL','true,1,"FIRE","GEOM"',
+        for marker in ('_range > 5000','true,1,"FIRE","GEOM"',
                        '_surface vectorDistance _targetASL <= 3',
                        '_from vectorDistance _aimASL < _minimum','_platform=vehicle _shooter'):
             self.assertIn(marker,geometry)
-        self.assertLess(geometry.index('(_from vectorDistance _targetASL) < _minimum'),
+        self.assertLess(geometry.index('_range < _minimum'),
                         geometry.index('lineIntersectsSurfaces'))
         self.assertEqual(geometry.count('lineIntersectsSurfaces'),1)
+        self.assertNotIn('terrainIntersectASL',geometry)
+        self.assertNotIn('!isNull (_hit select 2)',geometry)
+        # The near-face envelope is spatial, independent of terrain/object identity.
+        # An unrelated foreground surface must not qualify just because its XY is near.
+        import math
+        target=(100,0,1)
+        def permitted(surface,minimum=20):
+            return math.dist(surface,target)<=3 and math.dist((0,0,1),surface)>=minimum
+        for surface,valid in (((98,0,1),True),((97,0,1),True),((96.9,0,1),False),
+                              ((100,0,4.1),False),((15,0,1),False)):
+            with self.subTest(surface=surface):
+                self.assertEqual(permitted(surface),valid)
+        direction=(1,0,0);surface=(98,0,1)
+        aim=tuple(p-d*0.05 for p,d in zip(surface,direction))
+        self.assertLess(aim[0],surface[0])
+        self.assertGreaterEqual(math.dist((0,0,1),aim),20)
         for belief,face,allowed in ((30,29,True),(30,19,False),(19,19,False),(20,20,True)):
             self.assertEqual(belief>=20 and face>=20,allowed)
 
