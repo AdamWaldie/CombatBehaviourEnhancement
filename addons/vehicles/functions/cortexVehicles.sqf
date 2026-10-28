@@ -1044,31 +1044,35 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             };
             };
         };
-        // One support bound for this platform's recorded CBE dismounts. Urgent AT
+        // Finite support bounds for this platform's recorded CBE dismounts. Urgent AT
         // withdrawal/post-shot cover and existing coordinated roles retain priority.
         // Admission advances the operation generation, consuming this original dismount
-        // receipt for outward planning; a polling tick cannot start another bound from it.
+        // receipt for initial planning. Follow-on legs need a completed native handback and real troop displacement.
         if (!_movementOwned && {_atIndex < 0} && {!_postShotMove}
             && {_state getOrDefault ["phase",""] == "CONTACT"}
             && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo []}
             && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
             && {count (_group getVariable ["CBE_Cortex_DismountContinuation",[]]) == 4
                 || {(_vehicle getVariable ["CBE_Cortex_MechCargo",[]]) isNotEqualTo []}
-                || {(_vehicle getVariable ["CBE_Cortex_MechRemoteManifest",[]]) isNotEqualTo []}}
+                || {(_vehicle getVariable ["CBE_Cortex_MechRemoteManifest",[]]) isNotEqualTo []}
+                || {((_vehicle getVariable ["CBE_VehicleTacticalMove_Work",createHashMap]) getOrDefault ["kind",""]) == "MECH_SUPPORT"}}
             && {serverTime >= (_vehicle getVariable ["CBE_Cortex_MechSupportDue",0])}
             && {[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable}) then {
             _vehicle setVariable ["CBE_Cortex_MechSupportDue",serverTime+8];
             private _supportContact=_enemies findIf {(_x select 2) <= 10 && {!((_x select 0) isKindOf "Air")}};
             if (_supportContact >= 0) then {
                 private _supportEnemy=_enemies select _supportContact;
+                private _continuation=[_group,_vehicle] call CBE_fnc_CortexMechanisedContinue;
+                private _originalContext=if (_continuation isEqualTo []) then {[]} else {_continuation select 0};
                 private _supportPlan=[_group,_vehicle,[_supportEnemy select 0,+(_supportEnemy select 1),
-                    serverTime-(_supportEnemy select 2)]] call CBE_fnc_CortexMechanisedSupport;
+                    serverTime-(_supportEnemy select 2)],_originalContext] call CBE_fnc_CortexMechanisedSupport;
                 isNil {
                     if (count _supportPlan == 3 && {[] call _mayIssueVehicle}
                         && {!_movementOwned} && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
                         && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo []}
                         && {[_group,"VEHICLE_STANDOFF",true,_supportPlan select 1] call CBE_fnc_CortexOwnershipLease}) then {
-                        private _supportOperation=[_group,"VEHICLE_STANDOFF",_supportEnemy select 0,
+                        private _supportTarget=((_supportPlan select 2) select 1) select 0;
+                        private _supportOperation=[_group,"VEHICLE_STANDOFF",_supportTarget,
                             _standoffSeats arrayIntersect _standoffSeats,[_supportPlan select 0],"MOVING"] call CBE_fnc_OperationStart;
                         private _supportAccepted=false;
                         if (count _supportOperation > 0) then {

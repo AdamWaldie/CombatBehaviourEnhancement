@@ -8701,7 +8701,7 @@ class CortexOperations(unittest.TestCase):
         start=source('vehicleTacticalMoveStart')
         step=source('vehicleTacticalMoveStep')
         retire=source('vehicleTacticalMoveRetire')
-        standoff=vehicles.split('private _standoffSeats=',1)[1].split('// One support bound',1)[0]
+        standoff=vehicles.split('private _standoffSeats=',1)[1].split('// Finite support bounds',1)[0]
         self.assertIn('call CBE_fnc_VehicleTacticalMoveStart',standoff)
         shot=source('vehicleArmourShot')
         for proof in ('addEventHandler ["Fired"','_thisEventHandler','getShotParents',
@@ -12194,7 +12194,7 @@ class CortexOperations(unittest.TestCase):
                       'CBE_AIPass_Garrison', 'CBE_AIPass_Defend', 'CBE_AIPass_ClearBuilding',
                       'combatMode _group in ["BLUE","GREEN"]', '["HOLD","SENTRY"]',
                       'CBE_OperationGeneration', '!(leader _group in _foot)',
-                      'formLeader _x in _operators', '!_checking || {_liveProof isNotEqualTo []}',
+                      'formLeader _x in _operators', '!_retained || {_liveProof isNotEqualTo []}',
                       '(_observedAt+30)', 'private _centreASL=', 'vectorDistance (_context select 2) > 15',
                       '[0,-30,30,-60,60]', 'CBE_fnc_DrivingHullInterval',
                       'CBE_fnc_CortexSelectAvenue', '_rear < -10', 'lineIntersects',
@@ -12216,7 +12216,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_CortexMechanisedSupport',support)
         self.assertNotIn('set ["goal"',support)
         vehicles=source('cortexVehicles')
-        bound=vehicles.split('// One support bound',1)[1].split('private _gunner = gunner _vehicle;',1)[0]
+        bound=vehicles.split('// Finite support bounds',1)[1].split('private _gunner = gunner _vehicle;',1)[0]
         for proof in ('_atIndex < 0', '!_postShotMove', 'CBE_Cortex_CombinedRole',
                       'serverTime+8', 'CBE_fnc_CortexVehicleCrewAvailable',
                       'CBE_fnc_CortexMechanisedSupport', 'CBE_fnc_OperationStart',
@@ -12275,7 +12275,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('count _context != 5',planner)
         self.assertIn('[_vehicle,_group,"READ",objNull,_source]',planner)
         self.assertIn('private _troopGroup=',planner)
-        self.assertIn('if (_checking && {_source isNotEqualTo []} && {_cargoConsent isEqualTo []})',planner)
+        self.assertIn('if (_retained && {_source isNotEqualTo []} && {_cargoConsent isEqualTo []})',planner)
         start=source('vehicleTacticalMoveStart')
         self.assertIn('count _supportContext != 5',start)
         self.assertIn('setVariable ["CBE_Cortex_MechCargoUsed",_used]',start)
@@ -12323,6 +12323,32 @@ class CortexOperations(unittest.TestCase):
         planner=source('cortexMechanisedSupport')
         self.assertIn('private _remote=count _source == 5',planner)
         self.assertIn('{_remote || {local _person}}',planner)
+
+    def test_follow_on_support_keeps_original_episode_and_waits_for_native_completion(self):
+        gate=source('cortexMechanisedContinue')
+        for proof in ('"MECH_SUPPORT"', '"RETIRED"', '"NATIVE_RETURN_ACKNOWLEDGED"',
+                      '"NATIVE_RETURN_OBSERVED_AFTER_WORKER"', '_leg >= 3', 'serverTime+5',
+                      'CBE_AIPass_Epoch', 'CBE_fnc_NativeOrderReceipt', '"CBE_VehicleTacticalMove_Reference"',
+                      '!completedFSM (_executor select 1)', '[0,1,3,4]',
+                      '(_proposed select 2) vectorDistance (_context select 2) < 15', '_live isNotEqualTo (_context select 0)'):
+            self.assertIn(proof,gate)
+        for forbidden in ('setVariable','doMove','execFSM','remoteExecCall'):
+            self.assertNotIn(forbidden,gate)
+        planner=source('cortexMechanisedSupport')
+        for proof in ('private _resuming=_retained && {_goal isEqualTo []}',
+                      'CBE_fnc_CortexMechanisedContinue', 'if (_retained) then {_contact=_context select 1}',
+                      'private _until=if (_retained) then {_context select 3}',
+                      '_centreASL vectorDistance (_context select 2) < 15',
+                      '"dismounted"', '_rows select {_x in _owned}', 'count _owned > 64'):
+            self.assertIn(proof,planner)
+        start=source('vehicleTacticalMoveStart')
+        self.assertIn('[_group,_battery,_supportContext] call CBE_fnc_CortexMechanisedContinue',start)
+        self.assertIn('(_supportContinuation select 1)+1',start)
+        self.assertIn('if (_supportConsumed && {_supportContinuation isEqualTo []}) exitWith {false}',start)
+        self.assertIn('CBE_Cortex_MechCargoUsed',start)
+        vehicles=source('cortexVehicles')
+        self.assertIn('serverTime-(_supportEnemy select 2)],_originalContext]',vehicles)
+        self.assertIn('private _supportTarget=((_supportPlan select 2) select 1) select 0',vehicles)
 
     def test_rejected_vehicle_escape_does_not_consume_withdrawal_or_smoke(self):
         text=source('cortexVehicles')

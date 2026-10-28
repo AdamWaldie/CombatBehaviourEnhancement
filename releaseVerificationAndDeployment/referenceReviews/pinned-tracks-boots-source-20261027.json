@@ -471,5 +471,73 @@
       "addons/main/CfgFunctions.hpp": "babd47503c011e09caf29f09f30234a9e504885a2eae46f2af331a506dff9913",
       "addons/core/functions/cortexTuningSpec.sqf": "6cdd8a8d4206c25498474904c8a8388aaabd586a9d527cad74d0bcf6fef36586"
     }
+  },
+  "followOnSupport20261028": {
+    "scope": "At most three troop-body support legs under the first contact/source/deadline, using completed existing native workers. Not indefinite escort or full repeated insertion.",
+    "sourceEvidence": [
+      {
+        "path": "functions/fn_registerJob.sqf",
+        "sha256": "cefa1219efc7d5c741ade0461f60f668547ef9486da38a52e277016f9e7cf22a",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateJob.sqf",
+        "sha256": "9f2879f1294ff8b847b0e174ea1e6968f2530554806633da3ca7733715627f0f",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_supportPosition.sqf",
+        "sha256": "7c3be4f5a4c08157b820e8368a60451c9120316363d3625792478ce5025e37cb",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateSupport.sqf",
+        "sha256": "fe9da87d9c020df2853c0556af6220c8901bd4403cc05ae388bdfbe63a603aea",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_commandPassengerLocal.sqf",
+        "sha256": "9308663a8ea493fe58643f090c41bb9fffdbbfde1b16ee299e6300f3ab3c9c1d",
+        "matchesRecordedSource": true
+      }
+    ],
+    "sourceIntent": "Tracks and Boots updateSupport repeatedly positions the vehicle behind a moving troop body. Adapt its dynamic support intent through finite native handback between legs, retaining original orders and body/clearance checks instead of repeated free-running forceSpeed/doMove writes.",
+    "executionPath": [
+      "CortexVehicles reads CortexMechanisedContinue only during existing support selection",
+      "Continue requires exact previous MECH_SUPPORT worker, original owner/epoch/crew/order, RETIRED native return outcome, empty reference and actually completed original FSM",
+      "MechanisedSupport retained-context PLAN must exactly match that completed source, preserve original contact/deadline and observe body shift >=15m",
+      "Current private own-group dismount rows or separate local/authenticated remote consent retain origin custody; a fresh own-group exit supersedes the old incident",
+      "VehicleTacticalMoveStart independently checks consumed incident and completed continuation before advancing supportLeg, never falling back to a fresh leg-one admission",
+      "Existing native FSM observes each fixed bound and retires using the unchanged native stop/return machinery"
+    ],
+    "implemented": "At most3legs. Original proof, target, belief, observedAt, passenger source and until unchanged. At least5seconds of original deadline remain. Original completed-worker identity/canonical return result required; marker, missing handle, unresolved retirement, intervening task, changed order/crew/epoch and migration refuse. New anchor/destination only after real troop displacement; useful current position still declines. Existing8second planning backoff retained.",
+    "authorityAndCost": "No new job/controller, world query, troop/seat/group/skill/physics command or setting. Pure continuation gate reads existing worker/receipt/handle. Existing bounded planner and selected-crew owner issue native commands. Acknowledged native handback is not physical returned mission travel. Private own exit intersection bounded16original/64owned rows.",
+    "remaining": "Sustained escort episode lifetime and repeated insertion/remount origin custody still need reconciliation. Physical flow, path quality, handback between legs, failures, casualties, owner transfer, repeat use and measured cost remain unverified.",
+    "verification": {
+      "focusedTests": 615,
+      "focusedLog": ".qa/handovers/mech-follow-focused-20261028.log",
+      "focusedScope": "CortexOperations only; complete checkpoint build includes modularity/full suite and final input-shape admission guard",
+      "fullBuild": "PASS",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "fullTests": 1502,
+      "compiledSQF": 455,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/mech-follow-build-20261028.log",
+      "candidate": ".qa/candidates/mech-follow-20261028-981187b6",
+      "fingerprint": "bfee3da8aca7788b597964aa3bca391deb85af2a0e3ca17b529708b8b8922b93",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/mech-follow-independent-20261028.log",
+      "buildProvenance": "981187b62505f7cf20d014507552b9e7f73ee2f3 plus dirty runtime snapshot; only engineering/handover metadata changes after packaging. Raw runtime hashes pin inputs, normalize line endings for committed content."
+    },
+    "runtimeSha256": {
+      "addons/vehicles/functions/cortexMechanisedContinue.sqf": "0bf1dbfdaf8417b732afd69d101340791d2975d487301b7e3319cee515bda419",
+      "addons/vehicles/functions/cortexMechanisedSupport.sqf": "ed41932f21d14522c534df736390730eaaa03455718fcd794e1f0096f7d17ab6",
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "dd6375f3d8e5695cdccb0f8b17f3113b3f37985951993a2ac81d96f96ceeb389",
+      "addons/vehicles/functions/cortexVehicles.sqf": "d2272c49eb7241e4d32eca55f42a93ed2012b25b76de7c5341b0760638cd8fca",
+      "addons/core/functions/cortexTuningSpec.sqf": "3222a16722721bb4caed13e636ba4df3ff644a972b0bbd324296075007a56487",
+      "addons/main/CfgFunctions.hpp": "3a910c47eb4e723e7e1a9913089298dd969d84ab38d851ae25320bdd21f10bac"
+    },
+    "nextConcreteWork": "Repeated insertion currently needs a fresh carriage identity from an actual native boarding lifecycle. Existing local cohort can reuse old acknowledged actors/consumption within60seconds, and remote CLOSE remains terminal for the old offer. Do not reset using generation changes, elapsed time, proximity or an unproven seat flag. Trace actual GetIn/GetOut observation and existing callback ownership, then retire only the old exact cargo source before fresh real carriage acknowledgement."
   }
 }

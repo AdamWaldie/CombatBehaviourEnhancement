@@ -16,7 +16,8 @@
  * Optional eighth argument: original troop-support context ARRAY,[]; mutually exclusive
  * with screen-only cover context. The same worker checks the original body/contact/clearance.
  * Return: BOOL native worker admitted, never acknowledgement or physical arrival.
- * Current callers: CortexVehicles standoff or finite troop-support bound after OperationStart and lease acquisition.
+ * Continuation admission rechecks consumed source, completed previous worker and immutable episode fields.
+ * Current callers: CortexVehicles standoff or finite troop-support bounds after OperationStart and lease acquisition.
  * Example: [_group,_apc,_point,[driver _apc,effectiveCommander _apc],_generation,_until]
  *     call CBE_fnc_VehicleTacticalMoveStart;
  */
@@ -28,6 +29,8 @@ if (remoteExecutedOwner > 0 || {isNull _group} || {!local _group}
     || {count _seats != 2} || {_seats findIf {!(_x isEqualType objNull)} >= 0}
     || {!finite _generation} || {_generation < 0} || {_generation != floor _generation}
     || {!finite _until} || {_until <= serverTime} || {_until > serverTime+60}
+    || {_supportContext isNotEqualTo [] && {count _supportContext != 5
+        || {!((_supportContext select 4) isEqualType [])} || {!((count (_supportContext select 4)) in [0,4,5])}}}
     || {_coverContext isNotEqualTo [] && {count _coverContext != 3
         || {!((_coverContext select 0) isEqualType [])} || {count (_coverContext select 0) != 3}
         || {(_coverContext select 0) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
@@ -57,10 +60,26 @@ isNil {
             || {_seats findIf {!(currentCommand _x in ["","MOVE","WAIT"])} >= 0}) exitWith {false};
         // Support keeps a real troop-body/visibility/clearance contract within this same
         // selected-crew worker. It cannot inherit a screen-only post-shot context.
+        private _supportContinuation=if (_supportContext isEqualTo []) then {[]} else {
+            [_group,_battery,_supportContext] call CBE_fnc_CortexMechanisedContinue
+        };
+        private _supportConsumed=false;
+        if (count _supportContext == 5) then {
+            private _source=_supportContext select 4;
+            private _previous=(_battery getVariable ["CBE_VehicleTacticalMove_Work",createHashMap]) getOrDefault ["supportContext",[]];
+            _supportConsumed=if (_source isNotEqualTo []) then {
+                [_source select 2,_source select 0] in (_battery getVariable ["CBE_Cortex_MechCargoUsed",[]])
+            } else {
+                count _previous == 5 && {(_previous select 0) isEqualTo (_supportContext select 0)}
+                    && {(_previous select 4) isEqualTo []}
+            };
+        };
+        if (_supportConsumed && {_supportContinuation isEqualTo []}) exitWith {false};
         if (_supportContext isNotEqualTo [] && {_coverContext isNotEqualTo []
-            || {count _supportContext != 5} || {(_supportContext select 3) isNotEqualTo _until}
+            || {(_supportContext select 3) isNotEqualTo _until}
             || {(_supportContext select 4) isEqualTo [] && {
-                (_supportContext select 0) isNotEqualTo (_group getVariable ["CBE_Cortex_DismountContinuation",[]])}}
+                (_supportContext select 0) isNotEqualTo (_group getVariable ["CBE_Cortex_DismountContinuation",[]])
+                    && {_supportContinuation isEqualTo []}}}
             || {([_group,_battery,[],_supportContext,_spot] call CBE_fnc_CortexMechanisedSupport) isEqualTo []}}) exitWith {false};
         // A passenger safe-stop cap is a separate native writer. Finish all exits
         // and obtain its exact settings handback before capturing our movement baseline.
@@ -90,7 +109,8 @@ isNil {
             ["kind",["STANDOFF","MECH_SUPPORT"] select (_supportContext isNotEqualTo [])],["operationGeneration",_generation],["owner",clientOwner],
             ["epoch",_epoch],["reference",_reference],["crew",+_seats],
             ["route",[_group] call CBE_fnc_NativeOrderReceipt],["baseline",_baseline],
-            ["supportContext",+_supportContext],["supportCheckAt",serverTime+2],
+            ["supportContext",+_supportContext],["supportLeg",if (_supportContinuation isEqualTo []) then {1} else {(_supportContinuation select 1)+1}],
+            ["supportCheckAt",serverTime+2],
             ["coverContext",if (_coverContext isEqualTo []) then {[]} else {
                 [+(_coverContext select 0),_coverContext select 1,_coverContext select 2]}],
             ["goal",+_spot],["spot",+_spot],["arrivalRadius",5],["phase","ISSUE"],["moveUntil",_until],
