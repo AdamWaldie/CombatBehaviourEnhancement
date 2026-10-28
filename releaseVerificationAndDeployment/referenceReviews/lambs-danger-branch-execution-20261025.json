@@ -2211,5 +2211,21 @@
       "fingerprint": "91047ee4e8458bc352ccdfe8b80c2cc2c1649d7fab9e73e9641d426a997d3a7a",
       "type": "unsigned development; not signed release or physical acceptance"
     }
+  },
+  "grenadeReturnAnchor20261028": {
+    "base": "f2d19b3f0388b9e26d8065cf8f75617d720aaa4d",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "registeredScope": "LAMBS brainReact/doCover reaction integration and CBE original-owner native restoration, following grenadeEndpointSafety20261028. Reuse existing DangerCoverStep return-anchor rule; no source timer or movement loop copied.",
+    "finding": "The six-second grenade cleanup protected group/owner/epoch/generation/waypoints/destination and active tasks, but recalled every free responder to leader _group. That overwrote an unchanged native fire-team subformation, unlike DangerCoverStep which retains formLeader.",
+    "implementation": "Capture formLeader before hold release or evasion movement; retain it as tenth field in the existing per-projectile regroup record. Cleanup issues at most its existing FOLLOW only for the same nonself capable original anchor still in the original group and still reported by formLeader. Changed, dead/incapacitated, departed, absent/legacy or self-anchor grants no recall. Existing exact lease/destination/route/Zeus/native/task gates unchanged. No leader substitution, group/formation change, timer, scan, worker, renewed deadline or new test case.",
+    "checks": "Focused existing cleanup test red failed the old group-leader recall then passed after correction. Full1505-case first run failed only stale nine-field record expectation in test_grenade_native_handover.py; updated its expected tenth anchor field and retained/extended original pre-mutation capture/route/owner assertions. No removed or added test cases. Final full build PASS1505 tests/461 production SQF/11 PBO plus config/docs/FSM/HEMTT/static performance gates. Independent verification PASS. Logs .qa/handovers/grenade-anchor-{red,focused,build,final-build,independent}-20261028.log; failed first full run retained.",
+    "limits": "A FOLLOW request is not native acknowledgement or physical restoration. Complete grenade cancellation/native handback across delayed events/locality and original six-second bookkeeping remains a separate unresolved lifecycle gap. This change preserves native formation intent, not full LAMBS reaction parity or Protocol pair implementation. Audits PAUSED.",
+    "candidate": {
+      "path": ".qa/candidates/grenade-anchor-20261028-f2d19b3f",
+      "base": "f2d19b3f0388b9e26d8065cf8f75617d720aaa4d",
+      "dirty": true,
+      "fingerprint": "e5bba740ba62dd22d3dde4f83c5abd296dc62d93f4a19894b0c257c2ad5194bb",
+      "type": "unsigned development; no physical/performance or signed release acceptance"
+    }
   }
 }

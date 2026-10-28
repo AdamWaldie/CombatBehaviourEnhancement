@@ -6991,6 +6991,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_ownsEvasion && {local _unit}) then {',callback)
         for guard in ['_actorMove isEqualTo ["GRENADE_EVASION",_spot,_expires]','CBE_OperationGeneration','CBE_AIPass_Epoch','CortexExternalOwner','remoteControlled','currentCommand']:
             self.assertLess(callback.index(guard),callback.index('doFollow'))
+        # Evasion must not flatten an authored fire-team subformation into the squad leader.
+        self.assertNotIn('_unit doFollow (leader _group)',callback)
+        self.assertLess(callback.index('formLeader _unit isEqualTo _returnAnchor'),callback.index('doFollow'))
+        self.assertLess(callback.index('group _returnAnchor == _group'),callback.index('doFollow'))
+        self.assertLess(callback.index('_returnAnchor != _unit'),callback.index('doFollow'))
+        self.assertIn('["_returnAnchor",objNull,[objNull]]',callback)
+        self.assertIn('_unit doFollow _returnAnchor',callback)
+        admission=text.split('private _grenade =',1)[1]
+        self.assertLess(admission.index('private _returnAnchor=formLeader _unit;'),admission.index('_unit doMove _spot'))
+        self.assertIn('_nativeRoute,clientOwner,_returnAnchor]',admission)
         self.assertIn('setVariable ["CBE_Cortex_ActorMove",["GRENADE_EVASION"',text)
         self.assertIn('!([_unit] call CBE_fnc_CortexActorMoveReserved)',text)
         self.assertIn('setVariable ["CBE_Cortex_ActorMove",nil]',callback)

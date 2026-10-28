@@ -7,7 +7,8 @@ class GrenadeNativeHandoverTests(unittest.TestCase):
         s = (ROOT / "addons/infantry/functions/cortexGrenadeCheck.sqf").read_text()
         admission = s.split('private _grenade =', 1)[1]
         self.assertLess(admission.index('private _nativeRoute=[_group] call CBE_fnc_NativeOrderReceipt;'), admission.index('_unit doMove _spot;'))
-        self.assertIn('_group getVariable ["CBE_AIPass_Epoch",0],_nativeRoute,clientOwner]', admission)
+        self.assertIn('_group getVariable ["CBE_AIPass_Epoch",0],_nativeRoute,clientOwner,_returnAnchor]', admission)
+        self.assertLess(admission.index('private _returnAnchor=formLeader _unit;'), admission.index('_unit enableAI "PATH"'))
         self.assertEqual(s.count('call CBE_fnc_CortexQueueJob'), 2)  # header example and single regroup job
         throw=(ROOT/'addons/infantry/functions/cortexThrowGrenade.sqf').read_text()
         retry=throw.split('params ["_unit", "_muzzle", "_magazine"',1)[1]

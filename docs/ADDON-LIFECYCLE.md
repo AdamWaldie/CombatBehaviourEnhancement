@@ -2501,3 +2501,8 @@ This result is only a geometry snapshot, not execution ownership, a reservation,
 ### Grenade evasion fallback terrain (28 October 2026)
 
 The existing four-candidate grenade escape search now rejects water and endpoints whose terrain normal is below the infantry avenue floor of0.55. This also applies to the unvalidated seed returned when no cover post qualifies. Checks precede any release of an owned support/clear hold and native movement; if all candidates fail, CBE leaves the current hold/task unchanged. The event's existing sixteen-actor bound, six-second exact reservation and cleanup remain. There is no added worker, search or ray, and no forced dodge animation. These are endpoint checks; indoor-floor preservation, route accessibility, blast safety and native arrival still need physical validation. Audits remain paused.
+
+
+### Grenade evasion return anchor (28 October 2026)
+
+The existing delayed return now keeps the soldier's original native formation leader rather than always recalling to the group leader. A recall requires that same capable, surviving, same-group anchor and an unchanged `formLeader`, in addition to all existing lease, destination, waypoint, owner, Zeus and active-task checks. Self-anchors and missing, changed, departed or unavailable anchors grant no recall; old records without an anchor only retire exact bookkeeping. There is no replacement leader, formation edit, new timer or renewed deadline. This follows the return rule already used by danger-cover movement. The native FOLLOW request is not proof of acknowledged or physically restored formation; complete native handback remains separate. Audits remain paused.

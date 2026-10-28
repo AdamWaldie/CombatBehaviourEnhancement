@@ -41,7 +41,11 @@
  * owner epoch and source machine; stale callbacks cannot clear a transferred/newer evasion or issue follow over native/specialist tasks.
  * Admission preserves unknown/malformed actor reservations; delayed cleanup requires the exact
  * issued evasion lease, including its destination, so a replacement marker is never retired.
- * Legacy regroup records without a route receipt only retire their exact-owned marker.
+ * Return retains the original native subformation anchor. Only that same capable surviving
+ * same-group anchor may receive FOLLOW; changed/missing anchors and self-anchors grant no recall.
+ * This preserves fire-team organisation instead of flattening every return onto the group leader.
+ * Legacy regroup records without a route receipt or anchor only retire their exact-owned marker.
+ * Issuing FOLLOW is a request, not observed formation restoration or physical completion.
  * Arguments:
  * 0: job <HASHMAP> - contains "projectile", or internal "regroup" actor records
  *
@@ -60,7 +64,8 @@ private _regroup = _job getOrDefault ["regroup", []];
 if (_regroup isNotEqualTo []) exitWith {
     {
         _x params ["_unit","_group","_spot","_hold",
-            ["_expires",-1,[0]],["_generation",-1,[0]],["_epoch",-1,[0]],["_nativeRoute",[],[[]]],["_issuer",-1,[0]]];
+            ["_expires",-1,[0]],["_generation",-1,[0]],["_epoch",-1,[0]],["_nativeRoute",[],[[]]],["_issuer",-1,[0]],
+            ["_returnAnchor",objNull,[objNull]]];
         private _actorMove = _unit getVariable ["CBE_Cortex_ActorMove",[]];
         private _ownsEvasion = _expires >= 0
             && {_actorMove isEqualTo ["GRENADE_EVASION",_spot,_expires]};
@@ -100,8 +105,14 @@ if (_regroup isNotEqualTo []) exitWith {
                     || {(_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo []}
                     || {_state getOrDefault ["responding",false]} || {_state getOrDefault ["assaulting",false]}
                     || {_unit in (_operation getOrDefault ["participants",[]])};
-                if (!_taskOwned && {!(_unit in (_drill getOrDefault ["units",[]]))} && {alive leader _group}) then {
-                    _unit doFollow (leader _group);
+                // Preserve the authored subformation, as DangerCoverStep does. A missing
+                // old anchor or an intervening formation edit grants no replacement recall.
+                if (!_taskOwned && {!(_unit in (_drill getOrDefault ["units",[]]))}
+                    && {!isNull _returnAnchor} && {_returnAnchor != _unit}
+                    && {group _returnAnchor == _group}
+                    && {[_returnAnchor] call CBE_fnc_CortexCombatEffective}
+                    && {formLeader _unit isEqualTo _returnAnchor}) then {
+                    _unit doFollow _returnAnchor;
                 };
             };
             // The six-second marker is CBE bookkeeping, not engine ownership. Clear it even when
@@ -188,6 +199,7 @@ private _clearHoldOwned={
             };
             if (_free < 0) then {continue};
             private _spot=+(_escapeCandidates select _free);
+            private _returnAnchor=formLeader _unit;
             if (_supportPathOwned) then {
                 if (!(_unit checkAIFeature "PATH")) then {_unit enableAI "PATH"};
                 if (_unit checkAIFeature "PATH") then {_unit setVariable ["CBE_Cortex_SupportPathHold",nil,true]};
@@ -216,7 +228,7 @@ private _clearHoldOwned={
             _unit setVariable ["CBE_Cortex_ActorMove",["GRENADE_EVASION",+_spot,_expires]];
             _reacted = _reacted + 1;
             _regroupActors pushBack [_unit,_group,+_spot,+(_group getVariable ["CBE_AIPass_ZeusHold",[]]),
-                _expires,_group getVariable ["CBE_OperationGeneration",0],_group getVariable ["CBE_AIPass_Epoch",0],_nativeRoute,clientOwner];
+                _expires,_group getVariable ["CBE_OperationGeneration",0],_group getVariable ["CBE_AIPass_Epoch",0],_nativeRoute,clientOwner,_returnAnchor];
         };
     };
 } forEach ((_grenade nearEntities ["CAManBase", 12]) select [0,16]);
