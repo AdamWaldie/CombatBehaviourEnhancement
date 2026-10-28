@@ -1967,5 +1967,42 @@
       "A valid farther primary retains priority over a nearer alternate to preserve previous successful choices.",
       "Physical use, repeated CQB reserve flow, modded/terrain geometry, normal/HC locality and measured cost unverified. Audits paused. Wider source stance/building and whole LAMBS functionality remain incomplete."
     ]
+  },
+  "reactionQueueReconciliation20261028": {
+    "base": "50c5d58d3844cddc00b96e86944a28fdeda58a6d",
+    "scope": "Queue maintenance from re-read complete brainReact, brainAdjust, fsmAllowAnimation, doCover and doDodge bodies plus current selected CBE reaction/cover/retirement execution. Prior complete doGesture review retained and source hash verified. No compiled graph, fresh runtime or whole-mod comparison.",
+    "sourceInputs": {
+      "functions/fnc_brainAdjust.sqf": "20860fcd690c68c14f9fcbadb23610692213ffb23d801365be21c6c24cb07e9a",
+      "functions/fnc_brainReact.sqf": "c9bdec3da39c0010c806419606a7fb94f5861cf5d0b1ce72e47185d969a50e4c",
+      "functions/fnc_fsmAllowAnimation.sqf": "dc3ad67477d3027acd21d1b2d60c48f5762753f2b79b1de397039b26d2833e2a"
+    },
+    "mainSourceInputs": {
+      ".qa\\lambs-main-installed-20261025-bebceb06\\members\\functions\\UnitAction\\fnc_doCover.sqf": "7003a76519e3f14360d8cdaba3c1f7b7666196da683089c2d87b2e185cb59b17",
+      ".qa\\lambs-main-installed-20261025-bebceb06\\members\\functions\\UnitAction\\fnc_doDodge.sqf": "b863cb3a5861fa5efb67ca045129ec16528afade15273fa84478e0b276684bb7",
+      ".qa\\lambs-main-installed-20261025-bebceb06\\members\\functions\\fnc_doGesture.sqf": "d89594b976d2637eddefbf1fe8a86d96e4cd470d5f6b40afefb9e76f83c2d3b2"
+    },
+    "currentProductHashes": {
+      "addons/infantry/functions/dangerEngineAct.sqf": "acc070fe3537857f2b493c45370f34ac26aaf05b2a9ac918a2480d42a05d0937",
+      "addons/infantry/functions/dangerEngineSelect.sqf": "0667bd663f771807246a2c08c2a14d3834a6aa29124dac443f9a31d74b2ca9f6",
+      "addons/infantry/functions/dangerCoverStep.sqf": "3902324b29d34adb24811c4e6f7c28f89a98cb4242b3a7421c25bda5f90eae9c",
+      "addons/infantry/functions/dangerEngineRelease.sqf": "d1169997581b3be691b95708cebd9b3db84a069d9700543b438d465f13114566"
+    },
+    "finding": "The current queue still gave generic trace-next instructions for brainReact despite existing complete helper reviews and implemented prone/upright native reactions. A continuation could therefore add a competing movement path or duplicate review. brainAdjust is a source no-op; fsmAllowAnimation is an eligibility predicate, not a civilian event bridge.",
+    "currentExecution": "DangerEngineAct permits immediate hit/near-round prone rolls and upright lateral actions only for eligible stationary primary-weapon actors, outside committed movement, with one3s cooldown and bounded obstruction/footing tests. DangerCoverStep separately owns one bounded group cover move with current route/epoch/operation, screening, task and exact marker checks. DangerEngineRelease retains exact stance handback. Source REPLAN/STOP does not grant a second move writer.",
+    "decisions": [
+      "Retain current separated reaction/refuge owners; do not reproduce doCover moveTo/setDestination in actor reaction solely to match source call placement.",
+      "Do not import ACE lastHit mutation, forced forward/back reaction movement or unconditional stance/speed/follow cleanup. This is a deliberate authority/animation departure, not demonstrated better tactics.",
+      "Do not port brainAdjust as adaptive behaviour: its readable implementation only returns existing priorities.",
+      "Keep civilian cue/FSM integration distinct from unarmed animation eligibility; no event bridge added by this source review."
+    ],
+    "validation": "Six protected source hashes verified; JSON parse and queue references checked. No runtime source changes, repeated package build, added test or acceptance uplift. Last verified runtime remains50c5d58d and prior candidate snapshot provenance.",
+    "nextRequiredEvidence": [
+      "Native reaction swept volume/grip and gameplay balance; marker/stance proof and sparse rays do not establish animation quality.",
+      "Full engine intake -> selected actor -> group cover latency and dynamic refuge/path execution when audits resume.",
+      "Continue a genuinely unresolved source-to-owner capability in master queue rather than treating this already implemented reaction as new work."
+    ],
+    "audits": "PAUSED",
+    "physicalAcceptance": false,
+    "implementationDelta": "NONE_METADATA_ONLY"
   }
 }

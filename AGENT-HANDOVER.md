@@ -1,3 +1,19 @@
+# Current source-queue checkpoint: immediate reactions, 28 October 2026
+
+CBE workspace C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; branch Adam/cbe-mechanised-support-20261028; remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git; draft PR20. Metadata-only local checkpoint follows runtime/pushed50c5d58d3844cddc00b96e86944a28fdeda58a6d. Verify Git and ignored .qa/handovers/checkpoint-current.json for final local head/unpushed count. Do not commit in unrelated WMP chat cwd.
+
+Reconciled three misleading reference/sourceReviews/lambs-danger-source-queue.json entries against protected source and current CBE: brainReact already maps to owned prone/upright native evasion and separate finite DangerCoverStep; brainAdjust is a readable source no-op returning priorities; fsmAllowAnimation is civilian animation eligibility, not a native cue bridge. Preserve existing complete helper reviews. New evidence is reactionQueueReconciliation20261028 in releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json. All41danger queue source hashes, three main immediate-helper hashes and four current CBE executor hashes verified. Do not duplicate an already implemented reaction or add a no-op adaptive hook. This is queue correction, no gameplay implementation delta or acceptance credit.
+
+No production source/package changed and no unchanged full build repeated. Last verified runtime50c5d58d: candidate .qa/candidates/static-artillery-ownership-20261028-69be1087, fingerprint c83c1fc8ffe925d66b04e6af45577250879d7a785aabd40aa0956a63f7748b16; receipt69be1087+dirty runtime;1505tests/458SQF/11PBO and independent verification PASS. Source metadata checkpoint remains local for batching with the next related implementation, not another micro-push/CI request.
+
+Immediate-reaction remaining work is actual native intake-to-refuge latency, movement/path quality and full animation swept volume/grip/contact balance, which static source inspection does not prove. HBQ per-vehicle/player-distance precision remains unimplemented: its route-precision-current review requires latency/observation-age/safety evidence before reducing4s reaction/6s prediction safety. No such reduction selected. Civilian body/scream intake remains a separate unresolved owner/FSM contract, not ordinary Hit-listener inference. Continue genuinely unmet source-to-owner capabilities from master source map/linked reviews; preserve existing owners and working functions instead of historical missing summaries.
+
+Full objective ACTIVE/incomplete. AUDITS PAUSED: no Arma launch/installed-game staging. No merge/release/Steam/manualCI/subagents. Foundations ->individual ->pairs/squads ->combined arms; useful LAMBS internals without requiring LAMBS, entire relevant HBQ and nine Protocol; compatibility-only last. No new tactical/performance claim. CBA=settings, Zeus=behaviour. Preserve authored orders/skills/group policies, normal animation, unrelated dirt, signing keys and all protected sources.
+
+Retain checkout/.qa under Temp; Workshop E:/SteamLibrary/steamapps/workshop/content/107410; C:/Users/AdamW/Documents/AI-Reference-Archives including both PinnedDown archives and register backups; protected main/danger/HBQ extracts and full prior checkpoint sourceStores below. Never commit raw source assets or secrets. User may delete old chats; continuation is file-backed. Below10%usage safe checkpoint/handover; pause only explicitly requested.
+
+--- Previous checkpoint follows ---
+
 # Current checkpoint: carried-static artillery ownership, 28 October 2026
 
 Workspace C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git; branch Adam/cbe-mechanised-support-20261028; draft PR20. Runtime base69be1087649d5b470f6d3adeb34e295b587c1036 plus dirty source. Verify final Git/pushed PR head and ignored .qa/handovers/checkpoint-current.json. WMP chat cwd is unrelated.

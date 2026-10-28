@@ -16,8 +16,8 @@
       "path": "functions/fnc_brainAdjust.sqf",
       "sha256": "20860fcd690c68c14f9fcbadb23610692213ffb23d801365be21c6c24cb07e9a",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; caller/integration scope in evidence",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reconciled2026-10-28: source returns supplied/default priorities without adjustment; no missing adaptive priority implementation established",
+      "next": "Retain current bounded DangerEngineSelect priority policy. Do not add a no-op hook or claim new dynamic adaptation from source brainAdjust. New priority changes require a specific gameplay defect and caller evidence."
     },
     {
       "path": "functions/fnc_brainAssess.sqf",
@@ -51,8 +51,8 @@
       "path": "functions/fnc_brainReact.sqf",
       "sha256": "c9bdec3da39c0010c806419606a7fb94f5861cf5d0b1ce72e47185d969a50e4c",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body and immediate helper mapping reconciled2026-10-28; existing brainReactReview20261026 and immediateHelperReview20261026 retained, no new implementation or physical parity",
+      "next": "Existing DangerEngineAct already supplies gated prone roll/upright lateral native actions; DangerCoverStep owns screened refuge movement. Retain exact task/cooldown/stance handback and no provider medical-state writes. Source high-suppression/REPLAN/STOP cover dispatch does not authorise overriding native movement. Outstanding work is actual intake-to-cover latency, animation travel/grip and physical response balance after audits resume; do not duplicate already implemented evasive movement."
     },
     {
       "path": "functions/fnc_brainVehicle.sqf",
@@ -72,8 +72,8 @@
       "path": "functions/fnc_fsmAllowAnimation.sqf",
       "sha256": "dc3ad67477d3027acd21d1b2d60c48f5762753f2b79b1de397039b26d2833e2a",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; caller/integration scope in evidence",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable predicate reconciled2026-10-28: optional civilian animation eligibility, not movement or a native danger event bridge",
+      "next": "Unarmed/PATH/MOVE/native planner/forced-walk/water predicates do not establish a missing CBE animation or civilian FSM. Preserve current supported native actions and body proportions. Civilian body/scream intake remains the separate civilianNativeCueBoundary20261027 gap; do not override its danger slot merely to collect events."
     },
     {
       "path": "functions/fnc_isForced.sqf",
