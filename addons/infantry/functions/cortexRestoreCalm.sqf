@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Calm remount intent retains its original native waypoint receipt and operation generation;
+ * replacement orders retire boarding without seat cleanup, and migration keeps the original deadline.
  * Generic recall and marker retirement preserve unresolved flight/naval native cleanup
  * through the shared typed reservation gate; no restoration window is renewed.
  * Ordinary current-owner support teardown uses release-only native hold handback before
@@ -261,22 +263,43 @@ if (_unresolvedPolicies isNotEqualTo []) then {
         _group getVariable ["CBE_AIPass_Epoch",0],_group getVariable ["CBE_OperationGeneration",0],
         _reason,_unresolvedPolicies],true];
 };
+// This finite episode keeps its admitting native order, including same-position policy edits.
+// Publish before native seat commands; JIP metadata alone never issues boarding.
+private _boarding=_state getOrDefault ["dismounted",[]];
+private _remountDeadline=serverTime+60;
+private _remountGeneration=_group getVariable ["CBE_OperationGeneration",0];
+private _remountOrder=[_group] call CBE_fnc_NativeOrderReceipt;
+if (_allowRemount && {!_yieldToExternal} && {_boarding isNotEqualTo []}) then {
+    _group setVariable ["CBE_Cortex_Remount",[_remountDeadline,+_boarding,_remountGeneration,+_remountOrder],true];
+};
 {
     _x params ["_unit", "_vehicle"];
-    if (_allowRemount && {[_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled} && {group _unit == _group} && {isNull assignedVehicle _unit || {assignedVehicle _unit == _vehicle}} && {[_group, "CBE_AIPass_VehicleRemount_Enable", true] call CBE_fnc_CortexFeatureEnabled} && {[_unit, _vehicle, true] call CBE_fnc_CortexPassengerReady}) then {
+    if (_allowRemount && {!_yieldToExternal}
+        && {_remountGeneration == (_group getVariable ["CBE_OperationGeneration",0])}
+        && {_remountOrder isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
+        && {[_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {group _unit == _group}
+        && {isNull assignedVehicle _unit || {assignedVehicle _unit == _vehicle}}
+        && {[_group,"CBE_AIPass_VehicleRemount_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_unit,_vehicle,true] call CBE_fnc_CortexPassengerReady}) then {
         _unit assignAsCargo _vehicle;
         [_unit] orderGetIn true;
     };
-} forEach (_state getOrDefault ["dismounted", []]);
-// Retain boarding intent until seats are actually occupied. The public record lets
-// a new HC owner continue the bounded attempt; it never moves units into seats.
+} forEach _boarding;
 _group setVariable ["CBE_Cortex_DismountContinuation",nil,true];
-private _boarding = _state getOrDefault ["dismounted", []];
-if (_allowRemount && {_boarding isNotEqualTo []}) then {
-    _group setVariable ["CBE_Cortex_Remount",[serverTime+60,+_boarding],true];
-};
-if (!_allowRemount) then {
-    {private _unit=_x select 0; if (local _unit && {vehicle _unit == _unit} && {assignedVehicle _unit == (_x select 1)}) then {[_unit] orderGetIn false; unassignVehicle _unit}} forEach ((_group getVariable ["CBE_Cortex_Remount",[0,[]]]) select 1);
+if (!_allowRemount || {_yieldToExternal}) then {
+    private _retiringRemount=_group getVariable ["CBE_Cortex_Remount",[]];
+    private _retiringCurrent=count _retiringRemount == 4
+        && {(_retiringRemount select 2) isEqualTo (_group getVariable ["CBE_OperationGeneration",0])}
+        && {(_retiringRemount select 3) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
+    // Yielding to another owner never cancels that owner's matching seat command.
+    if (!_yieldToExternal && {_retiringCurrent}) then {
+        {
+            _x params ["_unit","_vehicle"];
+            if (local _unit && {group _unit == _group} && {isNull objectParent _unit}
+                && {assignedVehicle _unit == _vehicle}) then {[_unit] orderGetIn false; unassignVehicle _unit};
+        } forEach (_retiringRemount select 1);
+    };
     _group setVariable ["CBE_Cortex_Remount",nil,true];
 };
 [_group,_state] call CBE_fnc_CortexSearchHoldRelease;

@@ -4,7 +4,7 @@
   "workshopId": "3776232873",
   "baseline": "abcfe36913fbd1906917d4ab8a8809b9c282c603",
   "sourceRoot": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\PinnedDown\\20261013-013708\\3776232873\\extracted-20261011\\pd_tracks_and_boots",
-  "scope": "Seven selected source helper bodies reviewed (path, water, depth, overwatch, support positioning/update and hold); selected updateJob support call sites located. Not whole-mod/passenger state-machine/caller graph or physical acceptance.",
+  "scope": "Seven selected positioning/water/hold helper bodies plus registration, state dispatch and release-writer inspection. Transitive passenger/crew command callbacks and whole-mod lifecycle are not fully reviewed; no physical acceptance.",
   "sources": [
     {
       "path": "functions/fn_pathBlockedByInfantry.sqf",
@@ -40,6 +40,26 @@
       "path": "functions/fn_holdVehicle.sqf",
       "sha256": "056c7cf2af18fb519906e9ea6b81430ad1239ce02eb8115eac6b0b7926652e0f",
       "scope": "Complete readable helper reviewed; higher caller/registration/release graph remains incomplete."
+    },
+    {
+      "path": "functions/fn_registerJob.sqf",
+      "sha256": "cefa1219efc7d5c741ade0461f60f668547ef9486da38a52e277016f9e7cf22a",
+      "scope": "Registration/state dispatch and release writers inspected; transitive helper/callback closure remains incomplete."
+    },
+    {
+      "path": "functions/fn_updateJob.sqf",
+      "sha256": "9f2879f1294ff8b847b0e174ea1e6968f2530554806633da3ca7733715627f0f",
+      "scope": "Registration/state dispatch and release writers inspected; transitive helper/callback closure remains incomplete."
+    },
+    {
+      "path": "functions/fn_releaseJob.sqf",
+      "sha256": "4231161f5a110502155629c6da512839e37405b12e25b12ba7cdbf2c64d59ff4",
+      "scope": "Registration/state dispatch and release writers inspected; transitive helper/callback closure remains incomplete."
+    },
+    {
+      "path": "functions/fn_releaseVehicle.sqf",
+      "sha256": "ce1bc3c500c9b22190477a345d9b3e317c8061dcdfbb9dcbadb4ea6421455dd0",
+      "scope": "Registration/state dispatch and release writers inspected; transitive helper/callback closure remains incomplete."
     }
   ],
   "findings": [
@@ -68,7 +88,7 @@
     "independentLog": ".qa/handovers/passenger-deck-independent.log"
   },
   "limits": "Offline evidence only, audits paused. Single centre ray is not complete exit-footprint or continuous stability proof; bridge/road proxy identity and modded support need physical verification. No whole-source/combined-arms parity or measured performance claim. Native query cost unchanged, support reads added only to existing water case.",
-  "nextRequiredReview": "Trace source registerJob/tracked passenger element and updateJob->updateSupport->releaseJob/releaseVehicle route/movement writers. Compare existing CBE passenger task owner; define one finite mechanised-support operation before coding. Retain current verified candidate and preserve newer authored/Zeus/specialist tasks.",
+  "nextRequiredReview": "Complete source commandPassenger/deferredCrewRetain/setMovementOwner/updateRouteResume release-writer closure, then add distinct finite troop-body escort within existing vehicle tactical movement ownership, preserving the firing-vehicle corridor and newer native tasks.",
   "supportPositioningFollowup20261027": {
     "baseline": "cb523ae73231be4776b378f9012b50e4662fb118",
     "runtimeChanges": false,
@@ -83,5 +103,55 @@
     "selection": "Retain robust troop-body anchor, behind-element candidate plane, negative-result cache, useful overwatch and continuous pacing ideas. Integrate as a distinct mechanised-support intent under existing vehicle movement/operation ownership only after tracing passenger element and original native route/release writers. Preserve existing live-fire corridor rather than relabelling its anchor. Do not copy fixed2D path proof, unbounded source infantry loop, live hidden target position, forceSpeed0 or repeated doMove without original operation identity and finite handback.",
     "limits": "Read-only source/CBE comparison, no new runtime/candidate/build or claimed parity/physical acceptance. Source straight segment is not native planned route or swept-volume proof. Source returned true/arrival radius is not native writer retirement.",
     "nextConcreteWork": "Trace source registerJob/tracked passenger element and updateJob->updateSupport->releaseJob/releaseVehicle route/movement writers. Compare existing CBE passenger task owner; define one finite mechanised-support operation before coding. Retain current verified candidate and preserve newer authored/Zeus/specialist tasks."
+  },
+  "supportLifecycleFollowup20261028": {
+    "baseline": "8b3e8d522484d328d3045697219f00f4d31ed8c0",
+    "sourceTrace": [
+      "registerJob binds actual non-operator AI passengers to a vehicle and snapshots passenger groups, forced speed, unload policy and operating seats. Player-containing passenger groups refuse. It registers Hit/GetOut/GetIn/SeatSwitched callbacks; GetOut can schedule deferredCrewRetain and forced reseating. A passenger/crew marker is not writer quiescence.",
+      "updateJob refreshes the manifest in transit; rejects player takeover and no living infantry, delegates dismount/disabled/remount work. ENGAGING and FOOT_ESCORT call updateSupport; FOOT_ESCORT returns to transit only after all tracked infantry are aboard. Same-side group changes can be joined back to captured groups; do not copy this authority assumption.",
+      "releaseJob marks released and relinquishes source movement/locks, sends passenger RELEASE/ABANDON and crew STATIC_UNLOCK, restores unload/immobile policy, removes vehicle EHs and job registry. It calls releaseVehicle. Delegated remote/deferred passenger/crew writers need their own token/lifetime audit; deleting a job does not establish acknowledgement.",
+      "releaseVehicle restores captured forced speed if source marks it controlled, stop-false/follows driver and actual leader, then can replay Battle Lines destination or saved MOVE leg after the mission pointer advanced. Current MOVE continuation stores a five-second routeResume attempt. No exact authored-route replacement receipt or native writer retirement is demonstrated; returned true is not restored physical route."
+    ],
+    "confirmedCBEGap": "Calm remount public payload had only [deadline, passenger/vehicle rows]. GroupTick and crew stop cooperation could continue after an ordinary native mission waypoint/policy replacement because CortexExternalTakeover covers declared ownership, not arbitrary authored-route changes. Locality adoption could republish the stale list without an original order receipt.",
+    "implementation": {
+      "owner": "Existing CortexRestoreCalm / CortexGroupTick passenger episode; CortexVehicles remains the actual vehicle-owner safe-stop consumer.",
+      "payload": "[original serverTime deadline, pending passenger/vehicle rows, operation generation, full NativeOrderReceipt]",
+      "admission": "Publish before first ordinary seat command; preserve existing feature/care/seat/motion/actor-ownership gates. External yield never creates remount.",
+      "continuation": "GroupTick checks generation and original full native order. Changed intent retires metadata without orderGetIn false or unassignVehicle. Contact retains dismounted actors only from a current episode. Progress retains original deadline/generation/order.",
+      "cooperation": "Crew owner validates the same passenger generation/native receipt before accepting calm boarding-stop cooperation.",
+      "locality": "Validate original intent before cleanup changes generation, compare native receipt again afterward, adopt only unchanged intent under current generation. Never renew deadline or replay an old command.",
+      "diagnostics": "Health requires matching generation and order as well as live deadline and vehicle assignment.",
+      "cost": "No new job, global scan, native movement writer, setting or seat forcing. Receipt comparisons occur only in existing passenger paths; receipt route enumeration retains route-length cost."
+    },
+    "deliberateDepartures": [
+      "No saved route replay, forced crew reseat, group-membership repair or unconditional original-setting restore imported.",
+      "Current combined-ground firing-vehicle anchor and friendly fire corridor remain untouched. Troop-body escort remains a distinct required capability.",
+      "No actual external-provider handover is inferred from source markers or record retirement."
+    ],
+    "verification": {
+      "regressionBefore": ".qa/handovers/remount-order-before-20261028.log",
+      "focusedLog": ".qa/handovers/remount-order-focused-20261028.log",
+      "focusedTests": 660,
+      "fullBuild": "PASS",
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/remount-order-build-20261028.log",
+      "candidate": ".qa/candidates/remount-order-20261028-8b3e8d52",
+      "fingerprint": "3755e3c5a071da355230a65db42f733668d1846d0d529340fbe731938390c97b",
+      "independentLog": ".qa/handovers/remount-order-independent-20261028.log",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "buildProvenance": "Merged main 8b3e8d522484d328d3045697219f00f4d31ed8c0 plus recorded dirty runtime snapshot. Final checkpoint changes review/handover metadata only after packaging."
+    },
+    "limits": "Offline integration only. Same-value actor orders have no native serial; waypoint/generation proof is not native task retirement, actual boarding, escort travel or measured performance. Audits paused.",
+    "nextConcreteWork": "Complete source commandPassenger/deferredCrewRetain/setMovementOwner/updateRouteResume release-writer closure, then add distinct finite troop-body escort within existing vehicle tactical movement ownership, preserving the firing-vehicle corridor and newer native tasks.",
+    "runtimeSha256": {
+      "addons/core/functions/aiGetDiagnostics.sqf": "769dc038c78827ae2cfb513326dc28c17993ea6f36510a4de1c161932ee4e35e",
+      "addons/core/functions/cortexLocality.sqf": "0b5152e1e0cd05a2c8ff03d16177cf25e9c03eb72b3d4ae19d47b7da2507a23d",
+      "addons/infantry/functions/cortexGroupTick.sqf": "0462fc5d31b55c582e285eb712658e3f05f1498ebf7d5ed871230b2d39660785",
+      "addons/infantry/functions/cortexRestoreCalm.sqf": "17d620198b92189b57819a5e5e24ad8551d9c8528e9a2c599eab83a03fc409ae",
+      "addons/vehicles/functions/cortexVehicles.sqf": "2577c780626306bd693e2d8afa84fbea40467d6db54d8b34277c07d3f215b8e1"
+    }
   }
 }

@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Calm remount intent retains its original native waypoint receipt and operation generation;
+ * replacement orders retire boarding without seat cleanup, and migration keeps the original deadline.
  * Coordinated recovery snapshots retain generic and per-server-bound refresh budgets; commands are not replayed.
  * Locality cleanup passes each original private actor brain so retirement cannot bypass
  * its identity checks. Journal-only cleanup requires no installed local controller.
@@ -63,6 +65,12 @@ private _withdrawalOrderCurrent=count _withdrawalIntent == 7 && {count _withdraw
     && {(_withdrawalOrder select 1) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
 private _transitionIntent = _group getVariable ["CBE_Cortex_TransitionIntent",[]];
 private _remountIntent = _group getVariable ["CBE_Cortex_Remount",[]];
+// Validate before cleanup advances generation; a new owner cannot launder an old route into consent.
+private _remountOrderCurrent=_remountIntent isEqualType [] && {count _remountIntent == 4}
+    && {(_remountIntent select 0) isEqualType 0} && {finite (_remountIntent select 0)}
+    && {(_remountIntent select 1) isEqualType []}
+    && {(_remountIntent select 2) isEqualTo (_group getVariable ["CBE_OperationGeneration",0])}
+    && {(_remountIntent select 3) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
 private _supportLease = _group getVariable ["CBE_AIPass_SupportLease",[]];
 private _supportStatus = _group getVariable ["CBE_AIPass_SupportStatus",[]];
 private _navalIntent = _group getVariable ["CBE_Cortex_NavalOperation",[]];
@@ -653,7 +661,8 @@ if (_passengers isNotEqualTo [] && {[_group] call CBE_fnc_CortexIsEligible}) the
 // Restore semantic boarding intent after old-owner cleanup, never its engine command. Preserve
 // the original deadline so repeated transfers cannot make remount immortal. A replacement vehicle
 // assignment or Zeus takeover wins and removes that actor from this attempt.
-if (count _remountIntent == 2 && {serverTime < (_remountIntent select 0)}
+if (_remountOrderCurrent && {serverTime < (_remountIntent select 0)}
+    && {(_remountIntent select 3) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
     && {[_group] call CBE_fnc_CortexIsEligible} && {!([_group] call CBE_fnc_CortexZeusHeld)}) then {
     if ([_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled
         && {[_group,"CBE_AIPass_VehicleRemount_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
@@ -664,7 +673,8 @@ if (count _remountIntent == 2 && {serverTime < (_remountIntent select 0)}
                 && {isNull assignedVehicle _unit || {assignedVehicle _unit == _vehicle}}
         };
         if (_pendingRemount isNotEqualTo []) then {
-            _group setVariable ["CBE_Cortex_Remount",[_remountIntent select 0,+_pendingRemount],true];
+            _group setVariable ["CBE_Cortex_Remount",[_remountIntent select 0,+_pendingRemount,
+                _group getVariable ["CBE_OperationGeneration",0],+(_remountIntent select 3)],true];
         };
     };
 };

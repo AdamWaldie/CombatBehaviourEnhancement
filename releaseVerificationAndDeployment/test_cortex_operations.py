@@ -3656,7 +3656,7 @@ class CortexOperations(unittest.TestCase):
         text=source('cortexGroupTick')
         remount=text.split('private _remount = _group getVariable ["CBE_Cortex_Remount",[]];',1)[1].split('private _contactDelay',1)[0]
         self.assertIn('_visible isNotEqualTo [] || {_dangerActive} || {_ordered}',remount)
-        self.assertIn('if (_visible isNotEqualTo [] || {_dangerActive}) then {_state set ["dismounted",+_pending]};',remount)
+        self.assertIn('if (_remountCurrent && {_visible isNotEqualTo [] || {_dangerActive}}) then {_state set ["dismounted",+_pending]};',remount)
         self.assertIn('|| {!([] call _mayIssueMovement)}',remount)
         for command in ['[_unit] orderGetIn false','unassignVehicle _unit','_unit assignAsCargo _vehicle','[_unit] orderGetIn true']:
             self.assertIn(command,remount)
@@ -3677,8 +3677,10 @@ class CortexOperations(unittest.TestCase):
         tick=source('cortexGroupTick')
         restore=source('cortexRestoreCalm')
         self.assertIn('assignedVehicle (_x select 0) == (_x select 1)',tick)
-        for text in [tick,restore]:
-            self.assertIn('assignedVehicle _unit == (_x select 1)',text)
+        self.assertIn('assignedVehicle _unit == (_x select 1)',tick)
+        retirement=restore.split('private _retiringRemount=',1)[1].split('CBE_fnc_CortexSearchHoldRelease',1)[0]
+        self.assertIn('if (!_yieldToExternal && {_retiringCurrent})',retirement)
+        self.assertIn('assignedVehicle _unit == _vehicle',retirement)
         self.assertIn('isNull assignedVehicle _unit || {assignedVehicle _unit == _vehicle}',restore)
 
     def test_passenger_exit_records_ownership_before_engine_commands(self):
@@ -7844,7 +7846,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('local _unit',resume)
         self.assertIn('CBE_AIPass_Vehicles_Enable',resume)
         self.assertIn('CBE_AIPass_VehicleRemount_Enable',resume)
-        self.assertIn('[_remountIntent select 0,+_pendingRemount]',resume)
+        self.assertIn('[_remountIntent select 0,+_pendingRemount,',resume)
+        self.assertIn('if (_remountOrderCurrent',resume)
+        self.assertIn('+(_remountIntent select 3)',resume)
         self.assertNotIn('serverTime+',resume)
 
     def test_locality_adoption_rechecks_transition_feature_gates_before_moving(self):
@@ -9079,7 +9083,8 @@ class CortexOperations(unittest.TestCase):
     def test_remount_retries_physical_boarding_and_cancels_on_contact(self):
         restore=source('cortexRestoreCalm')
         tick=source('cortexGroupTick')
-        self.assertIn('[serverTime+60,+_boarding]',restore)
+        self.assertIn('private _remountDeadline=serverTime+60',restore)
+        self.assertIn('[_remountDeadline,+_boarding,_remountGeneration,+_remountOrder]',restore)
         self.assertIn('serverTime >= _deadline',tick)
         self.assertIn('vehicle (_x select 0) != (_x select 1)',tick)
         self.assertIn('_visible isNotEqualTo [] || {_dangerActive} || {_ordered}',tick)
@@ -12449,7 +12454,7 @@ class CortexOperations(unittest.TestCase):
     def test_remount_progress_removes_completed_passengers_without_extending_deadline(self):
         text=source('cortexGroupTick')
         self.assertIn('if (_pending isNotEqualTo _passengers)',text)
-        self.assertIn('setVariable ["CBE_Cortex_Remount",[_deadline,+_pending],true]',text)
+        self.assertIn('setVariable ["CBE_Cortex_Remount",[_deadline,+_pending,_remountGeneration,+_remountOrder],true]',text)
 
     def test_cross_group_boarding_hold_is_bounded_and_preserves_vehicle_ownership(self):
         vehicles=source('cortexVehicles')

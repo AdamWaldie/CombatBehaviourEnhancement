@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Calm remount intent retains its original native waypoint receipt and operation generation;
+ * replacement orders retire boarding without seat cleanup, and migration keeps the original deadline.
  * Locality/authority: Current group owner; native vehicle writes require actual vehicle/crew ownership.
  * Repeat/JIP: Existing owner-local group ticks maintain finite vehicle work; current
  * epoch, operation and native-order receipts reject stale commands after ownership changes.
@@ -528,8 +530,11 @@ private _dismountAtThreat = {
                     } >= 0}
             } || {
                 private _boarding=_passengerGroup getVariable ["CBE_Cortex_Remount",[]];
-                _boarding isEqualType [] && {count _boarding == 2}
-                    && {(_boarding select 0) isEqualType 0} && {(_boarding select 1) isEqualType []}
+                _boarding isEqualType [] && {count _boarding == 4}
+                    && {(_boarding select 0) isEqualType 0} && {finite (_boarding select 0)}
+                    && {(_boarding select 1) isEqualType []}
+                    && {(_boarding select 2) isEqualTo (_passengerGroup getVariable ["CBE_OperationGeneration",0])}
+                    && {(_boarding select 3) isEqualTo ([_passengerGroup] call CBE_fnc_NativeOrderReceipt)}
                     && {serverTime < (_boarding select 0)} && {(_boarding select 0) <= serverTime+60}
                     && {!_movementOwned} && {_enemies isEqualTo []}
                     && {!([_passengerGroup] call CBE_fnc_CortexExternalTakeover)}

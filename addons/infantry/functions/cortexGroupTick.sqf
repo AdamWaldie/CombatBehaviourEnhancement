@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Calm remount intent retains its original native waypoint receipt and operation generation;
+ * replacement orders retire boarding without seat cleanup, and migration keeps the original deadline.
  * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Shared movement reservations protect pending flight/naval/selected-crew cleanup during contact,
  * search, consolidation and stalled-actor selection without renewing recovery budgets.
@@ -824,9 +826,17 @@ if (count _continuation == 4 && {(_continuation select 0) isEqualType 0}
 };
 private _remount = _group getVariable ["CBE_Cortex_Remount",[]];
 if (_remount isNotEqualTo []) then {
-    _remount params ["_deadline","_passengers"];
+    // Deadline/list alone cannot authorize boarding after a new mission route or operation.
+    private _deadline=_remount param [0,0,[0]];
+    private _passengers=_remount param [1,[],[[]]];
+    private _remountGeneration=_remount param [2,-1,[0]];
+    private _remountOrder=_remount param [3,[],[[]]];
+    private _remountCurrent=count _remount == 4 && {finite _deadline}
+        && {finite _remountGeneration} && {_remountGeneration == (_group getVariable ["CBE_OperationGeneration",0])}
+        && {_remountOrder isNotEqualTo []}
+        && {_remountOrder isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
     private _pending = _passengers select {alive (_x select 0) && {group (_x select 0) == _group} && {alive (_x select 1)} && {vehicle (_x select 0) != (_x select 1)} && {isNull assignedVehicle (_x select 0) || {assignedVehicle (_x select 0) == (_x select 1)}}};
-    private _cancel = _visible isNotEqualTo [] || {_dangerActive} || {_ordered}
+    private _cancel = _visible isNotEqualTo [] || {_dangerActive} || {_ordered} || {!_remountCurrent}
         || {!([] call _mayIssueMovement)}
         || {!(["CBE_AIPass_Vehicles_Enable",true] call _get)}
         || {!(["CBE_AIPass_VehicleRemount_Enable",true] call _get)};
@@ -834,16 +844,18 @@ if (_remount isNotEqualTo []) then {
         // A danger response can exist before native knowledge produces a visible enemy. Preserve
         // the still-dismounted passengers and cancel boarding now so the same tick can enter its
         // combat response without losing task ownership or issuing another GET IN command.
-        if (_visible isNotEqualTo [] || {_dangerActive}) then {_state set ["dismounted",+_pending]};
+        if (_remountCurrent && {_visible isNotEqualTo [] || {_dangerActive}}) then {_state set ["dismounted",+_pending]};
         {
             private _unit=_x select 0;
-            if ([] call _mayIssueMovement && {local _unit} && {isNull objectParent _unit}
+            // A replacement order ends our intent without unassigning its current passengers.
+            if (_remountCurrent && {[] call _mayIssueMovement} && {local _unit} && {isNull objectParent _unit}
                 && {assignedVehicle _unit == (_x select 1)}) then {
                 [_unit] orderGetIn false;
                 unassignVehicle _unit;
             };
         } forEach _pending;
-        private _reason = if (_visible isNotEqualTo [] || {_dangerActive}) then {"CONTACT"} else {
+        private _reason = if (!_remountCurrent) then {"ORDER_REPLACED"} else {
+            if (_visible isNotEqualTo [] || {_dangerActive}) then {"CONTACT"} else {
             if (_ordered) then {"ORDERED"} else {
                 if (!([] call _mayIssueMovement)) then {"EXTERNAL_OWNER"} else {
                     if (_cancel) then {"DISABLED"} else {
@@ -851,6 +863,7 @@ if (_remount isNotEqualTo []) then {
                     }
                 }
             }
+        };
         };
         // Record this finite transition, not a polling stream. Speed and assignment distinguish
         // unavailable boarding geometry from contact, external orders and actual seat completion.
@@ -868,7 +881,7 @@ if (_remount isNotEqualTo []) then {
         // Publish progress only when membership changes. Completed/reassigned passengers must
         // not consume the vehicle owner's bounded boarding window ahead of remaining actors.
         if (_pending isNotEqualTo _passengers) then {
-            _group setVariable ["CBE_Cortex_Remount",[_deadline,+_pending],true];
+            _group setVariable ["CBE_Cortex_Remount",[_deadline,+_pending,_remountGeneration,+_remountOrder],true];
         };
         {
             _x params ["_unit","_vehicle"];

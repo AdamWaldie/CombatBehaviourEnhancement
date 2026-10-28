@@ -737,8 +737,8 @@
       "name": "Pinned Down Tracks and Boots",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Infantry and vehicle cooperation to evaluate",
-      "reviewStatus": "Seven selected helpers fully reviewed including troop median/overwatch/updateSupport/hold; wider registerJob/updateJob/release chain incomplete",
-      "nextSourceReview": "Trace tracked passenger registration, support movement writers and release/native handback. Troop-body mechanised escort is a distinct unimplemented capability; do not replace existing combined-ground live-fire anchor. See supportPositioningFollowup20261027.",
+      "reviewStatus": "Seven selected helpers plus registration/state dispatch/release writers inspected; transitive callbacks and native handback incomplete",
+      "nextSourceReview": "Finish commandPassenger/deferredCrewRetain/setMovementOwner/updateRouteResume closure before distinct finite troop-body escort. Existing firing-vehicle anchor must remain. See supportLifecycleFollowup20261028.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
@@ -759,7 +759,7 @@
         "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
       },
       "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
-      "currentSelectedIntegration": "CortexPassengerReady resolves static non-vehicle deck parent, height/normal and linear/angular rest in its existing single-ray water exception. Existing CortexInfantrySpeed already handles bounded friendly hull braking; no source controller imported."
+      "currentSelectedIntegration": "Static-deck passenger safety and existing bounded friendly hull braking retained. Calm remount now retains original native order/generation across retries, vehicle stop cooperation and transfer; stale intent cannot issue boarding cleanup. Continuous troop-body escort remains unimplemented; offline checks only."
     },
     {
       "workshopId": "3778948165",
