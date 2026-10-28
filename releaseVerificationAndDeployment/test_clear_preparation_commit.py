@@ -265,6 +265,16 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('_retireExisting getOrDefault ["capture",[]]',locality)
         self.assertNotRegex(retire,r'setVariable\s*\[[^;]*,true\]')
         self.assertIn('[CBE_fnc_BuildingProducerRetire,_retire,0,_retireKey]',locality)
+        finish=retire.split('private _finish={',1)[1].split('if (_state getOrDefault ["done",false])',1)[0]
+        self.assertIn('_state deleteAt "capture"',finish)
+        self.assertIn('getVariable ["CBE_Cortex_ClearRetireLocal",createHashMap]) isEqualTo _state',finish)
+        self.assertIn('getVariable ["CBE_Cortex_ClearLaneCaptureLocal",[]]) isEqualTo _capture',finish)
+        self.assertIn('setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil]',finish)
+        self.assertIn('_state set ["done",true]',finish)
+        self.assertIn('_state set ["result",_reason]',finish)
+        self.assertLess(retire.index('private _submission='),retire.index('["ORIGINAL_FSMS_RETIRED"] call _finish'))
+        self.assertNotIn('_capture set',finish)
+        self.assertNotIn('_capture deleteAt',finish)
         for guard in ('count _records > 706','SOURCE_METADATA_CHANGED',
                       '_currentPresent isNotEqualTo _present',
                       '(_object getVariable _variable) isNotEqualTo _original'):

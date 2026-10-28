@@ -7,7 +7,9 @@
  * even after group ownership changes. Neither registration nor storage authorizes commands/resume.
  * Repeat/JIP: One original unexpired identity per visit. Exact duplicates retain serial/deadline;
  * conflicting same-visit producers refuse. At most512 group entries; deleted groups prune on registration,
- * no worker/timer, broadcast or JIP replay. Identity retention grants no deadline extension;
+ * no broadcast or JIP replay. One small-identity expiry callback per newly stored candidate
+ * releases its graph after original expiry; duplicates install none and replacements are preserved.
+ * No capture payload is retained in that callback. Identity retention grants no deadline extension;
  * it remains available through original EGRESS. New visits replace the same group's old entry.
  * Arguments: 0 mode STRING REGISTER/ACK/CAPTURE default REGISTER; 1 data ARRAY default[].
  * REGISTER [group,visitContext,ownerEpoch,clearGeneration,operationGeneration];
@@ -130,6 +132,26 @@ if (_mode == "CAPTURE") exitWith {
     if (count _captures >= 512) exitWith {false};
     _captures set [_key,_candidate];
     missionNamespace setVariable ["CBE_ClearProducer_Candidates",_captures];
+    // Release the last candidate even when no subsequent capture or visit prunes it.
+    // Keep only the small original identity, never the frozen actor/geometry graph.
+    [
+        {
+            params ["_candidateKey","_producerIdentity","_expiresAt","_candidateOwner"];
+            if (!isServer || {serverTime < _expiresAt}) exitWith {};
+            private _currentCandidates=missionNamespace getVariable ["CBE_ClearProducer_Candidates",createHashMap];
+            private _stored=_currentCandidates getOrDefault [_candidateKey,[]];
+            if (_stored isEqualType [] && {count _stored == 7}
+                && {(_stored select 0) isEqualTo _producerIdentity}
+                && {(_stored select 4) == _expiresAt}
+                && {(_stored select 5) == "CANDIDATE_UNSEALED"}
+                && {(_stored select 6) == _candidateOwner}) then {
+                _currentCandidates deleteAt _candidateKey;
+                missionNamespace setVariable ["CBE_ClearProducer_Candidates",_currentCandidates];
+            };
+        },
+        [_key,+_original,_candidate select 4,_incomingOwner],
+        (((_candidate select 4)-serverTime) max 0)+0.25
+    ] call CBA_fnc_waitAndExecute;
     true
 };
 if (_mode != "REGISTER" || {!isServer} || {count _data != 5}

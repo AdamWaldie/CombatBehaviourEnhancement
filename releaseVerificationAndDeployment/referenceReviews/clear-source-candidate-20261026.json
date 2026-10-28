@@ -35,5 +35,40 @@
     "addons/infantry/functions/buildingProducerRetire.sqf": "4b920bd8e285f2b36fc31d46a2e609ac6fb32f596240433fdd17f63f0819fbb7",
     "releaseVerificationAndDeployment/test_building_start_admission.py": "099951f51a3e1b0b06716d250c80aca1e10e680c5b5b67079c78581c815bb222",
     "releaseVerificationAndDeployment/test_clear_preparation_commit.py": "7d22e0cb65cd5964eecf00ae2c7a1a202be57a7119be120b2c2342539406fe0c"
+  },
+  "terminalPayloadRelease20261028": {
+    "base": "182bd5f5c861f7c5a36942c77cbf3375a3dc1c87",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_HANDOVER_INCOMPLETE",
+    "registeredScope": "Owner-local CQB producer retirement lifecycle; Protocol CQB/CBE foundation. This is CBE-specific retention cleanup, not an upstream port or completed handover.",
+    "currentTrace": [
+      "CortexLocality fences the old building writer and copies17-field original lane/stage/room/follow/exit/actor state; it records private capture and a bounded shared-scheduler retirement observer.",
+      "BuildingProducerRetire waits for enumerated original FSM completion and unchanged watched metadata, then submits one CAPTURE to BuildingProducerRegister. Success/refusal/expiry are terminal and cannot retry.",
+      "BuildingProducerRegister stores CANDIDATE_UNSEALED with original5s/phase expiry; no sealed incoming request/delivery exists. CortexDiscover still resumes from independently published durable state and CortexClearBuilding preflight, not this server candidate. Full all-writer/native-ready transfer remains incomplete."
+    ],
+    "finding": "Terminal _finish removed writers and records but retained the frozen capture in both observer state and CBE_Cortex_ClearLaneCaptureLocal. That payload can retain the original actor/geometry graph after its one-shot source use; there is no current post-terminal local consumer. Server candidate retention remains separately required for its current policy. Server candidate expiry was only opportunistic: without another CAPTURE or new visit, the last expired frozen graph also stayed in the server map.",
+    "implementation": "Remove only this observer state capture reference on every terminal result. Clear machine-private group capture only if both current retirement state and current capture still match the original values. Preserve compact done/result state and completed-FSM observation. Success submits before _finish. Never mutate nested capture arrays, stored candidate, newer observer/capture, deadlines, retry counts, native/settings state or execution permission. Add one existing-CBA delayed callback only after a newly stored candidate. Callback arguments hold key, small original registration, unchanged expiry and incoming owner, never capture. After actual expiry it deletes only the exact matching CANDIDATE_UNSEALED row. Duplicate returns precede scheduling; replacement/shutdown is preserved. No new execution permission or renewed expiry.",
+    "cost": "Terminal source release uses constant-number private-root checks, no world query or native command. Server stores at most512 candidates and schedules one constant-key cleanup per newly stored candidate, after original expiry plus0.25s scheduling margin; duplicate submissions schedule none. Existing opportunistic prune remains. Callback carries only small identity, not the frozen graph. No permanent scan/controller or expiry renewal; no heap/frame-time measurement claimed.",
+    "verification": {
+      "red": ".qa/handovers/clear-retire-payload-red-20261028.log:3 existing focused cases,selected regression fails old retention.",
+      "focused": ".qa/handovers/clear-retire-payload-focused-20261028.log:3 existing focused cases PASS. Source lifecycle contracts only, not native memory/runtime transfer proof.",
+      "newTestCases": 0,
+      "physical": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_RUN",
+      "serverExpiryRed": ".qa/handovers/clear-candidate-expiry-red-20261028.log:4 existing focused cases,selected expiry regression fails old source.",
+      "serverExpiryFocused": ".qa/handovers/clear-candidate-expiry-focused-20261028.log:4 existing focused cases PASS. Source contracts cover original expiry/identity, no retained payload, replacement/shutdown safety and no duplicate scheduling; actual CBA timing remains unverified.",
+      "intermediateBuild": ".qa/handovers/clear-retire-payload-build-20261028.log:1505 tests/459 SQF/11 PBO and gates PASS for source-side release only, before server expiry cleanup. Session85006 terminal exit0. Not final candidate evidence.",
+      "fullBuild": ".qa/handovers/clear-retire-payload-final-build-20261028.log:1505 existing tests,459 compiled production SQF,11 PBO and complete local gates PASS. Session61901 terminal exit0.",
+      "independent": ".qa/handovers/clear-retire-payload-independent-20261028.log:PASS",
+      "candidate": ".qa/candidates/clear-retire-payload-20261028-182bd5f5",
+      "fingerprint": "0ccf288c6da55b62f9dd2ae23a4b3f5024e4d3ca3e95fa0784e9c91cf4e639ea",
+      "provenance": "182bd5f5c861f7c5a36942c77cbf3375a3dc1c87 plus dirty runtime; engineering/register/handover metadata finalized after packaging. Unsigned development, not signed clean release or physical acceptance."
+    },
+    "remaining": "Complete all-writer source fencing/seal, authenticated incoming transfer and actual original native/settings/phase reconciliation, physical normal/HC/JIP/Zeus/repeat quality and measured cost remain open. Do not promote stored unsealed data to execution authority or infer quiescence from timeout.",
+    "productHashes": {
+      "addons/infantry/functions/buildingProducerRetire.sqf": "69e4b5e038f7460fbc854d771d80c21c28bc3f6465cee0399632329f9ae47e40",
+      "addons/infantry/functions/buildingProducerRegister.sqf": "d12265386e1019218dd37d0dab8180a6b2691393ca2dad7a71199d2b06f989a9",
+      "addons/core/functions/cortexLocality.sqf": "0b5152e1e0cd05a2c8ff03d16177cf25e9c03eb72b3d4ae19d47b7da2507a23d",
+      "addons/infantry/functions/cortexClearBuilding.sqf": "30863a68afc305e6fc5806b8cbfbb5c362676da8f99bb9ad8494868e33df3451"
+    }
   }
 }

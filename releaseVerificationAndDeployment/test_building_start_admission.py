@@ -42,7 +42,7 @@ class BuildingStartAdmissionTests(unittest.TestCase):
                       '(_existing select [0,6]) isNotEqualTo _identity',
                       '_job set ["producerRegistration",+_data]'):
             self.assertIn(guard,registration)
-        for forbidden in ('doMove','doStop','forceSpeed','setPos','execFSM','CBA_fnc_waitAndExecute'):
+        for forbidden in ('doMove','doStop','forceSpeed','setPos','execFSM'):
             self.assertNotIn(forbidden,registration)
         capture=registration.split('if (_mode == "CAPTURE") exitWith {',1)[1].split('if (_mode != "REGISTER"',1)[0]
         for guard in ('_original isNotEqualTo _registration','_sender != (_original select 1)',
@@ -54,6 +54,16 @@ class BuildingStartAdmissionTests(unittest.TestCase):
                       '_existing isEqualTo _candidate'):
             self.assertIn(guard,capture)
         self.assertNotIn('groupOwner _group != _sender',capture)  # Registered old owner, not successor.
+        self.assertEqual(capture.count('call CBA_fnc_waitAndExecute'),1)
+        expiry=capture.split('// Release the last candidate',1)[1]
+        for guard in ('serverTime < _expiresAt','count _stored == 7',
+                      '(_stored select 0) isEqualTo _producerIdentity',
+                      '(_stored select 4) == _expiresAt','(_stored select 6) == _candidateOwner',
+                      '_currentCandidates deleteAt _candidateKey'):
+            self.assertIn(guard,expiry)
+        self.assertIn('[_key,+_original,_candidate select 4,_incomingOwner]',expiry)
+        self.assertNotIn('_capture',expiry)  # Timer must not retain the large graph.
+        self.assertLess(capture.index('if (_existing isNotEqualTo []) exitWith'),capture.index('call CBA_fnc_waitAndExecute'))
         self.assertLess(capture.index('_sender != (_original select 1)'),capture.index('private _stack='))
         def may_submit(sender,registered=7,serial=1,original_serial=1,age=1,retire_age=1,incoming=8,current_owner=8):
             return (sender==registered and incoming!=sender and incoming==current_owner

@@ -137,6 +137,12 @@
       "floorCandidateSamplingReview": {
         "review": "clear-floor-candidate-sampling-20261026.json",
         "scope": "Interior access samples24/32 candidates after relevant-floor filtering within512 original points. No physical route/visit/parity/performance proof."
+      },
+      "terminalPayloadRelease20261028": {
+        "review": "clear-source-candidate-20261026.json#terminalPayloadRelease20261028",
+        "scope": "Finished source observer drops its frozen capture references under exact observer/capture guards. Server candidates receive one original-expiry/identity-bound cleanup callback retaining no payload. No native commands, complete all-writer seal, incoming transport or physical handover proof.",
+        "physicalAcceptance": false,
+        "scoresChanged": false
       }
     },
     {
