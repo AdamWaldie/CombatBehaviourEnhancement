@@ -343,12 +343,13 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-rappel-3819636004-20261020.json",
-      "remaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature.",
+      "remaining": "Real finite controlled actor descent/cleanup and provider handover remain unimplemented. The preserved standalone provider script carries MIT terms permitting adaptation with its notice; separate animation/sound assets remain external. Current untracked worker APIs and unbounded point mappings cannot be wrapped as complete execution. Follow controlledPortConstraints20261028 for the finite native ownership/geometry/arrival outcome before exposing a module.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
       },
-      "providerHandoverFinding": "Both installed actor APIs clear active markers before delayed unconditional damage restoration and provide no completion receipt. Current marker compatibility is not complete handback. Controlled finite rope execution or a corrected provider API is still required; see protocol-rappel-3819636004-20261020.json providerQuiescenceContract20261023. Feature remains required and unimplemented."
+      "providerHandoverFinding": "Both installed actor APIs clear active markers before delayed unconditional damage restoration and provide no completion receipt. Current marker compatibility is not complete handback. Controlled finite rope execution or a corrected provider API is still required; see protocol-rappel-3819636004-20261020.json providerQuiescenceContract20261023. Feature remains required and unimplemented.",
+      "controlledPortReview": "protocol-rappel-3819636004-20261020.json#controlledPortConstraints20261028"
     },
     {
       "workshopId": "3822504009",
