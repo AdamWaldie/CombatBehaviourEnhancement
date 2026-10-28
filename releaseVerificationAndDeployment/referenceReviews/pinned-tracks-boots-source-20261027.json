@@ -395,5 +395,81 @@
       "addons/core/functions/cortexTuningSpec.sqf": "a7be1c032b29f09ec11df594113e5e50a8c2452f0c0a8462508de96b63d89b02",
       "addons/main/CfgFunctions.hpp": "55490aada38f4666bfedeb1dae3ac3c59f3312d9cadfa3961af38b9425e9e6fa"
     }
+  },
+  "crossHostCargoSupport20261028": {
+    "scope": "Finite original-cargo passenger-owner acknowledgement and withdrawal across server/HC hosts, composed with the existing selected-crew support FSM. Not an external driving-provider handover or continuous escort.",
+    "sourceEvidence": [
+      {
+        "path": "functions/fn_registerJob.sqf",
+        "sha256": "cefa1219efc7d5c741ade0461f60f668547ef9486da38a52e277016f9e7cf22a",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateJob.sqf",
+        "sha256": "9f2879f1294ff8b847b0e174ea1e6968f2530554806633da3ca7733715627f0f",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_supportPosition.sqf",
+        "sha256": "7c3be4f5a4c08157b820e8368a60451c9120316363d3625792478ce5025e37cb",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateSupport.sqf",
+        "sha256": "fe9da87d9c020df2853c0556af6220c8901bd4403cc05ae388bdfbe63a603aea",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_commandPassengerLocal.sqf",
+        "sha256": "9308663a8ea493fe58643f090c41bb9fffdbbfde1b16ee299e6300f3ab3c9c1d",
+        "matchesRecordedSource": true
+      }
+    ],
+    "sourceIntent": "Tracks and Boots registers actual passengers and updates support behind the troop body. Its unacknowledged target-event command delivery, delayed reseat, regrouping and old-route replay do not establish safe remote consent. Adapt the useful cooperation intent with authenticated passive passenger consent; only existing CBE crew movement owns native commands.",
+    "executionPath": [
+      "CortexVehicles OFFER captures actual cargo before publishing crew contact/danger, capped4groups/16actors/64seats and original60seconds",
+      "CortexOnboardContact EXIT submits original private owned-exit acknowledgement while actor still mounted",
+      "CortexMechanisedRemoteServer authenticates current server/live-HC passenger owner and forwards to actual crew/vehicle owner",
+      "CortexMechanisedRemoteCrew checks its private manifest/token, sequence, native order and original owner; PULSE cannot create carriage acknowledgement",
+      "CortexGroupTick sends at most2second pulses per original vehicle episode from current private epoch/native/exit state; empty path exits before route read",
+      "CortexReleaseGroup CLOSE retires permission before cleanup; terminal tombstone rejects queued revival, freshness expiry handles absent owner ticks",
+      "Cargo/MechanisedSupport READ uses exact remote source, original actual actors and at most6second observation lease; selected-crew worker rechecks before ISSUE and at most2seconds"
+    ],
+    "authority": "Server relay is not movement permission; crew checks original private carriage. No public owner epoch/dismount flag is treated as remote consent. No infantry commands, membership, seat, skill or target revelation. Vehicle owner/crew identity, passenger owner/native order, external control, actual all-cargo-out and finite movement retirement remain required.",
+    "deadlineAndReplay": "Crew offer original60second expiry never renews on pulses. Positive lease expires at passenger observationAt+6 capped by original expiry, never receipt time. Monotonic per-original episode sequence plus irreversible CLOSE prevents late positive replies reviving a withdrawn source. Pulse cannot add actors. Source changes cancel captured worker rather than borrowing a new consent. Original bound/contact window remains at most30seconds.",
+    "performance": "No new PFH, job, world scan or permanent controller. Existing report callbacks capture bounded seats; existing group ticks send bounded pulses; server relays only authenticated packets. Four original vehicles/group and four passenger groups/vehicle cap retained records. Native current-node receipt retains existing route enumeration cost. Global/headless actor list used only for authenticating actual HC senders. Actual cost remains unmeasured.",
+    "limits": "Offline integration only. Far scheduler20second cadence can expire6second consent; support is refused, not kept alive with a new controller. Replication lag or packet delay may decline an opportunity. Native travel, message ordering, early withdrawal, owner changes/disconnect, repeated insertion and measured balance/performance need physical verification. No whole-mod or provider-handover completion claim.",
+    "remaining": "Continuous multi-bound/repeated-insertion cooperation and full selected-source reconciliation remain open; cross-host code is not physical acceptance. Audits remain paused.",
+    "verification": {
+      "focusedTests": 663,
+      "focusedLog": ".qa/handovers/mech-remote-focused-20261028.log",
+      "fullBuild": "PASS",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "supersededBuildLog": ".qa/handovers/mech-remote-build-before-offer-validation-20261028.log",
+      "supersededReason": "Final review found nested public offer was consumed before validating its token shape; tightened fail-closed parsing and extended existing regression before final build.",
+      "fullTests": 1501,
+      "compiledSQF": 454,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/mech-remote-build-20261028.log",
+      "candidate": ".qa/candidates/mech-remote-20261028-ecfb9b46",
+      "fingerprint": "49e290f84da05c4c53d00aa6b272dde9011720bf3be3fdea66900c2d7cc0c2b1",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/mech-remote-independent-20261028.log",
+      "buildProvenance": "ecfb9b46fcb29c659efedee1c01afaaef7b191b7 plus dirty runtime snapshot; only engineering review/handover metadata changes after packaging. Raw runtime hashes below pin build inputs; compare normalized committed content separately."
+    },
+    "runtimeSha256": {
+      "addons/vehicles/functions/cortexMechanisedRemote.sqf": "c4040908864a2a7f384220b37e38063d6a6dffb7059c6ad4e825674982c0914a",
+      "addons/vehicles/functions/cortexMechanisedRemoteServer.sqf": "fe54a183962c4d65fa0e1947a7365c262a89560e2cedeff551941de81a719182",
+      "addons/vehicles/functions/cortexMechanisedRemoteCrew.sqf": "e10afc152734de1db2857920e1957c592d6b8e6a5ba16ccc292edd5d35d9c765",
+      "addons/vehicles/functions/cortexMechanisedCargo.sqf": "ddc4792a06d2838f1e9f65467ce9d4fb539930a939bb03c960a46ae796995443",
+      "addons/vehicles/functions/cortexMechanisedSupport.sqf": "60ad99a6c7a97c7e406fbb6d0f5ab95c1a1a58391c2c1e62d88d40b1b08e8c1d",
+      "addons/vehicles/functions/cortexVehicles.sqf": "5fcd1bc6486dad83938d8605dd67f2095a32846abe322b897b70a73ae6745b40",
+      "addons/infantry/functions/cortexOnboardContact.sqf": "741398ff8c2ed077b4eba6a4d5646880b2895c7f9bed88db5f3da9fc44b59a5d",
+      "addons/infantry/functions/cortexGroupTick.sqf": "4bc592eec575fe493ddf4bc7e0df30debe25935a4c321ba91a25ae243b07e603",
+      "addons/infantry/functions/cortexReleaseGroup.sqf": "d31f90855de20245dea284b85e850b125e097def05780a6397d164ab7a26d7aa",
+      "addons/main/CfgFunctions.hpp": "babd47503c011e09caf29f09f30234a9e504885a2eae46f2af331a506dff9913",
+      "addons/core/functions/cortexTuningSpec.sqf": "6cdd8a8d4206c25498474904c8a8388aaabd586a9d527cad74d0bcf6fef36586"
+    }
   }
 }

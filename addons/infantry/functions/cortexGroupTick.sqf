@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Existing ticks renew only original remote cargo consent; missing ticks let its short lease expire.
  * Calm remount intent retains its original native waypoint receipt and operation generation;
  * replacement orders retire boarding without seat cleanup, and migration keeps the original deadline.
  * Building geometry identities include scale; stale geometry grants no current task or visit proof.
@@ -132,6 +133,7 @@ if (!local _group || {!(missionNamespace getVariable ["CBE_AIPass_Active", false
     _group setVariable ["CBE_AIPass_Managed", nil];
     -1
 };
+[_group,"TICK"] call CBE_fnc_CortexMechanisedRemote;
 // A periodic lease expiry must never reset posture after Zeus, a player or a specialist controller
 // claims any member of the group.
 private _dangerYield=[_group] call CBE_fnc_CortexExternalTakeover;

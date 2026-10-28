@@ -451,6 +451,7 @@ private _dismountAtThreat = {
         } >= 0}) then {
         // The crew cannot command another group out. Publish only bounded hazard geometry so the
         // passenger owner can run the same safety checks without receiving target knowledge.
+        ["OFFER",_vehicle,_group] call CBE_fnc_CortexMechanisedRemoteCrew;
         _vehicle setVariable ["CBE_Cortex_OnboardDanger",[_group,groupOwner _group,+_threatPosition,serverTime+30],true];
     };
     // A combined crew/passenger group has no cross-group report consumer. The same bounded
@@ -845,6 +846,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
         private _reportedPosition=[25*round ((_enemyPos select 0)/25),25*round ((_enemyPos select 1)/25),0];
         // The far scheduler tier is 20 seconds. A shorter report could expire between the
         // independently scheduled crew and passenger jobs and make a valid handover impossible.
+        ["OFFER",_vehicle,_group] call CBE_fnc_CortexMechanisedRemoteCrew;
         _vehicle setVariable ["CBE_Cortex_OnboardReport",[_group,groupOwner _group,_reportedPosition,serverTime+35],true];
         _vehicle setVariable ["CBE_Cortex_OnboardReportDue",serverTime+5];
     };
@@ -1051,7 +1053,8 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo []}
             && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
             && {count (_group getVariable ["CBE_Cortex_DismountContinuation",[]]) == 4
-                || {(_vehicle getVariable ["CBE_Cortex_MechCargo",[]]) isNotEqualTo []}}
+                || {(_vehicle getVariable ["CBE_Cortex_MechCargo",[]]) isNotEqualTo []}
+                || {(_vehicle getVariable ["CBE_Cortex_MechRemoteManifest",[]]) isNotEqualTo []}}
             && {serverTime >= (_vehicle getVariable ["CBE_Cortex_MechSupportDue",0])}
             && {[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable}) then {
             _vehicle setVariable ["CBE_Cortex_MechSupportDue",serverTime+8];

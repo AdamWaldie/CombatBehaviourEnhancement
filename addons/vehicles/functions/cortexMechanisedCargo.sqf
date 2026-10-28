@@ -2,12 +2,13 @@
  * Author: WaldoTheWarfighter
  * Purpose: Retain actual cargo and local passenger-owner consent for finite troop support.
  * Locality/authority: Vehicle, crew group and participating passenger groups must all be
- * local to this AI host. This is not a remote consent or controller handover protocol.
+ * local for ACK. READ may use authenticated remote passenger consent through RemoteCrew.
  * Repeat/JIP: ACK records actual mounted cargo before the CBE exit command. Original
  * cohort expiry never extends. READ is side-effect free. Metadata is local, not JIP authority.
  * Arguments: vehicle OBJECT objNull; crew group GROUP grpNull; mode STRING READ;
  * actor OBJECT objNull (ACK only); expected source ARRAY [] or original
- * [passenger group,passenger epoch,cohort identity,acknowledged cargo actors] (READ/CHECK).
+ * [passenger group,passenger epoch,cohort identity,acknowledged cargo actors] (READ/CHECK),
+ * with original passenger owner appended for the authenticated remote source.
  * Return: READ [dismount proof,source] or []; ACK returns cohort identity or[].
  * Limits:64seat rows,4passenger groups,16original actors per group,64owned-exit rows.
  * No seat, group, movement, reveal, setting or scheduler operation is issued.
@@ -22,6 +23,9 @@ if (!(_mode in ["READ","ACK"]) || {remoteExecutedOwner > 0}
     || {!alive _vehicle} || {!(_crewGroup getVariable ["CBE_AIPass_Adopted",false])}
     || {group driver _vehicle != _crewGroup} || {group effectiveCommander _vehicle != _crewGroup}
     || {[_crewGroup] call CBE_fnc_CortexExternalTakeover}) exitWith {[]};
+if (count _expected == 5 && {_mode == "READ"}) exitWith {
+    ["READ",_vehicle,_crewGroup,_expected] call CBE_fnc_CortexMechanisedRemoteCrew
+};
 private _crewEpoch=_crewGroup getVariable ["CBE_AIPass_Epoch",-1];
 private _crewContext=[clientOwner,_crewEpoch,_crewGroup,driver _vehicle,effectiveCommander _vehicle,
     [_crewGroup] call CBE_fnc_NativeOrderReceipt];
@@ -78,7 +82,9 @@ if (_mode == "ACK") exitWith {
     _vehicle setVariable ["CBE_Cortex_MechCargo",_cohort];
     +(_cohort select 0)
 };
-if (!_current || {_expected isNotEqualTo [] && {count _expected != 4}}) exitWith {[]};
+if (!_current || {_expected isNotEqualTo [] && {count _expected != 4}}) exitWith {
+    if (_expected isEqualTo []) then {["READ",_vehicle,_crewGroup] call CBE_fnc_CortexMechanisedRemoteCrew} else {[]}
+};
 private _used=_vehicle getVariable ["CBE_Cortex_MechCargoUsed",[]];
 private _result=[];
 {
@@ -125,4 +131,7 @@ private _result=[];
     };
     if (_result isNotEqualTo []) exitWith {};
 } forEach (_cohort select 3);
+if (_result isEqualTo [] && {_expected isEqualTo []}) exitWith {
+    ["READ",_vehicle,_crewGroup] call CBE_fnc_CortexMechanisedRemoteCrew
+};
 _result

@@ -674,7 +674,10 @@
         "addons/vehicles/functions/vehicleArmourShot.sqf",
         "addons/vehicles/functions/vehicleTurnRetire.sqf",
         "addons/vehicles/functions/cortexMechanisedSupport.sqf",
-        "addons/vehicles/functions/cortexMechanisedCargo.sqf"
+        "addons/vehicles/functions/cortexMechanisedCargo.sqf",
+        "addons/vehicles/functions/cortexMechanisedRemote.sqf",
+        "addons/vehicles/functions/cortexMechanisedRemoteServer.sqf",
+        "addons/vehicles/functions/cortexMechanisedRemoteCrew.sqf"
       ]
     },
     {

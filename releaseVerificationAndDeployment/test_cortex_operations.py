@@ -12284,6 +12284,46 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_selectedGroup != group _unit',ready)
         self.assertIn('[_selectedGroup] call CBE_fnc_CortexExternalTakeover',ready)
 
+    def test_cross_host_support_authenticates_carriage_and_finite_owner_consent(self):
+        sender=source('cortexMechanisedRemote')
+        relay=source('cortexMechanisedRemoteServer')
+        crew=source('cortexMechanisedRemoteCrew')
+        for text in (sender,relay,crew):
+            for command in ('doMove','forceSpeed','moveInCargo','joinSilent','setPosATL','execFSM','addPerFrameHandler'):
+                self.assertNotIn(command,text)
+        self.assertLess(sender.index('if (_records isEqualTo []'),sender.index('CBE_fnc_NativeOrderReceipt'))
+        for proof in ('objectParent _actor == _vehicle', 'CBE_Cortex_MechRemoteOffer',
+                      '_offer isEqualType []', 'count (_offer select 0) == 4',
+                      'CBE_AIPass_Epoch', '"dismounted"', '_order isEqualTo _native',
+                      '_mode != "CLOSE"', 'serverTime+2', '_originalEpoch', '_until,+_actors,_serial,_phase,serverTime,clientOwner'):
+            self.assertIn(proof,sender)
+        self.assertNotIn('serverTime+60',sender.split('private _sent=false;',1)[1])
+        for proof in ('!isServer', 'CBE_fnc_HeadlessResolveSender', 'groupOwner _passengers',
+                      'entities "HeadlessClient_F"', '_crewOwner != owner _vehicle',
+                      'CBE_fnc_CortexMechanisedRemoteCrew'):
+            self.assertIn(proof,relay)
+        for proof in ('remoteExecutedOwner != 2', 'fullCrew [_vehicle,"",false]', 'count _seats > 64',
+                      'count _groups > 4', 'count (_x select 2) > 16',
+                      '_token isNotEqualTo (_manifest select 0)', 'groupOwner _passengers != _sender',
+                      '_serial <= (_row select 6)', '(_row select 8)',
+                      '_phase == "PULSE" && {_row isEqualTo []', '(_at+6) min _until',
+                      '_phase != "CLOSE" && {_native isNotEqualTo'):
+            self.assertIn(proof,crew)
+        read=crew.split('if (_mode != "READ") exitWith',1)[1]
+        for forbidden in ('setVariable','remoteExecCall','serverTime+'):
+            self.assertNotIn(forbidden,read)
+        for proof in ('serverTime < _freshUntil','_data isEqualTo _source','CBE_Cortex_MechCargoUsed'):
+            self.assertIn(proof,read)
+        self.assertIn('[_group,"TICK"] call CBE_fnc_CortexMechanisedRemote',source('cortexGroupTick'))
+        self.assertIn('[_group,"CLOSE"] call CBE_fnc_CortexMechanisedRemote',source('cortexReleaseGroup'))
+        self.assertIn('[_group,"EXIT",_vehicle,_unit] call CBE_fnc_CortexMechanisedRemote',source('cortexOnboardContact'))
+        vehicles=source('cortexVehicles')
+        self.assertEqual(vehicles.count('["OFFER",_vehicle,_group] call CBE_fnc_CortexMechanisedRemoteCrew;'),2)
+        self.assertIn('CBE_Cortex_MechRemoteManifest',vehicles)
+        planner=source('cortexMechanisedSupport')
+        self.assertIn('private _remote=count _source == 5',planner)
+        self.assertIn('{_remote || {local _person}}',planner)
+
     def test_rejected_vehicle_escape_does_not_consume_withdrawal_or_smoke(self):
         text=source('cortexVehicles')
         section=text.split('// A rejected route is not a completed withdrawal.',1)[1].split('// Gunner priorities',1)[0]

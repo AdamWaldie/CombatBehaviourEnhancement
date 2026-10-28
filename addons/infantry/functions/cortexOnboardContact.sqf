@@ -6,7 +6,7 @@
  * safe stop and dismounts this squad's cargo only after the vehicle is physically stationary.
  * Locality/authority: passenger group owner; validates current reporting crew ownership.
  * Same-host original cargo is recorded before CBE exit for finite separate-squad support;
- * no cross-host consent, troop command or new contact knowledge is inferred.
+ * cross-host exits submit an authenticated original-cargo acknowledgement, not a troop command or contact reveal.
  * Repeat/JIP: reports bridge the 20-second far scheduler tier without becoming durable; stop requests
  * expire with the report and record each passenger once. Danger reports do not disclose a target.
  * Arguments: 0: group <GROUP>, grpNull; 1: state <HASHMAP>, empty.
@@ -65,9 +65,12 @@ private _vehicles=[];
                 _state set ["dismounted",_owned];
                 _state set ["onboardContactUntil",serverTime+30];
                 // Same-host crew and passenger owners can commit actual-carriage consent
-                // synchronously before exit. Different hosts need a separate protocol.
+                // synchronously before exit. Remote owners use the authenticated relay below.
                 if (_newExit && {local _vehicle} && {local _reporter}) then {
                     [_vehicle,_reporter,"ACK",_unit] call CBE_fnc_CortexMechanisedCargo;
+                };
+                if (_newExit && {!local _vehicle}) then {
+                    [_group,"EXIT",_vehicle,_unit] call CBE_fnc_CortexMechanisedRemote;
                 };
                 // Preserve the engine's in-progress exit animation/order. A later interrupted
                 // command may be retried on the next eligible tick, but healthy exits are not reissued.
