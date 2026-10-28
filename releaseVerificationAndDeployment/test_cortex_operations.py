@@ -9046,6 +9046,27 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CORTEX CONVOY STOPPED',text)
         self.assertLess(text.index('== "HALT"}) exitWith {true}'),text.index('CORTEX CONVOY STOPPED'))
 
+    def test_road_and_terrain_anticipation_follow_travel_direction_without_cadence_change(self):
+        road=source('drivingRoadCap')
+        self.assertIn('["_travelDirection",1,[0]]',road)
+        self.assertIn('[_requested min 15,0,0,false]',road)
+        self.assertLess(road.index('!finite _travelDirection'),road.index('private _road=roadAt'))
+        self.assertIn('([0,180] select (_travelDirection < 0))',road)
+        self.assertIn('_candidateHeading-_roadHeading',road)
+        self.assertIn('_approachHeading-_initialHeading',road)
+        ordinary=source('drivingAssistStart')
+        self.assertIn('if (_roadDirection < 0) then {_direction=_direction vectorMultiply -1}',ordinary)
+        self.assertIn('[_vehicle,_cap,_roadDirection] call CBE_fnc_DrivingRoadCap',ordinary)
+        convoy=source('convoyTick')
+        block=convoy.split('// One bounded road walk per convoy',1)[1].split('// During contact',1)[0]
+        for marker in ('_roadLongitudinal < -0.15', '_roadBackMode', 'roadDirection',
+                       '[_lead,_maximum,_roadDirection]', '["roadLookAt",time+3]'):
+            self.assertIn(marker,block)
+        self.assertIn('_roadDirection != (_state getOrDefault ["roadDirection",0])',block)
+        for text in (road,block):
+            for command in ('doMove','forceSpeed','addWaypoint','setDriveOnPath','setPosATL','setVelocity','addPerFrameHandler'):
+                self.assertNotIn(command,text)
+
     def test_convoy_avoidance_audit_uses_route_relative_real_terrain_checks(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runConvoyAvoidance.sqf').read_text()
         for marker in ['private _terrainReady=worldName == "VR"',

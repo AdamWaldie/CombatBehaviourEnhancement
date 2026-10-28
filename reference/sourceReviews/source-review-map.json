@@ -64,7 +64,7 @@
       "priority": "0 Foundations",
       "candidateContribution": "Driving, traffic, recovery, convoy and crew policy",
       "reviewStatus": "All28 indexed auxiliary bodies/declarations reviewed; main controller major branch reviews extended, end-to-end reconciliation incomplete",
-      "nextSourceReview": "Reconcile reviewed controller decisions, issued native work, detached callbacks and cleanup with required CBE capability dispositions. See navigation/route-memory, obstacle/grinding/watchdog and startup/crew/cadence sections in the current HBQ intent review. Readable body coverage does not establish integration or physical parity.",
+      "nextSourceReview": "Reconcile reviewed controller decisions, issued native work, detached callbacks and cleanup with required CBE capability dispositions. See navigation/route-memory, obstacle/grinding/watchdog and startup/crew/cadence sections in the current HBQ intent review. Readable body coverage does not establish integration or physical parity. Selected road/travel-direction correction is in hbq-road-travel-direction-20261028.json; precision/distance LOD remains a separate unresolved capability and must not weaken safety without response/cost evidence.",
       "recordedImplementationStatus": "PARTIAL_IMPLEMENTATION_WHOLE_SOURCE_INCOMPLETE",
       "recordedRemaining": "Whole-source parity remains incomplete. Optional default-off ordinary crew recall is now built; shallow-ford policy and other recorded source gaps remain open. Current convoy pacing trace does not justify blind tuning; physical reliability and performance unverified.",
       "implementationAssessmentCommit": "52f9606d1612715eedeb862f8cca4705ca0420ae",
@@ -77,7 +77,8 @@
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
       },
-      "auxiliaryReviewEvidence": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-intent-20261026.json#auxiliaryBodyReconciliation20261026"
+      "auxiliaryReviewEvidence": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-intent-20261026.json#auxiliaryBodyReconciliation20261026",
+      "currentSelectedIntegration": "Scoped28Oct correction: ordinary/convoy road and terrain anticipation follows measured backing/native BACK, with direction-bound cache reuse and unchanged observation bounds. See hbq-road-travel-direction-20261028.json. Existing broad HBQ integration gaps remain; no whole-mod or physical parity claim."
     },
     {
       "workshopId": "3799391254",

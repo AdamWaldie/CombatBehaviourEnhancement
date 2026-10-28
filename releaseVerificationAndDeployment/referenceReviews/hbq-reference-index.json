@@ -821,6 +821,16 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-road-travel-direction-20261028.json",
+      "sha256": "27c8079eed26d1107c041c6c50187a3fec3a295b64675bee87e9de2f350ae519",
+      "scope": "Reverse-aware shared road/terrain anticipation and direction-bound convoy observation. Selected HBQ RoadAhead/sector intent only, not a full controller/precision review or behavioural parity.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_nearestThreat.sqf"
+      ],
+      "meaning": "Selected source-to-CBE execution correction; no renewed whole-source or physical acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-crew-proximity-20261017.json",
       "sha256": "3ff5d7469d35ecf7be7faeaa08dd2503909a751b117748a9a9d4eb30748314ed",
       "scope": "HBQ route refresh, intentional waiting, crew retention and proximity observation; scoped source review, not whole-mod parity",

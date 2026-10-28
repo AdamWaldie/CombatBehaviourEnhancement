@@ -4,7 +4,9 @@
  * Locality/authority: read-only on the current vehicle owner; the consuming driving/convoy
  * executor rechecks its movement lease before any speed command. No route choice is written.
  * Repeat/JIP: fresh observation only, no handlers or retained state; callers own cadence/cache.
- * Arguments: 0 vehicle <OBJECT>, objNull; 1 requested cap km/h <NUMBER>, 70 (0..120).
+ * Arguments: 0 vehicle <OBJECT>, objNull; 1 requested cap km/h <NUMBER>, 70 (0..120);
+ * 2 observed travel direction <NUMBER>, 1 (forward1/reverse-1). Unknown/nonfinite direction
+ * returns a conservative15km/h ceiling without guessing road geometry.
  * Return: ARRAY [cap km/h NUMBER, maximum turn degrees NUMBER, maximum grade NUMBER, junction BOOL].
  * Road endpoints are read as ASL metadata, preserving bridge/deck elevation and within-piece
  * grade instead of deriving height from a road object's model origin. Bridge widths are not
@@ -16,13 +18,15 @@
  * Cost: at most eight transitions, nine road metadata reads and sixteen connections per node.
  * Native discovery cost is engine-dependent. Heading-based branch selection is a heuristic,
  * not the native planned route. Missing bridge endpoint geometry lowers the cap conservatively.
- * Current callers: DrivingAssistStart and ConvoyTick.
+ * Current callers: DrivingAssistStart and ConvoyTick supply measured travel/native BACK direction.
+ * Heading-based branch selection remains an observation, not the engine planned road.
  * Example: private _road = [truck1,70] call CBE_fnc_DrivingRoadCap;
  */
-params [["_vehicle",objNull,[objNull]],["_requested",70,[0]]];
+params [["_vehicle",objNull,[objNull]],["_requested",70,[0]],["_travelDirection",1,[0]]];
 if (!finite _requested) then {_requested=0};
 _requested=(_requested max 0) min 120;
 if (isNull _vehicle || {!local _vehicle} || {!alive _vehicle}) exitWith {[_requested,0,0,false]};
+if (!finite _travelDirection || {!(_travelDirection in [-1,1])}) exitWith {[_requested min 15,0,0,false]};
 private _road=roadAt _vehicle;
 if (isNull _road) then {_road=(_vehicle nearRoads 8) param [0,objNull]};
 private _maximumTurn=0;private _maximumGrade=0;private _junction=false;private _overBudget=false;
@@ -49,7 +53,7 @@ if (!isNull _road) then {
     private _roadPosition=_roadGeometry select 0;
     _maximumGrade=_maximumGrade max (_roadGeometry select 1);
     if (!(_roadGeometry select 2)) then {_overBudget=true};
-    private _initialHeading=getDir _vehicle;
+    private _initialHeading=((getDir _vehicle)+([0,180] select (_travelDirection < 0))) mod 360;
     private _vehiclePosition=getPosASL _vehicle;
     private _roadHeading=_initialHeading;
     private _travel=0;private _visited=[];
