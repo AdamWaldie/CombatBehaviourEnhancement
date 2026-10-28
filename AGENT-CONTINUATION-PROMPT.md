@@ -1,3 +1,15 @@
+# Current checkpoint: forward traffic unknown-geometry refusal, 28 October 2026
+
+Workspace C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git; branch Adam/cbe-mechanised-support-20261028; draft PR20. Base fe976bae9c429fb1f5c77dd465a54a16a2261354. Verify current Git/PR and ignored .qa/handovers/checkpoint-current.json for final pushed commit. WMP chat cwd is unrelated.
+
+Implemented: DrivingFollowingCap now returns its existing zero-cap/self-object unavailable sentinel for degenerate/nonfinite horizontal heading or nonfinite own/peer hull projections. Previously degenerate heading returned requested speed and unknown height could fail both overlap comparisons, leaving a cap unchanged. Original local affine projection retained; no extra transforms, world query, rays, padding/spacing/cadence changes or controller. Ordinary/convoy consumers retain their existing traffic-blocked and owner/order/crew boundaries. No physical stop or flipped recovery claim.
+
+Verified: old-source focused regression failed, corrected20 existing traffic checks PASS, full1505tests/457SQF/11PBO plus independent verification PASS. Build session34546 exited0. Candidate .qa/candidates/traffic-unknown-geometry-20261028-fe976bae; fingerprint c7ff207c49778e164f6014e3f60f2bc872edae42295a2e551a4d43f96366b50b. Receipt basefe976bae+dirty source, engineering/handover metadata after packaging. Logs .qa/handovers/traffic-unknown-geometry-{red,focused,build,independent}-20261028.log. Evidence releaseVerificationAndDeployment/referenceReviews/hbq-traffic-vehicle-categories-20261028.json#unknownGeometryRefusal20261028; master map and protected HBQ index updated. No new test cases or acceptance credit.
+
+Full production goal ACTIVE/incomplete. Audits PAUSED: no Arma launch or installed-game staging. Physical behaviour, actual unknown geometry/native cap handling, convoy flow, balance and5%median/10%p95 cost unverified. Continue foundations-up through IMPLEMENTATION-GOAL.md, master source register, LAMBS queue, entire HBQ and nine Protocol programme. Current indoor civilian refuge and initial finite firing-position movement already exist; do not duplicate them from historical missing notes. Remaining provider all-writer handover, precision/distance LOD and whole-source/physical gaps remain open. Preserve unrelated dirt, originals/archives/keys and prior candidates; no merge/release/Steam/subagents. Usage92%remaining at last live check; below10% immediate safe commit/PR/handover rule remains.
+
+--- Previous checkpoint follows ---
+
 # Current checkpoint: live explicit ground-AA role declaration, 28 October 2026
 
 WORKSPACE C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git; branch Adam/cbe-mechanised-support-20261028; draft PR20. Base3e3075b9a5796fe59f7182b7fd5d44308937fae1. Verify final Git/PR/current ignored .qa/handovers/checkpoint-current.json for exact pushed head. WMP chat cwd is unrelated.

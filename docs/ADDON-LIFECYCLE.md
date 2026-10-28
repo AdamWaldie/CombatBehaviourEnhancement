@@ -2344,3 +2344,10 @@ Dedicated ground air-defence roles use one shared native-config classification. 
 
 
 Mission authors can designate a mixed-profile or custom-category ground platform with `aaVehicle setVariable ["CBE_AirDefenceRole",true,true]` from authoritative mission setup. `false` selects the ordinary vehicle role; unset, `nil` or numeric `-1` restores native-config inference. Other values refuse the dedicated role. This is a per-platform role declaration, not feature enablement: global CBA controls and actual loaded weapon, contact, crew/task and current-owner checks still apply. False does not disable ordinary native anti-air fire. Live declarations are never class-cached. New native warning/shot capture and interceptor admission/steps recheck the role; withdrawal retires guidance through existing exact lock/fire-lease cleanup on the next owner callback. Existing relocation checks retain their current native task retirement. Native shots and movement do not instantly become quiescent when a role changes. No old warning, shot or deadline is replayed or renewed by changing the declaration. Observer callbacks are versioned for normal replacement.
+
+
+### Unavailable forward traffic geometry
+
+The forward/reverse lane observer returns a zero speed constraint when its horizontal heading or its own/another observed vehicle hull projection is nonfinite. A nearly vertical heading also refuses the observation. It uses the existing unavailable-observation sentinel, which keeps ordinary driving and convoy stall recovery from treating that sample as a free lane. The observer still issues no command: current-owner route and crew checks govern any applied cap. A later normal sample is fresh observation, not cached clearance.
+
+Finite hull geometry retains the existing projection, spacing, crossing prediction and scan budgets. No additional transforms, world query, ray, worker or retry is added; finite checks run in the current observer. This does not right a vehicle, prove a physical stop or establish safe passage. Runtime behaviour and measured cost remain unverified.

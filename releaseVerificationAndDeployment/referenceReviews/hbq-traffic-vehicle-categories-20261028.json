@@ -76,5 +76,44 @@
     "sourceDisposition": "The inspected HBQ overtaking road occupancy scan itself includes LandVehicle/CAManBase and alive only; CBE deliberately combines the broader wreck-obstacle intent from nearestThreat with its own existing dead-inclusive/3D predictive corridor. This is a capability improvement, not a claim of identical source behaviour.",
     "limits": "Class expansion can increase candidates or conservative refusal. Measured cost, native physical path/abort and exotic engine wreck replacements remain unverified. Current course projection does not predict future steering or exact surface collision.",
     "sourceBase": "55beea1a822adcafbab8d64d9de56c28d0505618"
+  },
+  "unknownGeometryRefusal20261028": {
+    "base": "fe976bae9c429fb1f5c77dd465a54a16a2261354",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "registeredScope": "HBQ collision observation intent through CBE owner-local driving foundations, before dependent convoy/queue expansion.",
+    "source": {
+      "path": ".qa/hbq-complete-source-20261025/functions/fn_nearestThreat.sqf",
+      "sha256": "db2d82840137c2ee19eb8b1131c103771325ad84b6ecef023ac4320673a14ec5",
+      "readScope": "Complete108-line helper; proximity/sector/category result is a broad-phase observation, not hull clearance."
+    },
+    "finding": "FollowingCap previously returned requested speed when horizontal heading was degenerate. Nonfinite own projection was checked only for dense pruning; nonfinite peer height could make both overlap comparisons false and preserve the cap. Rear/PassTraffic already refuse unavailable hull projection. This is a source-level refusal gap, not an observed physical failure.",
+    "change": "Retain the existing affine four-transform hull projection and finite-value validation policy used by DrivingHullInterval. Refuse degenerate/nonfinite horizontal heading and nonfinite own bounds before discovery. Refuse any nonfinite projected peer span before lane/height comparisons, terminating the existing bounded observer through its unavailable/budget sentinel. No helper replacement, projection/padding/spacing change or extra native transform.",
+    "execution": "DrivingAssistStart and ConvoyTick lead/follower callbacks consume the same zero cap/self-object sentinel. Their current ordinary/convoy traffic-blocked and speed-limited branches suppress recovery while the sample is unavailable. Existing owner/route/crew command checks remain. No movement, unflip, forced seat or expiry permission is introduced.",
+    "cost": "At most3 heading finite checks and6 own-bound checks, plus6 finite peer components for each projected candidate, under unchanged256 projections/64 predictions, one area query and existing cadence. Dense finite predicates remain. No measured cost claim.",
+    "verification": {
+      "red": ".qa/handovers/traffic-unknown-geometry-red-20261028.log: existing regression fails on old full-cap heading branch",
+      "focused": ".qa/handovers/traffic-unknown-geometry-focused-20261028.log:20 existing traffic checks PASS; numeric NaN overlap/vertical frame counterexamples and production guard/consumer contracts, not SQF runtime",
+      "fullTests": 1505,
+      "compiledSQF": 457,
+      "PBOs": 11,
+      "fullBuild": "PASS",
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/traffic-unknown-geometry-20261028-fe976bae",
+      "fingerprint": "c7ff207c49778e164f6014e3f60f2bc872edae42295a2e551a4d43f96366b50b",
+      "buildLog": ".qa/handovers/traffic-unknown-geometry-build-20261028.log",
+      "independentLog": ".qa/handovers/traffic-unknown-geometry-independent-20261028.log",
+      "sourceNote": "Unsigned development package records base fe976bae9c429fb1f5c77dd465a54a16a2261354 plus dirty inputs. Engineering review/handover metadata follows packaging. Not a clean release or physical acceptance."
+    },
+    "productHashes": {
+      "addons/vehicles/functions/drivingFollowingCap.sqf": "b9dba549f5860baf232405d6c32b457435c9b6c4fa923fa6dd1ad0deca9145b5",
+      "addons/vehicles/functions/drivingHullInterval.sqf": "57d3263d83ca911d8a280cdaab9f6320fea1e1f6442ef6858fc515dac34082eb",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "9ab9beb41356b260ed2ac4f1e1f565609d622bbb3f09fdac41e2f25299fd182e",
+      "addons/vehicles/functions/convoyTick.sqf": "dd9c3cfbcfe59948acfd6391ac4957e97352db1c06e7cfd8a9a78978b7624c90"
+    },
+    "limits": [
+      "No in-engine unknown-hull occurrence or stopping response demonstrated; audits paused.",
+      "Finite but inaccurate or empty native bounding boxes, native simulation/scale limits and faster/larger mod traffic remain separate uncertainties.",
+      "No general flipped recovery, full HBQ parity, physical convoy flow or performance acceptance."
+    ]
   }
 }

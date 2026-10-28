@@ -110,3 +110,5 @@ The historical master ledger and `.qa/source-refresh-20261011/code-inventory.jso
 Working directory: `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`. Source/archive locations are listed in the machine-readable map and the current handover. Originals remain read-only. Raw upstream code, assets and private signing material stay out of commits and packages.
 
 Audits remain paused. The map itself provides no physical acceptance or performance result.
+
+Current HBQ foundation follow-up (28 October): forward traffic refuses degenerate/nonfinite heading and nonfinite own/peer hull projection through the existing zero-cap unavailable sentinel. See `releaseVerificationAndDeployment/referenceReviews/hbq-traffic-vehicle-categories-20261028.json#unknownGeometryRefusal20261028`. Existing projection, query, prediction, cadence and command owners remain; audits paused, physical behaviour and cost unverified.

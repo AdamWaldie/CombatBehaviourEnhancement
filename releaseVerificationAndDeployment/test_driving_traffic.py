@@ -135,6 +135,21 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertLess(s.index('if (_denseTraffic && {finite _otherSpeed}'),s.index('_evaluated=_evaluated+1'))
         self.assertLess(s.index('_evaluated=_evaluated+1'),s.index('private _otherCentre='))
         self.assertIn('if (_predictionBudgetExceeded) exitWith {[0,_vehicle',s)
+        # Unknown geometry is not an empty lane. In particular a NaN height makes
+        # both overlap comparisons false, and a vertical forward vector supplies
+        # no horizontal travel frame. Keep ordinary finite lanes unchanged.
+        self.assertFalse(float('nan') >= -0.75)
+        self.assertFalse(float('nan') <= 2.25)
+        self.assertEqual(math.hypot(0.0, 0.0), 0.0)
+        heading_guard=s[s.index('private _forward=vectorDir'):s.index('_forward=(vectorNormalized')]
+        self.assertIn('finite _x',heading_guard)
+        self.assertIn('exitWith {[0,_vehicle,-1,time,0,true]}',heading_guard)
+        own_guard=s[s.index('private _ownProjectionFinite='):s.index('private _front=')]
+        self.assertIn('if (!_ownProjectionFinite) exitWith {[0,_vehicle',own_guard)
+        peer_guard=s[s.index('private _projectedLow='):s.index('private _minX=')]
+        self.assertIn('finite _x',peer_guard)
+        self.assertIn('exitWith {_predictionBudgetExceeded=true}',peer_guard)
+        self.assertLess(s.index('if (!_ownProjectionFinite)'),s.index('nearEntities'))
 
 
     def test_convoy_observes_external_hulls_without_replacing_predecessor_spacing(self):

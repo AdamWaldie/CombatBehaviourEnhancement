@@ -19,6 +19,8 @@
  * Land, aircraft and boat hulls share the same lane/height and crossing observation.
  * This covers roadway aircraft, grounded boats and their wrecks without a world-wide dead scan.
  * Height-separated traffic retains the existing full-hull vertical test and dense-scene refusal.
+ * Unknown heading or nonfinite own/peer hull projection returns a zero cap and the same
+ * unavailable-observation sentinel as a budget refusal. No unknown hull is treated as clear.
  * Empty live vehicles and destroyed vehicle entities at any heading remain obstacles;
  * destruction alone never removes their hull from this observation. No bypass route is planned.
  * A mass-adjusted closing-speed envelope adds provisional braking and cruise-sampling headroom;
@@ -59,7 +61,7 @@ if (!(_travelDirection in [-1,1])) exitWith {[0,_vehicle,-1,time,0,true]};
 private _box=boundingBoxReal _vehicle;
 private _modelLow=_box select 0;private _modelHigh=_box select 1;
 private _forward=vectorDir _vehicle;_forward set [2,0];
-if (vectorMagnitude _forward < 0.1) exitWith {[_requested,objNull,-1,time,0,false]};
+if (_forward findIf {!finite _x} >= 0 || {vectorMagnitude _forward < 0.1}) exitWith {[0,_vehicle,-1,time,0,true]};
 _forward=(vectorNormalized _forward) vectorMultiply _travelDirection;
 private _right=[_forward select 1,-(_forward select 0),0];
 private _ownCentre=_vehicle modelToWorldWorld ((_modelLow vectorAdd _modelHigh) vectorMultiply 0.5);
@@ -87,6 +89,7 @@ private _projectTrafficHull={
 private _ownHull=[_vehicle,_modelLow,_modelHigh] call _projectTrafficHull;
 private _low=_ownHull select 0;private _high=_ownHull select 1;
 private _ownProjectionFinite=(_low+_high) findIf {!finite _x} < 0;
+if (!_ownProjectionFinite) exitWith {[0,_vehicle,-1,time,0,true]};
 private _front=_high select 1;
 private _halfWidth=((_high select 0)-(_low select 0))*0.5;
 private _halfLength=((_high select 1)-(_low select 1))*0.5;
@@ -156,6 +159,9 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearC
         // horizontal world frame as our own hull, crossing course and braking distances.
         private _otherHull=[_other,_otherLow,_otherHigh] call _projectTrafficHull;
         private _projectedLow=_otherHull select 0;private _projectedHigh=_otherHull select 1;
+        // Unknown vertical bounds must not disappear through false overlap comparisons.
+        // Stop the existing bounded observation; do not return a clear lane or add a retry.
+        if ((_projectedLow+_projectedHigh) findIf {!finite _x} >= 0) exitWith {_predictionBudgetExceeded=true};
         // A small outward pad avoids narrowing the safety envelope through subtraction rounding.
         private _minX=(_projectedLow select 0)-0.05;private _maxX=(_projectedHigh select 0)+0.05;
         private _minY=(_projectedLow select 1)-0.05;private _maxY=(_projectedHigh select 1)+0.05;

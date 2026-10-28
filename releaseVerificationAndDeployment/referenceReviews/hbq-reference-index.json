@@ -981,7 +981,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-traffic-vehicle-categories-20261028.json",
-      "sha256": "c0681b00476239491288d742d6ce6b5e682dbdaaad0b80db0d2e62293ce62195",
+      "sha256": "5925e77274855809ce9b074053a949dce9913d31fc45170fcbfc816873312749",
       "scope": "Complete preserved nearestThreat body and current CBE traffic/geometry observation; selected vehicle-category gap only, not whole-controller parity.",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf",
