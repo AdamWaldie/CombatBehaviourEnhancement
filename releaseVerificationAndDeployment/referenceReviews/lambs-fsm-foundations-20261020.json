@@ -1581,5 +1581,67 @@
       "Lease epoch/native mission receipt throughout subsequent ACTIVE/cleanup is not expanded by this admission-only snapshot; existing late mission handback and same-value external order ambiguity remain.",
       "Complete carried deployment/packing comparison, native assembly/seat flow, casualty/repeat/locality and measured5%median/10%p95 overhead remain unverified. Audits paused; no physical or whole LAMBS parity acceptance."
     ]
+  },
+  "staticDeployAuthoredOrder20261028": {
+    "base": "774f2198494b30bd00b64b9fed50c5ce49e43b60",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "registeredScope": "Continue existing staticDeployPackComparison/commando/single-part source queue. Selected deploy/pack callbacks, command/phase and retirement paths compared; not a new complete whole-chain/descendant review or physical acceptance.",
+    "protectedSourceInputs": {
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/GroupAction/fnc_doGroupStaticDeploy.sqf": {
+        "sha256": "566327ec85c372a3b36a019026a59d5eda926aedef9988d9dea1bc032ebb4a57",
+        "lines": 180
+      },
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/GroupAction/fnc_doGroupStaticPack.sqf": {
+        "sha256": "6d39e4d969e61275df1558cfe877b96baaacfcdba34ac8d82a288837c5a274e0",
+        "lines": 141
+      },
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/GroupAction/fnc_doGroupCommandoDeploy.sqf": {
+        "sha256": "0e7b5d6a94ce09a0432f36fba914adb0d9b45409b7c4ecdead726547fdded07a",
+        "lines": 105
+      },
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/GroupAction/fnc_doGroupCommandoPack.sqf": {
+        "sha256": "5b8364f6559fbd324315b39f87a403a032c86c17cf49a439f47190f6038cc532",
+        "lines": 47
+      }
+    },
+    "sourceIntent": "Native pair or solo assembly, physical occupation and later recoverable packing. Source handlers force-seat/force-exit; deferred orientation, equipment and follow writes do not retain CBE original mission-order identity. Retain useful lifecycle intent through current executor, not those shortcuts.",
+    "concreteFinding": "CBE record already binds pair, native handler, owner epoch, private move receipt, phase and deadlines, but no NativeOrderReceipt comparison existed anywhere in CortexStaticDeployStep. A changed authored group waypoint can therefore leave a matching native callback able to orient a newly assembled gun, advance TAKING, or let retirement unassign/follow after a newer mission order. This is a reachable source-level stale-authority case, not an observed physical fault.",
+    "implementation": "Capture full current authored-order receipt in record30 before first deployment move. Existing actor owner/current phase checks now also require that original nonempty receipt in active executor and both native equipment callbacks. Retirement independently converts to command-free on missing/changed receipt, including release-only/CALM. Legacy unbound work yields; phase, packing and new danger do not renew the receipt. No operation-generation comparison is added because disjoint other group actors may manoeuvre beside an existing team while its authored route remains unchanged.",
+    "writersTraced": [
+      "MOVING pair movement and one recovery reissue",
+      "DROPPING bag-holder approach",
+      "WeaponAssembled event: exact produced class/handler and native orientation evidence",
+      "MOUNTING native gunner assignment/GetIn",
+      "SECURITY pack exit/approaches and bounded PACK_MOVING recovery",
+      "WeaponDisassembled event: real bags, TAKING transition and original weapon identity retained",
+      "TAKING: observe weapon deletion then native TakeBag",
+      "shared retirement: unassign/GetOut/follow only while existing task/owner and original order permit"
+    ],
+    "dispositions": "RETAIN native assembly/disassembly, actual seat and backpack/weapon evidence; ADAPT source lifecycle through existing finite owner; IMPROVE original authored-order binding across callbacks and cleanup. REJECT source forced seats/exits and unowned delayed reset. Existing empty solo holder infrastructure and scoped cleanup remain unchanged.",
+    "cost": "One original receipt capture per admitted task, one read per active step, one additional retirement recheck on ending paths and one per native equipment event. No extra world query/ray/job/EH or deadline. Current waypoint metadata only; native handle enumeration scales with authored route length. Cost unmeasured.",
+    "verification": {
+      "red": ".qa/handovers/static-deploy-order-red-20261028.log: selected existing regression fails on missing original-order guard",
+      "focused": ".qa/handovers/static-deploy-order-focused-20261028.log:617 existing operation checks PASS",
+      "newTestCases": 0,
+      "fullTests": 1505,
+      "compiledSQF": 457,
+      "PBOs": 11,
+      "fullBuild": "PASS",
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/static-deploy-order-20261028-774f2198",
+      "fingerprint": "a125eca881dbd29f6f56f08554af553edef17c9c80d30f267cae82b2241cf05e",
+      "buildLog": ".qa/handovers/static-deploy-order-build-20261028.log",
+      "independentLog": ".qa/handovers/static-deploy-order-independent-20261028.log",
+      "sourceNote": "Unsigned development package retains base774f2198494b30bd00b64b9fed50c5ce49e43b60 plus dirty input receipt; engineering/handover metadata after packaging. No physical acceptance."
+    },
+    "productHashes": {
+      "addons/infantry/functions/cortexStaticDeployStep.sqf": "bfe5cfdc67553eb0ebb837cc2f719e1096fea7f798c5b546f0cfa37c53d43ea1",
+      "addons/core/functions/nativeOrderReceipt.sqf": "d6395ce27511e41e3d059f82fe1978639309056b7aaaa1e03535447becb3f3d6"
+    },
+    "remaining": [
+      "An ended CBE marker or removed handler is not native all-writer quiescence. Issued native equipment/boarding/MOVE can remain active; complete handover is still required.",
+      "Original group waypoint identity does not distinguish a new per-actor direct MOVE or a same-value STOP/equipment command. Existing MOVING retry treats a changed expected destination as a lost route, and PACK_MOVING retries STOP; these require exact actor-native command ownership review before expanding dependent static behaviour. No fix of those cases is claimed here.",
+      "Source solo and paired hardware, native assembly/pack lifecycle, generated-weapon ordinary/artillery integration, casualty/repeat/locality, balance and measured overhead still need further source/physical evidence. Audits paused."
+    ]
   }
 }

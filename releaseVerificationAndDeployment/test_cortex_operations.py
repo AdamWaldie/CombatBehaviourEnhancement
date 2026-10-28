@@ -12766,6 +12766,20 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(_record param [19,[],[[]]]) isNotEqualTo [clientOwner,_group getVariable ["CBE_AIPass_Epoch",0]]',retirement)
         self.assertIn('((_record param [19,[],[[]]]) param [0,-1,[0]]) == clientOwner',retirement)
         self.assertLess(retirement.index('_commandFree=_commandFree'),retirement.index('if (!_commandFree)'))
+        # An authored waypoint change invalidates both active work and cleanup,
+        # including a late native equipment event between group-brain callbacks.
+        self.assertIn('private _nativeOrderCurrent=',text)
+        self.assertIn('_record param [30,[],[[]]]',text)
+        self.assertIn('!(call _nativeOrderCurrent)',retirement)
+        active=text.split('if (count _record >= 10) exitWith',1)[1]
+        self.assertLess(active.index('if (!(call _nativeOrderCurrent))'),active.index('_record params'))
+        self.assertLess(admission.index('_record set [30,'),admission.index('_x doMove _deployPos'))
+        self.assertEqual(text.count('_record set [30,'),1)
+        for name in ('WeaponAssembled','WeaponDisassembled'):
+            callback=text.split('addEventHandler ["'+name+'",{',1)[1].split('removeEventHandler ["'+name+'"',1)[0]
+            self.assertIn('(_current param [30,[],[[]]]) isNotEqualTo []',callback)
+            self.assertIn('[_owner] call CBE_fnc_NativeOrderReceipt',callback)
+        self.assertNotIn('CBE_OperationGeneration',text.split('private _nativeOrderCurrent=',1)[1].split('private _bagAnchor=',1)[0])
 
     def test_anti_armour_cleanup_does_not_erase_another_actor_move(self):
         text=source('cortexAntiArmour')

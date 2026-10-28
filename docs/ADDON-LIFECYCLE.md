@@ -2367,3 +2367,12 @@ Nearby static support inspects at most the first sixteen static candidates retur
 Native STOP orders exclude recruitment. Final boarding admission runs unscheduled and rechecks current actor task, group owner epoch/operation, the original mission route, feature control and live seat assignment before issuing the existing native assignment/GetIn pair and publishing its lease. A temporary admission refusal backs off three seconds without spending the contact attempt. A STOP observed during active work or cleanup yields without unassign/GetOut commands. No forced seating, new controller or new deadline is introduced.
 
 These are current-owner checks, not cross-host seat arbitration. Assignment replication can lag; CBE does not claim an atomic reservation across owners. Yielding does not prove cancellation of an earlier native GetIn command. Physical boarding, new orders, repeated contact, locality transfer and cost remain unverified.
+
+
+### Carried-static authored-order identity
+
+One-part and paired deployment capture the current authored native waypoint receipt before their first movement command. That receipt remains fixed through assembly, mounting, active use, packing and bag recovery. A changed or missing receipt yields observation and makes retirement command-free, preserving the newer mission order. Late WeaponAssembled/WeaponDisassembled events must still match the original receipt before CBE orients the weapon or advances bag collection. Late physical equipment remains in the world without renewed CBE work.
+
+Other squad members can still manoeuvre beside the static team while its authored order remains unchanged; an operation-generation change alone does not invalidate this receipt. Existing actor participation, owner epoch, task, medical and specialist checks remain. There is no new controller, deadline or native waypoint rewrite. The extra receipt reads use the current authored waypoint metadata, with native waypoint-handle enumeration still depending on route length.
+
+This does not prove that a prior assembly, disassembly, boarding or actor MOVE has stopped. Direct actor-order replacement and identical-value intent remain separate uncertainties. Physical deployment/packing, repeated order changes, migration and measured cost remain unverified.

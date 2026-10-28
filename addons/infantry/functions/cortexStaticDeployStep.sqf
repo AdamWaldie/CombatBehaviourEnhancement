@@ -12,7 +12,10 @@
  * A ready pair may deploy at its actual safe firing position instead of waiting for both actors to converge on one exact point.
  * After dropping, a still-owned gunner may make one short physical approach to the bag holder within the unchanged drop deadline.
  * Native assembly/disassembly callbacks require the original phase deadline, exact handler and live
- * feature/medical authority. Late physical results remain in the world without renewed CBE work.
+ * feature/medical authority and the original authored native waypoint receipt. A changed or
+ * missing receipt yields active work and makes retirement command-free. Other group actors
+ * may still manoeuvre while that authored order remains unchanged; operation generation alone
+ * is not a replacement order. Late physical results remain in the world without renewed CBE work.
  * Other squad members may manoeuvre beside an existing deployment; overlapping participants or withdrawal preempt it.
  * Repeat/JIP: One contact-episode record owns the exact pair, expected assembled class, position and resulting weapon. Each group-brain call advances at most one finite phase. Locality, Zeus, specialist or newer operation ownership retires CBE markers without issuing cleanup commands over the new owner. Failed deployment is not retried during the same contact episode.
  * Arguments: 0 group <GROUP>; 1 group state <HASHMAP>; 2 known enemies <ARRAY>; 3 allow post-contact packing <BOOL, default false>.
@@ -31,6 +34,12 @@ private _singlePart=_record param [28,false,[true]];
 private _external=[_group] call CBE_fnc_CortexExternalTakeover;
 private _operation=_group getVariable ["CBE_Operation",createHashMap];
 private _operationActors=_operation getOrDefault ["participants",[]];
+// This receipt is captured once before the first deployment command, never renewed
+// by phase changes, packing or callback delivery. Legacy records have no authority.
+private _nativeOrderCurrent={
+    private _receipt=_record param [30,[],[[]]];
+    _receipt isNotEqualTo [] && {_receipt isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
+};
 private _bagAnchor={
     params ["_bag"];
     if (isNull _bag) exitWith {objNull};
@@ -108,6 +117,7 @@ private _retire={
     // A successor operation may own only some actors. Retire bookkeeping, but restore
     // assignments/formation only for actors not claimed by that operation or an external owner.
     _commandFree=_commandFree || {(_record param [19,[],[[]]]) isNotEqualTo [clientOwner,_group getVariable ["CBE_AIPass_Epoch",0]]}
+        || {!(call _nativeOrderCurrent)}
         || {[_group] call CBE_fnc_CortexExternalTakeover}
         || {[_record param [2,objNull,[objNull]]] call CBE_fnc_CompatibilityExternalControl}
         || {[_record param [3,objNull,[objNull]]] call CBE_fnc_CompatibilityExternalControl}
@@ -189,6 +199,11 @@ if (!_enabled || {combatMode _group in ["BLUE","GREEN"]}) exitWith {
 };
 
 if (count _record >= 10) exitWith {
+    if (!(call _nativeOrderCurrent)) exitWith {
+        [true] call _retire;
+        _group setVariable ["CBE_Danger_StaticDeployAttempt",[_episode,"YIELDED",serverTime],true];
+        "YIELDED"
+    };
     if (count _record >= 20 && {(_record select 19) isNotEqualTo [clientOwner,_group getVariable ["CBE_AIPass_Epoch",0]]}) exitWith {
         [true] call _retire;
         "YIELDED"
@@ -363,6 +378,8 @@ if (count _record >= 10) exitWith {
                     private _current=_owner getVariable ["CBE_Danger_StaticDeployment",[]];
                     if (local _actor && {local _owner} && {local _assembled}
                         && {time < (_current param [6,-1,[0]])}
+                        && {(_current param [30,[],[[]]]) isNotEqualTo []}
+                        && {([_owner] call CBE_fnc_NativeOrderReceipt) isEqualTo (_current select 30)}
                         && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
                         && {[_owner,"CBE_AIPass_StaticSupport_Enable",true] call CBE_fnc_CortexFeatureEnabled}
                         && {[_owner,"CBE_AIPass_StaticDeploy_Enable",true] call CBE_fnc_CortexFeatureEnabled}
@@ -647,6 +664,8 @@ if (count _record >= 10) exitWith {
                     };
                     if (local _actor && {local _owner} && {!isNull _assistant} && {local _assistant}
                         && {time < (_current param [6,-1,[0]])}
+                        && {(_current param [30,[],[[]]]) isNotEqualTo []}
+                        && {([_owner] call CBE_fnc_NativeOrderReceipt) isEqualTo (_current select 30)}
                         && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
                         && {[_owner,"CBE_AIPass_StaticSupport_Enable",true] call CBE_fnc_CortexFeatureEnabled}
                         && {[_owner,"CBE_AIPass_StaticDeploy_Enable",true] call CBE_fnc_CortexFeatureEnabled}
@@ -827,6 +846,7 @@ private _sequence=(_group getVariable ["CBE_Danger_StaticSequence",0])+1;
 _group setVariable ["CBE_Danger_StaticSequence",_sequence];
 _record set [27,_sequence];
 _record set [28,_singlePart];
+_record set [30,[_group] call CBE_fnc_NativeOrderReceipt];
 {
     _x doMove _deployPos;
     _x setVariable ["CBE_Cortex_ActorMove",["STATIC_DEPLOY",+_deployPos,_deadline]];
