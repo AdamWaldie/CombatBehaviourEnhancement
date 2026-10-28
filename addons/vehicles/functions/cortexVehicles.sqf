@@ -1050,7 +1050,8 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             && {_state getOrDefault ["phase",""] == "CONTACT"}
             && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo []}
             && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
-            && {count (_group getVariable ["CBE_Cortex_DismountContinuation",[]]) == 4}
+            && {count (_group getVariable ["CBE_Cortex_DismountContinuation",[]]) == 4
+                || {(_vehicle getVariable ["CBE_Cortex_MechCargo",[]]) isNotEqualTo []}}
             && {serverTime >= (_vehicle getVariable ["CBE_Cortex_MechSupportDue",0])}
             && {[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable}) then {
             _vehicle setVariable ["CBE_Cortex_MechSupportDue",serverTime+8];

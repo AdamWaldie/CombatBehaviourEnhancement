@@ -673,7 +673,8 @@
         "addons/vehicles/functions/cortexAARelocate.sqf",
         "addons/vehicles/functions/vehicleArmourShot.sqf",
         "addons/vehicles/functions/vehicleTurnRetire.sqf",
-        "addons/vehicles/functions/cortexMechanisedSupport.sqf"
+        "addons/vehicles/functions/cortexMechanisedSupport.sqf",
+        "addons/vehicles/functions/cortexMechanisedCargo.sqf"
       ]
     },
     {

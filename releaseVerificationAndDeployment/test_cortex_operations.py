@@ -12244,6 +12244,46 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(proof,ready)
         self.assertLess(ready.index('CBE_VehicleTacticalMove_Work'),ready.index('private _linearMotion='))
 
+    def test_separate_cargo_support_requires_actual_local_exit_consent(self):
+        cargo=source('cortexMechanisedCargo')
+        ack=cargo.split('if (_mode == "ACK") exitWith',1)[1].split('if (!_current ||',1)[0]
+        read=cargo.split('if (!_current ||',1)[1]
+        for proof in ('!local _vehicle', '!local _crewGroup', 'CBE_AIPass_Adopted',
+                      'CBE_AIPass_Epoch', 'CBE_fnc_NativeOrderReceipt'):
+            self.assertIn(proof,cargo)
+        for proof in ('objectParent _actor != _vehicle', 'fullCrew [_vehicle,"",false]',
+                      '_actor in _actual', 'count _actual > 16', 'count _rows >= 4',
+                      'count _seats > 64', '"dismounted"', 'serverTime+60'):
+            self.assertIn(proof,ack)
+        self.assertNotIn('setVariable',read)
+        for proof in ('_expected isEqualTo _source', 'CBE_Cortex_MechCargoUsed',
+                      'CBE_AIPass_Garrison', 'CBE_AIPass_Defend', 'CBE_AIPass_ClearBuilding',
+                      '"STEALTH"', '["HOLD","SENTRY"]', 'isNull objectParent _leader',
+                      '_x in _original', '_x in _ownedActors', 'count _mobile >= 2'):
+            self.assertIn(proof,read)
+        for forbidden in ('doMove','forceSpeed','setPosATL','moveInCargo','joinSilent','execFSM','remoteExec'):
+            self.assertNotIn(forbidden,cargo.replace('remoteExecutedOwner',''))
+        onboard=source('cortexOnboardContact')
+        exit_hook=onboard.split('private _newExit=',1)[1].split('} forEach _cargo;',1)[0]
+        self.assertIn('if (_newExit && {local _vehicle} && {local _reporter})',exit_hook)
+        self.assertLess(exit_hook.index('_state set ["dismounted",_owned]'),exit_hook.index('CBE_fnc_CortexMechanisedCargo'))
+        self.assertLess(exit_hook.index('CBE_fnc_CortexMechanisedCargo'),exit_hook.index('doGetOut _unit'))
+        for proof in ('group effectiveCommander _vehicle == _reporter', 'groupOwner _reporter == _owner',
+                      '[_reporter] call CBE_fnc_CortexExternalTakeover'):
+            self.assertIn(proof,exit_hook)
+        planner=source('cortexMechanisedSupport')
+        self.assertIn('count _context != 5',planner)
+        self.assertIn('[_vehicle,_group,"READ",objNull,_source]',planner)
+        self.assertIn('private _troopGroup=',planner)
+        self.assertIn('if (_checking && {_source isNotEqualTo []} && {_cargoConsent isEqualTo []})',planner)
+        start=source('vehicleTacticalMoveStart')
+        self.assertIn('count _supportContext != 5',start)
+        self.assertIn('setVariable ["CBE_Cortex_MechCargoUsed",_used]',start)
+        self.assertLess(start.index('|| {_handle < 0}) exitWith'),start.index('setVariable ["CBE_Cortex_MechCargoUsed",_used]'))
+        ready=source('cortexPassengerReady')
+        self.assertIn('_selectedGroup != group _unit',ready)
+        self.assertIn('[_selectedGroup] call CBE_fnc_CortexExternalTakeover',ready)
+
     def test_rejected_vehicle_escape_does_not_consume_withdrawal_or_smoke(self):
         text=source('cortexVehicles')
         section=text.split('// A rejected route is not a completed withdrawal.',1)[1].split('// Gunner priorities',1)[0]

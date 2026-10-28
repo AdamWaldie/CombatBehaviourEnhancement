@@ -1,7 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Plan or revalidate one rear support bound for a vehicle's CBE-owned dismounts.
- * Locality/authority: Read-only on the local vehicle/group owner. Only original cargo
+ * Locality/authority: Read-only on the local vehicle/group owner. Separate passenger
+ * squads must share this AI host and retain actual-carriage/local exit consent. Only original cargo
  * recorded by the group's current dismount continuation supplies the troop body.
  * The native infantry formation must have an on-foot leader independent of operating crew.
  * Repeat/JIP: No commands, handlers or jobs. Supplied context retains its original contact,
@@ -10,7 +11,8 @@
  * worker may retain its snapshot when that public record is empty. A different live record refuses.
  * Arguments: group GROUP grpNull; platform OBJECT objNull; contact ARRAY [] or
  * [known target OBJECT, believed ATL ARRAY3, original observedAt server NUMBER];
- * context ARRAY [] for PLAN, otherwise original [dismount receipt,contact,body ASL,deadline];
+ * context ARRAY [] for PLAN, otherwise original [dismount receipt,contact,body ASL,deadline,source];
+ * source is[] for own-group cargo, or the same-host original-cargo consent descriptor.
  * goal ARRAY [] for PLAN, otherwise original ATL ARRAY3 for CHECK.
  * Return: ARRAY [] on refusal, otherwise [goal ATL, original deadline, context].
  * Limits: At most64 current seat rows,16 tracked cargo and32 nearby people, five rear candidates, one bounded
@@ -45,21 +47,42 @@ if (combatMode _group in ["BLUE","GREEN"] || {behaviour driver _vehicle == "STEA
         && {waypointType [_group,_nativeIndex] in ["HOLD","SENTRY"]}
         && {waypointDescription [_group,_nativeIndex] != "CBE AI PASS"}}) exitWith {[]};
 private _checking=_context isNotEqualTo [];
-if (_checking && {count _context != 4 || {count _goal != 3}
+if (_checking && {count _context != 5 || {count _goal != 3}
     || {_goal findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {[]};
+private _source=if (_checking) then {_context select 4} else {[]};
+if (!(_source isEqualType []) || {!((count _source) in [0,4])}) exitWith {[]};
 private _proof=if (_checking) then {_context select 0} else {
     _group getVariable ["CBE_Cortex_DismountContinuation",[]]
 };
+// Separate squads may keep their own actor-level drill generation. Actual cargo,
+// local owner epoch, original mission order and owned exit state supply consent;
+// they never lend their movement authority to the vehicle crew.
+private _cargoConsent=[];
+if (!_checking || {_source isNotEqualTo []}) then {
+    _cargoConsent=[_vehicle,_group,"READ",objNull,_source] call CBE_fnc_CortexMechanisedCargo;
+    if (_cargoConsent isNotEqualTo []) then {_proof=_cargoConsent select 0;_source=_cargoConsent select 1};
+};
+if (_checking && {_source isNotEqualTo []} && {_cargoConsent isEqualTo []}) exitWith {[]};
+private _troopGroup=if (_source isEqualTo []) then {_group} else {_source select 0};
+if (!(_troopGroup isEqualType grpNull) || {isNull _troopGroup} || {!local _troopGroup}) exitWith {[]};
+private _troopIndex=currentWaypoint _troopGroup;
+if ([_troopGroup] call CBE_fnc_CortexExternalTakeover
+    || {combatMode _troopGroup in ["BLUE","GREEN"]} || {behaviour leader _troopGroup == "STEALTH"}
+    || {(_troopGroup getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []}
+    || {(_troopGroup getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo []}
+    || {_troopGroup getVariable ["CBE_AIPass_ClearBuilding",false]}
+    || {_troopIndex < count waypoints _troopGroup && {waypointType [_troopGroup,_troopIndex] in ["HOLD","SENTRY"]}
+        && {waypointDescription [_troopGroup,_troopIndex] != "CBE AI PASS"}}) exitWith {[]};
 if (!(_proof isEqualType []) || {count _proof != 4}
     || {!((_proof select 0) isEqualType 0)} || {!finite (_proof select 0)}
     || {serverTime >= (_proof select 0)} || {(_proof select 0) > serverTime+60}
     || {!((_proof select 1) isEqualType 0)}
     || {!((_proof select 2) isEqualType [])} || {count (_proof select 2) > 16}
     || {!((_proof select 3) isEqualType [])}
-    || {private _liveProof=_group getVariable ["CBE_Cortex_DismountContinuation",[]];
-        (!_checking || {_liveProof isNotEqualTo []}) && {_proof isNotEqualTo _liveProof}}
-    || {(_proof select 3) isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
-    || {!_checking && {(_proof select 1) != (_group getVariable ["CBE_OperationGeneration",0])}}) exitWith {[]};
+    || {_source isEqualTo [] && {private _liveProof=_group getVariable ["CBE_Cortex_DismountContinuation",[]];
+        (!_checking || {_liveProof isNotEqualTo []}) && {_proof isNotEqualTo _liveProof}}}
+    || {(_proof select 3) isNotEqualTo ([_troopGroup] call CBE_fnc_NativeOrderReceipt)}
+    || {!_checking && {_source isEqualTo []} && {(_proof select 1) != (_group getVariable ["CBE_OperationGeneration",0])}}) exitWith {[]};
 if (_checking) then {_contact=_context select 1};
 if (!(_contact isEqualType []) || {count _contact != 3}
     || {!((_contact select 0) isEqualType objNull)} || {isNull (_contact select 0)}
@@ -93,7 +116,7 @@ private _foot=[];
     if (_x isEqualType [] && {count _x == 2} && {(_x select 0) isEqualType objNull}
         && {(_x select 1) isEqualType objNull} && {(_x select 1) == _vehicle}) then {
         private _person=_x select 0;
-        if (!isNull _person && {local _person} && {group _person == _group}
+        if (!isNull _person && {local _person} && {group _person == _troopGroup}
             && {!(_person in _operators)} && {!isPlayer _person}
             && {isNull objectParent _person} && {simulationEnabled _person} && {!isObjectHidden _person}
             && {[_person] call CBE_fnc_CortexCombatEffective} && {!fleeing _person}
@@ -102,8 +125,13 @@ private _foot=[];
     };
 } forEach (_proof select 2);
 // A shared-group bound must not drag the troop formation behind a moving crew
-// leader. Separate passenger groups require their own original-cargo contract later.
-if (count _foot < 2 || {!(leader _group in _foot)}
+// leader. Separate passenger groups retain their own local cargo/exit consent above.
+private _crewMembers=units _group;
+if (count _crewMembers > 64 || {_crewMembers findIf {alive _x && {isNull objectParent _x}
+    && {formLeader _x in _operators}} >= 0}) exitWith {[]};
+if (count _foot < 2 || {_troopGroup == _group && {!(leader _group in _foot)}}
+    || {!isNull objectParent leader _troopGroup}
+    || {!([leader _troopGroup] call CBE_fnc_CortexCombatEffective)}
     || {_foot findIf {formLeader _x in _operators} >= 0}) exitWith {[]};
 private _xs=[];private _ys=[];private _zs=[];
 {private _point=getPosASL _x;_xs pushBack (_point select 0);_ys pushBack (_point select 1);_zs pushBack (_point select 2)} forEach _foot;
@@ -176,4 +204,4 @@ if (_checking) exitWith {[+_goal,_until,_context]};
 private _route=[_origin,_safe,_belief,[],_target,"VEHICLE",_vehicle] call CBE_fnc_CortexSelectAvenue;
 if (_route isEqualTo []) exitWith {[]};
 private _point=_route select ((count _route)-1);
-[+_point,_until,[+_proof,[_target,+_belief,_observedAt],_centreASL,_until]]
+[+_point,_until,[+_proof,[_target,+_belief,_observedAt],_centreASL,_until,+_source]]

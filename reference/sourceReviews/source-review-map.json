@@ -738,7 +738,7 @@
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Infantry and vehicle cooperation to evaluate",
       "reviewStatus": "Selected positioning helpers and registration/support/release dispatch traced through local command receiver, delayed reseat and route-resume writers; whole mod and physical handback remain open",
-      "nextSourceReview": "Finite own-group support bound is integrated through existing selected-platform FSM. Next: original-cargo/owner contract for separate passenger squads, then repeated bounds under one original deadline. See finiteSupportBound20261028; no physical acceptance.",
+      "nextSourceReview": "Same-host separate passenger squads now use actual cargo/owned-exit consent through the finite selected-crew support worker. Cross-host acknowledgement/withdrawal and continuous multi-bound escort remain open. See sameHostCargoSupport20261028; no physical acceptance.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
@@ -759,7 +759,7 @@
         "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
       },
       "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
-      "currentSelectedIntegration": "Passenger static-deck/order custody, failed-avenue caching and a finite own-group troop-body support bound are implemented. Shared native FSM retains original crew/order/epoch/deadline and rear/body/clearance checks. Separate passenger groups and continuous escort remain open; no source forced-seat/group/old-route replay."
+      "currentSelectedIntegration": "Passenger custody, failed-avenue caching and a finite own-group or same-host separate-squad troop-body support bound are implemented. Actual cargo, owner epoch, original mission order and owned exit state are revalidated without commanding infantry. Cross-host support and continuous escort remain open; no forced-seat/group/old-route replay."
     },
     {
       "workshopId": "3778948165",

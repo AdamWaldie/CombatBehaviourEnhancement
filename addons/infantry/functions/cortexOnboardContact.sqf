@@ -5,6 +5,8 @@
  * Receives approximate onboard crew contact or targetless danger reports, requests an owner-local
  * safe stop and dismounts this squad's cargo only after the vehicle is physically stationary.
  * Locality/authority: passenger group owner; validates current reporting crew ownership.
+ * Same-host original cargo is recorded before CBE exit for finite separate-squad support;
+ * no cross-host consent, troop command or new contact knowledge is inferred.
  * Repeat/JIP: reports bridge the 20-second far scheduler tier without becoming durable; stop requests
  * expire with the report and record each passenger once. Danger reports do not disclose a target.
  * Arguments: 0: group <GROUP>, grpNull; 1: state <HASHMAP>, empty.
@@ -53,7 +55,8 @@ private _vehicles=[];
             private _owned=_state getOrDefault ["dismounted",[]];
             {
                 private _unit=_x;
-                if (_owned findIf {(_x select 0) == _unit} < 0) then {
+                private _newExit=_owned findIf {(_x select 0) == _unit} < 0;
+                if (_newExit) then {
                     _owned pushBack [_unit,_vehicle];
                     _group setVariable ["CBE_Cortex_DismountContinuation",[serverTime+60,
                         _group getVariable ["CBE_OperationGeneration",0],+_owned,
@@ -61,10 +64,18 @@ private _vehicles=[];
                 };
                 _state set ["dismounted",_owned];
                 _state set ["onboardContactUntil",serverTime+30];
+                // Same-host crew and passenger owners can commit actual-carriage consent
+                // synchronously before exit. Different hosts need a separate protocol.
+                if (_newExit && {local _vehicle} && {local _reporter}) then {
+                    [_vehicle,_reporter,"ACK",_unit] call CBE_fnc_CortexMechanisedCargo;
+                };
                 // Preserve the engine's in-progress exit animation/order. A later interrupted
                 // command may be retried on the next eligible tick, but healthy exits are not reissued.
                 if (toUpperANSI (currentCommand _unit) != "GET OUT"
-                    && {!([_group] call CBE_fnc_CortexExternalTakeover)}) then {
+                    && {!([_group] call CBE_fnc_CortexExternalTakeover)}
+                    && {group effectiveCommander _vehicle == _reporter}
+                    && {groupOwner _reporter == _owner}
+                    && {!([_reporter] call CBE_fnc_CortexExternalTakeover)}) then {
                     [_unit] orderGetIn false;
                     unassignVehicle _unit;
                     doGetOut _unit;

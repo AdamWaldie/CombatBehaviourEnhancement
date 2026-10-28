@@ -35,7 +35,9 @@ if (isNull _vehicle || {!alive _vehicle} || {!local _unit} || {isPlayer _unit}
 private _selectedWork=_vehicle getVariable ["CBE_VehicleTacticalMove_Work",createHashMap];
 private _selectedGroup=group effectiveCommander _vehicle;
 if (isNull _selectedGroup) then {_selectedGroup=group driver _vehicle};
-if (!(_selectedWork isEqualType createHashMap)
+if ((!isNull _selectedGroup && {_selectedGroup != group _unit}
+        && {[_selectedGroup] call CBE_fnc_CortexExternalTakeover})
+    || {!(_selectedWork isEqualType createHashMap)}
     || {count _selectedWork > 0 && {(_selectedWork getOrDefault ["phase",""]) != "RETIRED"}}
     || {!isNull _selectedGroup
         && {(_selectedGroup getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []}}) exitWith {false};

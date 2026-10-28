@@ -420,6 +420,7 @@ class CfgFunctions {
             class CortexCapabilities {file = "\z\cbe\addons\infantry\functions\cortexCapabilities.sqf";};
             class CortexPassengerReady {file = "\z\cbe\addons\vehicles\functions\cortexPassengerReady.sqf";};
             class CortexMechanisedSupport {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedSupport.sqf";};
+            class CortexMechanisedCargo {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedCargo.sqf";};
             class ConvoyUnloadPolicy {file = "\z\cbe\addons\vehicles\functions\convoyUnloadPolicy.sqf";};
             class CortexDismountStop {file = "\z\cbe\addons\vehicles\functions\cortexDismountStop.sqf";};
             class CortexVehicleUnloadPolicy {file = "\z\cbe\addons\vehicles\functions\cortexVehicleUnloadPolicy.sqf";};

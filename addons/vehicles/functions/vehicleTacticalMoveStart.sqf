@@ -58,8 +58,9 @@ isNil {
         // Support keeps a real troop-body/visibility/clearance contract within this same
         // selected-crew worker. It cannot inherit a screen-only post-shot context.
         if (_supportContext isNotEqualTo [] && {_coverContext isNotEqualTo []
-            || {count _supportContext != 4} || {(_supportContext select 3) isNotEqualTo _until}
-            || {(_supportContext select 0) isNotEqualTo (_group getVariable ["CBE_Cortex_DismountContinuation",[]])}
+            || {count _supportContext != 5} || {(_supportContext select 3) isNotEqualTo _until}
+            || {(_supportContext select 4) isEqualTo [] && {
+                (_supportContext select 0) isNotEqualTo (_group getVariable ["CBE_Cortex_DismountContinuation",[]])}}
             || {([_group,_battery,[],_supportContext,_spot] call CBE_fnc_CortexMechanisedSupport) isEqualTo []}}) exitWith {false};
         // A passenger safe-stop cap is a separate native writer. Finish all exits
         // and obtain its exact settings handback before capturing our movement baseline.
@@ -111,6 +112,13 @@ isNil {
             if ((_state getOrDefault ["movementLease",[]]) isEqualTo _lease) then {_state deleteAt "movementLease"};
             if ((_state getOrDefault ["vehicleOperationGeneration",-1]) == _generation) then {_state deleteAt "vehicleOperationGeneration"};
             false
+        };
+        if (_supportContext isNotEqualTo [] && {(_supportContext select 4) isNotEqualTo []}) then {
+            private _source=_supportContext select 4;
+            private _used=(_battery getVariable ["CBE_Cortex_MechCargoUsed",[]]) select [0,4];
+            _used=_used select {_x isEqualType [] && {count _x == 2} && {(_x select 0) isEqualTo (_source select 2)}};
+            _used pushBackUnique [+(_source select 2),_source select 0];
+            _battery setVariable ["CBE_Cortex_MechCargoUsed",_used];
         };
         [_battery,"INSTALL",["CBE_VehicleTacticalMove_Work","CBE_VehicleTacticalMove_Reference","VEHICLE_STANDOFF"]]
             call CBE_fnc_VehicleCrewMoveDeletionWatch;

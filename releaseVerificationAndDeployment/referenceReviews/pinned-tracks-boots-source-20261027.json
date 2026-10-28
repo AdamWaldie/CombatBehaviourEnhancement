@@ -319,5 +319,81 @@
       "addons/vehicles/functions/cortexMechanisedSupport.sqf": "a22fb10855f6e16ece22a73b93bce7f607ee92af612df04551539366f09a2358",
       "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "1f90f26e5c36bc24fdcf9803c21a180c79ef00fff0c2922a88458704cf95b811"
     }
+  },
+  "sameHostCargoSupport20261028": {
+    "scope": "One finite support bound for a separately grouped original passenger squad on the same AI host. Not cross-host cooperation or continuous escort.",
+    "sourceEvidence": [
+      {
+        "path": "functions/fn_registerJob.sqf",
+        "sha256": "cefa1219efc7d5c741ade0461f60f668547ef9486da38a52e277016f9e7cf22a",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateJob.sqf",
+        "sha256": "9f2879f1294ff8b847b0e174ea1e6968f2530554806633da3ca7733715627f0f",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_supportPosition.sqf",
+        "sha256": "7c3be4f5a4c08157b820e8368a60451c9120316363d3625792478ce5025e37cb",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateSupport.sqf",
+        "sha256": "fe9da87d9c020df2853c0556af6220c8901bd4403cc05ae388bdfbe63a603aea",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_commandPassengerLocal.sqf",
+        "sha256": "9308663a8ea493fe58643f090c41bb9fffdbbfde1b16ee299e6300f3ab3c9c1d",
+        "matchesRecordedSource": true
+      }
+    ],
+    "sourceIntent": "Adapt actual cargo registration and infantry-body support from Tracks and Boots. Keep crew and passengers in their authored groups; replace free-running support commands and unacknowledged remote passenger writers with the existing owner-local finite worker.",
+    "executionPath": [
+      "CortexOnboardContact records its private owned exit, then ACKs actual mounted cargo once before native exit",
+      "CortexMechanisedCargo retains original local crew/passenger identity, passenger native order and fixed cohort expiry",
+      "CortexVehicles plans from actual on-foot owned exits through CortexMechanisedSupport",
+      "VehicleTacticalMoveStart revalidates the exact source, restores its passenger-stop cap, starts the existing FSM and consumes one admission",
+      "VehicleTacticalMoveStep checks the captured source before ISSUE and every two seconds; existing retirement owns native handback"
+    ],
+    "implemented": [
+      "At most four passenger squads, sixteen original actors per squad, sixty-four seat/owned-exit rows; no proximity-inferred carriage",
+      "Private epochs and dismount state require shared host locality; no public marker masquerades as remote consent",
+      "One original sixty-second cohort expiry; ACK only on new owned exit, never on repeated native exit attempts",
+      "At least two mobile original acknowledged actors remain in the passenger owner dismounted state; held/concealed/explicit task groups skipped",
+      "Passenger drill generation may advance naturally without resetting consent; changed native order, owner epoch, ownership or local exit state invalidates it",
+      "One admitted bound per passenger group/cohort, at most thirty seconds and no renewed contact deadline; CHECK does not self-cancel on consumption",
+      "Actual reporting crew identity/owner/external control checked at native exit command boundary, including synchronous event re-entry"
+    ],
+    "preserved": "Existing Vehicles/Gunnery controls, all cargo out, priority reactions, coordinated-role exclusion, fixed body/goal, friendly hull corridor, visible believed contact, troop independence and selected-crew FSM/native retirement. No infantry movement/group/seat/skill mutation, teleport, new PFH or remote endpoint.",
+    "cost": "Bounded local metadata only on existing exit callbacks and support selection/rechecks. No additional scheduler job or world scan. Existing native-order enumeration cost remains. Actual overhead not measured.",
+    "verification": {
+      "focusedTests": 662,
+      "focusedLog": ".qa/handovers/mech-separate-focused-20261028.log",
+      "fullBuild": "PASS",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "fullTests": 1500,
+      "compiledSQF": 451,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/mech-separate-build-20261028.log",
+      "candidate": ".qa/candidates/mech-separate-20261028-20a9674a",
+      "fingerprint": "28e5e839c80362308abc0f3886556d96689b44da37ee371ed350229a7b260346",
+      "independentLog": ".qa/handovers/mech-separate-independent-20261028.log",
+      "independentVerification": "PASS",
+      "buildProvenance": "20a9674aeaf4213b87c0c5f107de784035787123 plus dirty runtime snapshot; engineering review and handover metadata updated after packaging. Runtime hashes below pin packaged inputs; normalized Git content must match."
+    },
+    "remaining": "Cross-host acknowledgement and withdrawal, continuous multi-bound escort, remount/repeated-insertion integration, broader selected-source closure and physical behaviour remain open.",
+    "runtimeSha256": {
+      "addons/vehicles/functions/cortexMechanisedCargo.sqf": "4c5f752a504a7190c51a0cf5bf4407f55820c830ad17fa8799255d12d518dbf7",
+      "addons/infantry/functions/cortexOnboardContact.sqf": "5dd57717b44189362a067f099b068f55b2b43e43f1b672cec462bcbc8d69166b",
+      "addons/vehicles/functions/cortexPassengerReady.sqf": "e18951160d801151234dd74b7fee63f2d2335ab041b76b973deb2eb9302c30b3",
+      "addons/vehicles/functions/cortexMechanisedSupport.sqf": "48193540d057f056fd3c79438956f2742fa98779a27240f78172542d09d424c8",
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "3d05f766e9466cf3166f33c593d77d133539595cf82b832d75fbbcdf0d27673c",
+      "addons/vehicles/functions/cortexVehicles.sqf": "f61298bb07f45c50034f605e3b35c0ed3e6c34f36f017d78d7e98c20dd6ceed0",
+      "addons/core/functions/cortexTuningSpec.sqf": "a7be1c032b29f09ec11df594113e5e50a8c2452f0c0a8462508de96b63d89b02",
+      "addons/main/CfgFunctions.hpp": "55490aada38f4666bfedeb1dae3ac3c59f3312d9cadfa3961af38b9425e9e6fa"
+    }
   }
 }
