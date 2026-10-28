@@ -116,7 +116,7 @@ _result=call {
             || {!((_payload select 2) isEqualType createHashMap)}
             || {!(_vehicle isKindOf "Tank" || {_vehicle isKindOf "Wheeled_APC_F"})}
             || {getNumber (configOf _vehicle >> "artilleryScanner") > 0}
-            || {toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas"}) exitWith {false};
+            || {[_vehicle] call CBE_fnc_CortexAirDefenceRole}) exitWith {false};
         _gunner=gunner _vehicle;_group=group _gunner;_target=_payload select 0;
         if ([driver _vehicle,effectiveCommander _vehicle] findIf {
             isNull _x || {!local _x} || {!(currentCommand _x in ["","WAIT"])}

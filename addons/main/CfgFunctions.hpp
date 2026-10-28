@@ -441,6 +441,7 @@ class CfgFunctions {
             class CortexAARelocate {file = "\z\cbe\addons\vehicles\functions\cortexAARelocate.sqf";};
             class CortexAAInterceptEffect {file = "\z\cbe\addons\vehicles\functions\cortexAAInterceptEffect.sqf";};
             class CortexAASpot {file = "\z\cbe\addons\vehicles\functions\cortexAASpot.sqf";};
+            class CortexAirDefenceRole {file = "\z\cbe\addons\vehicles\functions\cortexAirDefenceRole.sqf";};
             class CortexAAThreat {file = "\z\cbe\addons\vehicles\functions\cortexAAThreat.sqf";};
             class CortexAAWarningLink {file = "\z\cbe\addons\vehicles\functions\cortexAAWarningLink.sqf";};
             class CortexAAAllocate {file = "\z\cbe\addons\vehicles\functions\cortexAAAllocate.sqf";};

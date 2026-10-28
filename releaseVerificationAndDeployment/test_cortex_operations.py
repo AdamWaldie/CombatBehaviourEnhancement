@@ -7420,7 +7420,7 @@ class CortexOperations(unittest.TestCase):
                       'unitCombatMode _gunner','CBE_AIPass_TargetHold'):
             self.assertIn(proof,query_gate)
 
-        self.assertIn('== "edsubcat_aas"',text)
+        self.assertIn('call CBE_fnc_CortexAirDefenceRole',text)
         self.assertIn('case (_freshAir && {_airDefence}): {-1}',text)
         self.assertIn('private _freshAir=_airPreference &&',text)
         self.assertIn('_vehicleIndex in _airProbeSlots',text)

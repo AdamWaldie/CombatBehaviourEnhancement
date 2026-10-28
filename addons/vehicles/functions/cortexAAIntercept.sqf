@@ -136,7 +136,7 @@ if (_mode == "START") exitWith {
         || {!([_group] call CBE_fnc_CortexIsEligible)}
         || {!([_gunner] call CBE_fnc_CortexCombatEffective)}
         || {isPlayer _gunner} || {!isNull remoteControlled _gunner}
-        || {toLowerANSI getText (configOf _vehicle >> "editorSubcategory") != "edsubcat_aas"}) exitWith {false};
+        || {!([_vehicle] call CBE_fnc_CortexAirDefenceRole)}) exitWith {false};
     private _warning=_vehicle getVariable ["CBE_AA_MissileWarning",[]];
     private _victim=_vehicle;
     if (_payload isNotEqualTo []) then {

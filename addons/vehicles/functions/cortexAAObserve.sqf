@@ -24,7 +24,7 @@ if (isNull _vehicle) exitWith {false};
 private _record=_vehicle getVariable ["CBE_AA_Observer",[]];
 private _eligible=!_release && {local _vehicle} && {alive _vehicle}
     && {_vehicle isKindOf "LandVehicle"}
-    && {toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas"}
+    && {[_vehicle] call CBE_fnc_CortexAirDefenceRole}
     && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
     && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle};
 private _gunner=gunner _vehicle;

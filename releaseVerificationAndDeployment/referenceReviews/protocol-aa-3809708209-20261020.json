@@ -161,5 +161,61 @@
     "performanceMeasured": false,
     "scoresChanged": false
   },
-  "historicalDisposition20261020": "READABLE_SOURCE_REVIEW_COMPLETE; ground AA anti-munition and relocate functionality remains a real product gap. Aircraft missile evasion is not parity."
+  "historicalDisposition20261020": "READABLE_SOURCE_REVIEW_COMPLETE; ground AA anti-munition and relocate functionality remains a real product gap. Aircraft missile evasion is not parity.",
+  "dedicatedRole20261028": {
+    "date": "2026-10-28",
+    "sourceBase": "7068618ab55eecc8421ad6a5955136739c055d00",
+    "scope": "Selected complete source _isAA helper lines24-39 and current CBE dedicated-AA role gates; not whole point-defence/native capability or physical acceptance.",
+    "sourceWitness": {
+      "pbo": "E:\\SteamLibrary\\steamapps\\workshop\\content\\107410\\3809708209\\addons\\protocol_ai_anti_air.pbo",
+      "pboSHA256": "4921491a6e4afd5b74eeaa9c009e1144e90b6103e92a6167a4e22ba0061877cf",
+      "member": "functions/fn_aa.sqf",
+      "memberSHA256": "2fdeb2d597f4589a4b35eac7107db1725f84f5ced9a715e2a9bceebfcb427788",
+      "verification": "Installed PBO and uncompressed source member match preserved hashes; source inspected in memory, no original changed."
+    },
+    "finding": "Six CBE consumers/seven sites used editorSubcategory alone for dedicated-AA role. Generic rotating custom-air gunnery already exists; it did not grant custom-category dedicated observation/allocation/interception/relocation role or consistent armour-shot exclusion. Do not count generic-air capability again.",
+    "sourceIntent": "Protocol _isAA requires live LandVehicle, then accepts AA_IsAirDefense explicit object marker or EdSubcat_AAs editor category. Explicit role intent is useful; CBE does not import the source marker, global loops, radar override or projectile destruction.",
+    "implementation": [
+      "One pure CortexAirDefenceRole shared by AA observer, allocator, interceptor admission, relocation, gunnery priority/allocation and armour-shot admission. Existing native AA category remains accepted.",
+      "A custom-category LandVehicle gains the role hint only when the native three-entry threat profile is finite/nonnegative and positive air weight strictly exceeds both soft and armour. Mixed/equal/default ground profiles stay ordinary. This is CBE policy interpreting native config intent, not an engine-certified role or weapon-capability test.",
+      "At most256 immutable class results memoised locally. Overflow computes without storing. No live loaded-magazine/native-task/permission cache, world scan, new event/worker or state publication.",
+      "Actual loaded weapon station, target/contact, crew locality, ROE, original task/lease and movement/physics gates remain in existing owners. Default-off interception remains off. A class role alone grants no fire, relocation or warning identity.",
+      "Existing generic custom-air gunnery rotation is retained; air-dominant platforms now take the dedicated role consistently instead of only that fallback. No source-specific compatibility layer or classname substring guessing."
+    ],
+    "engineReference": {
+      "url": "https://community.bistudio.com/wiki/CfgVehicles_Config_Reference#threat",
+      "fact": "Native threat[] weights describe soft, armour and air targets and contribute to target selection. CBE air-dominance classification is an inference/policy, not an engine guarantee of ammunition/lock suitability."
+    },
+    "cost": "Fixed native config reads once per retained class, max256entries. Existing calls replace repeated category reads; newly qualified custom classes can install existing AA observers or reach existing allocation/relocation paths. Their workload and native capability quality remain unmeasured.",
+    "remaining": [
+      "Misauthored threat vectors, ambiguous mixed-role platforms, source-style explicit role declarations and all custom AA categories are not solved universally. No whole-mod/source parity claim.",
+      "Physical custom station/relocation/gunnery/intercept behaviour, mixed-role balance, normal/HC transfer, false category/profile classification and median/p95 cost remain unverified; audits paused.",
+      "Broader point-defence weapon layers, projectile ownership/effects, guided/payload support and required provider handovers remain open."
+    ],
+    "verification": {
+      "focused": "PASS:2 AA observation/classification checks; one new cross-consumer regression",
+      "fullBuild": "PASS",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "performance": "NOT_MEASURED",
+      "fullTests": 1505,
+      "compiledSQF": 457,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/aa-role-build-20261028.log",
+      "candidate": ".qa/candidates/aa-role-20261028-7068618a",
+      "fingerprint": "aeb60b3f2944e44afef354393836edb732dc83981270fb06b85fd649f95acedc",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/aa-role-independent-20261028.log",
+      "buildProvenance": "7068618ab55eecc8421ad6a5955136739c055d00 plus dirty runtime snapshot. Only engineering/handover metadata follows packaging. Recorded product hashes pin actual inputs; normalize Git line endings for committed matching."
+    },
+    "productHashes": {
+      "addons/vehicles/functions/cortexAirDefenceRole.sqf": "e46bb5ec9e13e5e4ed3c711bc6cfb929b592293a935ef6e49f893a1fa8c43c36",
+      "addons/vehicles/functions/cortexAAObserve.sqf": "97d85857aef6f4b84610022c6aacb9b1de349a0a5d16266edcf12bdf1e2a2008",
+      "addons/vehicles/functions/cortexAAAllocate.sqf": "f4285c1c2665255df0c6ad9835ff5b2211efccd877c8adb5f94b32337056dad1",
+      "addons/vehicles/functions/cortexAAIntercept.sqf": "7d7d4decee8d3e23f870cb7791a4e04149ee7e1d50f60c0da81232cd82b4c403",
+      "addons/vehicles/functions/cortexAARelocate.sqf": "b1af249a7088a797fd1d6a2ede76a35da41f9e7bc22e2bd70e7d4e3c245684be",
+      "addons/vehicles/functions/cortexVehicles.sqf": "60e6f534d5faaed91fbab87395f4a08065bbc45731864fec2ec4eee5c2538215",
+      "addons/vehicles/functions/vehicleArmourShot.sqf": "d8796bf192a8f6fa06dc02ab2e247f5b93fc5c8bf0498e179c30a96585a4bd8c",
+      "addons/main/CfgFunctions.hpp": "9b255381736b515cae8c748e9670acf19f0a0ce8f8cc707b6e66727ef0543b54"
+    }
+  }
 }

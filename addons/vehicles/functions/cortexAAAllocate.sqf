@@ -98,7 +98,7 @@ if !(_plan get "initialised") then {
         private _vehicle=vehicle _x;private _gunner=gunner _vehicle;
         if (_vehicle isKindOf "LandVehicle" && {local _vehicle} && {!isNull _gunner}
             && {local _gunner} && {group _gunner == _group}
-            && {toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas"}) then {
+            && {[_vehicle] call CBE_fnc_CortexAirDefenceRole}) then {
             _vehicles pushBackUnique _vehicle;
         };
         if (count _vehicles >= 16) exitWith {};

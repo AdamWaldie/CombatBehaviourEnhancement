@@ -788,7 +788,7 @@ private _airContacts=[];private _airContactsRead=false;
 // observation each. Include held native engagements; never treat an old CBE intent as fire.
 // No persistent reservation survives this callback or a locality/operation change.
 private _aaAllocationVehicles=(_vehicles select [0,16]) select {
-    toLower getText (configOf _x >> "editorSubcategory") == "edsubcat_aas"
+    [_x] call CBE_fnc_CortexAirDefenceRole
 };
 private _aaEngagements=[];
 private _airProbeCount=(count _vehicles) max 1;
@@ -1095,7 +1095,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
         // Native editor role is a preference, never ammunition or engagement permission.
         // Custom air-capable stations can join known-air gunnery without changing their
         // tactical role, ground-threat priority or movement ownership.
-        private _airDefence=toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas";
+        private _airDefence=[_vehicle] call CBE_fnc_CortexAirDefenceRole;
         private _airCandidate=_airDefence || {_vehicle isKindOf "LandVehicle" && {_vehicleIndex in _airProbeSlots}};
         private _warnedBy=objNull;
         if (_airDefence) then {

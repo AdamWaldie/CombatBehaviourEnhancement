@@ -3,11 +3,39 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class AAObservation(unittest.TestCase):
+    def test_dedicated_air_role_is_shared_bounded_config_intent_not_weapon_permission(self):
+        import math
+        classifier=(ROOT/'addons/vehicles/functions/cortexAirDefenceRole.sqf').read_text()
+        for proof in ('isKindOf "LandVehicle"','"editorSubcategory"','"threat"',
+                      'count _threat == 3','!finite _x','_x < 0',
+                      '(_threat select 2) > (_threat select 0)',
+                      '(_threat select 2) > (_threat select 1)',
+                      'count CBE_AirDefenceRoleClasses < 256'):
+            self.assertIn(proof,classifier)
+        def role(category,weights):
+            if category.lower()=='edsubcat_aas':return True
+            return (len(weights)==3 and all(isinstance(x,(int,float)) and not isinstance(x,bool)
+                    and math.isfinite(x) and x>=0 for x in weights)
+                    and weights[2]>0 and weights[2]>weights[0] and weights[2]>weights[1])
+        for weights in ([0.3,0.3,1],[0,0,0.1],[1,2,3]):self.assertTrue(role('custom',weights))
+        for weights in ([],[1,2],[0,0,0],[1,1,1],[0.7,0.5,0.3],[1,0.9,0.1],
+                        [-1,0,1],[0,0,float('nan')],[0,0,float('inf')],[0,0,'AA']):
+            self.assertFalse(role('custom',weights),weights)
+        self.assertTrue(role('EdSubcat_AAs',[]))
+        for name in ('cortexAAObserve','cortexAAAllocate','cortexAAIntercept','cortexAARelocate',
+                     'cortexVehicles','vehicleArmourShot'):
+            s=(ROOT/'addons/vehicles/functions'/f'{name}.sqf').read_text()
+            self.assertIn('call CBE_fnc_CortexAirDefenceRole',s)
+            self.assertNotIn('edsubcat_aas',s)
+        code=classifier.split('params [[',1)[1]
+        for forbidden in ('nearEntities','weaponsTurret','setVariable','reveal','doFire','doMove','spawn','execFSM'):
+            self.assertNotIn(forbidden,code)
+
     def test_native_receipt_lifecycle_does_not_claim_fire_or_move_authority(self):
         source=(ROOT/'addons/vehicles/functions/cortexAAObserve.sqf').read_text()
         for guard in ('!local _vehicle','isNull _projectile','!local _gunner',
                       'CortexActorFireTaskAvailable','CortexIsEligible','serverTime+1',
-                      'CBE_AIPass_Epoch','removeEventHandler ["Fired"','"edsubcat_aas"'):
+                      'CBE_AIPass_Epoch','removeEventHandler ["Fired"','CortexAirDefenceRole'):
             self.assertIn(guard,source)
         for command in ('doMove','doFire','reveal','setVehicleRadar','setVelocity','spawn','waitUntil'):
             self.assertNotIn(command,source)

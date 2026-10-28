@@ -297,6 +297,11 @@
         "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
         "scope": "Native first-warning projectile/parent/affiliation receipt survives subsequent launcher crew loss or deletion for bounded allocation and ordinary interception; scripted fuse still requires a non-null matching source.",
         "physicalAcceptance": false
+      },
+      "dedicatedRole20261028": {
+        "review": "protocol-aa-3809708209-20261020.json#dedicatedRole20261028",
+        "scope": "Shared native config role across six consumers; preserves category, adds finite air-dominant profile policy. Generic custom-air gunnery is existing functionality. Role hint only, physical/custom/mixed balance and cost unverified.",
+        "physicalAcceptance": false
       }
     },
     {
