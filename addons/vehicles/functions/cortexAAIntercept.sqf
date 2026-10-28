@@ -10,7 +10,9 @@
  * Explosive shotBullet cannons may aim/fire through the loaded-magazine blast safety check.
  * Only nonexplosive same-owner real bullet passes may request a missile fuse; effect helper owns that policy.
  * Explosive cannon impacts remain native; shots and closest passes are not interception proof.
- * Repeat/JIP: One eight-second episode/platform, max four local platforms, sixteen fire requests,
+ * Repeat/JIP: Live AA role is rechecked at START, SHOT and each STEP. Withdrawal uses existing
+ * exact lock/fire-lease cleanup; it does not cancel native shots or prove immediate quiescence.
+ * One eight-second episode/platform, max four local platforms, sixteen fire requests,
  * eight observed rounds and 160 steps. New warnings cannot renew an active episode. No JIP replay.
  * Temporary native point locks release at target/limit; an observed unlocked turret ends the episode.
  * The fire lease expires at the original deadline even after discarded cleanup.
@@ -76,7 +78,8 @@ private _finish={
 };
 if (_mode == "RELEASE") exitWith {[] call _finish};
 if (_mode == "SHOT") exitWith {
-    if (count _state == 0 || {!local _vehicle} || {time > (_state getOrDefault ["shotWindow",-1])}) exitWith {false};
+    if (count _state == 0 || {!local _vehicle} || {!([_vehicle] call CBE_fnc_CortexAirDefenceRole)}
+        || {time > (_state getOrDefault ["shotWindow",-1])}) exitWith {false};
     _payload params ["","_weapon","_muzzle","","_ammo","_magazine","_round","_operator"];
     if (isNull _round || {!local _round} || {_operator != (_state get "gunner")}
         || {_weapon != (_state get "weapon")} || {_muzzle != (_state get "muzzle")}
@@ -218,6 +221,7 @@ private _gunner=_state get "gunner";private _group=_state get "group";
 private _missile=_state get "missile";private _turret=_state get "turret";
 private _token=_state get "token";
 private _valid=local _vehicle && {alive _vehicle} && {local _gunner} && {local _group}
+    && {[_vehicle] call CBE_fnc_CortexAirDefenceRole}
     && {gunner _vehicle == _gunner} && {_vehicle turretLocal _turret}
     && {group _gunner == _group} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
     && {simulationEnabled _gunner} && {!isObjectHidden _gunner}

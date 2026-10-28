@@ -11,7 +11,9 @@
  * use it for gunnery priority. No target position or fire permission is added.
  * Repeat/JIP: One versioned local handler pair per eligible native AA vehicle. Discovery removes it
  * after locality/feature loss; shutdown removes tracked handlers. New owners start without a
- * previous owner's receipt. At most one full shot observation per second; warning receipts
+ * previous owner's receipt. Live AA role is checked at setup and both native callbacks;
+ * role withdrawal supplies no new warning/shot receipt while normal cleanup retains its owner.
+ * At most one full shot observation per second; warning receipts
  * coalesce per native event. Optional interception passes real shots before the relocation throttle
  * and may start one finite coalesced scheduler episode. No new world scan.
  * Arguments: 0 vehicle OBJECT,objNull; 1 release BOOL,false, remove this machine's observer.
@@ -35,7 +37,7 @@ if (_eligible) then {
         && {[_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled}
         && {[_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled};
 };
-private _current=count _record == 4 && {(_record select 0) == 2}
+private _current=count _record == 4 && {(_record select 0) == 3}
     && {(_record select 1) == clientOwner};
 if (_eligible && {_current}) exitWith {true};
 // Most vehicles never participate. Do not rewrite nils or the tracked registry for that slice.
@@ -61,6 +63,7 @@ private _handler=_vehicle addEventHandler ["Fired",{
     params ["_vehicle","_weapon","_muzzle","","_ammo","_magazine","_projectile","_gunner"];
     if (!isNil {_vehicle getVariable "CBE_AA_Intercept"}) then {[_vehicle,"SHOT",_this] call CBE_fnc_CortexAAIntercept};
     if (!local _vehicle || {isNull _projectile} || {isNull _gunner}
+        || {!([_vehicle] call CBE_fnc_CortexAirDefenceRole)}
         || {serverTime < (_vehicle getVariable ["CBE_AA_ObserveDue",-1])}
         || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
         || {[] call CBE_fnc_CortexIsPaused}) exitWith {};
@@ -96,7 +99,8 @@ private _warningHandler=_vehicle addEventHandler ["IncomingMissile",{
     params ["_vehicle","",["_shooter",objNull,[objNull]],"",["_missile",objNull,[objNull]]];
     private _observer=_vehicle getVariable ["CBE_AA_Observer",[]];
     if (!local _vehicle || {!alive _vehicle} || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
-        || {count _observer != 4} || {(_observer select 0) != 2}
+        || {!([_vehicle] call CBE_fnc_CortexAirDefenceRole)}
+        || {count _observer != 4} || {(_observer select 0) != 3}
         || {(_observer select 1) != clientOwner} || {(_observer select 3) != _thisEventHandler}
         || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
         || {[] call CBE_fnc_CortexIsPaused}) exitWith {};
@@ -111,7 +115,7 @@ private _warningHandler=_vehicle addEventHandler ["IncomingMissile",{
         _group getVariable ["CBE_AIPass_Epoch",0],serverTime+15,_missile,_source]];
     ["NOTICE",_vehicle] call CBE_fnc_CortexAAAllocate;
 }];
-_vehicle setVariable ["CBE_AA_Observer",[2,clientOwner,_handler,_warningHandler]];
+_vehicle setVariable ["CBE_AA_Observer",[3,clientOwner,_handler,_warningHandler]];
 _tracked pushBackUnique _vehicle;
 missionNamespace setVariable ["CBE_AA_ObservedVehicles",_tracked];
 true

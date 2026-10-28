@@ -72,6 +72,7 @@ _result=call {
     };
     private _valid={
         local _vehicle && {alive _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
+            && {!([_vehicle] call CBE_fnc_CortexAirDefenceRole)}
             && {local _group} && {!isNull _group} && {call _controlsCurrent}
             && {!isNull _gunner} && {local _gunner} && {gunner _vehicle == _gunner}
             && {group _gunner == _group} && {!isPlayer _gunner} && {isNull remoteControlled _gunner}

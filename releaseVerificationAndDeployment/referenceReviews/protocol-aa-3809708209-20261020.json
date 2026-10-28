@@ -386,6 +386,51 @@
       "performance": "NOT_MEASURED",
       "log": ".qa/handovers/aa-role-native-calibration-20261028.log"
     },
-    "remaining": "Input subset/load order does not establish effective live config with all DLC/mod patches. No profile-score, native perception, role/movement/fire balance or measured cost acceptance."
+    "remaining": "Input subset/load order does not establish effective live config with all DLC/mod patches. No profile-score, native perception, role/movement/fire balance or measured cost acceptance.",
+    "designationGapResolvedBy": "explicitRoleDeclaration20261028 implements the selected per-platform script declaration. Native-profile calibration remains valid; physical/module/provider scope stays open."
+  },
+  "explicitRoleDeclaration20261028": {
+    "date": "2026-10-28",
+    "sourceBase": "3e3075b9a5796fe59f7182b7fd5d44308937fae1",
+    "sourceIntent": "Selected Protocol _isAA explicit AA_IsAirDefense marker path (source member/PBO hashes recorded in dedicatedRole20261028), combined with nativeRoleCalibration20261028 mixed-profile evidence. No source-specific compatibility alias or copied controller.",
+    "finding": "Native Cheetah/Tigris threat profiles are mixed/tied; custom-category clones need a deliberate role designation. Broadening mixed profiles would also admit ordinary armour.",
+    "implementation": [
+      "Live CBE_AirDefenceRole BOOL true/false declares dedicated/ordinary ground-vehicle role. Missing/nil or exact numeric-1 falls back to immutable class inference; malformed values refuse. The LandVehicle boundary precedes declaration, and declaration precedes class memo. No live value is stored in the256entry config cache.",
+      "Trusted mission setup may publish per-object role intent through native setVariable. This is not global feature configuration, operator command takeover or a new behaviour module. Existing CBA feature controls, actual loaded station/contact/ROE/crew/task/locality gates remain independent.",
+      "Observer version3 replaces its existing pair through normal stored-ID cleanup. Both Fired and IncomingMissile callbacks read current role before new ordinary observations; interceptor SHOT/STEP recheck current role, while RELEASE retains exact existing cleanup when role is false.",
+      "Allocator NOTICE refuses a withdrawn emitting role; current coverage sampling excludes role-withdrawn responses. Defended-asset threat tracks retain their original native warning identity/expiry and are not renewed by role changes. Existing START still checks actual role/crew/weapons, and no declaration creates a warning.",
+      "Existing AA relocation current-crew gate already reads shared role at admission and active updates. Ground armour-shot observation now also refuses a newly dedicated AA role before its original post-shot continuation. Existing selected movement/task ownership retains priority; declaration does not cancel native commands or prove quiescence.",
+      "False selects ordinary role only: ordinary native/generic-air gunnery may still act under existing weapon/task gates. It is not a weapon disable. Explicit-1 or removal restores category/strict-profile inference without changing any global CBA setting."
+    ],
+    "cost": "One cheap live per-object role read per existing classification boundary. No new world discovery/loop/job/EH type. Existing observer replacement/version and bounded caches/episode/shot/candidate limits retained. Newly designated eligible platforms may participate in existing AA work; runtime and network propagation cost unmeasured.",
+    "remaining": [
+      "Native public-variable replication/JIP and role-change event ordering, actual observer replacement, current-command cleanup and no-replay behaviour need in-engine normal/HC evidence; audits paused.",
+      "No immediate native firing/movement stop or provider quiescence is claimed. Genuine prior threat warnings keep their original lifetime and may still inform another eligible defender of the same asset.",
+      "Explicit per-object script designation is implemented, not a new curator behaviour module, full mixed-group AA relocation, arbitrary station capability or whole Protocol parity. Broader interception/effect/provider requirements remain open."
+    ],
+    "verification": {
+      "focused": "PASS:2 existing AA tests, declaration transitions/malformed/domain cases and active-boundary guards extend existing regression",
+      "log": ".qa/handovers/aa-role-declaration-focused-20261028.log",
+      "fullBuild": "PASS",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "performance": "NOT_MEASURED",
+      "fullTests": 1505,
+      "compiledSQF": 457,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/aa-role-declaration-build-20261028.log",
+      "candidate": ".qa/candidates/aa-role-declaration-20261028-3e3075b9",
+      "fingerprint": "c7b646bf80b40643d6cd0b64f8fc47e0a19560994478663abdaeac86fcb68a15",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/aa-role-declaration-independent-20261028.log",
+      "buildProvenance": "3e3075b9a5796fe59f7182b7fd5d44308937fae1 plus dirty runtime snapshot. Only engineering/handover metadata follows packaging; product hashes pin inputs, normalize Git line endings when matching final commit."
+    },
+    "productHashes": {
+      "addons/vehicles/functions/cortexAirDefenceRole.sqf": "b903010b59a670c8aa794b1b1f4cc079813b12cebd324bff150e93fbe5fb3765",
+      "addons/vehicles/functions/cortexAAObserve.sqf": "a4d639b3c72ba2c50c2e5c5b91ae28b9e622a8a9708564360781b666053979b5",
+      "addons/vehicles/functions/cortexAAIntercept.sqf": "809db398f565e4cfccf2d671f310ee8cbdf2b4b7f4eba3dcfdfa95b1ce7644c3",
+      "addons/vehicles/functions/cortexAAAllocate.sqf": "21fea99e32459fb1380f9bd50686c1a56842244afd202f8a11a464f4b6e9d6a7",
+      "addons/vehicles/functions/vehicleArmourShot.sqf": "4c306956c7a1b69e94c275ddb4e50b1965312334525a38017c92591d57a2bd2e"
+    },
+    "sourceDeparture": "Source marker true adds AA, while false falls back to category. CBE deliberately defines false as ordinary-role override and unset/-1 as inheritance, so withdrawal is explicit and observer/command boundaries can recheck it."
   }
 }

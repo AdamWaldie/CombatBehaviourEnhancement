@@ -34,7 +34,8 @@ private _tracks=if ((_registry select 0) == clientOwner && {(_registry select 1)
     }
 } else {[]};
 if (_mode == "NOTICE") exitWith {
-    if (!(_input isEqualType objNull) || {isNull _input} || {!local _input}) exitWith {false};
+    if (!(_input isEqualType objNull) || {isNull _input} || {!local _input}
+        || {!([_input] call CBE_fnc_CortexAirDefenceRole)}) exitWith {false};
     private _warning=_input getVariable ["CBE_AA_MissileWarning",[]];
     if (count _warning != 6 || {(_warning select 0) != clientOwner} || {(_warning select 1) != _group}
         || {(_warning select 2) != _epoch} || {serverTime >= (_warning select 3)}
@@ -118,6 +119,7 @@ private _coverageMissiles=[];
                 && {time < (_active get "until")}
                 && {(_active get "ownerEpoch") == _epoch}
                 && {alive _x} && {local _x}
+                && {[_x] call CBE_fnc_CortexAirDefenceRole}
                 && {private _coverageGunner=_active getOrDefault ["gunner",objNull];
                     !isNull _coverageGunner && {alive _coverageGunner} && {local _coverageGunner}
                         && {gunner _x == _coverageGunner} && {group _coverageGunner == _group}

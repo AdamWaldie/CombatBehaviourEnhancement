@@ -12,7 +12,10 @@ class AAObservation(unittest.TestCase):
                       '(_threat select 2) > (_threat select 1)',
                       'count CBE_AirDefenceRoleClasses < 256'):
             self.assertIn(proof,classifier)
-        def role(category,weights):
+        def role(category,weights,declared=-1,land=True):
+            if not land:return False
+            if isinstance(declared,bool):return declared
+            if declared != -1:return False
             if category.lower()=='edsubcat_aas':return True
             return (len(weights)==3 and all(isinstance(x,(int,float)) and not isinstance(x,bool)
                     and math.isfinite(x) and x>=0 for x in weights)
@@ -22,6 +25,25 @@ class AAObservation(unittest.TestCase):
                         [-1,0,1],[0,0,float('nan')],[0,0,float('inf')],[0,0,'AA']):
             self.assertFalse(role('custom',weights),weights)
         self.assertTrue(role('EdSubcat_AAs',[]))
+        for declared,expected in ((-1,False),(True,True),(False,False),(-1,False)):
+            self.assertEqual(role('custom',[0.8,0.6,0.6],declared),expected)
+        for declared,expected in ((-1,True),(False,False),(True,True),(-1,True)):
+            self.assertEqual(role('EdSubcat_AAs',[1,0.6,1],declared),expected)
+        for malformed in ('AA',[],0,1,float('nan')):
+            self.assertFalse(role('EdSubcat_AAs',[1,0.6,1],malformed))
+        self.assertFalse(role('EdSubcat_AAs',[0,0,1],True,land=False))
+        self.assertIn('_declared isEqualType true',classifier)
+        self.assertIn('_declared isEqualTo -1',classifier)
+        self.assertLess(classifier.index('getVariable ["CBE_AirDefenceRole",-1]'),classifier.index('private _class='))
+        interceptor=(ROOT/'addons/vehicles/functions/cortexAAIntercept.sqf').read_text()
+        for block in (interceptor.split('if (_mode == "SHOT")',1)[1].split('if (_mode == "START")',1)[0],
+                      interceptor.split('private _valid=',1)[1].split('if (!_valid',1)[0]):
+            self.assertIn('call CBE_fnc_CortexAirDefenceRole',block)
+        observer=(ROOT/'addons/vehicles/functions/cortexAAObserve.sqf').read_text()
+        for block in (observer.split('addEventHandler ["Fired"',1)[1].split('private _warningHandler',1)[0],
+                      observer.split('addEventHandler ["IncomingMissile"',1)[1]):
+            self.assertIn('call CBE_fnc_CortexAirDefenceRole',block)
+
         # Native Cheetah/Tigris inherit mixed/tied profiles; category fallback must
         # remain, and a custom-category clone is an explicit unresolved role case.
         for native in ([0.8,0.6,0.6],[1.0,0.6,1.0]):
@@ -68,13 +90,13 @@ class AAObservation(unittest.TestCase):
         self.assertIn('if (!_eligible && {_record isEqualTo []}',source)
         self.assertIn('(_knowledge select 1)',source)
         self.assertIn('if (_contact isEqualTo []) exitWith {}',source)
-        self.assertIn('private _current=count _record == 4 && {(_record select 0) == 2}',source)
+        self.assertIn('private _current=count _record == 4 && {(_record select 0) == 3}',source)
         self.assertIn('count _record in [3,4]',source)
         self.assertIn('removeEventHandler ["IncomingMissile",_record select 3]',source)
         warning=source.split('private _warningHandler=',1)[1].split('_tracked pushBackUnique',1)[0]
         for proof in ('addEventHandler ["IncomingMissile"','_thisEventHandler','!local _group',
                       'CBE_AIPass_VehicleGunnery_Enable','serverTime+15',
-                      '"CBE_AA_Observer",[2,clientOwner,_handler,_warningHandler]'):
+                      '"CBE_AA_Observer",[3,clientOwner,_handler,_warningHandler]'):
             self.assertIn(proof,warning)
         self.assertIn('"CBE_AA_MissileWarning",nil',source)
         threat=(ROOT/'addons/vehicles/functions/cortexAAThreat.sqf').read_text()

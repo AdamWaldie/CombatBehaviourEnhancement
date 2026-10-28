@@ -306,6 +306,11 @@
       "nativeRoleCalibration20261028": {
         "review": "protocol-aa-3809708209-20261020.json#nativeRoleCalibration20261028",
         "scope": "12 selected native static inheritance chains checked. Cheetah/Tigris category fallback required; custom-category mixed-profile clone remains a concrete explicit-designation gap. No runtime change or physical acceptance."
+      },
+      "explicitRoleDeclaration20261028": {
+        "review": "protocol-aa-3809708209-20261020.json#explicitRoleDeclaration20261028",
+        "scope": "Live per-platform role true/false with unset/-1 inference, uncached declarations and current observer/intercept/allocator boundaries. Resolves the selected mixed-profile clone designation path, not physical/task/provider acceptance.",
+        "physicalAcceptance": false
       }
     },
     {
