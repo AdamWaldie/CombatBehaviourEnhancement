@@ -282,5 +282,42 @@
       "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "dc72ff0af1d3c6daefc18bb90814a7940decefd3fe5da8b98f8803f200905c47",
       "addons/vehicles/functions/vehicleTacticalMoveStep.sqf": "5c1e2be00458204dce2d9d0829412ab6271a6b9c2ceb5d365f644ffdbb387c6e"
     }
+  },
+  "passengerStopHandoff20261028": {
+    "baseline": "503be37aa41a72bbc56918756ffa61c5b0065f65",
+    "finding": "Initial finite support admission could retain the independently owned passenger forceSpeed0 cap. The proposed hull move could be accepted but physically unable to travel. Minimum two dismounted actors also did not prove all cargo had completed exit.",
+    "sourceIntent": "Original support/hold/release helpers demonstrated that stop and route/movement writers have distinct lifetimes. Retain useful cooperation, replace unconditional source settings restoration with existing exact CBE stop owner.",
+    "implementation": [
+      "CortexMechanisedSupport refuses any living actual cargo/person-turret occupant before PLAN or CHECK; native seat scan bounds64rows. No forced unload or seat assignment.",
+      "VehicleTacticalMoveStart detects a passenger stop and waits for all actual cargo to leave. It calls existing CortexDismountStop RELEASE before capturing the selected native baseline, even to detect unresolved handback. An authored or unresolved remaining zero cap refuses the move; no forceSpeed-1 fallback.",
+      "CortexDismountStop refuses new cap acquisition over an active or unresolved selected-platform reference/work. RETIRED is the existing explicit finite native handback outcome, not ordinary lease expiry.",
+      "CortexPassengerReady refuses routine boarding/unloading during selected-platform movement, HOLD and unresolved retirement even at instantaneous rest. Emergency engine bailouts remain independent."
+    ],
+    "verification": {
+      "before": ".qa/handovers/mech-stop-handoff-before-20261028.log",
+      "focusedTests": 661,
+      "focusedLog": ".qa/handovers/mech-stop-handoff-focused-20261028.log",
+      "fullBuild": "PASS",
+      "newTestCases": 0,
+      "fullTests": 1499,
+      "compiledSQF": 450,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/mech-stop-handoff-build-20261028.log",
+      "candidate": ".qa/candidates/mech-stop-handoff-20261028-503be37a",
+      "fingerprint": "442fdffb05ff5c665c77f5e2629222ce890c08a702250d9a8115d80f7052cb31",
+      "independentLog": ".qa/handovers/mech-stop-handoff-independent-20261028.log",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "buildProvenance": "503be37a plus dirty runtime snapshot; only engineering/handover metadata changes after packaging."
+    },
+    "cost": "Existing owner/seat metadata only, at most64current seat rows, no new job/world scan/native movement controller. Helper is read-only; exact stop restoration is the existing owner path.",
+    "limits": "Offline evidence only. Metadata replication is not an ordered cross-owner acknowledgement. Physical stop-cap restoration, exits, authored-zero refusal, movement, boarding resumption and normal/HC transfer remain unrun with audits paused.",
+    "nextConcreteWork": "Separate passenger-owner cooperation using actual original cargo and finite owner acknowledgements, then repeated support bounds under one original escort episode. Do not infer nearby infantry was carried or add cross-owner troop commands.",
+    "runtimeSha256": {
+      "addons/vehicles/functions/cortexDismountStop.sqf": "6de9c87148067ea685be7ff0ca32897d27c7f99050c61b7626337773eff7c894",
+      "addons/vehicles/functions/cortexPassengerReady.sqf": "c565c493862c509622245df8e5bb3673189ba054a884a2254050cd7944cfc92a",
+      "addons/vehicles/functions/cortexMechanisedSupport.sqf": "a22fb10855f6e16ece22a73b93bce7f607ee92af612df04551539366f09a2358",
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "1f90f26e5c36bc24fdcf9803c21a180c79ef00fff0c2922a88458704cf95b811"
+    }
   }
 }

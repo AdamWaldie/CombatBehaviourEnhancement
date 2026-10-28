@@ -3,6 +3,7 @@
  * Passenger stop/continuation proof retains the full current native waypoint identity;
  * same-position policy, script, attachment or synchronization edits end old cooperation.
  * Purpose: Apply and retire an exact crew/native-order-owned passenger safe-stop speed cap.
+ * New caps refuse active or unresolved selected-platform movement; release remains exact settings cleanup.
  * Locality/authority: Actual vehicle and crew-group owner only. Both original operating actors
  * must remain local, available and in their original seats. ACQUIRE continuation additionally
  * requires captured native tasks/order; RELEASE only restores an unchanged owned cap and
@@ -81,6 +82,12 @@ isNil {
     if (_mode == "ACQUIRE" && {_saved isEqualTo []} && {_proof isEqualTo []}) exitWith {
         if (!_available || {_blocked isEqualType [] && {count _blocked == 6}
             && {(_blocked select 0) == _group} && {(_blocked select 1) == _epoch}}) exitWith {};
+        // Selected-platform native movement retains command custody through retirement.
+        // A fresh boarding request cannot add an independent zero cap over that worker.
+        private _selectedWork=_vehicle getVariable ["CBE_VehicleTacticalMove_Work",createHashMap];
+        if ((_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []
+            || {!(_selectedWork isEqualType createHashMap)}
+            || {count _selectedWork > 0 && {(_selectedWork getOrDefault ["phase",""]) != "RETIRED"}}) exitWith {};
         // Do not nest a passenger cap over an ordinary cap or its unfinished recovery.
         // A plain ordinary cap may hand back first; active native recovery must finish itself.
         if (["CBE_DrivingRecovery_Work","CBE_DrivingPass_Work","CBE_DrivingCorridor_Work","CBE_DrivingBypass_Work"]

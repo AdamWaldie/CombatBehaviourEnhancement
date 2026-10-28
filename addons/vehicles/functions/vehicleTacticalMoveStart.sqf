@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Admit one finite native standoff for the selected platform's original operating crew.
+ * Purpose: Admit one finite standoff/support bound for the selected platform's original operating crew.
+ * Any passenger stop must hand back exactly after all cargo exits; authored zero caps refuse movement.
  * Locality/authority: Trusted current group/platform owner inside an admitted standoff operation.
  * Exact crew, operation generation/epoch, original route and acquired movement lease are required.
  * No group waypoint, membership, formation or unrelated actor order is changed.
@@ -60,6 +61,21 @@ isNil {
             || {count _supportContext != 4} || {(_supportContext select 3) isNotEqualTo _until}
             || {(_supportContext select 0) isNotEqualTo (_group getVariable ["CBE_Cortex_DismountContinuation",[]])}
             || {([_group,_battery,[],_supportContext,_spot] call CBE_fnc_CortexMechanisedSupport) isEqualTo []}}) exitWith {false};
+        // A passenger safe-stop cap is a separate native writer. Finish all exits
+        // and obtain its exact settings handback before capturing our movement baseline.
+        private _passengerStop=(_battery getVariable ["CBE_Cortex_DismountStopReceipt",[]]) isNotEqualTo []
+            || {(_battery getVariable ["CBE_Cortex_DismountForcedSpeed",[]]) isNotEqualTo []};
+        private _cargoClear=true;
+        if (_passengerStop) then {
+            private _cargoRows=fullCrew [_battery,"",false];
+            _cargoClear=count _cargoRows <= 64 && {_cargoRows findIf {
+                private _person=_x select 0;private _role=_x select 1;
+                alive _person && {_role == "cargo" || {_role == "turret" && {_x select 4}}}
+            } < 0};
+        };
+        if (!_cargoClear) exitWith {false};
+        if (!([_battery,_group,"RELEASE",true] call CBE_fnc_CortexDismountStop)
+            || {getForcedSpeed _battery == 0}) exitWith {false};
         private _baseline=[_seats select 0,_seats select 1] call CBE_fnc_VehicleCrewNativeObservation;
         if (count _baseline != 4 || {[0,2] findIf {(_baseline select _x) == "MOVE" && {
             private _goal=(_baseline select (_x+1)) param [0,[],[[]]];

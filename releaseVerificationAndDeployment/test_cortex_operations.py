@@ -12225,6 +12225,24 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(proof,bound)
         self.assertNotIn('doMove',bound)
         self.assertNotIn('setCurrentWaypoint',bound)
+        self.assertIn('private _cargoRows=fullCrew',planner)
+        self.assertIn('count _cargoRows > 64',planner)
+        self.assertIn('_role == "cargo" || {_role == "turret"',planner)
+        self.assertIn('private _passengerStop=',start)
+        self.assertIn('[_battery,_group,"RELEASE",true] call CBE_fnc_CortexDismountStop',start)
+        self.assertIn('getForcedSpeed _battery == 0',start)
+        self.assertLess(start.index('call CBE_fnc_CortexDismountStop'),
+                        start.index('private _baseline='))
+        stop=source('cortexDismountStop')
+        acquire=stop.split('if (_mode == "ACQUIRE" && {_saved isEqualTo []}',1)[1]
+        self.assertIn('CBE_VehicleTacticalMove_Reference',acquire)
+        self.assertIn('CBE_VehicleTacticalMove_Work',acquire)
+        self.assertIn('(_selectedWork getOrDefault ["phase",""]) != "RETIRED"',acquire)
+        ready=source('cortexPassengerReady')
+        for proof in ('CBE_VehicleTacticalMove_Work','CBE_VehicleTacticalMove_Reference',
+                      '(_selectedWork getOrDefault ["phase",""]) != "RETIRED"'):
+            self.assertIn(proof,ready)
+        self.assertLess(ready.index('CBE_VehicleTacticalMove_Work'),ready.index('private _linearMotion='))
 
     def test_rejected_vehicle_escape_does_not_consume_withdrawal_or_smoke(self):
         text=source('cortexVehicles')

@@ -13,7 +13,7 @@
  * context ARRAY [] for PLAN, otherwise original [dismount receipt,contact,body ASL,deadline];
  * goal ARRAY [] for PLAN, otherwise original ATL ARRAY3 for CHECK.
  * Return: ARRAY [] on refusal, otherwise [goal ATL, original deadline, context].
- * Limits: At most16 tracked cargo and32 nearby people, five rear candidates, one bounded
+ * Limits: At most64 current seat rows,16 tracked cargo and32 nearby people, five rear candidates, one bounded
  * avenue selection. Straight hull corridor and one elevated visibility ray per candidate
  * are observations, not proof of the engine's actual planned route or future clearance.
  * Current callers: CortexVehicles (PLAN), VehicleTacticalMoveStart/Step (CHECK).
@@ -27,6 +27,13 @@ if (isNull _group || {!local _group} || {isNull _vehicle} || {!local _vehicle}
     || {!(_vehicle isKindOf "Tank" || {_vehicle isKindOf "Wheeled_APC_F"})}
     || {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isNotEqualTo []}
     || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {[]};
+// All cargo must finish leaving before hull movement, not just the minimum troop pair.
+// Do not move underneath another squad's or player's in-progress exit.
+private _cargoRows=fullCrew [_vehicle,"",false];
+if (count _cargoRows > 64 || {_cargoRows findIf {
+    private _unit=_x select 0;private _role=_x select 1;
+    alive _unit && {_role == "cargo" || {_role == "turret" && {_x select 4}}}
+} >= 0}) exitWith {[]};
 // This optional cooperation is never emergency permission to abandon a held,
 // concealed or explicitly tasked group. Native/Zeus replacement guards remain in the worker.
 private _nativeIndex=currentWaypoint _group;
