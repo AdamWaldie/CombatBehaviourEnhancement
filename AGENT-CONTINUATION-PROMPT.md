@@ -1,3 +1,17 @@
+## Current checkpoint: bounded rappel route geometry, 28 October 2026
+
+CBE workdir C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; branch Adam/cbe-mechanised-support-20261028; PR20 OPEN DRAFT at last check. Goal ACTIVE/INCOMPLETE. AUDITS PAUSED: no installed-game staging or Arma launch. WMP chat directory is unrelated. Preserve existing deleted artwork/workflows/requirements and dirty docs/PERFORMANCE-VALIDATION.md; excluded from this checkpoint.
+
+Implemented addons/aircraft/functions/rappelRoutePlan.sqf as a compiled READ-ONLY prerequisite, not a dispatched behaviour. At most6 declared anchors or6 hull probes (8 hits each), at most2 separated routes and60 single-hit route queries. Requires slow upright helicopter, finite in-bounds points, actual vertical GEOM corridor/footprint support and matching ROADWAY for roofs; rejects malformed explicit lists rather than guessing. No movement/pose/simulation/damage/rope/settings writer, timer, provider call or module. MIT adaptation credit retained in source AND distributed LICENSE. Protected provider SHA35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b rechecked unchanged.
+
+Final full build:1505 tests/461 SQF/11 PBO; independent verify PASS. Candidate .qa/candidates/rappel-geometry-20261028-19f668b4, fingerprint e46f3bde52263b222b0590d7ba002ea74fbf11e054d34925aa44fdd2d42c8294. Receipt19f668b4+dirty source, unsigned development. Logs .qa/handovers/rappel-geometry-final-build-20261028.log and rappel-geometry-independent-20261028.log. Existing airborne regression extended without increasing cases. Engineering metadata finalized after packaging. No physical or measured performance acceptance; geometry is a snapshot, not permission/walkability/arrival/handback.
+
+NEXT: actual controlled owner-local actor descent/cleanup under original task identity/deadline, authenticated selection/current crew/native-order ownership, exact resource ownership and retirement, damage/simulation/animation baseline preservation, interruption/locality/casualty handling and real ground handover. Route planner has no production caller until this exists. Revalidate live geometry, do not invoke full66-query planning on every frame. Do not expose a placeholder module. Reuse existing aircraft/ground-squad ownership after tracing their exact contracts. Do not wrap public AR actor/bulk APIs as completed tasks: delayed unowned writers still exist. See protocol-rappel-3819636004-20261020.json controlledPortConstraints20261028 and boundedRouteGeometry20261028, plus Protocol programme and source-review-map. CQB incoming producer-consumer all-writer handover remains incomplete too. Foundations-first, full useful LAMBS/HBQ/Protocol integration remains the real objective.
+
+Durable continuation C:/Users/AdamW/Documents/AI-Reference-Archives/CBE-Continuation. Temp checkout and .qa remain essential originals/evidence; durable context is not a complete source backup. Do not clear them when deleting chats. Current usage82% remaining; old supplemental balance0 is not exhaustion. No merge/release/Steam/manualCI authorized.
+
+--- Previous checkpoint follows ---
+
 # Current continuation — controlled rappel source constraints, 28 October 2026
 
 SOURCE-ONLY checkpoint above pushedce01fdc9 on Adam/cbe-mechanised-support-20261028. Runtime and last verified candidate unchanged. PR20 OPEN DRAFT remainsce01fdc9. Resolve local HEAD from Git/checkpoint-current.json. CBE workdir C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; attached WMP unrelated.

@@ -214,5 +214,29 @@
     "verification": "Source SHA matched and selected complete bodies reread. Source-only review: no runtime edit, provider execution, package rebuild, live audit, code parity or completion credit.",
     "currentRuntime": "ce01fdc9 unchanged; .qa/candidates/gate-named-source-20261028-84118dc9 and fingerprinta7af207df4d77cc0c6b0cf173fd4023b735338d730fd6b66744c6e4ec342f842 remain the last verified candidate.",
     "remaining": "Real controlled rappel execution and handover remain unimplemented. The source licence/input/writer review narrows the next implementation work; it does not deliver an insertion feature."
+  },
+  "boundedRouteGeometry20261028": {
+    "base": "19f668b4021835d8dbbcd6266da22710f738b2c9",
+    "status": "IMPLEMENTED_READ_ONLY_PREREQUISITE_EXECUTOR_OPEN",
+    "source": {
+      ".qa/advanced-rappelling-713709341-review/functions/fn_advancedRappellingInit.sqf": "35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b"
+    },
+    "trace": "AR_Get_Heli_Rappel_Points lines194-304 -> AR_Get_Corner_Points lines778-813. Adapt the six hull-probe layout only; retain MIT notice. No provider APIs, tables, animation or sound assets copied.",
+    "implementation": "addons/aircraft/functions/rappelRoutePlan.sqf; compiled CfgFunctions internal helper; no dispatcher/module/automatic caller until controlled execution exists.",
+    "bounds": "At most6 declared anchors or6 hull probes with8 hits each; at most2 separated routes; at most60 route queries with1 hit each. No custom mapping scans, timer, worker, cache, movement or settings writer.",
+    "geometry": "Current slow/upright simulation-enabled helicopter. Model-bounded finite points. Actual hull/proxy intersection for discovery; reject below-ground probe origins. Vertical4..45m descent, GEOM obstruction/body corridor,4 same-surface footprint samples, normal>=0.9; roofs require matching ROADWAY; water/vehicle/steep/narrow supports refuse. Snapshot only; live actor/crew/native order/rope/pose clearance and continual flight checks still required.",
+    "engineSources": [
+      "https://community.bistudio.com/wiki/boundingBoxReal",
+      "https://community.bistudio.com/wiki/lineIntersectsSurfaces"
+    ],
+    "verification": "Complete final build passed:1505 tests,461 SQF files,11 PBOs, HEMTT/FSM/config/docs/coverage/performance gates. Existing airborne ownership regression extended; no new test case. Independent candidate verification passed; distributed LICENSE contains Seth Duda copyright. Logs .qa/handovers/rappel-geometry-final-build-20261028.log and rappel-geometry-independent-20261028.log. No Arma/staging/physical/performance run.",
+    "remaining": "No controlled actor descent/cleanup/flight orchestration/ground handover yet. No module exposed. Geometry snapshot not safe-descent/arrival/handback proof. Physical and performance unverified; audits PAUSED.",
+    "candidate": {
+      "path": ".qa/candidates/rappel-geometry-20261028-19f668b4",
+      "base": "19f668b4021835d8dbbcd6266da22710f738b2c9",
+      "dirty": true,
+      "fingerprint": "e46f3bde52263b222b0590d7ba002ea74fbf11e054d34925aa44fdd2d42c8294",
+      "type": "unsigned development; not clean signed release or behavioural acceptance"
+    }
   }
 }

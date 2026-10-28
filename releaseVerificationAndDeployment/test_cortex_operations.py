@@ -9880,6 +9880,20 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(drop.index('CBE_fnc_CortexExternalTakeover'),drop.index('CBE_fnc_CortexParachuteJump'))
         self.assertLess(landing.index('CBE_fnc_CortexExternalTakeover'),landing.index('_group addWaypoint'))
 
+        # Geometry admission is read-only and bounded, not a second actor/flight controller.
+        plan=source('rappelRoutePlan').split('params [["_aircraft"',1)[1]
+        for forbidden in ('setPos','setVelocity','moveOut','orderGetIn','switchMove','allowDamage',
+                          'enableSimulation','createVehicle','ropeCreate','spawn','sleep',
+                          'remoteExec','setVariable','AP_CUSTOM_RAPPEL_POINTS','AR_Get_'):
+            self.assertNotIn(forbidden,plan)
+        self.assertIn('count _declared > 6',plan)
+        self.assertIn('count _routes >= 2',plan)
+        self.assertIn('if (_invalid) exitWith {_result}',plan)
+        self.assertIn('"ROADWAY","NONE"',plan)
+        self.assertIn('"GEOM","NONE"',plan)
+        self.assertIn('if (_blocked isNotEqualTo []) exitWith {_safe=false}',plan)
+        self.assertIn('"observedAt",diag_tickTime',plan)
+
     def test_infantry_illumination_uses_finite_native_inventory_and_release_evidence(self):
         text=source('cortexIlluminationStep')
         for proof in ('serverTime+25','serverTime+60','select [0,16]','count _muzzles > 8',

@@ -1192,7 +1192,8 @@
         "addons/infantry/functions/cortexParachuteDeploy.sqf",
         "addons/infantry/functions/cortexParachuteObserve.sqf",
         "addons/infantry/functions/cortexParachutePublish.sqf",
-        "addons/aircraft/functions/moduleAirborne.sqf"
+        "addons/aircraft/functions/moduleAirborne.sqf",
+        "addons/aircraft/functions/rappelRoutePlan.sqf"
       ]
     },
     {

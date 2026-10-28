@@ -2489,3 +2489,10 @@ The normal server opening and optional passage/closure owner handles both channe
 route and crew ownership, real body clearance and observed animation completion still apply.
 An animation request never proves the route is clear. Physical mod-gate behaviour and cost
 remain unverified while audits are paused.
+
+
+### Controlled rappel geometry building block (28 October 2026)
+
+`RappelRoutePlan` is an internal read-only prerequisite for the pending controlled rappel executor. It accepts no more than six explicit model-space or Memory anchors, or tries six bounded hull probes when the list is empty. Malformed explicit input refuses rather than silently switching to discovery. It returns at most two separated candidate routes after checking a vertical body corridor and four footprint supports. Terrain is supported; a static house/building surface also needs matching Roadway geometry. Water, vehicle supports, steep/narrow supports and obstructed corridors refuse. The worst case is six hull queries capped at eight hits each and sixty single-hit route queries, once per call; no timer, scan, cache or native command is installed.
+
+This result is only a geometry snapshot, not execution ownership, a reservation, an animation guarantee, walkability, landing or a cleanup acknowledgement. The future actor owner must revalidate live geometry and flight authority before entry and during descent. No module is exposed and no actor or aircraft uses the helper automatically. Controlled descent, exact resource cleanup, interruption/locality handling and grounded cargo handover remain unimplemented. The source script's MIT notice is retained with the adapted probe layout; no provider animation or sound asset is bundled. Offline compilation does not establish safe descent or measured cost. Audits remain paused.

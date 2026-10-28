@@ -474,6 +474,7 @@ class CfgFunctions {
             class CortexZeusWatchLocal {file = "\z\cbe\addons\core\functions\cortexZeusWatchLocal.sqf";};
 
 
+            class RappelRoutePlan {file = "\z\cbe\addons\aircraft\functions\rappelRoutePlan.sqf";};
             class ImprovedHelicopterLandingInit {file = "\z\cbe\addons\aircraft\functions\improvedHelicopterLandingInit.sqf";};
             class ImprovedHelicopterLandingStep {file = "\z\cbe\addons\aircraft\functions\improvedHelicopterLandingStep.sqf";};
             class ImprovedHelicopterLandingExecuteLocal {file = "\z\cbe\addons\aircraft\functions\improvedHelicopterLandingExecuteLocal.sqf";};
