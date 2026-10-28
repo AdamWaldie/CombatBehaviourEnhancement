@@ -1865,11 +1865,50 @@ class CortexOperations(unittest.TestCase):
 
         self.assertNotIn('setPos',deploy)
         self.assertNotIn('while {',deploy)
-        self.assertNotIn('CortexQueueJob',deploy)
-        self.assertIn('[_group,_state,[],false,true,_yieldToExternal] call CBE_fnc_CortexStaticDeployStep', restore)
+        self.assertEqual(deploy.count('call CBE_fnc_CortexQueueJob'),1)
+        self.assertIn('[CBE_fnc_CortexStaticPackStep,_job,1] call CBE_fnc_CortexQueueJob',deploy)
+        worker=source('cortexStaticPackStep')
+        for guard in ('CBE_StaticPack_Local','_same','ownerEpoch','AUTHORITY_CHANGED',
+                      'NEW_FIRE_OWNER','CREW_CHANGED','OBSERVATION_EXPIRED',
+                      'currentCommand _gunner in ["","WAIT"]','unitReady _weapon',
+                      'unitReady _gunner','_fire != ""','CBE_fnc_CortexStaticDeployStep'):
+            self.assertIn(guard,worker)
+        self.assertIn('(_record select 1) == "TAKING"',worker)
+        self.assertIn('_packedBags findIf {isNull _x} < 0',worker)
+        self.assertIn('(!_removedByPacking) && {isNull _weapon || {!alive _weapon}}',worker)
+        # Native removal is expected only after the original disassembly event produced bags.
+        def may_collect(packing, phase, bag_count, single, bags_alive):
+            return packing and phase == 'TAKING' and bag_count == (1 if single else 2) and bags_alive
+        self.assertTrue(may_collect(True,'TAKING',2,False,True))
+        self.assertTrue(may_collect(True,'TAKING',1,True,True))
+        for row in ((False,'ACTIVE',2,False,True),(True,'PACKING',2,False,True),
+                    (True,'TAKING',1,False,True),(True,'TAKING',2,False,False)):
+            self.assertFalse(may_collect(*row))
+        self.assertIn('["waitUntil",serverTime+120]',deploy)
+        self.assertIn('["hardUntil",serverTime+210]',deploy)
+        self.assertIn('(serverTime+90) min (_job get "hardUntil")',worker)
+        self.assertIn('_packExecutor isNotEqualTo _packBrain',deploy)
+        self.assertIn('_packOrphaned) exitWith {[true] call _retire',deploy)
+        self.assertIn('_preservePacking',deploy)
+        self.assertNotIn('setVariable ["CBE_AIPass_FireToken"',worker)
+        for command in ('doMove','doFollow','orderGetIn','unassignVehicle',' action ['):
+            self.assertNotIn(command,worker)
+        # Original wait and hard clock never renew, regardless of polling cadence.
+        start=100;wait_until=start+120;hard_until=start+210
+        for settled_at in (100,130,219):
+            pack_until=min(settled_at+90,hard_until)
+            self.assertLessEqual(pack_until,hard_until)
+            self.assertLess(settled_at,wait_until)
+        self.assertGreaterEqual(220,wait_until)
+        cleanup=source('cortexRestoreCalm').split('private _preserveStaticPacking=',1)[1].split('CBE_fnc_CortexStaticDeployStep',1)[0]
+        self.assertIn('REGROUP_COHESIVE',cleanup)
+        for reason in ('AUTHORED_ORDER','POSTCONTACT_DISABLED','RELEASE'):
+            self.assertNotIn('"'+reason+'"',cleanup)
+
+        self.assertIn('[_group,_state,[],false,true,_yieldToExternal,_preserveStaticPacking] call CBE_fnc_CortexStaticDeployStep', restore)
         self.assertNotIn('private _staticDeployment=', restore)
         self.assertIn('CBE_Danger_StaticDeployAttempt', restore)
-        release_only = deploy.split('if (_releaseOnly) exitWith', 1)[1].split('private _enabled=', 1)[0]
+        release_only = deploy.split('if (_releaseOnly) exitWith', 1)[1].split('private _phase=', 1)[0]
         self.assertIn('call _retire', release_only)
         self.assertNotIn('action [', release_only)
         self.assertLess(deploy.index('private _releaseActors='), deploy.index('[_gunner] call _clearActor'))

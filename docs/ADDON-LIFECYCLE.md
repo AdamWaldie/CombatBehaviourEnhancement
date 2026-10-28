@@ -2411,3 +2411,20 @@ These ADMISSION rows are observations, not CBE-issued movement. Cleanup never us
 A surface attack first checks its original route. If terrain makes that route unusable and no AA positions are known, the planner can try two whole-pattern bearing changes, -35 then +35 degrees around the same believed target. It retains the selected weapon and all original stage heights, speed and delivery geometry. Each candidate repeats the existing live-join, terrain-clearance and lift limits; a valid original route wins immediately. Known-AA plans keep their defensive axis, and intercepts do not use this fallback.
 
 The search is capped at three candidates, 990 corridor samples and nine endpoint terrain reads. A conclusive early-join refusal or lift-limit failure ends that candidate immediately; later samples cannot rescue it. Passing candidates retain every clearance sample. Adjacent legs reuse their shared endpoint height within the same candidate, without a cache across plans. If all fail, native control remains authoritative. This is sparse terrain planning rather than a general3Dpathfinder or collision/flight-dynamics proof. Actual alternate-route flight, delivery and performance remain unverified.
+
+
+## Deferred carried-static recovery after artillery
+
+When an original carried weapon is still executing a CBE artillery mission at post-contact
+packing time, its equipment task can continue independently of the squad returning to CALM.
+It waits at most 120 seconds for the existing fire reservation to finish and for the weapon
+and gunner to become ready. Packing then has at most 90 seconds within the original
+210-second total limit. These clocks never renew. The squad keeps its normal update cadence.
+
+The same original crew and equipment executor perform normal exit, disassembly and bag
+collection. Only the recorded native disassembly event permits collection after weapon removal;
+actual backpack recovery still determines success. New orders, renewed contact, ownership or
+crew changes, disabled features and explicit release cancel the continuation. Ordinary named
+post-contact cleanup preserves the task; cancellation never forces an exit or erases a fire token.
+An unresolved firing reservation leaves the weapon in place at expiry. This adds no control,
+setting or dependency. Native behaviour and performance remain unverified while audits are paused.

@@ -29,7 +29,7 @@ class CalmActorReservationTests(unittest.TestCase):
         generic=self.s.split('private _target = _x getVariable',1)[1].split('// Use the same exact-assignment release',1)[0]
         self.assertIn('if ([_x] call _actorMoveFree) then {_x setVariable ["CBE_Cortex_ActorMove",nil]}',generic)
         # CALM delegates to the feature; its shared retirement still clears only static tags.
-        self.assertIn('[_group,_state,[],false,true,_yieldToExternal] call CBE_fnc_CortexStaticDeployStep',self.s)
+        self.assertIn('[_group,_state,[],false,true,_yieldToExternal,_preserveStaticPacking] call CBE_fnc_CortexStaticDeployStep',self.s)
         deploy=(ROOT/'addons/infantry/functions/cortexStaticDeployStep.sqf').read_text()
         clear=deploy.split('private _clearActor=',1)[1].split('private _canReleaseActor=',1)[0]
         self.assertIn('call _ownsActorMove',clear)

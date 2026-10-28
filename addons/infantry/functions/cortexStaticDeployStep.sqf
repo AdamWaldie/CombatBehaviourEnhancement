@@ -6,6 +6,8 @@
  * One shared read-only native-move classifier protects live movement, equipment events and
  * cleanup. Planning waits spend the original deadline; retries require settled readiness and
  * the exact retained goal, never a replacement point or a STOP command.
+ * A finite post-contact worker can wait120s for existing artillery to settle, then spend at most90s
+ * packing inside its original210s hard window. Group callbacks cannot compete with that worker.
  * Packing and native cleanup preserve the gunner while the weapon retains an artillery fire token;
  * elapsed polling/busy time does not prove an outstanding native round has stopped.
  * Purpose: Physically assemble a compatible one-part or paired carried static weapon and give its
@@ -26,25 +28,57 @@
  * Arguments: 0 group <GROUP>; 1 group state <HASHMAP>; 2 known enemies <ARRAY>; 3 allow post-contact packing <BOOL, default false>.
  * 4 release only <BOOL>, false; 5 yield during release <BOOL>, false. Release-only cannot advance
  * assembly/packing or discover a team. Each actor retains newer movement and protected native tasks.
- * Return Value: STRING - DISABLED, IDLE, MOVING, DROPPING, ASSEMBLING, MOUNTING, ACTIVE, PACK_EXITING, PACK_MOVING, PACKING, TAKING, PACKED, FAILED or YIELDED.
+ * 6 preserve existing packing worker <BOOL,false>, internal ordinary calm restoration only;
+ * 7 exact private packing executor <HASHMAP,empty>, internal callback authority only.
+ * Return Value: STRING - FIRE_PENDING, DISABLED, IDLE, MOVING, DROPPING, ASSEMBLING, MOUNTING, ACTIVE, PACK_EXITING, PACK_MOVING, PACKING, TAKING, PACKED, FAILED or YIELDED.
  * Current callers: CortexStaticSupport when no emplacement is available, CortexGroupTick during SECURITY,
  * and CortexRestoreCalm for release-only teardown.
  * Example: [group player,[group player] call CBE_fnc_CortexGroupState,[]] call CBE_fnc_CortexStaticDeployStep;
  */
 
-params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]],["_allowPack",false,[false]],["_releaseOnly",false,[true]],["_releaseExternal",false,[true]]];
+params [["_group",grpNull,[grpNull]],["_state",createHashMap,[createHashMap]],["_enemies",[],[[]]],["_allowPack",false,[false]],["_releaseOnly",false,[true]],["_releaseExternal",false,[true]],["_preservePacking",false,[true]],["_packExecutor",createHashMap,[createHashMap]]];
 if (isNull _group || {!local _group}) exitWith {"YIELDED"};
 private _record=_group getVariable ["CBE_Danger_StaticDeployment",[]];
 private _singlePart=_record param [28,false,[true]];
 private _external=[_group] call CBE_fnc_CortexExternalTakeover;
 private _operation=_group getVariable ["CBE_Operation",createHashMap];
 private _operationActors=_operation getOrDefault ["participants",[]];
+// The finite post-contact worker owns packing while present; the group brain only observes it.
+private _packBrain=_group getVariable ["CBE_StaticPack_Local",createHashMap];
+private _packRecordMatch=count _packBrain > 0
+    && {(_packBrain getOrDefault ["generation",-1]) == (_record param [27,-2,[0]])}
+    && {(_packBrain getOrDefault ["weapon",objNull]) == (_record param [7,objNull,[objNull]])}
+    && {(_packBrain getOrDefault ["gunner",objNull]) == (_record param [2,objNull,[objNull]])}
+    && {(_packBrain getOrDefault ["assistant",objNull]) == (_record param [3,objNull,[objNull]])};
+private _packCurrent=_packRecordMatch
+    && {(_packBrain getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+    && {(_packBrain getOrDefault ["generation",-1]) == (_record param [27,-2,[0]])}
+    && {(_packBrain getOrDefault ["weapon",objNull]) == (_record param [7,objNull,[objNull]])}
+    && {!(_packBrain getOrDefault ["done",false])}
+    && {serverTime < (_packBrain getOrDefault ["hardUntil",-1])};
+private _packOrphaned=_packRecordMatch && {!_packCurrent};
+if (count _packBrain > 0 && {!_packCurrent}) then {
+    _packBrain set ["done",true];_packBrain set ["result","REPLACED"];
+    _group setVariable ["CBE_StaticPack_Local",nil];_packBrain=createHashMap;
+};
+
+
 // This receipt is captured once before the first deployment command, never renewed
 // by phase changes, packing or callback delivery. Legacy records have no authority.
 private _nativeOrderCurrent={
     private _receipt=_record param [30,[],[[]]];
     _receipt isNotEqualTo [] && {_receipt isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
 };
+private _observePacking=!_releaseOnly && {_packCurrent} && {_packExecutor isNotEqualTo _packBrain};
+if (_observePacking && {!_external} && {call _nativeOrderCurrent}
+    && {(_state getOrDefault ["phase","CALM"]) in ["SECURITY","SEARCH","REGROUP","CALM"]}
+    && {!(combatMode _group in ["BLUE","GREEN"])}
+    && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
+    && {[_group,"CBE_AIPass_StaticSupport_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+    && {[_group,"CBE_AIPass_StaticDeploy_Enable",true] call CBE_fnc_CortexFeatureEnabled}) exitWith {"FIRE_PENDING"};
+// Revocation still reaches the original release-only boundary immediately.
+if (_observePacking) then {_releaseOnly=true;_releaseExternal=true};
+
 private _bagAnchor={
     params ["_bag"];
     if (isNull _bag) exitWith {objNull};
@@ -87,7 +121,7 @@ private _clearActor={
 };
 // Check before clearing our marker: retirement must not turn a successor MOVE into follow.
 private _canReleaseActor={
-    params ["_actor"];
+    params ["_actor",["_waitForFire",false]];
     if (isNull _actor || {!alive _actor} || {!local _actor} || {isPlayer _actor}
         || {group _actor != _group} || {!simulationEnabled _actor} || {isObjectHidden _actor}
         || {fleeing _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)}
@@ -103,7 +137,7 @@ private _canReleaseActor={
     private _weapon=_record param [7,objNull,[objNull]];
     // Artillery owns a pending native round even after its polling deadline.
     // Never infer cancellation from BusyUntil or dismount its original carrier.
-    if (_actor == _gunner && {!isNull _weapon}
+    if (!_waitForFire && {_actor == _gunner} && {!isNull _weapon}
         && {!isNil {_weapon getVariable "CBE_AIPass_FireToken"}}) exitWith {false};
     private _ownedEquipment=(_status == "ASSEMBLING" && {_actor == _gunner} && {_command == "ASSEMBLE"})
         || {_status == "DROPPING" && {_actor == (_record param [3,objNull,[objNull]])} && {_command == "DROP BAG"}}
@@ -131,6 +165,13 @@ private _cleanupAssemblyHolder={
 };
 private _retire={
     params ["_commandFree"];
+    if (_packCurrent) then {
+        _packBrain set ["done",true];_packBrain set ["result","RETIRED"];
+        if ((_group getVariable ["CBE_StaticPack_Local",createHashMap]) isEqualTo _packBrain) then {
+            _group setVariable ["CBE_StaticPack_Local",nil];
+        };
+    };
+
     // A successor operation may own only some actors. Retire bookkeeping, but restore
     // assignments/formation only for actors not claimed by that operation or an external owner.
     _commandFree=_commandFree || {(_record param [19,[],[[]]]) isNotEqualTo [clientOwner,_group getVariable ["CBE_AIPass_Epoch",0]]}
@@ -209,15 +250,20 @@ private _retire={
     _group setVariable ["CBE_Danger_StaticDeployment",nil,true];
 };
 
+private _enabled=missionNamespace getVariable ["CBE_AIPass_Active",false]
+    && {[_group,"CBE_AIPass_StaticSupport_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+    && {[_group,"CBE_AIPass_StaticDeploy_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+// Only named ordinary post-contact restoration may retain this exact finite worker.
+if (_releaseOnly && {_preservePacking} && {_packCurrent} && {_enabled}
+    && {!_releaseExternal} && {!_external} && {call _nativeOrderCurrent}
+    && {serverTime < (_packBrain getOrDefault ["hardUntil",-1])}) exitWith {"FIRE_PENDING"};
+if (_packOrphaned) exitWith {[true] call _retire; "YIELDED"};
 // CALM uses the same release boundary; it must not advance or start another equipment phase.
 if (_releaseOnly) exitWith {
     if (count _record >= 10) then {[_releaseExternal || {_external}] call _retire};
     "IDLE"
 };
 
-private _enabled=missionNamespace getVariable ["CBE_AIPass_Active",false]
-    && {[_group,"CBE_AIPass_StaticSupport_Enable",true] call CBE_fnc_CortexFeatureEnabled}
-    && {[_group,"CBE_AIPass_StaticDeploy_Enable",true] call CBE_fnc_CortexFeatureEnabled};
 private _phase=toUpperANSI (_state getOrDefault ["phase","CALM"]);
 private _episode=_state getOrDefault ["phaseStart",time];
 if (_external) exitWith {if (count _record >= 10) then {[true] call _retire}; "YIELDED"};
@@ -332,6 +378,29 @@ if (count _record >= 10) exitWith {
         _recordEpisode=_episode;
         _status="MOUNTING";
         _deadline=time+20;
+    };
+    // Fire may outlast SECURITY. Retain the original task, not a fresh recovery budget,
+    // under one cheap finite owner-local worker; it alone advances later equipment phases.
+    private _pendingFire=if (isNull _weapon) then {""} else {_weapon getVariable ["CBE_AIPass_FireToken",""]};
+    if (_phase == "SECURITY" && {_allowPack} && {_status == "ACTIVE"}
+        && {!_packCurrent} && {_pendingFire isEqualType ""} && {_pendingFire != ""}
+        && {!isNull _weapon} && {alive _weapon} && {gunner _weapon == _gunner}
+        && {count _operation == 0}
+        && {[_gunner,true] call _canReleaseActor}
+        && {_singlePart || {[_assistant] call _canReleaseActor}}) exitWith {
+        private _shot=_weapon getVariable ["CBE_AIPass_ShotReceipt",[]];
+        private _job=createHashMapFromArray [["taskGroup",_group],
+            ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]],
+            ["generation",_record select 27],["weapon",_weapon],
+            ["gunner",_gunner],["assistant",_assistant],
+            ["assistantAssignment",assignedVehicle _assistant],
+            ["fireToken",_pendingFire],["previousShotToken",_shot param [0,"",[""]]],
+            ["waitUntil",serverTime+120],["hardUntil",serverTime+210],
+            ["packUntil",-1],["phase","FIRE_PENDING"],["done",false]];
+        _group setVariable ["CBE_StaticPack_Local",_job];
+        // Admission already installs one exact worker; unkeyed jobs cannot coalesce across groups.
+        [CBE_fnc_CortexStaticPackStep,_job,1] call CBE_fnc_CortexQueueJob;
+        "FIRE_PENDING"
     };
     if (_phase == "SECURITY" && {_allowPack} && {_status == "ACTIVE"}
         && {!isNull _gunner} && {alive _gunner} && {local _gunner}

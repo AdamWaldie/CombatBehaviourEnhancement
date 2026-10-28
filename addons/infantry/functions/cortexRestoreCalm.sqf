@@ -6,6 +6,8 @@
  * through the shared typed reservation gate; no restoration window is renewed.
  * Ordinary current-owner support teardown uses release-only native hold handback before
  * erasing its token. External yields and checkpoint-only restoration never invoke that executor.
+ * Named ordinary post-contact restoration preserves only an exact finite deferred static pack;
+ * explicit release/disable/external/locality teardown still retires it without native fire theft.
  * Remount cleanup preserves a newer vehicle assignment from Zeus or another controller.
  * Returns a group to CALM and releases the engagement controls it still owns.
  * Group behaviour/combat/speed restoration shares one atomic native-task footprint gate.
@@ -205,7 +207,10 @@ if (_pendingHolds isNotEqualTo []) then {[_group,_pendingHolds] call CBE_fnc_Cor
 [_group,_state,[],true,_yieldToExternal] call CBE_fnc_CortexStaticSupport;
 _group setVariable ["CBE_Danger_StaticAttempt",nil,true];
 // Carried equipment shares its executor's actor-task-safe retirement boundary.
-[_group,_state,[],false,true,_yieldToExternal] call CBE_fnc_CortexStaticDeployStep;
+private _preserveStaticPacking=!_yieldToExternal && {_reason in [
+    "CONTACT_ENDED","DANGER_EXPIRED","REGROUP_TIMEOUT","REGROUP_COHESIVE",
+    "INVESTIGATION_COMPLETE","INVESTIGATION_TIMEOUT"]};
+[_group,_state,[],false,true,_yieldToExternal,_preserveStaticPacking] call CBE_fnc_CortexStaticDeployStep;
 _group setVariable ["CBE_Danger_StaticDeployAttempt",nil,true];
 private _vehicleJink=_state getOrDefault ["vehicleDangerJink",[]];
 private _jinkVehicle=_vehicleJink param [1,objNull,[objNull]];

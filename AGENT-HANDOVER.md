@@ -1,3 +1,43 @@
+# Current continuation — deferred static packing, 28 October 2026
+
+This supersedes the uncommitted entry below: the batch is complete offline and prepared for commit on Adam/cbe-mechanised-support-20261028, existing PR20 OPEN DRAFT. Resolve final source commit from Git and .qa/handovers/checkpoint-current.json. Workdir C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; do not commit CBE work in the attached WMP checkout.
+
+SECURITY now retains one finite equipment continuation while an original CBE artillery fire token is pending. Named ordinary CALM restoration preserves it; explicit teardown, new contact/orders, crew/owner changes and feature-off revoke it command-free. Original wait120s then pack<=90s inside immutable210s hard bound; no group cadence change, world scan, forced seat/exit, token cancellation, fallback completion or migration replay. One unkeyed scheduler admission avoids coalescing transient groups. Token removal plus readiness/quiet command gates entry to the old equipment executor. Original TAKING event and expected surviving bags permit native weapon removal before collection; the old executor still verifies real recovered backpacks.
+
+Four protected LAMBS deploy/pack witnesses rehashed against staticArtilleryOwnership20261028. Review adds deferredPacking20261028; guide ADDON-LIFECYCLE.md updated. No dependency or whole-source parity claim. Initial full build found two stale call/status naming contracts, corrected; retained logs record failures. Final build .qa/handovers/static-deferred-build-final-20261028.log PASS1505tests/460productionSQF/11PBO; session5215 exit0. Independent .qa/handovers/static-deferred-independent-20261028.log PASS. Candidate .qa/candidates/static-deferred-20261028-8df75bb3, fingerprint f0554ae6ff9013f24f650c45a3d38d8ab671aa9a65d6671f04d8c24b8d159136. Receipt base8df75bb3 plus dirty runtime, metadata afterward; unsigned development. No native/physical/performance acceptance. No active build/test remains.
+
+Next: use IMPLEMENTATION-GOAL.md and reference/sourceReviews/source-review-map.json to continue real foundations-up LAMBS/HBQ/nine-Protocol capability gaps. Full CQB all-writer seal/authenticated incoming transfer and required external-controller handovers remain incomplete. Do not relabel CANDIDATE_UNSEALED as usable authority or repeat completed ownership repairs. Audits PAUSED, no game staging/launch; no merge/publishing/manualCI. Preserve unrelated dirt, source stores and permanent signing pair. This batch needs later physical artillery settle/crew exit/native disassembly/bag recovery/repeat/new-order/locality checks and measured cost. Entire goal remains active and incomplete.
+
+# Current uncommitted work — preserve before deleting chats
+
+Verified 28 October 2026. This entry supersedes the statement below that only unrelated dirt remains.
+
+CBE working directory: C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks
+Remote: https://github.com/AdamWaldie/CombatBehaviourEnhancement.git
+Branch: Adam/cbe-mechanised-support-20261028
+Last committed checkpoint: 8df75bb33b59bbd3ae99373bdf16f8c8ae7ce39b
+Existing draft PR: https://github.com/AdamWaldie/CombatBehaviourEnhancement/pull/20
+The attached WaldosMissionPack directory is unrelated; do not write CBE changes there.
+
+UNCOMMITTED batch: finite deferred carried-static packing after a CBE artillery mission. Changed cortexStaticDeployStep.sqf, cortexRestoreCalm.sqf, addons/main/CfgFunctions.hpp, coverage.json, FEATURE_STATUS.md and test_cortex_operations.py. New addons/infantry/functions/cortexStaticPackStep.sqf. All remain on disk; not yet committed, fully built or packaged.
+
+Intent: keep original static record ACTIVE while the existing fire token is pending; one owner-local finite worker waits up to 120 seconds, then permits existing packing only after token removal and weapon/gunner readiness plus a quiet native command. Packing gets up to 90 seconds, immutable total bound 210 seconds. Preserve only named ordinary CALM restoration. New orders, owners, crew, feature-off, casualties or external control revoke without stealing native work. No forced seat, teleport, fire-token cancellation or whole-group high-frequency controller.
+
+Immediate next work:
+1. In test_cortex_operations.py, release_only slicing still ends at private _enabled=, which moved earlier. End this specific slice at private _phase= instead; retain no-native-command assertions. Latest focused run: 617 cases, one stale-delimiter failure. Logs: .qa/handovers/static-deferred-focused-final-20261028.log and preceding static-deferred logs.
+2. Inspect actual CortexQueueJob signature/default key. Current new queue key uses group netId plus generation and could collide for unkeyed groups. Prefer its existing unique auto-key if supported; do not invent a repeating group-string key.
+3. Review new helper and executor identity/expiry/crew/readiness gates. Coverage report already regenerated to 460 production sources. No full build for this batch yet.
+4. Verify four preserved LAMBS static deploy/pack helper hashes against the existing staticArtilleryOwnership20261028 review; update that review and guide for this actual continuation.
+5. Run focused checks, complete build_mod.ps1 with static checks, stage a unique private candidate and independently verify it. Update checkpoint and handover with real results; whitelist only this batch, preserve unrelated dirt, commit and push existing draft PR20. No merge or publishing.
+
+Read AGENTS.md, IMPLEMENTATION-GOAL.md, AGENT-HANDOVER.md, AGENT-CONTINUATION-PROMPT.md, reference/sourceReviews/source-review-map.json, reference/sourceReviews/lambs-danger-source-queue.json and releaseVerificationAndDeployment/referenceReviews. Foundations/FSM first, then individual, pairs/squads and combined arms. LAMBS functionality is implemented inside CBE, not a dependency; relevant HBQ and nine Protocol sources remain priorities. Compatibility-only IKMS/WBK Droids/Zombies last. CBA settings; Zeus/ZEN behaviour tasks. Preserve mission skills, authored orders, group membership and specialist ownership. Static build evidence is not physical or performance acceptance; do not inflate percentages.
+
+AUDITS PAUSED. No Arma launch or installed-game staging. No manual CI, merge, Release or Steam upload. No subagents unless explicitly authorised. Active whole-mod goal is incomplete.
+
+Protected references: E:/SteamLibrary/steamapps/workshop/content/107410; C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown; CBE .qa source extracts and candidates; reference/sourceReviews and referenceReviews registers. Never modify or delete originals. Preserve the entire Temp CBE checkout including ignored .qa: this continuation folder is context, not a full source backup. Never expose, regenerate, rename or overwrite the permanent signing pair in C:/Users/AdamW/OneDrive/Documents/Arma3ModsBikey.
+
+Pre-existing unrelated dirt to exclude: deletions of .github/PULL_REQUEST_TEMPLATE.md, .github/workflows/wiki.yml, artwork/branding/README.md, artwork/branding/cbe-logo.png, artwork/branding/workshop-carousel-main.png, images/branding/README.md and releaseVerificationAndDeployment/requirements.txt; modified docs/PERFORMANCE-VALIDATION.md.
+
 # Current continuation - communication discovery and voice witnesses, 28 October 2026
 
 CBE checkout C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git; branch Adam/cbe-mechanised-support-20261028; existing intended PR20 OPEN DRAFT. Batch prepared above6c5babbf; get final committed/pushed hash from git/PR and .qa/handovers/checkpoint-current.json. Never use attached WMP checkout for CBE commits.
