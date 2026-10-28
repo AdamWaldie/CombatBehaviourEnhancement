@@ -2,7 +2,10 @@
  * Author: WaldoTheWarfighter
  * Native flight, hidden actors and simulation dormancy veto equipment/movement writes,
  * including late assembly callbacks. Retirement never recalls those actors.
- * Recruitment also respects unresolved flight journals and existing native MOVE orders.
+ * Recruitment respects unresolved flight journals and native MOVE/STOP orders.
+ * One shared read-only native-move classifier protects live movement, equipment events and
+ * cleanup. Planning waits spend the original deadline; retries require settled readiness and
+ * the exact retained goal, never a replacement point or a STOP command.
  * Purpose: Physically assemble a compatible one-part or paired carried static weapon and give its
  * original carrier a finite chance to occupy the real gunner seat. A one-part record uses the
  * carrier in both legacy actor slots but issues each action only once; no second soldier is reserved.
@@ -61,6 +64,13 @@ private _rememberActorMove={
     _actor setVariable ["CBE_Danger_StaticMoveReceipt",[_group,+(_record select 19),
         _record select 27,+(_actor getVariable ["CBE_Cortex_ActorMove",[]])]];
 };
+// This proof records only actual native movement writes. Phase-marker/deadline
+// updates cannot replace its target or reset its short publication allowance.
+private _rememberNativeLeg={
+    params ["_actor","_goal"];
+    _actor setVariable ["CBE_Danger_StaticNativeLeg",[_group,+(_record select 19),
+        _record select 27,+_goal,time]];
+};
 private _clearActor={
     params ["_actor"];
     if (!isNull _actor && {local _actor}) then {
@@ -84,6 +94,7 @@ private _canReleaseActor={
         || {_actor in _operationActors}) exitWith {false};
     private _move=_actor getVariable ["CBE_Cortex_ActorMove",[]];
     if (_move isNotEqualTo [] && {!([_actor] call _ownsActorMove)}) exitWith {false};
+    if (([_actor,_group,_record] call CBE_fnc_CortexStaticNativeMoveState) != "CURRENT") exitWith {false};
     private _command=toUpperANSI currentCommand _actor;
     private _status=_record param [1,"",[""]];
     private _gunner=_record param [2,objNull,[objNull]];
@@ -163,6 +174,17 @@ private _retire={
         private _releaseActors=[[_gunner] call _canReleaseActor,[_assistant] call _canReleaseActor];
         [_gunner] call _clearActor;
         [_assistant] call _clearActor;
+        // Keep the assistant's ended native-leg identity while this task remains
+        // active; retire it only with the whole original deployment generation.
+        {
+            if (!isNull _x && {local _x}) then {
+                private _nativeLeg=_x getVariable ["CBE_Danger_StaticNativeLeg",[]];
+                if (_nativeLeg isEqualType [] && {count _nativeLeg == 5}
+                    && {(_nativeLeg select [0,3]) isEqualTo [_group,_record param [19,[],[[]]],_record param [27,-1,[0]]]}) then {
+                    _x setVariable ["CBE_Danger_StaticNativeLeg",nil];
+                };
+            };
+        } forEach ([_gunner,_assistant] arrayIntersect [_gunner,_assistant]);
         if (!_commandFree) then {
             private _weapon=_record param [7,objNull,[objNull]];
             if ((_releaseActors select 0) && {!isNull _weapon}
@@ -257,6 +279,17 @@ if (count _record >= 10) exitWith {
         [true] call _retire;
         _group setVariable ["CBE_Danger_StaticDeployAttempt",[_episode,"YIELDED",serverTime],true];
         "YIELDED"
+    };
+    private _nativeStates=(_reservedActors arrayIntersect _reservedActors) apply {
+        [_x,_group,_record] call CBE_fnc_CortexStaticNativeMoveState
+    };
+    if ("YIELD" in _nativeStates) exitWith {
+        [true] call _retire;
+        _group setVariable ["CBE_Danger_StaticDeployAttempt",[_episode,"YIELDED",serverTime],true];
+        "YIELDED"
+    };
+    if ("WAIT" in _nativeStates) exitWith {
+        if (time >= _deadline) then {[true] call _retire; "FAILED"} else {_status}
     };
     // Initial recognition can carry a poor native position estimate. Refresh only the same
     // observed target's sector before assembly; the committed deployment position stays fixed.
@@ -355,13 +388,18 @@ if (count _record >= 10) exitWith {
                 private _refreshed=false;
                 {
                     private _proof=_x getVariable ["CBE_Cortex_ActorMove",[]];
+                    private _nativeGoal=(expectedDestination _x) param [0,[],[[]]];
                     if (_x distance2D _deployPos > 3.5
                         && {_proof isEqualTo ["STATIC_DEPLOY",_deployPos,_deadline]}
-                        && {currentCommand _x in ["","MOVE","ATTACK","FIRE","SUPPRESS"]}
-                        && {((expectedDestination _x) select 0) distance2D _deployPos > 1}) then {
-                        // One lost native route can be refreshed; retain targets, firing and
-                        // the original absolute deadline. Never turn this into a chase loop.
+                        && {currentCommand _x in ["","MOVE","WAIT"]} && {unitReady _x}
+                        && {!(getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY","BUSY"])}
+                        && {count _nativeGoal == 3} && {_nativeGoal findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                        && {(AGLToASL _nativeGoal) vectorDistance (AGLToASL _deployPos) <= 1}) then {
+                        // Only an ended, still-matching native leg may retry once.
+                        // A changed destination is replacement intent, not a lost route.
+                        if (_x == _gunner) then {_record set [31,[]]};
                         _x doMove _deployPos;
+                        [_x,_deployPos] call _rememberNativeLeg;
                         _refreshed=true;
                     };
                 } forEach ([_gunner,_assistant] arrayIntersect [_gunner,_assistant]);
@@ -380,6 +418,7 @@ if (count _record >= 10) exitWith {
                         && {time < (_current param [6,-1,[0]])}
                         && {(_current param [30,[],[[]]]) isNotEqualTo []}
                         && {([_owner] call CBE_fnc_NativeOrderReceipt) isEqualTo (_current select 30)}
+                        && {([_actor,_owner,_current] call CBE_fnc_CortexStaticNativeMoveState) == "CURRENT"}
                         && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
                         && {[_owner,"CBE_AIPass_StaticSupport_Enable",true] call CBE_fnc_CortexFeatureEnabled}
                         && {[_owner,"CBE_AIPass_StaticDeploy_Enable",true] call CBE_fnc_CortexFeatureEnabled}
@@ -489,10 +528,12 @@ if (count _record >= 10) exitWith {
             && {_actorMove isEqualTo ["STATIC_DEPLOY",_deployPos,_deadline]}) then {
             private _bagPosition=getPosATL _supportAnchor;
             _record set [16,true];
+            _record set [31,[]];
             _group setVariable ["CBE_Danger_StaticDeployment",_record,true];
             _gunner setVariable ["CBE_Cortex_ActorMove",["STATIC_DEPLOY",+_bagPosition,_deadline]];
             [_gunner] call _rememberActorMove;
             _gunner doMove _bagPosition;
+            [_gunner,_bagPosition] call _rememberNativeLeg;
         };
         // Observe completed physical work before its deadline: a delayed scheduler callback must
         // not turn a bag already on the ground into a failed drop solely because time has advanced.
@@ -581,11 +622,13 @@ if (count _record >= 10) exitWith {
         if (isNull _weapon || {!alive _weapon}) exitWith {[false] call _retire; "FAILED"};
         if (vehicle _gunner == _gunner && {currentCommand _gunner != "GET OUT"}) then {
             private _packBearing=_weapon getDir _gunner;
+            _record set [31,[]];
             {
                 // The live emplacement occupies its centre. Separate approach points remain
                 // inside the existing action radius without routing both actors into its collision.
                 private _approach=_weapon getPos [2,_packBearing+(_forEachIndex*90)];
                 _x doMove _approach;
+                [_x,_approach] call _rememberNativeLeg;
                 _x setVariable ["CBE_Cortex_ActorMove",["STATIC_PACK",_approach,time+15]];
                 [_x] call _rememberActorMove;
             } forEach ([_gunner,_assistant] arrayIntersect [_gunner,_assistant]);
@@ -636,9 +679,15 @@ if (count _record >= 10) exitWith {
             && {time >= (_record param [21,1e12,[0]])}) then {
             {
                 private _move=_x getVariable ["CBE_Cortex_ActorMove",[]];
+                private _nativeGoal=(expectedDestination _x) param [0,[],[[]]];
                 if (count _move == 3 && {(_move select 0) == "STATIC_PACK"}
-                    && {currentCommand _x in ["","STOP"]} && {_x distance2D _weapon > 4}) then {
+                    && {[_x] call _ownsActorMove} && {currentCommand _x in ["","MOVE","WAIT"]}
+                    && {unitReady _x} && {_x distance2D _weapon > 4}
+                    && {!(getUnitState _x in ["INIT","INITFAILED","PLANNING","REPLAN","DELAY","BUSY"])}
+                    && {count _nativeGoal == 3} && {_nativeGoal findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                    && {(AGLToASL _nativeGoal) vectorDistance (AGLToASL (_move select 1)) <= 1}) then {
                     _x doMove (_move select 1);
+                    [_x,_move select 1] call _rememberNativeLeg;
                 };
             } forEach ([_gunner,_assistant] arrayIntersect [_gunner,_assistant]);
             _record set [21,time+5];
@@ -666,6 +715,7 @@ if (count _record >= 10) exitWith {
                         && {time < (_current param [6,-1,[0]])}
                         && {(_current param [30,[],[[]]]) isNotEqualTo []}
                         && {([_owner] call CBE_fnc_NativeOrderReceipt) isEqualTo (_current select 30)}
+                        && {([_actor,_owner,_current] call CBE_fnc_CortexStaticNativeMoveState) == "CURRENT"}
                         && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
                         && {[_owner,"CBE_AIPass_StaticSupport_Enable",true] call CBE_fnc_CortexFeatureEnabled}
                         && {[_owner,"CBE_AIPass_StaticDeploy_Enable",true] call CBE_fnc_CortexFeatureEnabled}
@@ -683,6 +733,7 @@ if (count _record >= 10) exitWith {
                         && {[_actor] call CBE_fnc_CortexCombatEffective}
                         && {simulationEnabled _actor} && {!isObjectHidden _actor} && {!fleeing _actor}
                         && {[_assistant] call CBE_fnc_CortexCombatEffective}
+                        && {([_assistant,_owner,_current] call CBE_fnc_CortexStaticNativeMoveState) == "CURRENT"}
                         && {simulationEnabled _assistant} && {!isObjectHidden _assistant} && {!fleeing _assistant}
                         && {group _actor == _owner} && {group _assistant == _owner}
                         && {(_current param [19,[],[[]]]) isEqualTo [clientOwner,_owner getVariable ["CBE_AIPass_Epoch",0]]}
@@ -768,7 +819,7 @@ private _ready=((units _group) select [0,64]) select {
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {isNull assignedVehicle _x}
-        && {!(toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+        && {!(toUpperANSI (currentCommand _x) in ["STOP","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
         && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
         && {currentCommand _x != "MOVE"}
@@ -849,12 +900,16 @@ _record set [28,_singlePart];
 _record set [30,[_group] call CBE_fnc_NativeOrderReceipt];
 {
     _x doMove _deployPos;
+    [_x,_deployPos] call _rememberNativeLeg;
     _x setVariable ["CBE_Cortex_ActorMove",["STATIC_DEPLOY",+_deployPos,_deadline]];
     [_x] call _rememberActorMove;
 } forEach ([_gunner,_assistant] arrayIntersect [_gunner,_assistant]);
 // Hold only the primary carrier at an already valid sector. This is the finite deployment
 // task, not a group stop; native targets/fire remain available and failure cleanup resumes follow.
-if (_gunner distance2D _deployPos <= 0.5) then {doStop _gunner};
+if (_gunner distance2D _deployPos <= 0.5) then {
+    _record set [31,[_gunner,getPosASL _gunner]];
+    doStop _gunner;
+};
 
 _group setVariable ["CBE_Danger_StaticDeployment",_record,true];
 _group setVariable ["CBE_Danger_StaticDeployAttempt",[_episode,"MOVING",serverTime],true];

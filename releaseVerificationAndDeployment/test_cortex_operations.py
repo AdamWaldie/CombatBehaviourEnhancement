@@ -12780,6 +12780,56 @@ class CortexOperations(unittest.TestCase):
             self.assertIn('(_current param [30,[],[[]]]) isNotEqualTo []',callback)
             self.assertIn('[_owner] call CBE_fnc_NativeOrderReceipt',callback)
         self.assertNotIn('CBE_OperationGeneration',text.split('private _nativeOrderCurrent=',1)[1].split('private _bagAnchor=',1)[0])
+        reader=source('cortexStaticNativeMoveState')
+        for proof in ('CBE_Danger_StaticMoveReceipt','CBE_Danger_StaticNativeLeg','_record param [31,[],[[]]]',
+                      'expectedDestination','getUnitState','"WAIT"','"YIELD"','"CURRENT"'):
+            self.assertIn(proof,reader)
+        self.assertIn('CBE_fnc_CortexStaticNativeMoveState',actor_gate)
+        self.assertNotIn('_move param [1',reader)
+        self.assertIn('time-(_leg select 4) < 2',reader)
+        self.assertEqual(text.count('call _rememberNativeLeg;'),5)
+        self.assertIn('_releasedActor',reader)
+        self.assertIn('["ASSEMBLING","MOUNTING","ACTIVE","PACK_EXITING"]',reader)
+        self.assertIn('_actor == _gunner && {_phase == "ACTIVE"}',reader)
+        self.assertIn('unitReady _actor && {abs speed _actor < 0.5}',reader)
+        self.assertIn('vectorDistance (AGLToASL _destination) <= 2',reader)
+        phase_clear=text.split('private _clearActor=',1)[1].split('private _canReleaseActor=',1)[0]
+        self.assertNotIn('setVariable ["CBE_Danger_StaticNativeLeg",nil]',phase_clear)
+        self.assertIn('setVariable ["CBE_Danger_StaticNativeLeg",nil]',retirement)
+        phase_receipt=text.split('private _rememberActorMove=',1)[1].split('private _rememberNativeLeg=',1)[0]
+        self.assertNotIn('setVariable ["CBE_Danger_StaticNativeLeg",[',phase_receipt)
+        self.assertIn('"YIELD" in _nativeStates',text)
+        self.assertIn('"WAIT" in _nativeStates',text)
+        self.assertIn('time >= _deadline',text.split('"WAIT" in _nativeStates',1)[1].split('// Initial recognition',1)[0])
+        moving=text.split('if (!_atSector && {time >= _deadline-10}',1)[1].split('if (_atSector &&',1)[0]
+        packing=text.split('// Retry an ended native order',1)[1].split('if (isNull _weapon',1)[0]
+        for retry in (moving,packing):
+            self.assertIn('unitReady _x',retry)
+            self.assertIn('currentCommand _x in ["","MOVE","WAIT"]',retry)
+            self.assertIn('vectorDistance',retry)
+            self.assertNotIn('"STOP"',retry)
+        self.assertIn('"STOP"',text.split('private _ready=',1)[1].split('// Prefer',1)[0])
+        # A different floor/goal is replacement, not a lost route. Pending planner
+        # data defers rather than authorising a retry, under the original clock.
+        import math
+        def state(command,goal=(6,0,0),planning=False,own_stop=False,issue_age=3):
+            if command=='STOP':return 'CURRENT' if own_stop else 'YIELD'
+            if command!='MOVE':return 'CURRENT'
+            if planning or goal is None:return 'WAIT'
+            if math.dist(goal,(6,0,0))<=1:return 'CURRENT'
+            return 'WAIT' if issue_age<2 else 'YIELD'
+        self.assertEqual(state('MOVE'),'CURRENT')
+        self.assertEqual(state('MOVE',(12,0,0)),'YIELD')
+        self.assertEqual(state('MOVE',(6,0,3)),'YIELD')
+        self.assertEqual(state('MOVE',(12,0,0),True),'WAIT')
+        self.assertEqual(state('MOVE',None),'WAIT')
+        self.assertEqual(state('MOVE',(12,0,0),issue_age=1),'WAIT')
+        self.assertEqual(state('MOVE',(12,0,0),issue_age=2),'YIELD')
+        self.assertEqual(state('STOP'),'YIELD')
+        self.assertEqual(state('STOP',own_stop=True),'CURRENT')
+        for event in ('WeaponAssembled','WeaponDisassembled'):
+            callback=text.split('addEventHandler ["'+event+'",{',1)[1].split('removeEventHandler ["'+event+'"',1)[0]
+            self.assertIn('CBE_fnc_CortexStaticNativeMoveState',callback)
 
     def test_anti_armour_cleanup_does_not_erase_another_actor_move(self):
         text=source('cortexAntiArmour')

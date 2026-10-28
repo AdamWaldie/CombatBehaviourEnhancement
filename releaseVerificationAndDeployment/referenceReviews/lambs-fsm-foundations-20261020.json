@@ -1642,6 +1642,45 @@
       "An ended CBE marker or removed handler is not native all-writer quiescence. Issued native equipment/boarding/MOVE can remain active; complete handover is still required.",
       "Original group waypoint identity does not distinguish a new per-actor direct MOVE or a same-value STOP/equipment command. Existing MOVING retry treats a changed expected destination as a lost route, and PACK_MOVING retries STOP; these require exact actor-native command ownership review before expanding dependent static behaviour. No fix of those cases is claimed here.",
       "Source solo and paired hardware, native assembly/pack lifecycle, generated-weapon ordinary/artillery integration, casualty/repeat/locality, balance and measured overhead still need further source/physical evidence. Audits paused."
-    ]
+    ],
+    "actorNativeFollowup": "staticDeployNativeActor20261028 implements selected on-foot MOVE/STOP reader, actual issued-leg retention and bounded settled-goal retries; native quiescence, mounted/nonmovement identity and physical/cost gaps remain. Earlier missing-actor-reader finding is historical."
+  },
+  "staticDeployNativeActor20261028": {
+    "base": "38bcbacc191e7ba42f94c7d45ffca008c46d8b8e",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "registeredGap": "staticDeployAuthoredOrder20261028.remaining: per-actor changed-goal MOVING recovery and PACK_MOVING STOP retry identity",
+    "sourceInputs": "Same protected paired/solo deploy/pack bodies and hashes recorded in staticDeployAuthoredOrder20261028.protectedSourceInputs. Selected intent is recover physical approaches and retain useful native combat without unowned timeout/follow writes; no new source inventory credit.",
+    "finding": "Prior MOVING refresh used expectedDestination different from the deployment goal as a lost-route trigger; PACK_MOVING accepted STOP. Private actor marker identity alone could therefore overwrite a newer native actor goal/hold. Phase markers also change destination during bag assembly, so they cannot serve as the exact prior movement request.",
+    "implementation": "One internal read-only CortexStaticNativeMoveState is shared by active executor, original two native callbacks and on-foot retirement. Private five-field StaticNativeLeg stores original group/epoch/sequence/issued goal/time only at the five actual doMove sites, independent of phase marker/deadline changes. Matching one-metre absolute3D goals are CURRENT; unknown planner/goal data WAIT inside original phase deadline, while changed goals yield after at most2s publication allowance from actual issue. Missing/private foreign proof cannot grant action. Initial STOP recruitment is excluded. Original on-sector CBE stop binds actor/actualASL position in record31 and is invalidated by subsequent gunner movement. No STOP retry; MOVING/PACK_MOVING retry requires readiness, settled data and exact retained goal.",
+    "execution": "Existing group authored-order/epoch, actor health/care/reservation, task and participant checks remain. Up to2 unique reserved actors classify each active step. WAIT returns existing phase without action or clock renewal; expiry retires command-free. Native callbacks require CURRENT before CBE work. Retirement checks CURRENT before clearing exact old markers/native-leg proof and before follow/unassign. Mounted native commands and non-MOVE/STOP actions retain separate phase-task gates; CURRENT is not general action permission.",
+    "cost": "At most2 actors per active step plus existing event/retirement boundaries. Reads only current local command/planner/goal and bounded private receipts; native goal ASL conversion is at most a pair per matching MOVE. No world scan, ray, extra job/event/worker or phase deadline. No performance acceptance.",
+    "regressionSafeguard": "Initial implementation compared native MOVE with current reservation point; inspection found that phase transition could self-reject an earlier valid bag approach. Actual-issued native leg is now separate, never captured by marker updates. Known on-sector CBE STOP remains possible without treating all STOP as recovery permission.",
+    "verification": {
+      "red": ".qa/handovers/static-actor-native-red-20261028.log: existing contract errors because old source lacks the reader",
+      "initialFocusedFinding": ".qa/handovers/static-actor-native-report-stale-20261028.log: generated coverage report stale after helper registration; regenerated through existing checker, not relaxed",
+      "focused": ".qa/handovers/static-actor-native-focused-20261028.log:617 existing operation tests PASS; symbolic goal/floor/planning/STOP/initial-publication policy plus source ownership/callback/retry contracts, not native SQF execution",
+      "newTestCases": 0,
+      "initialBuild": ".qa/handovers/static-actor-native-build-initial-20261028.log: full gates passed initial implementation, but source review found released-participant positive-path evidence was discarded. Superseded before independent verification/delivery; final build follows.",
+      "fullBuild": ".qa/handovers/static-actor-native-build-20261028.log: 1505 existing tests PASS; SQF/config/docs/wiki/CBA parity/static performance/coverage/FSM/HEMTT gates PASS; 458 production SQF, 11 PBOs. Actual build process no longer present; terminal package manifest independently verified.",
+      "independent": ".qa/handovers/static-actor-native-independent-20261028.log: PASS",
+      "candidate": ".qa/candidates/static-actor-native-20261028-38bcbacc",
+      "fingerprint": "c931362da9b0215126337304c39a89b46b77108767e3917bd795de48f8c69b76",
+      "provenance": "38bcbacc191e7ba42f94c7d45ffca008c46d8b8e plus dirty runtime sources. Engineering and handover metadata finalized after packaging. Unsigned development candidate, not release or physical acceptance.",
+      "physical": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_RUN"
+    },
+    "coverage": "Helper added to existing danger/contact source coverage;65cases/14variants unchanged; production source count458 is inventory, not acceptance.",
+    "productHashes": {
+      "addons/infantry/functions/cortexStaticDeployStep.sqf": "d165cdf9b14d8b0f551262c75d486da8293a453e9530d2005ad9161789f1fb54",
+      "addons/infantry/functions/cortexStaticNativeMoveState.sqf": "b435148cf2f9f1de6c4908808c18d2ee1522a1cf39212fb23edd4ee2a6df81b1",
+      "addons/main/CfgFunctions.hpp": "5ac3ffdfb2d5d6126f70fc0ca7bd5fef0ede1916441e9b4afa35462ea2e36b76"
+    },
+    "remaining": [
+      "Same-goal replacements within tolerance and same-value on-sector STOP at the original point are not distinguishable by native observations. Mounted and nonmovement command ownership remains its existing phase contract.",
+      "Native expected-destination publication/adjustment and sticky own STOP across boarding/disembark require actual engine evidence; no physical outcome is claimed. Missing native data can end in bounded failure, not a repaired/renewed route.",
+      "No native all-writer cancellation/acknowledgement or cross-host atomic seat claim. Issued equipment/boarding/MOVE may outlive observation; current cleanup receipts do not prove quiescence.",
+      "Full deployment/packing and generated-weapon ordinary/artillery integration comparison, normal/HC/JIP/Zeus/repeat/casualty behaviour, balance and5%median/10%p95 measurements remain incomplete. Audits paused."
+    ],
+    "releasedParticipantSafeguard": "Code review identified that clearing the assistant phase reservation also discarded its ended native-leg identity; a native MOVE label can remain after completion (existing PointActorOperation native-idle policy already recognises this). Retain exact native leg until whole-task retirement. Only released original assistant in ASSEMBLING/MOUNTING/ACTIVE/PACK_EXITING or vacated original ACTIVE gunner, empty marker, original matching leg, unitReady/rest and physical<=2m arrival may classify CURRENT. No movement lease is recreated. Same-goal native commands remain indistinguishable."
   }
 }

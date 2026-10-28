@@ -2376,3 +2376,14 @@ One-part and paired deployment capture the current authored native waypoint rece
 Other squad members can still manoeuvre beside the static team while its authored order remains unchanged; an operation-generation change alone does not invalidate this receipt. Existing actor participation, owner epoch, task, medical and specialist checks remain. There is no new controller, deadline or native waypoint rewrite. The extra receipt reads use the current authored waypoint metadata, with native waypoint-handle enumeration still depending on route length.
 
 This does not prove that a prior assembly, disassembly, boarding or actor MOVE has stopped. Direct actor-order replacement and identical-value intent remain separate uncertainties. Physical deployment/packing, repeated order changes, migration and measured cost remain unverified.
+
+
+### Static-team native movement identity
+
+The internal read-only `CBE_fnc_CortexStaticNativeMoveState` distinguishes a matching on-foot native MOVE, unsettled planner/goal data that must wait, and an observed replacement MOVE or STOP. A phase reservation is not a native goal: the installing owner separately records the target and issue time of each actual movement command. Deadline and reservation updates never refresh that receipt. A mismatched native goal gets at most a two-second publication allowance after an actual issue; waits remain within the original phase deadline and grant no equipment, retry or cleanup action.
+
+Deployment and packing retries require native readiness, settled planner data and the retained goal within one metre in absolute3D space. They do not replay STOP, chase a changed destination, or interrupt native fire/attack merely because the actor is distant. Existing one/two retry limits and phase/45-second packing limits remain. A stopped soldier is not recruited initially. The deployment's one original on-sector stop has an exact actor/position receipt; a later movement issue clears it. Matching identical external stop intent at that same point cannot be distinguished.
+
+The same reader protects active observation, assembly/disassembly events and on-foot retirement before any follow/unassign command. Mounted commands and nonmovement tasks retain their existing phase policies. Yield or timeout is not native all-writer cancellation. Physical native goal publication, weapon/bag approaches, repeated deployment/packing, migration and performance remain unverified.
+
+A released assistant or vacated active gunner can retain an ended native MOVE label. Its original private leg is therefore retained until the whole deployment retires. With no active movement marker, that observation qualifies only for the original role at the appropriate phase, a matching original goal, native readiness, physical rest and actual arrival within two metres. It does not recreate the old movement lease. Unknown, moving or displaced actors cannot use that exception.
