@@ -79,12 +79,16 @@ class DrivingPassPlanTests(unittest.TestCase):
     def test_pass_traffic_observation_refuses_dense_or_stale_sets_without_authority(self):
         s=(ROOT/'addons/vehicles/functions/drivingPassTraffic.sqf').read_text()
         code=s.split('params [["_proposal"',1)[1]
-        self.assertIn('nearEntities [["LandVehicle","CAManBase"],false,false,false]',code)
+        self.assertIn('nearEntities [["LandVehicle","Air","Ship","CAManBase"],false,false,false]',code)
         self.assertLess(code.index('count _candidates > 64'),code.index('forEach _candidates'))
         self.assertEqual(code.count('call _current'),2)
         self.assertIn('TRAFFIC_OBSERVATION',code)
         self.assertIn('OCCUPIED_CORRIDOR',code)
         self.assertIn('APPROACHING_TRAFFIC',code)
+        self.assertEqual(code.count('nearEntities'),1)
+        self.assertNotIn('alive _other',code)
+        self.assertNotIn('allDead',code)
+        self.assertIn('!(_other isKindOf "CAManBase") || {isNull objectParent _other}',code)
         self.assertNotIn('boundingBoxReal',code)
         for name in ('drivingPassAdmission','drivingPassPlan','drivingPassGeometry'):
             consumer=(ROOT/'addons/vehicles/functions'/f'{name}.sqf').read_text()
