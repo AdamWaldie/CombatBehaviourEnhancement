@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Service the exact original crew's finite selected-platform standoff and handback.
+ * Purpose: Service the exact original crew's finite standoff/support bound and handback.
+ * Troop support retains original contact, dismount receipt, body anchor and deadline;
+ * changed clearance/body or source authority retires through the same native handback.
  * Locality/authority: Current platform/group owner, exact worker/token/serial/epoch/reference.
  * Only living original operators may retire their own commands after a casualty; no new crew
  * or outward continuation is adopted. New native/Zeus/specialist orders refuse old writes.
@@ -142,6 +144,16 @@ private _sourceCurrent=!_retirementOnly && {missionNamespace getVariable ["CBE_A
     && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
     && {[_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled}
     && {[_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+// The existing finite worker observes troop support at most once every two seconds.
+// It never follows a newly sampled destination or renews the original contact/deadline.
+private _supportContext=_work getOrDefault ["supportContext",[]];
+if (_sourceCurrent && {_supportContext isNotEqualTo []}
+    && {!(_phase in ["STOPPING","RETURNING"])}
+    && {_phase == "ISSUE" || {serverTime >= (_work getOrDefault ["supportCheckAt",0])}}) then {
+    _work set ["supportCheckAt",serverTime+2];
+    _sourceCurrent=([_group,_battery,[],_supportContext,_work get "goal"]
+        call CBE_fnc_CortexMechanisedSupport) isNotEqualTo [];
+};
 private _coverContext=_work getOrDefault ["coverContext",[]];
 if (_sourceCurrent && {_coverContext isNotEqualTo []}) then {
     _sourceCurrent=_coverContext isEqualType [] && {count _coverContext == 3}

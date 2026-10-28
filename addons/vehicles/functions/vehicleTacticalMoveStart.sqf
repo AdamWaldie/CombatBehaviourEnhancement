@@ -12,13 +12,15 @@
  * original server deadline NUMBER,-1, at most60 seconds ahead; optional cover context
  * ARRAY [] or [original threat eye ASL ARRAY3, target OBJECT, original main gunner OBJECT].
  * Cover context is rechecked at physical arrival/HOLD; it grants no hit or cover immunity.
+ * Optional eighth argument: original troop-support context ARRAY,[]; mutually exclusive
+ * with screen-only cover context. The same worker checks the original body/contact/clearance.
  * Return: BOOL native worker admitted, never acknowledgement or physical arrival.
- * Current callers: CortexVehicles standoff after OperationStart and movement lease acquisition.
+ * Current callers: CortexVehicles standoff or finite troop-support bound after OperationStart and lease acquisition.
  * Example: [_group,_apc,_point,[driver _apc,effectiveCommander _apc],_generation,_until]
  *     call CBE_fnc_VehicleTacticalMoveStart;
  */
 params [["_group",grpNull,[grpNull]],["_battery",objNull,[objNull]],
-    ["_spot",[],[[]]],["_seats",[],[[]]],["_generation",-1,[0]],["_until",-1,[0]],["_coverContext",[],[[]]]];
+    ["_spot",[],[[]]],["_seats",[],[[]]],["_generation",-1,[0]],["_until",-1,[0]],["_coverContext",[],[[]]],["_supportContext",[],[[]]]];
 if (remoteExecutedOwner > 0 || {isNull _group} || {!local _group}
     || {isNull _battery} || {!local _battery} || {count _spot != 3}
     || {_spot findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
@@ -52,6 +54,12 @@ isNil {
             || {!([_group,_battery,_seats] call CBE_fnc_CortexVehicleCrewAvailable)}
             || {waterDamaged _battery}
             || {_seats findIf {!(currentCommand _x in ["","MOVE","WAIT"])} >= 0}) exitWith {false};
+        // Support keeps a real troop-body/visibility/clearance contract within this same
+        // selected-crew worker. It cannot inherit a screen-only post-shot context.
+        if (_supportContext isNotEqualTo [] && {_coverContext isNotEqualTo []
+            || {count _supportContext != 4} || {(_supportContext select 3) isNotEqualTo _until}
+            || {(_supportContext select 0) isNotEqualTo (_group getVariable ["CBE_Cortex_DismountContinuation",[]])}
+            || {([_group,_battery,[],_supportContext,_spot] call CBE_fnc_CortexMechanisedSupport) isEqualTo []}}) exitWith {false};
         private _baseline=[_seats select 0,_seats select 1] call CBE_fnc_VehicleCrewNativeObservation;
         if (count _baseline != 4 || {[0,2] findIf {(_baseline select _x) == "MOVE" && {
             private _goal=(_baseline select (_x+1)) param [0,[],[[]]];
@@ -62,9 +70,10 @@ isNil {
         private _reference=[_battery,_token,_serial,_epoch,clientOwner];
         private _lease=["VEHICLE_STANDOFF",time+(_until-serverTime)];
         private _work=createHashMapFromArray [["token",_token],["serial",_serial],["group",_group],
-            ["kind","STANDOFF"],["operationGeneration",_generation],["owner",clientOwner],
+            ["kind",["STANDOFF","MECH_SUPPORT"] select (_supportContext isNotEqualTo [])],["operationGeneration",_generation],["owner",clientOwner],
             ["epoch",_epoch],["reference",_reference],["crew",+_seats],
             ["route",[_group] call CBE_fnc_NativeOrderReceipt],["baseline",_baseline],
+            ["supportContext",+_supportContext],["supportCheckAt",serverTime+2],
             ["coverContext",if (_coverContext isEqualTo []) then {[]} else {
                 [+(_coverContext select 0),_coverContext select 1,_coverContext select 2]}],
             ["goal",+_spot],["spot",+_spot],["arrivalRadius",5],["phase","ISSUE"],["moveUntil",_until],

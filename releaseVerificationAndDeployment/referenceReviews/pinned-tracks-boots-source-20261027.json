@@ -123,7 +123,7 @@
     "independentLog": ".qa/handovers/passenger-deck-independent.log"
   },
   "limits": "Offline evidence only, audits paused. Single centre ray is not complete exit-footprint or continuous stability proof; bridge/road proxy identity and modded support need physical verification. No whole-source/combined-arms parity or measured performance claim. Native query cost unchanged, support reads added only to existing water case.",
-  "nextRequiredReview": "Implement one finite troop-body support bound through existing selected-platform movement ownership. Admit only a current explicitly tracked dismounted element, derive a robust mobile infantry centre and rear hemisphere from supplied native contact belief, preserve the separate firing-vehicle corridor and infantry clearance, keep original episode deadline, and retire without source route/seat replay. Continuous multi-bound escort remains a larger open capability.",
+  "nextRequiredReview": "Extend cooperation to separate passenger squads using a finite vehicle-owner record of actual original cargo and passenger-owner dismount intent, without granting cross-owner troop commands or renewing contact/deadline. Then compose repeated bounds under one original escort episode; do not mint indefinite replacement operations.",
   "supportPositioningFollowup20261027": {
     "baseline": "cb523ae73231be4776b378f9012b50e4662fb118",
     "runtimeChanges": false,
@@ -229,6 +229,58 @@
     "nextConcreteWork": "Implement one finite troop-body support bound through existing selected-platform movement ownership. Admit only a current explicitly tracked dismounted element, derive a robust mobile infantry centre and rear hemisphere from supplied native contact belief, preserve the separate firing-vehicle corridor and infantry clearance, keep original episode deadline, and retire without source route/seat replay. Continuous multi-bound escort remains a larger open capability.",
     "runtimeSha256": {
       "addons/vehicles/functions/cortexVehicles.sqf": "042bc1d226a9481b734c05a05bda398522f166fc2f86c5cea8cde2eefa9dabe4"
+    }
+  },
+  "finiteSupportBound20261028": {
+    "baseline": "3657338f03ea9d9055b71ccd18dd06e25385a8dc",
+    "status": "IMPLEMENTED_PARTIAL_FINITE_SAME_GROUP_BOUND_NOT_CONTINUOUS_ESCORT",
+    "sourceIntent": "Retain mobile troop-body median, rear support positions, useful sight line, pedestrian separation and finite cooperation; redesign around CBE current owner and original native receipts. Source helper hashes remain in sources.",
+    "execution": "CortexVehicles CONTACT selects a fresh native believed contact after urgent AT standoff/post-shot cover checks. CortexMechanisedSupport reads this platform own-group current CBE dismount receipt and derives a rear goal. Existing ownership lease and OperationStart admit only original operating seats. VehicleTacticalMoveStart validates context before FSM launch; VehicleTacticalMoveStep checks it within the original finite worker; shared VehicleCrewMoveNativePhase/retirement owns native issue/ack/stop/return.",
+    "implemented": [
+      "At most16 recorded original cargo, at least2 local living mobile dismounts, coordinate median of ASL positions. Current driver/commander/gunner are never the troop body. No membership or infantry movement changes.",
+      "Five25m rear candidates at0,+/-30,+/-60deg relative to supplied native believed contact. An already useful20..40m rear position with sight line declines unnecessary movement.",
+      "Proposed straight world-hull corridor excludes a complete native nearby set of at most32friendly pedestrians; dense/unknown hulls refuse. Existing terrain-aware selector and elevated believed-position sight-line observation remain bounded. This is not the engine planned route or future clearance proof.",
+      "Contact original observation expires within30s; original dismount expiry also applies. Context and selected destination never renew or follow the hidden enemy. Changed troop median>15m, replacement live dismount record, fewer than2 mobile dismounts or lost native believed contact refuse continuation.",
+      "One existing selected-crew finite FSM, original parent generation/route/epoch/seats/deadlines. CHECK at most every2s; no new scheduler job or movement controller. Failed planning waits8s per vehicle.",
+      "The new parent generation consumes ordinary dismount admission. Start requires the actual live original record; the admitted worker can retain its snapshot after GroupTick retires that ordinary record. It cannot use a different live record. Incoming owners retire original native commands only, never replay outward movement.",
+      "Existing shared selected-platform movement category remains VEHICLE_STANDOFF, with work kind MECH_SUPPORT and real support-context checks. This reuses authority/acknowledgement/retirement, not just a descriptive label.",
+      "Active coordinated roles exclude this autonomous bound; current combined-ground firing-vehicle anchor and fire-lane implementation are untouched. No source forced seat, hidden displacement, group repair, speed controller or saved-route replay imported.",
+      "Same-group support requires an on-foot troop leader and refuses tracked foot members whose native formLeader is an operating crew member. This prevents the selected hull move from pulling the troop formation rearward; separate passenger groups remain next.",
+      "ISSUE rechecks current troop context immediately before the first native movement request, independent of the ordinary two-second observation cadence. Held/concealed native orders, CBE garrison/defend/clearance and hold-fire policies refuse this optional bound."
+    ],
+    "controls": "Existing CBE_AIPass_Vehicles_Enable and CBE_AIPass_VehicleGunnery_Enable; no new setting/module. Native crew and mission authority remain mandatory.",
+    "cost": "One8s-rate-limited planning path:16troop positions, <=32nearby people, <=5candidates and one existing avenue selector. Existing worker repeats one goal/body/corridor observation at most every2s. No world-wide scan, permanent actor/controller, broadcast stream or cached positive clearance. Frame overhead remains unmeasured.",
+    "verification": {
+      "focusedTestsBeforeCoverageRefresh": 661,
+      "newRegressionCases": 1,
+      "fullBuild": "PASS",
+      "focusedLog": ".qa/handovers/mech-support-focused-20261028.log",
+      "compileLog": ".qa/handovers/mech-support-compile-20261028.log",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "supersededBuilds": [
+        ".qa/handovers/mech-support-build-superseded-20261028.log",
+        ".qa/handovers/mech-support-build-final-20261028.log"
+      ],
+      "supersededReason": "Post-build review tightened before-ISSUE context admission, held-order policy and native infantry formation independence. Earlier passing builds are not final candidates.",
+      "fullTests": 1499,
+      "compiledSQF": 450,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/mech-support-build-formation-20261028.log",
+      "candidate": ".qa/candidates/mech-support-20261028-3657338f",
+      "fingerprint": "fcaa87bfbdcf322e9efade6d91ebdd155a070586849bc5d6884a64f51de96bb6",
+      "independentLog": ".qa/handovers/mech-support-independent-20261028.log",
+      "measuredPerformance": "NOT_MEASURED",
+      "buildProvenance": "3657338f plus dirty runtime snapshot. Only engineering review/register/handover metadata changes after packaging."
+    },
+    "limits": "Same-group cargo only; finite single support bound, not complete continuous mechanised escort. Original report/parent deadline may end before arrival. Shared group operation temporarily precludes a separate CBE whole-group manoeuvre; native infantry orders/firing are left intact. Geometric/sight-line observations do not prove native route clearance, weapon alignment/effects, physical retirement or budget. No physical scenario was run.",
+    "nextConcreteWork": "Extend cooperation to separate passenger squads using a finite vehicle-owner record of actual original cargo and passenger-owner dismount intent, without granting cross-owner troop commands or renewing contact/deadline. Then compose repeated bounds under one original escort episode; do not mint indefinite replacement operations.",
+    "runtimeSha256": {
+      "addons/core/functions/cortexTuningSpec.sqf": "baaba75753a54d7c75a78375c07e02e2dbe66ac1651981e2cce70f04e58fb600",
+      "addons/main/CfgFunctions.hpp": "279ac38d1fa4a9c48cfacc474473cd8fd7782b14a5a763bde486498fb7e50abf",
+      "addons/vehicles/functions/cortexVehicles.sqf": "46161cd9697320d4f64d8cd08402edda9f0a45d2299aab8606e4738fad570697",
+      "addons/vehicles/functions/cortexMechanisedSupport.sqf": "9f4fd99fb71a1cf347b0b03a4cba9b4ef23478a64f6d1530d235e5391cfe198b",
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "dc72ff0af1d3c6daefc18bb90814a7940decefd3fe5da8b98f8803f200905c47",
+      "addons/vehicles/functions/vehicleTacticalMoveStep.sqf": "5c1e2be00458204dce2d9d0829412ab6271a6b9c2ceb5d365f644ffdbb387c6e"
     }
   }
 }

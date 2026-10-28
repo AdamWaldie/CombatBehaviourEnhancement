@@ -8701,7 +8701,7 @@ class CortexOperations(unittest.TestCase):
         start=source('vehicleTacticalMoveStart')
         step=source('vehicleTacticalMoveStep')
         retire=source('vehicleTacticalMoveRetire')
-        standoff=vehicles.split('private _standoffSeats=',1)[1].split('private _gunner =',1)[0]
+        standoff=vehicles.split('private _standoffSeats=',1)[1].split('// One support bound',1)[0]
         self.assertIn('call CBE_fnc_VehicleTacticalMoveStart',standoff)
         shot=source('vehicleArmourShot')
         for proof in ('addEventHandler ["Fired"','_thisEventHandler','getShotParents',
@@ -12186,6 +12186,45 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('glanceAt _position',observation)
         for forbidden in ['doMove','doTarget','doWatch','_actor reveal','setCombatMode']:
             self.assertNotIn(forbidden,observation.replace('reveals',''))
+
+    def test_mechanised_support_uses_original_dismount_and_selected_crew_lifecycle(self):
+        planner=source('cortexMechanisedSupport')
+        for proof in ('count (_proof select 2) > 16', 'count _people > 32',
+                      'CBE_Cortex_DismountContinuation', 'CBE_fnc_NativeOrderReceipt',
+                      'CBE_AIPass_Garrison', 'CBE_AIPass_Defend', 'CBE_AIPass_ClearBuilding',
+                      'combatMode _group in ["BLUE","GREEN"]', '["HOLD","SENTRY"]',
+                      'CBE_OperationGeneration', '!(leader _group in _foot)',
+                      'formLeader _x in _operators', '!_checking || {_liveProof isNotEqualTo []}',
+                      '(_observedAt+30)', 'private _centreASL=', 'vectorDistance (_context select 2) > 15',
+                      '[0,-30,30,-60,60]', 'CBE_fnc_DrivingHullInterval',
+                      'CBE_fnc_CortexSelectAvenue', '_rear < -10', 'lineIntersects',
+                      'getHideFrom _target', 'if (_checking) exitWith {[+_goal,_until,_context]}'):
+            self.assertIn(proof,planner)
+        for forbidden in ('doMove','forceSpeed','setPosATL','moveInCargo','createGroup','joinSilent','execFSM','setVariable'):
+            self.assertNotIn(forbidden,planner)
+        start=source('vehicleTacticalMoveStart')
+        for proof in ('["_supportContext",[],[[]]]', 'MECH_SUPPORT',
+                      '(_supportContext select 0) isNotEqualTo (_group getVariable',
+                      'CBE_fnc_CortexMechanisedSupport', '["supportContext",+_supportContext]'):
+            self.assertIn(proof,start)
+        step=source('vehicleTacticalMoveStep')
+        support=step.split('private _supportContext=',1)[1].split('private _coverContext=',1)[0]
+        self.assertIn('supportCheckAt',support)
+        self.assertIn('_phase == "ISSUE"',support)
+        self.assertIn('serverTime+2',support)
+        self.assertIn('_work get "goal"',support)
+        self.assertIn('CBE_fnc_CortexMechanisedSupport',support)
+        self.assertNotIn('set ["goal"',support)
+        vehicles=source('cortexVehicles')
+        bound=vehicles.split('// One support bound',1)[1].split('private _gunner = gunner _vehicle;',1)[0]
+        for proof in ('_atIndex < 0', '!_postShotMove', 'CBE_Cortex_CombinedRole',
+                      'serverTime+8', 'CBE_fnc_CortexVehicleCrewAvailable',
+                      'CBE_fnc_CortexMechanisedSupport', 'CBE_fnc_OperationStart',
+                      'CBE_fnc_VehicleTacticalMoveStart', 'SUPPORT_MOVE_REJECTED',
+                      'CBE_fnc_OperationRelease', 'CBE_fnc_CortexOwnershipLease'):
+            self.assertIn(proof,bound)
+        self.assertNotIn('doMove',bound)
+        self.assertNotIn('setCurrentWaypoint',bound)
 
     def test_rejected_vehicle_escape_does_not_consume_withdrawal_or_smoke(self):
         text=source('cortexVehicles')

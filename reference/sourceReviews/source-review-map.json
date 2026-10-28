@@ -738,7 +738,7 @@
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Infantry and vehicle cooperation to evaluate",
       "reviewStatus": "Selected positioning helpers and registration/support/release dispatch traced through local command receiver, delayed reseat and route-resume writers; whole mod and physical handback remain open",
-      "nextSourceReview": "Build a finite troop-body support bound using existing selected-platform owner; preserve existing fire-lane anchor. Selected command writer review complete within scope; see commandWriterFollowup20261028.",
+      "nextSourceReview": "Finite own-group support bound is integrated through existing selected-platform FSM. Next: original-cargo/owner contract for separate passenger squads, then repeated bounds under one original deadline. See finiteSupportBound20261028; no physical acceptance.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
@@ -759,7 +759,7 @@
         "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
       },
       "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
-      "currentSelectedIntegration": "Static-deck passenger checks, original-order remount custody and failure-only escape-avenue caching implemented. Existing bounded hull braking retained. Forced source movement/seat/group/old-route replay not imported. Troop-body escort remains unimplemented; offline evidence only."
+      "currentSelectedIntegration": "Passenger static-deck/order custody, failed-avenue caching and a finite own-group troop-body support bound are implemented. Shared native FSM retains original crew/order/epoch/deadline and rear/body/clearance checks. Separate passenger groups and continuous escort remain open; no source forced-seat/group/old-route replay."
     },
     {
       "workshopId": "3778948165",
