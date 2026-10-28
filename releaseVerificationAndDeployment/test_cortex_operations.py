@@ -9368,6 +9368,26 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('"CARRY SOLDIER"',rank)
         refill=step.split('private _units=[];',1)[1]
         self.assertLess(refill.index('call _rankCandidates'),refill.index('_units pushBack _x'))
+        available=step.split('private _nativeCommandAvailable={',1)[1].split('private _actorTaskFree=',1)[0]
+        fresh=available.split('if (_row isEqualTo []) exitWith {',1)[1].split('};',1)[0]
+        self.assertIn('_actor in (_drill getOrDefault ["units",[]])',fresh)
+        self.assertIn('_command != "MOVE"',fresh)
+        self.assertIn('_command != "STOP"',fresh)
+        fit=step.split('private _fitSquad=',1)[1].split('private _rosterNative=',1)[0]
+        self.assertIn('call _actorTaskFree',fit)
+        self.assertLess(step.index('private _fitSquad='),step.index('private _units=[];'))
+        # Missing CBE command proof must not enrol an unrelated moving replacement.
+        # Existing participants keep their initial admission; explicit owned receipts
+        # follow the independent matching-goal branch, not this missing-row policy.
+        def missing_receipt(command,incumbent,checked=True,full=False):
+            return not full and (command!='STOP' or not checked) and (command!='MOVE' or incumbent)
+        self.assertFalse(missing_receipt('MOVE',False))
+        self.assertTrue(missing_receipt('MOVE',True))
+        self.assertFalse(missing_receipt('STOP',False))
+        self.assertFalse(missing_receipt('MOVE',True,full=True))
+        for command in ('','WAIT','ATTACK','FIRE'):
+            self.assertTrue(missing_receipt(command,False))
+
 
     def test_drill_steps_cannot_adopt_a_replacement_action(self):
         step=source('cortexFlankStep')

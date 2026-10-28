@@ -168,6 +168,10 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "nativeRefillFollowup20261028": {
+        "review": "protocol-pairs-3802121807-20261020.json#unrecordedReserveMove20261028",
+        "scope": "Existing drill casualty refill now excludes reserves outside its current admitted element with unrecorded native MOVE; no new pair timing/controller or physical acceptance."
       }
     },
     {

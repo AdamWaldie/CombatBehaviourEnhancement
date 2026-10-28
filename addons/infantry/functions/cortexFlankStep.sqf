@@ -28,6 +28,8 @@
  *
  * Casualty refill admits only local actors with empty or fully typed expired movement leases;
  * unknown or malformed reservations remain owned and cannot be added to the drill roster.
+ * A reserve outside the current element with an unrecorded native MOVE is also unavailable;
+ * existing admitted participants and separately verified owned native receipts retain their paths.
  * Reserve refill reuses bounded pair-aware element selection, keeping intact available buddies
  * together where vacancies permit, preferring eligible buddies of existing team members.
  * Same-bound casualty rebuilds retain incumbent actor destinations, progress clocks and spent
@@ -250,6 +252,10 @@ private _nativeCommandAvailable={
     if (_row isEqualTo []) exitWith {
         !(_drill getOrDefault ["nativeCommandsFull",false])
             && {_command != "STOP" || {!(_drill getOrDefault ["nativeAdmissionChecked",false])}}
+            // Initial participants retain their admitted native travel. A reserve
+            // with no CBE command receipt cannot donate somebody else's MOVE to
+            // casualty refill merely because there is now a vacant buddy role.
+            && {_command != "MOVE" || {_actor in (_drill getOrDefault ["units",[]])}}
     };
     if (count _row != 7 || {(_row select 0) != _actor}) exitWith {false};
     private _native=expectedDestination _actor;
