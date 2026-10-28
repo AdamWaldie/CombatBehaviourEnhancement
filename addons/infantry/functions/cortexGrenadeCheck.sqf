@@ -41,6 +41,10 @@
  * owner epoch and source machine; stale callbacks cannot clear a transferred/newer evasion or issue follow over native/specialist tasks.
  * Admission preserves unknown/malformed actor reservations; delayed cleanup requires the exact
  * issued evasion lease, including its destination, so a replacement marker is never retired.
+ * The existing one-shot regroup job uses GRENADE_CLEANUP so a tactical pause cannot postpone
+ * retirement of an already-issued escape. Original per-actor authority still refuses native
+ * recall after shutdown/migration/newer orders; this is not replay or proof of native handback.
+ * Initial projectile reaction stays ordinary TACTICS and never starts during a tactical pause.
  * Return retains the original native subformation anchor. Only that same capable surviving
  * same-group anchor may receive FOLLOW; changed/missing anchors and self-anchors grant no recall.
  * This preserves fire-team organisation instead of flattening every return onto the group leader.
@@ -234,6 +238,8 @@ private _clearHoldOwned={
 } forEach ((_grenade nearEntities ["CAManBase", 12]) select [0,16]);
 if (_reacted > 0) then {
     missionNamespace setVariable ["CBE_AIPass_GrenadeReactions", (missionNamespace getVariable ["CBE_AIPass_GrenadeReactions", 0]) + _reacted];
-    [CBE_fnc_CortexGrenadeCheck,createHashMapFromArray [["regroup",_regroupActors]],6] call CBE_fnc_CortexQueueJob;
+    [CBE_fnc_CortexGrenadeCheck,createHashMapFromArray [["regroup",_regroupActors],
+        ["subsystem","GRENADE_CLEANUP"]],6] call CBE_fnc_CortexQueueJob;
+    [] call CBE_fnc_SchedulerReconcile;
 };
 -1

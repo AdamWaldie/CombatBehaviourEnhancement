@@ -7004,7 +7004,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('setVariable ["CBE_Cortex_ActorMove",["GRENADE_EVASION"',text)
         self.assertIn('!([_unit] call CBE_fnc_CortexActorMoveReserved)',text)
         self.assertIn('setVariable ["CBE_Cortex_ActorMove",nil]',callback)
-        self.assertIn('[CBE_fnc_CortexGrenadeCheck,createHashMapFromArray [["regroup",_regroupActors]],6] call CBE_fnc_CortexQueueJob',text)
+        self.assertIn('[CBE_fnc_CortexGrenadeCheck,createHashMapFromArray [["regroup",_regroupActors],',text)
+        self.assertIn('["subsystem","GRENADE_CLEANUP"]],6] call CBE_fnc_CortexQueueJob',text)
         self.assertIn('"CBE_AIPass_GrenadeEvasion_Enable",true] call CBE_fnc_CortexFeatureEnabled',text)
         self.assertNotIn('CBA_fnc_waitAndExecute',text)
         for region in (callback,text.split('private _grenade =',1)[1]):

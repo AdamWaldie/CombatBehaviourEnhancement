@@ -10,6 +10,16 @@ class GrenadeNativeHandoverTests(unittest.TestCase):
         self.assertIn('_group getVariable ["CBE_AIPass_Epoch",0],_nativeRoute,clientOwner,_returnAnchor]', admission)
         self.assertLess(admission.index('private _returnAnchor=formLeader _unit;'), admission.index('_unit enableAI "PATH"'))
         self.assertEqual(s.count('call CBE_fnc_CortexQueueJob'), 2)  # header example and single regroup job
+        # Existing movement cleanup must not be postponed as if it were a new reaction.
+        self.assertIn('["subsystem","GRENADE_CLEANUP"]',admission)
+        self.assertLess(admission.index('call CBE_fnc_CortexQueueJob'),admission.index('call CBE_fnc_SchedulerReconcile'))
+        reconcile=(ROOT/'addons/core/functions/schedulerReconcile.sqf').read_text()
+        tick=(ROOT/'addons/core/functions/cortexSchedulerTick.sqf').read_text()
+        self.assertIn('case "GRENADE_CLEANUP"',reconcile)
+        self.assertIn('count _grenadeActors <= 16',reconcile)
+        self.assertIn('case "GRENADE_CLEANUP": {"CBE_Grenade_CleanupSchedulerActive"}',tick)
+        self.assertIn('if (_subsystem == "GRENADE_CLEANUP") then {_jobPaused=false}',tick)
+        self.assertIn('if (_grenadeRetired)',tick)
         throw=(ROOT/'addons/infantry/functions/cortexThrowGrenade.sqf').read_text()
         retry=throw.split('params ["_unit", "_muzzle", "_magazine"',1)[1]
         self.assertLess(retry.index('if (!local _unit || {!local _group}'),retry.index('private _cancel ='))

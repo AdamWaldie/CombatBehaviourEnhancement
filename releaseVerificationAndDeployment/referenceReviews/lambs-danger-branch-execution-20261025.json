@@ -2227,5 +2227,23 @@
       "fingerprint": "e5bba740ba62dd22d3dde4f83c5abd296dc62d93f4a19894b0c257c2ad5194bb",
       "type": "unsigned development; no physical/performance or signed release acceptance"
     }
+  },
+  "grenadePauseCleanup20261028": {
+    "base": "c63c52f42cf43f5854f4f548e5ac37ef76ca38b5",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "sourceScope": "Existing CBE ProjectileCreated -> CortexGrenadeCheck escape -> six-second regroup callback, under LAMBS reaction integration from grenadeEndpointSafety20261028 and grenadeReturnAnchor20261028. No upstream movement/animation/timer copied.",
+    "finding": "The already-issued evasion cleanup had the default TACTICS subsystem. CortexSchedulerTick therefore replaced its due callback with a five-second delay on every SafeStart/ENDEX tick. SchedulerReconcile also discarded it when ordinary tactics shut down. Posture/settings/hold cleanup already has separate finite lifetime; grenade cleanup lacked it.",
+    "implementation": "Tag only the existing per-projectile regroup callback GRENADE_CLEANUP and reconcile after enqueue. Existing single scheduler retains nonempty batches <=16 and derives a local CBE_Grenade_CleanupSchedulerActive flag; no actor/group epoch is restamped. Tick lets this cleanup bypass tactical pause and reconciles retained/pending queues at terminal/invalid-delay retirement. Original reaction job remains TACTICS. No new callback/handler, scan, movement owner, retry or renewed deadline.",
+    "authority": "Original per-entry source issuer/group/locality/epoch/generation, lease/destination/waypoint/Zeus/native/external/formation gates remain inside CortexGrenadeCheck. Shutdown/migration does not grant old cleanup permission to recall. Runtime lifetime is not movement authority.",
+    "checks": "Existing native-handover regression red failed missing cleanup subsystem. Existing native-handover/wake-cache/timing sample suites16 cases pass. Full build PASS1505 tests/461 production SQF/11 PBO plus HEMTT/FSM/config/docs/coverage/static performance gates. Independent candidate verification PASS. No test case added or removed. Logs .qa/handovers/grenade-pause-{red,focused,build,independent}-20261028.log.",
+    "cost": "One derived local lifetime flag and bounded queue checks through existing reconciliation; no extra world/geometry queries or permanent actor/controller worker. Actual overhead unmeasured.",
+    "limits": "Pause-independent execution of an existing cleanup callback, not observed native FOLLOW, cross-owner adoption, original marker expiry/native cancellation proof, provider handback or physical restoration. Full shutdown and migration handback remain open. Audits PAUSED.",
+    "candidate": {
+      "path": ".qa/candidates/grenade-pause-20261028-c63c52f4",
+      "base": "c63c52f42cf43f5854f4f548e5ac37ef76ca38b5",
+      "dirty": true,
+      "fingerprint": "73214c000fce76ec8a2ecea02d010d40e4e22126e82bbbf0da20d220a02b6833",
+      "type": "unsigned development; no physical/performance or signed-release acceptance"
+    }
   }
 }
