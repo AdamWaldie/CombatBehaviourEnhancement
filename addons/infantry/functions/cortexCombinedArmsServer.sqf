@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Radio failure uses a bounded combat-effective voice witness, never an incapable native leader.
+ * Voice witnesses do not grant radio permission; actual3D reach remains required.
  * Discovery rejects the requester and other sides before transmitter, crew and magazine
  * inspection. Live roles reserved by another request are also removed before ranking/truncation;
  * same-token or expired roles retain their prior admission semantics. The ground fallback pool
@@ -26,7 +28,9 @@
  * still be able to transmit, so jamming continues to prevent long-range composition.
  * Repeat/JIP: requester rate limit and expiring public role tokens replace older opportunities safely.
  * Expiry preserves matching terminal outcomes; only dispatched/applied roles become EXPIRED.
- * Spatial discovery explicitly includes mounted crews; primary Man nearEntities omits them.
+ * Spatial discovery includes mounted crews at any height inside the larger horizontal
+ * air/ground radius. Final role ranges and two-radio/3D voice rules remain authoritative.
+ * Query count is unchanged; vertically separated eligible groups can increase candidate work.
  * The spherical area uses the existing response radius and the required2.18 crew-aware syntax.
  * Candidate membership uses a request-local keyed set, preserving discovery order without
  * repeated linear array membership searches. Ranking retains the discovered asset; dispatch
@@ -71,7 +75,8 @@ private _voiceRange=missionNamespace getVariable ["CBE_AIPass_ContactReports_Voi
 private _groundRange=missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500];
 private _airRange=missionNamespace getVariable ["CBE_Cortex_CombinedArms_AirRange",4000];
 private _requesterTransmitter=[_requester] call CBE_fnc_CortexGroupTransmitter;
-private _requesterAnchor=if (isNull _requesterTransmitter) then {leader _requester} else {_requesterTransmitter};
+private _requesterAnchor=if (isNull _requesterTransmitter) then {[_requester,false] call CBE_fnc_CortexGroupTransmitter} else {_requesterTransmitter};
+if (isNull _requesterAnchor) exitWith {};
 private _senderRadio=!isNull _requesterTransmitter;
 private _requesterASL=getPosASL _requesterAnchor;
 // Every selected asset must be inside either the air or ground response envelope. Build a
@@ -79,7 +84,9 @@ private _requesterASL=getPosASL _requesterAnchor;
 // contact opens a combined-arms opportunity. The owner still performs the authoritative
 // weapon/turret preflight before it starts a run.
 private _searchRadius=_airRange max _groundRange;
-private _searchArea=[getPosATL _requesterAnchor,_searchRadius,_searchRadius,0,false,_searchRadius];
+// Air/ground response radii are horizontal. Discovery must not exclude altitude
+// before the existing two-radio or three-dimensional voice admission can run.
+private _searchArea=[getPosATL _requesterAnchor,_searchRadius,_searchRadius,0,false,-1];
 private _candidateGroups=[];
 private _candidateSeen=createHashMap;
 {
@@ -111,7 +118,7 @@ private _orderedGroups=[];
     if (!isNull _x) then {
         private _candidateGroup=_x;
         private _candidateTransmitter=[_candidateGroup] call CBE_fnc_CortexGroupTransmitter;
-        private _candidateAnchor=if (isNull _candidateTransmitter) then {leader _candidateGroup} else {_candidateTransmitter};
+        private _candidateAnchor=if (isNull _candidateTransmitter) then {[_candidateGroup,false] call CBE_fnc_CortexGroupTransmitter} else {_candidateTransmitter};
         if (!isNull _candidateAnchor && {alive _candidateAnchor}) then {
         private _candidateAsset=objNull;
         {
@@ -162,8 +169,8 @@ _requester setVariable ["CBE_Cortex_CombinedGroundFallback",[_token,_target,+_po
 {
     private _candidate=_x select 1;
     private _candidateTransmitter=[_candidate] call CBE_fnc_CortexGroupTransmitter;
-    private _candidateAnchor=if (isNull _candidateTransmitter) then {leader _candidate} else {_candidateTransmitter};
-    private _distance=_candidateAnchor distance2D _requesterAnchor;
+    private _candidateAnchor=if (isNull _candidateTransmitter) then {[_candidate,false] call CBE_fnc_CortexGroupTransmitter} else {_candidateTransmitter};
+    private _distance=if (isNull _candidateAnchor) then {1e12} else {_candidateAnchor distance2D _requesterAnchor};
     private _candidateRadio=!isNull _candidateTransmitter;
     if (_candidate != _requester && {side _candidate == side _requester} && {!isNull _candidateAnchor} && {alive _candidateAnchor}
         && {[_candidate] call CBE_fnc_CortexIsEligible}

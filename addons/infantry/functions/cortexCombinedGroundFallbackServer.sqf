@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Radio failure uses a bounded combat-effective voice witness, never an incapable native leader.
+ * Voice witnesses do not grant radio permission; actual3D reach remains required.
  * Purpose: Dispatch one replacement from an opportunity's bounded ranked ground-asset pool.
  * Locality/authority: Server-only internal call after CortexCombinedRejectServer authenticates
  * and retires the exact refusal. Current requester, candidate and operating crew are revalidated.
@@ -41,7 +43,7 @@ if (count _result != 5 || {(_result select 0) != _token} || {(_result select 1) 
     || {(_rejected getVariable ["CBE_Cortex_CombinedGroundConsumed",[]]) isEqualTo [_token,_role]}) exitWith {false};
 _rejected setVariable ["CBE_Cortex_CombinedGroundConsumed",[_token,_role]];
 private _sender=[_requester] call CBE_fnc_CortexGroupTransmitter;
-private _origin=if (isNull _sender) then {leader _requester} else {_sender};
+private _origin=if (isNull _sender) then {[_requester,false] call CBE_fnc_CortexGroupTransmitter} else {_sender};
 if (isNull _origin) exitWith {false};
 private _originASL=getPosASL _origin;
 private _range=missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500];
@@ -64,7 +66,7 @@ while {_cursor < count _candidates && {isNull _replacement}} do {
         && {private _live=_candidate getVariable ["CBE_Cortex_CombinedRole",[]];
             !((count _live) in [7,8]) || {serverTime >= (_live select 5)}}) then {
         private _receiver=[_candidate] call CBE_fnc_CortexGroupTransmitter;
-        private _anchor=if (isNull _receiver) then {leader _candidate} else {_receiver};
+        private _anchor=if (isNull _receiver) then {[_candidate,false] call CBE_fnc_CortexGroupTransmitter} else {_receiver};
         if (!isNull _anchor && {alive _anchor} && {_anchor distance2D _origin <= _range}
             && {(_anchor distance2D _origin <= _voiceRange
                 && {(getPosASL _anchor) vectorDistance _originASL <= _voiceRange})

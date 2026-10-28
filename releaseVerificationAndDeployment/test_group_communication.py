@@ -37,8 +37,26 @@ class GroupCommunicationTests(unittest.TestCase):
                         owner.index('setVariable ["CBE_AIPass_AreaReport"'))
         combined=source('cortexCombinedArmsServer')
         fallback=source('cortexCombinedGroundFallbackServer')
+        self.assertIn('private _receiverArea=[_senderPosition,_range,_range,0,false,-1]',server)
+        self.assertIn('private _searchArea=[getPosATL _requesterAnchor,_searchRadius,_searchRadius,0,false,-1]',combined)
+        # Receiver discovery must be a superset of the existing horizontal radio rule.
+        # The former finite-height cylinder omitted these otherwise valid receivers.
+        for radius,point in ((500,(300,0,800)),(4000,(1000,0,5000))):
+            horizontal=math.hypot(*point[:2])
+            self.assertLessEqual(horizontal,radius)
+            self.assertGreater(abs(point[2]),radius)
+            self.assertGreater(math.dist((0,0,0),point),35)
+        # Without both radio endpoints, unlimited-height discovery grants no voice reach.
+        def communication(point,sender_radio,receiver_radio,radius=500):
+            return math.hypot(*point[:2])<=radius and (
+                (sender_radio and receiver_radio) or math.dist((0,0,0),point)<=35)
+        for radios in ((False,False),(True,False),(False,True)):
+            self.assertFalse(communication((20,0,800),*radios))
+        self.assertTrue(communication((300,0,800),True,True))
+        self.assertFalse(communication((501,0,0),True,True))
+        self.assertTrue(communication((20,0,28),False,False))
         self.assertIn('_receiverPosition vectorDistance _senderPosition > _voiceRange',owner)
-        self.assertIn('getPosASL ([_transmitter, leader _sender]',owner)
+        self.assertIn('getPosASL _senderAnchor',owner)
         self.assertIn('(getPosASL _receiverAnchor) vectorDistance _senderASL <= _voiceRange',server)
         self.assertIn('(getPosASL _candidateAnchor) vectorDistance _requesterASL <= _voiceRange',combined)
         self.assertIn('(getPosASL _anchor) vectorDistance _originASL <= _voiceRange',fallback)
@@ -76,7 +94,7 @@ class GroupCommunicationTests(unittest.TestCase):
         transmitter = source("cortexGroupTransmitter")
         self.assertIn('private _leader = leader _group;', transmitter)
         self.assertIn('_checked >= 12', transmitter)
-        self.assertIn('if (_leaderEligible && {[_leader] call CBE_fnc_CortexCanTransmit}) exitWith {_leader}',transmitter)
+        self.assertIn('if (_leaderEligible && {!_requireRadio || {[_leader] call CBE_fnc_CortexCanTransmit}}) exitWith {_leader}',transmitter)
         self.assertLess(transmitter.index('exitWith {_leader}'),transmitter.index('forEach (units _group)'))
         self.assertNotIn(' select {',transmitter)
         def previous(roster,leader):
@@ -104,6 +122,24 @@ class GroupCommunicationTests(unittest.TestCase):
                         self.assertEqual(streamed(roster,leader),previous(roster,leader))
         self.assertIn('[_x] call CBE_fnc_CortexCanTransmit', transmitter)
         self.assertIn('[_leader] call CBE_fnc_CortexCombatEffective',transmitter)
+        self.assertIn('["_requireRadio",true,[true]]',transmitter)
+        self.assertIn('!_requireRadio || {[_x] call CBE_fnc_CortexCanTransmit}',transmitter)
+        for name,groups in (('cortexReportServer',('_sender','_receiver')),
+                            ('cortexReportLocal',('_sender','_receiver')),
+                            ('cortexCombinedArmsServer',('_requester','_candidateGroup','_candidate')),
+                            ('cortexCombinedArmsLocal',('_requester','_group')),
+                            ('cortexCombinedGroundFallbackServer',('_requester','_candidate'))):
+            text=source(name)
+            for group in groups:
+                self.assertIn('['+group+',false] call CBE_fnc_CortexGroupTransmitter',text)
+        # A jammed but capable voice witness is distinct from radio permission.
+        def witness(rows,radio):
+            return next((name for name,capable,can_radio in rows
+                         if capable and (not radio or can_radio)),None)
+        rows=(('leader',False,True),('wingman',True,False))
+        self.assertIsNone(witness(rows,True))
+        self.assertEqual(witness(rows,False),'wingman')
+        self.assertIsNone(witness((('unconscious',False,False),),False))
         self.assertIn('[_x] call CBE_fnc_CortexCombatEffective',transmitter)
         radio=source('cortexCanTransmit')
         self.assertLess(radio.index('[_unit] call CBE_fnc_CortexCombatEffective'),radio.index('private _hook'))
@@ -130,10 +166,10 @@ class GroupCommunicationTests(unittest.TestCase):
         report = source('cortexReportServer')
         report_local = source('cortexReportLocal')
         self.assertIn('private _transmitter = [_sender] call CBE_fnc_CortexGroupTransmitter;', report)
-        self.assertIn('private _senderPosition = getPosATL ([_transmitter, leader _sender] select isNull _transmitter);', report)
+        self.assertIn('private _senderPosition = getPosATL _senderAnchor;', report)
         self.assertIn('_receiverAnchor distance2D _senderPosition <= _range', report)
         self.assertIn('private _receiverTransmitter = [_receiver] call CBE_fnc_CortexGroupTransmitter;', report_local)
-        self.assertIn('private _receiverPosition = getPosASL ([_receiverTransmitter, leader _receiver] select isNull _receiverTransmitter);', report_local)
+        self.assertIn('private _receiverPosition = getPosASL _receiverAnchor;', report_local)
         self.assertIn('_receiverPosition distance2D _senderPosition > _range', report_local)
         self.assertNotIn(' reveal ', report)
         self.assertNotIn('doTarget', report)

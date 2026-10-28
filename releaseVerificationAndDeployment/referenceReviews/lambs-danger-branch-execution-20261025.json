@@ -2039,5 +2039,58 @@
       "addons/core/functions/cortexFireControl.sqf": "d3a96de261b55cb260811cd558169b5d794cc88d8169733463ddf685bd7b7c50",
       "addons/vehicles/functions/cortexVehicles.sqf": "60e6f534d5faaed91fbab87395f4a08065bbc45731864fec2ec4eee5c2538215"
     }
+  },
+  "communicationDiscoveryHeight20261028": {
+    "base": "6c5babbfef10eab2faec688d43ff649d5a70cd1f",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "registeredScope": "Existing contact-sharing/combined-arms coordination foundation, following contactCommunicationReview20261028. Correct current CBE range-policy execution; no source equipment/range-port or whole-mod parity claim.",
+    "sourceWitnesses": {
+      ".qa/lambs-danger-installed-20261026/functions/fnc_contact.sqf": "8c22ca9070c08e8709b2cfad3b44656ff0191b2be094dd45ecb8e6c524691f0f",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_doShareInformation.sqf": "6337ab762fad4404b983c33248fcbdedca6e629caf32b802ad93a3f0b7846282",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_getShareInformationParams.sqf": "b1e72d28f8c016af79ffe8e34b1f824fd14a359c73dc855ec18b825bb5d8f272",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_addShareInformationHandler.sqf": "0a727ee53522d6ba4165eb39692418c5140ccd73161ca3616a0c3b5f8dacbcde"
+    },
+    "mainPboSHA256": "be8e6950b6b0f1541acf5e8d1a46c0566daa365662533ae3ee57d3079db21970",
+    "sourceVerification": "Complete prior danger-contact and3 main communication helper witnesses still match their recorded hashes; installed main PBO matches preserved manifest. Originals untouched.",
+    "sourceDisposition": "Retain the earlier target-free uncertain area reports, mutual friendship, original timestamps, jamming and bounded delivery rather than source target-object reveal/allGroups/delayed knowledge refresh. Equipment-derived long-range bonuses, side-specific policy and general share-handler API remain deferred. Source selection does not require making generic CBE communications depend on inventory radio items.",
+    "finding": "ReportServer discovery set cylinder height to radio radius; CombinedArmsServer used the larger response radius as height. Later eligibility and receiving owner use distance2D for radio/role reach and ASL3D for voice. A radio-capable elevated/airborne group inside horizontal range but above the discovery cap could never reach those gates. Example report offset300m horizontal/800m vertical at500m radius; combined air1000m horizontal/5000m vertical at4000m air radius.",
+    "implementation": "Set existing area c=-1 in both spatial queries, preserving centre,horizontal ellipse,type/alive/includeCrew and query count. Keep group-key de-duplication, original current transmitter hooks, mutual/same-side policies as appropriate, role ranges, native station/crew/flight/mission authority, original observations/deadlines,32-member fallback caps and8-recipient delivery slices. Voice without both radios still needs3D ASL reach. No new worker, global scan, setting, item requirement, role/module, reveal or command writer.",
+    "officialContracts": [
+      "https://community.bistudio.com/wiki/nearEntities:2.18 area syntax includes crews and uses inArea shape.",
+      "https://community.bohemia.net/wiki/inArea?useskin=DarkVector:c=-1 means unlimited height; checked2026-10-28."
+    ],
+    "cost": "Same one spatial query/request and existing query cadence/slicing/caps. Returned vertical population and ensuing group/transmitter work may increase within the same horizontal radius. No measured cost or whole-mod5%median/10%p95 claim.",
+    "verification": {
+      "red": ".qa/handovers/communication-height-red-20261028.log:6 existing communication cases,selected regression fails finite-height source.",
+      "focused": ".qa/handovers/communication-height-focused-20261028.log:6 existing communication cases PASS, including geometric elevated receiver counterexamples and no-radio voice refusal models. Source/geometry models do not execute native area discovery or network communication.",
+      "newTestCases": 0,
+      "physical": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_RUN",
+      "retainedFullFailure": ".qa/handovers/communication-height-build-20261028.log:1505 existing cases,1 stale mounted-discovery source contract required the old finite height. Corrected that expected contract; no test removed. Session76980 terminal exit1. This failed build is not a candidate.",
+      "voiceRed": ".qa/handovers/communication-voice-anchor-red-20261028.log:6 cases,3 selected source contract failures before capable voice path.",
+      "voiceFocused": ".qa/handovers/communication-voice-anchor-focused-20261028.log:6 existing communication cases PASS. Default roster policy models retained, explicit voice readiness/jamming distinction and all selected consumer wiring checked. Native voice/network behaviour unverified.",
+      "payloadFocused": ".qa/handovers/communication-payload-focused-20261028.log:12 existing payload/mounted cases PASS.",
+      "operationsFocused": ".qa/handovers/communication-operations-focused-20261028.log:617 existing operation cases PASS.",
+      "fullBuild": ".qa/handovers/communication-final-build-20261028.log:1505 existing tests,459 compiled production SQF,11 PBO and complete local gates PASS. Session27882 terminal exit0.",
+      "independent": ".qa/handovers/communication-independent-20261028.log:PASS",
+      "candidate": ".qa/candidates/communication-witness-20261028-6c5babbf",
+      "fingerprint": "e4a633ce850d41740e5d51dbb0936e74af3f74ac06da6bac205a980533b5a12a",
+      "provenance": "6c5babbfef10eab2faec688d43ff649d5a70cd1f plus dirty runtime; engineering/handover metadata finalized after packaging. Unsigned development, not signed clean release or physical acceptance."
+    },
+    "remaining": "Actual high-aircraft/elevated-squad discovery, mounted crew grouping, queued jamming/owner changes, role dispatch/native flight, normal/HC networking, tactical usefulness and measured cost require later runtime validation. Contact confidence-to-investigation policy and broader source communication/other source descendants remain incomplete; no build-out/parity percentage raised.",
+    "voiceWitnessFollowup": {
+      "finding": "When radio selection failed, report server/receiver and combined primary/owner/ground-fallback used native leader positions. Some checked only alive, and report delivery did not require a capable sender voice anchor. A dead/unconscious/captive leader could supply a voice origin or hide a capable jammed wingman.",
+      "implementation": "CortexGroupTransmitter keeps default radio=true semantics; optional false selects a combat-effective nonplayer voice witness with the same leader priority and12-eligible budget, skipping only the radio jamming hook. Report server/local and combined server/local/ground-fallback call false only when their separate default radio result is null. Missing source voice anchor refuses before spatial/native work; missing receiver refuses. Existing3D voice checks and two-default-radio-result checks still control reach. No shared actor anchor requiring locality was reused for nonlocal communications.",
+      "cost": "Default radio fast path and policy unchanged. Voice fallback adds bounded roster selection only after radio fails; it does not call jamming hook. Sparse eligible rosters can require the existing full roster walk. No world query, worker, public state, command or new function added.",
+      "scope": "Read-only communication witnesses only; no group leadership change, skill/order/formation mutation, inventory-radio dependency or provider takeover. Radio-first helper results remain the only source of radio flags. Other support/artillery callers retain default radio mode."
+    },
+    "productHashes": {
+      "addons/infantry/functions/cortexGroupTransmitter.sqf": "1a677e94334b992094c80132e41f0bc8b962ab227848eaddd1917c78296cfb96",
+      "addons/infantry/functions/cortexReportServer.sqf": "248fe9b613f67721c72b9f679ae5f41cdb6b13b813648cf49d97f14f0a0e0396",
+      "addons/infantry/functions/cortexReportLocal.sqf": "fbf1b8de50f60b135405f0ddf99141aea49fbd6d6837cae33ee9c435de41ed2e",
+      "addons/infantry/functions/cortexCombinedArmsServer.sqf": "75211d3622554f1045817cfdcc1a43c84b3bbbb5748a4d63350fb38a2721d549",
+      "addons/infantry/functions/cortexCombinedArmsLocal.sqf": "5bb8ae1d03b4cb0957d4976c51654e0a5e166bd40aabcdc7230c98f10b46d077",
+      "addons/infantry/functions/cortexCombinedGroundFallbackServer.sqf": "3c54a287e19d16c340db13eb70337998d97c24a3384d0913d197ce89d759ad4d"
+    }
   }
 }

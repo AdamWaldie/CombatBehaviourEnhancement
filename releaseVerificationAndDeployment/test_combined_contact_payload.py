@@ -116,7 +116,7 @@ class CombinedMountedDiscoveryTests(unittest.TestCase):
         text=(ROOT/'addons/infantry/functions/cortexCombinedArmsServer.sqf').read_text()
         discovery=text.split('private _searchRadius=',1)[1].split('private _orderedGroups=',1)[0]
         self.assertIn('_airRange max _groundRange',discovery)
-        self.assertIn('[getPosATL _requesterAnchor,_searchRadius,_searchRadius,0,false,_searchRadius]',discovery)
+        self.assertIn('[getPosATL _requesterAnchor,_searchRadius,_searchRadius,0,false,-1]',discovery)
         self.assertIn('_searchArea nearEntities [["Man"],false,true,true]',discovery)
         self.assertNotIn('nearEntities ["Man",',discovery)
         self.assertNotIn('allUnits',discovery)

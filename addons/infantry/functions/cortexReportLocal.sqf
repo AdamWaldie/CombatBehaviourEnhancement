@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Stores an expiring area report without revealing or tracking a target object.
+ * Voice fallback reselects a combat-effective member at both ends after queued delivery;
+ * an incapable/dead native leader supplies no voice origin. This does not qualify radio.
  * Both live mission friendship directions must be at least0.6, including after queued delivery.
  * A one-way alliance or a relationship change cannot inherit earlier sharing permission.
  * Delivery rechecks both radio endpoints; nearby voice communication remains possible
@@ -26,11 +28,13 @@ private _transmitter = [_sender] call CBE_fnc_CortexGroupTransmitter;
 private _receiverTransmitter = [_receiver] call CBE_fnc_CortexGroupTransmitter;
 private _voiceRange=missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35];
 private _range = if (!isNull _transmitter) then {missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500]} else {missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35]};
-private _senderPosition = getPosASL ([_transmitter, leader _sender] select isNull _transmitter);
-private _receiverPosition = getPosASL ([_receiverTransmitter, leader _receiver] select isNull _receiverTransmitter);
+private _senderAnchor=if (isNull _transmitter) then {[_sender,false] call CBE_fnc_CortexGroupTransmitter} else {_transmitter};
+private _receiverAnchor=if (isNull _receiverTransmitter) then {[_receiver,false] call CBE_fnc_CortexGroupTransmitter} else {_receiverTransmitter};
+if (isNull _senderAnchor || {isNull _receiverAnchor}) exitWith {};
+private _senderPosition = getPosASL _senderAnchor;
+private _receiverPosition = getPosASL _receiverAnchor;
 if ((side _receiver) getFriend (side _sender) < 0.6
     || {(side _sender) getFriend (side _receiver) < 0.6}
-    || {isNull _receiverTransmitter && {!alive leader _receiver}}
     || {_receiverPosition distance2D _senderPosition > _range}
     || {_receiverPosition vectorDistance _senderPosition > _voiceRange
         && {isNull _transmitter || {isNull _receiverTransmitter}}}) exitWith {};
