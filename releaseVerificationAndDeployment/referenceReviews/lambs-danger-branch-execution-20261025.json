@@ -1476,7 +1476,8 @@
       "buildLog": ".qa/handovers/firing-position-final-bounded-build-feddc020.log",
       "independentLog": ".qa/handovers/firing-position-final-bounded-independent.log",
       "sourceNote": "Unsigned dirty development from feddc020 plus this runtime patch. Final package includes the lifecycle description; engineering records postdate packaging. Not a clean release or physical acceptance. Earlier firing-position candidates/logs are superseded before the final pending-outcome publication correction."
-    }
+    },
+    "ordinaryEngagementFollowup": "ordinaryFiringPosition20261028 extends the same task to recent ordinary native contacts without suppression reserve thresholds. Earlier suppression-only scope is historical; leader/vehicle/overwatch/native ATTACK variants and physical proof remain separate."
   },
   "reactiveMortarIllumination20261027": {
     "status": "SUPERSEDED_NATIVE_FLARE_ZERO_INDIRECT_REJECTION",
@@ -2166,5 +2167,28 @@
     "candidate": ".qa/candidates/attack-legacy-retirement-20261028-031416b1",
     "fingerprint": "96888d88bf93d17d7be769e9d985aa99728302a2bc7cd9726ae389146d1a76e7",
     "provenance": "031416b1856486f2cba78a3cf812e969a0bb8fd5 plus dirty runtime; metadata finalized after build. Unsigned development, not physical acceptance."
+  },
+  "ordinaryFiringPosition20261028": {
+    "base": "36887244747759de5f305388330dff1ef55954ba",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "sourceReferences": [
+      "groupSuppressionRosterReview20261026",
+      "firingPositionImplementation20261027",
+      "smart-combat-state-source-20261027.json#firingAndCoverSelection20261027"
+    ],
+    "sourceVerification": "Four main suppression/roster/visibility/vehicle helpers and complete tacticsSuppress rehashed against existing reviews; originals unchanged.",
+    "intent": "Reuse the finite firing-position owner for persistently occluded ordinary rifle engagement; reject source unleased fire-to-movement/forceSpeed and duplicate controllers.",
+    "gap": "Initial ASSESS was reached only through suppression after >=2 spare magazines and >=60 rounds. Ordinary loaded-rifle engagement could not use the task.",
+    "implementation": "Before target distribution, assess one idle nonleader per callback against the first recent <=3s native-belief contact at30..500m. No common operation or current firing-position task. Exclude close-threat/held/native ATTACK/MOVE actors. Candidate roster capped64. Cursor rotates clear/refused actors; only a freshly updated original obstruction sample retains the candidate for existing6s confirmation. On admission remove the actor from remaining firing roster; safely return if it becomes empty. No live target pose read.",
+    "owner": "Existing FiringPositionOperation retains same-belief/stationary6s proof,10s search gate, four6/10m lateral endpoints, avenue gate, one MOVE, original18+8s bounds, route/actor/native handback and passive migration/unknown-custody handling. No new move site, worker type, retry clock or suppression reserve requirement.",
+    "reload": "Validate selected weapon/muzzle/magazine and finite zero reload/cycling phases before current-lane query; compare unchanged weaponState again inside existing atomic native-issue commit. Unknown/active reload refuses admission. Existing native reload during an active route remains native work.",
+    "cost": "At most one extra current-lane terrain/FIRE observation per ordinary callback plus unchanged task-bounded prospective endpoint/avenue work after confirmation. Existing3 suppression-lane checks remain separate: whole-callback geometry may increase by this one assessment. No new world scan, global loop, setting or posture/skill/formation/waypoint changes. Actual cost unmeasured.",
+    "verification": ".qa/handovers/firing-ordinary-focused-final-20261028.log:617 existing checks PASS before final weapon-state commit assertion. Existing finite-task case extended, no new case; final full pipeline required.",
+    "remaining": "Native ATTACK/MOVE, leader, vehicle and active common/specialist tasks still retain ownership. Physical access, firing benefit, continuous safety, native return, normal/HC locality and measured cost remain unverified; audits paused.",
+    "fullBuild": ".qa/handovers/firing-ordinary-build-20261028.log:1505 existing tests/460 SQF/11 PBO complete local pipeline PASS; session31825 exit0.",
+    "independent": ".qa/handovers/firing-ordinary-independent-20261028.log:PASS",
+    "candidate": ".qa/candidates/firing-ordinary-20261028-36887244",
+    "fingerprint": "38a5b23488444611134ec055adfd1272fcdad234e774fe2ecad07a189d220bcb",
+    "provenance": "36887244747759de5f305388330dff1ef55954ba plus dirty runtime; metadata finalized after build. Unsigned development, not physical/performance acceptance."
   }
 }

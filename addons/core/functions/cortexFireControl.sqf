@@ -6,6 +6,8 @@
  * witness and source expiry remain valid; legacy six/seven-field records use their event expiry.
  * Persistently obstructed eligible nonleaders may request one finite lateral firing-position
  * task per group; selection, native movement/return and unresolved custody use FiringPositionOperation.
+ * Ordinary recent contacts can assess one idle nonleader through that same task without
+ * suppression reserve-ammunition requirements. Admitted movers leave this callback firing roster.
  * No task, stance or settings reset is inferred from a suppression timestamp.
  * Suppression assesses at most three actor lanes per pass: terrain veto, one FIRE/GEOM hit,
  * near-objective cover face within three metres, then the protected-actor cone at the issued point.
@@ -191,6 +193,40 @@ private _closeThreatActors=[];
         };
     };
 } forEach _members;
+
+// Ordinary engagement uses the same finite firing-position owner as suppression.
+// Assess one idle nonleader per callback from recent native belief, never a live target pose.
+// Keep a freshly sampled obstruction long enough for its existing six-second confirmation;
+// otherwise rotate so a clear first rifleman cannot hide blocked members behind him.
+private _recentContact=_enemies findIf {(_x select 2) <= 3 && {(_x select 3) >= 30} && {(_x select 3) <= 500}};
+if (_recentContact >= 0 && {count _operation == 0}
+    && {isNull (_group getVariable ["CBE_FiringPosition_Actor",objNull])}) then {
+    private _positionActors=(_members select {_x != leader _group && {!(_x in _closeThreatActors)}
+        && {!(_x call _held)} && {currentCommand _x in ["","WAIT","FOLLOW"]}}) select [0,64];
+    if (_positionActors isNotEqualTo []) then {
+        private _candidate=_state getOrDefault ["firingPositionCandidate",objNull];
+        if (!(_candidate in _positionActors)) then {
+            private _cursor=(_state getOrDefault ["firingPositionCursor",0]) mod count _positionActors;
+            _candidate=_positionActors select _cursor;
+            _state set ["firingPositionCursor",(_cursor+1) mod count _positionActors];
+        };
+        private _believedASL=(ATLToASL ((_enemies select _recentContact) select 1)) vectorAdd [0,0,1];
+        private _admitted=["ASSESS",_candidate,_believedASL] call CBE_fnc_FiringPositionOperation;
+        private _sample=_candidate getVariable ["CBE_FiringPosition_Blocked",[]];
+        _state deleteAt "firingPositionCandidate";
+        if (_admitted) then {
+            // The same callback must not replace this new MOVE with targeting/suppression.
+            _members=_members-[_candidate];
+            _orders=_orders+1;
+        } else {
+            if (count _sample == 4 && {(_sample select 3) >= _now}) then {
+                _state set ["firingPositionCandidate",_candidate];
+            };
+        };
+    };
+} else {_state deleteAt "firingPositionCandidate"};
+
+if (_members isEqualTo []) exitWith {_orders};
 
 // Target distribution across visible enemies.
 private _visible = (_enemies select {(_x select 2) <= 3}) apply {_x select 0};

@@ -178,7 +178,7 @@
       "sha256": "a2acf7e1fa141a43e4d3addb18dd8448e3ec20df213bb7ecc2427cec190d1bf2",
       "area": "Tactical group layer",
       "reviewStatus": "Complete readable body reviewed 2026-10-26; execution dependencies and physical integration open",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "next": "Selected group-suppression helpers and finite firing-position owner traced in groupSuppressionRosterReview20261026/firingPositionImplementation20261027; ordinaryFiringPosition20261028 now extends that same owner to recent engagement without suppression reserve thresholds. Do not recreate unleased forceSpeed/doMove fallback. Broader mounted/overwatch/source descendants and physical/performance quality remain open."
     },
     {
       "path": "functions/ZEN/fnc_setDisableAI.sqf",

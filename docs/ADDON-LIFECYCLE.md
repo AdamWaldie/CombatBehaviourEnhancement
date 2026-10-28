@@ -2460,3 +2460,18 @@ cleanup do not infer permission from legacy flags or a default baseline. Checkpo
 longer transport those flags. A refused restore cannot be overridden by a second cleanup
 writer. Existing building-task and flight-specific permission receipts remain distinct.
 Native handback and measured performance remain unverified while audits are paused.
+
+
+## Ordinary obstructed firing positions
+
+Recent native contact can prompt the existing finite firing-position task without the
+suppression spare-ammunition threshold. One idle nonleader is assessed per callback;
+close-threat responders, held actors and native ATTACK/MOVE tasks retain priority. An
+admitted mover leaves that callback firing roster before target distribution. The same
+six-second obstruction confirmation, short lateral search, original move/return deadlines
+and single task slot apply. No live target pose is read to choose movement.
+
+The loaded primary bullet muzzle must be ready, including reload/cycling readback, and
+weapon state is rechecked at issue. This adds at most one current-lane assessment alongside
+the separate suppression budget. Native access, firing benefit and measured cost remain
+unverified while audits are paused.

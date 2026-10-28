@@ -6633,6 +6633,23 @@ class CortexOperations(unittest.TestCase):
         task=source('firingPositionOperation')
         fire=source('cortexFireControl')
         self.assertIn('["ASSESS",_unit,_targetASL] call CBE_fnc_FiringPositionOperation',fire)
+        ordinary=fire.split('// Ordinary engagement uses',1)[1].split('// Target distribution',1)[0]
+        self.assertIn('["ASSESS",_candidate,_believedASL] call CBE_fnc_FiringPositionOperation',ordinary)
+        self.assertIn('(_x select 2) <= 3',ordinary)
+        self.assertIn('count _operation == 0',ordinary)
+        self.assertIn('_members=_members-[_candidate]',ordinary)
+        self.assertIn('currentCommand _x in ["","WAIT","FOLLOW"]',ordinary)
+        self.assertIn('(_sample select 3) >= _now',ordinary)
+        self.assertEqual(ordinary.count('call CBE_fnc_FiringPositionOperation'),1)
+        for forbidden in ('aimPos','getPosATL _target','magazinesAmmoFull','doMove','doTarget','doFire','doSuppressiveFire'):
+            self.assertNotIn(forbidden,ordinary)
+        self.assertLess(fire.index('_members=_members-[_candidate]'),fire.index('// Target distribution'))
+        self.assertIn('if (_members isEqualTo []) exitWith {_orders}',ordinary)
+        self.assertLess(task.index('private _selected=weaponState _actor'),task.index('if ([eyePos _actor,_belief] call _lane)'))
+        for readiness in ('count _selected < 7','!finite _roundReload','_roundReload != 0',
+                          '!finite _reload','_reload != 0','(_selected select 3) != _magazine'):
+            self.assertIn(readiness,task)
+        self.assertIn('(weaponState _actor) isNotEqualTo _selected',task)
         self.assertEqual(task.count('_actor doMove _point;'),1)
         self.assertEqual(task.count('_actor doFollow (_before select 2);'),1)
         for proof in ('time-(_sample select 2) < 6','time+10','serverTime+18',

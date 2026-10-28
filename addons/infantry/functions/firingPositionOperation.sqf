@@ -3,6 +3,7 @@
  * Purpose: One finite owner-local firing-position FSM for a persistently obstructed rifleman.
  * ASSESS requires the same nearby belief and stationary origin across six seconds; four lateral
  * endpoints are tested once after a ten-second search cooldown. No target pose is read.
+ * Assessment preserves reload/cycling and requires a ready loaded primary bullet muzzle.
  * MOVE and RETURN are observed phases, not command acknowledgements inferred from elapsed time.
  * Locality/authority: Actor/group owner; newer native routes, specialist work and Zeus win.
  * Repeat/JIP: One public journal per actor and one slot per group; original 18+8 second budget,
@@ -53,14 +54,20 @@ if (_mode == "ASSESS") exitWith {
         || {count (_group getVariable ["CBE_Operation",createHashMap]) > 0}
         || {!([_actor] call CBE_fnc_IndoorActorGroupAvailable)}
         || {!isNull (_group getVariable ["CBE_FiringPosition_Actor",objNull])}) exitWith {false};
+    private _weapon=primaryWeapon _actor;
+    private _magazine=currentMagazine _actor;
+    private _selected=weaponState _actor;
+    private _roundReload=_selected param [5,1,[0]];
+    private _reload=_selected param [6,1,[0]];
+    if (_weapon == "" || {currentWeapon _actor != _weapon} || {_actor ammo currentMuzzle _actor <= 0}
+        || {count _selected < 7} || {(_selected select 0) != _weapon}
+        || {(_selected select 1) != currentMuzzle _actor} || {(_selected select 3) != _magazine}
+        || {!finite _roundReload} || {_roundReload != 0} || {!finite _reload} || {_reload != 0}
+        || {toLowerANSI getText (configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines"
+            >> _magazine >> "ammo") >> "simulation") != "shotbullet"}) exitWith {false};
     if ([eyePos _actor,_belief] call _lane) exitWith {
         _actor setVariable ["CBE_FiringPosition_Blocked",nil];false
     };
-    private _weapon=primaryWeapon _actor;
-    private _magazine=currentMagazine _actor;
-    if (_weapon == "" || {currentWeapon _actor != _weapon} || {_actor ammo currentMuzzle _actor <= 0}
-        || {toLowerANSI getText (configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines"
-            >> _magazine >> "ammo") >> "simulation") != "shotbullet"}) exitWith {false};
     private _origin=getPosATL _actor;
     private _sample=_actor getVariable ["CBE_FiringPosition_Blocked",[]];
     if (!(_sample isEqualType []) || {count _sample != 4}
@@ -92,6 +99,7 @@ if (_mode == "ASSESS") exitWith {
     if (!(call _available) || {!([_actor] call CBE_fnc_CortexActorFireTaskAvailable)}
         || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _route}
         || {[currentCommand _actor,expectedDestination _actor,formLeader _actor] isNotEqualTo _before}
+        || {(weaponState _actor) isNotEqualTo _selected}
         || {!isNull (_group getVariable ["CBE_FiringPosition_Actor",objNull])}) exitWith {};
     private _generation=1+(_actor getVariable ["CBE_FiringPosition_Generation",0]);
     private _until=serverTime+18;
