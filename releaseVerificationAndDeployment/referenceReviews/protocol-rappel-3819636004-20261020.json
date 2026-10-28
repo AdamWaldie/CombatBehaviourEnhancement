@@ -238,5 +238,26 @@
       "fingerprint": "e46f3bde52263b222b0590d7ba002ea74fbf11e054d34925aa44fdd2d42c8294",
       "type": "unsigned development; not clean signed release or behavioural acceptance"
     }
+  },
+  "actorOwnerIntegrationTrace20261028": {
+    "base": "dc5a7f23431504ec7f3e29da5818790eb0c79e45",
+    "status": "EXECUTION_CONSTRAINT_FOUND_ACTOR_PORT_STILL_OPEN",
+    "actualPaths": [
+      "addons/core/functions/cortexQueueJob.sqf",
+      "addons/core/functions/cortexSchedulerTick.sqf",
+      "addons/core/functions/actorSettings.sqf",
+      "addons/main/XEH_postInit.sqf",
+      "addons/infantry/functions/cortexParachuteProtectionRelease.sqf",
+      "addons/aircraft/functions/flightLeaseAcquire.sqf",
+      "addons/aircraft/functions/flightLeaseValid.sqf"
+    ],
+    "findings": [
+      "Scheduler skips callbacks for disabled subsystems, stale group owners/epochs and paused tactical jobs. Dedicated existing cleanup categories survive tactical pause, but no actor simulation/animation cleanup category exists. A generic tactical job cannot be sole retirement path for a suspended actor.",
+      "ActorSettings supports STANCE and SPEED only, not simulation, animation or damage. Do not silently add these unrelated write domains or trust its stance receipt as authority for rope physics.",
+      "XEH_postInit already installs passive actor init/Local hooks on every machine for native-feature retirement, including parachute protection/deployment. This is the existing actual-owner observation layer to integrate, not a reason to add a permanent global scan or globally change scheduler pauses.",
+      "FlightLeaseValid is actual-aircraft-owner local. Public lease metadata alone cannot grant a cargo owner flight authority. Full orchestration must explicitly account for split aircraft/cargo ownership; a local-only actor draft is not multiplayer completion."
+    ],
+    "decision": "Keep read-only route planner internal. Next actor port must include exact original resource/writer identity and native Local/init cleanup independent of tactical enablement, plus actual airframe authority. No private PFH/controller or simulation/animation writer added merely to bypass lifecycle gaps. Continue independent registered foundation fixes while designing that owned handback.",
+    "limits": "Read-only execution trace; not controlled descent, cleanup implementation or provider handover. Audits remain PAUSED."
   }
 }

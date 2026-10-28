@@ -6968,6 +6968,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_away,_grenadePos,6,_reserved,_group,"COVER",_unit]',admission)
         self.assertIn('_reserved findIf {_x distance2D _candidate < 2} < 0',admission)
         self.assertIn('_x distance2D _grenadePos > _originDangerDistance',admission)
+        # Failed cover searches return the seed. Every bare fallback must still reject
+        # water/cliff endpoints before releasing a support hold or replacing native movement.
+        select=admission.split('private _free=_escapeCandidates findIf {',1)[1].split('if (_free < 0)',1)[0]
+        self.assertIn('!surfaceIsWater _x',select)
+        self.assertIn('(surfaceNormal _x) select 2 >= 0.55',select)
         self.assertIn('if (_free < 0) then {continue};',admission)
         self.assertLess(admission.index('if (_free < 0)'),admission.index('_unit enableAI "PATH"'))
         self.assertLess(admission.index('private _spot=+(_escapeCandidates select _free)'),admission.index('_unit doMove _spot'))

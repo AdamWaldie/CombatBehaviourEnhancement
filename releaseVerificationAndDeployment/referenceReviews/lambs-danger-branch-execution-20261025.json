@@ -2190,5 +2190,26 @@
     "candidate": ".qa/candidates/firing-ordinary-20261028-36887244",
     "fingerprint": "38a5b23488444611134ec055adfd1272fcdad234e774fe2ecad07a189d220bcb",
     "provenance": "36887244747759de5f305388330dff1ef55954ba plus dirty runtime; metadata finalized after build. Unsigned development, not physical/performance acceptance."
+  },
+  "grenadeEndpointSafety20261028": {
+    "base": "dc5a7f23431504ec7f3e29da5818790eb0c79e45",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "source": {
+      ".qa/lambs-danger-installed-20261026/functions/fnc_brainReact.sqf": "c9bdec3da39c0010c806419606a7fb94f5861cf5d0b1ce72e47185d969a50e4c",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doCover.sqf": "7003a76519e3f14360d8cdaba3c1f7b7666196da683089c2d87b2e185cb59b17"
+    },
+    "sourceTrace": "brainReact explosion/fire/reaction -> doCover for suppressed/replanning/STOP/fire, else doDodge. doCover lowers weak stance, refuses PATH-disabled/interior actors and selects near terrain cover before native moveTo/setDestination and nonforced gesture. CBE pre-detonation ProjectileCreated grenade evasion is a distinct existing execution path, not identical source parity.",
+    "finding": "CortexFindCover deliberately returns its seed with found=false when no post qualifies. CortexGrenadeCheck discarded found and tried four endpoints using only increased threat distance and per-job separation. Bare fallback endpoints had no water or terrain-normal veto. This can request evasion into water/onto an excessive slope before releasing the exact support/clear hold.",
+    "implementation": "Retain existing CortexGrenadeCheck owner, four candidates,16-actor event bound,6s exact reservation and return checks. Add surfaceIsWater and normal>=0.55 (same infantry floor as CortexSelectAvenue) inside the existing candidate predicate, before hold/PATH mutation and doMove. All candidates refused -> no hold/task mutation. No timer, forced animation, native task reset, new query loop, world scan or navigation override.",
+    "checks": "Existing strict-ownership regression extended without a new case. Red617-case run failed exactly missing endpoint veto. Complete final build passed1505 tests/461 production SQF/11 PBO, HEMTT/FSM/config/docs/coverage/static performance gates. Independent candidate verification passed. Logs .qa/handovers/grenade-endpoint-{red,build,independent}-20261028.log.",
+    "cost": "At most four water and four surfaceNormal reads per reacting actor, only until first accepted candidate; no ray or new search. Existing sixteen-actor/one-projectile callback still bounds work; measured frame cost unknown.",
+    "limits": "Endpoint-only ground safety, not route accessibility, indoor-floor preservation, native arrival, blast safety or complete LAMBS reaction parity. No source force gestures, unowned weak stance or interior ground routing copied. Existing DangerEngineAct/DangerCoverStep retain danger reaction ownership. Audits PAUSED; physical/performance checks remain.",
+    "candidate": {
+      "path": ".qa/candidates/grenade-endpoint-20261028-dc5a7f23",
+      "base": "dc5a7f23431504ec7f3e29da5818790eb0c79e45",
+      "dirty": true,
+      "fingerprint": "91047ee4e8458bc352ccdfe8b80c2cc2c1649d7fab9e73e9641d426a997d3a7a",
+      "type": "unsigned development; not signed release or physical acceptance"
+    }
   }
 }

@@ -12,7 +12,12 @@
  * general skill and reduced by suppression. Escape seeds are 9 m from each reacting actor on an away bearing,
  * and moved into cover facing it where possible. Cover searches share the destinations already
  * issued by this grenade job. At most four endpoints are checked against those local reservations;
- * occupied fallbacks are not issued. This is endpoint separation, not collision-free native routing.
+ * occupied fallbacks are not issued. Every candidate, including the seed returned after a failed
+ * cover search, rejects water and a ground normal below the shared infantry avenue floor of0.55.
+ * These checks run before releasing a support/clear hold or issuing movement. If all four fail,
+ * native task/hold ownership remains unchanged. No extra rays, search, worker or retry are added.
+ * This is sparse endpoint terrain safety/separation, not collision-free native routing,
+ * indoor-floor support, blast protection or physical arrival evidence.
  * One Cortex scheduler job per grenade checks every
  * reacting soldier six seconds later; no callback or scheduler is created per unit. Each escape
  * receives a six-second GRENADE_EVASION actor lease, so a tactical bound or anti-armour relocation
@@ -177,6 +182,8 @@ private _clearHoldOwned={
             private _originDangerDistance=_origin distance2D _grenadePos;
             private _free=_escapeCandidates findIf {
                 _x distance2D _grenadePos > _originDangerDistance
+                    && {!surfaceIsWater _x}
+                    && {(surfaceNormal _x) select 2 >= 0.55}
                     && {private _candidate=_x;_reserved findIf {_x distance2D _candidate < 2} < 0}
             };
             if (_free < 0) then {continue};
