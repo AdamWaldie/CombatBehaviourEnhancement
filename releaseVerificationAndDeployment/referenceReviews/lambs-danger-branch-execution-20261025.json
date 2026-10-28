@@ -1919,5 +1919,53 @@
       "addons/infantry/functions/cortexCanTransmit.sqf": "49e3a4c19699638bd2b6863412af46e3fdecfae97611d1363f303aa0facf9eaf",
       "addons/core/functions/cortexQueueJob.sqf": "88555522925667f76a8949f004275559f6fd5892dfea4bf00ecafd097f12773f"
     }
+  },
+  "coverPostAlternatives20261028": {
+    "base": "13e09e3ad4473201e73bbee3b4d817176ef152c2",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "registeredScope": "LAMBS main cover-search descendant; individual geometry building block reused by danger, grenade, flank/AT and building reserve owners. Not whole-source or CQB acceptance.",
+    "source": {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_findCover.sqf",
+      "sha256": "fa07c04cab19efe1552a793952ccc541f1f612cfb383459fa6b63d6f491ca805",
+      "pboSHA256": "be8e6950b6b0f1541acf5e8d1a46c0566daa365662533ae3ee57d3079db21970",
+      "readScope": "Complete readable function; current installed main PBO matches protected manifest."
+    },
+    "sourceIntent": "Find nearby possible cover from terrain/vehicles/building positions; iterate alternate positions, test threat rays and return position/stance candidates. Source can return unbounded results, uses first-success/random posture, and an unrotated bound-corner fallback for nonbuilding objects.",
+    "finding": "CBE original exterior selector has one threat-away post per ranked object. A reserved/occupied central post can reject the entire object despite usable lateral cover. Building reserve passes existing _taken posts; grenade response and flank owners also pass reservations. Caller formation-slot and final exterior-task validation remain independent.",
+    "disposition": "ADAPTED alternate-post intent with original CBE geometry, material/visual distinction and no source code/stance writer. PRESERVED all ranked primary opportunities before fallback. ADDED two nominal2.25m model-tangent posts per object using inverse object scale, with independent outside-footprint/radius/reservation and existing full validation/screening. REJECTED unlimited position results, random stance, loose corner/nearest obstruction as proof of native access or protection.",
+    "implementation": "CortexFindCover remains read-only and returns the same [position,found] pair. Two local passes retain at most10 ranked objects and16 total post checks; all primary posts precede alternates. Up to6 additional posts follow10 failed primary checks; skipped invalid-scale objects consume no post. Each alternate independently checks its rotated model footprint so an oblique side step cannot re-enter the object. No new function, CBA setting, module, task, movement owner, timer, permanent loop or retry budget.",
+    "cost": "Successful primary searches perform no alternate checks. Failed searches can inspect up to16 posts versus10 before and may recompute object bounds/basis in the second pass. Existing one terrain and one placed-object discovery query remain; per-post occupancy/geometry work is bounded by16. Worst-case search work increases; whole-addon median/p95 budget and latency require physical measurement.",
+    "verification": {
+      "red": ".qa/handovers/cover-post-alternatives-red-20261028.log: existing cover regression rejects old one-post implementation",
+      "focused": "617 existing operation tests PASS; final oblique footprint and primary-first budget oracle included in full suite",
+      "newTestCases": 0,
+      "fullTests": 1505,
+      "compiledSQF": 457,
+      "PBOs": 11,
+      "fullBuild": "PASS",
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/cover-post-alternatives-20261028-13e09e3a",
+      "fingerprint": "64c1a50f9b01ebdfb5d34387aa3f4a510c034dce67a57be488378c538dc93a1d",
+      "buildLog": ".qa/handovers/cover-post-alternatives-build-20261028.log",
+      "independentLog": ".qa/handovers/cover-post-alternatives-independent-20261028.log",
+      "sourceNote": "Unsigned development receipt retains base 13e09e3ad4473201e73bbee3b4d817176ef152c2 plus dirty source. Only engineering/handover metadata changes after packaging. No physical acceptance."
+    },
+    "productHashes": {
+      "addons/infantry/functions/cortexFindCover.sqf": "baba1b38b80abe74facbe170d5324f9ad04f506f8bf0615d20aed69ed3ee8379",
+      "addons/infantry/functions/cortexCoverScreened.sqf": "442491c88fd72fa4187f73366c850ff4566745bcb9f2d4bed1040aa54451dae2",
+      "addons/infantry/functions/buildingOperationStep.sqf": "749360a6da5a71b2efc1ba7a0c83a212fe82cf087dc06d81ea859e2ce13a7753",
+      "addons/infantry/functions/cortexFlankStep.sqf": "bff63731b7694d8e933277764d7390f0243b596eb9e4b3556e5b72a561469975"
+    },
+    "primaryEngineReferences": [
+      "https://community.bistudio.com/wiki/modelToWorld?useskin=darkvector",
+      "https://community.bistudio.com/wiki/worldToModel",
+      "https://community.bistudio.com/wiki/setObjectScale?useskin=vector"
+    ],
+    "limits": [
+      "Not a native path/access, ballistic protection or cleared-room proof. Sampling remains sparse and capped.",
+      "Primary post stand-off and terrain projection remain the existing policy; spacing is nominal for tilted/unsupported scaled simulation. Existing actors/callers retain native ownership and final route/post validation.",
+      "A valid farther primary retains priority over a nearer alternate to preserve previous successful choices.",
+      "Physical use, repeated CQB reserve flow, modded/terrain geometry, normal/HC locality and measured cost unverified. Audits paused. Wider source stance/building and whole LAMBS functionality remain incomplete."
+    ]
   }
 }

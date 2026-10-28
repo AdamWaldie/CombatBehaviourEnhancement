@@ -112,3 +112,5 @@ Working directory: `C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks`. Source/ar
 Audits remain paused. The map itself provides no physical acceptance or performance result.
 
 Current HBQ foundation follow-up (28 October): forward traffic refuses degenerate/nonfinite heading and nonfinite own/peer hull projection through the existing zero-cap unavailable sentinel. See `releaseVerificationAndDeployment/referenceReviews/hbq-traffic-vehicle-categories-20261028.json#unknownGeometryRefusal20261028`. Existing projection, query, prediction, cadence and command owners remain; audits paused, physical behaviour and cost unverified.
+
+LAMBS individual-cover follow-up (28 October): original exterior primary posts retain priority; bounded lateral fallback supplies alternative posts behind the same object when central posts fail reservations/validation. See `releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#coverPostAlternatives20261028`. At most10 objects/16 post checks; no movement/stance owner added. Failed-search cost can increase; physical effectiveness and performance unverified, audits paused.

@@ -12864,6 +12864,48 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_edge min ((_half select _axis)/_component)',text)
         self.assertIn('_candidate distance2D _position <= _radius',text)
         self.assertNotIn('min 8) + 0.8',text)
+        # A long wall can protect separate posts even when its central point is
+        # reserved. World spacing stays2.25m for rotated/scaled walls; neither
+        # a reserved endpoint nor a point inside the footprint is a usable post.
+        import math
+        for scale in (.5,1,2):
+            for angle in (0,30,90):
+                theta=math.radians(angle)
+                def world(p):
+                    x,y=p
+                    return (scale*(x*math.cos(theta)-y*math.sin(theta)),
+                            scale*(x*math.sin(theta)+y*math.cos(theta)))
+                primary=world((0,1.8))
+                alternatives=[world((shift/scale,1.8)) for shift in (0,2.25,-2.25)]
+                free=[p for p in alternatives if math.dist(p,primary)>=2]
+                self.assertEqual(len(free),2)
+                self.assertTrue(all(math.isclose(math.dist(p,primary),2.25) for p in free))
+                self.assertFalse(math.dist(primary,primary)>=2)
+        self.assertIn('private _offsets=if (_pass == 0) then {[0]} else {[2.25,-2.25]}',text)
+        self.assertIn('forEach [0,1]',text)
+        # At an oblique far corner one nominal side step can re-enter the wall.
+        # A lateral proposal must not inherit the primary post's outside proof.
+        root2=math.sqrt(2)
+        primary=(1+.8/root2,1+.8/root2)
+        plus=(primary[0]-2.25/root2,primary[1]+2.25/root2)
+        minus=(primary[0]+2.25/root2,primary[1]-2.25/root2)
+        def outside(p):return p[0]<-4 or p[0]>4 or p[1]<-1 or p[1]>1
+        self.assertTrue(outside(primary))
+        self.assertTrue(outside(plus))
+        self.assertFalse(outside(minus))
+        # All original ten posts retain a chance before the six-extra allowance.
+        posts=[('primary',i) for i in range(10)]+[('lateral',i) for i in range(20)]
+        self.assertEqual(posts[:16][:10],[('primary',i) for i in range(10)])
+        self.assertEqual(sum(kind=='lateral' for kind,_ in posts[:16]),6)
+        self.assertIn('forEach _offsets',text)
+        self.assertIn('_offset/_scale',text)
+        self.assertIn('_postChecks >= 16',text)
+        self.assertIn('_postChecks=_postChecks+1',text)
+        self.assertIn('_outside',text)
+        self.assertIn('_reserved findIf {_x distance2D _candidate < 2}',text)
+        self.assertIn('CBE_fnc_CortexCoverScreened',text)
+        for command in ('doMove','setUnitPos','setDestination','forceSpeed'):
+            self.assertNotIn(command,text.split('params [[',1)[1])
 
     def test_gunner_recovery_fixture_requires_a_dedicated_commander(self):
         text=(ROOT / 'releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf').read_text()
