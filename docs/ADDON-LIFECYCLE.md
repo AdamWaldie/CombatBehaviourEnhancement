@@ -2403,3 +2403,9 @@ Casualty refill does not recruit a reserve outside the current element while it 
 An accepted drill records the actor's existing command, native destination policy and formation leader before its first bound. Reserve additions record the same observation at roster commitment. Direct travel keeps its original point; formation travel can keep a moving goal under the same planning policy and formation leader. A missing observation does not permit a native MOVE. Same-value orders and edits retaining the same formation policy remain indistinguishable.
 
 These ADMISSION rows are observations, not CBE-issued movement. Cleanup never uses them to order a return, follow or hold. Exact settings restoration is independent. Standalone locality resume checks source-bound observations and issued-leg proof on the incoming owner without replaying commands or acknowledgement grace; missing MOVE proof refuses admission. Native publication and physical first-bound/migration behaviour remain unverified.
+
+### Air-attack terrain alternatives
+
+A surface attack first checks its original route. If terrain makes that route unusable and no AA positions are known, the planner can try two whole-pattern bearing changes, -35 then +35 degrees around the same believed target. It retains the selected weapon and all original stage heights, speed and delivery geometry. Each candidate repeats the existing live-join, terrain-clearance and lift limits; a valid original route wins immediately. Known-AA plans keep their defensive axis, and intercepts do not use this fallback.
+
+The search is capped at three candidates and 990 corridor samples plus endpoint terrain reads. If all fail, native control remains authoritative. This is sparse terrain planning rather than a general3Dpathfinder or collision/flight-dynamics proof. Actual alternate-route flight, delivery and performance remain unverified.

@@ -523,6 +523,8 @@ if (_stage == "") then {
     _job set ["terrainLift",_plan getOrDefault ["terrainLift",0]];
     _job set ["terrainClearanceMinimum",_plan getOrDefault ["terrainClearanceMinimum",0]];
     _job set ["terrainSampleCount",_plan getOrDefault ["terrainSampleCount",0]];
+    _job set ["terrainRouteOffset",_plan getOrDefault ["terrainRouteOffset",0]];
+    _job set ["terrainRouteAttempts",_plan getOrDefault ["terrainRouteAttempts",0]];
     _job set ["terrainCorridor",_plan getOrDefault ["terrainCorridor",0]];
     _job set ["terrainRequiredLift",_plan getOrDefault ["terrainRequiredLift",0]];
     _job set ["terrainViable",_plan getOrDefault ["terrainViable",true]];

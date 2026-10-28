@@ -950,6 +950,10 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "airRouteFoundation20261028": {
+        "review": "releaseVerificationAndDeployment/referenceReviews/air-relief-route-alternatives-20261028.json",
+        "scope": "Independent existing CBE planner extension: two whole-pattern bearings after terrain failure without known AA; not source port/parity or physical acceptance."
       }
     },
     {

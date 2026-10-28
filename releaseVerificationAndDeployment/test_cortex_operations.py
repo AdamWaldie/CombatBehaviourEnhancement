@@ -10080,6 +10080,46 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('["terrainLift",_terrainLift]',planner)
         self.assertIn('["terrainClearanceMinimum",_terrainClearanceMinimum]',planner)
         self.assertIn('["terrainSampleCount",_terrainSampleCount]',planner)
+        self.assertIn('private _terrainRouteOffsets=[0]',planner)
+        self.assertIn('_terrainRouteOffsets append [-35,35]',planner)
+        self.assertIn('_aaPositions isEqualTo []',planner)
+        self.assertIn('if (_terrainViable) exitWith {_terrainRouteOffset=_routeOffset}',planner)
+        self.assertIn('_stageAltitudes=+_originalStageAltitudes',planner)
+        self.assertIn('_terrainRouteAttempts=_terrainRouteAttempts+1',planner)
+        self.assertIn('["terrainRouteOffset",_terrainRouteOffset]',planner)
+        self.assertIn('["terrainRouteAttempts",_terrainRouteAttempts]',planner)
+        for key in ('terrainRouteOffset','terrainRouteAttempts'):
+            self.assertIn('_job set ["'+key+'",_plan getOrDefault',controller)
+        # Independent2D geometry/cross-section model, not a native-flight test.
+        import math
+        def rotate(point,angle):
+            c=math.cos(math.radians(angle));t=math.sin(math.radians(angle))
+            return (point[0]*c-point[1]*t,point[0]*t+point[1]*c)
+        def length(p):return math.hypot(*p)
+        original=((-1200,0),(500,0),(1500,300))
+        turned=tuple(rotate(p,-35) for p in original)
+        for before,after in zip(original,turned):self.assertAlmostEqual(length(before),length(after))
+        delta=lambda a,b:(b[0]-a[0],b[1]-a[1])
+        self.assertAlmostEqual(length(delta(original[0],original[1])),length(delta(turned[0],turned[1])))
+        # Target-crossing gun/rocket geometry stays collinear after whole-route rotation.
+        self.assertAlmostEqual(turned[0][0]*turned[1][1]-turned[0][1]*turned[1][0],0,places=6)
+        height=lambda x,y:800 if -1000<x<-400 and abs(y)<100 else 0
+        for angle,blocked in ((0,True),(-35,False),(35,False)):
+            centre=rotate((-600,0),angle);side=rotate((0,1),angle)
+            deficit=max(45-(300-height(centre[0]+side[0]*offset,centre[1]+side[1]*offset)) for offset in (-75,0,75))
+            self.assertEqual(deficit>300,blocked)
+        def choose(results,aa=False):
+            attempted=[]
+            for angle in ([0] if aa else [0,-35,35]):
+                attempted.append(angle)
+                if results.get(angle,False):return angle,attempted
+            return None,attempted
+        self.assertEqual(choose({0:True,-35:True}),(0,[0]))
+        self.assertEqual(choose({-35:True}),(-35,[0,-35]))
+        self.assertEqual(choose({35:True}),(35,[0,-35,35]))
+        self.assertEqual(choose({}), (None,[0,-35,35]))
+        self.assertEqual(choose({-35:True},True),(None,[0]))
+
         self.assertIn('["terrainCorridor",_terrainCorridor]',planner)
         self.assertIn('["terrainRequiredLift",_terrainRequiredLift]',planner)
         self.assertIn('["terrainViable",_terrainViable]',planner)
