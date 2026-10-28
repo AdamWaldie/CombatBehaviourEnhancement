@@ -65,8 +65,8 @@
       "path": "functions/fnc_contact.sqf",
       "sha256": "8c22ca9070c08e8709b2cfad3b44656ff0191b2be094dd45ecb8e6c524691f0f",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected CBE mapping, descendants open",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable contact body and selected three main communication descendants reconciled2026-10-28 in contactCommunicationReview20261028; not compiled graph, all contact helpers or physical parity",
+      "next": "Contact sharing/range/veto bodies now traced against actual CBE ordinary report/receiver ownership. Retain deliberate uncertain-area balance and unresolved radio-range/equipment/API decisions. Continue independent posture/refuge/callout descendants; do not duplicate existing native-contact cadence handoff."
     },
     {
       "path": "functions/fnc_fsmAllowAnimation.sqf",

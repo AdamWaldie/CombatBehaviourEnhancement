@@ -1856,5 +1856,68 @@
       "fingerprint": "a4671c97aeec717facc7723980ddc5a3ab6fd320525153b134fed05f3880193c"
     },
     "limits": "Offline source/config/compile/package evidence only; no audit. Flares retain small impact damage, not harmlessness. Modded muzzle naming, actual native reload/selection/release, upward aiming, weapon handback and useful light/performance remain unverified. Default-off unchanged. No whole-mod or LAMBS parity percentage."
+  },
+  "contactCommunicationReview20261028": {
+    "date": "2026-10-28",
+    "sourceBase": "b42ac8a3a9b2e6cc9b3863095f89db5998e0582d",
+    "scope": "Complete114-line danger contact body and112/53/31-line main sharing/range/handler bodies; selected current CBE contact/report/receiver execution. Readable source, not effective compiled graph or physical comparison.",
+    "sourceWitnesses": {
+      ".qa/lambs-danger-installed-20261026/functions/fnc_contact.sqf": "8c22ca9070c08e8709b2cfad3b44656ff0191b2be094dd45ecb8e6c524691f0f",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_doShareInformation.sqf": "6337ab762fad4404b983c33248fcbdedca6e629caf32b802ad93a3f0b7846282",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_getShareInformationParams.sqf": "b1e72d28f8c016af79ffe8e34b1f824fd14a359c73dc855ec18b825bb5d8f272",
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_addShareInformationHandler.sqf": "0a727ee53522d6ba4165eb39692418c5140ccd73161ca3616a0c3b5f8dacbcde"
+    },
+    "mainPackageVerification": {
+      "manifest": ".qa/lambs-main-installed-20261025-bebceb06/manifest.json",
+      "sha256": "be8e6950b6b0f1541acf5e8d1a46c0566daa365662533ae3ee57d3079db21970",
+      "result": "Three main SQF helpers match preserved manifest; installed lambs_main.pbo matches that manifest. No original changed. Danger contact helper matches existing source-queue hash; no renewed danger compiled-graph review."
+    },
+    "sourceExecution": [
+      "contact captures leader/enemy/stealth, changes contact/formation/attack state and schedules sharing after1..5seconds. The delayed payload has no original native-order/operation/owner-generation proof. doShareInformation rechecks source actor life/captivity/global radio disable, but may replace a missing enemy with findNearestEnemy.",
+      "getShareInformationParams returns the original caller/range/radio when override is true. Otherwise side-specific range applies; a live nonplayer same-group member within150m with explicit dangerRadio, named radiobag or native tf_hasLRradio config may become the transmitter and extend range. An inventory radio is not a universal source prerequisite.",
+      "doShareInformation invokes registered CODE handlers in insertion order; a true result vetoes. Handler registration simply appends CODE. Source emits eventCallback after selection/reveal and may play a radio gesture.",
+      "Source selects allGroups by actual transmitter range, simulation, one-way friendship, nonplayer leader and non-CARELESS behaviour. Native target reveal is additionally capped by combatShareRange and maxRevealValue; long-range group selection does not by itself expand direct reveal to every selected group.",
+      "Source transmits target object plus capped native knowledge to the current leader locality through remoteExec reveal. Secondary sharing does not replace currentTask. Debug marker/gesture branches are presentation, not communication permission."
+    ],
+    "cbeExecution": [
+      "Current native targetKnowledge/group belief is bounded in CortexKnowledge, with no live hostile-transform lookup for the contact summary. GroupTick promotes already-scheduled combat cadence when seenCount is positive. Thus a fresh distant firefight already retains its tactical tier; removing that gate as if this handoff were missing would be a duplicate fix.",
+      "BeginContact calls CortexContactReport for tactical fresh contact; CONTACT refresh uses the existing20second sender-state interval. Report payload is at most3 believed positions/confidence/original observed time/contact side. No enemy object reaches ordinary report transport.",
+      "Server authenticates sender owner and current feature/eligibility, rejects stale/malformed reports and imposes15second source cooldown. Nearby live actors including mounted crew supply receiver groups; no allGroups scan is required. Current mutual friendship and radio/3D voice reach qualify receivers.",
+      "One existing finite queue job delivers at most8receivers per step under original sent+15deadline. Receiver rechecks current sender/receiver gates, live mutual allegiance and both communicating endpoints after delivery delay. Original observed time plus30seconds owns area expiry; duplicate/older rows cannot refresh it.",
+      "CortexGroupTransmitter prefers a combat-effective leader, then at most12eligible members through CortexCanTransmit. It does not require inventory radio items. The current read-only jamming hook can block a member, with nearby3D voice fallback. This is broader than the source long-range-backpack identity policy, not its reproduction.",
+      "An area report is not native target knowledge. Eligible uncommitted CALM receivers may investigate through existing CortexGroupMove/phase/cooldown ownership; ordered, responding or otherwise movement-owned groups do not receive a second movement controller. Combined-arms task-specific observations retain their separate authenticated admission."
+    ],
+    "dispositions": [
+      "RETAIN source intent that contact communication is secondary to the current task and can use a capable wingman when the leader is unavailable. CBE already implements this selected intent.",
+      "ADAPT sharing as expiring uncertain area reports, current-owner delivery and existing finite receiver behaviour rather than general native reveal. This is a deliberate balance/authority departure; effectiveness versus source reveal remains physically unproved.",
+      "REJECT copying source allGroups discovery, unversioned delayed contact replay and arbitrary target replacement into an old delayed callback. Keep current spatial discovery, immutable observed times and exact current owner/task gates.",
+      "DEFER source side-specific/long-range radio equipment policy and general share-handler/event API as unresolved selected feature-scope decisions. CBE generic communication currently uses configured radius plus jamming; do not claim full range/equipment/API parity or add another controller without a concrete requirement."
+    ],
+    "remaining": [
+      "In-engine communication effectiveness compared with source native reveal, combat reaction, equipment/range balance, casualty/leadership changes, jamming after relay, repeated contacts and normal/HC owner migration are unverified. Audits remain paused.",
+      "Source gestures/callouts, stealth/indoor refuge seeding and contact posture/attack cleanup have independent helpers/owners and are not closed by this communication review. Main/wp descendants and effective compiled source graph remain incomplete.",
+      "Current area-report confidence is clamped by sender and is not used to rank receiver investigation. Do not infer source-native knowledge fidelity, target engagement or better tactics from transport validation.",
+      "No measured performance comparison. Receiver discovery population and current-queue work remain workload-dependent despite bounded delivery slices."
+    ],
+    "verification": {
+      "existingCommunicationTests": "PASS:6 existing tests",
+      "log": ".qa/handovers/lambs-contact-sharing-checks-20261028.log",
+      "runtimeChanges": "NONE",
+      "build": "NOT_REPEATED_UNCHANGED_PRODUCT",
+      "retainedCandidate": ".qa/candidates/pass-categories-20261028-55beea1a",
+      "retainedFingerprint": "765fe2bc1e2799888fd4fb73c1612c84f7e022504d7d03db6dcc26474c5bb5c6",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED"
+    },
+    "cbeSourceHashes": {
+      "addons/infantry/functions/cortexKnowledge.sqf": "e9df7da9829402308278a0e5838047001ce2784619086f76e4c0563ef1a91caf",
+      "addons/infantry/functions/cortexGroupTick.sqf": "4bc592eec575fe493ddf4bc7e0df30debe25935a4c321ba91a25ae243b07e603",
+      "addons/support/functions/cortexContactReport.sqf": "a8361c1a4e6086395b135ae9f985bc7decb48bf670d09be67cd9371b099df7c7",
+      "addons/infantry/functions/cortexReportServer.sqf": "761b2ea95f23cb22660a5f846c5eb22386c318252596e3ff7b02b97b06eb6374",
+      "addons/infantry/functions/cortexReportLocal.sqf": "8a952d5f4e590e52220707b8cc2605a527a1724f2cba23b2098b893a1636b023",
+      "addons/infantry/functions/cortexGroupTransmitter.sqf": "59a6a9d02f487513435f3193b22bac6326668e1a50df84b6a1c0de556f09727e",
+      "addons/infantry/functions/cortexCanTransmit.sqf": "49e3a4c19699638bd2b6863412af46e3fdecfae97611d1363f303aa0facf9eaf",
+      "addons/core/functions/cortexQueueJob.sqf": "88555522925667f76a8949f004275559f6fd5892dfea4bf00ecafd097f12773f"
+    }
   }
 }
