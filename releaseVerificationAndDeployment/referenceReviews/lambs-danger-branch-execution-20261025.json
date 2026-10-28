@@ -2108,5 +2108,42 @@
     "fingerprint": "32d095e38795d399955eb2fb5b5aa4f4ee1002ad64884c66bf46a987156aa309",
     "provenance": "a45365df0ef89979f2f1994f6b8f2d9c15ffde30 plus dirty runtime; metadata finalized after build. Unsigned development, not native/performance acceptance.",
     "sourceVerification": "All four sourceWitnesses from contactCommunicationReview20261028 rehashed and matched; originals unchanged."
+  },
+  "forcedAndLeaderHelpers20261028": {
+    "base": "2e1894ce0732c182533bef031c056fa9893ffce6",
+    "status": "SELECTED_SOURCE_RECONCILED_ACTIVE_SUCCESSOR_FIX_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "sourceWitnesses": {
+      ".qa/lambs-danger-installed-20261026/functions/fnc_brainForced.sqf": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
+      ".qa/lambs-danger-installed-20261026/functions/fnc_isForced.sqf": "b56d7eff15e0fad2019f6a42bb864a82ff321047683355d2473c7c6b780e6376",
+      ".qa/lambs-danger-installed-20261026/functions/fnc_isForcedExit.sqf": "a35659ea233adf6139114b47e95e5f4e7b6422604690cb2986ef0727ca066be6",
+      ".qa/lambs-danger-installed-20261026/functions/fnc_isLeader.sqf": "1d54335d79c30a654f85c808d97529f4aed6071293b45ec724f9d26c6d5ec326"
+    },
+    "scope": "Complete selected forced-state/early-exit/leader helpers and brainForced body; existing engine and group paths, not full downstream library or effective compiled source graph.",
+    "sourceIntent": [
+      "isForced yields to fleeing, forceMove, ATTACK/GET IN/ACTION/HEAL/REARM/JOIN, incapacitation, ACE care and optional player-group exclusion. brainForced waits2s, extends forceMove1s, delegates fleeing and attack pace/weak posture; its ATTACK branch deletes a SuppressTarget and clears watch.",
+      "isForcedExit exits for source disableAI, CARELESS or disabled MOVE. isLeader accepts suppression<0.2, a native leader or an actor whose leader is incapacitated, and absent source tactic flag."
+    ],
+    "cbeTrace": [
+      "danger.fsm calls current DangerEngineCanContinue/Select/Mode before action and its waiter rechecks actor/group owner, epoch/operation, settings, medical/native tasks and external control. Mode deliberately treats ordinary ATTACK as combat, yields native care/equipment as FORCED, routes mounted danger before infantry posture and allows immobile defenders to sense/fire. Movement/evasion/flight writers retain separate MOVE/PATH gates.",
+      "DangerEngineAct delegates finite flight and attack pace to existing owners. Exact leased stance/pace/native flight release remains in DangerEngineRelease/DangerAttackPace/DangerFlight; no generic source forced flag, SuppressTarget deletion or duplicate movement loop is introduced.",
+      "CortexGroupTick resolves an incapacitated leader before leader knowledge/group movement, selecting the highest rank local combat-effective survivor. The earlier list included hidden/simulation-disabled survivors. A separate any-awake-member dormancy gate did not make those particular candidates active."
+    ],
+    "implementation": "Require simulationEnabled and !isObjectHidden on the existing casualty successor list. Retain original casualty-only trigger, contact-feature gate, local/group authority, combat-effectiveness, rank-first/equal-rank roster ordering and no-successor wait. Do not modify healthy incumbents, simulation, visibility, group membership, skills or native actor tasks.",
+    "dispositions": [
+      "Retain source intent to yield to native/specialist/care work through existing CBE owners, not matching source variable names.",
+      "Adapt source fallback-leadership intent through one group decision owner. Improve candidate availability rather than allowing every surviving actor to run independent group tactics.",
+      "Deliberately retain combat response during ordinary ATTACK and non-movement response for immobile defenders. Source forced-exit/ATTACK placement is not itself a missing capability.",
+      "Reject arbitrary native suppression-target deletion and parallel movement/posture loops. Selected helper reconciliation does not close all descendants or full CQB/provider handover."
+    ],
+    "cost": "Two cheap per-candidate state reads in the existing casualty-only survivor selection; no added scan, worker, timer, setting or repeat cadence. Runtime overhead unmeasured.",
+    "verification": ".qa/handovers/leader-active-successor-focused-20261028.log:617 existing checks PASS. Existing leader-loss case extended for active/dormant/locality/incapacitation/rank/no-candidate models; no new test cases, no native SQF execution.",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "performance": "NOT_MEASURED",
+    "handoverFinding": "Read-only trace confirms old completed-FSM/unmodified-record snapshot remains CANDIDATE_UNSEALED. Real authenticated incoming/native/settings reconciliation is not supplied by these helpers. PointActor pending native commands and return observers already preserve unresolved handback; no speculative timeout completion added.",
+    "fullBuild": ".qa/handovers/leader-active-successor-build-20261028.log:1505 tests/460 SQF/11 PBO complete local pipeline PASS; session82615 exit0.",
+    "independent": ".qa/handovers/leader-active-successor-independent-20261028.log:PASS",
+    "candidate": ".qa/candidates/leader-active-successor-20261028-2e1894ce",
+    "fingerprint": "c32d95950ad686345321f9cf30c3a466de5437a6dd6c024dc84608aeb916cfcd",
+    "provenance": "2e1894ce0732c182533bef031c056fa9893ffce6 plus dirty runtime; metadata finalized afterward. Unsigned development, not physical acceptance."
   }
 }

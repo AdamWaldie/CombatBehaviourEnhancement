@@ -37,8 +37,8 @@
       "path": "functions/fnc_brainForced.sqf",
       "sha256": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
-      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
+      "reviewStatus": "Complete readable helper body reconciled2026-10-28 in forcedAndLeaderHelpers20261028; not all descendants, compiled runtime parity or physical proof",
+      "next": "Retain current finite flight/pace delegation, care/equipment gates and exact restoration; do not delete arbitrary SuppressTarget objects or reintroduce a competing brainForced movement writer. Remaining doFleeing/assault-speed descendant and physical gaps are separately recorded."
     },
     {
       "path": "functions/fnc_brainHide.sqf",
@@ -79,22 +79,22 @@
       "path": "functions/fnc_isForced.sqf",
       "sha256": "b56d7eff15e0fad2019f6a42bb864a82ff321047683355d2473c7c6b780e6376",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable helper body reconciled2026-10-28 in forcedAndLeaderHelpers20261028; not all descendants, compiled runtime parity or physical proof",
+      "next": "Retain native care/equipment/fleeing ownership and finite FORCED waits; ATTACK intentionally remains ordinary combat, with pace delegated to existing owner. Do not add an upstream forceMove flag or duplicate movement controller."
     },
     {
       "path": "functions/fnc_isForcedExit.sqf",
       "sha256": "a35659ea233adf6139114b47e95e5f4e7b6422604690cb2986ef0727ca066be6",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable helper body reconciled2026-10-28 in forcedAndLeaderHelpers20261028; not all descendants, compiled runtime parity or physical proof",
+      "next": "Retain CARELESS/exclusion yield. CBE deliberately preserves sensing/firing/weak posture for immobile defenders; movement-owning helpers separately require MOVE/PATH. Do not globally disable all danger response when MOVE is off."
     },
     {
       "path": "functions/fnc_isLeader.sqf",
       "sha256": "1d54335d79c30a654f85c808d97529f4aed6071293b45ec724f9d26c6d5ec326",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; caller/integration scope in evidence",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable helper body reconciled2026-10-28 in forcedAndLeaderHelpers20261028; not all descendants, compiled runtime parity or physical proof",
+      "next": "Casualty succession now excludes dormant candidates while preserving highest rank and equal-rank order. Normal tactical pressure/owner gates remain separate; healthy incumbent leadership is unchanged. Physical casualty/simulation/locality behaviour remains pending."
     },
     {
       "path": "functions/fnc_tactics.sqf",

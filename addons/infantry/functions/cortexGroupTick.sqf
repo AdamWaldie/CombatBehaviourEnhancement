@@ -246,9 +246,12 @@ if (_group getVariable ["CBE_AIPass_RegroupQueued", false]) exitWith {5};
 // Resolve casualty succession before reading leader knowledge or issuing group orders.
 // Only eligible, locally owned AI groups reach this point. An incapacitated leader cannot drive
 // withdrawal, bounds or contact state, so appoint an acting leader instead of waiting for recovery.
+// Dormant survivors cannot become that command anchor merely because their rank is higher;
+// preserve their simulation/visibility and wait when no active local successor exists.
 private _leader = leader _group;
 if ((isNull _leader || {!([_leader] call CBE_fnc_CortexCombatEffective)}) && {[_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
-    private _successors = _alive select {local _x && {[_x] call CBE_fnc_CortexCombatEffective}};
+    private _successors = _alive select {local _x && {simulationEnabled _x} && {!isObjectHidden _x}
+        && {[_x] call CBE_fnc_CortexCombatEffective}};
     if (_successors isNotEqualTo []) then {
         private _successor = _successors select 0;
         {if (rankId _x > rankId _successor) then {_successor = _x}} forEach _successors;

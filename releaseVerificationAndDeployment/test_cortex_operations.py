@@ -3143,6 +3143,25 @@ class CortexOperations(unittest.TestCase):
                        '_leader in _members','group _actor == _group','isNull objectParent _actor'):
             self.assertIn(marker,anchor)
         self.assertNotIn('selectLeader',anchor)
+        tick=source('cortexGroupTick')
+        succession=tick.split('private _successors =',1)[1].split('// Never drive leader-dependent',1)[0]
+        for guard in ('local _x','simulationEnabled _x','!isObjectHidden _x','CortexCombatEffective'):
+            self.assertIn(guard,succession)
+        self.assertIn('rankId _x > rankId _successor',succession)
+        # An incapacitated incumbent triggers succession; a dormant high-rank survivor
+        # cannot mask an active lower-rank replacement. Equal ranks keep roster order.
+        def successor(rows):
+            candidates=[r for r in rows if r['local'] and r['simulated'] and not r['hidden'] and r['effective']]
+            return max(candidates,key=lambda r:r['rank'],default=None)
+        active=dict(name='active',local=True,simulated=True,hidden=False,effective=True,rank=1)
+        hidden=dict(active,name='hidden',hidden=True,rank=5)
+        disabled=dict(active,name='disabled',simulated=False,rank=6)
+        remote=dict(active,name='remote',local=False,rank=7)
+        injured=dict(active,name='incapacitated',effective=False,rank=8)
+        self.assertEqual(successor([hidden,disabled,remote,injured,active]),active)
+        self.assertIsNone(successor([hidden,disabled,remote,injured]))
+        self.assertEqual(successor([active,dict(active,name='peer')]),active)
+        self.assertEqual(successor([active,dict(active,name='senior',rank=3)])['name'],'senior')
         assault=source('cortexAssaultStart')
         self.assertIn('[_group,_onFoot] call CBE_fnc_CortexGroupAnchor',assault)
         self.assertIn('"NO_ELEMENT_ANCHOR"',assault)

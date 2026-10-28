@@ -2439,3 +2439,13 @@ fallback. Duplicate or older observations cannot replace fresher evidence, and e
 tied to observation time. Delivery never reveals a target or starts movement: the normal
 group brain rechecks features, range, current orders, actor ownership and cooldown before
 investigation. Native movement and measured overhead remain unverified while audits are paused.
+
+
+## Active casualty successors
+
+When contact tactics are enabled and the native leader is incapacitated, acting leadership
+is selected from local, combat-effective, simulation-enabled and visible survivors. Highest
+rank wins; equal ranks keep roster order. Hidden or dormant soldiers keep their mission state
+and cannot displace an active survivor solely through rank. If none qualify, leader-dependent
+tactics wait. Healthy incumbent leadership is unchanged. Actual succession, locality settling
+and tactical effects remain unverified while audits are paused.
