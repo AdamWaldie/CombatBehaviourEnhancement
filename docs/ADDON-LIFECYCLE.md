@@ -2475,3 +2475,17 @@ The loaded primary bullet muzzle must be ready, including reload/cycling readbac
 weapon state is rechecked at issue. This adds at most one current-lane assessment alongside
 the separate suppression budget. Native access, firing benefit and measured cost remain
 unverified while audits are paused.
+
+
+## Declared named gate sources
+
+When the indexed gate-source aliases are unavailable, matching literal open/close actions
+can identify a named user animation source. The same configured source and command channel
+must appear in both actions; one channel mode applies to the opening. Literal model-animation
+actions retain their existing path. CBE never executes action statements or guesses variable
+expressions, compound scripts, reversed phases or ambiguous mappings.
+
+The normal server opening and optional passage/closure owner handles both channels. Locks,
+route and crew ownership, real body clearance and observed animation completion still apply.
+An animation request never proves the route is clear. Physical mod-gate behaviour and cost
+remain unverified while audits are paused.

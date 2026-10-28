@@ -38,5 +38,28 @@
     "Unindexed/nonliteral/reversed-phase/custom-script actions remain unsupported. Geometry must already classify the object as a gate.",
     "animationNames presence does not establish script-exposed animatability or actual physical passage; engine evidence remains required.",
     "Not a clean signed-release build. Review and handover metadata postdate package. No build-out percentage increase; wider source evidence freshness remains unresolved."
-  ]
+  ],
+  "namedUserSources20261028": {
+    "base": "84118dc9650eee6b0090d83888b45e74e6112dbc",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "sourceWitness": {
+      ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931"
+    },
+    "sourceRanges": [
+      "216-280 GateInfo named source/model-channel discovery",
+      "897-941 wanted/passage closure"
+    ],
+    "intent": "Extend native gate variety while preserving physical obstruction and locks. Source discovers semantic named animation sources before parsing legacy model names; CBE retains stricter declared leaf identity.",
+    "gap": "Current indexed source aliases and literal model animate fallback missed non-indexed user animation sources even with matching declarative Open/CloseDoor_N or Open/CloseGate_N actions.",
+    "implementation": "Existing read-only fallback now also accepts exact literal this animateSource [name,0/1] pairs. Require configured AnimationSources class with source=user, same name/channel in both open/close actions, existing <=8 unique leaves and one channel mode throughout the opening. Original ANIM mapping still requires the actual model name. Explicit two-word this/command prefix and bounded trailing whitespace/semicolon only; no evaluation, compound expressions, variable names, extra args or mixed channels.",
+    "execution": "Geometry candidate recognition and server opening share the same mapping reader. Existing OpenServer/CloseServer per-leaf channel already selects native animateSource/animationSourcePhase versus animate/animationPhase, so no new command writer. Current lock, real path geometry, origin/whole-hull passage, actual closed readback, owner reply, route/crew/pose/epoch/revision/original120s/8jobs/16entity restrictions remain.",
+    "cost": "Same <=32 actions/512characters/128modelnames/8leaves bounds; one direct config lookup per selected SOURCE action and existing phase read. No world query, timer, worker, cache or movement controller. Runtime cost unmeasured.",
+    "verification": ".qa/handovers/gate-named-source-focused-20261028.log:14 existing gate checks PASS before final prefix-token assertion; final pipeline required. Existing mapping case extended with independent strict-literal model; no native config/animation execution or extra test case.",
+    "remaining": "Unsupported arbitrary/action-statement-only/non-user/reversed phase/mixed source/model gate conventions still refuse. No physical native/map/Zeus/mod gate traversal, repeat/closure, owner migration or performance acceptance; audits paused.",
+    "fullBuild": ".qa/handovers/gate-named-source-build-20261028.log:1505 existing tests/460 SQF/11 PBO complete local pipeline PASS; session84533 exit0.",
+    "independent": ".qa/handovers/gate-named-source-independent-20261028.log:PASS",
+    "candidate": ".qa/candidates/gate-named-source-20261028-84118dc9",
+    "fingerprint": "a7af207df4d77cc0c6b0cf173fd4023b735338d730fd6b66744c6e4ec342f842",
+    "provenance": "84118dc9650eee6b0090d83888b45e74e6112dbc plus dirty runtime; later metadata. Unsigned development, not native/performance acceptance."
+  }
 }

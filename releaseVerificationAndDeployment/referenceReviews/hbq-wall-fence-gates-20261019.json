@@ -30,5 +30,10 @@
     "Actual map/mod wall/fence gate traversal, locking, native animation, normal/HC/JIP and overhead unverified."
   ],
   "physicalAcceptance": false,
-  "audits": "paused"
+  "audits": "paused",
+  "currentFollowup20261028": {
+    "meaning": "Earlier remaining strings are historical; they do not establish current missing runtime capability.",
+    "actualImplemented": "DrivingGateOpenServer and DrivingGateCloseServer implement opt-in finite passage/closure with authenticated owner intent and original-budget lifecycle; hbq-gate-traffic-20261024.json covers sampled foot traffic/static emplacements. hbq-legacy-gate-channels-20261025.json implements strict literal model channels and namedUserSources20261028 adds declared named user sources.",
+    "stillOpen": "Arbitrary/unpaired/non-user/mixed gate semantics and full HBQ/physical/performance proof remain unresolved; no closure or whole-source acceptance claim."
+  }
 }

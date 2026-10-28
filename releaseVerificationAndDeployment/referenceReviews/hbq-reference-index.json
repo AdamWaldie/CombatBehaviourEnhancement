@@ -583,7 +583,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-legacy-gate-channels-20261025.json",
-      "sha256": "41f15b08f5e564b1ada515365a5fb36603ff1bf312dbbd471a804b2a4af8b59d",
+      "sha256": "713f72049f939f3f40abc3efb9a296c797d3b30a118c4ab003ab227684c6a78c",
       "scope": "Partial legacy gate channel implementation through existing server open/passage/close lifecycle, not arbitrary gate or full HBQ parity.",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -1048,7 +1048,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-wall-fence-gates-20261019.json",
-      "sha256": "1fcc78d55c62be0b321d63e4a0ce7e03a2ddafcde217e1b0f6f6817979fd1eed",
+      "sha256": "db54d07508e3476f2d6926ab138ca952b56352205203106d40d83a26bcc34fcd",
       "scope": "HBQ gate candidate classification and CBE live geometry/opening chain",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
