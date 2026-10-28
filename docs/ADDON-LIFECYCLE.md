@@ -2387,3 +2387,9 @@ Deployment and packing retries require native readiness, settled planner data an
 The same reader protects active observation, assembly/disassembly events and on-foot retirement before any follow/unassign command. Mounted commands and nonmovement tasks retain their existing phase policies. Yield or timeout is not native all-writer cancellation. Physical native goal publication, weapon/bag approaches, repeated deployment/packing, migration and performance remain unverified.
 
 A released assistant or vacated active gunner can retain an ended native MOVE label. Its original private leg is therefore retained until the whole deployment retires. With no active movement marker, that observation qualifies only for the original role at the appropriate phase, a matching original goal, native readiness, physical rest and actual arrival within two metres. It does not recreate the old movement lease. Unknown, moving or displaced actors cannot use that exception.
+
+### Carried artillery and equipment ownership
+
+A deployed carried mortar uses the existing artillery mission owner. While its weapon retains a fire token, static packing and cleanup do not order its original gunner out or unassign it. An elapsed busy or polling deadline does not prove a native round has stopped. The squad continues its normal phase progression; if the finite static record retires first, it leaves the gunner and artillery token alone. Automatic later recovery after that retirement is not supplied by this path.
+
+Owner-local artillery shot admission also requires a matching carried-static record to remain ACTIVE. Assembly and packing cannot become a firing station merely because their movement marker expired. The existing check runs again at native issue; ordinary emplacements without that matching record retain their prior eligibility. Cross-owner replication and native event ordering still require in-engine validation.

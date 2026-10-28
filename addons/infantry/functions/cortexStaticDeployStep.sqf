@@ -6,6 +6,8 @@
  * One shared read-only native-move classifier protects live movement, equipment events and
  * cleanup. Planning waits spend the original deadline; retries require settled readiness and
  * the exact retained goal, never a replacement point or a STOP command.
+ * Packing and native cleanup preserve the gunner while the weapon retains an artillery fire token;
+ * elapsed polling/busy time does not prove an outstanding native round has stopped.
  * Purpose: Physically assemble a compatible one-part or paired carried static weapon and give its
  * original carrier a finite chance to occupy the real gunner seat. A one-part record uses the
  * carrier in both legacy actor slots but issues each action only once; no second soldier is reserved.
@@ -99,6 +101,10 @@ private _canReleaseActor={
     private _status=_record param [1,"",[""]];
     private _gunner=_record param [2,objNull,[objNull]];
     private _weapon=_record param [7,objNull,[objNull]];
+    // Artillery owns a pending native round even after its polling deadline.
+    // Never infer cancellation from BusyUntil or dismount its original carrier.
+    if (_actor == _gunner && {!isNull _weapon}
+        && {!isNil {_weapon getVariable "CBE_AIPass_FireToken"}}) exitWith {false};
     private _ownedEquipment=(_status == "ASSEMBLING" && {_actor == _gunner} && {_command == "ASSEMBLE"})
         || {_status == "DROPPING" && {_actor == (_record param [3,objNull,[objNull]])} && {_command == "DROP BAG"}}
         || {_status == "MOUNTING" && {_actor == _gunner} && {_command == "GET IN"}
@@ -330,7 +336,7 @@ if (count _record >= 10) exitWith {
     if (_phase == "SECURITY" && {_allowPack} && {_status == "ACTIVE"}
         && {!isNull _gunner} && {alive _gunner} && {local _gunner}
         && {!isNull _assistant} && {alive _assistant} && {local _assistant}
-        && {[_assistant] call _canReleaseActor}
+        && {[_gunner] call _canReleaseActor} && {[_assistant] call _canReleaseActor}
         && {!isNull _weapon} && {alive _weapon}
         && {gunner _weapon == _gunner || {crew _weapon isEqualTo [] && {vehicle _gunner == _gunner}}}
         && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {

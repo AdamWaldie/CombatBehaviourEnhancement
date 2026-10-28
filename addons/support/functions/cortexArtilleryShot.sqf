@@ -21,6 +21,8 @@
  * ILLUM is restricted to reactive static mortars at night; the actual magazine is reclassified
  * at final issue, with no HE substitute.
  * Final native issue rechecks current generation, live feature/ROE and crew/token atomically.
+ * A carried-static weapon must remain ACTIVE, including after an expired equipment movement marker;
+ * packing and assembly phases reject before the native shot. Ordinary emplacements are unchanged.
  * No command can undo a projectile or native shot already issued before cancellation.
  * Return Value: Boolean, command issued or exact duplicate/older request consumed; never firing proof.
  * Current callers: ArtilleryMissionStep.
@@ -141,6 +143,11 @@ private _positionCurrent={
         && {vectorMagnitude angularVelocity _battery < 0.01}
 };
 private _operatorAvailable={
+    // A live carried-static equipment phase is not an artillery firing station.
+    // Recheck the phase at final issue even if its movement marker has expired.
+    private _deployment=_crewGroup getVariable ["CBE_Danger_StaticDeployment",[]];
+    if (count _deployment >= 8 && {(_deployment param [7,objNull,[objNull]]) == _battery}
+        && {(_deployment param [1,"",[""]]) != "ACTIVE"}) exitWith {false};
     local _battery && {alive _battery} && {simulationEnabled _battery} && {!isObjectHidden _battery}
         && {!isNull _operator} && {local _operator} && {gunner _battery == _operator}
         && {vehicle _operator == _battery} && {!isPlayer _operator}

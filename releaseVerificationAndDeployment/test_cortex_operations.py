@@ -1822,6 +1822,21 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[true] call _retire',pack_permission)
         self.assertNotIn('doMove',pack_permission)
         self.assertNotIn('doFollow',pack_permission)
+        # Deployment must not dismantle a mortar whose native shot is unresolved.
+        # A parked/expired fire token remains owned by the artillery executor.
+        self.assertIn('!isNil {_weapon getVariable "CBE_AIPass_FireToken"}',recall)
+        self.assertLess(recall.index('CBE_AIPass_FireToken'),recall.index('private _ownedEquipment='))
+        security=deploy.split('if (_phase == "SECURITY" && {_allowPack}',1)[1].split('private _continuingPack=',1)[0]
+        self.assertIn('[_gunner] call _canReleaseActor',security)
+        self.assertLess(security.index('[_gunner] call _canReleaseActor'),security.index('unassignVehicle _gunner'))
+        self.assertNotIn('CBE_AIPass_BusyUntil',recall+security)
+        shot=(ROOT/'addons/support/functions/cortexArtilleryShot.sqf').read_text(encoding='utf-8')
+        operator=shot.split('private _operatorAvailable=',1)[1].split('if (!(call _fireSessionCurrent)',1)[0]
+        for gate in ('CBE_Danger_StaticDeployment','_deployment param [7,objNull,[objNull]]',
+                     '_deployment param [1,"",[""]]','!= "ACTIVE"'):
+            self.assertIn(gate,operator)
+        self.assertEqual(shot.count('!(call _operatorAvailable)'),2)
+        self.assertLess(shot.rindex('!(call _operatorAvailable)'),shot.index('_battery doArtilleryFire'))
         self.assertIn('private _observations=_enemies select [0,8]',deploy)
         self.assertIn('_record set [18,(_enemies select 0) param [0,objNull,[objNull]]]',deploy)
         sector=deploy.split('// Initial recognition can carry',1)[1].split('if (_phase == "CONTACT" && {_status == "PACK_MOVING"}',1)[0]

@@ -1682,5 +1682,61 @@
       "Full deployment/packing and generated-weapon ordinary/artillery integration comparison, normal/HC/JIP/Zeus/repeat/casualty behaviour, balance and5%median/10%p95 measurements remain incomplete. Audits paused."
     ],
     "releasedParticipantSafeguard": "Code review identified that clearing the assistant phase reservation also discarded its ended native-leg identity; a native MOVE label can remain after completion (existing PointActorOperation native-idle policy already recognises this). Retain exact native leg until whole-task retirement. Only released original assistant in ASSEMBLING/MOUNTING/ACTIVE/PACK_EXITING or vacated original ACTIVE gunner, empty marker, original matching leg, unitReady/rest and physical<=2m arrival may classify CURRENT. No movement lease is recreated. Same-goal native commands remain indistinguishable."
+  },
+  "staticArtilleryOwnership20261028": {
+    "base": "69be1087649d5b470f6d3adeb34e295b587c1036",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "registeredScope": "Follow generated-weapon ordinary/artillery integration from staticDeployPackComparison and the four protected paired/commando deploy/pack helpers. Selected mutual equipment/fire ownership gap, not full descendant parity.",
+    "protectedSourceInputs": {
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/GroupAction/fnc_doGroupStaticDeploy.sqf": {
+        "sha256": "566327ec85c372a3b36a019026a59d5eda926aedef9988d9dea1bc032ebb4a57",
+        "lines": 180
+      },
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/GroupAction/fnc_doGroupStaticPack.sqf": {
+        "sha256": "6d39e4d969e61275df1558cfe877b96baaacfcdba34ac8d82a288837c5a274e0",
+        "lines": 141
+      },
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/GroupAction/fnc_doGroupCommandoDeploy.sqf": {
+        "sha256": "0e7b5d6a94ce09a0432f36fba914adb0d9b45409b7c4ecdead726547fdded07a",
+        "lines": 105
+      },
+      ".qa/lambs-main-installed-20261025-bebceb06/members/functions/GroupAction/fnc_doGroupCommandoPack.sqf": {
+        "sha256": "5b8364f6559fbd324315b39f87a403a032c86c17cf49a439f47190f6038cc532",
+        "lines": 47
+      }
+    },
+    "sourceIntent": "Both paired and commando WeaponAssembled callbacks register artillery when the optional source WP addon is loaded. Native weapon remains recoverable. Source pack helpers force the gunner out and disassemble. CBE retains useful deployed artillery through its existing discovery/server mission/owner shot path, without requiring LAMBS WP or copying group registration or forced exit.",
+    "executionTrace": [
+      "CortexGroupTick CONTACT -> CortexStaticSupport -> CortexStaticDeployStep native assembly/boarding -> ACTIVE record.",
+      "CortexDiscover server vehicle scan includes artilleryScanner=1 in existing allArtillery. CortexArtilleryFire reserves CBE_AIPass_FireToken. CortexArtilleryShot owner issues one native round under the server token.",
+      "CortexArtilleryMissionStep retains FireToken while PENDING/UNCERTAIN, including expired observation; qualified resolution clears it through existing finish. BusyUntil time is not cancellation evidence.",
+      "CortexGroupTick SECURITY -> CortexStaticDeployStep packing previously tested only assistant release before unassign/GetOut of the gunner. Shared retirement also ignored pending fire ownership. This could interrupt an admitted native artillery round.",
+      "Existing CortexActorFireTaskAvailable rejects protected native equipment actions and live movement reservations, but an expired packing marker alone was insufficient to preserve the phase boundary."
+    ],
+    "implementation": "Shared static _canReleaseActor refuses the original gunner whenever the real generated weapon retains any FireToken value. SECURITY now requires both original actors releasable before native unassign/GetOut. Existing phase deadlines and whole-group progression are unchanged. CALM/disable retirement may drop only its own static metadata while leaving the artillery gunner/assignment and token untouched; it does not wait or steal fire ownership. Conversely CortexArtilleryShot checks the current matching static record remains ACTIVE inside its existing operator predicate, at preflight and the final unscheduled issue boundary. Expired markers cannot admit a shot into assembling/packing/taking phases. Ordinary emplacements with no matching record keep their old path.",
+    "departure": "Use one existing artillery owner; never force-seat/force-exit, register a second artillery controller, infer completion from BusyUntil, erase a fire token or hold the squad for a mortar. No new function, setting, scheduler job, timer, scan or controller.",
+    "cost": "One original-weapon token read at the shared release boundary; bounded current group record read at existing owner shot checks. No new world lookup. Runtime cost unmeasured.",
+    "verification": {
+      "red": ".qa/handovers/static-artillery-ownership-red-20261028.log: existing static lifecycle regression failed missing FireToken ownership guard.",
+      "focused": ".qa/handovers/static-artillery-ownership-focused-20261028.log:617 existing operation checks PASS. Source/caller/issue-order contracts only, not native execution.",
+      "newTestCases": 0,
+      "physical": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_RUN",
+      "fullBuild": ".qa/handovers/static-artillery-ownership-build-20261028.log:1505tests/458production SQF/11PBO; complete local build gates PASS. Session34190 terminal exit0.",
+      "independent": ".qa/handovers/static-artillery-ownership-independent-20261028.log:PASS",
+      "candidate": ".qa/candidates/static-artillery-ownership-20261028-69be1087",
+      "fingerprint": "c83c1fc8ffe925d66b04e6af45577250879d7a785aabd40aa0956a63f7748b16",
+      "provenance": "69be1087649d5b470f6d3adeb34e295b587c1036 plus dirty runtime; engineering handover metadata finalized after build. Unsigned development candidate, not release or physical acceptance.",
+      "referenceIndex": "HBQ local evidence checker PASS unchanged29sources/103readable pointers/31unresolved historical texts; no parity credit"
+    },
+    "productHashes": {
+      "addons/infantry/functions/cortexStaticDeployStep.sqf": "864125c5744c47c4d755a996a2f7db46f60de0c711ffa4ef9ee2f00f7101ec31",
+      "addons/support/functions/cortexArtilleryShot.sqf": "a042a5f381d6bcd1192b2e67da54f58bcd13a81f17e97c54ea0b6f3a01ef1072"
+    },
+    "remaining": [
+      "Cross-owner token replication/admission and native round/event/disassembly ordering require physical evidence. Owner shot rechecks phase; it is not an atomic distributed cancellation protocol.",
+      "Pending/quarantined fire may outlast SECURITY. The finite static record can retire without dismounting that gunner; later automatic packing of a released weapon is not newly implemented.",
+      "Whole LAMBS WP task registration semantics, generated-weapon complete ordinary/artillery integration, repeated/normal/HC/locality/casualty and measured5%median/10%p95 overhead remain open."
+    ]
   }
 }
