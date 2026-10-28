@@ -1,3 +1,19 @@
+# Current investigation checkpoint: initial native travel identity, 28 October 2026
+
+Workspace C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; branch Adam/cbe-mechanised-support-20261028; remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git; draft PR20. Last pushed runtime a3b42c9ee10227711bdcb7e72fe0b4b01de7653f. This checkpoint is local engineering evidence only; verify local head/unpushed count in Git and ignored .qa/handovers/checkpoint-current.json. WMP cwd unrelated.
+
+Investigated current convoy pacing and initial tactical-drill native authority. No runtime change. Current ConvoyTick already has continuous projection/radial blending; old abrupt-gap evidence must not justify reimplementation or gain changes. Original HBQ current control review still requires actual motion evidence before tuning mixed convoy flow. Current source hashes in lambs-fsm-foundations-20261020.json#firstBoundNativeAdmissionAssessment20261028.
+
+Concrete initial-drill gap retained: shared DrillStart transfers exact old HOLD but does not preserve initial actor direct-MOVE identity. The previous refill repair protects outside reserves, not initial participants with no owned row. A blanket fixed-goal snapshot is not an acceptable unexamined fix: expectedDestination separates PositionAGL, planningMode and forceReplan; normal formation work differs from direct travel. Official contract https://community.bistudio.com/wiki/expectedDestination. Existing FlankEnd exact MOVE/HOLD proof is cleanup authority; observation/admission metadata must never become cleanup permission.
+
+NEXT implementation must reconcile direct versus formation admission, original accepted token/epoch/roster, reserve atomic publication and checkpoint/resume together. Required cases recorded: changed initial direct order before first bound; normal moving formation still admissible; idle replacement subsequently tasked before first own write; no recall authority or renewed grace from observation. Do not patch one reader and overlook start/refill/cleanup/resume. No code fix or physical effect claimed by this investigation.
+
+Last verified runtime/candidate unchanged: .qa/candidates/buddy-refill-native-20261028-411dd74d; fingerprint3c99ba19658b8b4da2620f8cb40630e501e19ced228154215710627c9453e4dd;1505tests/458SQF/11PBO plus independent verify PASS. No unchanged full build repeated. Full production goal ACTIVE/incomplete; AUDITS PAUSED, no launch/installed-game staging. No merge/release/Steam/manualCI/subagents. Follow IMPLEMENTATION-GOAL.md/master source map/LAMBS queue/entire HBQ/nine Protocol foundations-up; compatibility-only last. Physical and5%median/10%p95 evidence remain separate.
+
+Preserve unrelated dirt, current Temp checkout/.qa and candidates, Workshop E:/SteamLibrary/steamapps/workshop/content/107410, C:/Users/AdamW/Documents/AI-Reference-Archives including old/new PinnedDown/register backups, private source extracts and all prior sourceStores below. Never commit raw references or secrets. File-backed continuation is required if old chats are deleted. Below10%usage checkpoint/handover; pause only explicitly requested.
+
+--- Previous checkpoint follows ---
+
 # Current checkpoint: buddy refill preserves unrelated native MOVE, 28 October 2026
 
 CBE workdir C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git; branch Adam/cbe-mechanised-support-20261028; draft PR20. Runtime base411dd74d0898eb5a13ad6e31989789fd729b5700 plus dirty source. Verify final local/pushed head through Git/PR and ignored .qa/handovers/checkpoint-current.json. WMP chat cwd unrelated. Prior local metadata411dd74d is batched into this push.

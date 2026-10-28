@@ -1738,5 +1738,51 @@
       "Pending/quarantined fire may outlast SECURITY. The finite static record can retire without dismounting that gunner; later automatic packing of a released weapon is not newly implemented.",
       "Whole LAMBS WP task registration semantics, generated-weapon complete ordinary/artillery integration, repeated/normal/HC/locality/casualty and measured5%median/10%p95 overhead remain open."
     ]
+  },
+  "firstBoundNativeAdmissionAssessment20261028": {
+    "base": "a3b42c9ee10227711bdcb7e72fe0b4b01de7653f",
+    "status": "INVESTIGATED_IMPLEMENTATION_OPEN_NO_RUNTIME_CHANGE",
+    "registeredScope": "Current native task authority through initial drill admission, first bound and later casualty recruitment; continuation of actor-task ownership foundations, not new optional timing.",
+    "currentEvidence": [
+      "ConvoyTick current header and _pairGap measurement already blend projection/radial gap continuously over25..35degrees and1.8..2target gaps. The October18 abrupt-mode counterexample is historical, not current code. Existing hbq-convoy-control-reconciliation-20261024.json forbids gain/spacing retuning without fresh motion data.",
+      "CortexDrillStart freezes original authoredOrder and transfers exact completed CBE HOLD rows. It does not capture original native MOVE observation for all initial participants.",
+      "FlankStep absent-row MOVE policy retains initial admitted drill.units membership. The a3b42c9e repair prevents an outside moving reserve from being recruited, but does not prove identity of a changed native MOVE on an already admitted participant before the first owned row.",
+      "FlankStep later CBE MOVE/HOLD rows compare actual destination/formation and retain only their original acknowledgement interval. FlankEnd requires exact owned native MOVE/HOLD for recall; an admission observation must not be promoted into that cleanup right.",
+      "DrillResume separately validates transferred HOLD and support MOVE proof. A new admission method must reconcile actual transferred scope rather than silently rebase source observations after locality."
+    ],
+    "primaryNativeContract": {
+      "url": "https://community.bistudio.com/wiki/expectedDestination",
+      "return": "[PositionAGL destination, STRING planningMode, BOOL forceReplan]",
+      "formationModes": [
+        "DoNotPlan",
+        "DoNotPlanFormation",
+        "FORMATION PLANNED"
+      ],
+      "otherModes": [
+        "LEADER PLANNED",
+        "LEADER DIRECT",
+        "VEHICLE PLANNED"
+      ],
+      "limit": "Mode is native planning policy, not an authenticated command author. Formation destinations may follow native formation work; source documentation is not proof of exact runtime publication timing."
+    },
+    "rejectedSimpleFix": "Do not require every initial MOVE goal to remain a fixed point merely because it was observed at admission. That would conflate formation travel with an independent direct order. Also do not put a generic ADMISSION row into existing MOVE/HOLD cleanup logic or manufacture acknowledgement grace on migration.",
+    "nextImplementationBoundary": "Use existing accepted drill token/epoch/roster and native-command ownership boundary. Distinguish original direct-travel observation from native formation policy, handle newly admitted reserves at the existing atomic roster commit, and preserve cleanup as command-free until an actual CBE writer owns a matching MOVE/HOLD. Reconcile export/resume explicitly before claiming migration safety. No implementation selected from partial planning-mode assumptions.",
+    "neededEvidence": [
+      "Initial direct native MOVE replaced between acceptance and first scheduler step must remain untouched.",
+      "Normal group/formation travel must still enter the accepted tactical bound without false veto from moving formation destinations.",
+      "Idle reserve accepted then independently tasked before its first CBE write must not lose that new task.",
+      "ADMISSION/observation metadata, if introduced, must not authorise follow/unassign/STOP cleanup, new deadlines or replay on a new owner."
+    ],
+    "productHashes": {
+      "addons/vehicles/functions/convoyTick.sqf": "dd9c3cfbcfe59948acfd6391ac4957e97352db1c06e7cfd8a9a78978b7624c90",
+      "addons/infantry/functions/cortexDrillStart.sqf": "2225a9aa0d8bd03425865ba8003ddde1ac42874b6814ee3dda7957b1ba504aa9",
+      "addons/infantry/functions/cortexFlankStep.sqf": "ecf1baa9c46982a353db98e852905385c7325c50bdfdca1f427e53df45cb50d8",
+      "addons/infantry/functions/cortexFlankEnd.sqf": "c3862b375e9fb3bce4dd0724b2b1f80d4e22d4fd240a036dd99d9e5d5f61afb8",
+      "addons/infantry/functions/cortexDrillResume.sqf": "212fa466b4cfea30ade85a0eb30b8bcbc9eaf80e067afd7ad852049154a311e9"
+    },
+    "verification": "Current source/caller/receipt inspection and primary native command documentation only. No runtime change, new test case, repeated full build or physical/performance acceptance. Candidate buddy-refill-native-20261028-411dd74d remains current.",
+    "audits": "PAUSED",
+    "physicalAcceptance": false,
+    "performanceMeasured": false
   }
 }
