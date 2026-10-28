@@ -30,7 +30,8 @@
  * requiring more than the bounded platform lift may try two whole-pattern rotations (-35/+35deg)
  * only after the original fails and no AA axis is known. Every candidate repeats the same live-join,
  * three-line clearance and lift limits; at most990 terrain samples, no per-frame search. All-failed
- * plans are refused so native control remains authoritative;
+ * plans are refused so native control remains authoritative; conclusive early-join/lift failure
+ * stops that candidate immediately. Viable candidates retain the complete original sample set;
  * a knowingly unsafe clamped plan is never returned. STRAFE
  * dives and accelerates through; OFFSET remains oblique; HOOK crosses the
  * target axis on a climbing exit; LATERAL stays abeam long enough for its retained turret; STANDOFF
@@ -676,12 +677,15 @@ if (!_airToAir) then {
         // terrain in the first fifth is too late for a scripted altitude hint to solve and rejects the
         // plan. Later legs receive the same lift at both ends and retain their attack geometry.
         private _routePoints=[_airPos,_ingress,_attack,_egress];
+        // Adjacent legs share the same vertex; keep its terrain height in this candidate.
+        private _previousTerrain=0;
         for "_legIndex" from 0 to 2 do {
             private _fromPoint=_routePoints select _legIndex;
             private _toPoint=_routePoints select (_legIndex+1);
             private _joinLeg=_legIndex == 0;
-            private _fromTerrain=getTerrainHeightASL _fromPoint;
+            private _fromTerrain=_previousTerrain;
             private _toTerrain=getTerrainHeightASL _toPoint;
+            _previousTerrain=_toTerrain;
             private _fromFlightASL=if (_joinLeg) then {(getPosASL _aircraft) select 2}
                 else {_fromTerrain+(_stageAltitudes select (_legIndex-1))};
             private _toFlightASL=_toTerrain+(_stageAltitudes select _legIndex);
@@ -712,11 +716,17 @@ if (!_airToAir) then {
                             private _requiredLift=if (_joinLeg) then {_clearanceDeficit/_fraction}
                                 else {_clearanceDeficit};
                             _terrainLift=_terrainLift max _requiredLift;
+                            // Required lift is a monotone maximum. No later sample
+                            // can rescue this candidate after it exceeds the envelope.
+                            if (_terrainLift > _terrainLiftLimit) then {_terrainViable=false};
                         };
                     };
                     _terrainSampleCount=_terrainSampleCount+1;
+                    if (!_terrainViable) exitWith {};
                 } forEach [-_terrainCorridor,0,_terrainCorridor];
+                if (!_terrainViable) exitWith {};
             };
+            if (!_terrainViable) exitWith {};
         };
         _terrainRequiredLift=ceil (_terrainLift max 0);
         _terrainViable=_terrainViable && {_terrainRequiredLift <= _terrainLiftLimit};

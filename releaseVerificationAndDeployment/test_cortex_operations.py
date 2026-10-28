@@ -10119,6 +10119,37 @@ class CortexOperations(unittest.TestCase):
         self.assertEqual(choose({35:True}),(35,[0,-35,35]))
         self.assertEqual(choose({}), (None,[0,-35,35]))
         self.assertEqual(choose({-35:True},True),(None,[0]))
+        terrain=planner.split('private _terrainRouteOffsets=[0]',1)[1].split('// The engine keeps its ordinary combat task',1)[0]
+        self.assertIn('if (_terrainLift > _terrainLiftLimit) then {_terrainViable=false}',terrain)
+        self.assertEqual(terrain.count('if (!_terrainViable) exitWith {};'),3)
+        self.assertIn('private _previousTerrain=0',terrain)
+        self.assertIn('private _fromTerrain=_previousTerrain',terrain)
+        self.assertIn('_previousTerrain=_toTerrain',terrain)
+        self.assertNotIn('getTerrainHeightASL _fromPoint',terrain)
+
+        self.assertLess(terrain.index('_terrainSampleCount=_terrainSampleCount+1'),terrain.index('if (!_terrainViable) exitWith {};'))
+        # Rejection is monotone: later samples cannot lower the required maximum
+        # lift or undo a prohibited early join. Passing candidates still read all.
+        import itertools
+        def pruned(lifts,forbidden,limit):
+            peak=0
+            for count,(lift,bad) in enumerate(zip(lifts,forbidden),1):
+                peak=max(peak,lift)
+                if bad or peak>limit:return False,peak,count
+            return math.ceil(peak)<=limit,peak,len(lifts)
+        for limit in (300,1200):
+            for lifts in itertools.product((0,50,300,300.1,1200.1),repeat=4):
+                for flags in ((False,)*4,(False,True,False,False)):
+                    full=not any(flags) and math.ceil(max(lifts))<=limit
+                    result,peak,reads=pruned(lifts,flags,limit)
+                    self.assertEqual(result,full)
+                    self.assertLessEqual(reads,4)
+                    if full:
+                        self.assertEqual(reads,4)
+                        self.assertEqual(peak,max(lifts))
+        self.assertEqual(pruned((350,20,800),(False,)*3,300)[2],1)
+        self.assertEqual(pruned((10,20,30),(False,True,False),300)[2],2)
+
 
         self.assertIn('["terrainCorridor",_terrainCorridor]',planner)
         self.assertIn('["terrainRequiredLift",_terrainRequiredLift]',planner)

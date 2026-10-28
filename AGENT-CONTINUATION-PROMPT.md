@@ -1,3 +1,39 @@
+# Current continuation - air planner query cost completed, 28 October 2026
+
+This entry supersedes the pending air-cost work in the entry immediately below. Runtime/test/docs/review changes are complete and locally validated. This checkpoint is prepared on Adam/cbe-mechanised-support-20261028 above6c7f5dbd; resolve the current final hash with git log and PR20, not an old embedded hash. PR20 remains the intended existing draft. No merge/release/audit is authorised.
+
+Production change: break all terrain loops once early join is prohibited or monotone lift exceeds the platform limit; reuse adjacent endpoint heights within each candidate (6 to3 reads per full candidate,18 to9 max across3). Successful routes retain all samples/geometry/limits; no cache crosses candidates or plans. No new command writer, timer, setting or provider. Actual speedup is unmeasured.
+
+Validation:617 existing focused operation checks PASS;2500 model combinations preserve full-scan viability and successful max/sample coverage. Complete local pipeline PASS:1505 tests,459 production SQF,11 PBO, source/docs/config/settings-Zeus/static-performance/FSM/HEMTT/package gates. Build session44578 terminated exit0. Independent package verification PASS. Candidate .qa/candidates/air-relief-cost-20261028-6c7f5dbd; fingerprint24ca99dbaf0b7476a4b72c6c365fe381f32aff0c812a280cc256755c65b5c470. Receipt records6c7f5dbd plus dirty runtime; not a signed/clean release. Current review releaseVerificationAndDeployment/referenceReviews/air-relief-route-alternatives-20261028.json preserves earlier evidence and records query-cost results. Build-out percentages are not raised. No physical/performance acceptance.
+
+Next: return to registered foundation/FSM and full-source integration gaps, selecting a finite real capability from the current LAMBS/HBQ/nine-Protocol reviews. Do not repeat completed static native ownership, initial drill admission, pair reserve refusal or air-route cost work from older notes. Required external-controller handovers remain incomplete; timer/flag/scriptDone alone is not all-writer quiescence. Audits remain PAUSED, no installed staging. Preserve unrelated dirt and all source stores as detailed below. No active build/test process remains for this batch.
+
+Working directory C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks (NOT chat-attached WMP). Read AGENTS.md and IMPLEMENTATION-GOAL.md; source register reference/sourceReviews/source-review-map.json. Protected stores and missing historical ledger remain as recorded below. Keep .qa and Temp checkout safe from cleanup. Durable chat-independent entry: C:/Users/AdamW/Documents/AI-Reference-Archives/CBE-Continuation/CURRENT-HANDOVER.md.
+
+# Chat-independent continuation checkpoint - 28 October 2026
+
+Working directory: C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks
+Remote: https://github.com/AdamWaldie/CombatBehaviourEnhancement.git
+Branch: Adam/cbe-mechanised-support-20261028
+Last pushed commit: 6c7f5dbd5df55fcea7f3651302d59f46738fba5f
+PR: https://github.com/AdamWaldie/CombatBehaviourEnhancement/pull/20 (draft at last check; revalidate live)
+
+Finish the uncommitted air-terrain query-cost batch: conclusive rejected-candidate early exits are implemented and focused checks passed; inspect endpoint-red log, then implement same-candidate endpoint-height reuse (not yet implemented), run focused checks and one coherent full build/independent package verification, update reviews/handover, commit only intended changes and push existing draft PR20. Preserve unrelated deletions and PERFORMANCE-VALIDATION.md. Audits remain paused. Then continue foundations-up LAMBS/HBQ/Protocol source queue; do not repeat completed static actor ownership work.
+
+Full goal remains ACTIVE and incomplete. Build LAMBS functionality internally, no LAMBS dependency; foundations/FSM ownership first, then individuals, pairs/squads and combined arms. Entire relevant HBQ and nine Protocol sources remain priorities. CBA settings configure; Zeus/ZEN modules issue behaviours. Compatibility-only IKMS/WBK Droids/Zombies last. Preserve authored mission orders, skills, group membership and locality. No physical shortcuts or arm stretching. No audits, installed-game staging, merge, release, Steam publication or manual CI currently authorised.
+
+Read AGENTS.md, IMPLEMENTATION-GOAL.md, this checkpoint and the dated handover. Source queue: reference/sourceReviews/source-review-map.json and linked referenceReviews. Historical LOCAL_IMPLEMENTATION_LEDGER.md is missing; do not invent full inventory or percentages. Build-out, static checks, physical evidence and measured performance are separate.
+
+Last complete candidate: .qa/candidates/air-relief-fallback-20261028-55158385
+Fingerprint: c2b7197a04e5dc1596d4a7355436a7251efc2e4117b9513303ae9cbb97a36b54
+1505 tests, 459 production SQF, 11 PBOs, independent package verification passed for committed checkpoint, not current edits. Unsigned development package; physical/performance acceptance pending.
+
+Unrelated dirt must remain untouched: deleted .github/PULL_REQUEST_TEMPLATE.md, .github/workflows/wiki.yml, artwork/branding/README.md, artwork/branding/cbe-logo.png, artwork/branding/workshop-carousel-main.png, images/branding/README.md, releaseVerificationAndDeployment/requirements.txt; modified docs/PERFORMANCE-VALIDATION.md.
+
+Protected sources: E:/SteamLibrary/steamapps/workshop/content/107410; checkout .qa extracts; C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708 and /20261027-3820871877-5793e970; C:/Users/AdamW/Documents/AI-Reference-Archives/CBE-Implementation-Register/20261024-airborne-preflight-234416342678. Preserve originals/manifests; never publish private source collections. Older Pinned Down original PBO/signatures are not all recovered. Never overwrite or expose signing keys in C:/Users/AdamW/OneDrive/Documents/Arma3ModsBikey.
+
+This chat is attached to WMP, which is NOT the CBE checkout. Never make CBE commits there. The Temp checkout and ignored .qa remain important and must not be deleted by cleanup. This durable handover is not a backup of that checkout.
+
 # Current checkpoint: bounded terrain-route alternatives for air attack, 28 October 2026
 
 CBE workdir C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git; branch Adam/cbe-mechanised-support-20261028; draft PR20. Runtime base5515838547827eabaf77ed50fabecc43bcadd5cf plus dirty source. Verify final pushed head through Git/PR and ignored .qa/handovers/checkpoint-current.json. WMP cwd unrelated.
