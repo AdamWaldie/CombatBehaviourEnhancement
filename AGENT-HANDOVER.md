@@ -1,3 +1,15 @@
+# Current checkpoint: sustained explicit attack approaches (29 October 2026)
+
+CBE checkout: C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; remote AdamWaldie/CombatBehaviourEnhancement; branch Adam/cbe-mechanised-support-20261028; PR20 open draft. Regular checked local commits; batch pushes. Audits PAUSED, no game staging, merge or publication. Preserve unrelated workflow/artwork/requirements deletions and docs/PERFORMANCE-VALIDATION.md.
+
+Explicit Press attack now continues after actual arrived HOLD using existing GroupTick native knowledge snapshot and full threat assessment. Original deadline/tag/owner/generation stay unchanged; <=8approach chunks/64points. Native observation age increases between samples. Unsafe/stale/refused approach cancels, not COMPLETE. Clear-through objective stays pinned. Fixes in preceding commit2fd78f87 align actual command gates and objective proof.
+
+Verification:1505tests/470SQF/11PBO complete offline gates passed; independent package verifier passed. Candidate .qa/candidates/rush-continuation-20261029-2fd78f87, fingerprint593b8772edf68d4bfe477778b6d1eae9d6cfc3a804de0703ac61fa269a6b4808, unsigned development base2fd78f87+dirty runtime inputs. Not physical or measured performance proof. Source evidence: releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushContinuation20261029; master reference/sourceReviews/source-review-map.json.
+
+Next required work: continue foundations-up source execution gaps against LAMBS danger/WP, entire relevant HBQ and nine Protocol queue; inspect actual current executor before choosing a finite batch. Long-range physical/MP/casualty/interrupt/repeat/performance checks remain queued, not permission to launch. CQB authenticated incoming-controller adoption and controlled-rappel ownership/cleanup remain material unresolved foundations; no placeholder equivalent modules. Native Zeus/optional ZEN behaviour task equivalents must call real executors, CBA owns settings. Preserve all source/Workshop/game/key stores listed below. Latest usage52%remaining; below10% remaining wrap commits/PR/handover immediately.
+
+---
+
 ## Checkpoint: finite Press attack episode and module equivalents - 29 October 2026
 
 CBE workdir C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; remote AdamWaldie/CombatBehaviourEnhancement; branch Adam/cbe-mechanised-support-20261028; PR20 OPEN DRAFT remote f68a2a3c before this batched push. Base local6ada94774563eb2c0540a48821ba14dbb925e663 (prior regular-commit goal policy/contact-gap checkpoint unpushed). This note is committed with Rush; resolve exact HEAD through git log. Full objective ACTIVE/INCOMPLETE, AUDITS PAUSED: no Arma/staging/merge/Release/Steam/manual CI/ready/delegation. WMP chat cwd unrelated. Regular meaningful checked LOCAL COMMITS required; do not wait for full goal/low usage. Batch pushes; this checkpoint should push prior6ada plus new Rush together to existing PR20. Exact sorted whitelist, preserve unrelated dirt.

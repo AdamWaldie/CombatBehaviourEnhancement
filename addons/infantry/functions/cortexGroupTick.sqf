@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Active explicit attacks reuse the existing native query as an owner-local timestamped snapshot.
  * Existing ticks renew only original remote cargo consent; missing ticks let its short lease expire.
  * Calm remount intent retains its original native waypoint receipt and operation generation;
  * replacement orders retire boarding without seat cleanup, and migration keeps the original deadline.
@@ -726,6 +727,13 @@ private _autonomousActor=_alive findIf {
 if (_autonomousActor < 0) exitWith {_delay};
 
 ([_group] call CBE_fnc_CortexKnowledge) params ["_enemies", "_seenCount"];
+// Reuse this bounded native query only for the current explicit attack. Poll time does
+// not refresh native observation age; the arrived-bound consumer adds elapsed time.
+if (count ((_state getOrDefault ["drill",createHashMap]) getOrDefault ["explicitRush",[]]) == 4) then {
+    _state set ["rushKnowledge",[time,_group getVariable ["CBE_AIPass_Epoch",-1],_enemies apply {
+        private _record=+_x;_record set [1,+(_x select 1)];_record
+    }]];
+};
 // Hunt is a policy on the current finite sweep, not another knowledge or movement worker.
 private _sweep=_group getVariable ["CBE_PatrolTask",createHashMap];
 if (count (_sweep getOrDefault ["hunt",createHashMap]) > 0) then {

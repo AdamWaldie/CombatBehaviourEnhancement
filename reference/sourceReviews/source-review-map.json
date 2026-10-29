@@ -63,7 +63,7 @@
         "snapshot": ".qa/lambs-wp-installed-20261029",
         "pboSHA256": "da03c62978184d2e1b7f28b79cb5e380ae15f40d4cf9ff11d48801b1dfb08534",
         "review": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json",
-        "scope": "Patrol/Hunt/Rush/reset task bodies compared with current CBE owners; full WP/source parity unproven. Scoped building/defence release module exposed through existing real executor; Patrol/Hunt/Rush remain actual implementation gaps.",
+        "scope": "Patrol/Hunt/Rush/reset task bodies compared with current CBE owners. Finite Patrol/Hunt/Press attack executors and authenticated native/optional ZEN controls implemented; whole WP/danger source parity, further source options and physical/MP/performance remain incomplete.",
         "physicalAcceptance": false,
         "durableSourceArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/LAMBS/20261029-wp-da03c629",
         "patrolFoundation": "lambs-wp-task-controls-20261029.json#patrolRouteFoundation20261029: bounded geometry and single-leg common-owner commit primitives; task sequencing/watchdog/continuation and modules still pending, physical/performance unverified.",
@@ -72,7 +72,8 @@
         "patrolControls": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#patrolControls20261029",
         "huntExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#huntExecution20261029",
         "rushIntegration": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushIntegration20261029",
-        "rushExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushExecution20261029"
+        "rushExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushExecution20261029",
+        "rushContinuation": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushContinuation20261029"
       }
     },
     {

@@ -3334,10 +3334,19 @@ permissions; configured advance contact delay still applies. The task can refuse
 when those conditions do not admit an offensive move. It does not substitute a
 sideways/withdrawal reposition or an omniscient Hunt route for the requested attack.
 
-The episode keeps its accepted native belief for approach/clear-through geometry;
-an older group target or later targetless danger cue cannot redirect it. This
-version requests one bounded offensive episode; sustained longer-range pursuit
-through further approach episodes is still unfinished.
+Each approach chunk keeps its accepted native belief. After both fire teams
+physically arrive, the same FSM may plan another screened chunk from the existing
+group brain's native contact snapshot. Observation age grows with elapsed time;
+polling does not make a remembered contact fresh. The full known threat set is
+reassessed for morale, weapon capacity, protected work and uncountered threats.
+Stale knowledge or no safe offensive proposal cancels the task rather than claiming
+the distant objective reached. No live enemy position is used as a routing shortcut.
+
+The task permits at most eight approach chunks and 64 route points, within its
+original time limit and operation generation. It never starts another pursuit
+worker or renews failed-move retries. Once assault/clear-through starts, its
+objective remains fixed until that crossing finishes. Physical long-range flow
+and cost remain unverified while audits are paused.
 
 The accepted existing drill carries one explicit token/owner/generation and its
 original deadline. Its normal FSM checks expiry and feature/phase permissions

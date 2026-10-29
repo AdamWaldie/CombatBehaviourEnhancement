@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Further arrived approach chunks reuse timestamped native knowledge under the original deadline.
  * Purpose: Request one explicit finite offensive episode through the existing actor-scoped
  * advance/close-assault selector and tacticalDrill FSM. No second pursuit worker is started.
  * Locality/authority: Current group owner, local or inherited authenticated server context;
@@ -46,6 +47,7 @@ _state=[_group] call CBE_fnc_CortexGroupState;
 if (!((_state getOrDefault ["phase","CALM"]) in ["CALM","CONTACT"])) exitWith {false};
 private _deadline=time+_duration;
 _range=_range min (missionNamespace getVariable ["CBE_AIPass_EngageRange",800]);
+private _knowledgeAt=time;
 private _enemies=([_group,_range] call CBE_fnc_CortexKnowledge) select 0;
 private _advance=[_group,"CBE_AIPass_Advance_Enable",true] call CBE_fnc_CortexFeatureEnabled;
 private _assault=[_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled;
@@ -62,6 +64,11 @@ if (_token == "" || {_generation < 0} || {!((_drill getOrDefault ["type",""]) in
     || {_generation != (_group getVariable ["CBE_OperationGeneration",-2])}
     || {(_drill getOrDefault ["ownerEpoch",-2]) != _epoch}) exitWith {false};
 _drill set ["explicitRush",[_deadline,_epoch,_generation,_token]];
+_drill set ["rushRange",_range];
+_drill set ["rushChunks",1];
+_state set ["rushKnowledge",[_knowledgeAt,_epoch,_enemies apply {
+    private _record=+_x;_record set [1,+(_x select 1)];_record
+}]];
 _group setVariable ["CBE_Rush_Status",["ACTIVE",_drill get "type",_token,serverTime],true];
 // Retain restoration receipts, but do not migrate this owner's timed explicit episode.
 [_group] call CBE_fnc_CortexCheckpoint;

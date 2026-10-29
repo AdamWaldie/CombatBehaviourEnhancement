@@ -265,5 +265,32 @@
       "performance": "5%median/10%p95 not measured"
     },
     "remaining": "Longer-range explicit continuation beyond initial three-bound chunk remains required; same original deadline/generation, bounded routes and fresh native full-threat reassessment. No long-range parity claim."
+  },
+  "rushContinuation20261029": {
+    "source": "Preserved LAMBS WP taskRush execution and same PBO da03c62978184d2e1b7f28b79cb5e380ae15f40d4cf9ff11d48801b1dfb08534; same source witnesses above.",
+    "intent": "Sustain useful approach after a short initial bound without copying indefinite omniscient movement workers.",
+    "implemented": [
+      "Same explicit FSM episode, original task tag/deadline/owner/generation retained; no second task/controller or new native knowledge scan.",
+      "Constructor seeds owner-local native contact snapshot; existing GroupTick query refreshes snapshot only while explicit task exists. Native observation age grows with elapsed sample time.",
+      "Only physically arrived HOLD before assault may reassess full known threat set via CortexTacticalAssess, preserving morale, suppression, weapon domains, ammunition, ROE and independent actor task checks.",
+      "Selected native belief within original knowledge range feeds bounded CortexSelectAvenue/CortexPlanRoute approach chunks; maximum8chunks/64points, including final assault points. Existing actor/native/mission receipts guard each actual write.",
+      "Stale/unviable contact, unsafe avenue or exhausted budget cancels with reason rather than reporting distant objective complete. Once clear-through begins, accepted objective stays fixed. Exact-task retirement deletes private knowledge cache."
+    ],
+    "verification": {
+      "tests": 1505,
+      "sqf": 470,
+      "pbo": 11,
+      "full": "Complete offline pipeline exit0; HEMTT/FSM/config/docs/coverage/parity/static performance gates passed. Static performance0findings.",
+      "candidate": ".qa/candidates/rush-continuation-20261029-2fd78f87",
+      "fingerprint": "593b8772edf68d4bfe477778b6d1eae9d6cfc3a804de0703ac61fa269a6b4808",
+      "independent": "Package verifier exit0; same fingerprint. Unsigned development base2fd78f87+dirty implementation inputs.",
+      "logs": [
+        ".qa/handovers/rush-continuation-final-build-20261029.log",
+        ".qa/handovers/rush-continuation-independent-20261029.log"
+      ],
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "measuredPerformance": "UNVERIFIED;5%median/10%p95 target remains"
+    },
+    "remaining": "Physical long-range approach, interrupted/repeated tasks, casualties and measured cost need authorised audits. Whole LAMBS WP/danger and source-specific threat-domain behaviour remain incomplete. No source parity or percentage uplift from offline checks."
   }
 }
