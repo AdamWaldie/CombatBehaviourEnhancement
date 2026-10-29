@@ -34,8 +34,9 @@ isNil {
             && {(_executor select 1) isEqualType 0} && {finite (_executor select 1)}
             && {(_executor select 1) >= 0} && {!completedFSM (_executor select 1)};
         if (!_request && {_live}) exitWith {true};
+        private _leaseOwner=["VEHICLE_STANDOFF","VEHICLE_POINT"] select ((_work getOrDefault ["kind",""]) == "POINT");
         private _result=[_battery,_token,_serial,["CBE_VehicleTacticalMove_Work","CBE_VehicleTacticalMove_Reference",
-            "CBE_VehicleTacticalMove_FSM","CBE_VehicleTacticalMove_ExecutorSerial","VEHICLE_STANDOFF",
+            "CBE_VehicleTacticalMove_FSM","CBE_VehicleTacticalMove_ExecutorSerial",_leaseOwner,
             "\z\cbe\addons\main\fsm\vehicleTacticalMove.fsm"]] call CBE_fnc_VehicleCrewMoveRetire;
         private _after=_battery getVariable ["CBE_VehicleTacticalMove_Work",createHashMap];
         if ((_after getOrDefault ["token",""]) == _token && {(_after getOrDefault ["serial",-2]) == _serial}
@@ -44,7 +45,7 @@ isNil {
             private _generation=_after get "operationGeneration";
             private _reason=_after get "result";
             private _complete=_reason == "NATIVE_RETURN_OBSERVED_AFTER_WORKER"
-                && {_after getOrDefault ["arrived",false]}
+                && {_after getOrDefault ["arrived",false]} && {!(_after getOrDefault ["pointCancelled",false])}
                 && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_after get "route")};
             [_group,_generation,["INCOMPLETE","COMPLETE"] select _complete,_reason] call CBE_fnc_OperationRelease;
             private _state=_group getVariable ["CBE_AIPass_State",createHashMap];

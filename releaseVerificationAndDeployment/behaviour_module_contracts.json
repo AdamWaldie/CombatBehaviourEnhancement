@@ -17,7 +17,9 @@
     "CBE_ModuleClear",
     "CBE_ModuleClearArea",
     "CBE_ModulePointAdvance",
-    "CBE_ModulePointWithdraw"
+    "CBE_ModulePointWithdraw",
+    "CBE_ModuleVehiclePoint",
+    "CBE_ModuleVehiclePointRelease"
   ],
   "zen_labels": [
     "Create AI Convoy",
@@ -31,7 +33,9 @@
     "Press attack",
     "Clear buildings in area",
     "Advance to position",
-    "Withdraw to position"
+    "Withdraw to position",
+    "Position vehicle",
+    "Release vehicle position task"
   ],
   "contracts": [
     {
@@ -290,6 +294,28 @@
       "termination": "Original120s, capable original cohort ground arrival, bounded exact-goal retries, native/Zeus/specialist replacement, owner loss or scoped Release infantry task. No incoming-owner semantic replay.",
       "guide": "docs/Smart-AI-Pass.md",
       "physical_acceptance": "UNVERIFIED; audits paused. Native/optionalZEN selection/acknowledgement, actual ground withdrawal, smoke, repeat/casualty/normal/HC/locality and measured cost remain pending."
+    },
+    {
+      "behaviour": "Position one selected AI land vehicle and request exact task retirement",
+      "target": "Explicit AI platform with original operating crew; dry ground destination for START",
+      "parameters": [
+        "vehicle",
+        "position",
+        "30..300s original total move/hold deadline; native default180s;10m arrival"
+      ],
+      "handlers": [
+        "addons/vehicles/functions/vehiclePointDialog.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Curator-authenticated CortexOrderDispatch; current group/platform owner revalidates original mission/crew and real VEHICLE_POINT operation",
+      "termination": "Original deadline, explicit exact release, changed native/Zeus/mission/source/crew, disable,30s no progress or locality retirement; native unresolved proof blocks reacquisition",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; audits paused",
+      "native_forwarder": {
+        "handler": "addons/vehicles/functions/moduleVehiclePoint.sqf",
+        "calls": "CBE_fnc_VehiclePointDialog"
+      },
+      "owner_executor": "CBE_fnc_VehiclePointOperation -> VehicleTacticalMoveStart/Step -> VehicleCrewMoveNativePhase"
     }
   ]
 }

@@ -23,6 +23,12 @@ missionNamespace setVariable ["CBE_AITweaks_ZenRegisteredLocal", true];
 ["Combat Behaviour Enhancement (CBE)", "Defend area", {
     _this call CBE_fnc_ZenDefendModule;
 }] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Position vehicle", {
+    [_this select 0,_this select 1,false] call CBE_fnc_VehiclePointDialog;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Release vehicle position task", {
+    [_this select 0,_this select 1,true] call CBE_fnc_VehiclePointDialog;
+}] call zen_custom_modules_fnc_register;
 ["Combat Behaviour Enhancement (CBE)", "Advance to position", {
     _this call CBE_fnc_ZenPointAdvanceModule;
 }] call zen_custom_modules_fnc_register;

@@ -115,7 +115,7 @@ if (isNull _operationAnchor) then {_operationAnchor=leader _group};
 private _postureAnchor=_operationAnchor;
 // Selected-platform standoff owns only its admitted crew. A dismounted group leader
 // must not become its progress anchor or trigger group-wide infantry posture cleanup.
-if (toUpperANSI _intent == "VEHICLE_STANDOFF" && {_paceParticipants isNotEqualTo []}) then {
+if (toUpperANSI _intent in ["VEHICLE_STANDOFF","VEHICLE_POINT"] && {_paceParticipants isNotEqualTo []}) then {
     _operationAnchor=_paceParticipants select 0;
 };
 private _dangerPosture=(vehicle _operationAnchor) isEqualTo _operationAnchor;
@@ -164,7 +164,7 @@ if (_dangerPosture) then {
 };
 // Crew-only standoff leaves infantry posture in place. Preserve its exact cleanup proof
 // through this internal generation change without reapplying stance or renewing expiry.
-if (_dangerPosture || {toUpperANSI _intent == "VEHICLE_STANDOFF"}) then {
+if (_dangerPosture || {toUpperANSI _intent in ["VEHICLE_STANDOFF","VEHICLE_POINT"]}) then {
     // Both release paths above may defer to a native task. Carry only exact unchanged
     // proof through this internal generation publication, never reapply stance here.
     {

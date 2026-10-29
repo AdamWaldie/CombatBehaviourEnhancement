@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Service the exact original crew's finite standoff/support bound and handback.
+ * Purpose: Service the exact original crew's finite point/standoff/support bound and handback.
  * Troop support retains original contact, dismount receipt, body anchor and deadline;
  * changed clearance/body or source authority retires through the same native handback.
  * Locality/authority: Current platform/group owner, exact worker/token/serial/epoch/reference.
@@ -30,6 +30,8 @@ private _group=_work get "group";
 private _seats=_work get "crew";
 private _reference=_work get "reference";
 private _phase=_work get "phase";
+private _pointTask=(_work getOrDefault ["kind",""]) == "POINT";
+private _intent=["VEHICLE_STANDOFF","VEHICLE_POINT"] select _pointTask;
 private _finish={
     params ["_reason",["_retired",false]];
     if ((_battery getVariable ["CBE_VehicleTacticalMove_Work",createHashMap]) isEqualTo _work) then {
@@ -38,7 +40,7 @@ private _finish={
         _battery setVariable ["CBE_VehicleTacticalMove_Work",_work,true];
         if (_retired && {local _group}
             && {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isEqualTo _reference}) then {
-            [_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease;
+            [_group,_intent,false] call CBE_fnc_CortexOwnershipLease;
             _group setVariable ["CBE_VehicleTacticalMove_Reference",nil,true];
             [_battery,"RELEASE",_reference] call CBE_fnc_VehicleCrewMoveDeletionWatch;
             private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
@@ -49,7 +51,7 @@ private _finish={
             if ((_state getOrDefault ["vehicleOperationGeneration",-1]) == _generation) then {
                 _state deleteAt "vehicleOperationGeneration";
             };
-            [_group,_generation,["INCOMPLETE","COMPLETE"] select (_work getOrDefault ["arrived",false]),
+            [_group,_generation,["INCOMPLETE","COMPLETE"] select ((_work getOrDefault ["arrived",false]) && {!(_work getOrDefault ["pointCancelled",false])}),
                 _reason] call CBE_fnc_OperationRelease;
         };
     };
@@ -136,14 +138,22 @@ private _arrivalSample=if (_phase in ["REQUESTED","STOPPING","RETURNING"]) then 
 } else {[]};
 private _operation=_group getVariable ["CBE_Operation",createHashMap];
 private _sourceCurrent=!_retirementOnly && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
-    && {!([] call CBE_fnc_CortexIsPaused)} && {serverTime < (_work get "holdUntil")}
+    && {!([] call CBE_fnc_CortexIsPaused)}
     && {(_operation getOrDefault ["generation",-2]) == (_work get "operationGeneration")}
     && {(_operation getOrDefault ["ownerEpoch",-2]) == (_work get "epoch")}
-    && {(_operation getOrDefault ["intent",""]) == "VEHICLE_STANDOFF"}
+    && {(_operation getOrDefault ["intent",""]) == _intent}
+    && {!_pointTask || {(_operation getOrDefault ["pointUntil",-1]) == (_work get "holdUntil")
+        && {(_operation getOrDefault ["pointVehicle",objNull]) isEqualTo _battery}
+        && {(_operation getOrDefault ["objective",[]]) isEqualTo (_work get "spot")}
+        && {(_operation getOrDefault ["participants",[]]) isEqualTo (_seats arrayIntersect _seats)}}}
     && {(_operation getOrDefault ["phase",""]) != "CANCELLED"}
     && {[_group,false,false,true] call CBE_fnc_CortexIsEligible}
     && {[_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled}
-    && {[_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled};
+    && {_pointTask || {[_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled}};
+// Reaching the point is not successful completion if source authority was then lost.
+// Test source identity/permissions separately from natural expiry, including handback.
+if (_pointTask && {!_sourceCurrent}) then {_work set ["pointCancelled",true]};
+_sourceCurrent=_sourceCurrent && {serverTime < (_work get "holdUntil")};
 // The existing finite worker observes troop support at most once every two seconds.
 // It never follows a newly sampled destination or renews the original contact/deadline.
 private _supportContext=_work getOrDefault ["supportContext",[]];

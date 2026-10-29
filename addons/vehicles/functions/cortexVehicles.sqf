@@ -133,10 +133,11 @@ if ((_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo cre
 private _vehicleMove = _state getOrDefault ["movementLease",[]];
 private _activeVehicleMove = false;
 if (_vehicleMove isNotEqualTo []) then {
-    private _vehicleOwnsLease = (_vehicleMove param [0,""]) in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","VEHICLE_ORIENT"];
+    private _vehicleOwnsLease = (_vehicleMove param [0,""]) in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_POINT","VEHICLE_JINK","VEHICLE_ORIENT"];
     if (_vehicleOwnsLease) then {
         private _movementOwner=_vehicleMove param [0,""];
         private _movementFeature=switch (_movementOwner) do {
+            case "VEHICLE_POINT": {"CBE_AIPass_Vehicles_Enable"};
             case "VEHICLE_JINK": {"CBE_AIPass_VehicleJink_Enable"};
             case "VEHICLE_WITHDRAW": {"CBE_AIPass_VehicleWithdraw_Enable"};
             default {"CBE_AIPass_VehicleGunnery_Enable"};
@@ -261,7 +262,7 @@ if (_vehicleMove isNotEqualTo []) then {
             if (_vehicleCrewChanged) then {_activeVehicleMove=false};
             // Native selected standoff has no temporary group waypoint. Its independent
             // worker owns cleanup; the reference, including unresolved work, reserves it.
-            if (_movementOwner == "VEHICLE_STANDOFF"
+            if (_movementOwner in ["VEHICLE_STANDOFF","VEHICLE_POINT"]
                 && {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []}) then {
                 _activeVehicleMove=true;_vehicleRouteChanged=false;_vehicleCrewChanged=false;
             };

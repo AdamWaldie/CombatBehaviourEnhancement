@@ -7584,7 +7584,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _movementOwned = _activeVehicleMove',vehicles)
         self.assertIn('if (_enemies isEqualTo []) exitWith {_movementOwned}',vehicles)
         self.assertIn('_state set ["movementLease",["VEHICLE_WITHDRAW",(_operation get "startedAt")+120]]',vehicles)
-        self.assertIn('["VEHICLE_STANDOFF",time+(_until-serverTime)]',source('vehicleTacticalMoveStart'))
+        self.assertIn('[_intent,time+(_until-serverTime)]',source('vehicleTacticalMoveStart'))
         self.assertIn('if (!_movementOwned && {_state getOrDefault ["phase",""] == "CONTACT"}',vehicles)
         self.assertIn('private _coordinatedOwnsMovement = _vehicleOwnsMovement',tick)
         self.assertIn('!_vehicleOwnsMovement',tick)
@@ -7606,7 +7606,7 @@ class CortexOperations(unittest.TestCase):
 
     def test_vehicle_combat_layer_preserves_other_movement_owners(self):
         vehicles=source('cortexVehicles')
-        self.assertIn('in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","VEHICLE_ORIENT"]',vehicles)
+        self.assertIn('in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_POINT","VEHICLE_JINK","VEHICLE_ORIENT"]',vehicles)
         self.assertIn('if (_vehicleOwnsLease) then',vehicles)
         self.assertIn('_activeVehicleMove = count _vehicleMove == 2',vehicles)
         non_vehicle=vehicles.split('} else {',1)[1].split('};',1)[0]
@@ -9016,6 +9016,40 @@ class CortexOperations(unittest.TestCase):
         retire=source('vehicleTacticalMoveRetire')
         standoff=vehicles.split('private _standoffSeats=',1)[1].split('// Finite support bounds',1)[0]
         self.assertIn('call CBE_fnc_VehicleTacticalMoveStart',standoff)
+        # Explicit platform tasks use the same native worker, with a real separate
+        # intent at admission, continuation and retirement; no fake standoff source.
+        point=source('vehiclePointOperation')
+        self.assertIn('"VEHICLE_POINT",+_goal,_seats arrayIntersect _seats,[],"MOVING"',point)
+        self.assertIn('_generation,_until,[],[],"VEHICLE_POINT"]',point)
+        self.assertIn('remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}',point)
+        self.assertIn('_tracked findIf',point)
+        self.assertLess(point.index('private _driving='),point.index('"VEHICLE_POINT",true,_until'))
+        self.assertIn('!_pointTask || {remoteExecutedOwner != 2}',start)
+        self.assertIn('_publicLease isNotEqualTo [_intent,_until]',start)
+        self.assertIn('_operation getOrDefault ["objective",[]]',start)
+        self.assertIn('!_pointTask && {!([_group,"CBE_AIPass_VehicleGunnery_Enable"',start)
+        self.assertIn('_operation getOrDefault ["objective",[]]',step)
+        for text in (start,step):
+            self.assertIn('_operation getOrDefault ["pointUntil",-1]',text)
+            self.assertIn('_operation getOrDefault ["pointVehicle",objNull]',text)
+        self.assertIn('_operation set ["pointUntil",_until]',point)
+        self.assertLess(step.index('if (_pointTask && {!_sourceCurrent})'),
+                        step.index('_sourceCurrent=_sourceCurrent && {serverTime <'))
+        self.assertIn('!(_work getOrDefault ["pointCancelled",false])',step)
+        self.assertIn('!(_after getOrDefault ["pointCancelled",false])',retire)
+        self.assertIn('(_work getOrDefault ["kind",""]) == "POINT"',retire)
+        self.assertIn('"CBE_VehicleTacticalMove_ExecutorSerial",_leaseOwner',retire)
+        for forbidden in ('addWaypoint','setCurrentWaypoint','joinSilent','doMove','doWatch','allowGetIn','orderGetIn','forceSpeed','setSkill','execFSM','spawn'):
+            self.assertNotIn(forbidden,point.split('params [[',1)[1])
+        dispatch=source('cortexOrderDispatch');local=source('cortexOrderLocal')
+        for text in (dispatch,local):
+            self.assertIn('"VEHICLE_POINT_RELEASE"',text)
+            self.assertIn('getOrDefault ["vehicle",objNull]',text)
+        self.assertIn('["START",_pointVehicle,_position,_pointDuration] call CBE_fnc_VehiclePointOperation',local)
+        self.assertIn('["CANCEL",_pointVehicle] call CBE_fnc_VehiclePointOperation',local)
+        self.assertIn('"CBE_operation"',source('moduleVehiclePoint'))
+        self.assertIn('call CBE_fnc_VehiclePointDialog',source('moduleVehiclePoint'))
+        self.assertIn('"pointDuration",round (_values select 1)',source('vehiclePointDialog'))
         shot=source('vehicleArmourShot')
         for proof in ('addEventHandler ["Fired"','_thisEventHandler','getShotParents',
                       '(_event select 7) != _gunner','(_event select 2) != (_state get "muzzle")',
@@ -9091,11 +9125,11 @@ class CortexOperations(unittest.TestCase):
         self.assertEqual(standoff.count('count (_group getVariable ["CBE_Operation",createHashMap]) == 0'),3)
         operation_start=source('operationStart')
         crew_anchor=operation_start.split('// Selected-platform standoff',1)[1].split('private _dangerPosture=',1)[0]
-        self.assertIn('toUpperANSI _intent == "VEHICLE_STANDOFF"',crew_anchor)
+        self.assertIn('toUpperANSI _intent in ["VEHICLE_STANDOFF","VEHICLE_POINT"]',crew_anchor)
         self.assertIn('_operationAnchor=_paceParticipants select 0;',crew_anchor)
         self.assertIn('CBE_fnc_CortexVehicleCrewAvailable',start)
         self.assertIn('call CBE_fnc_VehicleCrewNativeObservation',start)
-        self.assertIn('["arrivalRadius",5]',start)
+        self.assertIn('["arrivalRadius",[5,10] select _pointTask]',start)
         native_phase=source('vehicleCrewMoveNativePhase')
         moving=native_phase.split('if (_phase == "MOVING") exitWith {',1)[1].split('if (_phase == "HOLD")',1)[0]
         self.assertIn('getOrDefault ["arrivalRadius",25]',moving)
@@ -11072,7 +11106,7 @@ class CortexOperations(unittest.TestCase):
         jink_cleanup=calm.split('private _vehicleJink=',1)[1].split('private _vehicleOrient=',1)[0]
         self.assertIn('(_jinkMarker param [4,-1,[0]]) == (_state getOrDefault ["vehicleOperationGeneration",-2])',jink_cleanup)
         self.assertIn('_dangerCause in ["HIT","EXPLOSION"] || {_knownCloseThreat}',vehicles)
-        self.assertIn('["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","VEHICLE_ORIENT"]',vehicles)
+        self.assertIn('["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_POINT","VEHICLE_JINK","VEHICLE_ORIENT"]',vehicles)
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf').read_text(encoding='utf-8')
         for marker in ['DANGER-VEHICLE-jink-disabled','DANGER-VEHICLE-jink-operation-owned',
                        'DANGER-VEHICLE-jink-physical-travel','DANGER-VEHICLE-jink-crew-retained']:
@@ -11179,7 +11213,7 @@ class CortexOperations(unittest.TestCase):
         for marker in ['CBE_fnc_OperationCancel','VEHICLE_ORIENT_TIMEOUT','VEHICLE_ORIENT_ALIGNED',
                        '["INCOMPLETE","COMPLETE"] select _aligned']:
             self.assertIn(marker,vehicles)
-        self.assertIn('["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","VEHICLE_ORIENT"]',vehicles)
+        self.assertIn('["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_POINT","VEHICLE_JINK","VEHICLE_ORIENT"]',vehicles)
         audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runVehicleDrills.sqf').read_text(encoding='utf-8')
         self.assertIn('driver _orientVehicle == _orientOriginalDriver',audit)
         self.assertIn('param [5,objNull,[objNull]]) == _orientOriginalDriver',audit)

@@ -118,6 +118,9 @@ class CfgFunctions {
             class VehicleCrewMoveReturnProof {file = "\z\cbe\addons\vehicles\functions\vehicleCrewMoveReturnProof.sqf";};
             class VehicleCrewMoveDeletionWatch {file = "\z\cbe\addons\vehicles\functions\vehicleCrewMoveDeletionWatch.sqf";};
             class VehicleArmourShot {file = "\z\cbe\addons\vehicles\functions\vehicleArmourShot.sqf";};
+            class ModuleVehiclePoint {file = "\z\cbe\addons\vehicles\functions\moduleVehiclePoint.sqf";};
+            class VehiclePointDialog {file = "\z\cbe\addons\vehicles\functions\vehiclePointDialog.sqf";};
+            class VehiclePointOperation {file = "\z\cbe\addons\vehicles\functions\vehiclePointOperation.sqf";};
             class VehicleTacticalMoveStart {file = "\z\cbe\addons\vehicles\functions\vehicleTacticalMoveStart.sqf";};
             class VehicleTacticalMoveStep {file = "\z\cbe\addons\vehicles\functions\vehicleTacticalMoveStep.sqf";};
             class VehicleTacticalMoveRetire {file = "\z\cbe\addons\vehicles\functions\vehicleTacticalMoveRetire.sqf";};

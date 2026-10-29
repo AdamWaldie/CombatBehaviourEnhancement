@@ -3504,3 +3504,48 @@ legacy FOLLOW journal, a newer native STOP on every surviving original operator 
 the old request only after the exact original worker has ended and measured rest is established.
 CBE observes that STOP without issuing or canceling it. This is supersession, not FOLLOW restoration.
 Automatic return to an original FOLLOW task remains unsupported and needs further implementation.
+
+
+### Position one vehicle
+
+Native Zeus **Position vehicle** and its optional ZEN equivalent select one actual crewed AI
+land vehicle and a dry ground destination 10–2,000 metres away. The native dialog uses a
+180-second total move/hold limit; ZEN exposes 30–300 seconds. Arrival requires measured rest
+within 10 metres and 3 metres of destination height. The remaining task time is a hold,
+not a renewed deadline. Thirty seconds without three metres of progress requests retirement.
+The task requires the existing CBA Vehicles permission; Vehicle Gunnery is not required.
+
+Only the original driver and effective commander receive commands through the existing
+selected-crew FSM. Group membership, unrelated infantry waypoints, passenger seating and
+weapons policy stay under their existing owners. If active ordinary driving controls another
+platform in that group, admission refuses before its group-wide cleanup. Native STOP, FOLLOW
+and other unsupported original crew orders, convoy/external control, zero-speed restrictions,
+care, unavailable crew and unresolved previous handback also refuse. Existing operations are
+not replaced. Destination selection does not prove route connectivity; inaccessible terrain
+can still cause a finite incomplete result.
+
+**Release vehicle position task** requests retirement of that exact point task. It does not
+cancel standoff, artillery or convoy work. Retirement may remain unresolved; a request is not
+proof the engine has stopped. At the original deadline or release, the shared owner requests
+its normal stop and original native MOVE/idle handback only while original authority remains.
+New native/Zeus/mission orders yield without another write. A locality change permits retirement
+only, never replay of the outward task. Public task metadata is not a JIP command.
+
+Owner-local scripts can use:
+
+```sqf
+["START", apc1, [1200, 1800, 0], 180] call CBE_fnc_VehiclePointOperation;
+["CANCEL", apc1] call CBE_fnc_VehiclePointOperation;
+```
+
+Both calls return admission/request status, not physical success. The platform's
+`CBE_VehicleTacticalMove_Work` journal retains its phase, arrival and retirement result;
+`CBE_OperationResult` records the matching common operation result. Missing physical arrival
+or native acknowledgement cannot become successful completion. The UI makes one bounded
+128-vehicle selection query, plus an explicitly attached vehicle. Runtime reuses the existing
+finite FSM cadence (0.25-second acknowledgement, one-second travel and two-second hold);
+no permanent controller, world scan, extra PFH or independent crew mover is added.
+
+Physical/UI/normal/HC/locality/repeat behaviour and the measured performance budget remain
+unverified while audits are paused. This implements selected-platform point positioning,
+not passenger-assault orchestration or a general vehicle attack task.

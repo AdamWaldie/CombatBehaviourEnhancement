@@ -6,7 +6,7 @@ class CfgPatches {
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
         requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "CBE_core", "CBE_danger", "CBE_infantry", "CBE_vehicles", "CBE_aircraft", "CBE_support", "CBE_compatibility"};
-        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModulePointAdvance", "CBE_ModulePointWithdraw", "CBE_ModuleClearArea", "CBE_ModuleClear", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModulePatrol", "CBE_ModuleHunt", "CBE_ModuleRush", "CBE_ModuleRelease", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
+        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModuleVehiclePoint", "CBE_ModuleVehiclePointRelease", "CBE_ModulePointAdvance", "CBE_ModulePointWithdraw", "CBE_ModuleClearArea", "CBE_ModuleClear", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModulePatrol", "CBE_ModuleHunt", "CBE_ModuleRush", "CBE_ModuleRelease", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
         weapons[] = {};
         version = "0.1.0";
         versionStr = "0.1.0";
@@ -132,6 +132,21 @@ class CfgVehicles {
         isTriggerActivated = 0;
         isDisposable = 1;
         curatorCanAttach = 1;
+    };
+    class CBE_ModuleVehiclePoint: CBE_ModuleGarrison {
+        displayName = "Position vehicle";
+        function = "CBE_fnc_ModuleVehiclePoint";
+        CBE_operation = "VEHICLE_POINT";
+        class ModuleDescription: ModuleDescription {
+            description = "Select one crewed AI land vehicle and dry ground10..2000m away. Existing selected-crew FSM moves and holds with10m arrival/180s total limit; optional ZEN exposes30..300s. No group waypoint, forced passenger dismount or fire-policy reset. New native/Zeus orders retain priority; Release vehicle position task requests exact retirement.";
+        };
+    };
+    class CBE_ModuleVehiclePointRelease: CBE_ModuleVehiclePoint {
+        displayName = "Release vehicle position task";
+        CBE_operation = "VEHICLE_POINT_RELEASE";
+        class ModuleDescription: ModuleDescription {
+            description = "Select the exact vehicle with a CBE point task. Requests its existing finite native handback; it does not force a stop or clear unresolved proof. Does not cancel convoy, artillery or other tactical vehicle tasks.";
+        };
     };
     class CBE_ModulePointAdvance: CBE_ModuleGarrison {
         displayName = "Advance to position";

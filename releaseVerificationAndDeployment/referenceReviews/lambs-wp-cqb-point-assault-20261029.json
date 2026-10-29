@@ -388,5 +388,54 @@
       "Actual original FOLLOW restoration remains unsupported",
       "CQB incoming reconciliation, broader LAMBS/HBQ/Protocol execution and physical validation remain open"
     ]
+  },
+  "vehiclePointExecution20261029": {
+    "sourceBase": "18bb2263f45285f377b47b649b8d488024c89a67",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "source": {
+      "member": "functions/fnc_taskAssault.sqf",
+      "sha256": "857ef0ce4d659e9d32670169643180433fb22a21ebbb9a25ce61abfba8099f07",
+      "branch": "Vehicle destination loop174..194 revisited from complete readable body review; source ready-vehicle helper already reviewed separately. No whole-source parity claim."
+    },
+    "intent": "Position one explicitly selected crewed land platform without a hostile target, unrelated group movement or passenger policy changes.",
+    "execution": "Native ModuleVehiclePoint or optional ZEN VehiclePointDialog -> curator-authenticated CortexOrderDispatch -> current group/platform owner CortexOrderLocal -> VehiclePointOperation -> real VEHICLE_POINT OperationStart/lease -> existing VehicleTacticalMoveStart/vehicleTacticalMove.fsm/Step -> shared native phase and exact retirement/deletion/locality owners. No new movement worker type or RPC.",
+    "disposition": {
+      "retain": "Explicit ground vehicle destination and useful existing selected-original-crew native move/hold/return. Existing standoff/support defaults and deadlines remain distinct.",
+      "adapt": "Actual POINT purpose, fixed platform/cohort/objective/pointUntil at admission and continuation,30..300s original move/hold deadline,10m/3m measured-rest arrival,30s no-progress bound; generic operation uses mounted crew anchor and preserves unrelated posture. Movement does not depend on VehicleGunnery permission. Only POINT admits inherited authenticated server2 context.",
+      "reject": "No guessed enemy, vehicle doWatch reset, cargo orderGetIn/allowGetIn changes, group-wide waypoint or group split. No forged VEHICLE_STANDOFF/artillery source, unrestricted remote start, new recurring controller or hidden native completion."
+    },
+    "controls": "Native Position vehicle / Release vehicle position task and optional ZEN equivalents select actual platform. Native180s; ZEN30..300s. Cancel dialog submits nothing. Exact task release requests existing retirement, not forced native stop. CBA remains settings surface.",
+    "preserved": "Original seats, local owner/epoch/generation, baseline/native route, original deadline and strict shared native proof. Unsupported native FOLLOW/STOP/unknown, player/specialist/care, external/convoy/zero cap, active tasks and unresolved old reference refuse. Active ordinary-driving roster containing another platform refuses before group cleanup. Native/Zeus orders interrupt. Locality can retire only, never replay outward POINT. Point result distinguishes natural deadline expiry from lost source/feature/operation authority, including during native handback; the latter records pointCancelled and cannot be credited COMPLETE merely for prior arrival.",
+    "runtimeHashes": {
+      "addons/vehicles/functions/vehiclePointOperation.sqf": "3bae1bbea74cae5aa437612a22f44418a9238e366d6e1091ecd9e01a6d1226ed",
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "5e38fab19cba2539092edd25bf7a40155e24fa4b9441b960c9de3c31296b6d27",
+      "addons/vehicles/functions/vehicleTacticalMoveStep.sqf": "2e2a019a70615e53f3a129051f6afc8ca25f9708217117f148196ef95d0d15dc",
+      "addons/vehicles/functions/vehicleTacticalMoveRetire.sqf": "40794edd97517ff9e5c6097422f4f28d809f3c393c158c144f5892885ad1db6b"
+    },
+    "validation": {
+      "focused": "Existing617 operation cases pass; lifecycle/transport assertions extended, including original point deadline/platform, no independent native writer, shared return and authentic dispatch. No test cases added or removed.",
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "performance": "No extra runtime FSM/PFH/query loop; existing native cadence. One bounded UI128vehicle list plus attached selection. Runtime crew2/membership64 bounds. Measured budget UNVERIFIED.",
+      "full": "Final result-corrected build exit0:1505 tests/480 compiled productionSQF/11PBO; all config/FSM/docs/coverage/parity and static performance0findings pass. Source loss during/after arrival cannot inherit natural expiry completion.",
+      "candidate": ".qa/candidates/vehicle-point-final-20261029-18bb2263",
+      "fingerprint": "aa85715f31d5a9f552aa0a80e6f88142866eab4665400e0de0fabdc02c06835e",
+      "independent": "Final candidate verifier exit0, matching fingerprint. Unsigned development base18bb2263 plus current runtime/guide changes; metadata finalized afterward. Earlier pre-result-fix candidate remains preserved but superseded.",
+      "logs": [
+        ".qa/handovers/vehicle-point-focused-20261029.log",
+        ".qa/handovers/vehicle-point-focused-final-20261029.log",
+        ".qa/handovers/vehicle-point-build-20261029.log",
+        ".qa/handovers/vehicle-point-build-final-20261029.log",
+        ".qa/handovers/vehicle-point-independent-20261029.log",
+        ".qa/handovers/vehicle-point-result-build-20261029.log",
+        ".qa/handovers/vehicle-point-final-independent-20261029.log"
+      ],
+      "retainedFailures": "First focused invocation lacked discovery import path and stale source-literal expectations; normal discover passed after updating expectations without removing tests. First full run caught an overly broad UI executor contract and an internal reference name in product guide. Contract now names actual dispatcher handler and records native forwarding/owner execution separately; guide corrected. Final full and independent gates passed."
+    },
+    "remaining": [
+      "Actual routing/physical rest, UI, normal/HC/locality/repeat/interrupt and measured performance",
+      "Original FOLLOW restoration and other unknown native handbacks",
+      "Passenger-assault orchestration and broader LAMBS/HBQ/Protocol functionality",
+      "CQB incoming reconciliation and controlled-rappel executor remain open"
+    ]
   }
 }

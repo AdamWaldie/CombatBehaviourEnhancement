@@ -590,6 +590,7 @@ private _groupMovementOwned = _crewMovementReserved || {count _movementLease == 
         // A second marker schema here previously retired valid seven-field turns as five-field.
         case "VEHICLE_WITHDRAW";
         case "VEHICLE_STANDOFF";
+        case "VEHICLE_POINT";
         case "VEHICLE_JINK";
         case "VEHICLE_ORIENT": {true};
         default {

@@ -34,7 +34,7 @@ if !(_sortByHeight isEqualType true) exitWith {false};
 private _teleport = _settings getOrDefault ["teleport",false];
 if !(_teleport isEqualType true) exitWith {false};
 // Remote module requests cannot change addon configuration or artillery role registration.
-if (_sender > 2 && {!(_order in ["GARRISON","DEFEND","CLEAR","RELEASE","AIRBORNE","PATROL","HUNT","RUSH","CLEAR_AREA","ADVANCE_POINT","WITHDRAW_POINT"])}) exitWith {false};
+if (_sender > 2 && {!(_order in ["GARRISON","DEFEND","CLEAR","RELEASE","AIRBORNE","PATROL","HUNT","RUSH","CLEAR_AREA","ADVANCE_POINT","WITHDRAW_POINT","VEHICLE_POINT","VEHICLE_POINT_RELEASE"])}) exitWith {false};
 private _pending = missionNamespace getVariable ["CBE_AIPass_OrderPending", createHashMap];
 if (count _pending >= 64) exitWith {
     ["AI ORDERS","Too many pending squad orders. Wait for owner replies before retrying.","ERROR"] remoteExecCall ["CBE_fnc_AITweaksNotifyLocal",_requestOwner];
@@ -46,10 +46,29 @@ private _token = str _serial;
 _pending set [_token, [_requestOwner, _group, groupOwner _group, _order]];
 missionNamespace setVariable ["CBE_AIPass_OrderPending", _pending];
 private _valid = !isNull _group && {(units _group) findIf {isPlayer _x} < 0}
-    && {_order in ["GARRISON", "DEFEND", "RELEASE", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUSH", "CLEAR_AREA", "ADVANCE_POINT", "WITHDRAW_POINT", "ARTY_SUPPORT", "ARTY_COUNTER", "ARTY_BOTH", "EXCLUDE", "RETURN", "SPOTTER_ON", "SPOTTER_OFF"]};
-if (_order in ["GARRISON", "DEFEND", "PATROL", "CLEAR_AREA", "ADVANCE_POINT", "WITHDRAW_POINT"]) then {
+    && {_order in ["GARRISON", "DEFEND", "RELEASE", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUSH", "CLEAR_AREA", "ADVANCE_POINT", "WITHDRAW_POINT", "VEHICLE_POINT", "VEHICLE_POINT_RELEASE", "ARTY_SUPPORT", "ARTY_COUNTER", "ARTY_BOTH", "EXCLUDE", "RETURN", "SPOTTER_ON", "SPOTTER_OFF"]};
+if (_order in ["GARRISON", "DEFEND", "PATROL", "CLEAR_AREA", "ADVANCE_POINT", "WITHDRAW_POINT", "VEHICLE_POINT"]) then {
     private _pos = _settings getOrDefault ["position", []];
     _valid = _valid && {_pos isEqualType []} && {count _pos == 3} && {_pos findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} < 0};
+};
+if (_order in ["VEHICLE_POINT","VEHICLE_POINT_RELEASE"]) then {
+    private _vehicle=_settings getOrDefault ["vehicle",objNull];
+    _valid=_valid && {_vehicle isEqualType objNull} && {!isNull _vehicle}
+        && {_vehicle isKindOf "LandVehicle"} && {!(_vehicle isKindOf "StaticWeapon")};
+    if (_valid) then {
+        private _vehicleGroup=if (_order == "VEHICLE_POINT") then {group driver _vehicle} else {
+            (_vehicle getVariable ["CBE_VehicleTacticalMove_Work",createHashMap]) getOrDefault ["group",grpNull]
+        };
+        _valid=_vehicleGroup isEqualTo _group;
+    };
+    if (_order == "VEHICLE_POINT") then {
+        private _duration=_settings getOrDefault ["pointDuration",180];
+        private _goal=_settings getOrDefault ["position",[]];
+        _valid=_valid && {_duration isEqualType 0} && {finite _duration} && {_duration >= 30} && {_duration <= 300}
+            && {_goal isEqualType []} && {count _goal == 3}
+            && {_goal findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} < 0}
+            && {(_goal select 2) >= -0.5} && {(_goal select 2) <= 2.5};
+    };
 };
 if (_order == "CLEAR") then {_valid = _valid && {!isNull (_settings getOrDefault ["building", objNull])}};
 if (_order == "PATROL") then {

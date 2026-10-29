@@ -82,7 +82,8 @@
         "vehiclePointAdmissionReview": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#vehiclePointAdmissionReview20261029",
         "crewBaselineReturnCorrection": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#crewBaselineReturnCorrection20261029"
       },
-      "crewNativePrewriteEvidence20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#crewBaselinePrewriteCorrection20261029"
+      "crewNativePrewriteEvidence20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#crewBaselinePrewriteCorrection20261029",
+      "selectedVehiclePoint20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#vehiclePointExecution20261029"
     },
     {
       "workshopId": "3812620045",

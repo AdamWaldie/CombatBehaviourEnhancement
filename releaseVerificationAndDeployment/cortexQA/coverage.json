@@ -687,7 +687,10 @@
         "addons/vehicles/functions/cortexMechanisedRemoteServer.sqf",
         "addons/vehicles/functions/cortexMechanisedRemoteCrew.sqf",
         "addons/vehicles/functions/cortexMechanisedContinue.sqf",
-        "addons/vehicles/functions/cortexMechanisedBoarded.sqf"
+        "addons/vehicles/functions/cortexMechanisedBoarded.sqf",
+        "addons/vehicles/functions/vehiclePointOperation.sqf",
+        "addons/vehicles/functions/moduleVehiclePoint.sqf",
+        "addons/vehicles/functions/vehiclePointDialog.sqf"
       ]
     },
     {

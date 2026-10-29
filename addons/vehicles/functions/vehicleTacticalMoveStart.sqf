@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Admit one finite standoff/support bound for the selected platform's original operating crew.
+ * Purpose: Admit one finite selected-platform point/standoff/support bound for the selected platform's original operating crew.
  * Any passenger stop must hand back exactly after all cargo exits; authored zero caps refuse movement.
  * Locality/authority: Trusted current group/platform owner inside an admitted standoff operation.
  * Exact crew, operation generation/epoch, original route and acquired movement lease are required.
@@ -12,25 +12,32 @@
  * be borrowed and later misreported as restored idle/WAIT state.
  * Arguments: group GROUP grpNull; platform OBJECT objNull; goal ARRAY of3 finite NUMBER,[];
  * original driver/commander ARRAY of2 OBJECT,[]; operation generation NUMBER,-1;
- * original server deadline NUMBER,-1, at most60 seconds ahead; optional cover context
+ * original server deadline NUMBER,-1, at most60 seconds ahead (300 for explicit POINT); optional cover context
  * ARRAY [] or [original threat eye ASL ARRAY3, target OBJECT, original main gunner OBJECT].
  * Cover context is rechecked at physical arrival/HOLD; it grants no hit or cover immunity.
  * Optional eighth argument: original troop-support context ARRAY,[]; mutually exclusive
  * with screen-only cover context. The same worker checks the original body/contact/clearance.
  * Return: BOOL native worker admitted, never acknowledgement or physical arrival.
  * Continuation admission rechecks consumed source, completed previous worker and immutable episode fields.
- * Current callers: CortexVehicles standoff or finite troop-support bounds after OperationStart and lease acquisition.
+ * Optional ninth argument: intent STRING,VEHICLE_STANDOFF; VEHICLE_POINT requires the exact
+ * explicit point operation/goal/cohort and empty support/cover contexts. Only that purpose may
+ * inherit authenticated server dispatch; arbitrary remote starts remain forbidden.
+ * Current callers: CortexVehicles and VehiclePointOperation after real OperationStart and lease acquisition.
  * Example: [_group,_apc,_point,[driver _apc,effectiveCommander _apc],_generation,_until]
  *     call CBE_fnc_VehicleTacticalMoveStart;
  */
 params [["_group",grpNull,[grpNull]],["_battery",objNull,[objNull]],
-    ["_spot",[],[[]]],["_seats",[],[[]]],["_generation",-1,[0]],["_until",-1,[0]],["_coverContext",[],[[]]],["_supportContext",[],[[]]]];
-if (remoteExecutedOwner > 0 || {isNull _group} || {!local _group}
+    ["_spot",[],[[]]],["_seats",[],[[]]],["_generation",-1,[0]],["_until",-1,[0]],["_coverContext",[],[[]]],["_supportContext",[],[[]]],["_intent","VEHICLE_STANDOFF",[""]]];
+private _pointTask=_intent == "VEHICLE_POINT";
+if (!(_intent in ["VEHICLE_STANDOFF","VEHICLE_POINT"])
+    || {remoteExecutedOwner > 0 && {!_pointTask || {remoteExecutedOwner != 2}}}
+    || {_pointTask && {_coverContext isNotEqualTo [] || {_supportContext isNotEqualTo []}}}
+    || {isNull _group} || {!local _group}
     || {isNull _battery} || {!local _battery} || {count _spot != 3}
     || {_spot findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
     || {count _seats != 2} || {_seats findIf {!(_x isEqualType objNull)} >= 0}
     || {!finite _generation} || {_generation < 0} || {_generation != floor _generation}
-    || {!finite _until} || {_until <= serverTime} || {_until > serverTime+60}
+    || {!finite _until} || {_until <= serverTime} || {_until > serverTime+([60,300] select _pointTask)}
     || {_supportContext isNotEqualTo [] && {count _supportContext != 5
         || {!((_supportContext select 4) isEqualType [])} || {!((count (_supportContext select 4)) in [0,4,5])}}}
     || {_coverContext isNotEqualTo [] && {count _coverContext != 3
@@ -47,15 +54,19 @@ isNil {
         private _publicLease=_group getVariable ["CBE_Cortex_MovementLease",[]];
         if (_epoch < 0 || {(_operation getOrDefault ["generation",-2]) != _generation}
             || {(_operation getOrDefault ["ownerEpoch",-2]) != _epoch}
-            || {(_operation getOrDefault ["intent",""]) != "VEHICLE_STANDOFF"}
+            || {(_operation getOrDefault ["intent",""]) != _intent}
             || {(_operation getOrDefault ["phase",""]) == "CANCELLED"}
-            || {_publicLease isNotEqualTo ["VEHICLE_STANDOFF",_until]}
+            || {_publicLease isNotEqualTo [_intent,_until]}
+            || {_pointTask && {(_operation getOrDefault ["pointUntil",-1]) != _until
+                || {(_operation getOrDefault ["pointVehicle",objNull]) isNotEqualTo _battery}
+                || {(_operation getOrDefault ["objective",[]]) isNotEqualTo _spot}
+                || {(_operation getOrDefault ["participants",[]]) isNotEqualTo (_seats arrayIntersect _seats)}}}
             || {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []}
             || {(_group getVariable ["CBE_ArtilleryCrew_Reservations",[]]) isNotEqualTo []}
             || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
             || {[] call CBE_fnc_CortexIsPaused}
             || {!([_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
-            || {!([_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+            || {!_pointTask && {!([_group,"CBE_AIPass_VehicleGunnery_Enable",true] call CBE_fnc_CortexFeatureEnabled)}}
             || {[_group] call CBE_fnc_CortexExternalTakeover}
             || {!([_group,_battery,_seats] call CBE_fnc_CortexVehicleCrewAvailable)}
             || {waterDamaged _battery}
@@ -107,18 +118,18 @@ isNil {
             count _goal != 3 || {_goal findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
         }} >= 0}) exitWith {false};
         private _serial=(_battery getVariable ["CBE_VehicleTacticalMove_Serial",0])+1;
-        private _token=format ["STANDOFF:%1:%2:%3",clientOwner,_epoch,_generation];
+        private _token=format ["%1:%2:%3:%4",_intent,clientOwner,_epoch,_generation];
         private _reference=[_battery,_token,_serial,_epoch,clientOwner];
-        private _lease=["VEHICLE_STANDOFF",time+(_until-serverTime)];
+        private _lease=[_intent,time+(_until-serverTime)];
         private _work=createHashMapFromArray [["token",_token],["serial",_serial],["group",_group],
-            ["kind",["STANDOFF","MECH_SUPPORT"] select (_supportContext isNotEqualTo [])],["operationGeneration",_generation],["owner",clientOwner],
+            ["kind",if (_pointTask) then {"POINT"} else {["STANDOFF","MECH_SUPPORT"] select (_supportContext isNotEqualTo [])}],["operationGeneration",_generation],["owner",clientOwner],
             ["epoch",_epoch],["reference",_reference],["crew",+_seats],
             ["route",[_group] call CBE_fnc_NativeOrderReceipt],["baseline",_baseline],
             ["supportContext",+_supportContext],["carriageSerial",_battery getVariable ["CBE_Cortex_MechBoardSerial",0]],["supportLeg",if (_supportContinuation isEqualTo []) then {1} else {(_supportContinuation select 1)+1}],
             ["supportCheckAt",serverTime+2],
             ["coverContext",if (_coverContext isEqualTo []) then {[]} else {
                 [+(_coverContext select 0),_coverContext select 1,_coverContext select 2]}],
-            ["goal",+_spot],["spot",+_spot],["arrivalRadius",5],["phase","ISSUE"],["moveUntil",_until],
+            ["goal",+_spot],["spot",+_spot],["arrivalRadius",[5,10] select _pointTask],["phase","ISSUE"],["moveUntil",_until],
             ["holdUntil",_until],["localLease",_lease],["progressPosition",getPosASL _battery],
             ["progressAt",serverTime],["release",false],["arrived",false]];
         _battery setVariable ["CBE_VehicleTacticalMove_Serial",_serial,true];
@@ -145,7 +156,7 @@ isNil {
             _used pushBackUnique [+(_source select 2),_source select 0];
             _battery setVariable ["CBE_Cortex_MechCargoUsed",_used];
         };
-        [_battery,"INSTALL",["CBE_VehicleTacticalMove_Work","CBE_VehicleTacticalMove_Reference","VEHICLE_STANDOFF"]]
+        [_battery,"INSTALL",["CBE_VehicleTacticalMove_Work","CBE_VehicleTacticalMove_Reference",_intent]]
             call CBE_fnc_VehicleCrewMoveDeletionWatch;
         true
     };

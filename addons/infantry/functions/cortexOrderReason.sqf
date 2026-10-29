@@ -15,7 +15,7 @@ if (isNull _group) exitWith {"Select a squad first."};
 private _alive = units _group select {alive _x};
 if (_alive isEqualTo []) exitWith {"The selected squad has no living members."};
 if (units _group findIf {isPlayer _x} >= 0) exitWith {"Player squads cannot be given Cortex orders."};
-if (_order in ["RELEASE","EXCLUDE","RETURN"]) exitWith {""};
+if (_order in ["RELEASE","EXCLUDE","RETURN","VEHICLE_POINT_RELEASE"]) exitWith {""};
 if !(missionNamespace getVariable ["CBE_AIPass_Enable",false]) exitWith {"Cortex behaviours are disabled. Enable them in CBA addon settings first."};
 if (local _group && {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}) exitWith {"Cortex is not ready on this squad's owner. Wait for settings to reach that machine and retry."};
 if !([_group,true] call CBE_fnc_CortexIsEligible) exitWith {"This squad is excluded, remote-controlled, outside the configured AI filters, or controlled by another feature. Release that control first."};
@@ -37,6 +37,7 @@ if (_order == "AIRBORNE") exitWith {
         && {[_x] call CBE_fnc_CortexCombatEffective}} < 0) exitWith {"No capable cargo or passenger-turret soldiers in this squad are ready to jump."};
     ""
 };
+if (_order == "VEHICLE_POINT") exitWith {""};
 private _foot = _alive select {vehicle _x == _x && {[_x] call CBE_fnc_CortexCombatEffective}};
 if (_foot isEqualTo []) exitWith {"The squad needs capable infantry on foot. Dismount its passengers before issuing this order."};
 if (_order == "CLEAR" && {isNull _building || {!(_building isKindOf "House")} || {(_building buildingPos -1) isEqualTo []}}) exitWith {"Place Clear Building on a building with usable interior positions."};
