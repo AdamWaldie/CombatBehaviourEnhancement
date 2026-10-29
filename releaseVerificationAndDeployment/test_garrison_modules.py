@@ -119,6 +119,17 @@ class GarrisonModuleTests(unittest.TestCase):
         self.assertIn('time >= (_explicitRush select 0)',step)
         self.assertIn('if (count _explicitRush == 4) then {+(_drill get "enemyPos")}',step)
         self.assertIn('(_explicitRush select 3) == _token',step)
+        helper=step.split('private _helperCurrent={',1)[1].split('// Two ordinary survivors',1)[0]
+        self.assertIn('(_currentDrill getOrDefault ["explicitRush",[]]) isEqualTo _explicitRush',helper)
+        self.assertIn('time < (_explicitRush select 0)',helper)
+        self.assertIn('in ["CALM","CONTACT"]',helper)
+        self.assertIn('"CBE_AIPass_Contact_Enable"',helper)
+        self.assertIn('[_group,_explicitGate,true]',helper)
+        self.assertIn('(_currentState getOrDefault ["phase",""]) == "CONTACT"',helper)
+        hold=step.split('private _holdCommitted=false;',1)[1]
+        self.assertIn('private _currentObjective=if (_explicitRush isEqualTo [])',hold)
+        self.assertIn('} else {_drill get "enemyPos"}',hold)
+        self.assertIn('_currentObjective isNotEqualTo _enemyPos',hold)
         self.assertIn('(_drill getOrDefault ["explicitRush",[]]) isEqualTo []',checkpoint)
         self.assertIn('"restoreMoveDestinations"',checkpoint)
         self.assertIn('["ENDED",_reason,_endingToken,serverTime]',src('cortexFlankEnd'))

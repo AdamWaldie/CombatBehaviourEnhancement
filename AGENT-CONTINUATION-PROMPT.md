@@ -1,3 +1,13 @@
+# Current checkpoint: explicit attack command gates (29 October 2026)
+
+Working checkout: C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks. Remote: AdamWaldie/CombatBehaviourEnhancement. Branch: Adam/cbe-mechanised-support-20261028. PR20 remains open draft. Audits remain paused; no game staging, merge or publishing. Regular coherent local commits required; batch pushes. Preserve unrelated deleted branding/workflow/requirements files and docs/PERFORMANCE-VALIDATION.md.
+
+Fixed explicit attack command helper CALM/CONTACT mismatch and HOLD objective-source mismatch. Original task receipt/deadline and live feature gates are checked at actual command boundary. Autonomous drills remain CONTACT-only. Full1505 tests/470SQF/11PBO pass, independent package verified: .qa/candidates/rush-command-gates-20261029-630179c7, fingerprint a2e2eb53d0031d2283c10d485129ba2d548f26bf6657ea78a7838f1a2429062c. Unsigned base630179c7 plus dirty runtime inputs, not physical evidence.
+
+Next: extend explicit approach inside SAME FSM at actual arrived HOLD, with fresh native full-threat reassessment, original deadline/generation and bounded route budget. Check existing CortexActorFireTaskAvailable at addons/infantry/functions before using TacticalAssess with owned actors. Reuse GroupTick native knowledge query, timestamp/epoch and growing observation age; never state.enemyPos or hostile transforms as fresh belief. Preserve actual actor/native mission ownership and pinned clear-through objective. Read IMPLEMENTATION-GOAL.md, AGENTS.md, source-review-map.json and linked LAMBS/HBQ/Protocol queues. Protected sources and existing continuation locations follow below; no need old chats.
+
+---
+
 ## Checkpoint: finite Press attack episode and module equivalents - 29 October 2026
 
 CBE workdir C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; remote AdamWaldie/CombatBehaviourEnhancement; branch Adam/cbe-mechanised-support-20261028; PR20 OPEN DRAFT remote f68a2a3c before this batched push. Base local6ada94774563eb2c0540a48821ba14dbb925e663 (prior regular-commit goal policy/contact-gap checkpoint unpushed). This note is committed with Rush; resolve exact HEAD through git log. Full objective ACTIVE/INCOMPLETE, AUDITS PAUSED: no Arma/staging/merge/Release/Steam/manual CI/ready/delegation. WMP chat cwd unrelated. Regular meaningful checked LOCAL COMMITS required; do not wait for full goal/low usage. Batch pushes; this checkpoint should push prior6ada plus new Rush together to existing PR20. Exact sorted whitelist, preserve unrelated dirt.

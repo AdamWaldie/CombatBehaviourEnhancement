@@ -244,5 +244,26 @@
       "performance": "Static0findings;5%median/10%p95notmeasured"
     },
     "nextRequired": "Extend the same explicit FSM episode at physically arrived HOLD when the fresh native objective remains beyond assault range: bounded additional screened approach chunks under the SAME tag/deadline/generation and point/retry budgets, never a new pursuit loop. Existing CortexAdvanceStart caps first approach to3bounds. Reuse existing CortexGroupTick knowledge query with owner-local observation timestamp/target identity/epoch; never use targetless state.enemyPos or live hostile transforms. Reassess full fresh threat set before another chunk so uncountered armour/air and morale/ROE/native actor work can win. Keep full existing native/mission/Zeus proof and exact cleanup. No source-complete claim until this longer-range intent and physical/performance requirements are addressed."
+  },
+  "rushCommandGates20261029": {
+    "sourceContext": "Same preserved LAMBS taskRush review; CBE explicit task uses existing owner-local drill FSM, not the upstream indefinite writer.",
+    "faults": [
+      "Actual helper still required CONTACT although explicit admission permits CALM/CONTACT.",
+      "HOLD commit compared stale group enemyPos against the explicit task native-belief objective, preventing approach-to-assault transition."
+    ],
+    "implementation": [
+      "Explicit actual-command guard now requires unchanged four-field task receipt, valid original identity, unexpired original deadline, CALM/CONTACT, live contact and selected behaviour permission. Ordinary autonomous drill remains CONTACT-only.",
+      "HOLD revalidates explicit drill enemyPos, matching its planner; autonomous drills still revalidate current group contact position."
+    ],
+    "verification": {
+      "focused": "6 existing module contract tests passed, extended assertions within existing case.",
+      "full": "1505 tests passed;470 SQF compiled;11 PBOs built; static performance0 findings; complete offline pipeline exit0.",
+      "candidate": ".qa/candidates/rush-command-gates-20261029-630179c7",
+      "fingerprint": "a2e2eb53d0031d2283c10d485129ba2d548f26bf6657ea78a7838f1a2429062c",
+      "independent": "Package verifier exit0, same fingerprint. Unsigned development package from630179c7 plus dirty fix inputs.",
+      "physical": "UNVERIFIED;audits paused",
+      "performance": "5%median/10%p95 not measured"
+    },
+    "remaining": "Longer-range explicit continuation beyond initial three-bound chunk remains required; same original deadline/generation, bounded routes and fresh native full-threat reassessment. No long-range parity claim."
   }
 }

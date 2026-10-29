@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Explicit attack command gates retain the original task identity, deadline and native-belief objective.
  * Native flight yields active movement and replacement admission. Exact drill-owned PATH
  * restrictions are released for fleeing/queued-care actors without issuing movement.
  * Ordinary new-bound admission rechecks main-muzzle ammunition for the surviving mover
@@ -686,7 +687,18 @@ private _helperCurrent={
         && {if (_support) then {
             _currentState getOrDefault ["assaulting",false]
                 && {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isEqualTo _supportRole}
-        } else {(_currentState getOrDefault ["phase",""]) == "CONTACT"}}
+        } else {
+            if (_explicitRush isEqualTo []) then {
+                (_currentState getOrDefault ["phase",""]) == "CONTACT"
+            } else {
+                // Admission and the actual command boundary use the same finite task.
+                (_currentDrill getOrDefault ["explicitRush",[]]) isEqualTo _explicitRush
+                    && {_explicitValid} && {time < (_explicitRush select 0)}
+                    && {(_currentState getOrDefault ["phase",""]) in ["CALM","CONTACT"]}
+                    && {[_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+                    && {[_group,_explicitGate,true] call CBE_fnc_CortexFeatureEnabled}
+            }
+        }}
         && {_operationGeneration < 0 || {
             (_currentOperation getOrDefault ["generation",-2]) == _operationGeneration
                 && {(_currentOperation getOrDefault ["ownerEpoch",-1]) == _rosterEpoch}
@@ -1826,7 +1838,12 @@ switch (_drill get "stage") do {
                     || {(_drill getOrDefault ["assaulting",false]) != _assaulting}
                     || {([_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled) != _assaultEnabled}
                     || {(_state getOrDefault ["moraleState","STEADY"]) != "STEADY" && {_assault}}
-                    || {!_support && {(_state getOrDefault ["enemyPos",_drill get "enemyPos"]) isNotEqualTo _enemyPos}}
+                    || {!_support && {
+                        private _currentObjective=if (_explicitRush isEqualTo []) then {
+                            _state getOrDefault ["enemyPos",_drill get "enemyPos"]
+                        } else {_drill get "enemyPos"};
+                        _currentObjective isNotEqualTo _enemyPos
+                    }}
                     || {_holdNative findIf {
                         _x params ["_actor","_command","_destination","_formationLeader"];
                         !([_actor] call _mayIssueMovement) || {currentCommand _actor != _command}
