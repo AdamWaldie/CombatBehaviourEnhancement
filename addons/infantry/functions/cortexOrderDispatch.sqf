@@ -34,7 +34,7 @@ if !(_sortByHeight isEqualType true) exitWith {false};
 private _teleport = _settings getOrDefault ["teleport",false];
 if !(_teleport isEqualType true) exitWith {false};
 // Remote module requests cannot change addon configuration or artillery role registration.
-if (_sender > 2 && {!(_order in ["GARRISON","DEFEND","CLEAR","RELEASE","AIRBORNE"])}) exitWith {false};
+if (_sender > 2 && {!(_order in ["GARRISON","DEFEND","CLEAR","RELEASE","AIRBORNE","PATROL"])}) exitWith {false};
 private _pending = missionNamespace getVariable ["CBE_AIPass_OrderPending", createHashMap];
 if (count _pending >= 64) exitWith {
     ["AI ORDERS","Too many pending squad orders. Wait for owner replies before retrying.","ERROR"] remoteExecCall ["CBE_fnc_AITweaksNotifyLocal",_requestOwner];
@@ -46,12 +46,20 @@ private _token = str _serial;
 _pending set [_token, [_requestOwner, _group, groupOwner _group, _order]];
 missionNamespace setVariable ["CBE_AIPass_OrderPending", _pending];
 private _valid = !isNull _group && {(units _group) findIf {isPlayer _x} < 0}
-    && {_order in ["GARRISON", "DEFEND", "RELEASE", "CLEAR", "AIRBORNE", "ARTY_SUPPORT", "ARTY_COUNTER", "ARTY_BOTH", "EXCLUDE", "RETURN", "SPOTTER_ON", "SPOTTER_OFF"]};
-if (_order in ["GARRISON", "DEFEND"]) then {
+    && {_order in ["GARRISON", "DEFEND", "RELEASE", "CLEAR", "AIRBORNE", "PATROL", "ARTY_SUPPORT", "ARTY_COUNTER", "ARTY_BOTH", "EXCLUDE", "RETURN", "SPOTTER_ON", "SPOTTER_OFF"]};
+if (_order in ["GARRISON", "DEFEND", "PATROL"]) then {
     private _pos = _settings getOrDefault ["position", []];
     _valid = _valid && {_pos isEqualType []} && {count _pos == 3} && {_pos findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} < 0};
 };
 if (_order == "CLEAR") then {_valid = _valid && {!isNull (_settings getOrDefault ["building", objNull])}};
+if (_order == "PATROL") then {
+    private _nodes=_settings getOrDefault ["patrolNodes",4];
+    private _duration=_settings getOrDefault ["patrolDuration",900];
+    _valid=_valid && {_radius >= 25} && {_radius <= 500}
+        && {_nodes isEqualType 0} && {finite _nodes} && {_nodes == floor _nodes}
+        && {_nodes >= 3} && {_nodes <= 8}
+        && {_duration isEqualType 0} && {finite _duration} && {_duration >= 30} && {_duration <= 1800};
+};
 // Explicit airborne modules bind both selected witnesses. Group-only script orders retain their API.
 if (_order == "AIRBORNE" && {"passenger" in _settings || {"aircraft" in _settings}}) then {
     private _passenger=_settings getOrDefault ["passenger",objNull];
@@ -86,7 +94,7 @@ _settings set ["controlReceipt",[
     _group getVariable ["CBE_AIPass_ZeusWaypoints",false],
     _group getVariable ["CBE_AIPass_ZeusControlKind",""]
 ]];
-_settings set ["radius",(_radius max 15) min 150];
+_settings set ["radius",if (_order == "PATROL") then {_radius} else {(_radius max 15) min 150}];
 _settings set ["width",(_width max 15) min 150];
 _settings set ["facing",((_facing mod 360)+360) mod 360];
 _pairs = (keys _settings) apply {[_x,_settings get _x]};

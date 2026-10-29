@@ -59,7 +59,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | BREAK - Aircraft evasive break | 1 | 0 | 0 | `runAircraft.sqf` | 2 | implemented_partial |
 | DEFEND - Defence orders | 0 | 0 | 5 | `runServer.sqf` | 0 | implemented_partial |
 | CLEAR - Building clearance | 2 | 0 | 43 | `runBuildingComparison.sqf`, `runIndoorActors.sqf`, `runIndoorActorsHC.sqf`, `runIndoorNatural.sqf` | 2 | implemented_partial |
-| UI - CBA configuration and diagnostics | 0 | 0 | 4 | `runClient.sqf` | 0 | implemented_partial |
+| UI - CBA configuration and diagnostics | 0 | 0 | 5 | `runClient.sqf` | 0 | implemented_partial |
 | LIFECYCLE - Transfer, disconnect and JIP | 0 | 0 | 18 | `runLifecycle.sqf` | 6 | implemented_partial |
 | MULTI-FLANK - Multi-squad flank cohesion | 0 | 0 | 0 | `runMultiManoeuvre.sqf` | 1 | implemented_partial |
 | MULTI-BOUND - Squad and multi-squad bounding overwatch | 0 | 0 | 0 | `runMultiManoeuvre.sqf` | 1 | implemented_partial |
@@ -108,7 +108,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 **Expected:** Only eligible squads receive orders; disabled/excluded squads retain authored orders; old-owner jobs stop and one new owner resumes.
 
-**Automation and open work:** runGates.sqf: five closed-gate refusal and no-movement checks, each followed by reopened physical arrival. All ten passed in runtime-20260927-032658. Player-led, Zeus and locality variants remain outstanding. Standalone addon readiness and catalogue assertions run in runAddon; ZEN notifications, setting changes, diagnostics and compatibility side effects still require live checks. A finite owner-local script Patrol task now sequences bounded geometry through the existing group brain/common operation and checks actual destinations, cohort proximity, original mission receipts, combat suspension and original deadlines. Patrol modules, locality continuation and physical patrol evidence remain pending.
+**Automation and open work:** runGates.sqf: five closed-gate refusal and no-movement checks, each followed by reopened physical arrival. All ten passed in runtime-20260927-032658. Player-led, Zeus and locality variants remain outstanding. Standalone addon readiness and catalogue assertions run in runAddon; ZEN notifications, setting changes, diagnostics and compatibility side effects still require live checks. A finite owner-local script Patrol task now sequences bounded geometry through the existing group brain/common operation and checks actual destinations, cohort proximity, original mission receipts, combat suspension and original deadlines. Patrol native/optional ZEN task controls and scoped Release now use the existing authenticated dispatcher; locality continuation and physical patrol evidence remain pending.
 
 ### COMPAT - Specialist ownership and alternative-controller handover
 

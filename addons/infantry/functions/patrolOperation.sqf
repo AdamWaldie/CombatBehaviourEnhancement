@@ -3,7 +3,7 @@
  * Purpose: Execute one finite area-patrol circuit through the existing group brain and
  * common operation/native waypoint owner. Combat pauses the circuit without renewing its
  * original task or leg deadline; a calm group can resume only the unchanged mission context.
- * Locality/authority: Internal current group owner; no remote execution. Exact task identity,
+ * Locality/authority: Internal current group owner or inherited authenticated server task context. Exact task identity,
  * owner epoch and common generation fence every leg. New native/Zeus/specialist work wins.
  * Repeat/JIP: START refuses existing work. STEP runs in CortexGroupTick, never its own job.
  * CANCEL releases only this task's operation/lease. Locality loss retires rather than replays;
@@ -13,17 +13,18 @@
  * CHECK [] (deadline only), STEP [native danger active=false], CANCEL [reason=RELEASED]. One circuit, <=8 legs;
  * each leg has a distance-scaled <=900 seconds including combat suspension. No automatic recovery/retry.
  * Return: BOOL - START accepted, STEP task retained, CANCEL exact local task retired.
- * Current callers: CortexGroupTick, CortexReleaseGroup, owner-local script API.
+ * Current callers: CortexGroupTick, CortexReleaseGroup, CortexOrderLocal, owner-local script API.
  * Example: ["START",_group,[getMarkerPos "patrol",100,4,900]] call CBE_fnc_PatrolOperation;
  */
 params [["_mode","",[""]],["_group",grpNull,[grpNull]],["_payload",[],[[]]]];
-if (remoteExecutedOwner > 0 || {isNull _group} || {!local _group}) exitWith {false};
+if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _group} || {!local _group}) exitWith {false};
 private _result=false;
 // Direct script calls may be scheduled. Admission through command commit and identity updates
 // must be one unscheduled boundary, just like the group brain's normal scheduler callback.
 isNil {
 _result=call {
 private _task=_group getVariable ["CBE_PatrolTask",createHashMap];
+if (toUpperANSI _mode != "START" && {count _task == 0}) exitWith {false};
 private _state=[_group] call CBE_fnc_CortexGroupState;
 private _publish={
     params ["_phase","_reason"];

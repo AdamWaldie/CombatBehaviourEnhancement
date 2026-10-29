@@ -310,6 +310,7 @@ class CfgFunctions {
             class ModuleGarrison {file = "\z\cbe\addons\infantry\functions\moduleGarrison.sqf";};
             class ZenClearModule {file = "\z\cbe\addons\infantry\functions\zenClearModule.sqf";};
             class ZenDefendModule {file = "\z\cbe\addons\infantry\functions\zenDefendModule.sqf";};
+            class ZenPatrolModule {file = "\z\cbe\addons\infantry\functions\zenPatrolModule.sqf";};
             class ZenReleaseModule {file = "\z\cbe\addons\infantry\functions\zenReleaseModule.sqf";};
             class ZenGarrisonModule {file = "\z\cbe\addons\infantry\functions\zenGarrisonModule.sqf";};
             class CortexOrderDispatch {file = "\z\cbe\addons\infantry\functions\cortexOrderDispatch.sqf";};

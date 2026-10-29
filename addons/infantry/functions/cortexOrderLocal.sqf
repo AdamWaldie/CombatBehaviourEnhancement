@@ -46,6 +46,16 @@ private _facing = _settings getOrDefault ["facing", 0];
 private _sortByHeight = _settings getOrDefault ["sortByHeight",true];
 private _teleport = _settings getOrDefault ["teleport",false];
 if (!(_sortByHeight isEqualType true) || {!(_teleport isEqualType true)} || {!(_width isEqualType 0)} || {!(_facing isEqualType 0)}) exitWith {[_token,false,false,clientOwner,"Invalid task parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2]};
+private _patrolNodes=_settings getOrDefault ["patrolNodes",4];
+private _patrolDuration=_settings getOrDefault ["patrolDuration",900];
+if (_order == "PATROL" && {!(_radius isEqualType 0) || {!finite _radius} || {_radius < 25} || {_radius > 500}
+    || {!(_patrolNodes isEqualType 0)} || {!finite _patrolNodes} || {_patrolNodes != floor _patrolNodes}
+    || {_patrolNodes < 3} || {_patrolNodes > 8} || {!(_patrolDuration isEqualType 0)}
+    || {!finite _patrolDuration} || {_patrolDuration < 30} || {_patrolDuration > 1800}
+    || {!(_position isEqualType [])} || {count _position != 3}
+    || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {
+    [_token,false,false,clientOwner,"Invalid finite patrol parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
 private _reason = [_group,_order,_building] call CBE_fnc_CortexOrderReason;
 if (_reason != "") exitWith {[_token,false,false,clientOwner,_reason] remoteExecCall ["CBE_fnc_CortexOrderResult",2]};
 private _oldHold = _group getVariable ["CBE_AIPass_ZeusHold",[]];
@@ -56,7 +66,7 @@ private _executionTaskKeys=["CBE_AIPass_ClearGeneration","CBE_AIPass_GarrisonGen
     "CBE_AIPass_DefendGeneration","CBE_OperationGeneration"];
 private _executionTasks=_executionTaskKeys apply {_group getVariable [_x,-1]};
 private _temporaryControl=[];
-if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE"]) then {
+if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL"]) then {
     _group setVariable ["CBE_AIPass_ZeusControlKind",nil,true];
     _group setVariable ["CBE_AIPass_ZeusWaypoints", false, true];
     _group setVariable ["CBE_AIPass_ZeusHold", [random 1e6, 0], true];
@@ -66,10 +76,13 @@ if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE"]) then {
 private _previousClearFailure=_group getVariable ["CBE_Cortex_ClearAdmissionFailure",[]];
 private _previousGarrisonFailure=_group getVariable ["CBE_Cortex_GarrisonAdmissionFailure",[]];
     private _accepted = switch (_order) do {
+        case "PATROL": {["START",_group,[_position,_radius,_patrolNodes,_patrolDuration]] call CBE_fnc_PatrolOperation};
         case "GARRISON": {[_group, _position, (_radius max 15) min 150, createHashMapFromArray [["teleport",_teleport],["sortByHeight",_sortByHeight]]] call CBE_fnc_CortexGarrison};
         case "DEFEND": {[_group, _position, _facing, (_width max 15) min 150] call CBE_fnc_CortexDefend};
         case "RELEASE": {
             private _released = [_group] call CBE_fnc_CortexClearRelease;
+            private _patrolReleased=["CANCEL",_group,["MODULE_RELEASE"]] call CBE_fnc_PatrolOperation;
+            _released=_released || {_patrolReleased};
             // Release automatic actor jobs too; no group-wide reset is needed to retire them.
             // Inspect every current member so reordered membership cannot hide an admitted actor.
             {
@@ -164,7 +177,10 @@ if (!_accepted && {_newGarrisonFailure}) then {
     };
 };
 if (!_accepted && {_order == "RELEASE"}) then {
-    _executionReason="No building or defence task was released. There may be no matching task, or current native/owner control may still prevent handback.";
+    _executionReason="No infantry task was released. There may be no matching task, or current native/owner control may still prevent handback.";
+};
+if (!_accepted && {_order == "PATROL"}) then {
+    _executionReason="Patrol was not started. Use an available AI foot squad, release existing CBE tasks first, and choose valid dry ground. Newer orders or another controller take priority.";
 };
 if (!_accepted && {_order == "AIRBORNE"}) then {
     _executionReason="Airborne insertion was refused. Check the selected passenger, squad aircraft, altitude, dry land and AI pilots; newer orders or another controller also take priority.";

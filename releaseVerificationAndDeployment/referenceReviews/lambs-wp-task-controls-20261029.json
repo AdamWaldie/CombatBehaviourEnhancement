@@ -63,7 +63,7 @@
     "policies": "No addon setting changes, nearest squad guess, replacement group, blanket AI/animation reset, waypoint clearing, forced seating/teleport, new worker or RPC. Native module works without ZEN; optional ZEN dialog has a labelled bounded squad selector. Duplicate/late/changed-owner requests retain the existing refusal. Release refusal now has a task-specific explanation.",
     "scope": "Existing supported infantry task release only; no convoy/flight/artillery/drill stop-all promise. Accepted request is not proven physical formation recovery, and native handback may remain unresolved."
   },
-  "nextRequired": "Finite owner-local Patrol script executor is now implemented; see patrolExecutor20261029. Next expose it through existing authenticated task dispatch and native Zeus/optional ZEN with labelled finite task parameters/scoped cancellation. Reconcile useful dynamic circuit/reinforcement options and incoming-owner continuation without replaying stale permission. Then knowledge-based Hunt and explicit aggressive task through existing search/drill/fire owners. Physical patrol/resume/Zeus/MP and measured performance remain unverified while audits are paused; teleport outside the explicit garrison exception is not authorised.",
+  "nextRequired": "Patrol script executor and native/optional ZEN task surface are implemented; physical circuit/resume/release/Zeus/MP and runtime performance remain unverified. Reconcile source dynamic/reinforcement options and safe incoming-owner continuation without stale replay. Next concrete missing source tasks: knowledge-based Hunt and explicit aggressive task through existing search/drill/fire owners, retaining native knowledge/target uncertainty and finite admission/deadline/cleanup rather than source omniscience or disabled FSM. No teleport outside explicit garrison exception.",
   "checks": {
     "red": ".qa/handovers/infantry-release-module-red-20261029.log",
     "focused": ".qa/handovers/infantry-release-module-green-20261029.log",
@@ -133,6 +133,30 @@
       ],
       "physical": "Unverified; audits PAUSED",
       "performance": "Static audit zero findings; runtime5%median/10%p95 budget unmeasured"
+    }
+  },
+  "patrolControls20261029": {
+    "base": "5215351cb411b0e235f89354d765bc2f79fc013e",
+    "sourceModuleSHA256": "95977ae4d339226dff2bbe6c8d959de345bc17236b50fadedd03d5e29785ee1b",
+    "sourceZenSHA256": "42e08e0a6e4e837409aa00239b059f8c9f789f40086d071611b299de60cfee4d",
+    "intent": "Source behaviour modules select squad/area/range/node count and dispatch to group owner. Preserve task controls, not settings modules or unsupported source teleport/indefinite/dynamic options.",
+    "implemented": "Native CBE_ModulePatrol plus optional labelled ZenPatrolModule on existing CortexOrderDispatch/Local. Server/current owner validate radius25..500,nodesinteger3..8,duration30..1800; retain assigned-curator,serial,12s packet deadline,native/Zeus receipts. Native attached-soldier fallback100m/4/900s, no nearby guess. Shared release renamed Release infantry task and calls exact PatrolOperation CANCEL alongside existing infantry cleanup. Added missing ModuleRelease to CfgPatches units inventory alongside new Patrol. Actual internal helpers now accept trusted inherited sender2 context, still refuse other remote senders; no remote registration/new RPC. Empty cancellation does not create tactical state.",
+    "limits": "Task admission is not physical circuit success. Dynamic/reinforcement source options, incoming-owner continuation, full LAMBS/Hunt/Rush parity and physical/MP/performance remain open. Audits PAUSED.",
+    "checks": {
+      "focused": "10 existing authority/module/route regression checks passed; initial reviewed module executor field was corrected from a descriptive chain to its actual dispatcher identifier. Failed focused log retained. No acceptance weakened.",
+      "full": "Complete local1505tests/466productionSQF/11PBO HEMTT,FSM,config/docs/coverage/parity/static-performance gates passed; independent package verification passed.",
+      "candidate": ".qa/candidates/patrol-controls-20261029-5215351c",
+      "fingerprint": "0a927f59d043a40f152de23a1a0c8fc3962efa51921862492c4316b07a60d8cb",
+      "provenance": "Unsigned development base5215351c plus dirty inputs. Post-build engineering metadata does not alter packaged runtime. Not a clean signed release or physical proof.",
+      "logs": [
+        ".qa/handovers/patrol-controls-focused-20261029.log",
+        ".qa/handovers/patrol-controls-focused-final-20261029.log",
+        ".qa/handovers/patrol-controls-coverage-20261029.log",
+        ".qa/handovers/patrol-controls-build-20261029.log",
+        ".qa/handovers/patrol-controls-independent-20261029.log"
+      ],
+      "physical": "Unverified; auditsPAUSED",
+      "performance": "Static0findings; runtimebudgetunmeasured"
     }
   }
 }

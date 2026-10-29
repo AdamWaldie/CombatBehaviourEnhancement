@@ -3160,9 +3160,9 @@ Air-only rounds, ammunition declaring child projectiles, declared ACE missile gu
 A discarded mixed/unsupported missile episode removes its listener but retains an inert private record until the original expiry. Routine gunnery cannot repeatedly rearm that same window; native firing and other controllers remain free. No extra timer, renewed deadline or actor reservation is added.
 
 
-### Release building / defence task
+### Release infantry task
 
-In Zeus, place **Release building / defence task** on an AI soldier to request release of that squad's CBE clearance, garrison, defensive-line and temporary infantry actor tasks. With ZEN installed, choose the squad in the labelled dialog; without ZEN, the attached soldier identifies it directly. The request goes through the existing server and current squad owner.
+In Zeus, place **Release infantry task** on an AI soldier to request release of that squad's CBE clearance, garrison, defensive-line, patrol and temporary infantry actor tasks. With ZEN installed, choose the squad in the labelled dialog; without ZEN, the attached soldier identifies it directly. The request goes through the existing server and current squad owner.
 
 The existing cleanup preserves newer native/Zeus orders, protected actors and settings that CBE does not own. A request acknowledgement does not prove that soldiers have physically returned to formation; pending native handback can remain unresolved. A refused request explains that no matching task was released or current control prevents handback. Convoy, flight, artillery and tactical-drill operations retain their own controls.
 
@@ -3191,7 +3191,7 @@ only after the existing group brain, common operation and first native movement
 leg have accepted the task. Call it on the current owner of an eligible AI-only
 foot squad; it is not a remote-execution entry point. CBE must be active. Existing
 operations, movement owners, protected actor tasks and groups above 64 members or
-128 waypoints refuse admission. This API has no Zeus/ZEN Patrol module yet.
+128 waypoints refuse admission. The same executor is available through the Patrol area behaviour module below.
 
 The planner chooses dry, separated ground destinations with bounded empty-position,
 slope and body-clearance checks. Normal engine navigation moves the squad in its
@@ -3222,3 +3222,27 @@ index, node count and server observation time. It grants no authority to restart
 work. START/STEP/cleanup and packaging have offline regression coverage only;
 physical circuit flow, combat resumption, Zeus/MP handback and measured overhead
 remain unverified while audits are paused.
+
+
+### Patrol area behaviour module
+
+Place **Patrol area** on an AI soldier in Zeus. Without ZEN this requests one
+100-metre circuit with four destinations and a 900-second task deadline around
+the module position. With ZEN, the labelled dialog selects the squad, radius
+(25–500 metres), destinations (3–8) and task limit (30–1800 seconds). The optional
+ZEN module can be placed at the intended area centre and selects the squad
+explicitly. A missing native-module target is refused; no nearby squad is guessed.
+
+The assigned curator sends named task parameters through the existing server
+and current-owner dispatcher. Both validate the ranges; existing request serial,
+12-second admission deadline, native-order and Zeus-control receipts reject stale
+requests. The owner acknowledges actual task admission, not physical circuit
+completion. Patrol helpers have no new remote-execution registration: only local
+calls and inherited authenticated server context are admitted.
+
+Use **Release infantry task** to stop the squad's tracked patrol and other CBE
+infantry assignments. It retains its existing scoped clearance, garrison, defence
+and temporary actor release paths; it is not a convoy, aircraft, artillery or
+global AI reset. A new patrol refuses while another task owns the squad; release
+that task first. No CBA setting is changed by either module. The existing finite
+patrol limits and unverified physical/MP/performance status above still apply.

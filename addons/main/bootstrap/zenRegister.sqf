@@ -29,7 +29,10 @@ missionNamespace setVariable ["CBE_AITweaks_ZenRegisteredLocal", true];
 ["Combat Behaviour Enhancement (CBE)", "Navigation corridor", {
     _this call CBE_fnc_ZenDrivingCorridorModule;
 }] call zen_custom_modules_fnc_register;
-["Combat Behaviour Enhancement (CBE)", "Release building / defence task", {
+["Combat Behaviour Enhancement (CBE)", "Patrol area", {
+    _this call CBE_fnc_ZenPatrolModule;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Release infantry task", {
     _this call CBE_fnc_ZenReleaseModule;
 }] call zen_custom_modules_fnc_register;
 true

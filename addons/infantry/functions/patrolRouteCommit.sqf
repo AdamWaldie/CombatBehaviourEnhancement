@@ -1,7 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Purpose: Commit one planned patrol leg through the existing common native movement owner.
- * Locality/authority: Internal group owner only, exact PATROL operation generation/epoch/route.
+ * Locality/authority: Internal group owner (including authenticated server task context), exact PATROL operation generation/epoch/route.
  * The native group waypoint affects every living member, so protected/mounted/unavailable
  * members refuse. No authored waypoint is removed/rewritten; actor flags/poses/skills,
  * group membership and targets stay with their existing owners.
@@ -16,7 +16,7 @@
  * Example: [_group,_operation get "generation",0] call CBE_fnc_PatrolRouteCommit;
  */
 params [["_group",grpNull,[grpNull]],["_generation",-1,[0]],["_index",0,[0]]];
-if (remoteExecutedOwner > 0 || {isNull _group} || {!local _group}
+if ((remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) || {isNull _group} || {!local _group}
     || {!finite _generation} || {_generation < 0}
     || {!finite _index} || {_index != floor _index} || {_index < 0}) exitWith {[grpNull,-1]};
 private _committed=[grpNull,-1];

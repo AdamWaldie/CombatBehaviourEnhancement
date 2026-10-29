@@ -51,7 +51,30 @@ class GarrisonModuleTests(unittest.TestCase):
         dispatch=src('cortexOrderDispatch'); local=src('cortexOrderLocal')
         self.assertIn('"GARRISON","DEFEND","CLEAR","RELEASE","AIRBORNE"',dispatch)
         self.assertNotIn('"RELEASE", "AIRBORNE"]',local.split('private _temporaryControl=[];',1)[1].split('private _previousClearFailure=',1)[0])
-        self.assertIn('No building or defence task was released',local)
+        self.assertIn('No infantry task was released',local)
+        patrol=src('zenPatrolModule')
+        self.assertIn('class CBE_ModulePatrol: CBE_ModuleGarrison',config)
+        self.assertIn('call CBE_fnc_ZenPatrolModule',native)
+        for key in ('patrolNodes','patrolDuration'):
+            self.assertIn('"'+key+'"',patrol)
+            self.assertIn('getOrDefault ["'+key+'"',dispatch)
+            self.assertIn('getOrDefault ["'+key+'"',local)
+        for control in ('[25,500,100,0]','[3,8,4,0]','[30,1800,900,0]'):
+            self.assertIn(control,patrol)
+        self.assertIn('case "PATROL": {["START",_group,',local)
+        self.assertIn('["CANCEL",_group,["MODULE_RELEASE"]]',local)
+        self.assertIn('_nodes == floor _nodes',dispatch)
+        self.assertIn('_patrolNodes != floor _patrolNodes',local)
+        self.assertIn('_radius <= 500',dispatch)
+        self.assertIn('_radius > 500',local)
+        self.assertIn('_duration <= 1800',dispatch)
+        self.assertIn('_patrolDuration > 1800',local)
+        for private in ('patrolOperation','patrolRouteCommit'):
+            self.assertIn('remoteExecutedOwner != 2',src(private))
+        for text in (patrol,native,release):
+            self.assertNotIn('CBA_fnc_addSetting',text)
+            self.assertNotIn('CBA_settings_fnc_set',text)
+
 
     def test_height_choice_reaches_executor_and_is_not_rerolled_on_adoption(self):
         zen=src('zenGarrisonModule'); dispatch=src('cortexOrderDispatch'); local=src('cortexOrderLocal'); execute=src('cortexGarrison')

@@ -10,7 +10,8 @@
     "CBE_ModuleDrivingCorridor",
     "CBE_ModuleDrivingCorridorMission",
     "CBE_ModuleAirborne",
-    "CBE_ModuleRelease"
+    "CBE_ModuleRelease",
+    "CBE_ModulePatrol"
   ],
   "zen_labels": [
     "Create AI Convoy",
@@ -18,7 +19,8 @@
     "Defend area",
     "Clear building",
     "Navigation corridor",
-    "Release building / defence task"
+    "Release infantry task",
+    "Patrol area"
   ],
   "contracts": [
     {
@@ -148,7 +150,7 @@
       "physical_acceptance": "unverified; native no-ZEN placement, changed seat/aircraft, actual jump/landing, repeated use, HC/JIP and performance remain unrun while audits paused"
     },
     {
-      "behaviour": "Release assigned building/defence and temporary infantry actor tasks",
+      "behaviour": "Release assigned infantry tasks: clearance, garrison, defence, patrol and temporary actor tasks",
       "target": "Explicit AI squad; native module attaches to an AI soldier",
       "parameters": [
         "squad"
@@ -162,6 +164,26 @@
       "termination": "One-shot request; existing exact-owned feature cleanup may remain pending. No global reset, new task worker or replay.",
       "guide": "docs/Smart-AI-Pass.md",
       "physical_acceptance": "unverified; dialog/owner/native handback/repeat/locality checks await audit authorisation"
+    },
+    {
+      "behaviour": "One finite area patrol circuit",
+      "target": "Explicit AI foot squad; native module attaches to an AI soldier; ZEN selects the squad at the module centre",
+      "parameters": [
+        "squad",
+        "centreATL",
+        "radius25..500m",
+        "destinations3..8",
+        "duration30..1800s"
+      ],
+      "handlers": [
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenPatrolModule.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Existing assigned-curator authentication, server named payload validation, serial/12s deadline and native/Zeus receipts, repeated current-owner parameter validation. No new RPC. Helpers admit authenticated server context, refuse other remote senders.",
+      "termination": "Original finite circuit/task/leg deadlines, common-operation exact waypoint cleanup, combat suspension without deadline renewal, newer-control/locality cancellation. Existing Release infantry task cancels only tracked infantry tasks.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; dialog/payload/owner/circuit/release/Zeus/MP checks await audit authorisation"
     }
   ]
 }

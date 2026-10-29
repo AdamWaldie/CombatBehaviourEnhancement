@@ -1,6 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Select an explicit AI squad and request release of its CBE building/defence tasks.
+ * Purpose: Select an explicit AI squad and request release of its CBE infantry tasks, including finite patrol.
  * Locality/authority: Interface dialog only. Existing server authentication, current-owner
  * serial/deadline/native-order checks and scoped release executors decide the actual result.
  * Repeat/JIP: One request per accepted dialog; no handler, task replay or addon setting changes.
@@ -24,9 +24,9 @@ if (_groups isEqualTo []) exitWith {
     false
 };
 [
-    "Release building / defence task",
+    "Release infantry task",
     [
-        ["COMBO",["Squad","Request release of CBE clearance, garrison, defensive-line and temporary infantry actor tasks. The current owner preserves newer orders and protected actors. Pending native handback may remain unresolved."],[_groups,_groups apply {format ["%1 / %2 / %3 soldiers",side _x,groupId _x,count units _x]},0]]
+        ["COMBO",["Squad","Request release of CBE clearance, garrison, defensive-line, patrol and temporary infantry actor tasks. The current owner preserves newer orders and protected actors. Pending native handback may remain unresolved."],[_groups,_groups apply {format ["%1 / %2 / %3 soldiers",side _x,groupId _x,count units _x]},0]]
     ],
     {
         params ["_values"];
