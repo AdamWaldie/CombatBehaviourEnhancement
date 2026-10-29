@@ -356,6 +356,7 @@ if (_abortSource isNotEqualTo []) then {
 // Patrol is deliberately owner-local: retire its old task without replaying a public status.
 // Common operation cleanup above owns the old native waypoint.
 if (!_firstAdoption) then {_group setVariable ["CBE_PatrolTask",nil];};
+if (!_firstAdoption) then {_group setVariable ["CBE_ClearAreaTask",nil];};
 if (!_firstAdoption) then {_group setVariable ["CBE_AIPass_State", nil];};
 _group setVariable ["CBE_AIPass_Managed", nil];
 {_group setVariable [_x, nil]} forEach ["CBE_AIPass_GarrisonApplied", "CBE_AIPass_DefendApplied", "CBE_AIPass_ClearApplied"];

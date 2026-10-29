@@ -57,6 +57,7 @@ if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0} || {com
     -1
 };
 if (!(missionNamespace getVariable ["CBE_AIPass_Active",false])) exitWith {["DISABLED"] call _cancel};
+if (count (_group getVariable ["CBE_ClearAreaTask",createHashMap]) > 0) then {["CHECK",_group] call CBE_fnc_ClearAreaOperation};
 if ([_group] call CBE_fnc_CortexZeusHeld) exitWith {["ZEUS"] call _cancel};
 if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {["EXTERNAL_OWNER"] call _cancel};
 
@@ -186,7 +187,8 @@ if (diag_fps < (missionNamespace getVariable ["CBE_AIPass_LowFpsThreshold",25])
 if (!finite _delay || {!finite (time+_delay)}) exitWith {["INVALID_GROUP_DELAY"] call _cancel};
 private _state=[_group] call CBE_fnc_CortexGroupState;
 // One finite patrol shares this existing callback; retain its task/leg watchdog cadence.
-if (count (_group getVariable ["CBE_PatrolTask",createHashMap]) > 0) then {_delay=_delay min 1};
+if (count (_group getVariable ["CBE_PatrolTask",createHashMap]) > 0
+    || {count (_group getVariable ["CBE_ClearAreaTask",createHashMap]) > 0}) then {_delay=_delay min 1};
 if ([_group] call CBE_fnc_CortexIlluminationStep) then {_delay=_delay min 1};
 // Capacity freshness is a protocol deadline, not tactical reaction tuning. Keep only
 // a live coordinated COVER helper on this existing callback within its six-second TTL.

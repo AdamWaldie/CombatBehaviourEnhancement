@@ -56,6 +56,17 @@ if (_order == "PATROL" && {!(_radius isEqualType 0) || {!finite _radius} || {_ra
     || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {
     [_token,false,false,clientOwner,"Invalid finite patrol parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
 };
+private _areaBuildings=_settings getOrDefault ["areaBuildings",4];
+private _areaDuration=_settings getOrDefault ["areaDuration",900];
+if (_order == "CLEAR_AREA" && {!(_radius isEqualType 0)
+    || {!finite _radius} || {_radius < 10} || {_radius > 150}
+    || {!(_areaBuildings isEqualType 0)} || {!finite _areaBuildings} || {_areaBuildings != floor _areaBuildings}
+    || {_areaBuildings < 1} || {_areaBuildings > 8} || {!(_areaDuration isEqualType 0)}
+    || {!finite _areaDuration} || {_areaDuration < 30} || {_areaDuration > 1800}
+    || {!(_position isEqualType [])} || {count _position != 3}
+    || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {
+    [_token,false,false,clientOwner,"Invalid finite area-clearance parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
 private _huntRange=_settings getOrDefault ["huntRange",800];
 if (_order == "HUNT" && {!(_huntRange isEqualType 0) || {!finite _huntRange}
     || {_huntRange < 50} || {_huntRange > 2000} || {!(_patrolDuration isEqualType 0)}
@@ -74,11 +85,11 @@ private _oldHold = _group getVariable ["CBE_AIPass_ZeusHold",[]];
 private _oldWaypoints = _group getVariable ["CBE_AIPass_ZeusWaypoints",false];
 private _oldControlKind = _group getVariable ["CBE_AIPass_ZeusControlKind",""];
 private _executionEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
-private _executionTaskKeys=["CBE_AIPass_ClearGeneration","CBE_AIPass_GarrisonGeneration",
+private _executionTaskKeys=["CBE_ClearAreaSerial","CBE_AIPass_ClearGeneration","CBE_AIPass_GarrisonGeneration",
     "CBE_AIPass_DefendGeneration","CBE_OperationGeneration"];
 private _executionTasks=_executionTaskKeys apply {_group getVariable [_x,-1]};
 private _temporaryControl=[];
-if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUSH"]) then {
+if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUSH", "CLEAR_AREA"]) then {
     _group setVariable ["CBE_AIPass_ZeusControlKind",nil,true];
     _group setVariable ["CBE_AIPass_ZeusWaypoints", false, true];
     _group setVariable ["CBE_AIPass_ZeusHold", [random 1e6, 0], true];
@@ -88,13 +99,16 @@ if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUS
 private _previousClearFailure=_group getVariable ["CBE_Cortex_ClearAdmissionFailure",[]];
 private _previousGarrisonFailure=_group getVariable ["CBE_Cortex_GarrisonAdmissionFailure",[]];
     private _accepted = switch (_order) do {
+        case "CLEAR_AREA": {["START",_group,[_position,_radius,_areaBuildings,_areaDuration]] call CBE_fnc_ClearAreaOperation};
         case "RUSH": {["START",_group,[_huntRange,_rushDuration]] call CBE_fnc_RushOperation};
         case "HUNT": {["START",_group,[_huntRange,_patrolDuration]] call CBE_fnc_HuntOperation};
         case "PATROL": {["START",_group,[_position,_radius,_patrolNodes,_patrolDuration]] call CBE_fnc_PatrolOperation};
         case "GARRISON": {[_group, _position, (_radius max 15) min 150, createHashMapFromArray [["teleport",_teleport],["sortByHeight",_sortByHeight]]] call CBE_fnc_CortexGarrison};
         case "DEFEND": {[_group, _position, _facing, (_width max 15) min 150] call CBE_fnc_CortexDefend};
         case "RELEASE": {
+            private _areaReleased=["CANCEL",_group,["MODULE_RELEASE"]] call CBE_fnc_ClearAreaOperation;
             private _released = [_group] call CBE_fnc_CortexClearRelease;
+            _released=_released || {_areaReleased};
             private _rushReleased=["CANCEL",_group] call CBE_fnc_RushOperation;
             _released=_released || {_rushReleased};
             private _patrolReleased=["CANCEL",_group,["MODULE_RELEASE"]] call CBE_fnc_PatrolOperation;
@@ -194,6 +208,9 @@ if (!_accepted && {_newGarrisonFailure}) then {
 };
 if (!_accepted && {_order == "RELEASE"}) then {
     _executionReason="No infantry task was released. There may be no matching task, or current native/owner control may still prevent handback.";
+};
+if (!_accepted && {_order == "CLEAR_AREA"}) then {
+    _executionReason="Area clearance was not started. Use a fully dismounted AI squad with two capable soldiers and eligible nearby buildings; release existing tasks first. Partial traversal is never building safety.";
 };
 if (!_accepted && {_order == "RUSH"}) then {
     _executionReason="Attack was not started. Check fresh native contact, a fully dismounted AI squad with at least two capable soldiers, ammunition/ROE, steady morale, safe approach and enabled contact/advance/assault settings. Existing tasks, protected native orders or another controller also take priority.";

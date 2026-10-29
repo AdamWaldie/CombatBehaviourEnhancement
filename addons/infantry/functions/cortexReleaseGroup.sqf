@@ -82,6 +82,7 @@ if (!_keepBrain) then {
 } forEach units _group;
 };
 if (local _group && {!_keepBrain}) then {["CANCEL",_group,[_reason]] call CBE_fnc_PatrolOperation};
+if (local _group && {!_keepBrain}) then {["CANCEL",_group,[_reason]] call CBE_fnc_ClearAreaOperation};
 private _state = _group getVariable ["CBE_AIPass_State", createHashMap];
 private _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
 if (count _brain > 0 && {!_keepBrain}) then {

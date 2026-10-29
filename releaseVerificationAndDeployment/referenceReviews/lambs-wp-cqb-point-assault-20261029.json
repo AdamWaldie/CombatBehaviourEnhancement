@@ -70,14 +70,14 @@
       "CortexClearBuilding and BuildingOperationStep already own explicit one-building pair/lane, physical visit/floor/room attempt, inaccessible-node evidence, cover/reserve/egress and exact settings/actor/native receipts. Geometry/visited data binds to object transform and visit context.",
       "ZenClearModule already exposes explicit single squad/building; new ModuleClear adds native Zeus selectors backed by the same CortexOrderDispatch/Local executor. Optional ZEN is reused when present.",
       "GroupTick SEARCH has a separate narrow remembered-contact indoor observation for up to two actors, not an area clearance executor.",
-      "CortexDiscover separately replays durable clearance through preflight. Original producer candidates stop at CANDIDATE_UNSEALED; no authenticated incoming native/settings/phase reconciliation consumer exists. Existing retiring callers already guard current ownership; adding a duplicate generic guard would not close that missing chain."
+      "CortexDiscover separately replays durable clearance through preflight. Original producer candidates stop at CANDIDATE_UNSEALED; no authenticated incoming native/settings/phase reconciliation consumer exists. Existing retiring callers already guard current ownership; adding a duplicate generic guard would not close that missing chain.",
+      "ClearAreaOperation now sequences a bounded owner-local area queue through GroupBrainStep/CortexGroupTick and existing CortexClearBuilding/BuildingOperationStep, with native CBE_ModuleClearArea and optional ZenClearAreaModule controls. Offline verified; physical/MP/flow and cost unverified. No whole-source parity claim."
     ],
     "missing": [
-      "Finite area-building sequencing executor and matching task controls",
       "Complete CQB incoming-controller all-writer/settings/native/phase reconciliation",
       "Physical repeated entry/clearing/isolation/egress and measured performance"
     ],
-    "nextFiniteImplementation": "Implement one finite owner-local area task using existing group-brain orchestration and existing one-building executor. Snapshot bounded candidates once or on explicitly bounded refresh; retain original total deadline/native mission/epoch. Child acceptance is not completion. Track exact child generation/visit/result and preserve partial/inaccessible results while sequencing; never report area clear from spent queue alone. Cancel on replacement/owner loss without replaying stale work. Only expose area module after real executor exists."
+    "nextFiniteImplementation": "Area sequencing build-out is implemented below. Next separate source gap is authored point-assault/withdrawal task execution and real behaviour modules. Area physical/repeat/MP and incoming-controller reconciliation remain unverified/open; do not launch while audits paused."
   },
   "pointAssault": {
     "intent": "Deliberate movement to an operator-selected point, optionally a forced retreat, distinct from attack against known contact.",
@@ -134,5 +134,52 @@
     }
   },
   "physicalAcceptance": false,
-  "measuredPerformance": "UNVERIFIED;auditsPAUSED;5%median/10%p95 target remains"
+  "measuredPerformance": "UNVERIFIED;auditsPAUSED;5%median/10%p95 target remains",
+  "areaExecution20261029": {
+    "sourceBase": "d8465d3d5185c6789e8736ac408a826a00c45a3a",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "intent": "Adapt the complete taskCQB methodical multi-building intent onto existing CBE owner-local group and building executors, replacing unsupported traversal credit and competing movement loops.",
+    "execution": [
+      "Native CBE_ModuleClearArea -> ModuleGarrison or optional ZenClearAreaModule -> authenticated CortexOrderDispatch/Local CLEAR_AREA -> ClearAreaOperation START. Server/current owner validate named radius10..150,buildingLimit1..8,duration30..1800 and original task serial/native/Zeus receipts.",
+      "One group-brain decision services finite CHECK/STEP; no independent PFH, scheduler job or parent movement writer. Start refuses existing operational/actor-domain conflicts and needs a fully dismounted local AI squad with two combat-effective soldiers.",
+      "Inspect at most32 House candidates once; select at most requested1..8 and record pose. Each transition chooses nearest remaining selected building from current friendly anchor, without another world scan. Changed/deleted buildings retain incomplete outcomes.",
+      "Each child uses existing physical CLEAR with preserveBrain=true, minimumActors2, exact area token and immutable original server deadline cap. Parent-token proof participates in every existing constructor preparation guard.",
+      "BuildingOperationStep uses its existing exact finish to fence parent expiry/revocation before room or EGRESS commands. Ordinary egress safety time cannot renew the owner-local area child. Original task/phase/retry budgets are not reset.",
+      "Progress consumes exact private child brain,generation,visit and real terminal job result only after common operation retirement. Actual partial, refused or inaccessible results remain visible; any capped selection or failed child yields PARTIAL. Acceptance/time/queue length alone is not traversal credit.",
+      "Temporary native care/boarding/return defers next-child planning under the original deadline. Finished queue completion precedes readiness for new work; later care cannot strand an already witnessed result.",
+      "Scoped release/shutdown cancel only exact current child identity and operation; replacement orders/native/Zeus/specialist ownership win. Owner change drops local area metadata without replay. An in-progress single-building child retains existing separate durable-clearance rules; complete incoming native/settings/phase handover remains open.",
+      "Compact per-building visited/total counts, copied unreachable indices and entry/egress failure flags survive later child status replacement. Refused starts retain a newly witnessed admission reason; stale prior errors cannot be assigned to a different building. No actor/job graph is retained in public area results."
+    ],
+    "differencesRetained": [
+      "No source30m/coin-flip node removal or reposition recovery",
+      "No per-unit PFHs, blind default AI/formation/attack reset or hostile transforms",
+      "No side-global safe-building flag or permanent re-scan loop",
+      "Finite bounded area task, not universal whole-town safety or whole-mod parity"
+    ],
+    "validation": {
+      "tests": 1505,
+      "productionSQF": 473,
+      "pbo": 11,
+      "full": "Complete offline pipeline exit0; HEMTT/FSM/config/docs/coverage/settings/Zeus/parity gates passed; static performance0findings.",
+      "candidate": ".qa/candidates/area-clear-evidence-20261029-d8465d3d",
+      "fingerprint": "6182fcfc09f7fa6ab92897ed0691990f38e98a03c45f057bbdc00fd7b3afe3da",
+      "independent": "Package verifier exit0, same fingerprint. Unsigned dev base d8465d3d plus dirty build inputs; engineering/handover metadata finalized after packaging.",
+      "retainedFailures": "Focused fixture initially looked for CortexLocality in infantry instead of core; corrected test path. Full runs exposed transform/executor admission and terminal common-operation ordering contracts. Final integration preserved those existing guards and reused guarded child finish; no tests removed or acceptance weakened.",
+      "logs": [
+        ".qa/handovers/area-clear-evidence-build-20261029.log",
+        ".qa/handovers/area-clear-evidence-independent-20261029.log"
+      ],
+      "physical": "UNVERIFIED;auditsPAUSED",
+      "measuredCost": "UNVERIFIED;5%median/10%p95 remains required. Active area task caps existing group cadence at1s and plans at mostone new child per decision; existing building preparation cost remains unmeasured.",
+      "retainedEarlierCandidate": {
+        "candidate": ".qa/candidates/area-clear-20261029-d8465d3d",
+        "fingerprint": "f7a5109fe732b9f4cd82d4bed7aebf079fe60828e1fba294e4edd7a096fadb73"
+      }
+    },
+    "remaining": [
+      "Physical methodical traversal, room access/partial reporting, isolation/egress, casualty/repeat and actual module controls",
+      "Normal/HC/locality/JIP variants and complete incoming-controller reconciliation",
+      "Measured planning/update cost and tactical balance"
+    ]
+  }
 }

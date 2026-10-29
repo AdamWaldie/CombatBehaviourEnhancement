@@ -3381,7 +3381,43 @@ Both interfaces call the existing curator-authenticated server dispatcher and
 current-owner physical clearance executor. Acceptance, traversal, partial failure,
 interruption, cleanup and release keep their existing meanings. No settings module,
 new movement controller, teleport or automatic nearest-building assignment is added.
-This requests one building. Area-wide building sequencing and complete
-incoming-owner reconciliation remain separate unfinished capabilities. Native dialog
+This requests one building. The separate area task below sequences selected buildings;
+complete incoming-owner reconciliation remains unfinished. Native dialog
 layout, keyboard use, repeated task flow and multiplayer behaviour remain unverified
 while audits are paused.
+
+
+### Clear buildings in area
+
+**Clear buildings in area** sequences selected houses through the existing physical
+building-clearance task. Native Zeus placement on an AI soldier uses a 50-metre
+area, four-building limit and 900-second total deadline. Optional ZEN exposes the
+explicit squad, centre, radius (10–150 metres), building limit (1–8) and original
+time limit (30–1,800 seconds). Release infantry task also stops the exact area task.
+
+The planner inspects at most 32 nearby houses once and selects at most the requested
+limit. It chooses the nearest remaining selected building from the current friendly
+anchor before starting another child. New buildings require a fresh area request.
+Reported interior points are candidates, not proof of physical access. Changed or
+removed buildings, refused starts and incomplete traversal remain in the results.
+Per-building visited/total counts, unreachable indices and entry/egress failure flags
+remain available after subsequent children replace the single-building status.
+A capped candidate set or any incomplete child produces PARTIAL, never whole-area
+completion or a claim that hostile rooms are safe.
+
+One existing group-brain callback sequences the children; each child retains the
+existing clearance FSM and ownership checks. Every child hard deadline is capped
+by the original area deadline. Child completion must come from its actual terminal
+result and common-operation retirement; acceptance or time elapsed cannot advance
+the queue. New mission/Zeus/specialist control or membership/ownership change ends
+the area queue. There is no area-task replay on a new owner; any in-progress single
+building keeps its existing separate durable-clearance rules and limitations.
+
+```sqf
+["START", _group, [getPosATL house1, 50, 4, 900]] call CBE_fnc_ClearAreaOperation;
+["CANCEL", _group, ["MISSION_CANCEL"]] call CBE_fnc_ClearAreaOperation;
+```
+
+This adds no second movement writer, teleport, forced actor pose or addon setting.
+Area flow, casualty/repeat behaviour, all multiplayer variants and measured cost
+remain unverified while audits are paused.

@@ -23,6 +23,9 @@ missionNamespace setVariable ["CBE_AITweaks_ZenRegisteredLocal", true];
 ["Combat Behaviour Enhancement (CBE)", "Defend area", {
     _this call CBE_fnc_ZenDefendModule;
 }] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Clear buildings in area", {
+    _this call CBE_fnc_ZenClearAreaModule;
+}] call zen_custom_modules_fnc_register;
 ["Combat Behaviour Enhancement (CBE)", "Clear building", {
     _this call CBE_fnc_ZenClearModule;
 }] call zen_custom_modules_fnc_register;

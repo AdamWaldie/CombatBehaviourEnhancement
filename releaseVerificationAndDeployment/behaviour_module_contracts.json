@@ -14,7 +14,8 @@
     "CBE_ModulePatrol",
     "CBE_ModuleHunt",
     "CBE_ModuleRush",
-    "CBE_ModuleClear"
+    "CBE_ModuleClear",
+    "CBE_ModuleClearArea"
   ],
   "zen_labels": [
     "Create AI Convoy",
@@ -25,7 +26,8 @@
     "Release infantry task",
     "Patrol area",
     "Hunt known enemy",
-    "Press attack"
+    "Press attack",
+    "Clear buildings in area"
   ],
   "contracts": [
     {
@@ -226,6 +228,26 @@
       "termination": "Nonrenewed explicit tag token/epoch/generation/deadline checked before policy/movement; exact tagged-only Release. Owner transfer keeps restoration but excludes timed explicit semantic replay. No extra worker/native command loop.",
       "guide": "docs/Smart-AI-Pass.md",
       "physical_acceptance": "unverified; movement/fire/role/release/Zeus/MP handback and cost await authorised audits"
+    },
+    {
+      "behaviour": "Finite physical clearance of selected area buildings",
+      "target": "Explicit AI foot squad and area centre",
+      "parameters": [
+        "squad",
+        "centre",
+        "radius10..150",
+        "buildingLimit1..8",
+        "duration30..1800"
+      ],
+      "handlers": [
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenClearAreaModule.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Authenticated server/current-owner validation; ClearAreaOperation delegates exact child CLEAR under original parent token/deadline/mission and owner epoch.",
+      "termination": "Original total deadline, newer task/native/Zeus/specialist owner, membership/owner loss, selected queue results; capped/failed visits remain PARTIAL.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; area flow, retained partial/inaccessible results, repeated tasks, interruption/locality and performance need authorised runtime audit."
     }
   ]
 }

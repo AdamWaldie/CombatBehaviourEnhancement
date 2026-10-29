@@ -1,3 +1,19 @@
+# Current checkpoint: finite area building clearance (29 October 2026)
+
+CBE checkout C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks, branch Adam/cbe-mechanised-support-20261028, remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git. Current native-clear local commitd8465d3d; area implementation is next coherent commit. PR20 open draft remotely at2dd621ff before planned combined push. Regular checked local commits; batch pushes. AuditsPAUSED. No game staging/merge/release/Steam. Preserve unrelated workflow/artwork/requirements deletions and docs/PERFORMANCE-VALIDATION.md.
+
+New ClearAreaOperation START/CHECK/STEP/CANCEL sequences at most8buildings from32inspectedHouse candidates through existing GroupBrainStep/CortexGroupTick and actual CortexClearBuilding/BuildingOperationStep. Native CBE_ModuleClearArea and optional ZEN Clear buildings in area call existing authenticated CLEAR_AREA transport. Default50m/4buildings/900s; limits10..150m/1..8/30..1800s validated server+owner. No new parent movement writer/PFH/global query. Original mission/Zeus/task/owner proof and deadline remain fixed. Temporary protected actor work waits for2ready actors; selected queue completion occurs before readiness for new work. Partial/refused/moved/inaccessible/capped cases retain PARTIAL rather than whole-area completion.
+
+Constructor area token gates existing preparation; child harddeadline is capped and child actual finish fences parent expiry/revocation before EGRESS as well as sweep. Exact child brain/generation/visit/operation proof precedes cancellation or result adoption. Locality retires parent metadata without replay. Existing single-child durable resume remains separate and incomplete; no universal handover claim.
+
+Full1505tests/473SQF/11PBO and independent package verify pass. Candidate .qa/candidates/area-clear-evidence-20261029-d8465d3d, fingerprint 6182fcfc09f7fa6ab92897ed0691990f38e98a03c45f057bbdc00fd7b3afe3da; unsigned dev base d8465d3d+dirty runtime inputs. Source: releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#areaExecution20261029 and master source-review-map. Physical/MP/UI/flow/cost UNVERIFIED.
+
+Next source capability: explicit authored-point assault/withdrawal executor+native/optionalZEN tasks; Press attack is contact-driven and not equivalent. Continue foundations-up LAMBS/HBQ/nineProtocol execution gaps. CQB producer pipeline still ends CANDIDATE_UNSEALED without incoming all-writer/native/settings/phase reconciliation; controlled-rappel executor/cleanup remains open. Preserve all local source/game/key stores below. Last usage35%remaining; below10% commit/pushPR/handover immediately. Durable continuity is not full Temp/.qa backup.
+
+Per-building compact visited/total/unreachable/entry/egress evidence is retained across children; stale admission errors are not attributed to the next building. Earlier verified candidate remains preserved.
+
+---
+
 # Current checkpoint: native physical-clearance task (29 October 2026)
 
 Checkout C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git; branch Adam/cbe-mechanised-support-20261028. PR20 open draft currently pushed through2dd621ff. This native-clear checkpoint is intended as a regular LOCAL commit; keep pushes batched. Audits PAUSED; no game staging/merge/publishing. Preserve unrelated deleted workflows/artwork/requirements and docs/PERFORMANCE-VALIDATION.md.

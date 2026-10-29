@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Optional internal parent taskDeadline only shortens this episode; areaTaskToken fences preparation.
  * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Resume settings preflight preserves the durable order on known partial/native mismatch,
  * rechecking original canonical/mirror/motion snapshots before operation mutation.
@@ -88,7 +89,9 @@
  * 0: group <GROUP or OBJECT> - the group, or a unit in it
  * 1: target <OBJECT or ARRAY> - the building, or a position (the nearest building is used)
  * 2: options <HASHMAP> (optional) - resume (default false), preserveBrain (default false for an
- *    explicit order) and operation-specific controls. Internal resumeOrder (ARRAY) and
+ *    explicit order) and operation-specific controls. Internal taskDeadline (NUMBER,-1) only
+ *    shortens lifetime; areaTaskToken (STRING,empty) binds preparation to its live parent.
+ *    Internal resumeOrder (ARRAY) and
  *    resumeGeneration (NUMBER) default to the entry snapshot; discovery passes its observed
  *    order/generation. A cancelled or replaced snapshot refuses without retiring a successor.
  *    Natural contact entry uses preserveBrain so
@@ -141,6 +144,20 @@ if !([_group] call CBE_fnc_CortexIsEligible) exitWith {["GROUP_INELIGIBLE"] call
 if (_target isEqualType [] && {!(count _target in [2,3])
     || {_target findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {["INVALID_TARGET_POSITION"] call _refuse};
 private _admissionEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _taskDeadline=_options getOrDefault ["taskDeadline",-1];
+private _areaTaskToken=_options getOrDefault ["areaTaskToken",""];
+if (!(_taskDeadline isEqualType 0) || {!finite _taskDeadline}
+    || {_taskDeadline != -1 && {serverTime >= _taskDeadline || {_taskDeadline > serverTime+1800}}}
+    || {!(_areaTaskToken isEqualType "")}) exitWith {["INVALID_PARENT_TASK"] call _refuse};
+private _areaTaskCurrent={
+    if (_areaTaskToken == "") exitWith {true};
+    private _parent=_group getVariable ["CBE_ClearAreaTask",createHashMap];
+    (_parent getOrDefault ["token",""]) == _areaTaskToken
+        && {(_parent getOrDefault ["ownerEpoch",-1]) == _admissionEpoch}
+        && {(_parent getOrDefault ["deadline",-1]) == _taskDeadline}
+        && {serverTime < _taskDeadline}
+};
+if !(call _areaTaskCurrent) exitWith {["PARENT_TASK_CHANGED"] call _refuse};
 private _admissionNativeReceipt=[_group] call CBE_fnc_NativeOrderReceipt;
 private _entryOperation=_group getVariable ["CBE_Operation",createHashMap];
 private _admissionOperationIdentity=[_entryOperation getOrDefault ["generation",-1],
@@ -212,6 +229,7 @@ if (_resumeRequested && {!(_resumeRosterContext isEqualType [])
 if (_resumeRosterContext isEqualType []) then {_resumeRosterContext=+_resumeRosterContext};
 private _admissionStable={
     !isNull _building && {alive _building} && {!isObjectHidden _building}
+        && {call _areaTaskCurrent}
         && {_admissionTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
 };
 private _allPositions = _building buildingPos -1;
@@ -387,6 +405,7 @@ private _deadline = if (_resume) then {_previous select 2} else {serverTime + 24
 // already published deadline rather than gaining a fresh lifetime on each owner.
 private _lifetime = (240 max (60*count _positions)) min 900;
 private _hardDeadline = if (_resume) then {_previous param [10,_deadline,[0]]} else {serverTime+_lifetime};
+if (_taskDeadline >= 0) then {_hardDeadline=_hardDeadline min _taskDeadline;_deadline=_deadline min _hardDeadline};
 if (_resume && {!(call _resumeCurrent)}) exitWith {["RESUME_ORDER_CHANGED"] call _refuse};
 if (serverTime >= (_deadline min _hardDeadline)) exitWith {[] call _retireResume; false};
 // Validate the new building/team before one release/publication commit. A fresh request
@@ -827,6 +846,7 @@ private _claimedEntryIndices=[];
 } forEach _pairs;
 [{_group setVariable ["CBE_Cortex_ClearStatus",["ENTRY",count _cleared,count _unreachable,count _positions,count _pairs,serverTime],true]}] call _commitPreparation;
 private _job=createHashMapFromArray [
+    ["areaDeadline",_taskDeadline],["areaTaskToken",_areaTaskToken],
     ["nativeHoldPositions",_admissionHoldPositions],
     ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["navigationPositions",+_allPositions], ["transitPositions",_allPositions select {!(_x in _positions)}], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
     ["entry",_entryRoute], ["entries",_entries], ["securityEntries",_securityEntries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],

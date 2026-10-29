@@ -524,6 +524,7 @@ private _priorVehicleLease=_state getOrDefault ["movementLease",[]];
 if ((_priorVehicleLease param [0,""]) in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","VEHICLE_ORIENT"]) then {
     [_group,_state,[],true] call CBE_fnc_CortexVehicles;
 };
+if (count (_group getVariable ["CBE_ClearAreaTask",createHashMap]) > 0) then {["STEP",_group] call CBE_fnc_ClearAreaOperation};
 if (count (_group getVariable ["CBE_PatrolTask",createHashMap]) > 0) then {
     ["STEP",_group,[_dangerActive]] call CBE_fnc_PatrolOperation;
 };
@@ -811,6 +812,7 @@ private _authoredStationary=_waypointIndex < _waypointCount
     && {waypointType [_group,_waypointIndex] in ["HOLD","SENTRY"]}
     && {waypointDescription [_group,_waypointIndex] != "CBE AI PASS"};
 private _ordered = _garrisoned || {_defending}
+    || {count (_group getVariable ["CBE_ClearAreaTask",createHashMap]) > 0}
     || {_group getVariable ["CBE_AIPass_ClearBuilding", false]}
     || {_authoredStationary};
 if (count (_state getOrDefault ["aaRelocation",createHashMap]) == 0) then {
