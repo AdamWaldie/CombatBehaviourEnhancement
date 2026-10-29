@@ -34,7 +34,7 @@ if !(_sortByHeight isEqualType true) exitWith {false};
 private _teleport = _settings getOrDefault ["teleport",false];
 if !(_teleport isEqualType true) exitWith {false};
 // Remote module requests cannot change addon configuration or artillery role registration.
-if (_sender > 2 && {!(_order in ["GARRISON","DEFEND","CLEAR","RELEASE","AIRBORNE","PATROL","HUNT","RUSH","CLEAR_AREA","ADVANCE_POINT"])}) exitWith {false};
+if (_sender > 2 && {!(_order in ["GARRISON","DEFEND","CLEAR","RELEASE","AIRBORNE","PATROL","HUNT","RUSH","CLEAR_AREA","ADVANCE_POINT","WITHDRAW_POINT"])}) exitWith {false};
 private _pending = missionNamespace getVariable ["CBE_AIPass_OrderPending", createHashMap];
 if (count _pending >= 64) exitWith {
     ["AI ORDERS","Too many pending squad orders. Wait for owner replies before retrying.","ERROR"] remoteExecCall ["CBE_fnc_AITweaksNotifyLocal",_requestOwner];
@@ -46,8 +46,8 @@ private _token = str _serial;
 _pending set [_token, [_requestOwner, _group, groupOwner _group, _order]];
 missionNamespace setVariable ["CBE_AIPass_OrderPending", _pending];
 private _valid = !isNull _group && {(units _group) findIf {isPlayer _x} < 0}
-    && {_order in ["GARRISON", "DEFEND", "RELEASE", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUSH", "CLEAR_AREA", "ADVANCE_POINT", "ARTY_SUPPORT", "ARTY_COUNTER", "ARTY_BOTH", "EXCLUDE", "RETURN", "SPOTTER_ON", "SPOTTER_OFF"]};
-if (_order in ["GARRISON", "DEFEND", "PATROL", "CLEAR_AREA", "ADVANCE_POINT"]) then {
+    && {_order in ["GARRISON", "DEFEND", "RELEASE", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUSH", "CLEAR_AREA", "ADVANCE_POINT", "WITHDRAW_POINT", "ARTY_SUPPORT", "ARTY_COUNTER", "ARTY_BOTH", "EXCLUDE", "RETURN", "SPOTTER_ON", "SPOTTER_OFF"]};
+if (_order in ["GARRISON", "DEFEND", "PATROL", "CLEAR_AREA", "ADVANCE_POINT", "WITHDRAW_POINT"]) then {
     private _pos = _settings getOrDefault ["position", []];
     _valid = _valid && {_pos isEqualType []} && {count _pos == 3} && {_pos findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} < 0};
 };
@@ -59,6 +59,12 @@ if (_order == "PATROL") then {
         && {_nodes isEqualType 0} && {finite _nodes} && {_nodes == floor _nodes}
         && {_nodes >= 3} && {_nodes <= 8}
         && {_duration isEqualType 0} && {finite _duration} && {_duration >= 30} && {_duration <= 1800};
+};
+if (_order == "WITHDRAW_POINT") then {
+    private _pos=_settings getOrDefault ["position",[]];
+    _valid=_valid && {_pos isEqualType []} && {count _pos == 3}
+        && {(_pos select 2) isEqualType 0} && {finite (_pos select 2)}
+        && {(_pos select 2) >= -0.5} && {(_pos select 2) <= 2.5};
 };
 if (_order == "ADVANCE_POINT") then {
     private _arrival=_settings getOrDefault ["arrivalRadius",10];

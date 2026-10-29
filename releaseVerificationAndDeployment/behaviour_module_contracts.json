@@ -16,7 +16,8 @@
     "CBE_ModuleRush",
     "CBE_ModuleClear",
     "CBE_ModuleClearArea",
-    "CBE_ModulePointAdvance"
+    "CBE_ModulePointAdvance",
+    "CBE_ModulePointWithdraw"
   ],
   "zen_labels": [
     "Create AI Convoy",
@@ -29,7 +30,8 @@
     "Hunt known enemy",
     "Press attack",
     "Clear buildings in area",
-    "Advance to position"
+    "Advance to position",
+    "Withdraw to position"
   ],
   "contracts": [
     {
@@ -269,6 +271,25 @@
       "termination": "Actual arrived final-bound/cohort/floor, partial missing original participants, original deadline, bounded approach/route budget, native/Zeus/owner or feature replacement.",
       "guide": "docs/Smart-AI-Pass.md",
       "physical_acceptance": "unverified; actual covered fire-team advance, native UI, cohort arrival/floor, repeat/casualty/normal/HC and measured performance require authorised runtime validation."
+    },
+    {
+      "behaviour": "Finite withdrawal to an explicit ground position",
+      "target": "Explicit AI foot squad and ground destination",
+      "parameters": [
+        "squad",
+        "destinationATL",
+        "fixed120s deadline",
+        "fixed30m ground arrival"
+      ],
+      "handlers": [
+        "addons/infantry/functions/modulePointAdvance.sqf",
+        "addons/infantry/functions/zenPointAdvanceModule.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Curator-authenticated WITHDRAW_POINT server dispatch and current-owner typed validation; PointWithdrawOperation reuses CortexRetreat/common WITHDRAW operation and existing native waypoint owner.",
+      "termination": "Original120s, capable original cohort ground arrival, bounded exact-goal retries, native/Zeus/specialist replacement, owner loss or scoped Release infantry task. No incoming-owner semantic replay.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "UNVERIFIED; audits paused. Native/optionalZEN selection/acknowledgement, actual ground withdrawal, smoke, repeat/casualty/normal/HC/locality and measured cost remain pending."
     }
   ]
 }

@@ -56,6 +56,12 @@ if (_order == "PATROL" && {!(_radius isEqualType 0) || {!finite _radius} || {_ra
     || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {
     [_token,false,false,clientOwner,"Invalid finite patrol parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
 };
+if (_order == "WITHDRAW_POINT" && {!(_position isEqualType [])
+    || {count _position != 3}
+    || {_position findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}
+    || {(_position select 2) < -0.5} || {(_position select 2) > 2.5}}) exitWith {
+    [_token,false,false,clientOwner,"Withdrawal needs a valid ground destination."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
 private _arrivalRadius=_settings getOrDefault ["arrivalRadius",10];
 private _pointDuration=_settings getOrDefault ["pointDuration",180];
 if (_order == "ADVANCE_POINT" && {!(_arrivalRadius isEqualType 0)
@@ -98,7 +104,7 @@ private _executionTaskKeys=["CBE_ClearAreaSerial","CBE_AIPass_ClearGeneration","
     "CBE_AIPass_DefendGeneration","CBE_OperationGeneration"];
 private _executionTasks=_executionTaskKeys apply {_group getVariable [_x,-1]};
 private _temporaryControl=[];
-if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUSH", "CLEAR_AREA", "ADVANCE_POINT"]) then {
+if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUSH", "CLEAR_AREA", "ADVANCE_POINT", "WITHDRAW_POINT"]) then {
     _group setVariable ["CBE_AIPass_ZeusControlKind",nil,true];
     _group setVariable ["CBE_AIPass_ZeusWaypoints", false, true];
     _group setVariable ["CBE_AIPass_ZeusHold", [random 1e6, 0], true];
@@ -108,6 +114,7 @@ if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUS
 private _previousClearFailure=_group getVariable ["CBE_Cortex_ClearAdmissionFailure",[]];
 private _previousGarrisonFailure=_group getVariable ["CBE_Cortex_GarrisonAdmissionFailure",[]];
     private _accepted = switch (_order) do {
+        case "WITHDRAW_POINT": {["START",_group,_position] call CBE_fnc_PointWithdrawOperation};
         case "ADVANCE_POINT": {["START",_group,[_position,_arrivalRadius,_pointDuration]] call CBE_fnc_PointAdvanceOperation};
         case "CLEAR_AREA": {["START",_group,[_position,_radius,_areaBuildings,_areaDuration]] call CBE_fnc_ClearAreaOperation};
         case "RUSH": {["START",_group,[_huntRange,_rushDuration]] call CBE_fnc_RushOperation};
@@ -222,6 +229,9 @@ if (!_accepted && {_newGarrisonFailure}) then {
 };
 if (!_accepted && {_order == "RELEASE"}) then {
     _executionReason="No infantry task was released. There may be no matching task, or current native/owner control may still prevent handback.";
+};
+if (!_accepted && {_order == "WITHDRAW_POINT"}) then {
+    _executionReason="Withdrawal was not started. Select a ready, fully dismounted AI squad and a ground destination35..2000m away. Release an existing infantry task first; newer native/Zeus orders and specialist control retain priority.";
 };
 if (!_accepted && {_order == "ADVANCE_POINT"}) then {
     _executionReason="Advance was not started. Use a fully dismounted AI squad with capable armed fire teams, steady morale, a safe destination within2km and CBA Advance enabled. Existing tasks or protected native orders take priority.";

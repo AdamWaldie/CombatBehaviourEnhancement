@@ -92,11 +92,11 @@
       "CortexRetreat already owns morale-based screened withdrawal, smoke, physical progress, original120-second episode and typed policy restoration; it does not expose this source arbitrary-destination operator task.",
       "CortexGroupMove and selected-crew movement are lower-level writers, not an authored point-assault module by themselves.",
       "29 October: covered dismounted point advance now composes PointAdvanceOperation with existing CortexAdvanceStart/tacticalDrill; see pointAdvanceExecution20261029. It does not implement explicit retreat or vehicle point assault.",
-      "29 October: explicit ground-destination withdrawal script API now uses CortexRetreat and the existing RETREAT phase. Native/optional ZEN START controls and vehicle point assault remain missing; see pointWithdrawalExecution20261029."
+      "29 October: explicit ground-destination withdrawal script API now uses CortexRetreat and the existing RETREAT phase. Native/optional ZEN START controls and vehicle point assault remain missing; see pointWithdrawalExecution20261029.",
+      "29 October: native Zeus/optional ZEN Withdraw to position now dispatch authenticated WITHDRAW_POINT to the existing fixed-goal withdrawal executor; see pointWithdrawalControls20261029. Shared point UI retains separate advance/withdrawal policies; no second controller."
     ],
     "disposition": "Retain explicit destination assault/withdrawal intent. Compose on actual common operation/movement owners with immutable deadline and selected crew authority; reject copied per-actor PFHs, repeated raw moves, temporary group recreation, forced animation and default WEDGE/AI resets.",
     "missing": [
-      "Native Zeus/optional ZEN START controls for explicit destination withdrawal",
       "Vehicle point assault with selected-crew authority",
       "Physical/MP/repeat/balance and cost validation"
     ]
@@ -248,10 +248,42 @@
       "measuredPerformance": "UNVERIFIED; bounded authored-route observation is additional cost during this finite task only."
     },
     "remaining": [
-      "Native and optional ZEN explicit withdrawal START controls using existing authenticated transport",
       "Vehicle point assault / selected operating crew handling",
       "Physical route/arrival/ground checks, smoke, repeat, cancellations, normal/HC/locality and performance validation",
       "Full LAMBS/HBQ/Protocol capability reconciliation remains incomplete"
+    ],
+    "latestControls": "Native Zeus and optional ZEN START controls now implemented; backend checkpoint validation remains preserved below. Latest controls evidence: pointWithdrawalControls20261029."
+  },
+  "pointWithdrawalControls20261029": {
+    "sourceBase": "265114260c19abbb9bdf09cee7a7d334712c2f06",
+    "status": "IMPLEMENTED_OFFLINE_CHECKED_PHYSICAL_UNVERIFIED",
+    "entry": [
+      "CBE_ModulePointWithdraw inherits existing native point handler",
+      "Optional ZEN Withdraw to position uses ZenPointAdvanceModule explicit WITHDRAW_POINT argument",
+      "Server whitelist/finite ground coordinates and current-owner repeated validation before temporary control changes",
+      "CortexOrderLocal delegates START to PointWithdrawOperation; existing RELEASE cancels exact task"
+    ],
+    "ui": "Shared native/optionalZEN handler validates advance/withdraw opcode. Native choices and ZEN callback carry position/order explicitly, preserving queued context. Cancel sends no request; native child-display guard remains. Withdrawal has explicit squad and destination with fixed120s/30m ground rules; advance retains its own optional radius/time selectors. No CBA setting or movement worker added.",
+    "validation": {
+      "tests": 1505,
+      "productionSQF": 477,
+      "pbo": 11,
+      "fullBuild": "exit0; HEMTT/config/FSM/docs/coverage/parity pass; static performance0findings",
+      "candidate": ".qa/candidates/withdraw-controls-20261029-26511426",
+      "fingerprint": "5a608449515d838426ac755cc43d1c7d8824e090ca772107b3b92510cb82a5d0",
+      "independent": "Package verifier exit0 matching fingerprint. Unsigned development base26511426+dirty runtime changes; engineering/handover metadata finalized after packaging.",
+      "logs": [
+        ".qa/handovers/withdraw-module-final-build-20261029.log",
+        ".qa/handovers/withdraw-module-independent-20261029.log"
+      ],
+      "retainedFailures": "First full run caught malformed multiline test literal and duplicate coverage assignment for shared point UI. Corrected existing test and retained one source-to-feature ownership mapping; reviewed behaviour contract covers both actual surfaces. Final1505pass; no added/removed test cases.",
+      "physical": "UNVERIFIED; audits PAUSED",
+      "performance": "Measured engine cost UNVERIFIED; this checkpoint adds UI/request routing only, no periodic worker."
+    },
+    "remaining": [
+      "Actual native/optionalZEN dialog selection, acknowledgement, cancellation and UI rendering",
+      "Ground routing, smoke, arrival/casualty/repeat, normal/HC/locality and measured performance",
+      "Vehicle point assault and broader whole-source capability gaps remain open"
     ]
   }
 }

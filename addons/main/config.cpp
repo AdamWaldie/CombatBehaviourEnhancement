@@ -6,7 +6,7 @@ class CfgPatches {
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
         requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "CBE_core", "CBE_danger", "CBE_infantry", "CBE_vehicles", "CBE_aircraft", "CBE_support", "CBE_compatibility"};
-        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModulePointAdvance", "CBE_ModuleClearArea", "CBE_ModuleClear", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModulePatrol", "CBE_ModuleHunt", "CBE_ModuleRush", "CBE_ModuleRelease", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
+        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModulePointAdvance", "CBE_ModulePointWithdraw", "CBE_ModuleClearArea", "CBE_ModuleClear", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModulePatrol", "CBE_ModuleHunt", "CBE_ModuleRush", "CBE_ModuleRelease", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
         weapons[] = {};
         version = "0.1.0";
         versionStr = "0.1.0";
@@ -139,6 +139,13 @@ class CfgVehicles {
         CBE_operation = "ADVANCE_POINT";
         class ModuleDescription: ModuleDescription {
             description = "Place at the destination and explicitly select an AI foot squad for covered fire-team bounds. Default arrival10m/time180s; optional ZEN exposes5..25m/30..300s. No enemy proxy, forced group formation or hostile-room clearance claim. CBA Advance permission remains required; newer native/Zeus orders win.";
+        };
+    };
+    class CBE_ModulePointWithdraw: CBE_ModulePointAdvance {
+        displayName = "Withdraw to position";
+        CBE_operation = "WITHDRAW_POINT";
+        class ModuleDescription: ModuleDescription {
+            description = "Place at a ground destination and explicitly select an AI foot squad. Withdraws35..2000m under the existing retreat owner, fixed120s deadline and30m ground arrival. No teleport, forced group recreation or invented threat. Existing tasks refuse; Release infantry task cancels. Newer native/Zeus orders retain priority.";
         };
     };
     class CBE_ModuleClearArea: CBE_ModuleGarrison {

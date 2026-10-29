@@ -3458,9 +3458,13 @@ withdrawal or direct vehicle assault, and it does not establish that a position 
 building is safe. Physical flow, module layout, repeat/casualty/MP variants and
 measured cost remain unverified while audits are paused.
 
-### Explicit withdrawal to a ground position (script API)
+### Withdraw to position
 
-An owner-local script can request withdrawal to a fixed ground destination:
+The native Zeus **Withdraw to position** module and optional ZEN module select an AI squad
+and use the placement position as its fixed ground destination. Both send the same authenticated
+request to the server and current owner. No settings change is made.
+
+An owner-local script can request the same task:
 
 ```sqf
 ["START", group soldier1, [1200, 1800, 0]] call CBE_fnc_PointWithdrawOperation;
@@ -3480,6 +3484,7 @@ or the original timeout terminate the task. `CBE_PointWithdrawal_Status` reports
 `CBE_PointWithdrawal_Result` records status, reason, destination, missing participants and server
 time. Cleanup restores only owned policy. A locality transfer retires this task without replay.
 
-The existing Release infantry task control can cancel the exact active withdrawal. Native Zeus
-and optional ZEN start controls for this task are still pending. Physical movement, smoke,
+The existing Release infantry task control can cancel the exact active withdrawal. Canceling
+the selection dialog sends no task. The native dialog preserves any other open Zeus dialog.
+Physical module UI, movement, smoke,
 repeat use, multiplayer handover and measured performance have not been validated in game.

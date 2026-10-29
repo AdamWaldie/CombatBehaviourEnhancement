@@ -77,7 +77,8 @@
         "areaCQBAndPointAssault": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json",
         "areaExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#areaExecution20261029",
         "pointAdvanceExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#pointAdvanceExecution20261029",
-        "pointWithdrawalExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#pointWithdrawalExecution20261029"
+        "pointWithdrawalExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#pointWithdrawalExecution20261029",
+        "pointWithdrawalControls": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#pointWithdrawalControls20261029"
       }
     },
     {

@@ -26,6 +26,9 @@ missionNamespace setVariable ["CBE_AITweaks_ZenRegisteredLocal", true];
 ["Combat Behaviour Enhancement (CBE)", "Advance to position", {
     _this call CBE_fnc_ZenPointAdvanceModule;
 }] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Withdraw to position", {
+    [_this select 0,_this select 1,"WITHDRAW_POINT"] call CBE_fnc_ZenPointAdvanceModule;
+}] call zen_custom_modules_fnc_register;
 ["Combat Behaviour Enhancement (CBE)", "Clear buildings in area", {
     _this call CBE_fnc_ZenClearAreaModule;
 }] call zen_custom_modules_fnc_register;

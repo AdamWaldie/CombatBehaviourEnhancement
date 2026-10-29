@@ -7,7 +7,7 @@
  * Arguments: 0 mode STRING START/CANCEL;1 group GROUP grpNull;2 destination ATL ARRAY[].
  * Destination must be35..2000m from the friendly anchor and within -0.5..2.5m ATL ground height.
  * Return: BOOL owner admitted/released, not physical arrival. Result remains separate from admission.
- * Current callers: owner-local scripts and CortexOrderLocal RELEASE; native/optional ZEN start controls are pending.
+ * Current callers: owner-local scripts and CortexOrderLocal START/RELEASE from native/optional ZEN tasks.
  * Example: ["START",group soldier1,[1200,1800,0]] call CBE_fnc_PointWithdrawOperation;
  */
 params [["_mode","START",[""]],["_group",grpNull,[grpNull]],["_goal",[],[[]]]];
