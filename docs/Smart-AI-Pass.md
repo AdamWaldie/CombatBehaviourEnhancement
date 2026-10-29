@@ -3289,3 +3289,20 @@ is passive phase/reason/update-count/time diagnostics, not replay authority. No
 physical pursuit, interruption, module/MP or measured-performance acceptance is
 claimed while audits are paused. The aggressive/Rush task and its module remain
 separate unfinished implementation work.
+
+
+### Contact advance into the close-assault band
+
+For a fresh, dismounted infantry contact used as the movement objective, advance
+now closes to the configured assault band (20–60 metres). It no longer applies
+the 80-metre authored-waypoint completion margin to that contact objective.
+Authored forward objectives and static/vehicle contacts keep their existing
+limits. Native knowledge age, morale, role capacity, protected tasks, fire lanes
+and terrain checks still decide whether an advance can start.
+
+The actual mover element must also have at least five metres of approach left
+before the existing 20-metre standoff. A mover centroid already too close refuses
+another advance; it is never given a negative-distance route that sends it
+backwards. This is source-level movement integration, not demonstrated close
+assault or Rush completion. Physical transitions remain unverified while audits
+are paused.

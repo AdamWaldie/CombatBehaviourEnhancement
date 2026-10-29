@@ -189,5 +189,30 @@
       "functions/ZEN/fnc_setRush.sqf": "56f49c018f8aa13b3d29462ed678918674f9f6d52194ac1c0f25421b5d5a0477"
     },
     "moduleDisposition": "Runtime Hunt/Rush module/selected-group ZEN dispatch bodies inspected. Source Hunt exposes range/cycle/moving centre/player-only/reinforcement/UGL mode; Rush range/cycle/moving centre/player-only. CBE Hunt retains explicit squad/range/owner dispatch with finite task limit; no hidden-player selector or unsupported toggles. Broader moving/fixed mission area, reinforcement and UGL policy remain explicit gaps, not full module parity. Rush equivalent native/optional ZEN controls are required with its real executor per user clarification."
+  },
+  "rushIntegration20261029": {
+    "base": "f68a2a3c8a946a9e00e0965120072d95f69b3c03",
+    "sourceSHA256": "11907c2426e67bd5b051ca25f745f51bc9e585f439a2fb78252c9dfa877e0ab8",
+    "sourceIntent": "Pursue hostile contact aggressively; source special cases close helicopter suppression and armour launcher/hiding. Source indefinite global target lookup, group FULL/attack/fleeing flags, disabled FSM/AUTOCOMBAT, repeat doMove and per-actor Fired/Suppressed EHs are not a valid CBE ownership implementation.",
+    "actualExecutorTrace": "CortexAssaultStart accepts fresh dismounted infantry at12..min(Assault_Range,60); actor-only advance can use explicit foot roster and fresh contact rather than authored mission destination; both commit existing finite tacticalDrill FSM with native receipts, token/epoch/common generation and CortexFlankEnd cleanup. Generic CortexTacticalReposition default headings go away/sideways, not a Rush approach. CortexTacticalStart scoped element removes reposition/flank fallbacks. A Rush module cannot simply wrap Hunt or assume the generic reposition fallback closes range.",
+    "foundationFault": "CortexAdvanceStart used80m objective completion for fresh contact while assault capped60m. At default settings fresh foot targets60..80m could not advance or assault. With lower configured assault range, selector also kept fixed60m. Mover-centroid goal used distance-20 without checking positivity, potentially sending a close element backwards.",
+    "implemented": "Contact-only dismounted infantry advance and assessment now use configured assault band clamped20..60. Authored objectives/non-foot contacts retain prior60m minimum/80m completion limits. Existing actual mover centroid refuses travel<5m before route creation, preventing negative getPos distance. No new task/worker/flags/queries/ownership or route-safety bypass.",
+    "remaining": "This repairs a dependency; it is NOT Rush execution or its native Zeus/optional ZEN equivalents. Next implement finite explicit aggressive episode on existing advance/assault/drill/fire owners with original budget, native knowledge, actual command/task identities, newer-order/Zeus/actor protection and exact child cleanup. Source armour/air responses should use existing weapon/countermeasure layers, not indiscriminate rush. Parent sequencing and physical acceptance remain unimplemented.",
+    "checks": {
+      "focused": "Existing tactical refusal/route contract passed; initial full suite exposed a pinned old60m source assertion. Updated it to require configured foot threshold and retained non-foot60m floor; no acceptance weakened.",
+      "full": "Complete1505tests/468productionSQF/11PBO HEMTT/FSM/config/docs/settings/parity/coverage/static-performance gates and independent package verify passed.",
+      "candidate": ".qa/candidates/rush-contact-gap-20261029-f68a2a3c",
+      "fingerprint": "37ae92f27eef0c5e01ecb769fe0dab2758830b23f1c2e1b951ccf12f93630e71",
+      "sourceNote": "Unsigned dev basef68a2a3c plus dirty inputs. Later goal/agent/source-review/handover metadata does not change packaged runtime. Not clean signed release or physical proof.",
+      "logs": [
+        ".qa/handovers/rush-contact-gap-focused-20261029.log",
+        ".qa/handovers/rush-contact-gap-build-20261029.log",
+        ".qa/handovers/rush-contact-gap-build-final-20261029.log",
+        ".qa/handovers/rush-contact-gap-independent-20261029.log"
+      ],
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "performance": "Static0findings; runtimebudgetunmeasured"
+    },
+    "nextConcreteImplementation": "Prefer one explicit finite Press attack episode on the existing actor-scoped CortexTacticalStart -> AdvanceStart/AssaultStart -> tacticalDrill FSM. CortexTacticalStart args[group,state,enemies,false,advanceGate,assaultGate,originalFootRoster] can use fresh contact without replacing authored mission destination, preserving threat/morale/ROE/actor/native-order gates. No second repeating pursuit/parent worker is inherently required. Add an immutable request deadline to the exact accepted drill and enforce it in its existing step; scoped Release may end only the tagged explicit task, never unrelated later/autonomous drill. Deliver native CBE_ModuleRush and optional ZenRushModule with actual executor through existing authenticated task dispatch. Do not relabel Hunt or force full-squad doMove/FSM/attack/skill/light changes. Inspect actual target/flags/cleanup/timeout paths before editing."
   }
 }

@@ -4493,6 +4493,17 @@ class CortexOperations(unittest.TestCase):
                        'NO_MANOEUVRE_ELEMENT','NO_COVER_ELEMENT','NO_SAFE_AVENUE']:
             self.assertIn(reason,advance)
         self.assertIn('CBE_Cortex_AdvanceRefusal',advance)
+        # Contact-only foot advance must reach the actual assault band; an authored
+        # forward waypoint keeps its80m completion threshold and non-foot safety limits.
+        self.assertIn('private _contactApproach=!_hasAuthoredObjective',advance)
+        self.assertIn('if (_contactApproach) then {_minimumDistance} else {80}',advance)
+        self.assertIn('"CBE_AIPass_Assault_Range",80]) min 60) max 20',advance)
+        self.assertLess(advance.index('if (_elementScoped) then {_hasAuthoredObjective=false}'),
+                        advance.index('private _minimumDistance='))
+        self.assertIn('_closeRange max 20',source('cortexTacticalAssess'))
+        self.assertLess(advance.index('if (_travel < 5) exitWith'),advance.index('private _goal = _start getPos'))
+        self.assertIn('_travel min (_bound * 3)',advance)
+
         self.assertNotIn('CBA_fnc_addPerFrameHandler',advance)
         diagnostic=(ROOT/'addons/core/functions/aiGetDiagnostics.sqf').read_text()
         self.assertIn('cortex-tactical-refusal-',diagnostic)
@@ -5625,7 +5636,9 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('(_record param [3,1e9,[0]]) >= 12',assessment)
         self.assertIn('(_record param [3,1e9,[0]]) <= _closeRange',assessment)
         self.assertIn('private _freshPosition=_manoeuvre findIf',assessment)
-        self.assertIn('(_record param [3,0,[0]]) >= 60',assessment)
+        self.assertIn('(_record param [3,0,[0]]) >= _minimum',assessment)
+        self.assertIn('_closeRange max 20',assessment)
+        self.assertIn('} else {60}',assessment)
         self.assertIn('_selected=_enemies findIf',assessment)
         self.assertIn('Any live contact can provide fire context',assessment)
         self.assertIn('_selected=_manoeuvre select _closePosition',assessment)

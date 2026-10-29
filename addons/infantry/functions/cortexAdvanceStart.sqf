@@ -20,6 +20,9 @@
  * default starts as soon as confirmed knowledge and every physical/safety gate permit it. Its
  * current waypoint (MOVE, SAD or DESTROY, not a pass waypoint) must be more than 80 m away, or a squad
  * with no active waypoint must have fresh enemy knowledge that provides a finite contact objective.
+ * Fresh foot-contact objectives close to the configured assault band (20..60m), rather than
+ * using the authored-waypoint80m completion margin. Actual movers already within25m refuse
+ * another approach; the existing close-assault/native layer owns that space.
  * Active HOLD, GUARD, SENTRY and other authored waypoint types are never replaced. The nearest known
  * enemy must be at least 60 m away, morale must be STEADY and no drill may be running.
  * CBE_fnc_CortexTacticalStart prefers this action for a live authored forward order and calls this
@@ -92,7 +95,7 @@ if (isNull _leader && {!_elementScoped}) then {_leader=leader _group};
 if (isNull _leader) exitWith {["NO_ELEMENT_ANCHOR"] call _refuse};
 if (vehicle _leader != _leader) exitWith {["LEADER_MOUNTED"] call _refuse};
 if (_enemies isEqualTo []) exitWith {["NO_TARGET"] call _refuse};
-if (((_enemies select 0) select 3) < 60) exitWith {["TARGET_TOO_CLOSE",[(_enemies select 0) select 3]] call _refuse};
+
 private _index = currentWaypoint _group;
 private _hasAuthoredObjective = _index < count waypoints _group;
 if (_hasAuthoredObjective && {
@@ -102,6 +105,18 @@ if (_hasAuthoredObjective && {
 // A landed foot element cannot inherit the boat crew's destination as a ground objective.
 // The unchanged authored receipt remains its interruption boundary; use fresh contact only.
 if (_elementScoped) then {_hasAuthoredObjective=false};
+// Contact-only infantry approach must meet the actual close-assault band. Keeping
+// the authored objective's80m completion margin here left a60..80m refusal gap.
+// Static/vehicle contacts and authored forward objectives retain their prior limits.
+private _target=(_enemies select 0) select 0;
+private _contactApproach=!_hasAuthoredObjective && {_target isKindOf "CAManBase"}
+    && {isNull objectParent _target};
+private _minimumDistance=if (_contactApproach) then {
+    ((missionNamespace getVariable ["CBE_AIPass_Assault_Range",80]) min 60) max 20
+} else {60};
+if (((_enemies select 0) select 3) < _minimumDistance) exitWith {
+    ["TARGET_TOO_CLOSE",[(_enemies select 0) select 3,_minimumDistance]] call _refuse
+};
 // A group whose ordinary movement order has completed should not become inert in a live firefight.
 // Use only fresh engine knowledge and keep the objective inside this finite drill; do not manufacture
 // a persistent waypoint that would outlive contact or compete with a later Zeus order.
@@ -111,7 +126,10 @@ private _objective = if (_hasAuthoredObjective) then {
 } else {
     (_enemies select 0) select 1
 };
-if (_leader distance2D _objective <= 80) exitWith {["OBJECTIVE_REACHED",[_leader distance2D _objective]] call _refuse};
+private _objectiveStop=if (_contactApproach) then {_minimumDistance} else {80};
+if (_leader distance2D _objective <= _objectiveStop) exitWith {
+    ["OBJECTIVE_REACHED",[_leader distance2D _objective,_objectiveStop]] call _refuse
+};
 private _onFoot = (units _group) select {
     [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {simulationEnabled _x} && {!isObjectHidden _x} && {vehicle _x == _x}
         && {_x checkAIFeature "PATH"} && {_x checkAIFeature "MOVE"}
@@ -152,7 +170,11 @@ _start = _start vectorMultiply (1 / count _element);
 private _bound = (missionNamespace getVariable ["CBE_AIPass_Flank_BoundDistance", 55]) max 15;
 if (_smallElement) then {_bound=_bound min 20};
 if (_buddyBounds) then {_bound=_bound min 25};
-private _goal = _start getPos [((_start distance2D _objective) - 20) min (_bound * 3), _start getDir _objective];
+private _travel=(_start distance2D _objective)-20;
+// A dispersed group can have its mover centroid already near the contact while
+// the leader is farther away. A negative getPos distance would send those actors backwards.
+if (_travel < 5) exitWith {["OBJECTIVE_REACHED",[_travel,"MOVER_ELEMENT_CLOSE"]] call _refuse};
+private _goal = _start getPos [_travel min (_bound * 3), _start getDir _objective];
 private _routeDistance=_start distance2D _goal;
 private _axis=_start getDir _goal;
 private _midDistance=_routeDistance*0.55;

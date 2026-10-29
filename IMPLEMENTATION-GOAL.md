@@ -2,6 +2,12 @@
 
 Deliver a standalone Arma 3 AI improvement addon by selecting, combining, fixing and improving useful AI functionality from the source register. Gameplay quality, tactical plausibility, balance and engine performance govern the implementation. Implement useful LAMBS functionality inside CBE and evolve it without requiring LAMBS. Reconcile the entire relevant HBQ controller and all nine registered Protocol capabilities at their appropriate layers.
 
+## Regular implementation commits
+
+Make regular local commits as work progresses. Commit each coherent implementation or defect-fix checkpoint after its relevant checks, and before switching to a substantial new work area or handing over. Do not wait for the whole feature set, the full production goal, or a low-usage threshold. A necessary work-in-progress checkpoint must state unfinished work and failed or pending checks honestly.
+
+Keep pushes batched at coherent review checkpoints to control GitHub Actions usage. Local commits do not require repeated full builds when runtime inputs are unchanged; completed review/push checkpoints still require the applicable full gates. Before each Git mutation verify the CBE root, remote, branch and intended PR, stage only an exact reviewed whitelist, and preserve unrelated changes. Never treat a commit or green package as physical acceptance.
+
 ## Governing directive — 27 October 2026
 
 Use `reference/sourceReviews/source-review-map.json` and `reference/sourceReviews/SOURCE-REVIEW-MAP.md` as the recoverable source queue. Follow the linked LAMBS queue, HBQ index, Protocol programme and source-specific reviews below. Compare preserved source with current CBE executors before relying on an old assessment. The historical `LOCAL_IMPLEMENTATION_LEDGER.md` is absent; do not invent its contents or claim historical completeness.

@@ -2,6 +2,12 @@
 
 Read `IMPLEMENTATION-GOAL.md` before selecting implementation work. Its Governing execution rule governs source selection, the foundations-up sequence, finite batch criteria and regression safeguards. Follow its source-to-owner trace before changing behaviour and update the existing review/register with the result. Use `reference/sourceReviews/source-review-map.json` and its linked LAMBS, HBQ and Protocol reviews as the recoverable source queue. Historical references below to `LOCAL_IMPLEMENTATION_LEDGER.md` do not establish availability: that file is currently absent. Resolve stale instructions against the current directive and actual source evidence. Repair or isolate material foundation defects before dependent expansion; preserve existing owners and working behaviour. Audits remain paused. Keep build-out, offline checks, physical acceptance and measured performance distinct.
 
+## Regular implementation commits
+
+Make regular local commits as work progresses. Commit each coherent implementation or defect-fix checkpoint after its relevant checks, and before switching to a substantial new work area or handing over. Do not wait for the whole feature set, the full production goal, or a low-usage threshold. A necessary work-in-progress checkpoint must state unfinished work and failed or pending checks honestly.
+
+Keep pushes batched at coherent review checkpoints to control GitHub Actions usage. Local commits do not require repeated full builds when runtime inputs are unchanged; completed review/push checkpoints still require the applicable full gates. Before each Git mutation verify the CBE root, remote, branch and intended PR, stage only an exact reviewed whitelist, and preserve unrelated changes. Never treat a commit or green package as physical acceptance.
+
 # Contribution guidance
 
 ## Definition of done
