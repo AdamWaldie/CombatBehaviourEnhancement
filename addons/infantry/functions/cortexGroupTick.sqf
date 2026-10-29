@@ -701,7 +701,15 @@ if ((_state get "phase") == "CALM" && {!_dangerActive} && {!_groupMovementOwned}
     && {!(_state getOrDefault ["responding",false])}) then {
     [_group,_state] call CBE_fnc_CortexRouteDoors;
 };
-if !(["CBE_AIPass_Contact_Enable", true] call _get) exitWith {
+// Explicit withdrawal is a finite operator task, independent of autonomous contact enablement.
+private _pointWithdrawal=_state getOrDefault ["pointWithdrawal",[]];
+private _pointWithdrawalOperation=_group getVariable ["CBE_Operation",createHashMap];
+private _pointWithdrawalOwned=count _pointWithdrawal == 7
+    && {(_pointWithdrawal select 2) == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+    && {(_pointWithdrawal select 3) == (_pointWithdrawalOperation getOrDefault ["generation",-2])}
+    && {(_pointWithdrawalOperation getOrDefault ["intent",""]) == "WITHDRAW"}
+    && {(_state getOrDefault ["phase",""]) == "RETREAT"};
+if (!(["CBE_AIPass_Contact_Enable", true] call _get) && {!_pointWithdrawalOwned}) exitWith {
     // Explicit building orders have their own feature gate and generation-owned FSM.
     // Disabling autonomous contact decisions must not cancel that separate movement owner.
     private _explicitOperation=_group getVariable ["CBE_Operation",createHashMap];
@@ -1915,6 +1923,55 @@ switch (_state get "phase") do {
         private _routeCurrent=count _episode == 7 && {count _routeProof == 2}
             && {(_routeProof select 0) isEqualTo (_episode select 4)}
             && {(_routeProof select 1) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
+        private _point=_state getOrDefault ["pointWithdrawal",[]];
+        private _pointScoped=_point isNotEqualTo [];
+        private _pointFinished=false;
+        if (_pointScoped && {_withdrawOwner}) then {
+            private _identity=count _point == 7 && {(_point select 2) == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+                && {(_point select 3) == _generation} && {_withdrawKind == "WITHDRAW"}
+                && {(_operation getOrDefault ["ownerEpoch",-2]) == (_point select 2)}
+                && {(_operation getOrDefault ["phase",""]) != "CANCELLED"};
+            private _pointReason="";
+            private _pointStatus="INCOMPLETE";
+            private _missing=[];
+            if (!_identity) then {_pointReason="POINT_OWNER_CHANGED"} else {
+                // Exclude only this operation's unchanged native row. Natural completion can
+                // advance the current index; authored edits still veto arrival and all retries.
+                private _rows=if (count waypoints _group <= 65) then {
+                    ([_group] call CBE_fnc_AuthoredRouteReceipt) apply {_x select [1]}
+                } else {[]};
+                private _ownedIndex=_rows find (_point select 6);
+                if (_ownedIndex >= 0) then {_rows deleteAt _ownedIndex};
+                private _missionCurrent=count waypoints _group <= 65 && {_rows isEqualTo (_point select 5)};
+                private _capable=(_point select 4) select {[_x] call CBE_fnc_CortexCombatEffective && {group _x == _group}};
+                _missing=_capable select {!local _x || {!isNull objectParent _x} || {!isNull attachedTo _x}
+                    || {_x distance2D (_point select 0) > 30} || {(getPosATL _x select 2) > 3}
+                    || {[_x] call CBE_fnc_CortexActorMoveReserved}};
+                if (!_missionCurrent) then {_pointReason="NATIVE_ORDER_CHANGED"} else {
+                    if (serverTime >= (_point select 1)) then {_pointReason="TIMEOUT"} else {
+                        if (_capable isNotEqualTo [] && {_missing isEqualTo []}) then {
+                            _pointReason="OBJECTIVE_REACHED";_pointStatus="COMPLETE";
+                        } else {
+                            if (!_routeCurrent) then {_pointReason="ROUTE_CHANGED_OR_FINISHED"};
+                        };
+                    };
+                };
+            };
+            if (_pointReason != "") then {
+                private _retired=[_group,_generation,_pointStatus,_pointReason] call CBE_fnc_OperationRelease;
+                // Completion is not published if common retirement rejected a stale epoch,
+                // cancelled operation or external takeover. Never restore over a successor.
+                if (_retired && {local _group}
+                    && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+                    && {(_state getOrDefault ["pointWithdrawal",[]]) isEqualTo _point}
+                    && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
+                    _group setVariable ["CBE_PointWithdrawal_Result",[_pointStatus,_pointReason,+(_point param [0,[],[[]]]),+_missing,serverTime],true];
+                    [_group,_state,false,false,_pointReason] call CBE_fnc_CortexRestoreCalm;
+                };
+                _pointFinished=true;
+            };
+        };
+        if (_pointFinished) exitWith {_delay=1};
         if (_withdrawOwner && {!_routeCurrent}) exitWith {
             [_group,_generation,"WITHDRAWAL_ROUTE_CHANGED_OR_FINISHED"] call CBE_fnc_OperationCancel;
             [_group,_state,false,true,"WITHDRAWAL_ROUTE_CHANGED_OR_FINISHED"] call CBE_fnc_CortexRestoreCalm;
@@ -1994,7 +2051,8 @@ switch (_state get "phase") do {
         private _withdrawalIntent=_group getVariable ["CBE_Cortex_WithdrawalIntent",[]];
         private _retreatThreat=_withdrawalIntent param [3,[],[[]]];
         private _travel=0;
-        if (count _start >= 2 && {count _retreatThreat >= 2}) then {
+        if (_pointScoped) then {_travel=((_start distance2D (_point select 0))-(_leader distance2D (_point select 0))) max 0};
+        if (!_pointScoped && {count _start >= 2} && {count _retreatThreat >= 2}) then {
             private _axisX=(_start select 0)-(_retreatThreat select 0);
             private _axisY=(_start select 1)-(_retreatThreat select 1);
             private _axisLength=sqrt (_axisX*_axisX+_axisY*_axisY);
@@ -2017,43 +2075,56 @@ switch (_state get "phase") do {
         // Physical completion may still be observed after release, but a retired operation may
         // never manufacture a fresh unscoped route from its old RETREAT state.
         if (_withdrawOwner && {(_shortWithdrawal || {_stalled})} && {_replans < 4}) then {
-            private _enemyPos = _state getOrDefault ["enemyPos",[]];
-            private _target = _state getOrDefault ["retreatTarget",getPosATL _leader];
-            private _distance = ((_leader distance2D _target) max 80) min 250;
-            private _away = if (count _enemyPos >= 2) then {_enemyPos getDir _leader} else {(getDir _leader)+180};
-            private _origin=getPosATL _leader;
-            private _candidateRoutes=[];
-            {
-                private _candidate=_origin getPos [_distance,_away+_x];
-                // A confirmed obstruction must not select the same failed destination again.
-                if (_candidate distance2D _target >= 20) then {_candidateRoutes pushBack [_candidate]};
-            } forEach [30,-30,60,-60];
-            // Recovery must retain the initial operation's mobility envelope. Infantry
-            // slope limits or an unchecked fallback cannot authorize a vehicle retry.
-            private _mobility=["INFANTRY","VEHICLE"] select (_withdrawKind == "VEHICLE_WITHDRAW");
-            private _legs=if (count _enemyPos >= 2) then {
-                private _screenPlatform=[objNull,vehicle _leader] select (_mobility == "VEHICLE");
-                [_origin,_candidateRoutes,_enemyPos,[],objNull,_mobility,_screenPlatform] call CBE_fnc_CortexSelectAvenue
+            if (_pointScoped) then {
+                // Retry only the fixed operator goal and this generation. No new escape point,
+                // refreshed episode or unscoped route is authorised by the original request.
+                _replans=_replans+1;_progressAt=_now;
+                private _waypoint=[_group,_point select 0,30,"MOVE",_generation,true] call CBE_fnc_CortexGroupMove;
+                if (!isNull (_waypoint param [0,grpNull]) && {(_waypoint param [1,-1]) >= 0}) then {
+                    private _row=([_group,"",false,_waypoint select 1] call CBE_fnc_AuthoredRouteReceipt) select 0;
+                    _point set [6,_row select [1]];_state set ["pointWithdrawal",_point];
+                    _group setVariable ["CBE_Cortex_WithdrawalOrder",[_episode select 4,[_group] call CBE_fnc_NativeOrderReceipt],true];
+                    _moving=true;_bestTravel=_travel;
+                };
             } else {
-                if (_mobility == "VEHICLE") then {[]} else {_candidateRoutes param [0,[]]}
-            };
-            // Count failed planning/command attempts as retries, never as physical movement.
-            // This keeps refusal from rerunning geometry on every brain callback.
-            _replans = _replans+1;
-            _progressAt = _now;
-            if (_legs isNotEqualTo []) then {
-                private _candidate=+(_legs select ((count _legs)-1));
-                private _waypoint=[_group,_candidate,30] call CBE_fnc_CortexGroupMove;
-                if (!isNull (_waypoint param [0,grpNull,[grpNull]]) && {(_waypoint param [1,-1,[0]]) >= 0}) then {
-                    _state set ["retreatTarget",_candidate];
-                    // Refresh only after a successful CBE replan, for either withdrawal kind.
-                    private _episode=_group getVariable ["CBE_Cortex_WithdrawalIntent",[]];
-                    if (count _episode == 7) then {
-                        _group setVariable ["CBE_Cortex_WithdrawalOrder",[_episode select 4,
-                            [_group] call CBE_fnc_NativeOrderReceipt],true];
+                private _enemyPos = _state getOrDefault ["enemyPos",[]];
+                private _target = _state getOrDefault ["retreatTarget",getPosATL _leader];
+                private _distance = ((_leader distance2D _target) max 80) min 250;
+                private _away = if (count _enemyPos >= 2) then {_enemyPos getDir _leader} else {(getDir _leader)+180};
+                private _origin=getPosATL _leader;
+                private _candidateRoutes=[];
+                {
+                    private _candidate=_origin getPos [_distance,_away+_x];
+                    // A confirmed obstruction must not select the same failed destination again.
+                    if (_candidate distance2D _target >= 20) then {_candidateRoutes pushBack [_candidate]};
+                } forEach [30,-30,60,-60];
+                // Recovery must retain the initial operation's mobility envelope. Infantry
+                // slope limits or an unchecked fallback cannot authorize a vehicle retry.
+                private _mobility=["INFANTRY","VEHICLE"] select (_withdrawKind == "VEHICLE_WITHDRAW");
+                private _legs=if (count _enemyPos >= 2) then {
+                    private _screenPlatform=[objNull,vehicle _leader] select (_mobility == "VEHICLE");
+                    [_origin,_candidateRoutes,_enemyPos,[],objNull,_mobility,_screenPlatform] call CBE_fnc_CortexSelectAvenue
+                } else {
+                    if (_mobility == "VEHICLE") then {[]} else {_candidateRoutes param [0,[]]}
+                };
+                // Count failed planning/command attempts as retries, never as physical movement.
+                // This keeps refusal from rerunning geometry on every brain callback.
+                _replans = _replans+1;
+                _progressAt = _now;
+                if (_legs isNotEqualTo []) then {
+                    private _candidate=+(_legs select ((count _legs)-1));
+                    private _waypoint=[_group,_candidate,30] call CBE_fnc_CortexGroupMove;
+                    if (!isNull (_waypoint param [0,grpNull,[grpNull]]) && {(_waypoint param [1,-1,[0]]) >= 0}) then {
+                        _state set ["retreatTarget",_candidate];
+                        // Refresh only after a successful CBE replan, for either withdrawal kind.
+                        private _episode=_group getVariable ["CBE_Cortex_WithdrawalIntent",[]];
+                        if (count _episode == 7) then {
+                            _group setVariable ["CBE_Cortex_WithdrawalOrder",[_episode select 4,
+                                [_group] call CBE_fnc_NativeOrderReceipt],true];
+                        };
+                        _bestTravel = _travel;
+                        _moving = true;
                     };
-                    _bestTravel = _travel;
-                    _moving = true;
                 };
             };
         };
@@ -2068,7 +2139,7 @@ switch (_state get "phase") do {
         private _timedOut = _now - (_state get "phaseStart") > 120;
         private _status = if (_timedOut) then {"INCOMPLETE"} else {["MOVING","WITHDRAWN"] select (!_moving && {_travel >= 30})};
         _group setVariable ["CBE_Cortex_Withdrawal",[_status,round _travel,_replans],true];
-        if ((!_moving && {_travel >= 30}) || {_timedOut}) then {
+        if (!_pointScoped && {(!_moving && {_travel >= 30}) || {_timedOut}}) then {
             [_timedOut] call _endWithdrawal;
         };
     };

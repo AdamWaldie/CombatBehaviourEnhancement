@@ -308,6 +308,14 @@ if (!_allowRemount || {_yieldToExternal}) then {
     _group setVariable ["CBE_Cortex_Remount",nil,true];
 };
 [_group,_state] call CBE_fnc_CortexSearchHoldRelease;
+private _retiringPoint=_state getOrDefault ["pointWithdrawal",[]];
+if (_retiringPoint isNotEqualTo []) then {
+    if ((_group getVariable ["CBE_PointWithdrawal_Result",[]]) isEqualTo []) then {
+        _group setVariable ["CBE_PointWithdrawal_Result",["INCOMPLETE",_reason,+(_retiringPoint select 0),[],serverTime],true];
+    };
+    _group setVariable ["CBE_PointWithdrawal_Status",["ENDED",_reason,serverTime],true];
+    _state deleteAt "pointWithdrawal";
+};
 {_state deleteAt _x} forEach [
     "consolidationRoutes", "baseAttack", "attackChanged", "areaInvestigation", "enemyPos", "behaviourChanged", "speedChanged", "searchTeam", "searchMoveReceipts", "searchDeadline", "searchMemory", "searchIndoorJobs", "searchIndoorAttempted", "searchPointVisited", "lastContactObservation", "searchBuildingVisits", "dismounted", "onboardContactUntil", "reinforceRequested", "reinforceDispatchedAt",
     "withdrawn", "contactLeader", "lastSeen", "contactKnowledge", "dangerDismount", "holders", "holderRecallReceipts", "baseBehaviour", "baseSpeed", "armourSeen",

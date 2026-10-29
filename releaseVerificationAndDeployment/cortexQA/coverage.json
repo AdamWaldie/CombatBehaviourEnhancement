@@ -748,7 +748,8 @@
         "runVehicleDrills.sqf"
       ],
       "production_sources": [
-        "addons/infantry/functions/cortexRetreat.sqf"
+        "addons/infantry/functions/cortexRetreat.sqf",
+        "addons/infantry/functions/pointWithdrawOperation.sqf"
       ]
     },
     {

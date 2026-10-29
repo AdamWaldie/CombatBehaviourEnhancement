@@ -43,10 +43,10 @@ class IndoorActorLifecycleTests(unittest.TestCase):
                       'waypointAttachedObject','CortexActorMoveReserved','IndoorActorGroupAvailable'):
             self.assertIn(proof,admission)
         self.assertEqual(door.count('call _routeDoorRelevant'),2)
-        hook=tick.split('// Native authored travel keeps its own planner.',1)[1].split('if !(["CBE_AIPass_Contact_Enable"',1)[0]
+        hook=tick.split('// Native authored travel keeps its own planner.',1)[1].split('if (!(["CBE_AIPass_Contact_Enable"',1)[0]
         self.assertIn('!_dangerActive',hook)
         self.assertNotIn('{_ordered}',hook)
-        self.assertLess(tick.index('call CBE_fnc_CortexRouteDoors'),tick.index('if !(["CBE_AIPass_Contact_Enable"'))
+        self.assertLess(tick.index('call CBE_fnc_CortexRouteDoors'),tick.index('if (!(["CBE_AIPass_Contact_Enable"'))
         self.assertIn('!_groupMovementOwned',hook)
         self.assertIn('CBE_fnc_CortexRouteDoors',hook)
         # Geometric admission only: a doorway must lie along, before the native

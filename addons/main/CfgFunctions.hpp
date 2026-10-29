@@ -311,6 +311,7 @@ class CfgFunctions {
             class ModulePointAdvance {file = "\z\cbe\addons\infantry\functions\modulePointAdvance.sqf";};
             class ZenPointAdvanceModule {file = "\z\cbe\addons\infantry\functions\zenPointAdvanceModule.sqf";};
             class PointAdvanceOperation {file = "\z\cbe\addons\infantry\functions\pointAdvanceOperation.sqf";};
+            class PointWithdrawOperation {file = "\z\cbe\addons\infantry\functions\pointWithdrawOperation.sqf";};
             class ClearAreaOperation {file = "\z\cbe\addons\infantry\functions\clearAreaOperation.sqf";};
             class ModuleClear {file = "\z\cbe\addons\infantry\functions\moduleClear.sqf";};
             class ZenClearAreaModule {file = "\z\cbe\addons\infantry\functions\zenClearAreaModule.sqf";};

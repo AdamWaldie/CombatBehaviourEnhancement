@@ -7241,6 +7241,32 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_retreatStarted) exitWith {}',block)
 
     def test_infantry_withdrawal_releases_support_holds_and_owns_its_route(self):
+        point=source('pointWithdrawOperation')
+        selector=source('cortexSelectAvenue')
+        tick=source('cortexGroupTick')
+        for text in ('remoteExecutedOwner != 2','isNil {','count _members > 64','count waypoints _group > 64',
+                     'CBE_fnc_CortexKnowledge','(_x select 2) <= 10','[_group,_state,[],[+_goal,_threat]] call CBE_fnc_CortexRetreat'):
+            self.assertIn(text,point)
+        self.assertIn('call CBE_fnc_PointWithdrawOperation',source('cortexOrderLocal').split('case "RELEASE": {',1)[1].split('case "EXCLUDE": {',1)[0])
+        self.assertNotIn('CBA_fnc_addPerFrameHandler',point)
+        self.assertNotIn('reveal',point.lower())
+        self.assertIn('if (_terrainOnly) then {_threat isNotEqualTo []',selector)
+        self.assertIn('if (!_terrainOnly) then {',selector)
+        for text in ('_pointMission','["INFANTRY","POINT"] select _pointScoped','_startedAt+120',
+                     'count waypoints _group > 64','_pointOrder select 0'):
+            self.assertIn(text,source('cortexRetreat'))
+        point_tick=tick.split('private _point=_state getOrDefault ["pointWithdrawal",[]];',1)[1]
+        for text in ('_rows isEqualTo (_point select 5)','_rows deleteAt _ownedIndex',
+                     'serverTime >= (_point select 1)','_x distance2D (_point select 0) > 30',
+                     '(getPosATL _x select 2) > 3','_capable isNotEqualTo []','"OBJECTIVE_REACHED"'):
+            self.assertIn(text,point_tick)
+        self.assertLess(point_tick.index('private _pointFinished=false'),point_tick.index('call CBE_fnc_OperationStep'))
+        terminal=point_tick.split('if (_pointReason != "") then {',1)[1].split('if (_pointFinished) exitWith',1)[0]
+        self.assertLess(terminal.index('if (_retired && {local _group}'),terminal.index('setVariable ["CBE_PointWithdrawal_Result"'))
+        self.assertIn('count (_group getVariable ["CBE_Operation",createHashMap]) == 0',terminal)
+        retry=point_tick.split('// Retry only the fixed operator goal',1)[1].split('} else {',1)[0]
+        self.assertIn('_generation,true] call CBE_fnc_CortexGroupMove',retry)
+        self.assertNotIn('CortexSelectAvenue',retry)
         retreat=source('cortexRetreat')
         support=retreat.split('private _supportHeld=',1)[1].split('{_state deleteAt _x}',1)[0]
         self.assertIn('_x enableAI "PATH"',support)
@@ -7306,9 +7332,9 @@ class CortexOperations(unittest.TestCase):
         tick=source('cortexGroupTick')
         restore=source('cortexRestoreCalm')
         self.assertIn('CBE_Cortex_WithdrawalIntent',retreat)
-        self.assertIn('["INFANTRY",_origin,_point,_enemyPos,_startedAt,_replans,_bestTravel]',retreat)
-        self.assertIn('if (!_resuming) then {',retreat)
-        effects=retreat.split('if (!_resuming) then {',2)[2]
+        self.assertIn('[["INFANTRY","POINT"] select _pointScoped,_origin,_point,_enemyPos,_startedAt,_replans,_bestTravel]',retreat)
+        self.assertIn('if (!_resuming && {_enemyPos isNotEqualTo []}) then {',retreat)
+        effects=retreat.split('if (!_resuming && {_enemyPos isNotEqualTo []}) then {',1)[1]
         self.assertIn('CortexThrowGrenade',effects)
         self.assertIn('CortexArtilleryFire',effects)
         self.assertIn('private _withdrawalIntent',locality)

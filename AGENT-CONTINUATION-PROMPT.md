@@ -1,3 +1,15 @@
+# Current checkpoint: explicit ground withdrawal executor (29 October 2026)
+
+Goal ACTIVE/INCOMPLETE; AUDITS PAUSED. Verified checkout C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks, remote CombatBehaviourEnhancement, branch Adam/cbe-mechanised-support-20261028, draft PR20. WMP chat cwd is unrelated. Regular checked local commits before major work-area changes/handover; batch pushes. No merge/publication/manual CI/Arma launch.
+
+PointWithdrawOperation START/CANCEL now reuses CortexRetreat/common WITHDRAW operation, existing waypoint writer and RETREAT phase. Original120s, fixed ground goal35..2000m, original<=64actor cohort, <=64authored route rows and <=4 exact-goal retries. No per-actor worker, hidden enemy proxy or default reset. Quiet point withdrawal opts into terrain-only avenue checks without exposure/cover credit; actual fresh native contact alone permits existing smoke. Arrival needs capable original participants within30m at ground height<=3m and unchanged authored content. Reporting/cleanup requires successful exact retirement, no successor and same local state. POINT intent is release-only across migration. Existing Zeus Release infantry task cancels; native/optionalZEN START controls are NOT implemented yet.
+
+Full1505tests/477productionSQF/11PBO, static performance0findings and independent package verify pass. Candidate .qa/candidates/point-withdraw-20261029-1daf1218; fingerprint 2edc3293d52725faafb5636adcdb234ea930bfe70d8e65b01b690f52df0c1f06; unsigned development base1daf1218+dirty runtime inputs, engineering metadata finalized after packaging. Actual physical/MP/UI/flow/cost UNVERIFIED. Source trace: releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#pointWithdrawalExecution20261029, master source-review-map.json.
+
+Next finite batch: authenticated WITHDRAW_POINT server/current-owner request and native/optionalZEN behaviour controls delegating this executor; use the existing explicit point-task UI/transport pattern and retain exact release. Do not claim controls exist or full taskAssault/vehicle parity. Then continue required foundation-up LAMBS/HBQ/nineProtocol gaps, including CQB incoming-controller reconciliation (CANDIDATE_UNSEALED), real rappel executor/cleanup and selected-crew native handback. Consult registers/protected stores below. Preserve unrelated deletions and PERFORMANCE-VALIDATION dirt. Last usage18%remaining; below10% immediately commit/push PR/handover; never self-pause. Durable continuity is not a full Temp/.qa backup.
+
+---
+
 # Current checkpoint: covered point advance and regular commits (29 October 2026)
 
 Goal ACTIVE/INCOMPLETE. AUDITS PAUSED. Work only in C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks, remote CombatBehaviourEnhancement, branch Adam/cbe-mechanised-support-20261028, draft PR20. The chat cwd WMP is unrelated. Governing IMPLEMENTATION-GOAL.md now explicitly includes equivalent behaviour modules, foundations upward and regular checked local commits before major area switches/handover; batch pushes to limit Actions use. Do not merge, publish, run manual CI or launch Arma.

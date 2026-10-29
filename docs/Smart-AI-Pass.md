@@ -3457,3 +3457,29 @@ This is a foot-squad advance task. It does not implement explicit destination
 withdrawal or direct vehicle assault, and it does not establish that a position or
 building is safe. Physical flow, module layout, repeat/casualty/MP variants and
 measured cost remain unverified while audits are paused.
+
+### Explicit withdrawal to a ground position (script API)
+
+An owner-local script can request withdrawal to a fixed ground destination:
+
+```sqf
+["START", group soldier1, [1200, 1800, 0]] call CBE_fnc_PointWithdrawOperation;
+["CANCEL", group soldier1] call CBE_fnc_PointWithdrawOperation;
+```
+
+This uses the existing retreat operation and temporary waypoint. Admission requires an AI-only,
+fully dismounted local squad, no competing task, at most 64 members and 64 existing waypoints,
+and a ground destination 35–2000 m from its capable anchor. The original time limit is 120 seconds.
+The destination stays fixed across at most four route retries. Terrain screening runs once at
+admission; native movement still determines physical access. Smoke is optional and uses only
+fresh native contact knowledge; a quiet withdrawal does not invent a threat or fire support.
+
+Arrival requires the remaining capable original participants within 30 m on the ground. Merely
+accepting or finishing a waypoint does not prove arrival. Authored route changes, newer ownership
+or the original timeout terminate the task. `CBE_PointWithdrawal_Status` reports task activity;
+`CBE_PointWithdrawal_Result` records status, reason, destination, missing participants and server
+time. Cleanup restores only owned policy. A locality transfer retires this task without replay.
+
+The existing Release infantry task control can cancel the exact active withdrawal. Native Zeus
+and optional ZEN start controls for this task are still pending. Physical movement, smoke,
+repeat use, multiplayer handover and measured performance have not been validated in game.
