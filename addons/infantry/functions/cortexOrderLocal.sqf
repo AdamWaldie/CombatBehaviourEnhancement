@@ -56,6 +56,15 @@ if (_order == "PATROL" && {!(_radius isEqualType 0) || {!finite _radius} || {_ra
     || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {
     [_token,false,false,clientOwner,"Invalid finite patrol parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
 };
+private _arrivalRadius=_settings getOrDefault ["arrivalRadius",10];
+private _pointDuration=_settings getOrDefault ["pointDuration",180];
+if (_order == "ADVANCE_POINT" && {!(_arrivalRadius isEqualType 0)
+    || {!finite _arrivalRadius} || {_arrivalRadius < 5} || {_arrivalRadius > 25}
+    || {!(_pointDuration isEqualType 0)} || {!finite _pointDuration} || {_pointDuration < 30} || {_pointDuration > 300}
+    || {!(_position isEqualType [])} || {count _position != 3}
+    || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {
+    [_token,false,false,clientOwner,"Invalid point-advance parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
 private _areaBuildings=_settings getOrDefault ["areaBuildings",4];
 private _areaDuration=_settings getOrDefault ["areaDuration",900];
 if (_order == "CLEAR_AREA" && {!(_radius isEqualType 0)
@@ -89,7 +98,7 @@ private _executionTaskKeys=["CBE_ClearAreaSerial","CBE_AIPass_ClearGeneration","
     "CBE_AIPass_DefendGeneration","CBE_OperationGeneration"];
 private _executionTasks=_executionTaskKeys apply {_group getVariable [_x,-1]};
 private _temporaryControl=[];
-if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUSH", "CLEAR_AREA"]) then {
+if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUSH", "CLEAR_AREA", "ADVANCE_POINT"]) then {
     _group setVariable ["CBE_AIPass_ZeusControlKind",nil,true];
     _group setVariable ["CBE_AIPass_ZeusWaypoints", false, true];
     _group setVariable ["CBE_AIPass_ZeusHold", [random 1e6, 0], true];
@@ -99,6 +108,7 @@ if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUS
 private _previousClearFailure=_group getVariable ["CBE_Cortex_ClearAdmissionFailure",[]];
 private _previousGarrisonFailure=_group getVariable ["CBE_Cortex_GarrisonAdmissionFailure",[]];
     private _accepted = switch (_order) do {
+        case "ADVANCE_POINT": {["START",_group,[_position,_arrivalRadius,_pointDuration]] call CBE_fnc_PointAdvanceOperation};
         case "CLEAR_AREA": {["START",_group,[_position,_radius,_areaBuildings,_areaDuration]] call CBE_fnc_ClearAreaOperation};
         case "RUSH": {["START",_group,[_huntRange,_rushDuration]] call CBE_fnc_RushOperation};
         case "HUNT": {["START",_group,[_huntRange,_patrolDuration]] call CBE_fnc_HuntOperation};
@@ -109,6 +119,8 @@ private _previousGarrisonFailure=_group getVariable ["CBE_Cortex_GarrisonAdmissi
             private _areaReleased=["CANCEL",_group,["MODULE_RELEASE"]] call CBE_fnc_ClearAreaOperation;
             private _released = [_group] call CBE_fnc_CortexClearRelease;
             _released=_released || {_areaReleased};
+            private _pointReleased=["CANCEL",_group] call CBE_fnc_PointAdvanceOperation;
+            _released=_released || {_pointReleased};
             private _rushReleased=["CANCEL",_group] call CBE_fnc_RushOperation;
             _released=_released || {_rushReleased};
             private _patrolReleased=["CANCEL",_group,["MODULE_RELEASE"]] call CBE_fnc_PatrolOperation;
@@ -208,6 +220,9 @@ if (!_accepted && {_newGarrisonFailure}) then {
 };
 if (!_accepted && {_order == "RELEASE"}) then {
     _executionReason="No infantry task was released. There may be no matching task, or current native/owner control may still prevent handback.";
+};
+if (!_accepted && {_order == "ADVANCE_POINT"}) then {
+    _executionReason="Advance was not started. Use a fully dismounted AI squad with capable armed fire teams, steady morale, a safe destination within2km and CBA Advance enabled. Existing tasks or protected native orders take priority.";
 };
 if (!_accepted && {_order == "CLEAR_AREA"}) then {
     _executionReason="Area clearance was not started. Use a fully dismounted AI squad with two capable soldiers and eligible nearby buildings; release existing tasks first. Partial traversal is never building safety.";

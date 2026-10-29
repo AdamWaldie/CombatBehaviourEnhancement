@@ -4501,7 +4501,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(advance.index('if (_elementScoped) then {_hasAuthoredObjective=false}'),
                         advance.index('private _minimumDistance='))
         self.assertIn('_closeRange max 20',source('cortexTacticalAssess'))
-        self.assertLess(advance.index('if (_travel < 5) exitWith'),advance.index('private _goal = _start getPos'))
+        self.assertLess(advance.index('if (_travel < ([5,0.5] select _pointScoped)) exitWith'),advance.index('private _goal = if (_pointScoped'))
         self.assertIn('_travel min (_bound * 3)',advance)
 
         self.assertNotIn('CBA_fnc_addPerFrameHandler',advance)
@@ -4656,9 +4656,9 @@ class CortexOperations(unittest.TestCase):
         advance=source('cortexAdvanceStart')
         step=source('cortexFlankStep')
         self.assertIn('private _hasAuthoredObjective = _index < count waypoints _group',advance)
-        self.assertIn('if (_hasAuthoredObjective && {',advance)
+        self.assertIn('if (!_pointScoped && {_hasAuthoredObjective} && {',advance)
         self.assertIn('!(waypointType [_group, _index] in ["MOVE", "SAD", "DESTROY"])',advance)
-        self.assertIn('if (!_hasAuthoredObjective && {((_enemies select 0) select 2) > 10})',advance)
+        self.assertIn('if (!_pointScoped && {!_hasAuthoredObjective} && {((_enemies select 0) select 2) > 10})',advance)
         self.assertIn('(_enemies select 0) select 1',advance)
         self.assertNotIn('if (_index >= count waypoints _group) exitWith {false}',advance)
         self.assertIn('private _waypointSnapshot = []',step)
@@ -12072,10 +12072,11 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('["elementScoped",_elementScoped]',source('cortexAssaultStart'))
         self.assertIn('["elementRoster",if (_elementScoped) then {+_element} else {[]}]',source('cortexAssaultStart'))
         advance=source('cortexAdvanceStart')
-        for marker in ('["elementScoped",_elementScoped]','["elementRoster",if (_elementScoped) then {+_element} else {[]}]',
+        for marker in ('["elementScoped",_elementScoped]','["elementRoster",if (_elementScoped) then {+_requestedElement} else {[]}]',
                        '[_group,_element] call CBE_fnc_CortexGroupAnchor',
                        'if (_elementScoped) then {_hasAuthoredObjective=false}', '_x in _element'):
             self.assertIn(marker,advance)
+        self.assertLess(advance.index('private _requestedElement=+_element'),advance.index('private _element=if (_buddyBounds)'))
         self.assertNotIn('call CBE_fnc_CortexGroupMove',advance)
         self.assertIn('_started=_args call CBE_fnc_CortexAdvanceStart',source('cortexTacticalStart'))
 

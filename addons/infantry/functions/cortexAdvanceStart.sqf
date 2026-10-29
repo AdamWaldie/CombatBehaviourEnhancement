@@ -63,11 +63,24 @@
  * Result: a pinned squad advances two elements successively towards its authored or fresh-contact objective.
  *
  * Support integration: active reinforcement/assault responders decline new drills until released.
- * Current caller: CBE_fnc_CortexTacticalStart.
+ * Current callers: CBE_fnc_CortexTacticalStart and PointAdvanceOperation.
+ * Argument4: optional point order ARRAY[] [goalATL,radius5..25,original local deadline<=time+300].
+ * A point is an operator objective, not an enemy belief; no hostile record is fabricated.
  */
 
-params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_enemies", [], [[]]], ["_element",[],[[]]]];
+params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_enemies", [], [[]]], ["_element",[],[[]]],["_pointOrder",[],[[]]]];
 private _elementScoped=count _this > 3;
+private _pointScoped=_pointOrder isNotEqualTo [];
+if (_pointScoped && {count _pointOrder != 3 || {!_elementScoped}
+    || {!((_pointOrder select 0) isEqualType [])} || {count (_pointOrder select 0) != 3}
+    || {(_pointOrder select 0) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+    || {!((_pointOrder select 1) isEqualType 0)} || {!finite (_pointOrder select 1)}
+    || {(_pointOrder select 1) < 5} || {(_pointOrder select 1) > 25}
+    || {!((_pointOrder select 2) isEqualType 0)} || {!finite (_pointOrder select 2)}
+    || {time >= (_pointOrder select 2)} || {(_pointOrder select 2) > time+300}
+    || {isNull _group} || {!local _group}
+    || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
+    || {!([_group,"CBE_AIPass_Advance_Enable",true] call CBE_fnc_CortexFeatureEnabled)}}) exitWith {false};
 private _refuse={
     params ["_reason",["_detail",[]]];
     private _previous=_group getVariable ["CBE_Cortex_AdvanceRefusal",[]];
@@ -77,6 +90,8 @@ private _refuse={
     false
 };
 if (_elementScoped && {count _element > 64}) exitWith {["ELEMENT_TOO_LARGE"] call _refuse};
+// Preserve the requested cohort before _element becomes the selected moving team.
+private _requestedElement=+_element;
 // A live support assignment owns group movement until release; do not split its
 // responders into a competing local drill when they acquire contact.
 if (_state getOrDefault ["responding", false] || {_state getOrDefault ["assaulting", false]}) exitWith {["SUPPORT_OWNS_MOVEMENT"] call _refuse};
@@ -87,18 +102,18 @@ if ([_state, "advance"] call CBE_fnc_CortexCooldown) exitWith {["COOLDOWN"] call
 if ((_state getOrDefault ["moraleState", "STEADY"]) != "STEADY") exitWith {["MORALE",[_state getOrDefault ["moraleState","UNKNOWN"]]] call _refuse};
 private _contactAge=time-(_state getOrDefault ["phaseStart",time]);
 private _minimumContact=missionNamespace getVariable ["CBE_AIPass_Advance_MinContactSeconds", 0];
-if (_contactAge < _minimumContact) exitWith {["CONTACT_DELAY",[_contactAge,_minimumContact]] call _refuse};
+if (!_pointScoped && {_contactAge < _minimumContact}) exitWith {["CONTACT_DELAY",[_contactAge,_minimumContact]] call _refuse};
 // Use a local combat-effective anchor so leader loss or reassignment does not suppress an otherwise viable manoeuvre.
 private _leader = if (_elementScoped) then {[_group,_element] call CBE_fnc_CortexGroupAnchor}
     else {[_group] call CBE_fnc_CortexGroupAnchor};
 if (isNull _leader && {!_elementScoped}) then {_leader=leader _group};
 if (isNull _leader) exitWith {["NO_ELEMENT_ANCHOR"] call _refuse};
 if (vehicle _leader != _leader) exitWith {["LEADER_MOUNTED"] call _refuse};
-if (_enemies isEqualTo []) exitWith {["NO_TARGET"] call _refuse};
+if (!_pointScoped && {_enemies isEqualTo []}) exitWith {["NO_TARGET"] call _refuse};
 
 private _index = currentWaypoint _group;
 private _hasAuthoredObjective = _index < count waypoints _group;
-if (_hasAuthoredObjective && {
+if (!_pointScoped && {_hasAuthoredObjective} && {
     waypointDescription [_group, _index] == "CBE AI PASS"
     || {!(waypointType [_group, _index] in ["MOVE", "SAD", "DESTROY"])}
 }) exitWith {["AUTHORED_OBJECTIVE_TYPE",[waypointType [_group,_index],waypointDescription [_group,_index]]] call _refuse};
@@ -108,26 +123,26 @@ if (_elementScoped) then {_hasAuthoredObjective=false};
 // Contact-only infantry approach must meet the actual close-assault band. Keeping
 // the authored objective's80m completion margin here left a60..80m refusal gap.
 // Static/vehicle contacts and authored forward objectives retain their prior limits.
-private _target=(_enemies select 0) select 0;
+private _target=if (_pointScoped) then {objNull} else {(_enemies select 0) select 0};
 private _contactApproach=!_hasAuthoredObjective && {_target isKindOf "CAManBase"}
     && {isNull objectParent _target};
 private _minimumDistance=if (_contactApproach) then {
     ((missionNamespace getVariable ["CBE_AIPass_Assault_Range",80]) min 60) max 20
 } else {60};
-if (((_enemies select 0) select 3) < _minimumDistance) exitWith {
+if (!_pointScoped && {((_enemies select 0) select 3) < _minimumDistance}) exitWith {
     ["TARGET_TOO_CLOSE",[(_enemies select 0) select 3,_minimumDistance]] call _refuse
 };
 // A group whose ordinary movement order has completed should not become inert in a live firefight.
 // Use only fresh engine knowledge and keep the objective inside this finite drill; do not manufacture
 // a persistent waypoint that would outlive contact or compete with a later Zeus order.
-if (!_hasAuthoredObjective && {((_enemies select 0) select 2) > 10}) exitWith {["STALE_CONTACT",[(_enemies select 0) select 2]] call _refuse};
-private _objective = if (_hasAuthoredObjective) then {
+if (!_pointScoped && {!_hasAuthoredObjective} && {((_enemies select 0) select 2) > 10}) exitWith {["STALE_CONTACT",[(_enemies select 0) select 2]] call _refuse};
+private _objective = if (_pointScoped) then {+(_pointOrder select 0)} else {if (_hasAuthoredObjective) then {
     waypointPosition [_group, _index]
 } else {
     (_enemies select 0) select 1
-};
+}};
 private _objectiveStop=if (_contactApproach) then {_minimumDistance} else {80};
-if (_leader distance2D _objective <= _objectiveStop) exitWith {
+if (!_pointScoped && {_leader distance2D _objective <= _objectiveStop}) exitWith {
     ["OBJECTIVE_REACHED",[_leader distance2D _objective,_objectiveStop]] call _refuse
 };
 private _onFoot = (units _group) select {
@@ -170,11 +185,13 @@ _start = _start vectorMultiply (1 / count _element);
 private _bound = (missionNamespace getVariable ["CBE_AIPass_Flank_BoundDistance", 55]) max 15;
 if (_smallElement) then {_bound=_bound min 20};
 if (_buddyBounds) then {_bound=_bound min 25};
-private _travel=(_start distance2D _objective)-20;
+private _travel=(_start distance2D _objective)-([20,0] select _pointScoped);
 // A dispersed group can have its mover centroid already near the contact while
 // the leader is farther away. A negative getPos distance would send those actors backwards.
-if (_travel < 5) exitWith {["OBJECTIVE_REACHED",[_travel,"MOVER_ELEMENT_CLOSE"]] call _refuse};
-private _goal = _start getPos [_travel min (_bound * 3), _start getDir _objective];
+if (_travel < ([5,0.5] select _pointScoped)) exitWith {["OBJECTIVE_REACHED",[_travel,"MOVER_ELEMENT_CLOSE"]] call _refuse};
+private _goal = if (_pointScoped && {_travel <= _bound*3}) then {+_objective} else {
+    _start getPos [_travel min (_bound * 3), _start getDir _objective]
+};
 private _routeDistance=_start distance2D _goal;
 private _axis=_start getDir _goal;
 private _midDistance=_routeDistance*0.55;
@@ -184,7 +201,8 @@ private _candidateRoutes=[[_goal]];
     private _screen=(_start getPos [_midDistance,_axis]) getPos [_offset,_axis+_x];
     _candidateRoutes pushBack [_screen,_goal];
 } forEach [90,-90,55,-55];
-private _legs=[_start,_candidateRoutes,(_enemies select 0) select 1,[],(_enemies select 0) select 0]
+private _routeThreat=if (_pointScoped) then {+_objective} else {(_enemies select 0) select 1};
+private _legs=[_start,_candidateRoutes,_routeThreat,[],_target]
     call CBE_fnc_CortexSelectAvenue;
 if (_legs isEqualTo []) exitWith {[_state, "advance", 30] call CBE_fnc_CortexCooldown; ["NO_SAFE_AVENUE",[_start,_objective]] call _refuse};
 private _points = [_start, _legs, "FINAL", _group,if (_smallElement) then {20} else {[0,25] select _buddyBounds}] call CBE_fnc_CortexPlanRoute;
@@ -197,11 +215,11 @@ _group setVariable ["CBE_Cortex_DrillResult",[],true];
 _group setVariable ["CBE_Cortex_DrillFailure",[],true];
 _group setVariable ["CBE_Cortex_DrillReinforcements",[],true];
 _state set ["drill", createHashMapFromArray [
-    ["token",_token],["target",(_enemies select 0) select 0],
+    ["token",_token],["target",_target],
     ["teams",[_element,_coverElement]],["teamSizes",[count _element,count _coverElement]],["teamTurn",0],
     ["type", "ADVANCE"],["buddyBounds",_buddyBounds], ["units", _onFoot],
-    ["elementScoped",_elementScoped],["elementRoster",if (_elementScoped) then {+_element} else {[]}], ["desiredStrength",count _onFoot], ["points", _points], ["index", 0], ["stage", ""],
-    ["enemyPos", (_enemies select 0) select 1], ["disabled", []], ["spots", []], ["started", time], ["lastStep",time],
+    ["elementScoped",_elementScoped],["elementRoster",if (_elementScoped) then {+_requestedElement} else {[]}], ["desiredStrength",count _onFoot], ["points", _points], ["index", 0], ["stage", ""],
+    ["enemyPos", _routeThreat], ["disabled", []], ["spots", []], ["started", time], ["lastStep",time],
     ["boundStart", time], ["pauseUntil", 0]
 ]];
 if !([_group,"TACTICAL_DRILL",true,serverTime+90] call CBE_fnc_CortexOwnershipLease) exitWith {
@@ -210,7 +228,7 @@ if !([_group,"TACTICAL_DRILL",true,serverTime+90] call CBE_fnc_CortexOwnershipLe
 };
 // Buddy bounds retain pair identity across mover/cover roles, not inside role partitions.
 private _pairElements=if (_buddyPair || {_buddyBounds}) then {[]} else {[_element,_coverElement]};
-private _operation=[_group,"ADVANCE",(_enemies select 0) select 0,_onFoot,_points apply {_x select 0},"MANOEUVRE",_pairElements] call CBE_fnc_OperationStart;
+private _operation=[_group,"ADVANCE",if (_pointScoped) then {+_objective} else {_target},_onFoot,_points apply {_x select 0},"MANOEUVRE",_pairElements] call CBE_fnc_OperationStart;
 if (count _operation == 0) exitWith {
     [_group,"TACTICAL_DRILL",false] call CBE_fnc_CortexOwnershipLease;
     _state deleteAt "drill";
@@ -218,6 +236,12 @@ if (count _operation == 0) exitWith {
 };
 (_state get "drill") set ["operationGeneration",_operation get "generation"];
 (_state get "drill") set ["ownerEpoch",_operation get "ownerEpoch"];
+if (_pointScoped) then {
+    private _acceptedDrill=_state get "drill";
+    _acceptedDrill set ["pointObjective",[+_objective,_pointOrder select 1]];
+    _acceptedDrill set ["explicitOrder",[_pointOrder select 2,_group getVariable ["CBE_AIPass_Epoch",0],_operation get "generation",_token]];
+    _acceptedDrill set ["approachChunks",1];
+};
 (_state get "drill") set ["nativeAdmissionChecked",true];
 [_group,_state get "drill","START","ADVANCE_ACCEPTED"] call CBE_fnc_CortexDrillSetStage;
 _group setVariable ["CBE_Cortex_AdvanceRefusal",nil,true];

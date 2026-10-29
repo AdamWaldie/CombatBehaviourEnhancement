@@ -3421,3 +3421,39 @@ building keeps its existing separate durable-clearance rules and limitations.
 This adds no second movement writer, teleport, forced actor pose or addon setting.
 Area flow, casualty/repeat behaviour, all multiplayer variants and measured cost
 remain unverified while audits are paused.
+
+
+### Advance to position
+
+**Advance to position** requests covered fire-team bounds to an explicit destination.
+Place the native Zeus module at that point and select the exact AI squad. Native
+controls use a 10-metre arrival radius and 180-second original deadline; optional
+ZEN exposes 5–25 metres and 30–300 seconds. The destination must be within two
+kilometres of the current friendly anchor. A destination within that range is not
+necessarily reachable within the chosen time or route budget.
+
+The task uses the existing advance/drill owner, actual paired movement and native
+command journals. No enemy is required or fabricated. The point does not become
+hostile knowledge, a force-fire target or an enemy-neutralisation claim. CBA Advance
+permission remains required; autonomous Contact enable/contact-delay settings do
+not disable an explicit point order. Known fresh uncountered armour/air may refuse
+admission or further bounds; native engine targeting and protective actor work remain.
+
+The task retains one token, owner epoch, operation generation and original deadline.
+At most eight approach chunks and 64 route points are allowed. Arrival requires the
+actual final-bound handoff, the participating centroid inside the selected radius,
+and participants within the 25-metre-or-radius cohort on the destination floor.
+Missing original capable participants produce PARTIAL. New native/Zeus/specialist
+orders, unsafe routes, expired budgets and owner changes retire the task. Release
+infantry task stops only its exact current point order. No timed episode is replayed
+by an incoming owner.
+
+```sqf
+["START", _group, [getPosATL destination1, 10, 180]] call CBE_fnc_PointAdvanceOperation;
+["CANCEL", _group] call CBE_fnc_PointAdvanceOperation;
+```
+
+This is a foot-squad advance task. It does not implement explicit destination
+withdrawal or direct vehicle assault, and it does not establish that a position or
+building is safe. Physical flow, module layout, repeat/casualty/MP variants and
+measured cost remain unverified while audits are paused.

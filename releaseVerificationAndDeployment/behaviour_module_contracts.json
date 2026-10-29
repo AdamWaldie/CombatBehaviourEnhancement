@@ -15,7 +15,8 @@
     "CBE_ModuleHunt",
     "CBE_ModuleRush",
     "CBE_ModuleClear",
-    "CBE_ModuleClearArea"
+    "CBE_ModuleClearArea",
+    "CBE_ModulePointAdvance"
   ],
   "zen_labels": [
     "Create AI Convoy",
@@ -27,7 +28,8 @@
     "Patrol area",
     "Hunt known enemy",
     "Press attack",
-    "Clear buildings in area"
+    "Clear buildings in area",
+    "Advance to position"
   ],
   "contracts": [
     {
@@ -248,6 +250,25 @@
       "termination": "Original total deadline, newer task/native/Zeus/specialist owner, membership/owner loss, selected queue results; capped/failed visits remain PARTIAL.",
       "guide": "docs/Smart-AI-Pass.md",
       "physical_acceptance": "unverified; area flow, retained partial/inaccessible results, repeated tasks, interruption/locality and performance need authorised runtime audit."
+    },
+    {
+      "behaviour": "Finite covered advance to an explicit position",
+      "target": "Explicit AI foot squad and destination position; no hostile proxy",
+      "parameters": [
+        "squad",
+        "destinationATL",
+        "arrivalRadius5..25",
+        "duration30..300"
+      ],
+      "handlers": [
+        "addons/infantry/functions/modulePointAdvance.sqf",
+        "addons/infantry/functions/zenPointAdvanceModule.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Authenticated server/current-owner validation -> PointAdvanceOperation -> existing CortexAdvanceStart/tacticalDrill, original native/Zeus/epoch/token/generation proof.",
+      "termination": "Actual arrived final-bound/cohort/floor, partial missing original participants, original deadline, bounded approach/route budget, native/Zeus/owner or feature replacement.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; actual covered fire-team advance, native UI, cohort arrival/floor, repeat/casualty/normal/HC and measured performance require authorised runtime validation."
     }
   ]
 }

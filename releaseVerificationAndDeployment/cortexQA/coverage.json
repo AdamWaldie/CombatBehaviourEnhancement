@@ -1320,7 +1320,10 @@
         "addons/infantry/functions/cortexTacticalReposition.sqf",
         "addons/infantry/functions/cortexPrimaryAmmoAvailable.sqf",
         "addons/infantry/functions/combatElementSelect.sqf",
-        "addons/infantry/functions/combatPairElements.sqf"
+        "addons/infantry/functions/combatPairElements.sqf",
+        "addons/infantry/functions/pointAdvanceOperation.sqf",
+        "addons/infantry/functions/modulePointAdvance.sqf",
+        "addons/infantry/functions/zenPointAdvanceModule.sqf"
       ]
     },
     {

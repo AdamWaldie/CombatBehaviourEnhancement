@@ -308,6 +308,9 @@ class CfgFunctions {
             class CortexClearSettingsApply {file = "\z\cbe\addons\infantry\functions\cortexClearSettingsApply.sqf";};
             class CortexClearRelease {file = "\z\cbe\addons\infantry\functions\cortexClearRelease.sqf";};
             class ModuleGarrison {file = "\z\cbe\addons\infantry\functions\moduleGarrison.sqf";};
+            class ModulePointAdvance {file = "\z\cbe\addons\infantry\functions\modulePointAdvance.sqf";};
+            class ZenPointAdvanceModule {file = "\z\cbe\addons\infantry\functions\zenPointAdvanceModule.sqf";};
+            class PointAdvanceOperation {file = "\z\cbe\addons\infantry\functions\pointAdvanceOperation.sqf";};
             class ClearAreaOperation {file = "\z\cbe\addons\infantry\functions\clearAreaOperation.sqf";};
             class ModuleClear {file = "\z\cbe\addons\infantry\functions\moduleClear.sqf";};
             class ZenClearAreaModule {file = "\z\cbe\addons\infantry\functions\zenClearAreaModule.sqf";};

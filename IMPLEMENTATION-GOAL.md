@@ -2,6 +2,12 @@
 
 Deliver a standalone Arma 3 AI improvement addon by selecting, combining, fixing and improving useful AI functionality from the source register. Gameplay quality, tactical plausibility, balance and engine performance govern the implementation. Implement useful LAMBS functionality inside CBE and evolve it without requiring LAMBS. Reconcile the entire relevant HBQ controller and all nine registered Protocol capabilities at their appropriate layers.
 
+## Current execution direction — 29 October 2026
+
+Build upward from finite owner-local FSM foundations, implementing and improving selected source functionality through existing CBE executors. Include equivalent behaviour modules where the selected sources expose operator tasks; CBA remains the settings surface. The master source register and linked reviews govern the queue. Keep audits paused and continue independent build-out, recording physical verification as pending.
+
+Regular checked local commits are part of this goal, including before major work-area changes and handover. Batch remote pushes to avoid unnecessary Actions runs. Finish a bounded batch against its stated outcome and checks, then commit it; do not expand its completion criteria or wait for overall mod completion.
+
 ## Regular implementation commits
 
 Make regular local commits as work progresses. Commit each coherent implementation or defect-fix checkpoint after its relevant checks, and before switching to a substantial new work area or handing over. Do not wait for the whole feature set, the full production goal, or a low-usage threshold. A necessary work-in-progress checkpoint must state unfinished work and failed or pending checks honestly.

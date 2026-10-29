@@ -90,11 +90,12 @@
     "currentCBE": [
       "Press attack is contact-driven, not an explicit arbitrary-point assault equivalent. Its bounded approach extension must not be counted as taskAssault source parity.",
       "CortexRetreat already owns morale-based screened withdrawal, smoke, physical progress, original120-second episode and typed policy restoration; it does not expose this source arbitrary-destination operator task.",
-      "CortexGroupMove and selected-crew movement are lower-level writers, not an authored point-assault module by themselves."
+      "CortexGroupMove and selected-crew movement are lower-level writers, not an authored point-assault module by themselves.",
+      "29 October: covered dismounted point advance now composes PointAdvanceOperation with existing CortexAdvanceStart/tacticalDrill; see pointAdvanceExecution20261029. It does not implement explicit retreat or vehicle point assault."
     ],
     "disposition": "Retain explicit destination assault/withdrawal intent. Compose on actual common operation/movement owners with immutable deadline and selected crew authority; reject copied per-actor PFHs, repeated raw moves, temporary group recreation, forced animation and default WEDGE/AI resets.",
     "missing": [
-      "Authenticated explicit point-assault/withdrawal executor and native/optionalZEN behaviour module equivalents",
+      "Explicit destination withdrawal executor and behaviour controls; vehicle point assault with selected-crew authority",
       "Physical/MP/repeat/balance and cost validation"
     ]
   },
@@ -180,6 +181,42 @@
       "Physical methodical traversal, room access/partial reporting, isolation/egress, casualty/repeat and actual module controls",
       "Normal/HC/locality/JIP variants and complete incoming-controller reconciliation",
       "Measured planning/update cost and tactical balance"
+    ]
+  },
+  "pointAdvanceExecution20261029": {
+    "sourceBase": "5077c532f97de6093f8a7aee9a506fbb30deac22",
+    "status": "IMPLEMENTED_PARTIAL_OFFLINE_CHECKED_PHYSICAL_UNVERIFIED",
+    "sourceIntent": "taskAssault explicit point-directed movement; adapt useful intent without per-actor controllers or default policy resets.",
+    "entry": [
+      "PointAdvanceOperation START/CANCEL",
+      "CBE_ModulePointAdvance and optional ZEN Advance to position",
+      "Authenticated ADVANCE_POINT dispatch and current-owner admission"
+    ],
+    "executor": "Existing CortexAdvanceStart and tacticalDrill/CortexFlankStep; no additional movement writer, PFH or worker.",
+    "bounds": "Fully dismounted AI cohort <=64; destination <=2000m; radius5..25m; original30..300s deadline; <=8chunks/64points. Existing role, ammunition, morale, native authority and interruption rules retained.",
+    "foundationDefect": "CortexAdvanceStart reused _element for moving-team selection before persisting elementRoster. Preserve _requestedElement so the covering team remains in the requested cohort. Previous committed source fails the same extended existing regression; corrected source passes. Static evidence does not establish historical live causation.",
+    "ownership": "Shared private explicitOrder, explicitKnowledge and approachChunks replace Rush-specific fields. No enemy object proxy; point geometry does not mutate group contact belief. Contact-off does not cancel a valid explicit advance, while Advance/Core/pause/native ownership gates remain. No semantic incoming-owner replay.",
+    "outcome": "Arrival uses physical cohort/floor checks; missing capable actors produce PARTIAL. No enemy neutralisation or room-clearance claim.",
+    "validation": {
+      "tests": 1505,
+      "productionSQF": 476,
+      "pbo": 11,
+      "fullBuild": "exit0; static performance0findings; HEMTT/config/FSM/docs/coverage/parity gates pass",
+      "candidate": ".qa/candidates/point-advance-20261029-5077c532",
+      "fingerprint": "7fc18d148efad64a7b0af60183d0376b278fc8bd17e3b4c7bd5d3851316f5c15",
+      "independent": "Package verifier exit0 with matching fingerprint. Unsigned development base5077c532 plus dirty runtime inputs, metadata completed later.",
+      "logs": [
+        ".qa/handovers/point-advance-checked-build-20261029.log",
+        ".qa/handovers/point-advance-independent-20261029.log"
+      ],
+      "retainedFailures": "First run caught a test syntax error. Next complete run caught contact-only expectations missing the new explicit-point exemption. Corrected those existing assertions; no removed tests or relaxed autonomous contact freshness. Final full1505pass.",
+      "physical": "UNVERIFIED; audits PAUSED",
+      "performance": "Measured engine cost UNVERIFIED; static audit has0findings."
+    },
+    "remaining": [
+      "Explicit destination withdrawal and vehicle assault are not implemented by this task",
+      "Physical module/UI, covered flow, casualties, repeat/interrupt/locality/MP checks",
+      "Measured performance and whole-source LAMBS/HBQ/Protocol parity"
     ]
   }
 }

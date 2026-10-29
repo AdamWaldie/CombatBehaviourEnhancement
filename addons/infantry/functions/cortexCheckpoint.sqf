@@ -49,7 +49,7 @@ if (count _drill > 0) then {
     // Stable clock anchors avoid broadcasting a changing countdown on every checkpoint.
     private _generation=_drill getOrDefault ["operationGeneration",-1];
     private _points=_drill getOrDefault ["points",[]];
-    if ((_drill getOrDefault ["explicitRush",[]]) isEqualTo []
+    if ((_drill getOrDefault ["explicitOrder",[]]) isEqualTo []
         && {_generation >= 0} && {count _points <= 64} && {count (_drill getOrDefault ["units",[]]) <= 64}
         && {(_drill getOrDefault ["supportToken",""]) == ""}
         && {(_drill getOrDefault ["stage",""]) in ["START","MOVE","PAUSE","HOLD"]}) then {

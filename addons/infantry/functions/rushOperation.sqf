@@ -23,7 +23,8 @@ _result=call {
 private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
 private _drill=_state getOrDefault ["drill",createHashMap];
 if (toUpperANSI _mode == "CANCEL") exitWith {
-    private _task=_drill getOrDefault ["explicitRush",[]];
+    private _task=_drill getOrDefault ["explicitOrder",[]];
+    if ((_drill getOrDefault ["pointObjective",[]]) isNotEqualTo []) exitWith {false};
     if (!(_task isEqualType []) || {count _task != 4} || {(_task select 1) != (_group getVariable ["CBE_AIPass_Epoch",-1])}
         || {(_task select 2) != (_drill getOrDefault ["operationGeneration",-2])}
         || {(_task select 3) != (_drill getOrDefault ["token",""])}) exitWith {false};
@@ -63,10 +64,10 @@ private _epoch=_group getVariable ["CBE_AIPass_Epoch",-1];
 if (_token == "" || {_generation < 0} || {!((_drill getOrDefault ["type",""]) in ["ADVANCE","ASSAULT"])}
     || {_generation != (_group getVariable ["CBE_OperationGeneration",-2])}
     || {(_drill getOrDefault ["ownerEpoch",-2]) != _epoch}) exitWith {false};
-_drill set ["explicitRush",[_deadline,_epoch,_generation,_token]];
+_drill set ["explicitOrder",[_deadline,_epoch,_generation,_token]];
 _drill set ["rushRange",_range];
-_drill set ["rushChunks",1];
-_state set ["rushKnowledge",[_knowledgeAt,_epoch,_enemies apply {
+_drill set ["approachChunks",1];
+_state set ["explicitKnowledge",[_knowledgeAt,_epoch,_enemies apply {
     private _record=+_x;_record set [1,+(_x select 1)];_record
 }]];
 _group setVariable ["CBE_Rush_Status",["ACTIVE",_drill get "type",_token,serverTime],true];

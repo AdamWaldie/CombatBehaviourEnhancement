@@ -713,7 +713,15 @@ if !(["CBE_AIPass_Contact_Enable", true] call _get) exitWith {
         || {_state getOrDefault ["assaulting",false]};
     // A calm Contact-off tick still services independent safety and reflex work above.
     // Restore autonomous state once when it actually exists, not on every idle tick.
-    if (!_buildingOwned && {_autonomousState}) then {
+    private _pointDrill=_state getOrDefault ["drill",createHashMap];
+    private _pointReceipt=_pointDrill getOrDefault ["explicitOrder",[]];
+    private _pointOwned=count (_pointDrill getOrDefault ["pointObjective",[]]) == 2
+        && {count _pointReceipt == 4} && {(_pointReceipt select 0) isEqualType 0}
+        && {finite (_pointReceipt select 0)} && {time < (_pointReceipt select 0)}
+        && {(_pointReceipt select 1) == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+        && {(_pointReceipt select 2) == (_explicitOperation getOrDefault ["generation",-2])}
+        && {(_pointReceipt select 3) == (_pointDrill getOrDefault ["token",""])};
+    if (!_buildingOwned && {!_pointOwned} && {_autonomousState}) then {
         [_group,false,"CONTACT_DISABLED",true] call CBE_fnc_CortexReleaseGroup
     };
     _delay
@@ -730,8 +738,8 @@ if (_autonomousActor < 0) exitWith {_delay};
 ([_group] call CBE_fnc_CortexKnowledge) params ["_enemies", "_seenCount"];
 // Reuse this bounded native query only for the current explicit attack. Poll time does
 // not refresh native observation age; the arrived-bound consumer adds elapsed time.
-if (count ((_state getOrDefault ["drill",createHashMap]) getOrDefault ["explicitRush",[]]) == 4) then {
-    _state set ["rushKnowledge",[time,_group getVariable ["CBE_AIPass_Epoch",-1],_enemies apply {
+if (count ((_state getOrDefault ["drill",createHashMap]) getOrDefault ["explicitOrder",[]]) == 4) then {
+    _state set ["explicitKnowledge",[time,_group getVariable ["CBE_AIPass_Epoch",-1],_enemies apply {
         private _record=+_x;_record set [1,+(_x select 1)];_record
     }]];
 };

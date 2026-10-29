@@ -1,3 +1,15 @@
+# Current checkpoint: covered point advance and regular commits (29 October 2026)
+
+Goal ACTIVE/INCOMPLETE. AUDITS PAUSED. Work only in C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks, remote CombatBehaviourEnhancement, branch Adam/cbe-mechanised-support-20261028, draft PR20. The chat cwd WMP is unrelated. Governing IMPLEMENTATION-GOAL.md now explicitly includes equivalent behaviour modules, foundations upward and regular checked local commits before major area switches/handover; batch pushes to limit Actions use. Do not merge, publish, run manual CI or launch Arma.
+
+This checkpoint implements covered dismounted Advance to position through the existing advance/tacticalDrill owner, with native/optionalZEN controls and authenticated ADVANCE_POINT. It fixes the full-cohort versus moving-team roster shadowing bug; previous source fails and corrected source passes the same existing regression. No extra controller, enemy proxy or default/native reset. Point task original deadline/owner/token/generation and actual cohort/floor result remain finite; missing actors report PARTIAL. Contact-only Press attack remains distinct. Explicit destination withdrawal and vehicle point assault remain OPEN.
+
+Full1505tests,476productionSQF,11PBO and independent package verification pass. Candidate .qa/candidates/point-advance-20261029-5077c532; fingerprint 7fc18d148efad64a7b0af60183d0376b278fc8bd17e3b4c7bd5d3851316f5c15. Unsigned development base5077c532 plus dirty runtime inputs; metadata finalized afterward. Physical/MP/UI/flow and measured engine cost UNVERIFIED. Complete evidence and retained earlier test failures: releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#pointAdvanceExecution20261029, linked from master source-review-map.json.
+
+Next finite source capability: explicit withdrawal through the existing retreat owner; do not substitute point advance for retreat. Other independent gaps remain in CQB incoming-controller reconciliation (CANDIDATE_UNSEALED), real controlled-rappel executor/cleanup, selected-crew native handback and broader LAMBS/HBQ/nineProtocol execution. Consult registers and protected store breakdown below. Do not turn this into another broad planning/test programme. Last usage22%remaining; below10% immediately commit/push PR and complete handover. Durable continuity is not a backup of the full Temp checkout/.qa. Preserve all existing unrelated deletions/performance documentation dirt.
+
+---
+
 # Current checkpoint: finite area building clearance (29 October 2026)
 
 CBE checkout C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks, branch Adam/cbe-mechanised-support-20261028, remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git. Current native-clear local commitd8465d3d; area implementation is next coherent commit. PR20 open draft remotely at2dd621ff before planned combined push. Regular checked local commits; batch pushes. AuditsPAUSED. No game staging/merge/release/Steam. Preserve unrelated workflow/artwork/requirements deletions and docs/PERFORMANCE-VALIDATION.md.

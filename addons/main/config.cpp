@@ -6,7 +6,7 @@ class CfgPatches {
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
         requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "CBE_core", "CBE_danger", "CBE_infantry", "CBE_vehicles", "CBE_aircraft", "CBE_support", "CBE_compatibility"};
-        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModuleClearArea", "CBE_ModuleClear", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModulePatrol", "CBE_ModuleHunt", "CBE_ModuleRush", "CBE_ModuleRelease", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
+        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModulePointAdvance", "CBE_ModuleClearArea", "CBE_ModuleClear", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModulePatrol", "CBE_ModuleHunt", "CBE_ModuleRush", "CBE_ModuleRelease", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
         weapons[] = {};
         version = "0.1.0";
         versionStr = "0.1.0";
@@ -133,6 +133,14 @@ class CfgVehicles {
         isDisposable = 1;
         curatorCanAttach = 1;
     };
+    class CBE_ModulePointAdvance: CBE_ModuleGarrison {
+        displayName = "Advance to position";
+        function = "CBE_fnc_ModulePointAdvance";
+        CBE_operation = "ADVANCE_POINT";
+        class ModuleDescription: ModuleDescription {
+            description = "Place at the destination and explicitly select an AI foot squad for covered fire-team bounds. Default arrival10m/time180s; optional ZEN exposes5..25m/30..300s. No enemy proxy, forced group formation or hostile-room clearance claim. CBA Advance permission remains required; newer native/Zeus orders win.";
+        };
+    };
     class CBE_ModuleClearArea: CBE_ModuleGarrison {
         displayName = "Clear buildings in area";
         CBE_operation = "CLEAR_AREA";
@@ -177,7 +185,7 @@ class CfgVehicles {
         displayName = "Release infantry task";
         CBE_operation = "RELEASE";
         class ModuleDescription: ModuleDescription {
-            description = "Place on an AI soldier to request scoped CBE single/area clearance, garrison, defence, patrol, hunt, explicit attack and temporary infantry task release. The current owner preserves newer orders and protected actors. Native handback may remain pending.";
+            description = "Place on an AI soldier to request scoped CBE single/area clearance, garrison, defence, patrol, hunt, explicit attack/point advance and temporary infantry task release. The current owner preserves newer orders and protected actors. Native handback may remain pending.";
         };
     };
     class CBE_ModuleConvoyStart: Module_F {

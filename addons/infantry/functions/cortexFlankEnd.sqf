@@ -285,9 +285,10 @@ private _retired=false;
 isNil {
 if !(call _stillEnding) exitWith {};
 _group setVariable ["CBE_Cortex_DrillResult",[_type,_reason,time],true];
-if ((_drill getOrDefault ["explicitRush",[]]) isNotEqualTo []) then {
-    _state deleteAt "rushKnowledge";
-    _group setVariable ["CBE_Rush_Status",["ENDED",_reason,_endingToken,serverTime],true];
+if ((_drill getOrDefault ["explicitOrder",[]]) isNotEqualTo []) then {
+    _state deleteAt "explicitKnowledge";
+    private _statusKey=if ((_drill getOrDefault ["pointObjective",[]]) isEqualTo []) then {"CBE_Rush_Status"} else {"CBE_PointAdvance_Status"};
+    _group setVariable [_statusKey,["ENDED",_reason,_endingToken,serverTime],true];
 };
 [_group,_drill,"ENDED",_reason] call CBE_fnc_CortexDrillSetStage;
 // Cancel only this exact queued executor. Its callback may survive until the next

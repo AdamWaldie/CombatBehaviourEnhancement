@@ -174,20 +174,30 @@ if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0}
     || {completedFSM _executor}) exitWith {"FSM_EXECUTOR_ENDED" call _end};
 // Explicit Press attack shares this executor, not a new timer/controller. Its original
 // owner-local deadline is checked before policy writes, planning waits or role movement.
-private _explicitRush=_drill getOrDefault ["explicitRush",[]];
-private _explicitValid=_explicitRush isEqualType [] && {count _explicitRush == 4}
-    && {(_explicitRush select 0) isEqualType 0} && {finite (_explicitRush select 0)}
-    && {(_explicitRush select 1) == (_group getVariable ["CBE_AIPass_Epoch",-1])}
-    && {(_explicitRush select 2) == (_drill getOrDefault ["operationGeneration",-2])}
-    && {(_explicitRush select 3) == _token};
-if (_explicitRush isNotEqualTo [] && {!_explicitValid}) exitWith {"INVALID_EXPLICIT_TASK" call _end};
-if (count _explicitRush == 4 && {time >= (_explicitRush select 0)}) exitWith {"EXPLICIT_TIME_LIMIT" call _end};
+private _explicitOrder=_drill getOrDefault ["explicitOrder",[]];
+private _pointObjective=_drill getOrDefault ["pointObjective",[]];
+private _pointOrder=_pointObjective isNotEqualTo [];
+if (_pointOrder && {!(_pointObjective isEqualType []) || {count _pointObjective != 2}
+    || {!((_pointObjective select 0) isEqualType [])} || {count (_pointObjective select 0) != 3}
+    || {(_pointObjective select 0) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+    || {!((_pointObjective select 1) isEqualType 0)} || {!finite (_pointObjective select 1)}
+    || {(_pointObjective select 1) < 5} || {(_pointObjective select 1) > 25}
+    || {(_drill getOrDefault ["enemyPos",[]]) isNotEqualTo (_pointObjective select 0)}
+    || {count _explicitOrder != 4}}) exitWith {"INVALID_POINT_ORDER" call _end};
+if (_pointOrder) then {_pointObjective=[+(_pointObjective select 0),_pointObjective select 1]};
+private _explicitValid=_explicitOrder isEqualType [] && {count _explicitOrder == 4}
+    && {(_explicitOrder select 0) isEqualType 0} && {finite (_explicitOrder select 0)}
+    && {(_explicitOrder select 1) == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+    && {(_explicitOrder select 2) == (_drill getOrDefault ["operationGeneration",-2])}
+    && {(_explicitOrder select 3) == _token};
+if (_explicitOrder isNotEqualTo [] && {!_explicitValid}) exitWith {"INVALID_EXPLICIT_TASK" call _end};
+if (count _explicitOrder == 4 && {time >= (_explicitOrder select 0)}) exitWith {"EXPLICIT_TIME_LIMIT" call _end};
 private _explicitGate=if ((_drill getOrDefault ["type",""]) == "ADVANCE") then {
     "CBE_AIPass_Advance_Enable"
 } else {"CBE_AIPass_Assault_Enable"};
-if (count _explicitRush == 4 && {!(missionNamespace getVariable ["CBE_AIPass_Active",false])
+if (count _explicitOrder == 4 && {!(missionNamespace getVariable ["CBE_AIPass_Active",false])
     || {!((_state getOrDefault ["phase",""]) in ["CALM","CONTACT"])}
-    || {!([_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+    || {!_pointOrder && {!([_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled)}}
     || {!([_group,_explicitGate,true] call CBE_fnc_CortexFeatureEnabled)}}) exitWith {"ABORT" call _end};
 // A waypoint edit may leave its index and position intact. Preserve conditions,
 // scripts, attachments and synchronisation through the same frozen authored receipt.
@@ -394,9 +404,9 @@ private _gate=if (_support) then {"CBE_AIPass_CoordinatedAssault_Enable"} else {
 };
 if (!(missionNamespace getVariable ["CBE_AIPass_Active", false])
     || {if (_support) then {!_supportValid} else {
-        if (count _explicitRush == 4) then {
+        if (count _explicitOrder == 4) then {
             !((_state getOrDefault ["phase",""]) in ["CALM","CONTACT"])
-                || {!([_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+                || {!_pointOrder && {!([_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled)}}
         } else {(_state getOrDefault ["phase",""]) != "CONTACT"}
     }}
     || {!([_group,_gate,true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {"ABORT" call _end};
@@ -680,6 +690,7 @@ private _helperCurrent={
     private _currentOperation=_group getVariable ["CBE_Operation",createHashMap];
     local _group && {_rosterEpoch == (_group getVariable ["CBE_AIPass_Epoch",0])}
         && {_currentState isEqualTo _state} && {(_currentDrill getOrDefault ["token",""]) == _token}
+        && {!_pointOrder || {(_currentDrill getOrDefault ["pointObjective",[]]) isEqualTo _pointObjective}}
         && {missionNamespace getVariable ["CBE_AIPass_Active",false]}
         && {!([] call CBE_fnc_CortexIsPaused)}
         && {[_group,_gate,true] call CBE_fnc_CortexFeatureEnabled}
@@ -688,14 +699,14 @@ private _helperCurrent={
             _currentState getOrDefault ["assaulting",false]
                 && {(_group getVariable ["CBE_Cortex_SupportRole",[]]) isEqualTo _supportRole}
         } else {
-            if (_explicitRush isEqualTo []) then {
+            if (_explicitOrder isEqualTo []) then {
                 (_currentState getOrDefault ["phase",""]) == "CONTACT"
             } else {
                 // Admission and the actual command boundary use the same finite task.
-                (_currentDrill getOrDefault ["explicitRush",[]]) isEqualTo _explicitRush
-                    && {_explicitValid} && {time < (_explicitRush select 0)}
+                (_currentDrill getOrDefault ["explicitOrder",[]]) isEqualTo _explicitOrder
+                    && {_explicitValid} && {time < (_explicitOrder select 0)}
                     && {(_currentState getOrDefault ["phase",""]) in ["CALM","CONTACT"]}
-                    && {[_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+                    && {_pointOrder || {[_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}}
                     && {[_group,_explicitGate,true] call CBE_fnc_CortexFeatureEnabled}
             }
         }}
@@ -933,14 +944,14 @@ _centroid = _centroid vectorMultiply (1 / count _units);
 private _enemyPos = if (_support) then {+(_supportRole select 4)} else {
     // An explicit episode owns its accepted native belief, not an older group contact
     // or a later targetless danger position. Normal autonomous decisions retain their context.
-    if (count _explicitRush == 4) then {+(_drill get "enemyPos")} else {
+    if (count _explicitOrder == 4) then {+(_drill get "enemyPos")} else {
         _state getOrDefault ["enemyPos", _drill get "enemyPos"]
     }
 };
 private _assaulting = _drill getOrDefault ["assaulting", false];
 private _assaultEnabled = [_group,"CBE_AIPass_Assault_Enable", true] call CBE_fnc_CortexFeatureEnabled;
 if (_assaulting && {!_assaultEnabled}) exitWith {"ABORT" call _end};
-if (!_support && {!_assaulting} && {!_assaultEnabled} && {_centroid distance2D _enemyPos < 30}) exitWith {"CLOSE" call _end};
+if (!_pointOrder && {!_support} && {!_assaulting} && {!_assaultEnabled} && {_centroid distance2D _enemyPos < 30}) exitWith {"CLOSE" call _end};
 
 // Preserve the complete live participant set before selecting the fire team for this bound.
 // HOLD uses this snapshot to bring the base-of-fire element forward; without it the
@@ -1802,19 +1813,45 @@ switch (_drill get "stage") do {
             // coordinated approaches can finish at 85 m, so give them a small handover margin.
             // Only an arrived HOLD may refresh an explicit approach. No target transform,
             // restarted operation or renewed deadline is used to pursue a contact.
+            if (_pointOrder && {_centroid distance2D (_pointObjective select 0) <= (_pointObjective select 1)}
+                && {_fit findIf {getPosASL _x vectorDistance (AGLToASL (_pointObjective select 0)) > ((_pointObjective select 1) max 25)
+                    || {abs (((getPosASL _x) select 2)-((AGLToASL (_pointObjective select 0)) select 2)) > 1.5}} < 0}) exitWith {
+                private _missing=(_drill getOrDefault ["elementRoster",[]]) select {[_x] call CBE_fnc_CortexCombatEffective
+                    && {group _x == _group} && {!local _x || {!isNull objectParent _x} || {!isNull attachedTo _x}
+                        || {_x distance2D (_pointObjective select 0) > ((_pointObjective select 1) max 25)}
+                        || {abs (((getPosASL _x) select 2)-((AGLToASL (_pointObjective select 0)) select 2)) > 1.5}}};
+                _group setVariable ["CBE_PointAdvance_Result",[+(_pointObjective select 0),_pointObjective select 1,+_missing],true];
+                _result=(["COMPLETE","PARTIAL"] select (_missing isNotEqualTo [])) call _end;
+            };
+            if (_pointOrder) then {
+                private _sample=_state getOrDefault ["explicitKnowledge",[]];
+                if (count _sample == 3 && {(_sample select 1) == _rosterEpoch} && {time >= (_sample select 0)}) then {
+                    private _elapsed=time-(_sample select 0);
+                    private _fresh=(_sample select 2) apply {
+                        private _record=+_x;_record set [1,+(_x select 1)];
+                        _record set [2,(_x select 2)+_elapsed];_record set [3,_centroid distance2D (_x select 1)];_record
+                    };
+                    _fresh=_fresh select {(_x select 2) >= 0 && {(_x select 2) <= 10}};
+                    private _assessment=[_group,_state,_fresh,false,true,true] call CBE_fnc_CortexTacticalAssess;
+                    if ((_assessment getOrDefault ["reason",""]) in ["ARMOUR_OVERMATCH","AIR_OVERMATCH"]) then {
+                        _result="POINT_THREAT_CHANGED" call _end;
+                    };
+                };
+            };
+            if (_result < 0) exitWith {};
             private _holdObjective=+_enemyPos;
-            private _rushKnowledge=[];
+            private _explicitKnowledge=[];
             private _rushTarget=_drill getOrDefault ["target",objNull];
             private _rushObservedAge=0;
             private _rushRefusal="";
-            if (_explicitValid && {!_assaulting}) then {
-                _rushKnowledge=_state getOrDefault ["rushKnowledge",[]];
-                if (count _rushKnowledge != 3 || {(_rushKnowledge select 1) != _rosterEpoch}
-                    || {time < (_rushKnowledge select 0)}) then {
+            if (_explicitValid && {!_pointOrder} && {!_assaulting}) then {
+                _explicitKnowledge=_state getOrDefault ["explicitKnowledge",[]];
+                if (count _explicitKnowledge != 3 || {(_explicitKnowledge select 1) != _rosterEpoch}
+                    || {time < (_explicitKnowledge select 0)}) then {
                     _rushRefusal="EXPLICIT_KNOWLEDGE_STALE";
                 } else {
-                    private _elapsed=time-(_rushKnowledge select 0);
-                    private _fresh=(_rushKnowledge select 2) apply {
+                    private _elapsed=time-(_explicitKnowledge select 0);
+                    private _fresh=(_explicitKnowledge select 2) apply {
                         private _record=+_x;
                         _record set [1,+(_x select 1)];
                         _record set [2,(_x select 2)+_elapsed];
@@ -1844,7 +1881,7 @@ switch (_drill get "stage") do {
             if (_rushRefusal != "") exitWith {_result=_rushRefusal call _end};
             private _assaultRange = missionNamespace getVariable ["CBE_AIPass_Assault_Range",80];
             if (_support) then {_assaultRange = _assaultRange max 100};
-            private _assault = !_assaulting
+            private _assault = !_pointOrder && {!_assaulting}
                 && {_assaultEnabled}
                 && {(_state getOrDefault ["moraleState", "STEADY"]) == "STEADY"}
                 && {_centroid distance2D _enemyPos <= _assaultRange};
@@ -1859,8 +1896,8 @@ switch (_drill get "stage") do {
                 _assaultCandidates pushBack [_approach,_clear];
             } forEach [0,-15,15,-30,30];
             private _rushPoints=[];
-            if (_explicitValid && {!_assaulting} && {_centroid distance2D _enemyPos > _assaultRange}) then {
-                if ((_drill getOrDefault ["rushChunks",1]) >= 8 || {count _points >= 64}
+            if (_explicitValid && {!_assaulting} && {_pointOrder || {_centroid distance2D _enemyPos > _assaultRange}}) then {
+                if ((_drill getOrDefault ["approachChunks",1]) >= 8 || {count _points >= 64}
                     || {!([_group,"CBE_AIPass_Advance_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) then {
                     _rushRefusal="EXPLICIT_APPROACH_LIMIT";
                 } else {
@@ -1869,9 +1906,9 @@ switch (_drill get "stage") do {
                     private _bound=(missionNamespace getVariable ["CBE_AIPass_Flank_BoundDistance",55]) max 15;
                     if (_small) then {_bound=_bound min 20};
                     if (_buddy) then {_bound=_bound min 25};
-                    private _travel=((_centroid distance2D _enemyPos)-20) min (_bound*3);
+                    private _travel=((_centroid distance2D _enemyPos)-([20,0] select _pointOrder)) min (_bound*3);
                     private _axis=_centroid getDir _enemyPos;
-                    private _goal=_centroid getPos [_travel,_axis];
+                    private _goal=if (_pointOrder && {_travel >= _centroid distance2D _enemyPos}) then {+_enemyPos} else {_centroid getPos [_travel max 0,_axis]};
                     private _offset=((_travel*0.25) max 20) min 55;
                     private _candidates=[[_goal]];
                     {
@@ -1914,14 +1951,14 @@ switch (_drill get "stage") do {
                     || {(_drill get "units") isNotEqualTo _holdRoster}
                     || {(_drill getOrDefault ["teams",[]]) isNotEqualTo _holdTeams}
                     || {(_drill getOrDefault ["assaulting",false]) != _assaulting}
-                    || {_rushKnowledge isNotEqualTo [] && {
-                        (_state getOrDefault ["rushKnowledge",[]]) isNotEqualTo _rushKnowledge
+                    || {_explicitKnowledge isNotEqualTo [] && {
+                        (_state getOrDefault ["explicitKnowledge",[]]) isNotEqualTo _explicitKnowledge
                             || {_rushObservedAge+(time-_now) > 10}
                     }}
                     || {([_group,"CBE_AIPass_Assault_Enable",true] call CBE_fnc_CortexFeatureEnabled) != _assaultEnabled}
                     || {(_state getOrDefault ["moraleState","STEADY"]) != "STEADY" && {_assault}}
                     || {!_support && {
-                        private _currentObjective=if (_explicitRush isEqualTo []) then {
+                        private _currentObjective=if (_explicitOrder isEqualTo []) then {
                             _state getOrDefault ["enemyPos",_drill get "enemyPos"]
                         } else {_drill get "enemyPos"};
                         _currentObjective isNotEqualTo _holdObjective
@@ -1932,14 +1969,14 @@ switch (_drill get "stage") do {
                             || {(expectedDestination _actor) isNotEqualTo _destination}
                             || {formLeader _actor != _formationLeader}
                     } >= 0}) exitWith {};
-                if (_rushKnowledge isNotEqualTo []) then {
+                if (_explicitKnowledge isNotEqualTo []) then {
                     _drill set ["enemyPos",+_enemyPos];
                     _drill set ["target",_rushTarget];
                 };
                 if (_rushPoints isNotEqualTo []) then {
                     private _nextIndex=count _points;
                     _points append _rushPoints;
-                    _drill set ["rushChunks",(_drill getOrDefault ["rushChunks",1])+1];
+                    _drill set ["approachChunks",(_drill getOrDefault ["approachChunks",1])+1];
                     _drill set ["index",_nextIndex];
                     _drill set ["teamTurn",0];
                     [_group,_drill,"START","EXPLICIT_NEXT_APPROACH"] call CBE_fnc_CortexDrillSetStage;
