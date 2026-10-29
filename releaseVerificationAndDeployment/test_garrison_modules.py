@@ -95,6 +95,33 @@ class GarrisonModuleTests(unittest.TestCase):
         self.assertIn('call _missionUnchanged',pending)
         self.assertLess(sweep.index('if (!_arrived && {currentWaypoint _group != _index})'),
                         sweep.index('private _pending=_task getOrDefault ["huntPending",[]];'))
+        rush=src('rushOperation'); rush_dialog=src('zenRushModule')
+        self.assertIn('class CBE_ModuleRush: CBE_ModuleGarrison',config)
+        self.assertIn('call CBE_fnc_ZenRushModule',native)
+        self.assertIn('case "RUSH": {["START",_group,',local)
+        self.assertIn('["CANCEL",_group] call CBE_fnc_RushOperation',local)
+        self.assertIn('["rushDuration",round _duration]',rush_dialog)
+        self.assertIn('getOrDefault ["rushDuration",180]',dispatch)
+        self.assertIn('getOrDefault ["rushDuration",180]',local)
+        self.assertIn('_duration <= 300',dispatch)
+        self.assertIn('_rushDuration > 300',local)
+        self.assertIn('[_group,_state,_enemies,false,_advance,_assault,_foot]',rush)
+        self.assertIn('count _foot != count _living',rush)
+        self.assertEqual(rush.count('_drill set ["explicitRush"'),1)
+        self.assertLess(rush.index('call CBE_fnc_CortexTacticalStart'),rush.index('_drill set ["explicitRush"'))
+        self.assertIn('"MODULE_RELEASE",_task select 3',rush)
+        for forbidden in ('doMove','addWaypoint','disableAI','enableAttack','allowFleeing',
+                          'forceSpeed','setUnitPos','reveal','allUnits','spawn ',
+                          'CBA_fnc_addPerFrameHandler','CortexQueueJob'):
+            self.assertNotIn(forbidden,rush.split('*/',1)[1])
+        step=src('cortexFlankStep'); checkpoint=src('cortexCheckpoint')
+        self.assertLess(step.index('"EXPLICIT_TIME_LIMIT"'),step.index('private _groupModeLease'))
+        self.assertIn('time >= (_explicitRush select 0)',step)
+        self.assertIn('if (count _explicitRush == 4) then {+(_drill get "enemyPos")}',step)
+        self.assertIn('(_explicitRush select 3) == _token',step)
+        self.assertIn('(_drill getOrDefault ["explicitRush",[]]) isEqualTo []',checkpoint)
+        self.assertIn('"restoreMoveDestinations"',checkpoint)
+        self.assertIn('["ENDED",_reason,_endingToken,serverTime]',src('cortexFlankEnd'))
         for private in ('patrolOperation','patrolRouteCommit'):
             self.assertIn('remoteExecutedOwner != 2',src(private))
         for text in (patrol,native,release):

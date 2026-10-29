@@ -107,7 +107,8 @@
         "addons/infantry/functions/patrolRoutePlan.sqf",
         "addons/infantry/functions/patrolRouteCommit.sqf",
         "addons/infantry/functions/patrolOperation.sqf",
-        "addons/infantry/functions/huntOperation.sqf"
+        "addons/infantry/functions/huntOperation.sqf",
+        "addons/infantry/functions/rushOperation.sqf"
       ]
     },
     {
@@ -1575,7 +1576,8 @@
         "addons/infantry/functions/zenGarrisonModule.sqf",
         "addons/infantry/functions/zenReleaseModule.sqf",
         "addons/infantry/functions/zenPatrolModule.sqf",
-        "addons/infantry/functions/zenHuntModule.sqf"
+        "addons/infantry/functions/zenHuntModule.sqf",
+        "addons/infantry/functions/zenRushModule.sqf"
       ]
     },
     {

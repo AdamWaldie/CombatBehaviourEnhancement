@@ -62,6 +62,12 @@ if (_order == "HUNT" && {!(_huntRange isEqualType 0) || {!finite _huntRange}
     || {!finite _patrolDuration} || {_patrolDuration < 30} || {_patrolDuration > 1800}}) exitWith {
     [_token,false,false,clientOwner,"Invalid finite Hunt parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
 };
+private _rushDuration=_settings getOrDefault ["rushDuration",180];
+if (_order == "RUSH" && {!(_huntRange isEqualType 0) || {!finite _huntRange}
+    || {_huntRange < 50} || {_huntRange > 2000} || {!(_rushDuration isEqualType 0)}
+    || {!finite _rushDuration} || {_rushDuration < 30} || {_rushDuration > 300}}) exitWith {
+    [_token,false,false,clientOwner,"Invalid finite attack parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
 private _reason = [_group,_order,_building] call CBE_fnc_CortexOrderReason;
 if (_reason != "") exitWith {[_token,false,false,clientOwner,_reason] remoteExecCall ["CBE_fnc_CortexOrderResult",2]};
 private _oldHold = _group getVariable ["CBE_AIPass_ZeusHold",[]];
@@ -72,7 +78,7 @@ private _executionTaskKeys=["CBE_AIPass_ClearGeneration","CBE_AIPass_GarrisonGen
     "CBE_AIPass_DefendGeneration","CBE_OperationGeneration"];
 private _executionTasks=_executionTaskKeys apply {_group getVariable [_x,-1]};
 private _temporaryControl=[];
-if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT"]) then {
+if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUSH"]) then {
     _group setVariable ["CBE_AIPass_ZeusControlKind",nil,true];
     _group setVariable ["CBE_AIPass_ZeusWaypoints", false, true];
     _group setVariable ["CBE_AIPass_ZeusHold", [random 1e6, 0], true];
@@ -82,12 +88,15 @@ if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT"]) the
 private _previousClearFailure=_group getVariable ["CBE_Cortex_ClearAdmissionFailure",[]];
 private _previousGarrisonFailure=_group getVariable ["CBE_Cortex_GarrisonAdmissionFailure",[]];
     private _accepted = switch (_order) do {
+        case "RUSH": {["START",_group,[_huntRange,_rushDuration]] call CBE_fnc_RushOperation};
         case "HUNT": {["START",_group,[_huntRange,_patrolDuration]] call CBE_fnc_HuntOperation};
         case "PATROL": {["START",_group,[_position,_radius,_patrolNodes,_patrolDuration]] call CBE_fnc_PatrolOperation};
         case "GARRISON": {[_group, _position, (_radius max 15) min 150, createHashMapFromArray [["teleport",_teleport],["sortByHeight",_sortByHeight]]] call CBE_fnc_CortexGarrison};
         case "DEFEND": {[_group, _position, _facing, (_width max 15) min 150] call CBE_fnc_CortexDefend};
         case "RELEASE": {
             private _released = [_group] call CBE_fnc_CortexClearRelease;
+            private _rushReleased=["CANCEL",_group] call CBE_fnc_RushOperation;
+            _released=_released || {_rushReleased};
             private _patrolReleased=["CANCEL",_group,["MODULE_RELEASE"]] call CBE_fnc_PatrolOperation;
             _released=_released || {_patrolReleased};
             // Release automatic actor jobs too; no group-wide reset is needed to retire them.
@@ -185,6 +194,9 @@ if (!_accepted && {_newGarrisonFailure}) then {
 };
 if (!_accepted && {_order == "RELEASE"}) then {
     _executionReason="No infantry task was released. There may be no matching task, or current native/owner control may still prevent handback.";
+};
+if (!_accepted && {_order == "RUSH"}) then {
+    _executionReason="Attack was not started. Check fresh native contact, a fully dismounted AI squad with at least two capable soldiers, ammunition/ROE, steady morale, safe approach and enabled contact/advance/assault settings. Existing tasks, protected native orders or another controller also take priority.";
 };
 if (!_accepted && {_order == "HUNT"}) then {
     _executionReason="Hunt was not started. The squad needs recent native knowledge of a ground enemy, enabled contact behaviours and available foot soldiers. Release existing tasks first; module placement does not reveal a target.";

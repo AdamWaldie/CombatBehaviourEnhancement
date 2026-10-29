@@ -171,6 +171,23 @@ if (count _executorRecord != 2 || {(_executorRecord select 0) != _token}
     || {(_executorRecord select 1) isNotEqualTo _executor}) exitWith {-1};
 if (!(_executor isEqualType 0) || {!finite _executor} || {_executor < 0}
     || {completedFSM _executor}) exitWith {"FSM_EXECUTOR_ENDED" call _end};
+// Explicit Press attack shares this executor, not a new timer/controller. Its original
+// owner-local deadline is checked before policy writes, planning waits or role movement.
+private _explicitRush=_drill getOrDefault ["explicitRush",[]];
+private _explicitValid=_explicitRush isEqualType [] && {count _explicitRush == 4}
+    && {(_explicitRush select 0) isEqualType 0} && {finite (_explicitRush select 0)}
+    && {(_explicitRush select 1) == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+    && {(_explicitRush select 2) == (_drill getOrDefault ["operationGeneration",-2])}
+    && {(_explicitRush select 3) == _token};
+if (_explicitRush isNotEqualTo [] && {!_explicitValid}) exitWith {"INVALID_EXPLICIT_TASK" call _end};
+if (count _explicitRush == 4 && {time >= (_explicitRush select 0)}) exitWith {"EXPLICIT_TIME_LIMIT" call _end};
+private _explicitGate=if ((_drill getOrDefault ["type",""]) == "ADVANCE") then {
+    "CBE_AIPass_Advance_Enable"
+} else {"CBE_AIPass_Assault_Enable"};
+if (count _explicitRush == 4 && {!(missionNamespace getVariable ["CBE_AIPass_Active",false])
+    || {!((_state getOrDefault ["phase",""]) in ["CALM","CONTACT"])}
+    || {!([_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+    || {!([_group,_explicitGate,true] call CBE_fnc_CortexFeatureEnabled)}}) exitWith {"ABORT" call _end};
 // A waypoint edit may leave its index and position intact. Preserve conditions,
 // scripts, attachments and synchronisation through the same frozen authored receipt.
 private _authoredOrder=_drill getOrDefault ["authoredOrder",[]];
@@ -375,7 +392,12 @@ private _gate=if (_support) then {"CBE_AIPass_CoordinatedAssault_Enable"} else {
     }
 };
 if (!(missionNamespace getVariable ["CBE_AIPass_Active", false])
-    || {if (_support) then {!_supportValid} else {(_state getOrDefault ["phase",""]) != "CONTACT"}}
+    || {if (_support) then {!_supportValid} else {
+        if (count _explicitRush == 4) then {
+            !((_state getOrDefault ["phase",""]) in ["CALM","CONTACT"])
+                || {!([_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
+        } else {(_state getOrDefault ["phase",""]) != "CONTACT"}
+    }}
     || {!([_group,_gate,true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {"ABORT" call _end};
 // This callback is the drill's liveness heartbeat. Standalone drills also renew their
 // movement ownership instead of relying on one fixed five-minute lease. GroupTick uses
@@ -897,7 +919,11 @@ _centroid = _centroid vectorMultiply (1 / count _units);
 // Reserved squads may still be CALM without personal sight. Their authenticated
 // role carries the shared objective; local discovery may contain an older position.
 private _enemyPos = if (_support) then {+(_supportRole select 4)} else {
-    _state getOrDefault ["enemyPos", _drill get "enemyPos"]
+    // An explicit episode owns its accepted native belief, not an older group contact
+    // or a later targetless danger position. Normal autonomous decisions retain their context.
+    if (count _explicitRush == 4) then {+(_drill get "enemyPos")} else {
+        _state getOrDefault ["enemyPos", _drill get "enemyPos"]
+    }
 };
 private _assaulting = _drill getOrDefault ["assaulting", false];
 private _assaultEnabled = [_group,"CBE_AIPass_Assault_Enable", true] call CBE_fnc_CortexFeatureEnabled;

@@ -12,7 +12,8 @@
     "CBE_ModuleAirborne",
     "CBE_ModuleRelease",
     "CBE_ModulePatrol",
-    "CBE_ModuleHunt"
+    "CBE_ModuleHunt",
+    "CBE_ModuleRush"
   ],
   "zen_labels": [
     "Create AI Convoy",
@@ -22,7 +23,8 @@
     "Navigation corridor",
     "Release infantry task",
     "Patrol area",
-    "Hunt known enemy"
+    "Hunt known enemy",
+    "Press attack"
   ],
   "contracts": [
     {
@@ -204,6 +206,24 @@
       "termination": "Existing finite PatrolOperation sweep owner and scoped Release. Native belief expires, original task/leg deadline, four retarget plans,10s sampling, newer control/locality stops; no new controller or world scan.",
       "guide": "docs/Smart-AI-Pass.md",
       "physical_acceptance": "unverified; physical search/retarget/contact/release/Zeus/MP await audit authorisation"
+    },
+    {
+      "behaviour": "One finite covered offensive episode: advance or close assault",
+      "target": "Explicit AI foot squad with viable fresh native contact; module position does not reveal an enemy",
+      "parameters": [
+        "squad",
+        "knowledge range50..2000 capped by CBA engagement range",
+        "original task duration30..300s"
+      ],
+      "handlers": [
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenRushModule.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Existing assigned-curator/server/current-owner serial/12s/native/Zeus receipt path; owner-local RushOperation delegates to actor-scoped tactical selector and existing native tacticalDrill FSM.",
+      "termination": "Nonrenewed explicit tag token/epoch/generation/deadline checked before policy/movement; exact tagged-only Release. Owner transfer keeps restoration but excludes timed explicit semantic replay. No extra worker/native command loop.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; movement/fire/role/release/Zeus/MP handback and cost await authorised audits"
     }
   ]
 }

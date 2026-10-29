@@ -6,7 +6,7 @@ class CfgPatches {
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
         requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "CBE_core", "CBE_danger", "CBE_infantry", "CBE_vehicles", "CBE_aircraft", "CBE_support", "CBE_compatibility"};
-        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModulePatrol", "CBE_ModuleHunt", "CBE_ModuleRelease", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
+        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModulePatrol", "CBE_ModuleHunt", "CBE_ModuleRush", "CBE_ModuleRelease", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
         weapons[] = {};
         version = "0.1.0";
         versionStr = "0.1.0";
@@ -151,11 +151,18 @@ class CfgVehicles {
             description = "Place on an AI soldier to search its own recent native ground-contact belief, within800m and900s by default. CBA engagement range caps knowledge; optional ZEN exposes task limits. No hidden enemy positions, free flares or forced AI policies. Release existing tasks first.";
         };
     };
+    class CBE_ModuleRush: CBE_ModuleGarrison {
+        displayName = "Press attack";
+        CBE_operation = "RUSH";
+        class ModuleDescription: ModuleDescription {
+            description = "Place on an AI soldier to request one finite covered advance or close assault against viable fresh native contact. Defaults800m knowledge range and180s original deadline; optional ZEN exposes task limits. Existing roles, morale, fire/terrain/mission/Zeus protection remain. Release existing tasks first.";
+        };
+    };
     class CBE_ModuleRelease: CBE_ModuleGarrison {
         displayName = "Release infantry task";
         CBE_operation = "RELEASE";
         class ModuleDescription: ModuleDescription {
-            description = "Place on an AI soldier to request scoped CBE clearance, garrison, defence, patrol, hunt and temporary infantry task release. The current owner preserves newer orders and protected actors. Native handback may remain pending.";
+            description = "Place on an AI soldier to request scoped CBE clearance, garrison, defence, patrol, hunt, explicit attack and temporary infantry task release. The current owner preserves newer orders and protected actors. Native handback may remain pending.";
         };
     };
     class CBE_ModuleConvoyStart: Module_F {

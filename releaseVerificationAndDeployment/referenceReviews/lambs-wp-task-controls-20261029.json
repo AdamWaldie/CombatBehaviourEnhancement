@@ -63,7 +63,7 @@
     "policies": "No addon setting changes, nearest squad guess, replacement group, blanket AI/animation reset, waypoint clearing, forced seating/teleport, new worker or RPC. Native module works without ZEN; optional ZEN dialog has a labelled bounded squad selector. Duplicate/late/changed-owner requests retain the existing refusal. Release refusal now has a task-specific explanation.",
     "scope": "Existing supported infantry task release only; no convoy/flight/artillery/drill stop-all promise. Accepted request is not proven physical formation recovery, and native handback may remain unresolved."
   },
-  "nextRequired": "Hunt finite native-belief executor and native/optional ZEN equivalents are implemented as policy on existing sweep owner. Next actual missing source task is Rush/aggressive execution through existing drill/fire/common owners AND its native Zeus/optional ZEN equivalents (user clarification). Do not expose unavailable module behaviour or import global hidden target scans, disabled FSM or unbounded writers. Broader Hunt/Patrol area/reinforcement/illumination options, safe incoming-owner continuation and physical/MP/performance remain incomplete.",
+  "nextRequired": "Patrol/Hunt task/module surfaces and one finite Press attack/Rush episode with native/optional ZEN equivalents are implemented. Next close Rush longer-range finite approach continuity inside the SAME existing drill FSM under its original deadline, native knowledge and safety/authority proofs; see rushExecution20261029. Broader source/task options, incoming-owner continuation, CQB/external controller handovers, physical/MP and measured performance remain incomplete.",
   "checks": {
     "red": ".qa/handovers/infantry-release-module-red-20261029.log",
     "focused": ".qa/handovers/infantry-release-module-green-20261029.log",
@@ -214,5 +214,35 @@
       "performance": "Static0findings; runtimebudgetunmeasured"
     },
     "nextConcreteImplementation": "Prefer one explicit finite Press attack episode on the existing actor-scoped CortexTacticalStart -> AdvanceStart/AssaultStart -> tacticalDrill FSM. CortexTacticalStart args[group,state,enemies,false,advanceGate,assaultGate,originalFootRoster] can use fresh contact without replacing authored mission destination, preserving threat/morale/ROE/actor/native-order gates. No second repeating pursuit/parent worker is inherently required. Add an immutable request deadline to the exact accepted drill and enforce it in its existing step; scoped Release may end only the tagged explicit task, never unrelated later/autonomous drill. Deliver native CBE_ModuleRush and optional ZenRushModule with actual executor through existing authenticated task dispatch. Do not relabel Hunt or force full-squad doMove/FSM/attack/skill/light changes. Inspect actual target/flags/cleanup/timeout paths before editing."
+  },
+  "rushExecution20261029": {
+    "base": "6ada94774563eb2c0540a48821ba14dbb925e663",
+    "sourceSHA256": "11907c2426e67bd5b051ca25f745f51bc9e585f439a2fb78252c9dfa877e0ab8",
+    "intent": "Retain explicit aggressive pursuit/attack request and native/optional ZEN task equivalents; use informed covered advance/close assault with normal danger awareness rather than source unbounded blind doMove and disabled FSM.",
+    "implemented": "RushOperation delegates once to actor-scoped CortexTacticalStart with full native threat set, fresh knowledge range capped by CBA, live advance/assault gates and immutable30..300s original deadline. Existing tacticalDrill FSM owns native movement/roles/physical progress/recovery/temporary policies and exact cleanup. Exact explicit tag[deadline,epoch,generation,token] is checked before policy settling/movement; early CALM/CONTACT admission supports real module startup while retreat/new tasks/feature-off abort. Existing typed temporary policies remain; no added blanket flag/pose/light/skill/attack/fleeing policy or new controller. Source explicit module intent delivered as CBE_ModuleRush/ZenRushModule Press attack via authenticated named server/owner transport and scoped Release infantry task. Ordinary/unrelated successor drills cannot be released by the explicit-tag path. All living members must be local/dismounted before acquiring the shared group lease, preventing disruption of unrelated flight/vehicle crew. Explicit approach/clear-through geometry uses the accepted drill belief, not old group enemyPos or targetless danger geometry.",
+    "locality": "No controller replay is claimed. Existing checkpoint keeps restoration but does not serialize this owner-timed explicit episode as drillIntent. Startup/tag/checkpoint happen unscheduled before queued drill work, and start chain has no intermediate CortexCheckpoint call. MP/physical handback remain unverified.",
+    "limits": "One finite offensive episode on the existing drill, not yet sustained longer-range pursuit through successive approach chunks under the same deadline. Current advance plans at most three bounds, then existing HOLD can close-assault when in range or end; do not count this as whole Rush parity. Source broader options, armour/air branches and full-source coverage remain incomplete. Physical attack/fire/roles/release/Zeus/MP and measured performance remain unverified; auditsPAUSED.",
+    "checks": {
+      "focused": "10 existing module/authority/tactical contract checks passed; no test cases added.",
+      "full": "Complete1505tests/470productionSQF/11PBO HEMTT,FSM,config/docs/coverage/settings/Zeus/parity/static-performance gates passed; independent package verify passed.",
+      "candidate": ".qa/candidates/rush-task-sealed-20261029-6ada9477",
+      "fingerprint": "05b8bcfd70db1652cb87b39fe9221343489a586ab9e4b03e0671765383362aa4",
+      "provenance": "Unsigned dev base6ada9477 plus dirty inputs. Engineering review/map/handover changes after packaging do not alter runtime. Not clean signed release or physical proof.",
+      "priorCandidatesRetained": [
+        ".qa/candidates/rush-task-20261029-6ada9477",
+        ".qa/candidates/rush-task-final-20261029-6ada9477"
+      ],
+      "reviewCorrections": "Post-pass source tracing found shared group lease could affect mounted crew; constructor now refuses mixed crew. Explicit geometry is pinned to admitted native belief so stale/targetless group enemyPos cannot divert its approach. Full gates repeated after these runtime corrections.",
+      "logs": [
+        ".qa/handovers/rush-task-focused-20261029.log",
+        ".qa/handovers/rush-task-build-20261029.log",
+        ".qa/handovers/rush-task-build-final-20261029.log",
+        ".qa/handovers/rush-task-build-sealed-20261029.log",
+        ".qa/handovers/rush-task-independent-sealed-20261029.log"
+      ],
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "performance": "Static0findings;5%median/10%p95notmeasured"
+    },
+    "nextRequired": "Extend the same explicit FSM episode at physically arrived HOLD when the fresh native objective remains beyond assault range: bounded additional screened approach chunks under the SAME tag/deadline/generation and point/retry budgets, never a new pursuit loop. Existing CortexAdvanceStart caps first approach to3bounds. Reuse existing CortexGroupTick knowledge query with owner-local observation timestamp/target identity/epoch; never use targetless state.enemyPos or live hostile transforms. Reassess full fresh threat set before another chunk so uncountered armour/air and morale/ROE/native actor work can win. Keep full existing native/mission/Zeus proof and exact cleanup. No source-complete claim until this longer-range intent and physical/performance requirements are addressed."
   }
 }

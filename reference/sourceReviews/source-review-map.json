@@ -71,7 +71,8 @@
         "patrolExecutorStatus": "Finite owner-local circuit and authenticated native/optional ZEN controls implemented; local package gates passed. Incoming-owner continuation, broader source options and physical/MP/performance remain incomplete; no whole-source parity or percentage uplift.",
         "patrolControls": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#patrolControls20261029",
         "huntExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#huntExecution20261029",
-        "rushIntegration": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushIntegration20261029"
+        "rushIntegration": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushIntegration20261029",
+        "rushExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushExecution20261029"
       }
     },
     {

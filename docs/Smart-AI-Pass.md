@@ -3306,3 +3306,53 @@ another advance; it is never given a negative-distance route that sends it
 backwards. This is source-level movement integration, not demonstrated close
 assault or Rush completion. Physical transitions remain unverified while audits
 are paused.
+
+
+### Press attack (Rush counterpart)
+
+**Press attack** requests one finite covered advance or close assault using the
+squad's existing native enemy knowledge. The native Zeus module attaches to an
+AI soldier and defaults to an 800-metre knowledge range and 180-second deadline.
+Optional ZEN exposes explicit squad, knowledge range (50–2000 metres) and original
+time limit (30–300 seconds). The CBA engagement range caps knowledge; module
+placement does not detect or reveal a target. Server and current-owner validation,
+curator authentication and the existing serial/12-second/native/Zeus receipts apply.
+
+```sqf
+["START", _group, [800, 180]] call CBE_fnc_RushOperation;
+["CANCEL", _group] call CBE_fnc_RushOperation;
+```
+
+The existing actor-scoped tactical selector chooses covered advance or close
+assault, using the full known threat set so uncountered armour cannot be hidden by
+the request. It retains ammunition, fire permissions, morale, actual role capacity,
+protected actor work, native-order and safe-approach checks. At least two capable
+foot actors are needed; every living member must be local and dismounted so the
+shared group lease cannot disturb unrelated flight/vehicle crew. Advance/assault
+and contact feature switches remain
+permissions; configured advance contact delay still applies. The task can refuse
+when those conditions do not admit an offensive move. It does not substitute a
+sideways/withdrawal reposition or an omniscient Hunt route for the requested attack.
+
+The episode keeps its accepted native belief for approach/clear-through geometry;
+an older group target or later targetless danger cue cannot redirect it. This
+version requests one bounded offensive episode; sustained longer-range pursuit
+through further approach episodes is still unfinished.
+
+The accepted existing drill carries one explicit token/owner/generation and its
+original deadline. Its normal FSM checks expiry and feature/phase permissions
+before policy settling or movement. The deadline does not refresh with heartbeat,
+role changes or retries. The existing drill owns physical arrival, cover/mover
+roles, casualty replacements, native journals and its temporary typed policies.
+Normal target acquisition and the danger FSM remain active; this task adds no
+blanket attack/fleeing/light/laser policy or per-unit event loop.
+
+**Release infantry task** ends only the matching explicitly requested attack;
+it does not cancel a later or autonomous drill. Existing native restoration may
+remain pending. Owner transfer keeps restoration receipts but retires this timed
+request rather than recreating it with a new local clock. Ordinary native orders
+and automatic CBE contact choices can continue after the episode; the module does
+not install permanent aggression. `CBE_Rush_Status` is passive startup/end
+information, never restart authority. Time expiry is cancellation, not combat or
+room-clearance success. Actual attack flow, fire, repeat use, interruption, owner
+handover and measured performance remain unverified while audits are paused.
