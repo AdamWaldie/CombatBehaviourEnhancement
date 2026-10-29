@@ -9,6 +9,8 @@
  * epoch and at most two original active local crew are checked again before native writes.
  * This is not movement admission and cannot mint a session, lease, replacement crew or worker.
  * Repeat/JIP: One synchronous phase, original goal/baseline/reply/cleanup clocks retained.
+ * Only captured idle/WAIT/MOVE baselines have native return semantics. Unsupported legacy
+ * baselines remain unresolved after an owned hold, never acknowledged as restored idle.
  * Idle-only and mixed MOVE/idle handback require every surviving idle original active, current idle goals and
  * measured platform rest; empty return arrays never prove retirement by themselves.
  * Nonlocal/inactive return recipients refuse before native order observation.
@@ -75,6 +77,16 @@ if (_work getOrDefault ["release",false] && {!(_phase in ["STOPPING","RETURNING"
     _work set ["replyUntil",serverTime+2];
     {_x doMove _hold} forEach _activeSeats;
     _work set ["phase","STOPPING"];_publish=true;_phase="STOPPING";
+};
+// Match passive return proof: current WAIT after our hold cannot stand in for an
+// original FOLLOW or another unimplemented native command. Validate before outward
+// ISSUE or return commands/acknowledgement, retaining any already-issued native journal.
+private _returnBaseline=_work getOrDefault ["baseline",[]];
+private _baselineRestorable=_returnBaseline isEqualType [] && {count _returnBaseline == 4}
+    && {[0,2] findIf {!((_returnBaseline select _x) in ["","MOVE","WAIT"])
+        || {!((_returnBaseline select (_x+1)) isEqualType [])}} < 0};
+if (!_baselineRestorable && {_phase in ["ISSUE","STOPPING","RETURNING"]}) exitWith {
+    ["NATIVE_RETURN_BASELINE_UNSUPPORTED",_phase == "ISSUE"] call _finish
 };
 if (_phase == "ISSUE") exitWith {
     if (!_sourceCurrent || {!canMove _battery} || {waterDamaged _battery}

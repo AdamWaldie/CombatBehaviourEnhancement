@@ -8,6 +8,8 @@
  * Repeat/JIP: One public episode/reference, private exact finite FSM and original deadlines.
  * Pending native work blocks replacement even after ordinary lease expiry. Failed allocation
  * before ISSUE retires without native commands. New owners may adopt retirement only.
+ * Native FOLLOW/other unsupported baselines refuse before worker allocation; they must not
+ * be borrowed and later misreported as restored idle/WAIT state.
  * Arguments: group GROUP grpNull; platform OBJECT objNull; goal ARRAY of3 finite NUMBER,[];
  * original driver/commander ARRAY of2 OBJECT,[]; operation generation NUMBER,-1;
  * original server deadline NUMBER,-1, at most60 seconds ahead; optional cover context
@@ -97,7 +99,10 @@ isNil {
         if (!([_battery,_group,"RELEASE",true] call CBE_fnc_CortexDismountStop)
             || {getForcedSpeed _battery == 0}) exitWith {false};
         private _baseline=[_seats select 0,_seats select 1] call CBE_fnc_VehicleCrewNativeObservation;
-        if (count _baseline != 4 || {[0,2] findIf {(_baseline select _x) == "MOVE" && {
+        if (count _baseline != 4
+            || {[0,2] findIf {!((_baseline select _x) in ["","MOVE","WAIT"])
+                || {!((_baseline select (_x+1)) isEqualType [])}} >= 0}
+            || {[0,2] findIf {(_baseline select _x) == "MOVE" && {
             private _goal=(_baseline select (_x+1)) param [0,[],[[]]];
             count _goal != 3 || {_goal findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
         }} >= 0}) exitWith {false};

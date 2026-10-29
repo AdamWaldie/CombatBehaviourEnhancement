@@ -16,7 +16,8 @@
  * aboard the original platform or dismounted, with measured platform rest. Dismounted
  * originals must also have measured individual rest. Another occupied platform refuses.
  * STOP is intentionally perpetual, so readiness is not required.
- * It never restores or cancels that newer order.
+ * It never restores or cancels that newer order. A legacy FOLLOW baseline can be
+ * superseded by this positive STOP proof; RETURN still refuses FOLLOW as unrestored.
  * Arguments: platform OBJECT,objNull; journal HASHMAP,empty; private worker ARRAY,[];
  * current private worker serial NUMBER,-1; optional evidence mode STRING,RETURN
  * (EXTERNAL_STOP is restricted to ended UNRESOLVED work).
@@ -47,14 +48,15 @@ if ("operationGeneration" in _work && {!(_generation isEqualType 0) || {!finite 
     || {_generation < 0} || {_generation != (_group getVariable ["CBE_OperationGeneration",-2])}}) exitWith {false};
 private _seats=_work getOrDefault ["crew",[]];
 private _baseline=_work getOrDefault ["baseline",[]];
-// The producer only admits idle/WAIT/MOVE and issues positional movement. A current
-// STOP is therefore a newer native order, not its own positional hold. Retire
+// Current producers admit idle/WAIT/MOVE; legacy work may retain FOLLOW. Neither
+// baseline is STOP and the worker only issues positional movement. A current STOP
+// therefore supersedes the old native request; it does not prove FOLLOW restoration. Retire
 // metadata only after the exact original private FSM has actually completed.
 if (_mode == "EXTERNAL_STOP") exitWith {
     if (!(_seats isEqualType []) || {count _seats != 2}
         || {_seats findIf {!(_x isEqualType objNull)} >= 0}
         || {!(_baseline isEqualType [])} || {count _baseline != 4}
-        || {[0,2] findIf {!((_baseline select _x) in ["","WAIT","MOVE"])} >= 0}) exitWith {false};
+        || {[0,2] findIf {!((_baseline select _x) in ["","WAIT","MOVE","FOLLOW"])} >= 0}) exitWith {false};
     private _stoppedWriters=(_seats arrayIntersect _seats) select {!isNull _x && {alive _x}};
     if (_stoppedWriters isEqualTo [] || {_stoppedWriters findIf {
         private _parent=objectParent _x;

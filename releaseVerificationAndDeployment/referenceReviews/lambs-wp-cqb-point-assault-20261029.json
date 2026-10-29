@@ -322,5 +322,42 @@
       "Physical mixed infantry/crew travel, repeat/interrupt/normal/HC and measured cost remain unverified"
     ],
     "verification": "Metadata-only source review. Existing verified controls runtime remains781668dd with1505tests/477SQF/11PBO and candidate fingerprint5a608449515d838426ac755cc43d1c7d8824e090ca772107b3b92510cb82a5d0. No runtime edits, rebuild, audit or installed-file staging."
+  },
+  "crewBaselineReturnCorrection20261029": {
+    "sourceBase": "c2cac4189efd064de21b669772f613ef07128b7f",
+    "status": "IMPLEMENTED_OFFLINE_CHECKED_PHYSICAL_UNVERIFIED",
+    "defect": "VehicleTacticalMoveStart only validated positional MOVE coordinates, so unsupported original commands could be captured. Shared active return treated every non-MOVE original as idle, unlike passive RETURN proof which already restricted originals to idle/WAIT/MOVE. An original FOLLOW followed by current WAIT at the held point could therefore be acknowledged without restoring FOLLOW. This is a source counterexample, not an observed cause of earlier live convoy faults.",
+    "changes": [
+      "Tactical start requires original idle/WAIT/MOVE and typed destination arrays before worker allocation. Existing artillery admission already excludes unsupported native commands.",
+      "Shared native phase checks original return baseline before ISSUE/STOPPING/RETURNING command/acknowledgement paths. Unsupported pre-issue work retires without a command; already-issued legacy work remains UNRESOLVED rather than publishing native return acknowledgement.",
+      "Passive RETURN still refuses FOLLOW. EXTERNAL_STOP can supersede a legacy FOLLOW baseline only through actual completed original private FSM, matching epoch/generation/journal/seats, newer STOP on every living original, measured platform rest and dismounted-actor rest. No STOP/return command is issued by this observer."
+    ],
+    "remaining": [
+      "Full automatic restoration of original FOLLOW and other unsupported commands is still unimplemented",
+      "Vehicle point-task admission/source-current/retirement and equivalent controls remain open",
+      "Physical normal/HC, takeover/casualty/repeat and measured engine cost remain unverified"
+    ],
+    "versions": {
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "3c495ec062117729735b4267452a0e7c688268ed5de46e3c6975dfa500eba73d",
+      "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf": "5d97b3d069e572ed2cb770e059e1ea5ca89e143595dd605631d439b9418ca14b",
+      "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf": "01f79bd83d0b09e9adf52c76f135b5a6eb0df9043933fa7aceff422bcaf04a14"
+    },
+    "validation": {
+      "tests": 1505,
+      "productionSQF": 477,
+      "pbo": 11,
+      "focused": "Existing4 artillery/crew lifecycle cases pass; extended mixed original FOLLOW/unknown baseline counterexamples and passive mode distinction. No cases added or removed.",
+      "full": "Full build exit0; static performance0findings, config/FSM/docs/coverage/parity gates pass. No added native query/PFH/worker; baseline checks inspect two command slots.",
+      "candidate": ".qa/candidates/crew-baseline-final-20261029-c2cac418",
+      "fingerprint": "2bd5849fdaaae68c7d595665437a34780ee4825405245441a7636a66d4d05ab4",
+      "independent": "Final package verifier exit0 matching fingerprint. Unsigned dev basec2cac418 plus committed runtime changes; metadata finalized afterward. Guide updated after full runtime build, checked and copied into scratch package; all11 PBO hashes verified unchanged before resealing a fresh final candidate. Earlier sealed candidate retained.",
+      "logs": [
+        ".qa/handovers/crew-baseline-build-20261029.log",
+        ".qa/handovers/crew-baseline-guide-20261029.log",
+        ".qa/handovers/crew-baseline-final-independent-20261029.log"
+      ],
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "performance": "Measured overheadUNVERIFIED; static audit0findings."
+    }
   }
 }

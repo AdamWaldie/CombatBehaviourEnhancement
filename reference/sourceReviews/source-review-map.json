@@ -79,7 +79,8 @@
         "pointAdvanceExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#pointAdvanceExecution20261029",
         "pointWithdrawalExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#pointWithdrawalExecution20261029",
         "pointWithdrawalControls": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#pointWithdrawalControls20261029",
-        "vehiclePointAdmissionReview": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#vehiclePointAdmissionReview20261029"
+        "vehiclePointAdmissionReview": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#vehiclePointAdmissionReview20261029",
+        "crewBaselineReturnCorrection": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#crewBaselineReturnCorrection20261029"
       }
     },
     {

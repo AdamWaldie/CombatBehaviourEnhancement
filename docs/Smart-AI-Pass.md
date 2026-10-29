@@ -3488,3 +3488,17 @@ The existing Release infantry task control can cancel the exact active withdrawa
 the selection dialog sends no task. The native dialog preserves any other open Zeus dialog.
 Physical module UI, movement, smoke,
 repeat use, multiplayer handover and measured performance have not been validated in game.
+
+### Original crew commands during tactical repositioning
+
+Automatic vehicle standoff movement only borrows original idle, WAIT or MOVE commands that
+its current return path can restore. A crew member following another unit retains that native
+task; CBE refuses the optional repositioning instead of later treating a stopped vehicle as
+proof that FOLLOW was restored. Other unsupported original commands also refuse admission.
+
+Older work carrying an unsupported original command cannot acknowledge a return merely because
+the crew now appear idle at CBE's holding point. Its pending journal remains unresolved. For a
+legacy FOLLOW journal, a newer native STOP on every surviving original operator can supersede
+the old request only after the exact original worker has ended and measured rest is established.
+CBE observes that STOP without issuing or canceling it. This is supersession, not FOLLOW restoration.
+Automatic return to an original FOLLOW task remains unsupported and needs further implementation.

@@ -230,11 +230,24 @@ class ArtilleryFireSessions(unittest.TestCase):
         # STOP/FOLLOW/MOVE or no longer rests at the held point. Test both seat orders,
         # duplicate driver/operator identity and the original-survivor case.
         def mixed_return(baseline, current, alive=(True,True)):
+            if any(old not in ('','WAIT','MOVE') for old in baseline):
+                return False
             if not any(alive):
                 return False
             return all(not live or (returned(*sample) if old=='MOVE' else
                        sample[0] in ('','WAIT') and returned(*sample))
                        for old,sample,live in zip(baseline,current,alive))
+        # A positional hold can make an original FOLLOW appear idle. That is not
+        # restoration, in either mixed seat order or an all-idle current sample.
+        for originals in (('FOLLOW','WAIT'),('WAIT','FOLLOW'),('MOVE','FOLLOW'),
+                          ('FOLLOW','MOVE'),('UNKNOWN','WAIT')):
+            self.assertFalse(mixed_return(originals,(('WAIT',0,0,True),)*2))
+        phase_guard=worker.split('private _returnBaseline=',1)[1].split('if (_phase == "ISSUE") exitWith',1)[0]
+        self.assertIn('_returnBaseline select _x) in ["","MOVE","WAIT"]',phase_guard)
+        self.assertIn('_phase in ["ISSUE","STOPPING","RETURNING"]',phase_guard)
+        self.assertIn('"NATIVE_RETURN_BASELINE_UNSUPPORTED",_phase == "ISSUE"',phase_guard)
+        tactical=(ROOT/'addons/vehicles/functions/vehicleTacticalMoveStart.sqf').read_text(encoding='utf-8')
+        self.assertLess(tactical.index('!((_baseline select _x) in ["","MOVE","WAIT"])'),tactical.index('execFSM'))
         move=('MOVE',0,100,False)
         idle=('WAIT',0,0,True)
         for baseline,good in ((('MOVE','WAIT'),(move,idle)),(('WAIT','MOVE'),(idle,move))):
@@ -321,6 +334,10 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('call CBE_fnc_VehicleCrewMoveReturnProof',retirement)
         self.assertIn('NATIVE_RETURN_OBSERVED_AFTER_WORKER',retirement)
         stop=proof.split('if (_mode == "EXTERNAL_STOP") exitWith {',1)[1].split('private _returns=',1)[0]
+        self.assertIn('in ["","WAIT","MOVE","FOLLOW"]',stop)
+        ordinary=proof.split('private _returns=_work get "returns";',1)[1]
+        self.assertIn('in ["","MOVE","WAIT"]',ordinary)
+        self.assertNotIn('in ["","MOVE","WAIT","FOLLOW"]',ordinary)
         for guard in ('_stoppedWriters isEqualTo []','!local _x','group _x != _group',
                       'private _parent=objectParent _x','!isNull _parent && {_parent != _battery}',
                       'currentCommand _x != "STOP"','isNull _parent && {',
