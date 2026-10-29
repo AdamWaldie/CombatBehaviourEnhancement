@@ -267,5 +267,38 @@
     "newCandidate": "Official ropeCreate documentation includes a rope terminating on player. Investigate direct native actor endpoint as an alternative to manual actor/device transforms. Documentation is not proof that native Man physics supports controlled descent, safe animation, roof landing or split-owner migration; do not implement a production descent on this assumption alone.",
     "foundationRepair": "lambs-danger-branch-execution-20261025.json#nativeFlightReturnObservation20261029 repairs an existing unconfirmed native return before adding another movement writer. It does not implement rappel descent, flight orchestration or provider quiescence.",
     "status": "CONTROLLED_RAPPEL_EXECUTION_REMAINS_OPEN; native physics feasibility requires a focused engine check when audits are authorised; no module, test run or production rope writer added."
+  },
+  "flightOperatingActorRights20261029": {
+    "base": "5b188009ddcb5849fbfa7ab529e462d8aa70d338",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "sourceContext": "Revisited preserved nativePhysicsAlternative20261029 and actorOwnerIntegrationTrace20261028; no new upstream parity claim. Existing provider worker graph cannot acknowledge all delayed writers. Controlled native actor-rope feasibility still requires engine evidence; audits remain paused. Continue independent required flight foundation work.",
+    "actualTrace": [
+      "FlightLeaseAcquire/Valid previously checked currentPilot and airframe markers, plus pilot-group authority at admission, but never current effectiveCommander or its BIS remote marker.",
+      "AircraftEligible and helicopter braking/landing paths primarily derive pilot-group control; a player/remote/specialist commander in another group is not implied by that group. MissileDefenceStep calls fast FlightLeaseValid before bounded velocity mutation.",
+      "HelicopterDecelerationCorrectLocal and flight attack/landing own separate original crew/route/cleanup receipts. Airframe lease cannot simply be rebound to original crew without changing supported restoration paths."
+    ],
+    "change": "Read current effectiveCommander (pilot fallback when absent) and deduplicate the at-most2 operating actors. Player/native remote/BIS remote marker/shared CompatibilityExternalControl refuses acquire and fast permission before lease access. Acquire and fast permission also check existing Zeus hold for a distinct commander group. Same-group crew add no extra Zeus query; different commander groups can run the existing remaining-waypoint inspection and timing-cache update. No passenger/member/world scan, new cache or timer is introduced; per-controller original pilot-group/native checks remain. Airframe lease identity, same-token reacquisition, priority and exact cleanup release unchanged.",
+    "limits": "This closes current operating-actor permission gaps, not all specialist writers, original-crew task proof, native quiescence or provider/rappel execution. No production rope/physics/animation API or behaviour module added on undocumented feasibility assumptions.",
+    "runtimeHashes": {
+      "addons\\aircraft\\functions\\flightLeaseAcquire.sqf": "f90b6f49495ed9ac9107cc1c689d87a4fb4d23072bece1cbf40509b17f5bf348",
+      "addons\\aircraft\\functions\\flightLeaseValid.sqf": "ee1943b9bef404b7244b1e4a4abef1adfac8ea7e9c3e5dba9aad6cead1533a5b"
+    },
+    "checks": {
+      "red": ".qa/handovers/flight-crew-red-20261029.log: extended existing shared-flight case fails old source",
+      "focused": "Existing shared-flight case failed old source;617 operation cases pass after fix and final1505test build passes. No cases added/removed. Airframe same-token reacquisition and original release contracts explicitly retained.",
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "performance": "At most2 current operating-actor checks through existing compatibility boundary. Different commander groups add existing Zeus hold/remaining-waypoint inspection; same-group crew do not. No world/member scan, new worker/timer/cache. Actual overhead UNVERIFIED; no measured-budget claim.",
+      "full": "Final build exit0:1505tests/480compiledSQF/11PBO; config/FSM/docs/coverage/parity and static performance0findings pass.",
+      "candidate": ".qa/candidates/flight-command-rights-20261029-5b188009",
+      "fingerprint": "17e93f64458316aa56de52cae6f207d4c3d6cf0f8a16cf8185d6a28e33d88c5c",
+      "independent": "Verifier exit0 matching fingerprint. Unsigned development base5b188009+runtime/guide changes; source-review/handover metadata finalized afterward.",
+      "logs": [
+        ".qa/handovers/flight-crew-red-20261029.log",
+        ".qa/handovers/flight-command-rights-focused-20261029.log",
+        ".qa/handovers/flight-rights-build-20261029.log",
+        ".qa/handovers/flight-command-rights-final-build-20261029.log",
+        ".qa/handovers/flight-command-rights-independent-20261029.log"
+      ]
+    }
   }
 }

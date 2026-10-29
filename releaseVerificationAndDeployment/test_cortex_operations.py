@@ -687,6 +687,20 @@ class CortexOperations(unittest.TestCase):
         defence=source('cortexMissileDefenceStep');deceleration=source('helicopterDecelerationCorrectLocal')
         diagnostics=source('aiGetDiagnostics')
         self.assertIn('CBE_FlightLease',acquire+valid+release)
+        # An AI pilot's airframe lease cannot bypass a protected commander in a
+        # separate group. Recheck both current operating actors before permission;
+        # keep controller-specific original crew/order cleanup outside this lease.
+        for text in (acquire,valid):
+            self.assertIn('effectiveCommander _aircraft',text)
+            self.assertIn('bis_fnc_moduleRemoteControl_owner',text)
+            self.assertIn('[_x] call CBE_fnc_CompatibilityExternalControl',text)
+            self.assertLess(text.index('effectiveCommander _aircraft'),text.index('getVariable ["CBE_FlightLease"'))
+            self.assertNotIn('crew _aircraft',text.split('params [',1)[1])
+            self.assertNotIn('units _',text.split('params [',1)[1])
+        self.assertIn('[_commanderGroup] call CBE_fnc_CortexZeusHeld',acquire)
+        self.assertIn('_commanderGroup != group _pilot && {[_commanderGroup] call CBE_fnc_CortexZeusHeld}',valid)
+        self.assertIn('if (_same) exitWith {\n    true\n};',acquire)
+        self.assertNotIn('currentPilot',release.split('params [',1)[1])
         self.assertIn('CBE_fnc_CortexZeusHeld',acquire)
         self.assertIn('CBE_fnc_CortexExternalTakeover',acquire)
         self.assertIn('_priority <= (_lease getOrDefault ["priority",0])',acquire)

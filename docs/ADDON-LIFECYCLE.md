@@ -2542,3 +2542,24 @@ A failed fleeing escape retains its exact journal after its one native FOLLOW re
 `PatrolRoutePlan` plans three to eight ground destinations inside a25-500m area, with at most four short clearance candidates per node. Dry terrain, slope, map bounds, body clearance and destination separation do not prove native route access or keep the path inside that area. `PatrolRouteCommit` accepts one route index only under the current PATROL operation generation/epoch and original300-second issue window, then delegates to the existing native group waypoint owner. Protected, mounted, dormant or stopped living members refuse group movement. Existing common-operation cancellation/release owns exact waypoint cleanup; no second movement writer, worker, record or settings lease is added.
 
 These are internal primitives. Task start, sequential/physical progress, watchdog, contact/resume and locality continuation still need integration before a patrol module is exposed. The issue window does not cancel an outstanding command or prove arrival. Geometry/model/static checks do not establish physical patrol behaviour or measured performance; audits remain paused.
+
+
+### Flight permission and current operating crew
+
+The shared flight lease checks the current pilot and effective commander before admission
+and before each caller's flight-write permission. A player, native or BIS remote-control marker,
+or declared/specialist controller on either operating actor refuses that permission. A commander
+in another group is checked directly rather than inferred from the pilot's group. Admission
+and fast mutation permission also respect a separate commander's existing Zeus hold.
+
+The fast check reads at most two operating actors and the shared current ownership markers.
+A commander in a different group adds the existing Zeus hold check, which can inspect that
+group's remaining waypoints and update its established timing cache. Same-group crew add no
+extra Zeus query. There is no passenger/group-member/world scan, new cache, timer or controller. Per-task
+native routes, original crew, Zeus interruption, deadlines and restoration receipts remain
+with their existing owners. This is still an airframe lease: same-controller/token reacquisition,
+priority replacement and exact identity-only release retain their previous semantics. The check
+does not certify that old workers have ended or that native flight commands are quiescent.
+
+Physical pilot/commander takeover, normal/HC ownership, repeated control/cleanup and the measured
+performance budget remain unverified while audits are paused.
