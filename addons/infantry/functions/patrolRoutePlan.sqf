@@ -7,7 +7,7 @@
  * Arguments: 0 centre ATL ARRAY,[]; 1 radius NUMBER,100 (25..500); 2 nodes NUMBER,4 (3..8).
  * Return: ARRAY of ground ATL positions, or[] if any node cannot be placed. Empty-position,
  * dry terrain, slope and body clearance do not prove connected navigation or physical access.
- * Current callers: patrol task integration pending; internal geometry primitive only.
+ * Current callers: PatrolOperation START.
  * Example: private _route=[getMarkerPos "patrol",100,4] call CBE_fnc_PatrolRoutePlan;
  */
 params [["_centre",[],[[]]],["_radius",100,[0]],["_nodes",4,[0]]];

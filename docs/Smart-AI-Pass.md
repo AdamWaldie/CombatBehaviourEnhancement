@@ -3173,3 +3173,52 @@ Mission scripts can use the same task path on the server:
 ```
 
 This is a behaviour command. Global addon configuration remains in CBA settings. Module dialog, repeat use and multiplayer/locality behaviour are implemented but await in-engine verification while audits are paused.
+
+
+### Finite area patrol (owner-local script API)
+
+A squad can make one bounded ground circuit without replacing its authored mission route:
+
+```sqf
+["START", _group, [getMarkerPos "patrol_area", 100, 4, 900]] call CBE_fnc_PatrolOperation;
+// Later, on the same squad owner:
+["CANCEL", _group, ["MISSION_RELEASE"]] call CBE_fnc_PatrolOperation;
+```
+
+The START payload is centre ATL, radius (25–500 metres, default 100), node count
+(3–8, default 4) and total duration (30–1800 seconds, default 900). It returns true
+only after the existing group brain, common operation and first native movement
+leg have accepted the task. Call it on the current owner of an eligible AI-only
+foot squad; it is not a remote-execution entry point. CBE must be active. Existing
+operations, movement owners, protected actor tasks and groups above 64 members or
+128 waypoints refuse admission. This API has no Zeus/ZEN Patrol module yet.
+
+The planner chooses dry, separated ground destinations with bounded empty-position,
+slope and body-clearance checks. Normal engine navigation moves the squad in its
+existing formation. CBE does not change speed mode, combat mode, lights, skills or
+membership. Geometry does not prove connected navigation, and a native path may
+leave the chosen radius. An inaccessible leg ends within its original distance-scaled leg
+window (90–900 seconds, also capped by the total task deadline); it is never teleported or credited as arrival.
+
+The existing group callback checks the circuit at up to one-second intervals;
+there is no patrol-specific loop, actor movement controller or per-frame handler.
+A leg advances only when the anchor is within six metres of the actual committed
+engine destination, surviving members are within 25 metres, and they are on its
+floor band. Completion requires those checks on every leg and successful common
+operation release. An accepted waypoint, elapsed timer or status label is not
+completion. The task also checks expiry before dormant/medical early returns.
+
+Combat can suspend patrol movement and release its exact temporary waypoint so
+normal CBE contact tactics can act. Resumption requires a calm group, no competing
+operation/lease and the unchanged original current mission node and route count.
+The task and current leg deadlines include suspension time and are never renewed.
+Changed mission/Zeus control, participant transfer, protected native work, a
+replacement operation or locality migration ends the task. Future authored nodes
+are preserved; their policy is read when current. There is no incoming-owner
+patrol replay or infinite circuit renewal. Dead members do not count toward arrival.
+
+`CBE_Patrol_Status` is passive diagnostic state on the group: phase, reason, leg
+index, node count and server observation time. It grants no authority to restart
+work. START/STEP/cleanup and packaging have offline regression coverage only;
+physical circuit flow, combat resumption, Zeus/MP handback and measured overhead
+remain unverified while audits are paused.

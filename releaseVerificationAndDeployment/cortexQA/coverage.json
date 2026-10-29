@@ -63,7 +63,7 @@
         "runtime-20260927-032658: CORE MASTER/GROUP/UNIT/EXTERNAL/SIDE refusal and physical arrival passed.",
         "runtime-20260927-094454: 53 lifecycle checks passed, zero SQF errors, server and client complete. Held-defence Zeus takeover and replacement arrival passed for server and two CBE HC variants after return to server. Added server mid-movement interruption, replacement arrival and 15-second no-resurrection checks passed. Real curator event delivery and interruption during every feature remain unverified; prior HC replacement failure retained."
       ],
-      "automation": "runGates.sqf: five closed-gate refusal and no-movement checks, each followed by reopened physical arrival. All ten passed in runtime-20260927-032658. Player-led, Zeus and locality variants remain outstanding. Standalone addon readiness and catalogue assertions run in runAddon; ZEN notifications, setting changes, diagnostics and compatibility side effects still require live checks. Internal bounded patrol geometry/leg primitives are mapped to the common operation owner; no public patrol task or physical completion is claimed.",
+      "automation": "runGates.sqf: five closed-gate refusal and no-movement checks, each followed by reopened physical arrival. All ten passed in runtime-20260927-032658. Player-led, Zeus and locality variants remain outstanding. Standalone addon readiness and catalogue assertions run in runAddon; ZEN notifications, setting changes, diagnostics and compatibility side effects still require live checks. A finite owner-local script Patrol task now sequences bounded geometry through the existing group brain/common operation and checks actual destinations, cohort proximity, original mission receipts, combat suspension and original deadlines. Patrol modules, locality continuation and physical patrol evidence remain pending.",
       "executable_sources": [
         "runGates.sqf",
         "runAddon.sqf"
@@ -105,7 +105,8 @@
         "addons/main/settings/aiConfig.sqf",
         "addons/infantry/functions/cortexDrillResume.sqf",
         "addons/infantry/functions/patrolRoutePlan.sqf",
-        "addons/infantry/functions/patrolRouteCommit.sqf"
+        "addons/infantry/functions/patrolRouteCommit.sqf",
+        "addons/infantry/functions/patrolOperation.sqf"
       ]
     },
     {

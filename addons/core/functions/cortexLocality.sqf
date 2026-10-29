@@ -353,6 +353,9 @@ if (_abortSource isNotEqualTo []) then {
 // First adoption establishes this machine's epoch; it is not a transfer from another
 // owner. Keep the existing map object so an initiating feature's local reference remains
 // authoritative. Real owner changes rebuild state from the published checkpoint.
+// Patrol is deliberately owner-local: retire its old task without replaying a public status.
+// Common operation cleanup above owns the old native waypoint.
+if (!_firstAdoption) then {_group setVariable ["CBE_PatrolTask",nil];};
 if (!_firstAdoption) then {_group setVariable ["CBE_AIPass_State", nil];};
 _group setVariable ["CBE_AIPass_Managed", nil];
 {_group setVariable [_x, nil]} forEach ["CBE_AIPass_GarrisonApplied", "CBE_AIPass_DefendApplied", "CBE_AIPass_ClearApplied"];

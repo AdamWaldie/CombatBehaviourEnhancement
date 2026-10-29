@@ -185,6 +185,8 @@ if (diag_fps < (missionNamespace getVariable ["CBE_AIPass_LowFpsThreshold",25])
     && {time >= (_brain getOrDefault ["responsiveUntil",0])}) then {_delay=_delay*2};
 if (!finite _delay || {!finite (time+_delay)}) exitWith {["INVALID_GROUP_DELAY"] call _cancel};
 private _state=[_group] call CBE_fnc_CortexGroupState;
+// One finite patrol shares this existing callback; retain its task/leg watchdog cadence.
+if (count (_group getVariable ["CBE_PatrolTask",createHashMap]) > 0) then {_delay=_delay min 1};
 if ([_group] call CBE_fnc_CortexIlluminationStep) then {_delay=_delay min 1};
 // Capacity freshness is a protocol deadline, not tactical reaction tuning. Keep only
 // a live coordinated COVER helper on this existing callback within its six-second TTL.

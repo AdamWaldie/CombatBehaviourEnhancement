@@ -66,7 +66,9 @@
         "scope": "Patrol/Hunt/Rush/reset task bodies compared with current CBE owners; full WP/source parity unproven. Scoped building/defence release module exposed through existing real executor; Patrol/Hunt/Rush remain actual implementation gaps.",
         "physicalAcceptance": false,
         "durableSourceArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/LAMBS/20261029-wp-da03c629",
-        "patrolFoundation": "lambs-wp-task-controls-20261029.json#patrolRouteFoundation20261029: bounded geometry and single-leg common-owner commit primitives; task sequencing/watchdog/continuation and modules still pending, physical/performance unverified."
+        "patrolFoundation": "lambs-wp-task-controls-20261029.json#patrolRouteFoundation20261029: bounded geometry and single-leg common-owner commit primitives; task sequencing/watchdog/continuation and modules still pending, physical/performance unverified.",
+        "patrolExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#patrolExecutor20261029",
+        "patrolExecutorStatus": "Finite owner-local script circuit implemented; source comparison and offline package passed. Modules/locality continuation/physical reliability remain incomplete; no whole-source parity or percentage uplift."
       }
     },
     {

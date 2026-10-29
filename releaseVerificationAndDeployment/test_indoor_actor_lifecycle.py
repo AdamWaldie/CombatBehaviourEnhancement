@@ -223,8 +223,8 @@ class IndoorActorLifecycleTests(unittest.TestCase):
         tick=(ROOT/'addons/infantry/functions/cortexGroupTick.sqf').read_text()
         search=tick.split('case "SEARCH": {',1)[1].split('case "REGROUP": {',1)[0]
         self.assertIn('["START",_x,createHashMapFromArray',search)
-        self.assertNotIn('["STEP",',tick)
-        self.assertNotIn('["QUEUE",',tick)
+        # Indoor workers own their own FSM steps; other group-level tasks may use STEP.
+        self.assertNotRegex(tick,r'\["(?:STEP|QUEUE)",[^;]*call CBE_fnc_IndoorActorOperation')
         fsm=(ROOT/'addons/main/fsm/indoorActor.fsm').read_text()
         self.assertIn('serverTime >= (_brain getOrDefault',fsm)
         self.assertIn('""QUEUE""',fsm)

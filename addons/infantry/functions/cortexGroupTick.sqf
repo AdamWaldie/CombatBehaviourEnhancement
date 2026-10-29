@@ -172,6 +172,10 @@ if (!_dangerYield) then {
         _x setVariable ["CBE_AIPass_TargetHold",nil];
     };
 } forEach units _group;
+// Deadline cleanup precedes dormant/medical early returns; it never issues another leg.
+if (count (_group getVariable ["CBE_PatrolTask",createHashMap]) > 0) then {
+    ["CHECK",_group] call CBE_fnc_PatrolOperation;
+};
 private _alive = (units _group) select {alive _x};
 if (_alive isEqualTo []) exitWith {
     _group setVariable ["CBE_AIPass_Managed", nil];
@@ -519,6 +523,9 @@ private _priorVehicleLease=_state getOrDefault ["movementLease",[]];
 if ((_priorVehicleLease param [0,""]) in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","VEHICLE_ORIENT"]) then {
     [_group,_state,[],true] call CBE_fnc_CortexVehicles;
 };
+if (count (_group getVariable ["CBE_PatrolTask",createHashMap]) > 0) then {
+    ["STEP",_group,[_dangerActive]] call CBE_fnc_PatrolOperation;
+};
 private _movementLease = _state getOrDefault ["movementLease",[]];
 private _movementOwner = _movementLease param [0,""];
 // Follow the committed screened corridor rather than skipping to its final endpoint. This
@@ -571,6 +578,7 @@ private _crewMovementReserved=(_group getVariable ["CBE_ArtilleryCrew_Reservatio
     || {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []};
 private _groupMovementOwned = _crewMovementReserved || {count _movementLease == 2 && {time < (_movementLease select 1)} && {
     switch (_movementOwner) do {
+        case "PATROL": {count (_group getVariable ["CBE_PatrolTask",createHashMap]) > 0};
         case "TACTICAL_DRILL": {count (_state getOrDefault ["drill",createHashMap]) > 0};
         case "COORDINATED_ASSAULT": {
             _state getOrDefault ["assaulting",false]

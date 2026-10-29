@@ -7,12 +7,12 @@
  * group membership and targets stay with their existing owners.
  * Repeat/JIP: Existing CortexGroupMove handles idempotence and exact waypoint cleanup through
  * OperationCancel/OperationRelease. No new native writer, record, loop, worker or replay.
- * New leg issues stop after the original operation's local startedAt+300s; this grants no
- * deadline renewal, native cancellation or physical arrival. A task watchdog is still required.
+ * New leg issues stop at the original finite patrolDeadline (<=startedAt+1800s; otherwise300s); no
+ * deadline renewal, native cancellation or physical arrival. PatrolOperation owns the task watchdog.
  * Arguments: 0 group GROUP,grpNull; 1 operation generation NUMBER,-1; 2 route index NUMBER,0.
- * Return: Native waypoint [group,index], or[grpNull,-1]. Task start/progress/watchdog/locality
- * continuation and modules remain pending; this internal leg primitive is not a full patrol.
- * Current callers: patrol task integration pending; common-operation primitive only.
+ * Return: Native waypoint [group,index], or[grpNull,-1]. PatrolOperation owns task start/progress/watchdog;
+ * locality continuation and modules remain pending.
+ * Current callers: PatrolOperation START/STEP through the shared group brain.
  * Example: [_group,_operation get "generation",0] call CBE_fnc_PatrolRouteCommit;
  */
 params [["_group",grpNull,[grpNull]],["_generation",-1,[0]],["_index",0,[0]]];
@@ -24,6 +24,8 @@ isNil {
     private _operation=_group getVariable ["CBE_Operation",createHashMap];
     private _epoch=_group getVariable ["CBE_AIPass_Epoch",-1];
     private _started=_operation getOrDefault ["startedAt",-1];
+    private _fallback=if (_started isEqualType 0) then {_started+300} else {-1};
+    private _deadline=_operation getOrDefault ["patrolDeadline",_fallback];
     private _route=_operation getOrDefault ["route",[]];
     private _members=units _group;
     if ((_operation getOrDefault ["intent",""]) != "PATROL"
@@ -31,7 +33,9 @@ isNil {
         || {(_operation getOrDefault ["ownerEpoch",-2]) != _epoch}
         || {(_operation getOrDefault ["phase",""]) in ["CANCELLED","COMPLETE"]}
         || {!(_started isEqualType 0)} || {!finite _started} || {_started < 0}
-        || {time < _started} || {time >= _started+300}
+        || {!(_deadline isEqualType 0)} || {!finite _deadline}
+        || {_deadline <= _started} || {_deadline > _started+1800}
+        || {time < _started} || {time >= _deadline}
         || {!(_route isEqualType [])} || {count _route < 3} || {count _route > 8}
         || {_index >= count _route}
         || {_route findIf {!(_x isEqualType []) || {count _x != 3}

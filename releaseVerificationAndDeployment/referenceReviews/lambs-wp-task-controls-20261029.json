@@ -63,7 +63,7 @@
     "policies": "No addon setting changes, nearest squad guess, replacement group, blanket AI/animation reset, waypoint clearing, forced seating/teleport, new worker or RPC. Native module works without ZEN; optional ZEN dialog has a labelled bounded squad selector. Duplicate/late/changed-owner requests retain the existing refusal. Release refusal now has a task-specific explanation.",
     "scope": "Existing supported infantry task release only; no convoy/flight/artillery/drill stop-all promise. Accepted request is not proven physical formation recovery, and native handback may remain unresolved."
   },
-  "nextRequired": "Implement patrol executor first in the existing common operation/group movement lifecycle: bounded area planning, explicit task area/pattern, original participant/order/settings capture, original leg/task budget, current-owner continuation and exact own-waypoint cleanup; preserve authored/Zeus route and active danger responsiveness. Expose behaviour controls only after executor exists. Then knowledge-based Hunt and explicit aggressive task, using existing search/drill/fire owners rather than source omniscience/FSM disable. Teleport outside explicit garrison exception is not authorised by this review.",
+  "nextRequired": "Finite owner-local Patrol script executor is now implemented; see patrolExecutor20261029. Next expose it through existing authenticated task dispatch and native Zeus/optional ZEN with labelled finite task parameters/scoped cancellation. Reconcile useful dynamic circuit/reinforcement options and incoming-owner continuation without replaying stale permission. Then knowledge-based Hunt and explicit aggressive task through existing search/drill/fire owners. Physical patrol/resume/Zeus/MP and measured performance remain unverified while audits are paused; teleport outside the explicit garrison exception is not authorised.",
   "checks": {
     "red": ".qa/handovers/infantry-release-module-red-20261029.log",
     "focused": ".qa/handovers/infantry-release-module-green-20261029.log",
@@ -109,6 +109,30 @@
       "candidate": ".qa/candidates/patrol-route-20261029-070ade90",
       "fingerprint": "c8fdc8107940717593150bb82d2500dcf94fd90e5165b15cfcb90d6056613173",
       "provenance": "Unsigned development receipt070ade90 plus dirty runtime inputs; engineering metadata finalised after packaging."
+    }
+  },
+  "patrolExecutor20261029": {
+    "base": "bb344a8ec37c53143f782a9d88186452beb25d62",
+    "source": "Preserved functions/fnc_taskPatrol.sqf SHA256 10040f562fc086b0202828efbcd79499d0c165916a4fca6de0667772b7f9285b",
+    "intent": "Retain spatial area-patrol and return-to-patrol-after-combat intent within CBE group brain/common operation ownership; preserve original mission route and gameplay policies.",
+    "implemented": "PatrolOperation START/CHECK/STEP/CANCEL: one finite 3..8-node circuit, original <=1800s total (900s default) and distance-scaled90..900s leg windows; common leg issue validates the same original deadline with a300s fallback for standalone primitive callers, at most64 participants/128 native waypoints. Existing group brain callback <=1s, deadline cleanup before medical/dormant early exits, existing PatrolRouteCommit/CortexGroupMove only. Actual committed native destination, anchor<=6m/cohort<=25m and floor checks before every leg; successful OperationRelease required for COMPLETE. Combat can release its exact operation/leases then resume calm/uncontested/unchanged original mission context without renewing deadlines. Current mission node receipt includes policy and normalized same-group sync indices; edited own waypoint yields. New actors, living transferred actors, protected tasks, new operations, Zeus/external owner or locality change retire. No new loop/native writer/actor flags/settings/skills/formation/teleport.",
+    "limits": "Internal owner-local script API only; selectable Patrol modules and broader area/pattern/reinforcement options remain pending. Finite circuit intentionally replaces source infinite loop; no incoming-owner continuation. Terrain geometry is not path connectivity; paths may leave the area. Native actor doMove provenance cannot be inferred from a group waypoint receipt alone. Actual traversal/resume/casualty/Zeus/MP flow and measured cost unverified; audits paused.",
+    "checks": {
+      "full": "1505 tests,465 production SQF,11 PBOs; complete sequential build_mod.ps1 and independent mod_pipeline verify passed",
+      "candidate": ".qa/candidates/patrol-executor-20261029-bb344a8e",
+      "fingerprint": "e287f4001ba13dc38046a2f21be7d7a4b7b50e363c34e1f46eb8ffe912c8468a",
+      "provenance": "Unsigned development build: bb344a8e plus recorded dirty inputs. Engineering handover/source-map updates after this build do not change packaged runtime. Not a clean signed release or physical proof.",
+      "retainedFailures": "Initial full build: newly appended guide cp1252 bytes fixed without changing original UTF8 prefix; indoor source-shape test narrowed from all STEP/QUEUE calls to actual IndoorActorOperation calls. Subsequent review fixed paused actor reservations before final successful build. Logs retained.",
+      "logs": [
+        ".qa/handovers/patrol-executor-focused-20261029.log",
+        ".qa/handovers/patrol-executor-coverage-20261029.log",
+        ".qa/handovers/patrol-executor-build-20261029.log",
+        ".qa/handovers/patrol-executor-build-final-20261029.log",
+        ".qa/handovers/patrol-executor-build-verified-20261029.log",
+        ".qa/handovers/patrol-executor-independent-20261029.log"
+      ],
+      "physical": "Unverified; audits PAUSED",
+      "performance": "Static audit zero findings; runtime5%median/10%p95 budget unmeasured"
     }
   }
 }

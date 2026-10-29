@@ -2726,6 +2726,37 @@ class CortexOperations(unittest.TestCase):
 
     def test_group_move_commits_equivalent_requests_without_waypoint_churn(self):
         plan=source('patrolRoutePlan'); leg=source('patrolRouteCommit')
+        patrol=source('patrolOperation')
+        tick=source('cortexGroupTick'); brain=source('groupBrainStep')
+        self.assertIn('["STEP",_group,[_dangerActive]] call CBE_fnc_PatrolOperation',tick)
+        self.assertIn('case "PATROL":',tick)
+        self.assertIn('_delay=_delay min 1',brain)
+        for guard in ('remoteExecutedOwner > 0','count waypoints _group > 128',
+                      '"missionCurrent",currentWaypoint _group','call _missionUnchanged',
+                      '"serverDeadline"','time >= (_task get "deadline")',
+                      'time >= (_task get "legDeadline")','_anchor distance2D _point <= 6',
+                      '_x distance2D _point > 25','"PAUSED"','"OPERATION_REPLACED"'):
+            self.assertIn(guard,patrol)
+        # The task can sequence only through the common single-waypoint writer; no new worker,
+        # native route clearing, whole-group flag reset, formation override or per-actor orders.
+        for forbidden in ('addWaypoint','deleteWaypoint','doMove','doFollow','enableAI',
+                          'setFormation','setBehaviour','setSpeedMode','spawn ','waitUntil',
+                          'CortexQueueJob','CBA_fnc_addPerFrameHandler'):
+            self.assertNotIn(forbidden,patrol)
+        self.assertEqual(patrol.count('call CBE_fnc_PatrolRouteCommit'),1)
+        self.assertIn('"CIRCUIT_REACHED",true',patrol)
+        self.assertLess(tick.index('["CHECK",_group] call CBE_fnc_PatrolOperation'),
+                        tick.index('private _alive ='))
+        self.assertIn('_completed=[_group,_generation,"COMPLETE",_reason]',patrol)
+        self.assertIn('_operation set ["patrolDeadline",_task get "deadline"]',patrol)
+        paused=patrol.split('== "PAUSED") exitWith {',1)[1].split('"OPERATION_REPLACED"',1)[0]
+        self.assertLess(paused.index('if (_combat || {count _operation > 0})'),
+                        paused.index('call _membersAvailable'))
+
+        self.assertIn('(_x select 1) == _ownedIndex',patrol)
+        self.assertIn('CBE_fnc_PatrolOperation',source('cortexReleaseGroup'))
+        self.assertIn('_group setVariable ["CBE_PatrolTask",nil]',source('cortexLocality'))
+
         for bound in ('_radius < 25','_radius > 500','_nodes < 3','_nodes > 8',
                       'for "_attempt" from 0 to 3','findEmptyPosition [0,5,"B_Soldier_F"]',
                       '_point distance2D _centre <= _radius','!surfaceIsWater _point',
@@ -2734,7 +2765,7 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(bound,plan)
         for guard in ('remoteExecutedOwner > 0','"intent",""]) != "PATROL"',
                       '"generation",-2]) != _generation','"ownerEpoch",-2]) != _epoch',
-                      'time >= _started+300','_index >= count _route','count _route > 8',
+                      '_deadline > _started+1800','time >= _deadline','_index >= count _route','count _route > 8',
                       'count _members > 64','CBE_fnc_CortexActorFireTaskAvailable'):
             self.assertIn(guard,leg)
         self.assertEqual(leg.count('call CBE_fnc_CortexGroupMove'),1)
