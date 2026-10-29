@@ -69,6 +69,32 @@ class GarrisonModuleTests(unittest.TestCase):
         self.assertIn('_radius > 500',local)
         self.assertIn('_duration <= 1800',dispatch)
         self.assertIn('_patrolDuration > 1800',local)
+        hunt=src('huntOperation'); dialog=src('zenHuntModule')
+        self.assertIn('class CBE_ModuleHunt: CBE_ModuleGarrison',config)
+        self.assertIn('call CBE_fnc_ZenHuntModule',native)
+        self.assertIn('case "HUNT": {["START",_group,',local)
+        self.assertIn('["huntRange",round _range]',dialog)
+        self.assertIn('getOrDefault ["huntRange",800]',dispatch)
+        self.assertIn('getOrDefault ["huntRange",800]',local)
+        self.assertIn('_huntRange <= 2000',dispatch)
+        self.assertIn('_huntRange > 2000',local)
+        self.assertIn('call CBE_fnc_CortexKnowledge',hunt)
+        self.assertIn('call CBE_fnc_PatrolOperation',hunt)
+        hunt_body=hunt.split('*/',1)[1]
+        for forbidden in ('allUnits','allPlayers','getPos','moveTo','doMove','addWaypoint',
+                          'enableAI','enableAttack','reveal','createVehicle','spawn ',
+                          'CBA_fnc_addPerFrameHandler','CortexQueueJob'):
+            self.assertNotIn(forbidden,hunt_body)
+        for bound in ('count _payload > 8','time+10','(_hunt get "updates") >= 4',
+                      '_observedAt=time-_age','"HUNT_CONTACT_STALE"','_belief distance2D'):
+            self.assertIn(bound,hunt)
+        tick=src('cortexGroupTick'); sweep=src('patrolOperation')
+        self.assertIn('["UPDATE",_group,_enemies] call CBE_fnc_HuntOperation',tick)
+        pending=sweep.split('private _pending=_task getOrDefault ["huntPending",[]];',1)[1].split('if (!_arrived)',1)[0]
+        self.assertNotIn('legDeadline',pending)
+        self.assertIn('call _missionUnchanged',pending)
+        self.assertLess(sweep.index('if (!_arrived && {currentWaypoint _group != _index})'),
+                        sweep.index('private _pending=_task getOrDefault ["huntPending",[]];'))
         for private in ('patrolOperation','patrolRouteCommit'):
             self.assertIn('remoteExecutedOwner != 2',src(private))
         for text in (patrol,native,release):

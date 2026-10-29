@@ -11,7 +11,8 @@
     "CBE_ModuleDrivingCorridorMission",
     "CBE_ModuleAirborne",
     "CBE_ModuleRelease",
-    "CBE_ModulePatrol"
+    "CBE_ModulePatrol",
+    "CBE_ModuleHunt"
   ],
   "zen_labels": [
     "Create AI Convoy",
@@ -20,7 +21,8 @@
     "Clear building",
     "Navigation corridor",
     "Release infantry task",
-    "Patrol area"
+    "Patrol area",
+    "Hunt known enemy"
   ],
   "contracts": [
     {
@@ -184,6 +186,24 @@
       "termination": "Original finite circuit/task/leg deadlines, common-operation exact waypoint cleanup, combat suspension without deadline renewal, newer-control/locality cancellation. Existing Release infantry task cancels only tracked infantry tasks.",
       "guide": "docs/Smart-AI-Pass.md",
       "physical_acceptance": "unverified; dialog/payload/owner/circuit/release/Zeus/MP checks await audit authorisation"
+    },
+    {
+      "behaviour": "Finite Hunt from native ground-contact belief",
+      "target": "Explicit AI foot squad; native module attaches to AI soldier; position does not reveal target",
+      "parameters": [
+        "squad",
+        "huntRange50..2000 capped by CBA engagement range",
+        "duration30..1800s"
+      ],
+      "handlers": [
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenHuntModule.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Existing authenticated curator/server/current-owner task path and serial/12s/native/Zeus receipts; repeated parameter validation; native CortexKnowledge only, no remote registration of HuntOperation.",
+      "termination": "Existing finite PatrolOperation sweep owner and scoped Release. Native belief expires, original task/leg deadline, four retarget plans,10s sampling, newer control/locality stops; no new controller or world scan.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; physical search/retarget/contact/release/Zeus/MP await audit authorisation"
     }
   ]
 }

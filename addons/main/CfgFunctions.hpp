@@ -310,6 +310,7 @@ class CfgFunctions {
             class ModuleGarrison {file = "\z\cbe\addons\infantry\functions\moduleGarrison.sqf";};
             class ZenClearModule {file = "\z\cbe\addons\infantry\functions\zenClearModule.sqf";};
             class ZenDefendModule {file = "\z\cbe\addons\infantry\functions\zenDefendModule.sqf";};
+            class ZenHuntModule {file = "\z\cbe\addons\infantry\functions\zenHuntModule.sqf";};
             class ZenPatrolModule {file = "\z\cbe\addons\infantry\functions\zenPatrolModule.sqf";};
             class ZenReleaseModule {file = "\z\cbe\addons\infantry\functions\zenReleaseModule.sqf";};
             class ZenGarrisonModule {file = "\z\cbe\addons\infantry\functions\zenGarrisonModule.sqf";};
@@ -386,6 +387,7 @@ class CfgFunctions {
             class CortexGrenadeCheck {file = "\z\cbe\addons\infantry\functions\cortexGrenadeCheck.sqf";};
             class CortexGroupMove {file = "\z\cbe\addons\infantry\functions\cortexGroupMove.sqf";};
             class CortexGroupMoveClear {file = "\z\cbe\addons\infantry\functions\cortexGroupMoveClear.sqf";};
+            class HuntOperation {file = "\z\cbe\addons\infantry\functions\huntOperation.sqf";};
             class PatrolOperation {file = "\z\cbe\addons\infantry\functions\patrolOperation.sqf";};
             class PatrolRoutePlan {file = "\z\cbe\addons\infantry\functions\patrolRoutePlan.sqf";};
             class PatrolRouteCommit {file = "\z\cbe\addons\infantry\functions\patrolRouteCommit.sqf";};

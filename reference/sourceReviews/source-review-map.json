@@ -69,7 +69,8 @@
         "patrolFoundation": "lambs-wp-task-controls-20261029.json#patrolRouteFoundation20261029: bounded geometry and single-leg common-owner commit primitives; task sequencing/watchdog/continuation and modules still pending, physical/performance unverified.",
         "patrolExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#patrolExecutor20261029",
         "patrolExecutorStatus": "Finite owner-local circuit and authenticated native/optional ZEN controls implemented; local package gates passed. Incoming-owner continuation, broader source options and physical/MP/performance remain incomplete; no whole-source parity or percentage uplift.",
-        "patrolControls": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#patrolControls20261029"
+        "patrolControls": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#patrolControls20261029",
+        "huntExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#huntExecution20261029"
       }
     },
     {

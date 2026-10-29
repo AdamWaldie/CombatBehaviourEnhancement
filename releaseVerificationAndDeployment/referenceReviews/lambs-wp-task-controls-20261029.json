@@ -63,7 +63,7 @@
     "policies": "No addon setting changes, nearest squad guess, replacement group, blanket AI/animation reset, waypoint clearing, forced seating/teleport, new worker or RPC. Native module works without ZEN; optional ZEN dialog has a labelled bounded squad selector. Duplicate/late/changed-owner requests retain the existing refusal. Release refusal now has a task-specific explanation.",
     "scope": "Existing supported infantry task release only; no convoy/flight/artillery/drill stop-all promise. Accepted request is not proven physical formation recovery, and native handback may remain unresolved."
   },
-  "nextRequired": "Patrol script executor and native/optional ZEN task surface are implemented; physical circuit/resume/release/Zeus/MP and runtime performance remain unverified. Reconcile source dynamic/reinforcement options and safe incoming-owner continuation without stale replay. Next concrete missing source tasks: knowledge-based Hunt and explicit aggressive task through existing search/drill/fire owners, retaining native knowledge/target uncertainty and finite admission/deadline/cleanup rather than source omniscience or disabled FSM. No teleport outside explicit garrison exception.",
+  "nextRequired": "Hunt finite native-belief executor and native/optional ZEN equivalents are implemented as policy on existing sweep owner. Next actual missing source task is Rush/aggressive execution through existing drill/fire/common owners AND its native Zeus/optional ZEN equivalents (user clarification). Do not expose unavailable module behaviour or import global hidden target scans, disabled FSM or unbounded writers. Broader Hunt/Patrol area/reinforcement/illumination options, safe incoming-owner continuation and physical/MP/performance remain incomplete.",
   "checks": {
     "red": ".qa/handovers/infantry-release-module-red-20261029.log",
     "focused": ".qa/handovers/infantry-release-module-green-20261029.log",
@@ -158,5 +158,36 @@
       "physical": "Unverified; auditsPAUSED",
       "performance": "Static0findings; runtimebudgetunmeasured"
     }
+  },
+  "huntExecution20261029": {
+    "base": "08f4fc3f791f2a1eb4ed09bc097b28a860e482b0",
+    "sourceSHA256": "8d0b517efe67a3bd841e9b150af67ccbc7732411067e82cb41e9ad386c519534",
+    "intent": "Retain pursuit/search of believed enemy locations and periodic useful goal updates, with actual task modules; replace global hidden-position lookup and indefinite movement loop.",
+    "implemented": "HuntOperation stores a private policy inside the existing finite PatrolOperation task, no second owner/loop/worker. One native CortexKnowledge query at START, same existing group result at UPDATE, <=8 records and10s samples, age<=120s/nativeconfidence>=1, believed ground location/range capped by CBA engage range, uncertainty25..300m. Same selected native contact preferred; fresh material displacement/target changes can suggest <=4 three-node retargets. Only existing movement owner applies them after exact native/current mission proof; current leg/task deadlines not renewed. Native/optional ZEN Hunt known enemy module on existing authenticated dispatch, server/owner range validation, existing Release infantry task stops the same underlying sweep. Contact gate, newer mission/Zeus/control, protected actors and locality cleanup retained.",
+    "rejected": "Global allUnits/playable-unit nearest-hidden-target lookup, exact hostile transforms, unlimited scheduled polling/movement, enableAttack false, blanket SAFE/LIMITED/lights/IR lasers and spawned flare fallback. Existing combat/illumination owners remain intact.",
+    "limits": "Finite ground sweep, not indefinite omniscient hunter, enemy neutralization or hostile-room clearance. Dynamic/reinforcement/full source options and incoming-owner continuation remain open. Status is diagnostic and may outlive owner metadata; no replay permission. Physical flow, module/MP/release and measured performance unverified; audits PAUSED. Aggressive/Rush executor and native/optional ZEN equivalent still required.",
+    "checks": {
+      "focused": "10 existing authority/module/native-route regressions passed; initial forbidden-command check matched documentation word reveal, then scoped to function body while retaining command prohibitions. Logs retained.",
+      "full": "Complete1505tests/468productionSQF/11PBO local HEMTT/FSM/config/docs/coverage/settings/Zeus/parity/static-performance gates passed; independent package verify passed.",
+      "candidate": ".qa/candidates/hunt-task-20261029-08f4fc3f",
+      "fingerprint": "695514f9da76ec982d3e2a907701155b78c739dc5405b749dccedf9a36c0cd01",
+      "sourceNote": "Unsigned dev base08f4fc3f plus dirty inputs; metadata after build does not change runtime. Not clean signed release or physical evidence.",
+      "logs": [
+        ".qa/handovers/hunt-task-focused-20261029.log",
+        ".qa/handovers/hunt-task-focused-final-20261029.log",
+        ".qa/handovers/hunt-task-coverage-20261029.log",
+        ".qa/handovers/hunt-task-build-20261029.log",
+        ".qa/handovers/hunt-task-independent-20261029.log"
+      ],
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "performance": "Static0findings; runtimebudgetunmeasured"
+    },
+    "moduleSources": {
+      "functions/Modules/fnc_moduleHunt.sqf": "4de8bef69cbcbd8754caefb6ff2eb438a4e1d6cd5d4b42e995facca34f5953dc",
+      "functions/ZEN/fnc_setHunt.sqf": "b8c3d4a275caccb50c1c71e27a10151ac243bdd5ab2f9ad668fa0d4968d96cc3",
+      "functions/Modules/fnc_moduleRush.sqf": "15df9afcbef89e0cedbb833ecfd3e04afaa54ff4d0f65f4c301bc9847682fbfa",
+      "functions/ZEN/fnc_setRush.sqf": "56f49c018f8aa13b3d29462ed678918674f9f6d52194ac1c0f25421b5d5a0477"
+    },
+    "moduleDisposition": "Runtime Hunt/Rush module/selected-group ZEN dispatch bodies inspected. Source Hunt exposes range/cycle/moving centre/player-only/reinforcement/UGL mode; Rush range/cycle/moving centre/player-only. CBE Hunt retains explicit squad/range/owner dispatch with finite task limit; no hidden-player selector or unsupported toggles. Broader moving/fixed mission area, reinforcement and UGL policy remain explicit gaps, not full module parity. Rush equivalent native/optional ZEN controls are required with its real executor per user clarification."
   }
 }

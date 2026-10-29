@@ -30,6 +30,10 @@ private _publish={
     params ["_phase","_reason"];
     _group setVariable ["CBE_Patrol_Status",[_phase,_reason,_task getOrDefault ["index",0],
         count (_task getOrDefault ["route",[]]),serverTime],true];
+    private _hunt=_task getOrDefault ["hunt",createHashMap];
+    if (count _hunt > 0) then {
+        _group setVariable ["CBE_Hunt_Status",[_phase,_reason,_hunt get "updates",serverTime],true];
+    };
 };
 private _dropLease={
     if ((_state getOrDefault ["movementLease",[]]) isEqualTo ["PATROL",_task getOrDefault ["deadline",-1]]) then {
@@ -164,6 +168,10 @@ switch (toUpperANSI _mode) do {
     };
     case "CHECK": {
         if (count _task == 0) exitWith {false};
+        if (count (_task getOrDefault ["hunt",createHashMap]) > 0
+            && {!([_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {
+            ["HUNT_DISABLED"] call _finish; false
+        };
         private _reason=if ((_task get "epoch") != (_group getVariable ["CBE_AIPass_Epoch",-1])) then {
             "OWNER_CHANGED"
         } else {
@@ -237,9 +245,27 @@ switch (toUpperANSI _mode) do {
             && {abs (((getPosATL _anchor) select 2)-(_point select 2)) <= 1.5}
             && {_members findIf {alive _x && {_x distance2D _point > 25
                 || {abs (((getPosATL _x) select 2)-(_point select 2)) > 1.5}}} < 0};
-        if (!_arrived) exitWith {
-            if (currentWaypoint _group != _index) then {["NATIVE_ORDER_CHANGED"] call _finish; false} else {true}
+        if (!_arrived && {currentWaypoint _group != _index}) exitWith {
+            ["NATIVE_ORDER_CHANGED"] call _finish; false
         };
+        // A Hunt policy can suggest a bounded fresh-belief route, but only this existing
+        // movement owner can commit it after the same native/mission proof above. Retargeting
+        // spends the existing current-leg deadline; it cannot renew a retry or task window.
+        private _pending=_task getOrDefault ["huntPending",[]];
+        if (_pending isNotEqualTo []) exitWith {
+            _task deleteAt "huntPending";
+            if (time-(_pending select 1) > 120) exitWith {true};
+            [_group,_generation] call CBE_fnc_CortexGroupMoveClear;
+            if (!([-1] call _missionUnchanged)) exitWith {["MISSION_CHANGED"] call _finish; false};
+            private _route=_pending select 0;
+            _operation set ["route",_route];
+            _group setVariable ["CBE_Operation",_operation,true];
+            _task set ["route",_route];
+            _task set ["index",0];
+            if (!(call _startLeg)) exitWith {["HUNT_LEG_REFUSED"] call _finish; false};
+            true
+        };
+        if (!_arrived) exitWith {true};
         [_group,_generation] call CBE_fnc_CortexGroupMoveClear;
         if (!([-1] call _missionUnchanged)) exitWith {["MISSION_CHANGED"] call _finish; false};
         private _next=(_task get "index")+1;

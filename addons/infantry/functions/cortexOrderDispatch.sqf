@@ -34,7 +34,7 @@ if !(_sortByHeight isEqualType true) exitWith {false};
 private _teleport = _settings getOrDefault ["teleport",false];
 if !(_teleport isEqualType true) exitWith {false};
 // Remote module requests cannot change addon configuration or artillery role registration.
-if (_sender > 2 && {!(_order in ["GARRISON","DEFEND","CLEAR","RELEASE","AIRBORNE","PATROL"])}) exitWith {false};
+if (_sender > 2 && {!(_order in ["GARRISON","DEFEND","CLEAR","RELEASE","AIRBORNE","PATROL","HUNT"])}) exitWith {false};
 private _pending = missionNamespace getVariable ["CBE_AIPass_OrderPending", createHashMap];
 if (count _pending >= 64) exitWith {
     ["AI ORDERS","Too many pending squad orders. Wait for owner replies before retrying.","ERROR"] remoteExecCall ["CBE_fnc_AITweaksNotifyLocal",_requestOwner];
@@ -46,7 +46,7 @@ private _token = str _serial;
 _pending set [_token, [_requestOwner, _group, groupOwner _group, _order]];
 missionNamespace setVariable ["CBE_AIPass_OrderPending", _pending];
 private _valid = !isNull _group && {(units _group) findIf {isPlayer _x} < 0}
-    && {_order in ["GARRISON", "DEFEND", "RELEASE", "CLEAR", "AIRBORNE", "PATROL", "ARTY_SUPPORT", "ARTY_COUNTER", "ARTY_BOTH", "EXCLUDE", "RETURN", "SPOTTER_ON", "SPOTTER_OFF"]};
+    && {_order in ["GARRISON", "DEFEND", "RELEASE", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "ARTY_SUPPORT", "ARTY_COUNTER", "ARTY_BOTH", "EXCLUDE", "RETURN", "SPOTTER_ON", "SPOTTER_OFF"]};
 if (_order in ["GARRISON", "DEFEND", "PATROL"]) then {
     private _pos = _settings getOrDefault ["position", []];
     _valid = _valid && {_pos isEqualType []} && {count _pos == 3} && {_pos findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} < 0};
@@ -58,6 +58,13 @@ if (_order == "PATROL") then {
     _valid=_valid && {_radius >= 25} && {_radius <= 500}
         && {_nodes isEqualType 0} && {finite _nodes} && {_nodes == floor _nodes}
         && {_nodes >= 3} && {_nodes <= 8}
+        && {_duration isEqualType 0} && {finite _duration} && {_duration >= 30} && {_duration <= 1800};
+};
+if (_order == "HUNT") then {
+    private _huntRange=_settings getOrDefault ["huntRange",800];
+    private _duration=_settings getOrDefault ["patrolDuration",900];
+    _valid=_valid && {_huntRange isEqualType 0} && {finite _huntRange}
+        && {_huntRange >= 50} && {_huntRange <= 2000}
         && {_duration isEqualType 0} && {finite _duration} && {_duration >= 30} && {_duration <= 1800};
 };
 // Explicit airborne modules bind both selected witnesses. Group-only script orders retain their API.

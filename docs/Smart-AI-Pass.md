@@ -3246,3 +3246,46 @@ and temporary actor release paths; it is not a convoy, aircraft, artillery or
 global AI reset. A new patrol refuses while another task owns the squad; release
 that task first. No CBA setting is changed by either module. The existing finite
 patrol limits and unverified physical/MP/performance status above still apply.
+
+
+### Hunt known enemy
+
+**Hunt known enemy** is a behaviour task for an explicit AI foot squad. Its native
+Zeus module attaches to a soldier and uses an 800-metre knowledge limit and
+900-second task limit. Optional ZEN exposes squad, knowledge range (50–2000 metres)
+and task limit (30–1800 seconds). The CBA engagement range also caps the knowledge
+query. The module location does not designate, detect or reveal an enemy. Contact
+behaviours must be enabled, and a recent native ground-contact belief must exist;
+otherwise admission fails. Release an existing task before requesting another.
+
+The owner-local script equivalent is:
+
+```sqf
+["START", _group, [800, 900]] call CBE_fnc_HuntOperation;
+["CANCEL", _group] call CBE_fnc_HuntOperation;
+```
+
+Hunt guides the existing finite patrol sweep executor from believed position,
+observation age, uncertainty and confidence supplied by `CortexKnowledge`. It reads
+no hostile transform and performs no world-unit scan. The search radius follows
+native uncertainty within 25–300 metres. Three ground destinations form a finite
+sweep; their geometry does not prove native navigation or building access.
+
+The existing group knowledge result supplies later observations. Sampling is no
+faster than ten seconds, with at most four meaningful fresh-belief route updates.
+The movement owner rechecks its exact native waypoint and mission context before
+committing a suggested route. Retargeting cannot renew the current leg or original
+task deadline. Combat still yields to normal contact tactics. Belief age uses the
+native observation timestamp; polling alone cannot keep a lost contact fresh.
+After 120 seconds without qualifying native contact, the task retires on its next
+knowledge sample. Disabled contact behaviours, original deadlines, protected work,
+mission/Zeus changes and locality cleanup also retire it through the existing owner.
+
+**Release infantry task** also stops Hunt because it owns the same tracked finite
+sweep, without an independent worker to restart it. No attack/FSM switch, speed,
+formation, gunlight/laser or free flare policy is imported. Completing the current
+sweep proves neither enemy neutralization nor a cleared room. `CBE_Hunt_Status`
+is passive phase/reason/update-count/time diagnostics, not replay authority. No
+physical pursuit, interruption, module/MP or measured-performance acceptance is
+claimed while audits are paused. The aggressive/Rush task and its module remain
+separate unfinished implementation work.

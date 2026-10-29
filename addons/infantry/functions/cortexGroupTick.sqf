@@ -726,6 +726,11 @@ private _autonomousActor=_alive findIf {
 if (_autonomousActor < 0) exitWith {_delay};
 
 ([_group] call CBE_fnc_CortexKnowledge) params ["_enemies", "_seenCount"];
+// Hunt is a policy on the current finite sweep, not another knowledge or movement worker.
+private _sweep=_group getVariable ["CBE_PatrolTask",createHashMap];
+if (count (_sweep getOrDefault ["hunt",createHashMap]) > 0) then {
+    ["UPDATE",_group,_enemies] call CBE_fnc_HuntOperation;
+};
 // Native hostile knowledge is the durable continuation of a short engine danger callback. The
 // danger FSM wakes the shared group brain immediately; once that finite record expires, a group
 // which is still seeing an enemy must retain combat cadence from its own engine knowledge. Without

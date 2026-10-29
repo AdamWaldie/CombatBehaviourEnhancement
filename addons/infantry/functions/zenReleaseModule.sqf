@@ -26,7 +26,7 @@ if (_groups isEqualTo []) exitWith {
 [
     "Release infantry task",
     [
-        ["COMBO",["Squad","Request release of CBE clearance, garrison, defensive-line, patrol and temporary infantry actor tasks. The current owner preserves newer orders and protected actors. Pending native handback may remain unresolved."],[_groups,_groups apply {format ["%1 / %2 / %3 soldiers",side _x,groupId _x,count units _x]},0]]
+        ["COMBO",["Squad","Request release of CBE clearance, garrison, defensive-line, patrol, Hunt and temporary infantry actor tasks. The current owner preserves newer orders and protected actors. Pending native handback may remain unresolved."],[_groups,_groups apply {format ["%1 / %2 / %3 soldiers",side _x,groupId _x,count units _x]},0]]
     ],
     {
         params ["_values"];
