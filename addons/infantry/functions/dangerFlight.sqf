@@ -6,7 +6,9 @@
  * Locality/authority: Actor and group owner only. Existing native routes, reservations,
  * operations, medical work, Zeus and external controllers retain priority.
  * Empty release and non-fleeing start return before receipt validation or helper allocation.
- * Repeat/JIP: One local eight-field lease keeps its original deadline, at most twelve seconds.
+ * Repeat/JIP: One local eight-field travel lease keeps its original deadline, at most twelve seconds.
+ * An issued return adds one native receipt; the existing sparse observer never repeats FOLLOW.
+ * Native return acknowledgement is observed separately; timeout never proves handback.
  * Unchanged pre-request native planning may consume the original travel budget, never a new grace.
  * Pending cancellation retains immutable proof and is inspected by existing sparse DangerSetup.
  * No worker, waypoint, reveal, posture/speed reset or remote replay. One search per group
@@ -32,7 +34,7 @@ private _lease=_actor getVariable ["CBE_Danger_FlightLease",[]];
 // Most danger completions never owned a flight move. Keep that ordinary path minimal.
 if (_lease isEqualTo [] && {_mode == "RELEASE" || {!fleeing _actor}}) exitWith {0};
 private _group=group _actor;
-private _validLease=_lease isEqualType [] && {count _lease == 8}
+private _validLease=_lease isEqualType [] && {count _lease in [8,9]}
     && {(_lease select 0) isEqualType []} && {count (_lease select 0) == 3}
     && {(_lease select 0) findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} < 0}
     && {(_lease select 1) isEqualType 0} && {finite (_lease select 1)}
@@ -46,11 +48,21 @@ private _validLease=_lease isEqualType [] && {count _lease == 8}
     && {(_lease select 7) isEqualType []} && {count (_lease select 7) == 3}
     && {((_lease select 7) select 0) isEqualTo ""}
     && {((_lease select 7) select 1) isEqualType []}
-    && {((_lease select 7) select 2) isEqualType objNull};
+    && {((_lease select 7) select 2) isEqualType objNull}
+    && {count _lease == 8 || {
+        private _return=_lease select 8;
+        _return isEqualType [] && {count _return == 3}
+            && {(_return select 0) isEqualType objNull}
+            && {(_return select 1) isEqualType []}
+            && {(_return select 2) isEqualType 0} && {finite (_return select 2)}
+            && {(_return select 2) >= (_lease select 6)}
+            && {(_return select 2) < (_lease select 1)+30}
+    }};
 if (_lease isNotEqualTo [] && {!_validLease}) exitWith {0};
 private _available={
-    local _actor && {!isNull _group} && {local _group} && {!isPlayer _actor}
+    local _actor && {!isNull _group} && {local _group} && {group _actor == _group} && {!isPlayer _actor}
         && {[_actor] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _actor}
+        && {isNull attachedTo _actor}
         && {simulationEnabled _actor} && {!isObjectHidden _actor}
         && {_actor checkAIFeature "MOVE"} && {_actor checkAIFeature "PATH"}
         && {isNull remoteControlled _actor}
@@ -64,7 +76,10 @@ private _available={
 private _context={[_group getVariable ["CBE_AIPass_Epoch",0],
     _group getVariable ["CBE_OperationGeneration",0],[_group] call CBE_fnc_NativeOrderReceipt]};
 if (_mode == "RELEASE") exitWith {
-    if (local _actor && {_validLease}) then {
+    // Public scheduled callers cannot suspend between exact journal proof and its write.
+    isNil {
+    if (local _actor && {_validLease}
+        && {(_actor getVariable ["CBE_Danger_FlightLease",[]]) isEqualTo _lease}) then {
         _lease params ["_goal","_deadline","_oldGroup","_epoch","_generation","_route","_issued"];
         private _reservation=["DANGER_FLIGHT",_goal,_deadline];
         private _sameReservation=(_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo _reservation;
@@ -90,6 +105,33 @@ if (_mode == "RELEASE") exitWith {
             // Acknowledgement after the original cleanup window grants no late follow command.
             _actor setVariable ["CBE_Danger_FlightResult",["UNRESOLVED_DEADLINE",time,+_goal,_issued,_deadline]];
         };
+        if (count _lease == 9) exitWith {
+            (_lease select 8) params ["_anchor","_returnBefore"];
+            // The one original native FOLLOW may still be queued behind its MOVE.
+            // Keep that proof while the original goal/formation remains visible.
+            private _returnPending=currentCommand _actor in ["","WAIT","MOVE"]
+                && {(expectedDestination _actor) isEqualTo _returnBefore}
+                && {formLeader _actor in [_before select 2,_anchor]};
+            private _ack=_sameReservation && {_sameContext} && {call _available}
+                && {!isNull _anchor} && {group _anchor == _group}
+                && {[_anchor] call CBE_fnc_CortexCombatEffective}
+                && {currentCommand _actor == "FOLLOW"}
+                && {formLeader _actor isEqualTo _anchor};
+            private _reason=if (_ack) then {"NATIVE_RETURN_OBSERVED"} else {
+                if (_returnPending) then {
+                    ["NATIVE_RETURN_PENDING","UNRESOLVED_DEADLINE"] select (time >= _deadline+30)
+                } else {"NATIVE_RETURN_YIELDED"}
+            };
+            if (local _actor && {(_actor getVariable ["CBE_Danger_FlightLease",[]]) isEqualTo _lease}) then {
+                if (_ack || {!_returnPending}) then {
+                    if ((_actor getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo _reservation) then {
+                        _actor setVariable ["CBE_Cortex_ActorMove",nil];
+                    };
+                    _actor setVariable ["CBE_Danger_FlightLease",nil];
+                };
+                _actor setVariable ["CBE_Danger_FlightResult",[_reason,time,+_goal,_issued,_deadline]];
+            };
+        };
         private _owns=_sameReservation && {_group == _oldGroup} && {call _available}
             && {[ _epoch,_generation,_route] isEqualTo (call _context)}
             && {formLeader _actor isEqualTo (_before select 2)}
@@ -104,13 +146,18 @@ if (_mode == "RELEASE") exitWith {
             || {!([_returnLeader] call CBE_fnc_CortexCombatEffective)}) then {_returnLeader=leader _group};
         if (!_arrived && {_owns} && {!isNull _returnLeader}
             && {local _returnLeader} && {group _returnLeader == _group}
-            && {[_returnLeader] call CBE_fnc_CortexCombatEffective}) then {
+            && {[_returnLeader] call CBE_fnc_CortexCombatEffective}) exitWith {
+            private _returnLease=+_lease;
+            _returnLease pushBack [_returnLeader,expectedDestination _actor,time];
+            // Publish the local one-shot receipt before issue. RELEASE may only observe it.
+            _actor setVariable ["CBE_Danger_FlightLease",_returnLease];
             _actor doFollow _returnLeader;
-            _reason="NATIVE_RETURN_REQUESTED";
+            _actor setVariable ["CBE_Danger_FlightResult",["NATIVE_RETURN_REQUESTED",time,+_goal,_issued,_deadline]];
         };
         if (_sameReservation) then {_actor setVariable ["CBE_Cortex_ActorMove",nil]};
         _actor setVariable ["CBE_Danger_FlightLease",nil];
         _actor setVariable ["CBE_Danger_FlightResult",[_reason,time,+_goal,_issued,_deadline]];
+    };
     };
     0
 };

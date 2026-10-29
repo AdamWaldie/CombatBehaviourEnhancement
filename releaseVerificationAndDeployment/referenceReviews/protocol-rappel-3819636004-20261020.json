@@ -259,5 +259,13 @@
     ],
     "decision": "Keep read-only route planner internal. Next actor port must include exact original resource/writer identity and native Local/init cleanup independent of tactical enablement, plus actual airframe authority. No private PFH/controller or simulation/animation writer added merely to bypass lifecycle gaps. Continue independent registered foundation fixes while designing that owned handback.",
     "limits": "Read-only execution trace; not controlled descent, cleanup implementation or provider handover. Audits remain PAUSED."
+  },
+  "nativePhysicsAlternative20261029": {
+    "sourceSha256": "35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b",
+    "finding": "Original AR_Client_Rappel_From_Heli moves the actor with setPosWorld every0.01s; a separate animation worker disables simulation and repeated remote animation workers plus delayed damage resets outlive simple wrapper handles. Do not copy that writer graph or expose a flag-only handover.",
+    "engineSource": "https://community.bistudio.com/wiki/ropeCreate",
+    "newCandidate": "Official ropeCreate documentation includes a rope terminating on player. Investigate direct native actor endpoint as an alternative to manual actor/device transforms. Documentation is not proof that native Man physics supports controlled descent, safe animation, roof landing or split-owner migration; do not implement a production descent on this assumption alone.",
+    "foundationRepair": "lambs-danger-branch-execution-20261025.json#nativeFlightReturnObservation20261029 repairs an existing unconfirmed native return before adding another movement writer. It does not implement rappel descent, flight orchestration or provider quiescence.",
+    "status": "CONTROLLED_RAPPEL_EXECUTION_REMAINS_OPEN; native physics feasibility requires a focused engine check when audits are authorised; no module, test run or production rope writer added."
   }
 }

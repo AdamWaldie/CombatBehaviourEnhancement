@@ -111,7 +111,7 @@ if (_paceActors isNotEqualTo []) then {
             ["SERVICE",_x] call CBE_fnc_LauncherMove;
         };
         private _flightProof=_x getVariable ["CBE_Danger_FlightLease",[]];
-        if (local _x && {_flightProof isEqualType []} && {count _flightProof == 8}
+        if (local _x && {_flightProof isEqualType []} && {count _flightProof in [8,9]}
             && {(_flightProof select 1) isEqualType 0} && {finite (_flightProof select 1)}
             && {time >= (_flightProof select 1)
                 || {(_x getVariable ["CBE_Danger_EngineResponse",[]]) isEqualTo []}}) then {

@@ -98,6 +98,41 @@ class CoverOrderContextTests(unittest.TestCase):
         self.assertIn('formLeader _actor isEqualTo (_before select 2)',cleanup)
         self.assertIn('private _returnLeader=_before select 2',cleanup)
         self.assertIn('_actor doFollow _returnLeader',cleanup)
+        self.assertIn('if (count _lease == 9) exitWith {',cleanup)
+        observation=cleanup.split('if (count _lease == 9) exitWith {',1)[1].split('private _owns=',1)[0]
+        for marker in ('"NATIVE_RETURN_OBSERVED"','"NATIVE_RETURN_PENDING"',
+                       'currentCommand _actor == "FOLLOW"','formLeader _actor isEqualTo _anchor',
+                       '(_actor getVariable ["CBE_Danger_FlightLease",[]]) isEqualTo _lease'):
+            self.assertIn(marker,observation)
+        self.assertNotIn('doFollow',observation)
+        self.assertNotIn('doMove',observation)
+        # Observation oracle: elapsed time cannot acknowledge FOLLOW, and a changed
+        # command/anchor is a yield rather than successful formation recovery.
+        def return_observation(command, same_goal=True, same_anchor=True, same_context=True,
+                               same_lease=True, available=True, expired=False):
+            ack=(command=='FOLLOW' and same_anchor and same_context and same_lease and available)
+            pending=command in ('','WAIT','MOVE') and same_goal and same_anchor
+            if ack:
+                return 'OBSERVED'
+            if pending:
+                return 'UNRESOLVED' if expired else 'PENDING'
+            return 'YIELDED'
+        for command in ('','WAIT','MOVE'):
+            self.assertEqual(return_observation(command),'PENDING')
+            self.assertEqual(return_observation(command,expired=True),'UNRESOLVED')
+            self.assertEqual(return_observation(command,same_context=False),'PENDING')
+        self.assertEqual(return_observation('FOLLOW'),'OBSERVED')
+        self.assertEqual(return_observation('FOLLOW',expired=True),'OBSERVED')
+        for changed in ({'same_anchor':False},{'same_context':False},{'same_lease':False},{'available':False}):
+            self.assertEqual(return_observation('FOLLOW',**changed),'YIELDED')
+        for command in ('STOP','HEAL','GET IN','SUPPRESS'):
+            self.assertEqual(return_observation(command),'YIELDED')
+        self.assertEqual(return_observation('MOVE',same_goal=False),'YIELDED')
+
+        request=cleanup.split('if (!_arrived && {_owns}',1)[1]
+        self.assertLess(request.index('setVariable ["CBE_Danger_FlightLease",_returnLease]'),request.index('_actor doFollow _returnLeader'))
+        self.assertIn('&& {count _flightProof in [8,9]}', (ROOT/'addons/infantry/functions/dangerSetup.sqf').read_text(encoding='utf-8'))
+
         self.assertNotIn('_actor doFollow leader _group',cleanup)
         self.assertIn('time >= _deadline+30',cleanup)
         self.assertIn('"CANCEL_PENDING","UNRESOLVED_DEADLINE"',cleanup)

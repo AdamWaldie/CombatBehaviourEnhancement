@@ -2270,5 +2270,31 @@
       "fingerprint": "418b996014afe20d500de0ea67bfea677a4d16fe1bfd1f54ccab604d16674426",
       "type": "unsigned development; no clean signed release or physical/performance acceptance"
     }
+  },
+  "nativeFlightReturnObservation20261029": {
+    "base": "91e2566bdaaa895cd21a690571addb1fbff16655",
+    "source": {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doFleeing.sqf",
+      "sha256": "9eb043092ed20c16e45023d9ff87f8d0b1cbaa496f5429758c53bbd807dbd450",
+      "review": "Complete readable body re-read. Source raw movement, doStop/forced posture, medical lastFired override, seat eject/action fallback and blanket AUTO restoration are not imported. Useful screened escape/native formation return intent remains in the finite owner."
+    },
+    "finding": "CBE DangerFlight RELEASE immediately erased its exact journal/reservation after requesting native FOLLOW on a failed escape. Neither native acceptance nor replacement was observed, so the next CBE task could treat an asynchronous return as finished. The source single native request also supplies no acknowledgement proof.",
+    "implementation": "Original eight-field escape journal adds a ninth [saved actual return anchor, pre-FOLLOW native destination, issue time] only when its one return is issued. Receipt is committed before native issue under unscheduled exact journal equality. Existing sparse DangerSetup accepts eight/nine fields and observes the return; no follow replay, new timer, scan, worker or renewed deadline. Positive FOLLOW to that anchor with original reservation/context/current actor availability records NATIVE_RETURN_OBSERVED and retires exact metadata. Unchanged MOVE/WAIT/idle pre-return destination/formation stays pending, including beyond the original expiry+30 as UNRESOLVED_DEADLINE. Changed native control yields without success or movement. Engine CanContinue intentionally rejects return-phase journals so only cleanup observes them. Active attachment/current group are checked before original native authority is used.",
+    "preserved": "Original twelve-second maximum escape travel, group2s/actor15s failed-search cadence, ordinary arrival result, saved subformation/fallback policy, quiet rejoin and original cleanup deadline remain. No physical or external-provider handover claim. Local journals are not transferred/adopted across owners.",
+    "checks": {
+      "red": ".qa/handovers/flight-native-return-red-20261029.log",
+      "focused": ".qa/handovers/flight-native-return-green-20261029.log",
+      "existingCase": "CoverOrderContextTests.test_flight_has_one_original_deadline_and_exact_order_cleanup",
+      "testCountAdded": 0,
+      "fullBuild": ".qa/handovers/flight-native-return-build-20261029.log",
+      "independent": ".qa/handovers/flight-native-return-independent-20261029.log",
+      "tests": 1505,
+      "compiledSqf": 461,
+      "pbos": 11,
+      "candidate": ".qa/candidates/flight-native-return-20261029-91e2566b",
+      "fingerprint": "eabfe5dda64f539a5ca198171ea05f8e97178c9ff4ffc641416df0039cd1631d",
+      "provenance": "Unsigned development receipt91e2566b plus dirty runtime inputs; review/handover metadata finalised after package."
+    },
+    "remaining": "Actual native FOLLOW labels, same-frame engine publication, physical return/repeatability, pending cases during shutdown/owner migration and measured cost remain unverified. Unconfirmed native return can remain reserved; time alone cannot prove cancellation. Quiet native rejoin remains request-only and is outside this failed-escape repair. Audits PAUSED."
   }
 }
