@@ -489,9 +489,10 @@ unverified across aircraft classes. A registered target or plan cannot pass thos
 ## Defend area behaviour module
 
 Native Zeus and optional ZEN expose **Combat Behaviour Enhancement (CBE) > Defend area**. The native module requires
-an attached AI soldier, identifying its squad and centre; without ZEN it requests a 60 m line facing
-that soldier's current direction. With ZEN, or from the custom module, the task dialog explicitly
-selects a squad, compass facing (0Ã¢â‚¬â€œ360 degrees) and line width (15Ã¢â‚¬â€œ150 m, default 60). The same
+an attached AI soldier. Without ZEN, a native confirmation dialog selects the exact squad,
+facing and line width (15, 30, 60, 90, 120 or 150 m). Facing starts at that soldier's rounded current
+direction, with additional 45-degree compass choices. Width defaults to 60 m. Optional ZEN retains
+continuous facing 0-360 degrees and width 15-150 m selectors. The same
 128-initial-group selector limit as garrison applies; an attached squad is included explicitly.
 No nearby group is guessed. These controls issue a defence task, not addon configuration.
 
@@ -3229,9 +3230,9 @@ remain unverified while audits are paused.
 
 ### Patrol area behaviour module
 
-Place **Patrol area** on an AI soldier in Zeus. Without ZEN this requests one
-100-metre circuit with four destinations and a 900-second task deadline around
-the module position. With ZEN, the labelled dialog selects the squad, radius
+Place **Patrol area** on an AI soldier in Zeus. Native confirmation selects the exact
+squad, radius, circuit destinations and total time limit around the module position.
+Defaults remain 100 m, four destinations and 900 s. With ZEN, the labelled dialog selects the squad, radius
 (25–500 metres), destinations (3–8) and task limit (30–1800 seconds). The optional
 ZEN module can be placed at the intended area centre and selects the squad
 explicitly. A missing native-module target is refused; no nearby squad is guessed.
@@ -3254,8 +3255,8 @@ patrol limits and unverified physical/MP/performance status above still apply.
 ### Hunt known enemy
 
 **Hunt known enemy** is a behaviour task for an explicit AI foot squad. Its native
-Zeus module attaches to a soldier and uses an 800-metre knowledge limit and
-900-second task limit. Optional ZEN exposes squad, knowledge range (50–2000 metres)
+Zeus module attaches to a soldier and opens squad, knowledge range and total time
+selectors, defaulting to 800 m and 900 s. Optional ZEN exposes squad, knowledge range (50–2000 metres)
 and task limit (30–1800 seconds). The CBA engagement range also caps the knowledge
 query. The module location does not designate, detect or reveal an enemy. Contact
 behaviours must be enabled, and a recent native ground-contact belief must exist;
@@ -3315,8 +3316,8 @@ are paused.
 
 **Press attack** requests one finite covered advance or close assault using the
 squad's existing native enemy knowledge. The native Zeus module attaches to an
-AI soldier and defaults to an 800-metre knowledge range and 180-second deadline.
-Optional ZEN exposes explicit squad, knowledge range (50–2000 metres) and original
+AI soldier and opens squad, knowledge range and time selectors, defaulting to 800 m
+and 180 s. Optional ZEN exposes explicit squad, knowledge range (50–2000 metres) and original
 time limit (30–300 seconds). The CBA engagement range caps knowledge; module
 placement does not detect or reveal a target. Server and current-owner validation,
 curator authentication and the existing serial/12-second/native/Zeus receipts apply.
@@ -3559,3 +3560,26 @@ garrison executor, casualty refill and release paths as optional ZEN. They add o
 one-shot capped group list, with no AI worker or new settings. Native dialog layout, keyboard
 selection, request/owner acknowledgement, walking/instant placement, cancellation and repeat use
 remain unverified in-game while audits are paused.
+
+
+### Native infantry task choices
+
+Without ZEN, Defend, Patrol, Hunt and Press attack use one native confirmation dialog.
+Placing the module alone submits no task. Cancel submits nothing; an existing Zeus child
+dialog is preserved. All choices are per-task values; CBA still owns addon settings.
+
+| Task | Native choices | Defaults |
+| --- | --- | --- |
+| Defend | Current facing or 45-degree compass headings; width 15/30/60/90/120/150 m | Current facing, 60 m |
+| Patrol | Radius 25/50/100/150/250/500 m; 3-8 destinations; time 30/60/180/300/600/900/1200/1800 s | 100 m, 4 destinations, 900 s |
+| Hunt | Knowledge 50/100/250/500/800/1200/1600/2000 m; time as Patrol | 800 m, 900 s |
+| Press attack | Knowledge as Hunt; time 30/60/120/180/240/300 s | 800 m, 180 s |
+
+The existing server authenticates the curator and validates named parameters, then the current
+owner revalidates task serial, route and eligibility before using the existing defence,
+patrol/search or tactical-drill executor. The optional ZEN path is unchanged. No task can
+manufacture target knowledge, bypass busy/native/Zeus ownership or renew its execution budget.
+The native dialog adds a capped one-shot group list and at most three parameter selectors;
+no AI controller, recurring scan or worker is added. In-game layout, keyboard/selection/cancel,
+real acknowledgement, movement/combat, repeat/HC/JIP and measured cost remain unverified while
+audits are paused.

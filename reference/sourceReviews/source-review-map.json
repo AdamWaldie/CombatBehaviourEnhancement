@@ -84,7 +84,9 @@
       },
       "crewNativePrewriteEvidence20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#crewBaselinePrewriteCorrection20261029",
       "selectedVehiclePoint20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#vehiclePointExecution20261029",
-      "nativeGarrisonOptions20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#nativeGarrisonOptions20261029"
+      "nativeGarrisonOptions20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#nativeGarrisonOptions20261029",
+      "nativeInfantryOptions20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#nativeInfantryOptions20261029",
+      "creepIntentGap20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#creepIntentReview20261029"
     },
     {
       "workshopId": "3812620045",

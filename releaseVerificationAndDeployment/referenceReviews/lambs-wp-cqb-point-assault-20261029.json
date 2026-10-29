@@ -471,5 +471,65 @@
       "addons/infantry/functions/moduleGarrison.sqf": "7327883c28dc35354c5dd9a36f0dcc544f5237f8bd77621413e3b98869fd545d",
       "addons/main/CfgFunctions.hpp": "a9dce35e84dd4ccddcaaa772d785fd2e31c696f2395b66a1a7a68b3067f16dad"
     }
+  },
+  "nativeInfantryOptions20261029": {
+    "base": "a75609b23c910c801a629e398e8fa6a562b79579",
+    "sourceScope": "Selected native module parameter declarations and dispatch entries only; not complete wrapper/executor branches or whole LAMBS parity. Existing CBE ZEN dialogs and actual owner executors independently traced.",
+    "sources": [
+      {
+        "path": ".qa/lambs-wp-installed-20261029/members/functions/Modules/fnc_moduleDefend.sqf",
+        "sha256": "295358aea1a2e4cbe11d21a46ff4690ac346233e8e38af7ee07a18f1018f0524",
+        "archiveMatch": true
+      },
+      {
+        "path": ".qa/lambs-wp-installed-20261029/members/functions/Modules/fnc_modulePatrol.sqf",
+        "sha256": "95977ae4d339226dff2bbe6c8d959de345bc17236b50fadedd03d5e29785ee1b",
+        "archiveMatch": true
+      },
+      {
+        "path": ".qa/lambs-wp-installed-20261029/members/functions/Modules/fnc_moduleHunt.sqf",
+        "sha256": "4de8bef69cbcbd8754caefb6ff2eb438a4e1d6cd5d4b42e995facca34f5953dc",
+        "archiveMatch": true
+      },
+      {
+        "path": ".qa/lambs-wp-installed-20261029/members/functions/Modules/fnc_moduleRush.sqf",
+        "sha256": "15df9afcbef89e0cedbb833ecfd3e04afaa54ff4d0f65f4c301bc9847682fbfa",
+        "archiveMatch": true
+      }
+    ],
+    "intent": "Make real finite defence/patrol/known-contact tasks configurable without an optional third-party UI. Retain explicit target and named task arguments; do not copy source omniscience, unrestricted teleport/reset or perpetual loops.",
+    "gap": "Native DEFEND/PATROL/HUNT/RUSH submitted fixed defaults while ZEN exposed existing executor parameters.",
+    "implementation": "One interface-only InfantryTaskDialog uses display-local parameter descriptors, explicit squad selection, bounded numeric choices, current attached facing, cancellation and child-dialog protection. Defaults retained. Confirmation alone submits named values to existing authenticated dispatcher. Optional ZEN unchanged. Dead fixed fallback arguments removed; remaining native RELEASE/CLEAR_AREA retain their own policy.",
+    "path": "ModuleGarrison -> InfantryTaskDialog -> CortexOrderDispatch server curator/enum/range validation -> CortexOrderLocal current owner serial/route checks -> CortexDefend, PatrolOperation, HuntOperation(PatrolOperation) or RushOperation(tacticalDrill). Existing task release/cancel/deadline/native ownership unchanged.",
+    "cost": "One capped128 initial group snapshot plus attached squad, one modal display, at most3 parameter combos. No AI command writer, state controller, timer, world scan or recurring worker.",
+    "validation": {
+      "red": ".qa/handovers/native-infantry-options-red-20261029.log",
+      "focused": ".qa/handovers/native-infantry-options-focused-20261029.log:3 existing module cases pass; no cases added or removed.",
+      "full": ".qa/handovers/native-infantry-options-final-build-20261029.log:1505 existing tests,482 SQF,11 PBOs; config/FSM/docs/coverage/parity/static performance gates passed.",
+      "physicalAcceptance": false,
+      "measuredPerformance": false,
+      "firstBuild": ".qa/handovers/native-infantry-options-build-20261029.log passed before final gameplay-focused tooltip/guide wording. Final build covers delivered package.",
+      "candidate": ".qa/candidates/native-infantry-options-20261029-a75609b2",
+      "fingerprint": "2fa55821cd31d3f06a086ba52e44891e31393cc8525de737429158e7c3d9de01",
+      "independent": ".qa/handovers/native-infantry-options-independent-20261029.log: exit0 matching fingerprint",
+      "provenance": "Unsigned development base a75609b2 plus runtime/config/test/guide changes; engineering metadata finalized afterward. No installed staging."
+    },
+    "remaining": "UI/layout/keyboard/cancel/selection, actual owner acknowledgement, route/defence/search/combat quality, normal/HC/JIP/repeat and measured cost unverified. Task controls are not whole-source feature parity.",
+    "runtimeLFHashes": {
+      "addons/infantry/functions/infantryTaskDialog.sqf": "a578ba132df9cbbfe4a90ac06cff352a005778571a0b499c9cf3bb508a1cd0f6",
+      "addons/infantry/functions/moduleGarrison.sqf": "45b9654c7dd91c81bd6efffd51a967c16719706070bb57002e58eeb987a50a7f",
+      "addons/main/CfgFunctions.hpp": "74d46ce8a5226a3ef4e7c437e8fb508ac5acdc52b0832aca1d3c97874a028ec1"
+    }
+  },
+  "creepIntentReview20261029": {
+    "source": ".qa/lambs-wp-installed-20261029/members/functions/fnc_taskCreep.sqf",
+    "sha256": "7bca1b8824ade3640f95259e4f7ac71eaa9a30d41983de552c959550ce7335de",
+    "archiveMatch": true,
+    "scope": "Complete readable taskCreep body; findClosestTarget dependency and compiled runtime not newly reviewed.",
+    "intent": "Approach cautiously at limited pace, withhold fire until close or compromised, vary posture with distance/cover and respond to nearby firing.",
+    "sourceMethods": "Perpetual scheduled group loop, live target transforms and player preference, repeated raw per-actor moves, global AWARE/WEDGE/LIMITED/GREEN/attackfalse, distance/forest stance changes, FiredNear RED/attacktrue without complete baseline restoration.",
+    "currentCBE": "HuntOperation supplies finite native-belief search, not this deliberate covert approach/fire-control behaviour. Do not count Hunt or these native controls as a Creep implementation.",
+    "required": "Implement a finite cautious-approach policy through existing movement owner and reversible exact-owned group pace/ROE/behaviour lifecycle; honour authored stricter permissions, native belief, mission/Zeus/specialist control and actual compromise. Include a real behaviour module only with the executor. Reject omniscient target tracking, permanent/reset-to-default policy and unowned per-actor loops.",
+    "status": "UNIMPLEMENTED_SELECTED_INTENT_NO_PARITY_CREDIT"
   }
 }

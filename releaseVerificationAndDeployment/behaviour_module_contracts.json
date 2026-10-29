@@ -85,7 +85,8 @@
       ],
       "handlers": [
         "addons/infantry/functions/moduleGarrison.sqf",
-        "addons/infantry/functions/zenDefendModule.sqf"
+        "addons/infantry/functions/zenDefendModule.sqf",
+        "addons/infantry/functions/infantryTaskDialog.sqf"
       ],
       "executor": "CBE_fnc_CortexOrderDispatch",
       "authority": "Authenticated curator/server request, preflighted current-owner CortexDefend execution and acknowledgement",
@@ -194,7 +195,8 @@
       ],
       "handlers": [
         "addons/infantry/functions/moduleGarrison.sqf",
-        "addons/infantry/functions/zenPatrolModule.sqf"
+        "addons/infantry/functions/zenPatrolModule.sqf",
+        "addons/infantry/functions/infantryTaskDialog.sqf"
       ],
       "executor": "CBE_fnc_CortexOrderDispatch",
       "authority": "Existing assigned-curator authentication, server named payload validation, serial/12s deadline and native/Zeus receipts, repeated current-owner parameter validation. No new RPC. Helpers admit authenticated server context, refuse other remote senders.",
@@ -212,7 +214,8 @@
       ],
       "handlers": [
         "addons/infantry/functions/moduleGarrison.sqf",
-        "addons/infantry/functions/zenHuntModule.sqf"
+        "addons/infantry/functions/zenHuntModule.sqf",
+        "addons/infantry/functions/infantryTaskDialog.sqf"
       ],
       "executor": "CBE_fnc_CortexOrderDispatch",
       "authority": "Existing authenticated curator/server/current-owner task path and serial/12s/native/Zeus receipts; repeated parameter validation; native CortexKnowledge only, no remote registration of HuntOperation.",
@@ -230,7 +233,8 @@
       ],
       "handlers": [
         "addons/infantry/functions/moduleGarrison.sqf",
-        "addons/infantry/functions/zenRushModule.sqf"
+        "addons/infantry/functions/zenRushModule.sqf",
+        "addons/infantry/functions/infantryTaskDialog.sqf"
       ],
       "executor": "CBE_fnc_CortexOrderDispatch",
       "authority": "Existing assigned-curator/server/current-owner serial/12s/native/Zeus receipt path; owner-local RushOperation delegates to actor-scoped tactical selector and existing native tacticalDrill FSM.",

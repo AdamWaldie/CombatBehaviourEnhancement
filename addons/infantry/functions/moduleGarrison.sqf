@@ -5,7 +5,9 @@
  * validates task parameters and forwards to the current group owner for acknowledgement.
  * Repeat/JIP: disposable, processed once. No historical task replay. With ZEN installed,
  * task-specific dialogs expose placement or facing/width. Native garrison selects radius,
- * walking/instant placement and height preference, defaulting to walking within50m. Without ZEN, area clearance uses50m/four buildings/900s; patrol uses100m/four destinations/900s; defence uses a 60 m line facing the attached soldier's direction. Release uses
+ * walking/instant placement and height preference, defaulting to walking within50m. Native
+ * defence/patrol/Hunt/attack select existing task parameters before confirmation; area
+ * clearance uses50m/four buildings/900s without ZEN. Release uses
  * the existing owner-local infantry/patrol cleanup; it changes no addon settings.
  * Arguments: 0 logic <OBJECT>, objNull; 1 synced units <ARRAY>, []; 2 activated <BOOL>, true.
  * Return: BOOL - request/dialog admitted, not physical occupation success.
@@ -38,7 +40,9 @@ private _result = if (!isNil "zen_dialog_fnc_create") then {
     }
 } else {
     if (_order == "GARRISON") exitWith {[_position,_target] call CBE_fnc_GarrisonTaskDialog};
-    [[["order",_order],["group",_group],["position",_position],["radius",if (_order == "PATROL") then {100} else {50}],["huntRange",800],["rushDuration",180],["areaBuildings",4],["areaDuration",900],["patrolNodes",4],["patrolDuration",900],["width",60],["facing",getDir _target],["teleport",false]],clientOwner] call CBE_fnc_CortexOrderDispatch
+    if (_order in ["DEFEND","PATROL","HUNT","RUSH"]) exitWith {[_position,_target,_order] call CBE_fnc_InfantryTaskDialog};
+    [[["order",_order],["group",_group],["position",_position],["radius",50],
+        ["areaBuildings",4],["areaDuration",900]],clientOwner] call CBE_fnc_CortexOrderDispatch
 };
 deleteVehicle _logic;
 _result
