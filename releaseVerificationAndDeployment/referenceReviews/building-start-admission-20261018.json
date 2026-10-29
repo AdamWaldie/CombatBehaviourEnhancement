@@ -23,5 +23,28 @@
     "No actual-provider HC migration, runtime FSM scheduling/termination, physical repeatability or performance-budget acceptance.",
     "execFSM engine scheduling and live mission interruption remain runtime checks.",
     "All65 feature families remain partial."
-  ]
+  ],
+  "egressRecoveryWindow20261029": {
+    "base": "bc53dc33a70ed055f05e89e10ebce4d25a583ae4",
+    "finding": "Startup unconditionally rejected original expired sweep/stall deadlines, although BuildingOperationStep deliberately starts a separate45s EGRESS allowance. CortexDiscover can recover one unexpectedly ended same-owner executor with the same job; the sweep check made that recovery refuse in precisely the legitimate post-sweep exit window.",
+    "scope": "CBE-specific foundation repair found while tracing Protocol/LAMBS CQB lifecycle; not a new upstream port or an incoming source seal.",
+    "path": "BuildingOperationStep _beginEgress sets original local/server45s exit clocks -> ended executor observed by CortexDiscover -> BuildingOperationStart exact same-job bounded restart -> existing buildingOperation.fsm EGRESS -> existing queued Step. Live duplicates reuse the existing worker.",
+    "implementation": "Retain known finite original sweep clocks. EGRESS additionally requires both original local/server exit clocks current. Beyond sweep window, only exact same private producer/job/generation/epoch with original producerOwner and neither cancelled nor finished can reuse its original exit allowance. Entry/SWEEP/REPLAN sweep admission unchanged. No new owner or new job gets post-sweep permission. Expired egress refuses even if the sweep clock remains current.",
+    "preserved": "Existing single restart consumption, actor assignments/commands/progress, retries, geometry/native-route/current common operation/owner/Zeus eligibility and original deadlines remain. No change to FSM phases, native writer, timer, scheduler job, source capture seal or incoming delivery.",
+    "cost": "Only startup/admission scalar reads and exact identity comparisons; no recurring query, scan, persistent cache or extra worker.",
+    "validation": {
+      "red": ".qa/handovers/clear-egress-restart-red-20261029.log",
+      "focused": ".qa/handovers/clear-egress-restart-focused-20261029.log:4 existing startup cases; extended startup contracts and clock-boundary examples, no cases added.",
+      "full": ".qa/handovers/clear-egress-restart-final-build-20261029.log:1505 existing tests,481 production SQF,11 PBOs; config/FSM/docs/coverage/parity/static performance gates passed.",
+      "physicalAcceptance": false,
+      "measuredPerformance": false,
+      "firstBuild": ".qa/handovers/clear-egress-restart-build-20261029.log passed; final source review then required explicit nonnegative original clocks so getOrDefault -1 cannot authorize post-sweep recovery. Final build below covers that correction.",
+      "candidate": ".qa/candidates/clear-egress-restart-20261029-bc53dc33",
+      "fingerprint": "0934df23a3ef1ad45d8598ffdd4770b20cd0eddfd2808a8963f9da86515c7ed6",
+      "independent": ".qa/handovers/clear-egress-restart-independent-20261029.log: exit0, matching fingerprint",
+      "provenance": "Unsigned development base bc53dc33 plus runtime/test/guide edits. Engineering metadata finalized afterward; no installed-game staging."
+    },
+    "runtimeLFHash": "5440981640b2a8de2179d644a06e822a299956daa7237dcaaf9fe0c6c0de2fe0",
+    "remaining": "Actual interrupted FSM scheduling/exit/repeat/native handback, incoming all-writer/settings/native reconciliation and measured cost remain unverified. Audits paused. Producer capture remains CANDIDATE_UNSEALED; this correction does not consume it."
+  }
 }

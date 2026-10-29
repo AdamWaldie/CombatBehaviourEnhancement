@@ -129,7 +129,8 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
-      }
+      },
+      "egressExecutorRecovery20261029": "releaseVerificationAndDeployment/referenceReviews/building-start-admission-20261018.json#egressRecoveryWindow20261029"
     },
     {
       "workshopId": "3800081309",

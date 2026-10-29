@@ -4,6 +4,8 @@
  * Purpose: Start the single owner-local building operation FSM for a prepared physical-clearance job.
  * Duplicate success requires a live FSM handle. The same unchanged job may replace one
  * ended executor while retaining room evidence, movement requests and original deadlines.
+ * Egress recovery may use its already-started original local/server exit window after the
+ * sweep expires only for this exact original producer/job; no new owner or exit clock is minted.
  * Locality / Authority: Must run where the group is local. It owns semantic building progression but
  * delegates each bounded movement/progress step to CBE's shared scheduler.
  * Repeat/JIP: Exact admitted operation/epoch, target transform, native intent and original deadlines
@@ -29,6 +31,31 @@ private _started=false;
 isNil {
     private _operation=_group getVariable ["CBE_Operation",createHashMap];
     private _building=_job getOrDefault ["building",objNull];
+    private _deadline=_job getOrDefault ["deadline",-1];
+    private _hardDeadline=_job getOrDefault ["hardDeadline",-1];
+    private _sweepClockKnown=_deadline isEqualType 0 && {_hardDeadline isEqualType 0}
+        && {finite _deadline} && {finite _hardDeadline}
+        && {_deadline >= 0} && {_hardDeadline >= 0};
+    private _windowCurrent=_sweepClockKnown && {serverTime < (_deadline min _hardDeadline)};
+    if ((_job getOrDefault ["phase",""]) == "EGRESS") then {
+        private _exitUntil=_job getOrDefault ["egressDeadlineServer",-1];
+        private _exitLocalUntil=_job getOrDefault ["egressDeadline",-1];
+        // Sweep expiry starts finite egress; it must not prevent that same producer's
+        // existing bounded worker recovery. Keep ordinary resume admission unchanged
+        // while the sweep is current, without promoting an unsealed incoming capture.
+        _windowCurrent=_sweepClockKnown && {_exitUntil isEqualType 0} && {_exitLocalUntil isEqualType 0}
+            && {finite _exitUntil} && {finite _exitLocalUntil}
+            && {serverTime < _exitUntil} && {time < _exitLocalUntil}
+            && {_windowCurrent || {
+                private _producer=_group getVariable ["CBE_BuildingBrain",createHashMap];
+                (_producer getOrDefault ["producerOwner",-1]) == clientOwner
+                    && {(_producer getOrDefault ["ownerEpoch",-1]) == _epoch}
+                    && {(_producer getOrDefault ["generation",-1]) == _generation}
+                    && {(_producer getOrDefault ["job",createHashMap]) isEqualTo _job}
+                    && {!(_producer getOrDefault ["cancelled",false])}
+                    && {!(_producer getOrDefault ["finished",false])}
+            }};
+    };
     if (!local _group || {_generation < 0} || {_epoch < 0}
         || {_generation != (_group getVariable ["CBE_AIPass_ClearGeneration",-2])}
         || {_epoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
@@ -38,7 +65,7 @@ isNil {
         || {(_operation getOrDefault ["objective",objNull]) != _building}
         || {!(_group getVariable ["CBE_AIPass_ClearBuilding",false])}
         || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
-        || {serverTime >= ((_job getOrDefault ["deadline",-1]) min (_job getOrDefault ["hardDeadline",-1]))}
+        || {!_windowCurrent}
         || {isNull _building} || {!alive _building}
         || {(_job getOrDefault ["buildingTransform",[]]) isNotEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
         || {(_job getOrDefault ["nativeOrderReceipt",[]]) isNotEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}

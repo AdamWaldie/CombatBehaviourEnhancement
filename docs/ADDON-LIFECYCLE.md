@@ -2570,3 +2570,10 @@ performance budget remain unverified while audits are paused.
 Ordinary driving and convoy traffic checks use one measured velocity per nearby vehicle for following, crossing and oncoming constraints. Horizontal separation is reconstructed from the existing unpadded full-hull projection, avoiding another model transform. The flattened crossing vector is a copy, so the original measurement remains intact.
 
 The existing single discovery query, 256-hull projection and 64-prediction limits, vertical overlap, safety padding, braking and spacing rules remain. This reduces native reads in the existing observer and adds no worker or persistent cache. The change does not establish a measured performance gain or resolve physical convoy stop/start; those remain pending in-engine verification.
+
+
+### Clearance egress executor recovery
+
+The one permitted same-owner recovery of an ended clearance FSM can continue an already-started egress after its sweep window expires. Both original local and server exit deadlines must still be current. The exact original producer, job, generation and owner epoch must match; a different owner or new job gains no post-sweep allowance. Entry, sweep and replan retain their original sweep limits. An expired exit window refuses startup even when the sweep deadline remains in the future.
+
+Recovery retains the original exit assignments, progress and retry consumption. It issues no new exit clock, movement request or room visit itself; the existing FSM and scheduled step continue the existing egress. Live duplicates retain their worker, and the existing one-restart limit remains. This repairs startup admission, not complete cross-owner CQB handover or demonstrated physical exit. Runtime recovery and performance remain unverified while audits are paused.
