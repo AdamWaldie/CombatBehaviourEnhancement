@@ -21,6 +21,11 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertNotIn('isKindOf',admission)
         executable=s.split('params [[',1)[1]
         self.assertEqual(executable.count('nearEntities'),1)
+        self.assertEqual(executable.count('velocity _other'),1)
+        self.assertIn('private _otherVelocity=+_measuredVelocity;',executable)
+        self.assertNotIn('private _otherCentre=',executable)
+        self.assertIn('(_projectedLow select 0)+(_projectedHigh select 0)',executable)
+        self.assertIn('(_projectedLow select 1)+(_projectedHigh select 1)',executable)
         self.assertNotIn('allDead',executable)
         self.assertIn('[_other,_otherLow,_otherHigh] call _projectTrafficHull',s)
         self.assertIn('count _candidates > 256',s)
@@ -86,6 +91,27 @@ class DrivingTrafficTests(unittest.TestCase):
             self.assertNotAlmostEqual(actual_gap,old_gap)
             self.assertGreaterEqual(peer[1][2],own[0][2])
             self.assertLessEqual(peer[0][2],own[1][2])
+        # Independent exhaustive corners verify the same horizontal centre for
+        # asymmetric models, 3D rotations, reverse axes, scale and large origins.
+        def transform(point,scale,yaw,pitch,roll,shift):
+            x,y,z=(scale*v for v in point)
+            cr,sr=math.cos(roll),math.sin(roll);y,z=cr*y-sr*z,sr*y+cr*z
+            cp,sp=math.cos(pitch),math.sin(pitch);x,z=cp*x+sp*z,-sp*x+cp*z
+            cy,sy=math.cos(yaw),math.sin(yaw);x,y=cy*x-sy*y,sy*x+cy*y
+            return tuple(v+d for v,d in zip((x,y,z),shift))
+        low=(-2,-5,-.7);high=(3,7,2.4)
+        for scale,yaw,pitch,roll,direction,origin in product((.5,1,2),(0,.7,2),(-.4,.2),(-.3,.6),(-1,1),((0,0,0),(100000,-200000,100))):
+            forward=(math.sin(yaw)*direction,math.cos(yaw)*direction,0)
+            right=(forward[1],-forward[0],0)
+            shift=tuple(a+b for a,b in zip(origin,(17,-31,5)))
+            points=[transform(q,scale,yaw,pitch,roll,shift) for q in product(*zip(low,high))]
+            relative=[tuple(v-o for v,o in zip(q,origin)) for q in points]
+            dot=lambda a,b:sum(x*y for x,y in zip(a,b))
+            mid_right=(min(dot(q,right) for q in relative)+max(dot(q,right) for q in relative))*.5
+            mid_forward=(min(dot(q,forward) for q in relative)+max(dot(q,forward) for q in relative))*.5
+            rebuilt=tuple(right[i]*mid_right+forward[i]*mid_forward for i in range(2))
+            centre=transform(tuple((a+b)*.5 for a,b in zip(low,high)),scale,yaw,pitch,roll,shift)
+            for i in range(2):self.assertAlmostEqual(rebuilt[i],centre[i]-origin[i],places=8)
         above=world_bounds((-1,-3,-1),(1,3,1),1,0,(0,20,10))
         self.assertGreater(above[0][2],own[1][2])
         # Forward projection must admit a long rotated hull whose centre is behind
@@ -133,7 +159,7 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('_denseTraffic && {canSuspend}',s)
         self.assertIn('if (_evaluated > 64) exitWith {_predictionBudgetExceeded=true}',s)
         self.assertLess(s.index('if (_denseTraffic && {finite _otherSpeed}'),s.index('_evaluated=_evaluated+1'))
-        self.assertLess(s.index('_evaluated=_evaluated+1'),s.index('private _otherCentre='))
+        self.assertLess(s.index('_evaluated=_evaluated+1'),s.index('private _centreRight='))
         self.assertIn('if (_predictionBudgetExceeded) exitWith {[0,_vehicle',s)
         # Unknown geometry is not an empty lane. In particular a NaN height makes
         # both overlap comparisons false, and a vertical forward vector supplies

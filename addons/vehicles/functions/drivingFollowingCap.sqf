@@ -141,17 +141,19 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearC
     if (_predictionBudgetExceeded) exitWith {};
     private _other=_x;
     if (_other != _vehicle && {!isNull _other} && {!(_other in _pathHulls)}) then {
+        // Sample once: following allowance and crossing prediction use the same measured course.
+        private _measuredVelocity=velocity _other;
         // Heading selects only the following-speed allowance, never obstacle admission.
         // An angled parked hull or a reversing/oncoming vehicle still occupies this lane.
         private _following=((vectorDir _other) vectorDotProduct _forward) > 0.7
-            && {((velocity _other) vectorDotProduct _forward) >= -0.5};
+            && {(_measuredVelocity vectorDotProduct _forward) >= -0.5};
         // A registered predecessor is not permission to omit its physical hull.
         // Convoy centre-distance spacing applies only while the pair remains aligned.
         private _spacingOwned=_travelDirection == 1 && {_other == _predecessor} && {alive _other}
             && {_following} && {((vectorDir _other) vectorDotProduct _forward) >= cos 25};
         if (_other == _predecessor && {!_spacingOwned}) then {_following=false};
         private _otherForward=if (_following) then {
-            ((velocity _other) vectorDotProduct _forward) max 0
+            (_measuredVelocity vectorDotProduct _forward) max 0
         } else {0};
         private _otherBox=boundingBoxReal _other;
         private _otherLow=_otherBox select 0;private _otherHigh=_otherBox select 1;
@@ -174,7 +176,7 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearC
         // closeness. Normal approach yields to the right; either side can require emergency
         // braking inside stopping room. No peer has acknowledged that it will give way.
         // Current lane occupancy below remains independent of this prediction.
-        private _otherVelocity=velocity _other;_otherVelocity set [2,0];
+        private _otherVelocity=+_measuredVelocity;_otherVelocity set [2,0];
         private _otherSpeed=vectorMagnitude _otherVelocity;
         // Derive the same crossing denominator before spending a prediction slot.
         // Parallel courses below the existing cutoff cannot enter that branch; current
@@ -192,8 +194,11 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearC
             }}) then {continue};
         _evaluated=_evaluated+1;
         if (_evaluated > 64) exitWith {_predictionBudgetExceeded=true};
-        private _otherCentre=_other modelToWorldWorld ((_otherLow vectorAdd _otherHigh) vectorMultiply 0.5);
-        private _relative=_otherCentre vectorDiff _ownCentre;_relative set [2,0];
+        // An affine box centre is the midpoint of its unpadded projected extrema.
+        // Rebuild horizontal separation in the existing orthonormal metre frame.
+        private _centreRight=((_projectedLow select 0)+(_projectedHigh select 0))*0.5;
+        private _centreForward=((_projectedLow select 1)+(_projectedHigh select 1))*0.5;
+        private _relative=(_right vectorMultiply _centreRight) vectorAdd (_forward vectorMultiply _centreForward);
         private _fromRight=_travelDirection < 0 || {_relative vectorDotProduct _right > 0.25};
         if (_sameHeight && {_otherSpeed > 0.8}) then {
             if (abs _denominator > 0.2) then {
@@ -245,7 +250,7 @@ private _cap=_requested;private _limiting=objNull;private _gap=-1;private _nearC
             // A hull approaching along our lane keeps closing while we react AND brake.
             // v*T + v^2/(2*a) + u*(T+v/a) <= room, where u is its current approach.
             // This is a provisional own-speed bound, not consent or a collision guarantee.
-            private _approachSpeed=(-((velocity _other) vectorDotProduct _forward)) max 0;
+            private _approachSpeed=(-(_measuredVelocity vectorDotProduct _forward)) max 0;
             if (_approachSpeed > 0.5) then {
                 private _remainingRoom=(_room-_approachSpeed*_reaction) max 0;
                 private _approachCoefficient=_approachSpeed+_reactionSpeed;

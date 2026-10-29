@@ -991,7 +991,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-traffic-world-frame-20261025.json",
-      "sha256": "ff8b191de37a0337e0881498fb1bf08f77a73fbd154e7883abaddf7a11d10e24",
+      "sha256": "f0d07bf58aadca67a82ecf9aa4407e341e54750a924992bed76a7e98182b51e7",
       "scope": "Read the record for its exact scope.",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"

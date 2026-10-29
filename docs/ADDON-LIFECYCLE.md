@@ -2563,3 +2563,10 @@ does not certify that old workers have ended or that native flight commands are 
 
 Physical pilot/commander takeover, normal/HC ownership, repeated control/cleanup and the measured
 performance budget remain unverified while audits are paused.
+
+
+### Shared traffic observation reuse
+
+Ordinary driving and convoy traffic checks use one measured velocity per nearby vehicle for following, crossing and oncoming constraints. Horizontal separation is reconstructed from the existing unpadded full-hull projection, avoiding another model transform. The flattened crossing vector is a copy, so the original measurement remains intact.
+
+The existing single discovery query, 256-hull projection and 64-prediction limits, vertical overlap, safety padding, braking and spacing rules remain. This reduces native reads in the existing observer and adds no worker or persistent cache. The change does not establish a measured performance gain or resolve physical convoy stop/start; those remain pending in-engine verification.
