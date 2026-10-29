@@ -7,7 +7,7 @@ class GrenadeNativeHandoverTests(unittest.TestCase):
         s = (ROOT / "addons/infantry/functions/cortexGrenadeCheck.sqf").read_text()
         admission = s.split('private _grenade =', 1)[1]
         self.assertLess(admission.index('private _nativeRoute=[_group] call CBE_fnc_NativeOrderReceipt;'), admission.index('_unit doMove _spot;'))
-        self.assertIn('_group getVariable ["CBE_AIPass_Epoch",0],_nativeRoute,clientOwner,_returnAnchor]', admission)
+        self.assertIn('_group getVariable ["CBE_AIPass_Epoch",0],_nativeRoute,clientOwner,_returnAnchor,false,_serial]', admission)
         self.assertLess(admission.index('private _returnAnchor=formLeader _unit;'), admission.index('_unit enableAI "PATH"'))
         self.assertEqual(s.count('call CBE_fnc_CortexQueueJob'), 2)  # header example and single regroup job
         # Existing movement cleanup must not be postponed as if it were a new reaction.
@@ -52,7 +52,18 @@ class GrenadeNativeHandoverTests(unittest.TestCase):
         self.assertIn('(expectedDestination _unit) param [0,[],[[]]]', callback)
         cleanup = callback.index('_unit setVariable ["CBE_Cortex_ActorMove",nil]')
         self.assertGreater(cleanup, follow)
-        self.assertIn('if (_ownsEvasion && {local _unit}) then {', callback)
+        self.assertIn('if (local _unit && {_ownsEvasion || {_returnIssued}}) then {', callback)
+        observer=callback.split('if (_returnIssued) exitWith {',1)[1].split('private _stillOurs=',1)[0]
+        self.assertNotIn('doFollow ',observer)
+        self.assertNotIn('doMove ',observer)
+        for proof in ('_expires+30','FOLLOW_OBSERVED','WINDOW_EXPIRED','YIELDED','_pending pushBack'):
+            self.assertIn(proof,observer)
+        self.assertIn('_nextRecord set [10,true]',callback)
+        self.assertIn('_job set ["regroup",_pending]',callback)
+        self.assertIn('if (_pending isEqualTo []) then {-1} else {0.25}',callback)
+        self.assertNotIn('time+30',observer)
+        self.assertNotIn('CBE_Cortex_GrenadeSerial',observer)
+        self.assertIn('_returnAnchor,_serial]',callback)
         self.assertIn('_actorMove isEqualTo ["GRENADE_EVASION",_spot,_expires]', callback)
         fence=callback.split('private _sourceCurrent=',1)[1].split('private _destination=',1)[0]
         for guard in ('_issuer == clientOwner','local _group','group _unit == _group',

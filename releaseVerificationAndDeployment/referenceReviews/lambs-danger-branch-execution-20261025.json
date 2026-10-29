@@ -2245,5 +2245,30 @@
       "fingerprint": "73214c000fce76ec8a2ecea02d010d40e4e22126e82bbbf0da20d220a02b6833",
       "type": "unsigned development; no physical/performance or signed-release acceptance"
     }
+  },
+  "grenadeFollowObservation20261029": {
+    "base": "b91be884e943851a977ec5142755cf00f0bfc08f",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "source": {
+      ".qa/lambs-danger-installed-20261026/functions/fnc_isForced.sqf": "b56d7eff15e0fad2019f6a42bb864a82ff321047683355d2473c7c6b780e6376"
+    },
+    "sourceTrace": "Existing reaction integration from brainReact/doCover -> CBE ProjectileCreated/GrenadeCheck. isForced body reread/hash verified: native FOLLOW is not among source forced tasks; CBE shared fire-task availability also permits ordinary FOLLOW. Source delayed group-wide doFollow/reset is not imported. Reuse CBE original issuer/epoch/operation/route/lease ownership and formation anchor.",
+    "engineSources": [
+      "https://community.bistudio.com/wiki/doFollow",
+      "https://community.bistudio.com/wiki/formLeader"
+    ],
+    "finding": "Original cleanup cleared its marker immediately after requesting FOLLOW, with no native observation. Ordinary FOLLOW was also absent from grenade admission, so an actor successfully returning to formation could be excluded from subsequent grenade responses.",
+    "implementation": "Request FOLLOW once, append private returnIssued flag to that existing per-projectile record, and reschedule the same shared cleanup job for passive observation. Original expiry+30s hard window never renews; no request after it. FOLLOW_OBSERVED requires actual FOLLOW plus saved formLeader and full original context. Unknown MOVE transition does not replay/cancel; changed lease/command/anchor yields, unresolved window expires without success. Original six-second movement lease is not extended and no new reservation/controller/handler/job enqueue is added. Whole-group/waypoint checks are deferred to native request/ack boundaries rather than passive MOVE polls.",
+    "diagnostics": "One local actor CBE_Cortex_GrenadeReturnResult [exact nine-field identity including immutable per-machine episode serial,phase,diag_tickTime], initial EVASION_REQUESTED then FOLLOW_REQUESTED, FOLLOW_OBSERVED, YIELDED or WINDOW_EXPIRED. No broadcast/JIP replay; not permission. A later evasion replaces identity and old observers cannot overwrite it. Context loss retires old observer without native command or completion claim; last local diagnostic can remain stale. Serial grants no movement authority and never renews during observation; prevents equal-geometry/same-frame result collisions.",
+    "repeat": "Add only ordinary FOLLOW to existing reflex command admission; preserve foreign STOP and scripted/care tasks, reservation, player/Zeus/external ownership, health/simulation/fleeing and pause guards. No skills, membership, settings, forced pose or native waypoint edits.",
+    "checks": "Existing native-handover/repeat regressions red failed missing observer/FOLLOW admission. Focused4 cases passed after updating existing structural fences for read-only continuation. Initial full1505/461/11 build passed but was superseded before sealing by required diagnostic serial identity. Final full build PASS1505 tests/461 production SQF/11 PBO plus HEMTT/FSM/config/docs/coverage/static performance gates. Independent candidate verification PASS. No test cases added or removed. Logs .qa/handovers/grenade-follow-{red,focused-green,build,final-build,independent}-20261029.log and grenade-repeat-red-20261029.log; intermediate source-shape error retained in grenade-follow-final-focused-20261029.log.",
+    "limits": "Implemented observation and repeat admission, not demonstrated gameplay. Native FOLLOW may remain unobserved and yields/expires without locking actors; no success by timeout. Physical formation recovery/repeated grenades, indoor-floor traversal, old native command cancellation, full cross-owner/provider handover, normal/HC/JIP/Zeus and measured overhead remain unverified. Rappel actor and CQB incoming-consumer gaps are not closed. Audits PAUSED.",
+    "candidate": {
+      "path": ".qa/candidates/grenade-follow-20261029-b91be884",
+      "base": "b91be884e943851a977ec5142755cf00f0bfc08f",
+      "dirty": true,
+      "fingerprint": "418b996014afe20d500de0ea67bfea677a4d16fe1bfd1f54ccab604d16674426",
+      "type": "unsigned development; no clean signed release or physical/performance acceptance"
+    }
   }
 }

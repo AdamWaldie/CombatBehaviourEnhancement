@@ -6968,6 +6968,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_away,_grenadePos,6,_reserved,_group,"COVER",_unit]',admission)
         self.assertIn('_reserved findIf {_x distance2D _candidate < 2} < 0',admission)
         self.assertIn('_x distance2D _grenadePos > _originDangerDistance',admission)
+        self.assertIn('currentCommand _unit in ["","MOVE","FOLLOW","ATTACK","FIRE","SUPPRESS"]',admission)
         # Failed cover searches return the seed. Every bare fallback must still reject
         # water/cliff endpoints before releasing a support hold or replacing native movement.
         select=admission.split('private _free=_escapeCandidates findIf {',1)[1].split('if (_free < 0)',1)[0]
@@ -6979,8 +6980,8 @@ class CortexOperations(unittest.TestCase):
         cleanup=text.split('if (_regroup isNotEqualTo []) exitWith {',1)[1].split('private _grenade =',1)[0]
         self.assertIn('_actorMove isEqualTo ["GRENADE_EVASION",_spot,_expires]',cleanup)
         self.assertNotIn('(_actorMove select 1) distance2D',cleanup)
-        self.assertLess(cleanup.index('_actorMove isEqualTo'),cleanup.index('if (_ownsEvasion && {local _unit})'))
-        self.assertLess(cleanup.index('if (_ownsEvasion && {local _unit})'),cleanup.index('setVariable ["CBE_Cortex_ActorMove",nil]'))
+        self.assertLess(cleanup.index('_actorMove isEqualTo'),cleanup.index('if (local _unit && {_ownsEvasion || {_returnIssued}})'))
+        self.assertLess(cleanup.index('if (local _unit && {_ownsEvasion || {_returnIssued}})'),cleanup.index('setVariable ["CBE_Cortex_ActorMove",nil]'))
 
     def test_grenade_evasion_regroup_does_not_overwrite_new_actions(self):
         text=source('cortexGrenadeCheck')
@@ -6988,7 +6989,7 @@ class CortexOperations(unittest.TestCase):
         for guard in ['GRENADE_EVASION','group _unit == _group','vehicle _unit == _unit','CBE_fnc_CortexCombatEffective','CBE_AIPass_ZeusHold','expectedDestination _unit','_unit in (_drill']:
             self.assertLess(callback.index(guard),callback.index('doFollow'))
         self.assertLess(callback.index('doFollow'),callback.index('setVariable ["CBE_Cortex_ActorMove",nil]'))
-        self.assertIn('if (_ownsEvasion && {local _unit}) then {',callback)
+        self.assertIn('if (local _unit && {_ownsEvasion || {_returnIssued}}) then {',callback)
         for guard in ['_actorMove isEqualTo ["GRENADE_EVASION",_spot,_expires]','CBE_OperationGeneration','CBE_AIPass_Epoch','CortexExternalOwner','remoteControlled','currentCommand']:
             self.assertLess(callback.index(guard),callback.index('doFollow'))
         # Evasion must not flatten an authored fire-team subformation into the squad leader.
@@ -7000,7 +7001,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_unit doFollow _returnAnchor',callback)
         admission=text.split('private _grenade =',1)[1]
         self.assertLess(admission.index('private _returnAnchor=formLeader _unit;'),admission.index('_unit doMove _spot'))
-        self.assertIn('_nativeRoute,clientOwner,_returnAnchor]',admission)
+        self.assertIn('_nativeRoute,clientOwner,_returnAnchor,false,_serial]',admission)
         self.assertIn('setVariable ["CBE_Cortex_ActorMove",["GRENADE_EVASION"',text)
         self.assertIn('!([_unit] call CBE_fnc_CortexActorMoveReserved)',text)
         self.assertIn('setVariable ["CBE_Cortex_ActorMove",nil]',callback)

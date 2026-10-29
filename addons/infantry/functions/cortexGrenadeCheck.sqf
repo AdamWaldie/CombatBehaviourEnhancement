@@ -41,20 +41,30 @@
  * owner epoch and source machine; stale callbacks cannot clear a transferred/newer evasion or issue follow over native/specialist tasks.
  * Admission preserves unknown/malformed actor reservations; delayed cleanup requires the exact
  * issued evasion lease, including its destination, so a replacement marker is never retired.
- * The existing one-shot regroup job uses GRENADE_CLEANUP so a tactical pause cannot postpone
+ * The existing regroup job uses GRENADE_CLEANUP so a tactical pause cannot postpone
  * retirement of an already-issued escape. Original per-actor authority still refuses native
  * recall after shutdown/migration/newer orders; this is not replay or proof of native handback.
  * Initial projectile reaction stays ordinary TACTICS and never starts during a tactical pause.
+ * Ordinary native FOLLOW is eligible so a returned soldier can react to another grenade;
+ * foreign STOP/scripted/care tasks, reservations and player/Zeus/specialist ownership still win.
  * Return retains the original native subformation anchor. Only that same capable surviving
  * same-group anchor may receive FOLLOW; changed/missing anchors and self-anchors grant no recall.
  * This preserves fire-team organisation instead of flattening every return onto the group leader.
  * Legacy regroup records without a route receipt or anchor only retire their exact-owned marker.
- * Issuing FOLLOW is a request, not observed formation restoration or physical completion.
+ * FOLLOW is issued once, then this same job requests0.25s observation until the original evasion
+ * expiry+30s. Within the unchanged owner/context, FOLLOW_OBSERVED requires native FOLLOW/formLeader
+ * state. Losing that context retires the observer without adopting/replaying it or declaring success.
+ * Unknown MOVE transitions are not replayed/cancelled; newer commands/leases yield. Expiry reports
+ * WINDOW_EXPIRED, never success. The ordinary six-second movement lease is never extended and
+ * observation adds no reservation, actor controller, timer, network traffic or cross-owner replay.
+ * One last local CBE_Cortex_GrenadeReturnResult [identity,phase,local observation time] is diagnostic
+ * only, replaced by the next evasion and not sent to JIP. A per-machine episode serial prevents
+ * same-frame/equal-geometry result collisions; it grants no command. Native FOLLOW is not arrival.
  * Arguments:
  * 0: job <HASHMAP> - contains "projectile", or internal "regroup" actor records
  *
  * Return Value:
- * Number - -1 (one-shot)
+ * Number - -1 when retired, or 0.25 for passive return observation on the existing job.
  *
  * Example:
  * [CBE_fnc_CortexGrenadeCheck, createHashMapFromArray [["projectile", _grenade]], 0.5] call CBE_fnc_CortexQueueJob;
@@ -66,39 +76,86 @@
 params [["_job", createHashMap, [createHashMap]]];
 private _regroup = _job getOrDefault ["regroup", []];
 if (_regroup isNotEqualTo []) exitWith {
+    private _pending=[];
     {
         _x params ["_unit","_group","_spot","_hold",
             ["_expires",-1,[0]],["_generation",-1,[0]],["_epoch",-1,[0]],["_nativeRoute",[],[[]]],["_issuer",-1,[0]],
-            ["_returnAnchor",objNull,[objNull]]];
+            ["_returnAnchor",objNull,[objNull]],["_returnIssued",false,[true]],["_serial",-1,[0]]];
+        private _record=_x;
         private _actorMove = _unit getVariable ["CBE_Cortex_ActorMove",[]];
+        private _lease=["GRENADE_EVASION",_spot,_expires];
         private _ownsEvasion = _expires >= 0
             && {_actorMove isEqualTo ["GRENADE_EVASION",_spot,_expires]};
-        if (_ownsEvasion && {local _unit}) then {
-            // Split locality can leave the actor here after its group moved. Even
-            // exact marker cleanup must not mutate a checkpoint inherited by another owner.
-            private _sourceCurrent=_issuer == clientOwner && {local _group}
-                && {group _unit == _group} && {groupOwner _group == clientOwner}
-                && {(_group getVariable ["CBE_AIPass_Epoch",0]) == _epoch}
-                && {(_group getVariable ["CBE_OperationGeneration",0]) == _generation};
+        private _retireMarker=false;
+        // Split locality can leave the actor here after its group moved. Even
+        // exact marker cleanup must not mutate a checkpoint inherited by another owner.
+        private _sourceCurrent=_issuer == clientOwner && {local _group}
+            && {group _unit == _group} && {groupOwner _group == clientOwner}
+            && {(_group getVariable ["CBE_AIPass_Epoch",0]) == _epoch}
+            && {(_group getVariable ["CBE_OperationGeneration",0]) == _generation};
+        if (local _unit && {_ownsEvasion || {_returnIssued}}) then {
             if (!_sourceCurrent) exitWith {};
             private _destination=(expectedDestination _unit) param [0,[],[[]]];
-            private _stillOurs=local _group && {group _unit == _group} && {vehicle _unit == _unit}
-                && {!isPlayer _unit} && {isNull remoteControlled _unit}
-                && {(_group getVariable ["CBE_OperationGeneration",0]) == _generation}
-                && {(_group getVariable ["CBE_AIPass_Epoch",0]) == _epoch}
-                && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}
-                && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
+            private _identity=[_unit,_group,_issuer,_generation,_epoch,+_spot,_expires,_returnAnchor,_serial];
+            // Local diagnostic only: it grants no reservation or command permission.
+            // A successor evasion replaces the identity, so old observers cannot overwrite it.
+            private _report={
+                params ["_phase"];
+                private _result=_unit getVariable ["CBE_Cortex_GrenadeReturnResult",[]];
+                if (_result isEqualType [] && {count _result == 3}
+                    && {(_result select 0) isEqualTo _identity}) then {
+                    _unit setVariable ["CBE_Cortex_GrenadeReturnResult",[_identity,_phase,diag_tickTime]];
+                };
+            };
+            // Expensive whole-group/waypoint checks run at command/acknowledgement boundaries,
+            // not on every passive wait. No helper here issues a movement command.
+            private _returnAvailable={
+                local _group && {group _unit == _group} && {vehicle _unit == _unit}
+                    && {!isPlayer _unit} && {isNull remoteControlled _unit}
+                    && {(_group getVariable ["CBE_OperationGeneration",0]) == _generation}
+                    && {(_group getVariable ["CBE_AIPass_Epoch",0]) == _epoch}
+                    && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}
+                    && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
+                    && {[_unit] call CBE_fnc_CortexCombatEffective}
+                    && {simulationEnabled _unit} && {!isObjectHidden _unit} && {!fleeing _unit}
+                    && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+                    && {_unit checkAIFeature "MOVE"} && {_unit checkAIFeature "PATH"}
+                    && {[_group] call CBE_fnc_CortexIsEligible}
+                    && {(_group getVariable ["CBE_AIPass_ZeusHold",[]]) isEqualTo _hold}
+                    && {_nativeRoute isNotEqualTo []}
+                    && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _nativeRoute}
+                    && {!isNull _returnAnchor} && {_returnAnchor != _unit}
+                    && {group _returnAnchor == _group}
+                    && {[_returnAnchor] call CBE_fnc_CortexCombatEffective}
+                    && {formLeader _unit isEqualTo _returnAnchor}
+            };
+            if (_returnIssued) exitWith {
+                // Observation only. In particular, changed MOVE geometry can be the native
+                // FOLLOW transition; it does not authorise another request or a forced STOP.
+                if (_actorMove isNotEqualTo [] && {!_ownsEvasion}) exitWith {["YIELDED"] call _report};
+                if (time >= _expires+30) exitWith {
+                    ["WINDOW_EXPIRED"] call _report;
+                    _retireMarker=true;
+                };
+                private _command=currentCommand _unit;
+                if (_command == "FOLLOW" && {call _returnAvailable}) exitWith {
+                    ["FOLLOW_OBSERVED"] call _report;
+                    _retireMarker=true;
+                };
+                if (!(_command in ["","MOVE"]) || {!alive _unit}
+                    || {isNull _returnAnchor} || {formLeader _unit isNotEqualTo _returnAnchor}
+                    || {!isNull objectParent _unit} || {isPlayer _unit}
+                    || {!isNull remoteControlled _unit}) exitWith {
+                    ["YIELDED"] call _report;
+                    _retireMarker=true;
+                };
+                _pending pushBack (+_record);
+            };
+            private _stillOurs=call _returnAvailable
                 && {currentCommand _unit in ["","MOVE"]}
-                && {[_unit] call CBE_fnc_CortexCombatEffective}
-                && {simulationEnabled _unit} && {!isObjectHidden _unit} && {!fleeing _unit}
-                && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
-                && {_unit checkAIFeature "MOVE"} && {_unit checkAIFeature "PATH"}
-                && {[_group] call CBE_fnc_CortexIsEligible}
-                && {(_group getVariable ["CBE_AIPass_ZeusHold",[]]) isEqualTo _hold}
-                && {_nativeRoute isNotEqualTo []}
-                && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo _nativeRoute}
                 && {count _destination == 3} && {_destination vectorDistance _spot <= 0.25};
-            if (_stillOurs) then {
+            private _requested=false;
+            if (_stillOurs && {time < _expires+30}) then {
                 private _state=_group getVariable ["CBE_AIPass_State",createHashMap];
                 private _drill = _state getOrDefault ["drill",createHashMap];
                 private _operation=_group getVariable ["CBE_Operation",createHashMap];
@@ -109,23 +166,29 @@ if (_regroup isNotEqualTo []) exitWith {
                     || {(_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo []}
                     || {_state getOrDefault ["responding",false]} || {_state getOrDefault ["assaulting",false]}
                     || {_unit in (_operation getOrDefault ["participants",[]])};
-                // Preserve the authored subformation, as DangerCoverStep does. A missing
-                // old anchor or an intervening formation edit grants no replacement recall.
-                if (!_taskOwned && {!(_unit in (_drill getOrDefault ["units",[]]))}
-                    && {!isNull _returnAnchor} && {_returnAnchor != _unit}
-                    && {group _returnAnchor == _group}
-                    && {[_returnAnchor] call CBE_fnc_CortexCombatEffective}
-                    && {formLeader _unit isEqualTo _returnAnchor}) then {
+                if (!_taskOwned && {!(_unit in (_drill getOrDefault ["units",[]]))}) then {
                     _unit doFollow _returnAnchor;
+                    ["FOLLOW_REQUESTED"] call _report;
+                    private _nextRecord=+_record;
+                    _nextRecord set [10,true];
+                    _pending pushBack _nextRecord;
+                    _requested=true;
                 };
             };
-            // The six-second marker is CBE bookkeeping, not engine ownership. Clear it even when
-            // native AI or Zeus changed the destination under this unchanged source episode; only the exact-destination branch above
-            // may issue a follow command over the expiring evasion.
+            if (!_requested) then {
+                [["YIELDED","WINDOW_EXPIRED"] select (time >= _expires+30)] call _report;
+                _retireMarker=true;
+            };
+        };
+        // Retirement is exact bookkeeping only; expiry is never reported as native success.
+        // The original ordinary six-second lease is not extended while observation waits.
+        if (_retireMarker && {_sourceCurrent} && {local _unit}
+            && {(_unit getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo _lease}) then {
             _unit setVariable ["CBE_Cortex_ActorMove",nil];
         };
     } forEach _regroup;
-    -1
+    _job set ["regroup",_pending];
+    if (_pending isEqualTo []) then {-1} else {0.25}
 };
 private _grenade = _job getOrDefault ["projectile", objNull];
 if (isNull _grenade || {!(missionNamespace getVariable ["CBE_AIPass_GrenadeEvasion_Enable", true])}) exitWith {-1};
@@ -177,7 +240,7 @@ private _clearHoldOwned={
         && {(_unit getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
         && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}
         && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
-        && {currentCommand _unit in ["","MOVE","ATTACK","FIRE","SUPPRESS"] || {_ownedClearHold}}
+        && {currentCommand _unit in ["","MOVE","FOLLOW","ATTACK","FIRE","SUPPRESS"] || {_ownedClearHold}}
         && {_unit checkAIFeature "MOVE"}
         && {_unit checkAIFeature "PATH" || {_supportPathOwned}}
         && {!(_unit in _drillUnits)} && {!([_unit] call CBE_fnc_CortexActorMoveReserved)}
@@ -228,11 +291,16 @@ private _clearHoldOwned={
                     _group getVariable ["CBE_OperationGeneration",0],clientOwner];
             };
             _unit setVariable ["CBE_Cortex_ClearEvasionReturn",_clearReturn];
+            private _serial=(missionNamespace getVariable ["CBE_Cortex_GrenadeSerial",0])+1;
+            missionNamespace setVariable ["CBE_Cortex_GrenadeSerial",_serial];
             _unit doMove _spot;
             _unit setVariable ["CBE_Cortex_ActorMove",["GRENADE_EVASION",+_spot,_expires]];
             _reacted = _reacted + 1;
-            _regroupActors pushBack [_unit,_group,+_spot,+(_group getVariable ["CBE_AIPass_ZeusHold",[]]),
-                _expires,_group getVariable ["CBE_OperationGeneration",0],_group getVariable ["CBE_AIPass_Epoch",0],_nativeRoute,clientOwner,_returnAnchor];
+            private _record=[_unit,_group,+_spot,+(_group getVariable ["CBE_AIPass_ZeusHold",[]]),
+                _expires,_group getVariable ["CBE_OperationGeneration",0],_group getVariable ["CBE_AIPass_Epoch",0],_nativeRoute,clientOwner,_returnAnchor,false,_serial];
+            _regroupActors pushBack _record;
+            private _identity=[_unit,_group,_record select 8,_record select 5,_record select 6,+_spot,_expires,_returnAnchor,_serial];
+            _unit setVariable ["CBE_Cortex_GrenadeReturnResult",[_identity,"EVASION_REQUESTED",diag_tickTime]];
         };
     };
 } forEach ((_grenade nearEntities ["CAManBase", 12]) select [0,16]);
