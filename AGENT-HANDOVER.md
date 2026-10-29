@@ -1,3 +1,15 @@
+## Checkpoint: native attachment admission - 29 October 2026
+
+Workdir: C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks. Remote AdamWaldie/CombatBehaviourEnhancement; branch Adam/cbe-mechanised-support-20261028; PR20 OPEN DRAFT verified at87808e99 before this checkpoint. Chat cwd WMP is unrelated. Audits remain PAUSED; goal ACTIVE/INCOMPLETE. No Arma staging, merge, release, Steam or manual CI.
+
+CortexActorMoveReserved now refuses actual native attachments before empty/expired lease admission. This protects already-wired manoeuvre starts/refill and both crew boarding paths. No detach, command, settings change, new reservation/worker/scan. Pair metadata remains metadata; default-off crew recall unchanged. Useful source comparison and actual caller trace: referenceReviews/protocol-pairs-3802121807-20261020.json#nativeAttachmentAdmission20261029 under releaseVerificationAndDeployment. Source hashes reverified. This is not complete native animation/firing ownership or proven physical behaviour.
+
+Existing regression case demonstrated missing guard (red), then passed. Full build and independent verification passed:1505 tests,461production SQF,11PBO. Candidate .qa/candidates/attached-actor-20261029-87808e99; fingerprint f26fd66163a8de20cb414703365e1bef90bbbd797425f9e95b84b1e6d7dd4504. Unsigned development receipt87808e99 plus dirty inputs, not a clean signed release. Logs .qa/handovers/attached-actor-{red,green,build,independent}-20261029.log. No added test cases.
+
+Continue foundations-up from IMPLEMENTATION-GOAL.md and reference/sourceReviews/source-review-map.json; preserve the complete source queue and historical handover below. Remaining substantial work includes real controlled rappel execution/all-writer handback (geometry only exists), CQB authenticated incoming consumer/native restoration, artillery crew handover gaps and physical behaviour/performance validation when authorised. Avoid speculative convoy tuning while audits paused. Prior grenade observer is checkpoint87808e99, not current batch scope. No parity percentage increase from this guard.
+
+Preserve all pre-existing deleted branding/workflow/requirements paths and modified docs/PERFORMANCE-VALIDATION.md. Keep Workshop originals, .qa extracted sources, AI-Reference-Archives and permanent signing pair untouched. This Temp checkout and .qa are not fully backed up by these handovers. Durable continuation: C:/Users/AdamW/Documents/AI-Reference-Archives/CBE-Continuation. Old chat deletion must not trigger source cleanup.
+
 ## Current checkpoint: native grenade return observation and repeat reactions, 29 October 2026
 
 Goal ACTIVE/INCOMPLETE; AUDITS PAUSED. Actual CBE root C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; branch Adam/cbe-mechanised-support-20261028, PR20 OPEN DRAFT (pushed head c63c52f4 before this batch). WMP is unrelated. No merge, Release/Steam/manualCI, Arma or installed-game staging. Preserve unrelated deleted workflows/artwork/requirements and dirty docs/PERFORMANCE-VALIDATION.md.

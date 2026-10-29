@@ -354,5 +354,32 @@
     "review": "lambs-fsm-foundations-20261020.json#firstBoundNativeAdmissionImplementation20261028",
     "scope": "Shared start/refill original ADMISSION observation, mode-aware direct/formation reader, source-bound standalone resume and explicit no-recall cleanup now implement the earlier initial-participant code gap. Exact owned MOVE/HOLD retain their independent write proof. Not new pair timing or physical/parity evidence.",
     "physicalAcceptance": false
+  },
+  "nativeAttachmentAdmission20261029": {
+    "source": {
+      "pairs": ".qa/protocol-pairs-installed-20261025-d756b1cb/fn_pairs.sqf",
+      "pairsSha256": "fe29f98ea2341dc2cc753293cf8549fa0d298d2290eef978ed9cb3339a0b5284",
+      "crewHold": ".qa/hbq-complete-source-20261025/functions/fn_crewHold.sqf",
+      "crewHoldSha256": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076"
+    },
+    "finding": "Protocol pairs filters alive actors and native vehicle seating, then alternates movement without arrival ownership. HBQ crewHold force-seats assigned operators after a delay. Neither method supplies attachment ownership. CBE rejects forced seating and retains its existing arrival-driven task owner.",
+    "execution": "CortexActorMoveReserved now refuses an actual native attachment before empty/expired lease admission. CortexActorFireTaskAvailable gates manoeuvre starts; CortexFlankStep candidate/refill admission and both drivingCrewBoarding paths already call the shared predicate. Pair identity alone remains metadata, not task authority.",
+    "preserved": "Read-only local native getter; no detach, movement command, settings mutation, synthetic lease, scan, timer or controller. Actual detach removes this condition while all original journals and reservations still apply. Crew recall remains optional and off by default. This does not globally disable native firing or all posture paths.",
+    "verification": {
+      "focusedExistingCase": "CortexOperations.test_tactical_drills_do_not_consume_reserved_actors",
+      "red": ".qa/handovers/attached-actor-red-20261029.log",
+      "green": ".qa/handovers/attached-actor-green-20261029.log",
+      "physicalAcceptance": false,
+      "measuredPerformance": false,
+      "fullBuild": ".qa/handovers/attached-actor-build-20261029.log",
+      "independent": ".qa/handovers/attached-actor-independent-20261029.log",
+      "tests": 1505,
+      "compiledSqf": 461,
+      "pbos": 11,
+      "candidate": ".qa/candidates/attached-actor-20261029-87808e99",
+      "fingerprint": "f26fd66163a8de20cb414703365e1bef90bbbd797425f9e95b84b1e6d7dd4504",
+      "provenance": "Unsigned development candidate; base87808e99 plus dirty runtime inputs. Later review/handover metadata is not packaged runtime."
+    },
+    "remaining": "Audits paused. Attached/detached actor admission, interrupted mission scripts, locality migration and actual crew/pair behaviour need in-engine verification. No source-parity percentage change."
   }
 }

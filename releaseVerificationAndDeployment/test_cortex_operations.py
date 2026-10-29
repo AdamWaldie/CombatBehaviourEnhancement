@@ -7043,6 +7043,16 @@ class CortexOperations(unittest.TestCase):
                          'findIf {!(_x isEqualType 0) || {!finite _x}} < 0','!_expired']:
             self.assertIn(required,guard)
         self.assertNotIn('setVariable',guard)
+        # A script attachment owns the transform even with an empty/expired CBE lease.
+        self.assertLess(guard.index('!local _actor'),guard.index('attachedTo _actor'))
+        self.assertLess(guard.index('attachedTo _actor'),guard.index('if (_lease isEqualTo [])'))
+        self.assertEqual(guard.count('attachedTo _actor'),1)
+        for forbidden in ('detach _actor','doMove','doFollow','setPos','disableAI','enableAI','spawn','sleep'):
+            self.assertNotIn(forbidden,guard.split('params [[',1)[1])
+        refill=source('cortexFlankStep').split('private _actorTaskFree={',1)[1].split('private _mayIssueMovement',1)[0]
+        self.assertIn('CBE_fnc_CortexActorMoveReserved',refill)
+        boarding=source('drivingCrewBoarding')
+        self.assertEqual(boarding.count('CBE_fnc_CortexActorMoveReserved'),2)
 
     def test_queued_grenade_rechecks_takeover_and_frag_safety(self):
         text=source('cortexThrowGrenade')
