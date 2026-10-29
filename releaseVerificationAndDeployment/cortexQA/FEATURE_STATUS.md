@@ -59,7 +59,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | BREAK - Aircraft evasive break | 1 | 0 | 0 | `runAircraft.sqf` | 2 | implemented_partial |
 | DEFEND - Defence orders | 0 | 0 | 5 | `runServer.sqf` | 0 | implemented_partial |
 | CLEAR - Building clearance | 2 | 0 | 43 | `runBuildingComparison.sqf`, `runIndoorActors.sqf`, `runIndoorActorsHC.sqf`, `runIndoorNatural.sqf` | 2 | implemented_partial |
-| UI - CBA configuration and diagnostics | 0 | 0 | 3 | `runClient.sqf` | 0 | implemented_partial |
+| UI - CBA configuration and diagnostics | 0 | 0 | 4 | `runClient.sqf` | 0 | implemented_partial |
 | LIFECYCLE - Transfer, disconnect and JIP | 0 | 0 | 18 | `runLifecycle.sqf` | 6 | implemented_partial |
 | MULTI-FLANK - Multi-squad flank cohesion | 0 | 0 | 0 | `runMultiManoeuvre.sqf` | 1 | implemented_partial |
 | MULTI-BOUND - Squad and multi-squad bounding overwatch | 0 | 0 | 0 | `runMultiManoeuvre.sqf` | 1 | implemented_partial |
@@ -408,7 +408,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 **Expected:** Every option is registered once with the correct type and a valid effective value. Server enforcement, persistence and JIP require separate multiplayer acceptance.
 
-**Automation and open work:** runClient.sqf UI-* checks CBA registration and effective-state validity; interactive Addon Options, persistence and JIP acceptance pending Garrison area native and optional ZEN task controls now dispatch radius and walking/instant placement through the authenticated current-owner executor. Dialog, authentication, stale/duplicate rejection and physical acceptance remain pending; static registration earns no behaviour credit.
+**Automation and open work:** runClient.sqf UI-* checks CBA registration and effective-state validity; interactive Addon Options, persistence and JIP acceptance pending Garrison area native and optional ZEN task controls now dispatch radius and walking/instant placement through the authenticated current-owner executor. Dialog, authentication, stale/duplicate rejection and physical acceptance remain pending; static registration earns no behaviour credit. Scoped native/optional ZEN release controls use the existing authenticated infantry RELEASE path; interactive/native handback acceptance remains unverified.
 
 ### LIFECYCLE - Transfer, disconnect and JIP
 

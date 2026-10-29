@@ -163,6 +163,9 @@ if (!_accepted && {_newGarrisonFailure}) then {
         default {"Garrison planning was invalid or exceeded its bounded planning budget. No earlier task was replaced."};
     };
 };
+if (!_accepted && {_order == "RELEASE"}) then {
+    _executionReason="No building or defence task was released. There may be no matching task, or current native/owner control may still prevent handback.";
+};
 if (!_accepted && {_order == "AIRBORNE"}) then {
     _executionReason="Airborne insertion was refused. Check the selected passenger, squad aircraft, altitude, dry land and AI pilots; newer orders or another controller also take priority.";
 };

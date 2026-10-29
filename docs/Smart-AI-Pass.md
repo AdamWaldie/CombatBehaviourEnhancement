@@ -3158,3 +3158,18 @@ The optional armour post-shot reaction also recognises ordinary main-turret grou
 Air-only rounds, ammunition declaring child projectiles, declared ACE missile guidance and firing modes whose configured burst is not exactly1 are excluded from this movement reaction. Another nonmatching firing event on the same listener or projectile-budget overflow discards the optional episode rather than guessing when other firing has ended. This does not disable those weapons or change their targeting/loading. Unknown scripted guidance remains unsupported; projectile disappearance is not a hit or kill receipt. No independent firing, steering, waiting worker or renewed deadline is added. Shell behaviour remains unchanged. Physical guidance/fire-control transitions and performance still require verification while audits are paused.
 
 A discarded mixed/unsupported missile episode removes its listener but retains an inert private record until the original expiry. Routine gunnery cannot repeatedly rearm that same window; native firing and other controllers remain free. No extra timer, renewed deadline or actor reservation is added.
+
+
+### Release building / defence task
+
+In Zeus, place **Release building / defence task** on an AI soldier to request release of that squad's CBE clearance, garrison, defensive-line and temporary infantry actor tasks. With ZEN installed, choose the squad in the labelled dialog; without ZEN, the attached soldier identifies it directly. The request goes through the existing server and current squad owner.
+
+The existing cleanup preserves newer native/Zeus orders, protected actors and settings that CBE does not own. A request acknowledgement does not prove that soldiers have physically returned to formation; pending native handback can remain unresolved. A refused request explains that no matching task was released or current control prevents handback. Convoy, flight, artillery and tactical-drill operations retain their own controls.
+
+Mission scripts can use the same task path on the server:
+
+```sqf
+[[["order","RELEASE"],["group",mySquad]],2] call CBE_fnc_CortexOrderDispatch;
+```
+
+This is a behaviour command. Global addon configuration remains in CBA settings. Module dialog, repeat use and multiplayer/locality behaviour are implemented but await in-engine verification while audits are paused.

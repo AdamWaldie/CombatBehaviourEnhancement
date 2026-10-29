@@ -1,0 +1,87 @@
+{
+  "date": "2026-10-29",
+  "base": "a4b90468e18c7cf98117c2e25bca93c44691ea29",
+  "workshopId": "1858075458",
+  "scope": "Selected waypoint-task patrol/hunt/rush/reset comparison and scoped release interface; not whole117-member WP source parity.",
+  "sourceSnapshot": ".qa/lambs-wp-installed-20261029",
+  "pboSHA256": "da03c62978184d2e1b7f28b79cb5e380ae15f40d4cf9ff11d48801b1dfb08534",
+  "preservation": "All117 installed PBO members and manifest preserved privately without modifying originals; all member hashes and original PBO reverified. No reference bodies/assets added to product/Git.",
+  "witnesses": [
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/fnc_taskPatrol.sqf",
+      "sha256": "10040f562fc086b0202828efbcd79499d0c165916a4fca6de0667772b7f9285b",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/fnc_taskHunt.sqf",
+      "sha256": "8d0b517efe67a3bd841e9b150af67ccbc7732411067e82cb41e9ad386c519534",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/fnc_taskRush.sqf",
+      "sha256": "11907c2426e67bd5b051ca25f745f51bc9e585f439a2fb78252c9dfa877e0ab8",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/fnc_taskReset.sqf",
+      "sha256": "206b1bc5c307f6447d1d32fb4032927e8bcc3ab8e82a8ff3810c711291f95b78",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/Modules/fnc_modulePatrol.sqf",
+      "sha256": "95977ae4d339226dff2bbe6c8d959de345bc17236b50fadedd03d5e29785ee1b",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/ZEN/fnc_setPatrol.sqf",
+      "sha256": "42e08e0a6e4e837409aa00239b059f8c9f789f40086d071611b299de60cfee4d",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/scripts/fnc_wpPatrol.sqf",
+      "sha256": "ecfe5a1e6128f80998a1190aa8ee4908d5980ad8d60655ff4725dfa0bf5d7572",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_findClosestTarget.sqf",
+      "sha256": "93e42145ebc9bc9ec771efaf77703f354ec93f5a52a050bc0a14ba12729da363",
+      "scope": "Complete readable target discovery body reviewed"
+    }
+  ],
+  "findings": {
+    "patrol": "Source clears all waypoints, writes SAFE/LIMITED/YELLOW/random formation and forced gunlights; creates MOVE waypoints and loops back via statement. Dynamic statement rewrites non-current group waypoints; optional area rejection loops have no iteration bound. Optional teleport uses setVehiclePosition. Useful task intent: bounded route pattern in selected area, revisiting/changing points and optional reinforcement. CBE currently has no patrol task executor/module; CortexGroupMove owns only one temporary waypoint and does not implement patrol. Garrison/defence do not substitute.",
+    "hunt": "Source scheduled wait loop repeatedly findsClosestTarget, group move with distance-scaled uncertainty, speed/lights/lasers and optional flares (including created fallback). findClosestTarget scans allUnits or playable/switchable units and reads exact transforms without native knowledge. Useful deliberate search/pursuit intent must use native/contact belief and existing search/knowledge owner. CBE autonomous SEARCH is related but is not a selectable Hunt task.",
+    "rush": "Source indefinitely seeks helper-selected targets, disables FSM/AUTOCOMBAT, suppresses fleeing, adds per-actor Fired/Suppressed handlers and repeatedly doMoves exact target positions; source handles nearby armour/air differently. Useful aggressive task intent can use existing assault/advance/combined arms, but CBE has no explicit Rush task. Do not replace the standalone CBE danger FSM, flatten ROE or start a parallel target/movement loop.",
+    "reset": "Source blanket-enables AI features, resets speed/stance/animation, follows leader, clears variables/optional waypoints and by default creates a replacement group. Soft reset retains the group, so taskHunt/Rush loops whose only terminal condition is group death may remain. CBE must preserve mission flags/group/order ownership and exact feature journals; raw reset is rejected, not parity completion.",
+    "moduleIntent": "Patrol native module exposes task radius/count/dynamic pattern/reinforcement/teleport parameters. ZEN context dispatch and waypoint wrapper call the actual task; these are behaviour controls, not CBA setting modules. Native CBE registration currently exposes convoy, garrison, defence, corridor and airborne; optional ZEN also clear. Existing authenticated RELEASE executor was inaccessible as a dedicated native/ZEN behaviour module."
+  },
+  "implemented": {
+    "behaviour": "Release building / defence task",
+    "nativeClass": "CBE_ModuleRelease",
+    "zenFunction": "CBE_fnc_ZenReleaseModule",
+    "path": "Explicit squad selection or attached AI soldier -> existing CortexOrderDispatch -> authenticated serial/deadline/native/Zeus receipt checks -> CortexOrderLocal RELEASE -> existing Clear/Garrison/Defend and temporary infantry actor cleanup.",
+    "policies": "No addon setting changes, nearest squad guess, replacement group, blanket AI/animation reset, waypoint clearing, forced seating/teleport, new worker or RPC. Native module works without ZEN; optional ZEN dialog has a labelled bounded squad selector. Duplicate/late/changed-owner requests retain the existing refusal. Release refusal now has a task-specific explanation.",
+    "scope": "Existing supported infantry task release only; no convoy/flight/artillery/drill stop-all promise. Accepted request is not proven physical formation recovery, and native handback may remain unresolved."
+  },
+  "nextRequired": "Implement patrol executor first in the existing common operation/group movement lifecycle: bounded area planning, explicit task area/pattern, original participant/order/settings capture, original leg/task budget, current-owner continuation and exact own-waypoint cleanup; preserve authored/Zeus route and active danger responsiveness. Expose behaviour controls only after executor exists. Then knowledge-based Hunt and explicit aggressive task, using existing search/drill/fire owners rather than source omniscience/FSM disable. Teleport outside explicit garrison exception is not authorised by this review.",
+  "checks": {
+    "red": ".qa/handovers/infantry-release-module-red-20261029.log",
+    "focused": ".qa/handovers/infantry-release-module-green-20261029.log",
+    "existingCasesExtended": true,
+    "testsAdded": 0,
+    "physicalAcceptance": false,
+    "measuredPerformance": false,
+    "fullBuild": ".qa/handovers/infantry-release-module-final-build-20261029.log",
+    "independent": ".qa/handovers/infantry-release-module-independent-20261029.log",
+    "tests": 1505,
+    "compiledSqf": 462,
+    "pbos": 11,
+    "candidate": ".qa/candidates/infantry-release-module-20261029-a4b90468",
+    "fingerprint": "d03c1af90b00715e996eeb38d3e897e66fa8c048832df34bbfda602358a6c5e6",
+    "failedFull": ".qa/handovers/infantry-release-module-build-20261029.log: stale generated FEATURE_STATUS UI count/text corrected by checker --write-report; no acceptance status changed.",
+    "focusedRunnerFailure": ".qa/handovers/infantry-release-module-registry-green-20261029.log: direct module invocation lacked test-discovery import path; rerun with RD path passed in registry-fixed log. No product change.",
+    "provenance": "Unsigned development receipt a4b90468 plus dirty build inputs; later review/handover metadata not runtime."
+  },
+  "remaining": "Patrol/Hunt/Rush executors/modules remain unimplemented, broader WP source/compiled/dependency/licence mapping incomplete. Actual module dialog, owner acceptance/refusal, pending native cleanup, repeated use, Zeus replacement and normal/HC/JIP behaviour need engine verification. Audits PAUSED; no implementation percentage increase from this source inventory.",
+  "durableSourceArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/LAMBS/20261029-wp-da03c629"
+}

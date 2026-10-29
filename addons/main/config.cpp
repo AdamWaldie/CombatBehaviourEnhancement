@@ -137,6 +137,13 @@ class CfgVehicles {
         displayName = "Defend area";
         CBE_operation = "DEFEND";
     };
+    class CBE_ModuleRelease: CBE_ModuleGarrison {
+        displayName = "Release building / defence task";
+        CBE_operation = "RELEASE";
+        class ModuleDescription: ModuleDescription {
+            description = "Place on an AI soldier to request scoped CBE clearance, garrison, defence and temporary infantry task release. The current owner preserves newer orders and protected actors. Native handback may remain pending.";
+        };
+    };
     class CBE_ModuleConvoyStart: Module_F {
         scope = 1;
         scopeCurator = 2;

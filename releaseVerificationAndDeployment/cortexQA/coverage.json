@@ -1561,14 +1561,15 @@
       "settings": [],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runClient.sqf UI-* checks CBA registration and effective-state validity; interactive Addon Options, persistence and JIP acceptance pending Garrison area native and optional ZEN task controls now dispatch radius and walking/instant placement through the authenticated current-owner executor. Dialog, authentication, stale/duplicate rejection and physical acceptance remain pending; static registration earns no behaviour credit.",
+      "automation": "runClient.sqf UI-* checks CBA registration and effective-state validity; interactive Addon Options, persistence and JIP acceptance pending Garrison area native and optional ZEN task controls now dispatch radius and walking/instant placement through the authenticated current-owner executor. Dialog, authentication, stale/duplicate rejection and physical acceptance remain pending; static registration earns no behaviour credit. Scoped native/optional ZEN release controls use the existing authenticated infantry RELEASE path; interactive/native handback acceptance remains unverified.",
       "executable_sources": [
         "runClient.sqf"
       ],
       "production_sources": [
         "addons/core/functions/aiGetDiagnostics.sqf",
         "addons/infantry/functions/moduleGarrison.sqf",
-        "addons/infantry/functions/zenGarrisonModule.sqf"
+        "addons/infantry/functions/zenGarrisonModule.sqf",
+        "addons/infantry/functions/zenReleaseModule.sqf"
       ]
     },
     {

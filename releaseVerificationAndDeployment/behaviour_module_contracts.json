@@ -9,14 +9,16 @@
     "CBE_ModuleDefend",
     "CBE_ModuleDrivingCorridor",
     "CBE_ModuleDrivingCorridorMission",
-    "CBE_ModuleAirborne"
+    "CBE_ModuleAirborne",
+    "CBE_ModuleRelease"
   ],
   "zen_labels": [
     "Create AI Convoy",
     "Garrison area",
     "Defend area",
     "Clear building",
-    "Navigation corridor"
+    "Navigation corridor",
+    "Release building / defence task"
   ],
   "contracts": [
     {
@@ -144,6 +146,22 @@
       "termination": "Disposable frontend deletes on submission/refusal; existing finite insertion handles task refusal, native/Zeus replacement, owner/aircraft loss, original deadline and landed-squad handover without JIP command replay",
       "guide": "docs/MODDING-AND-OPERATIONS.md",
       "physical_acceptance": "unverified; native no-ZEN placement, changed seat/aircraft, actual jump/landing, repeated use, HC/JIP and performance remain unrun while audits paused"
+    },
+    {
+      "behaviour": "Release assigned building/defence and temporary infantry actor tasks",
+      "target": "Explicit AI squad; native module attaches to an AI soldier",
+      "parameters": [
+        "squad"
+      ],
+      "handlers": [
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenReleaseModule.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Existing authenticated server dispatch and serial/deadline/native/Zeus receipt-fenced current-owner RELEASE executor",
+      "termination": "One-shot request; existing exact-owned feature cleanup may remain pending. No global reset, new task worker or replay.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; dialog/owner/native handback/repeat/locality checks await audit authorisation"
     }
   ]
 }

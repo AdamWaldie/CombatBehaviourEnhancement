@@ -37,6 +37,22 @@ class GarrisonModuleTests(unittest.TestCase):
         for text in (native,zen):
             self.assertNotIn('CBA_fnc_addSetting',text)
             self.assertNotIn('CBA_settings_fnc_set',text)
+        release=src('zenReleaseModule')
+        for required in ('["order","RELEASE"]','["group",_group]','call CBE_fnc_CortexOrderDispatch',
+                         'count _groups) min 128','No selectable AI squad','["COMBO"'):
+            self.assertIn(required,release)
+        for forbidden in ('CBA_fnc_addSetting','CBA_settings_fnc_set','enableAI','joinSilent',
+                          'clearWaypoints','setPos','doFollow','nearestObjects'):
+            self.assertNotIn(forbidden,release)
+        config=(ROOT/'addons/main/config.cpp').read_text()
+        self.assertIn('class CBE_ModuleRelease: CBE_ModuleGarrison',config)
+        self.assertIn('CBE_operation = "RELEASE"',config)
+        self.assertIn('call CBE_fnc_ZenReleaseModule',native)
+        dispatch=src('cortexOrderDispatch'); local=src('cortexOrderLocal')
+        self.assertIn('"GARRISON","DEFEND","CLEAR","RELEASE","AIRBORNE"',dispatch)
+        self.assertNotIn('"RELEASE", "AIRBORNE"]',local.split('private _temporaryControl=[];',1)[1].split('private _previousClearFailure=',1)[0])
+        self.assertIn('No building or defence task was released',local)
+
     def test_height_choice_reaches_executor_and_is_not_rerolled_on_adoption(self):
         zen=src('zenGarrisonModule'); dispatch=src('cortexOrderDispatch'); local=src('cortexOrderLocal'); execute=src('cortexGarrison')
         self.assertIn('["sortByHeight",_sortByHeight]',zen)

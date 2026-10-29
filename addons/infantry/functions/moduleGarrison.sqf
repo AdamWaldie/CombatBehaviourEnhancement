@@ -1,14 +1,15 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Issues a garrison or defensive line task for the explicitly attached AI soldier's group.
+ * Purpose: Issue garrison, defence or scoped task release for an explicitly attached AI squad.
  * Locality/authority: placing interface/logic owner only; server authenticates the curator,
  * validates task parameters and forwards to the current group owner for acknowledgement.
  * Repeat/JIP: disposable, processed once. No historical task replay. With ZEN installed,
  * task-specific dialogs expose placement or facing/width. Without ZEN, garrison walks within
- * 50 m; defence uses a 60 m line facing the attached soldier's direction.
+ * 50 m; defence uses a 60 m line facing the attached soldier's direction. Release uses
+ * the existing owner-local building/defence cleanup; it changes no addon settings.
  * Arguments: 0 logic <OBJECT>, objNull; 1 synced units <ARRAY>, []; 2 activated <BOOL>, true.
  * Return: BOOL - request/dialog admitted, not physical occupation success.
- * Current callers: CBE_ModuleGarrison and CBE_ModuleDefend native curator modules.
+ * Current callers: CBE_ModuleGarrison, CBE_ModuleDefend and CBE_ModuleRelease curator modules.
  * Example: [garrisonLogic,[],true] call CBE_fnc_ModuleGarrison;
  */
 params [["_logic",objNull,[objNull]],["_units",[],[[]]],["_activated",true,[true]]];
@@ -25,10 +26,12 @@ if (isNull _target || {!(_target isKindOf "CAManBase")} || {isPlayer _target}) e
 private _group = group _target;
 private _order=getText (configFile >> "CfgVehicles" >> typeOf _logic >> "CBE_operation");
 if (_order == "") then {_order="GARRISON"};
-if !(_order in ["GARRISON","DEFEND"]) exitWith {deleteVehicle _logic;false};
+if !(_order in ["GARRISON","DEFEND","RELEASE"]) exitWith {deleteVehicle _logic;false};
 private _result = if (!isNil "zen_dialog_fnc_create") then {
-    if (_order == "DEFEND") then {[_position,_target] call CBE_fnc_ZenDefendModule}
-    else {[_position,_target] call CBE_fnc_ZenGarrisonModule}
+    if (_order == "RELEASE") then {[_position,_target] call CBE_fnc_ZenReleaseModule} else {
+        if (_order == "DEFEND") then {[_position,_target] call CBE_fnc_ZenDefendModule}
+        else {[_position,_target] call CBE_fnc_ZenGarrisonModule}
+    }
 } else {
     [[["order",_order],["group",_group],["position",_position],["radius",50],["width",60],["facing",getDir _target],["teleport",false]],clientOwner] call CBE_fnc_CortexOrderDispatch
 };
