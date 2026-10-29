@@ -83,5 +83,32 @@
     "provenance": "Unsigned development receipt a4b90468 plus dirty build inputs; later review/handover metadata not runtime."
   },
   "remaining": "Patrol/Hunt/Rush executors/modules remain unimplemented, broader WP source/compiled/dependency/licence mapping incomplete. Actual module dialog, owner acceptance/refusal, pending native cleanup, repeated use, Zeus replacement and normal/HC/JIP behaviour need engine verification. Audits PAUSED; no implementation percentage increase from this source inventory.",
-  "durableSourceArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/LAMBS/20261029-wp-da03c629"
+  "durableSourceArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/LAMBS/20261029-wp-da03c629",
+  "patrolRouteFoundation20261029": {
+    "base": "070ade90af772fbd69dc897a448fe2ecabd4431e",
+    "source": "Same preserved complete taskPatrol body/hash above. Useful spatial patrol intent is retained; source all-waypoint clearing, unbounded area rejection, blanket behaviour/formation/light changes and teleport are not imported.",
+    "implemented": "PatrolRoutePlan returns3..8 ground nodes inside25..500m radius with one random circuit phase and bounded sector/radius variation. At most4 candidates/node:5m empty-position query, dry/slope/map bounds,8m separation and one2m vertical body ray. PatrolRouteCommit requires an actual current PATROL common operation, original generation/epoch/route,3..8 valid nodes, integer index, at most64 group members, no protected/mounted/dormant/STOP living member, and original startedAt+300s issue window. It delegates exactly one leg to CortexGroupMove; existing OperationCancel/OperationRelease and native policy receipts own its cleanup. No new waypoint writer/record/worker/FSM/controller or actor setting change.",
+    "designChoice": "Multi-waypoint insertion would need a separate ownership/rollback protocol. The final implementation reuses the existing single-waypoint writer and exact common cleanup instead; no separate PatrolRouteRelease or common lifecycle edits remain. This is a leg primitive, not a sequential patrol task or physical completion.",
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/findEmptyPosition",
+      "https://community.bistudio.com/wiki/addWaypoint",
+      "https://community.bistudio.com/wiki/currentWaypoint"
+    ],
+    "limits": "Native empty-position searches ignore moving objects and clearance is not navigation connectivity. Destinations remain inside the chosen radius; native paths can leave it. Original issue window does not cancel an outstanding native command or implement a watchdog. Actual route sequencing, leg/task progress and timeout/cancellation, contact/resume, repeats, locality handover and Zeus/script task controls are still pending. No public patrol module exposed and no source-parity/physical/performance uplift.",
+    "checks": {
+      "focused": ".qa/handovers/patrol-route-focused-20261029.log",
+      "hemtt": ".qa/handovers/patrol-route-hemtt-20261029.log",
+      "coverage": ".qa/handovers/patrol-route-coverage-20261029.log",
+      "testsAdded": 0,
+      "model": "Existing route-owner regression extended with finite circuit/radius/separation model and source admission/delegation bounds; no engine clearance, native movement or performance simulation.",
+      "fullBuild": ".qa/handovers/patrol-route-build-20261029.log",
+      "independent": ".qa/handovers/patrol-route-independent-20261029.log",
+      "tests": 1505,
+      "compiledSqf": 464,
+      "pbos": 11,
+      "candidate": ".qa/candidates/patrol-route-20261029-070ade90",
+      "fingerprint": "c8fdc8107940717593150bb82d2500dcf94fd90e5165b15cfcb90d6056613173",
+      "provenance": "Unsigned development receipt070ade90 plus dirty runtime inputs; engineering metadata finalised after packaging."
+    }
+  }
 }

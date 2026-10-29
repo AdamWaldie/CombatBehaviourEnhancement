@@ -385,6 +385,8 @@ class CfgFunctions {
             class CortexGrenadeCheck {file = "\z\cbe\addons\infantry\functions\cortexGrenadeCheck.sqf";};
             class CortexGroupMove {file = "\z\cbe\addons\infantry\functions\cortexGroupMove.sqf";};
             class CortexGroupMoveClear {file = "\z\cbe\addons\infantry\functions\cortexGroupMoveClear.sqf";};
+            class PatrolRoutePlan {file = "\z\cbe\addons\infantry\functions\patrolRoutePlan.sqf";};
+            class PatrolRouteCommit {file = "\z\cbe\addons\infantry\functions\patrolRouteCommit.sqf";};
             class CortexGroupState {file = "\z\cbe\addons\infantry\functions\cortexGroupState.sqf";};
             class CortexGroupTick {file = "\z\cbe\addons\infantry\functions\cortexGroupTick.sqf";};
             class CortexKnowledge {file = "\z\cbe\addons\infantry\functions\cortexKnowledge.sqf";};

@@ -2725,6 +2725,34 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_reason in ["ZEUS_TAKEOVER","EXTERNAL_TAKEOVER"]',release)
 
     def test_group_move_commits_equivalent_requests_without_waypoint_churn(self):
+        plan=source('patrolRoutePlan'); leg=source('patrolRouteCommit')
+        for bound in ('_radius < 25','_radius > 500','_nodes < 3','_nodes > 8',
+                      'for "_attempt" from 0 to 3','findEmptyPosition [0,5,"B_Soldier_F"]',
+                      '_point distance2D _centre <= _radius','!surfaceIsWater _point',
+                      'select 2) >= 0.85','_x distance2D _point < 8',
+                      'objNull,objNull,true,1,"GEOM","NONE"'):
+            self.assertIn(bound,plan)
+        for guard in ('remoteExecutedOwner > 0','"intent",""]) != "PATROL"',
+                      '"generation",-2]) != _generation','"ownerEpoch",-2]) != _epoch',
+                      'time >= _started+300','_index >= count _route','count _route > 8',
+                      'count _members > 64','CBE_fnc_CortexActorFireTaskAvailable'):
+            self.assertIn(guard,leg)
+        self.assertEqual(leg.count('call CBE_fnc_CortexGroupMove'),1)
+        self.assertIn('[_group,+(_route select _index),5,"MOVE",_generation]',leg)
+        self.assertNotIn('setVariable',leg)
+        for text in (plan,leg):
+            for forbidden in ('addWaypoint','setCurrentWaypoint','deleteWaypoint','while {',
+                              'spawn','execFSM','allUnits','allGroups','setUnitPos','forceSpeed'):
+                self.assertNotIn(forbidden,text)
+        # Geometric bounds only: native clearance/access is not simulated here.
+        import math
+        for count in range(3,9):
+            for phase in (0,37,179,359):
+                nodes=[(1000+90*math.sin(math.radians(phase+360*i/count)),
+                        1000+90*math.cos(math.radians(phase+360*i/count))) for i in range(count)]
+                self.assertLessEqual(count*4,32)
+                self.assertTrue(all(math.hypot(x-1000,y-1000)<=100.000001 for x,y in nodes))
+                self.assertTrue(all(math.dist(a,b)>8 for i,a in enumerate(nodes) for b in nodes[i+1:]))
         move=source('cortexGroupMove')
         clear=source('cortexGroupMoveClear')
         self.assertIn('CBE_Cortex_GroupMoveIntent',move)

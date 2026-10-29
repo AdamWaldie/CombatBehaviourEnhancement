@@ -65,7 +65,8 @@
         "review": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json",
         "scope": "Patrol/Hunt/Rush/reset task bodies compared with current CBE owners; full WP/source parity unproven. Scoped building/defence release module exposed through existing real executor; Patrol/Hunt/Rush remain actual implementation gaps.",
         "physicalAcceptance": false,
-        "durableSourceArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/LAMBS/20261029-wp-da03c629"
+        "durableSourceArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/LAMBS/20261029-wp-da03c629",
+        "patrolFoundation": "lambs-wp-task-controls-20261029.json#patrolRouteFoundation20261029: bounded geometry and single-leg common-owner commit primitives; task sequencing/watchdog/continuation and modules still pending, physical/performance unverified."
       }
     },
     {
