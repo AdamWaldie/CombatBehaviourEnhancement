@@ -327,9 +327,12 @@ interruption and cleanup. No replacement behaviour module is claimed complete he
 ## Garrison behaviour module
 
 Native Zeus lists **Combat Behaviour Enhancement (CBE) > Garrison area**. Place it on an AI soldier in the intended
-squad; it tasks that squad around the module position. Without ZEN it uses walking and a 50 m
-radius. With optional ZEN it opens the same task dialog as the **Garrison area** custom module.
-The ZEN dialog explicitly selects a squad, area radius (15Ã¢â‚¬â€œ150 m, default 50) and placement
+squad; it opens a confirmation dialog around the module position. Without ZEN, select the exact
+squad, radius (15, 25, 50, 75, 100 or 150 m), walking or instant interior placement, and higher-first
+or randomized roofed-first posts. Defaults are 50 m, walking and higher-first. Cancel submits no
+task; an existing Zeus dialog is preserved. With optional ZEN it opens the same task dialog as
+the **Garrison area** custom module.
+The optional ZEN dialog explicitly selects a squad, area radius (15Ã¢â‚¬â€œ150 m, default 50) and placement
 (walk by default or instant interior placement), and **Prefer higher positions** (default on).
 Turning height preference off distributes positions randomly while retaining roofed-first priority.
 Sorting happens once at admission; published assignments and vacancy refill retain that selection
@@ -3549,3 +3552,10 @@ no permanent controller, world scan, extra PFH or independent crew mover is adde
 Physical/UI/normal/HC/locality/repeat behaviour and the measured performance budget remain
 unverified while audits are paused. This implements selected-platform point positioning,
 not passenger-assault orchestration or a general vehicle attack task.
+
+
+Native garrison option controls reuse the same authenticated dispatch, existing owner-local
+garrison executor, casualty refill and release paths as optional ZEN. They add one display and a
+one-shot capped group list, with no AI worker or new settings. Native dialog layout, keyboard
+selection, request/owner acknowledgement, walking/instant placement, cancellation and repeat use
+remain unverified in-game while audits are paused.

@@ -1584,6 +1584,7 @@
         "addons/core/functions/aiGetDiagnostics.sqf",
         "addons/infantry/functions/moduleGarrison.sqf",
         "addons/infantry/functions/zenGarrisonModule.sqf",
+        "addons/infantry/functions/garrisonTaskDialog.sqf",
         "addons/infantry/functions/zenReleaseModule.sqf",
         "addons/infantry/functions/zenPatrolModule.sqf",
         "addons/infantry/functions/zenHuntModule.sqf",

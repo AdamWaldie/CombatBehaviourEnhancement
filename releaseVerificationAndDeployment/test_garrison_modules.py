@@ -28,6 +28,22 @@ class GarrisonModuleTests(unittest.TestCase):
 
     def test_garrison_controls_are_explicit_scoped_tasks(self):
         native=src('moduleGarrison'); zen=src('zenGarrisonModule')
+        dialog=src('garrisonTaskDialog')
+        self.assertIn('call CBE_fnc_GarrisonTaskDialog',native)
+        self.assertLess(dialog.index('displayChild _curator'),dialog.index('createDisplay "RscDisplayEmpty"'))
+        for key in ('radius','teleport','sortByHeight'):
+            self.assertIn('["'+key+'",',dialog)
+        for text in ('Walk into positions','Instant interior placement','Higher positions first',
+                     'Random roofed-first distribution','[15,25,50,75,100,150]',
+                     'CBE_garrisonChoices','closeDisplay 2','CBE_fnc_CortexOrderDispatch'):
+            self.assertIn(text,dialog)
+        # Task submission belongs only to confirmation, never placement or cancellation.
+        self.assertEqual(dialog.count('call CBE_fnc_CortexOrderDispatch'),1)
+        self.assertLess(dialog.index('_start ctrlAddEventHandler'),dialog.index('call CBE_fnc_CortexOrderDispatch'))
+        for text in (dialog,):
+            for forbidden in ('CBA_fnc_addSetting','CBA_settings_fnc_set','nearestObjects','doMove','setPos','remoteExec'):
+                self.assertNotIn(forbidden,text)
+
         self.assertIn('attachedTo _logic',native)
         self.assertNotIn('nearestObjects',native)
         self.assertNotIn('nearestObjects',zen)

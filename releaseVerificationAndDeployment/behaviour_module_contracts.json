@@ -67,7 +67,8 @@
       ],
       "handlers": [
         "addons/infantry/functions/moduleGarrison.sqf",
-        "addons/infantry/functions/zenGarrisonModule.sqf"
+        "addons/infantry/functions/zenGarrisonModule.sqf",
+        "addons/infantry/functions/garrisonTaskDialog.sqf"
       ],
       "executor": "CBE_fnc_CortexOrderDispatch",
       "authority": "Server-authenticated curator, current-owner garrison executor and acknowledgement",

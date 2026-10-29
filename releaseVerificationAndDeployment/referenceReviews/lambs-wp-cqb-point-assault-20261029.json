@@ -437,5 +437,39 @@
       "Passenger-assault orchestration and broader LAMBS/HBQ/Protocol functionality",
       "CQB incoming reconciliation and controlled-rappel executor remain open"
     ]
+  },
+  "nativeGarrisonOptions20261029": {
+    "base": "b2bd574f5e990c3cf9474d20419ced23a455895a",
+    "source": {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/Modules/fnc_moduleGarrison.sqf",
+      "sha256": "d58613a8d359647e45119f7c929f8bdaac5007d1beb5c65330dced5c598e04f3",
+      "archiveMatch": true,
+      "scope": "Complete readable module wrapper; garrison executor descendants and all source module parity not newly claimed."
+    },
+    "intent": "Native curator module exposes explicit group/centre, radius, teleport and height preference rather than requiring script entry or an optional third-party UI.",
+    "gap": "CBE native Garrison fell straight through to fixed50m walking defaults while ZEN alone exposed existing executor placement/height options.",
+    "implementation": "Native Garrison now opens display-local squad, radius, placement and post-preference selectors before confirmation. Explicit soldier attachment retained. Cancel writes nothing; an existing Zeus child is preserved. Default50m/walk/higher-first; radius presets15/25/50/75/100/150m. Optional ZEN path unchanged.",
+    "path": "CBE_ModuleGarrison -> ModuleGarrison -> GarrisonTaskDialog -> CortexOrderDispatch curator authentication/parameter validation/12s request -> current owner CortexOrderLocal serial/route validation -> CortexGarrison preflight -> existing assignment/application/refill/release/adoption.",
+    "decisions": "Adapt real native task control intent through existing owner. Keep user-authorized instant interior placement explicitly selectable, exterior security walks. No exit-condition/patrol option exposed without its full executor; no settings modules or source default resets.",
+    "authority": "UI has no native AI command or direct remote call; named radius/teleport/sortByHeight values traverse existing server/owner checks. Existing module target requirement and other behaviour fallbacks unchanged. JIP replays no dialog or command; accepted garrison adoption is existing code.",
+    "cost": "One interface display and capped128 initial group snapshot plus explicitly attached group. No new recurring scan, AI job or worker.",
+    "validation": {
+      "red": ".qa/handovers/garrison-native-options-red-20261029.log",
+      "focused": ".qa/handovers/garrison-native-options-focused-20261029.log: all6 existing module cases pass; extended scoped native controls/confirmation/authority contracts.",
+      "full": ".qa/handovers/garrison-native-options-final-build-20261029.log:1505 existing tests,481 SQF,11 PBOs; config/FSM/docs/coverage/settings/task parity and static performance gates passed.",
+      "physicalAcceptance": false,
+      "measuredPerformance": false,
+      "firstBuild": ".qa/handovers/garrison-native-options-build-20261029.log failed stale generated FEATURE_STATUS after adding UI source; regenerated with existing checker, no criteria weakened.",
+      "candidate": ".qa/candidates/garrison-native-options-20261029-b2bd574f",
+      "fingerprint": "36b8d044756a007ad09c9c628f55c26415d397a1cf41f49ddf56f307a706bab5",
+      "independent": ".qa/handovers/garrison-native-options-independent-20261029.log: exit0, matching fingerprint",
+      "provenance": "Unsigned development base b2bd574f plus reviewed runtime/config/test/guide changes. Engineering metadata finalized after build; no installed staging."
+    },
+    "limitations": "UI layout, interactive selection/cancel, real authentication/owner acknowledgement, placement/occupancy, repeat/normal/HC/JIP/locality and performance remain physically unverified under audit pause. This is native control build-out, not whole LAMBS parity or new garrison movement.",
+    "runtimeLFHashes": {
+      "addons/infantry/functions/garrisonTaskDialog.sqf": "670c75d8675268528fb9a6b1d9c52925963a455d03c848f0abed5521dc359b3b",
+      "addons/infantry/functions/moduleGarrison.sqf": "7327883c28dc35354c5dd9a36f0dcc544f5237f8bd77621413e3b98869fd545d",
+      "addons/main/CfgFunctions.hpp": "a9dce35e84dd4ccddcaaa772d785fd2e31c696f2395b66a1a7a68b3067f16dad"
+    }
   }
 }
