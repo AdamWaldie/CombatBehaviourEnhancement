@@ -244,7 +244,14 @@ class ArtilleryFireSessions(unittest.TestCase):
             self.assertFalse(mixed_return(originals,(('WAIT',0,0,True),)*2))
         phase_guard=worker.split('private _returnBaseline=',1)[1].split('if (_phase == "ISSUE") exitWith',1)[0]
         self.assertIn('_returnBaseline select _x) in ["","MOVE","WAIT"]',phase_guard)
-        self.assertIn('_phase in ["ISSUE","STOPPING","RETURNING"]',phase_guard)
+        # Even a legacy MOVING/REQUESTED journal can request release. Its original
+        # command must be restorable before a retirement hold changes the goal or
+        # issues doMove; checking only STOPPING is already too late.
+        self.assertNotIn('_phase in ["ISSUE","STOPPING","RETURNING"]',phase_guard)
+        native_body=kernel.split('private _nativePhaseResult=call {',1)[1]
+        refusal=native_body.index('"NATIVE_RETURN_BASELINE_UNSUPPORTED"')
+        for first_write in ('_work set ["goal",+_hold]', '_x doMove _hold', '_x doMove _goal'):
+            self.assertLess(refusal,native_body.index(first_write))
         self.assertIn('"NATIVE_RETURN_BASELINE_UNSUPPORTED",_phase == "ISSUE"',phase_guard)
         tactical=(ROOT/'addons/vehicles/functions/vehicleTacticalMoveStart.sqf').read_text(encoding='utf-8')
         self.assertLess(tactical.index('!((_baseline select _x) in ["","MOVE","WAIT"])'),tactical.index('execFSM'))

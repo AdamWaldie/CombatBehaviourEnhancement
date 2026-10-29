@@ -3496,8 +3496,10 @@ its current return path can restore. A crew member following another unit retain
 task; CBE refuses the optional repositioning instead of later treating a stopped vehicle as
 proof that FOLLOW was restored. Other unsupported original commands also refuse admission.
 
-Older work carrying an unsupported original command cannot acknowledge a return merely because
-the crew now appear idle at CBE's holding point. Its pending journal remains unresolved. For a
+Older work carrying an unsupported original command stops issuing movement orders before any
+further temporary hold or return request. This check runs in every phase, before changing the
+recorded goal. An already-issued move remains unresolved; CBE cannot acknowledge a return merely
+because the crew now appear idle at its holding point. For a
 legacy FOLLOW journal, a newer native STOP on every surviving original operator can supersede
 the old request only after the exact original worker has ended and measured rest is established.
 CBE observes that STOP without issuing or canceling it. This is supersession, not FOLLOW restoration.

@@ -359,5 +359,34 @@
       "physical": "UNVERIFIED; auditsPAUSED",
       "performance": "Measured overheadUNVERIFIED; static audit0findings."
     }
+  },
+  "crewBaselinePrewriteCorrection20261029": {
+    "sourceBase": "dddaf8ef803ef8b495492aeb0b79e6872c474984",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "sourceContext": "Same preserved taskAssault source/version and selected-platform movement intent as vehiclePointAdmissionReview20261029. This is a defect in the shared CBE native lifecycle, not another upstream parity claim.",
+    "defect": "The previous original-baseline guard ran after release handling. A legacy REQUESTED/MOVING/HOLD journal with unsupported original FOLLOW could replace its goal and issue doMove to a temporary hold before STOPPING validation refused it. Without release, unsupported work could continue through MOVING/HOLD. The previous handover overclaimed pre-write refusal. This is a source counterexample, not verified live fault attribution.",
+    "execution": "VehicleTacticalMoveStep and ArtilleryCrewMoveStep call VehicleCrewMoveNativePhase inside their existing unscheduled FSM callbacks. Source loss/release used to reach the hold doMove before original-baseline validation. Existing exact finalizers retain already-issued work as UNRESOLVED.",
+    "change": "Validate original baseline at the beginning of the shared phase decision for every phase, before any journal mutation or native movement request. ISSUE can retire as never-issued; later unsupported phases remain UNRESOLVED with no further hold/return command. Supported idle/WAIT/MOVE behaviour and original deadlines are unchanged.",
+    "runtimeHashes": {
+      "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf": "154cdca97e28e86b67504a2bc8499206ac537fc6839d775a1f5bb32ded4f479c"
+    },
+    "checks": {
+      "regression": "Extended existing artillery lifecycle case: reproduced failure on previous code, then all4 existing cases pass. Checks require refusal before goal/hold/outward writes and in every phase; no test cases added or removed.",
+      "redLog": ".qa/handovers/crew-prewrite-red-20261029.log",
+      "focusedLog": ".qa/handovers/crew-prewrite-focused-20261029.log",
+      "full": "Full build exit0:1505 existing tests,477 compiled production SQF,11 PBOs; config/FSM/docs/coverage/parity gates pass; static performance0findings.",
+      "physical": "UNVERIFIED; audits remain PAUSED",
+      "performance": "No new worker, query, scan or retry; existing two-slot check moved before writes. Measured frame-time budget UNVERIFIED.",
+      "candidate": ".qa/candidates/crew-prewrite-20261029-dddaf8ef",
+      "fingerprint": "8d4c35ecca2faef2a06dafebb212e406eaa4fe307a0719650124c8af4426597f",
+      "independent": "Verifier exit0 matching sealed fingerprint. Unsigned development build: base dddaf8ef plus current runtime/doc changes; source-review/handover metadata finalized afterward. No Arma launch or installed-file staging.",
+      "buildLog": ".qa/handovers/crew-prewrite-build-20261029.log",
+      "independentLog": ".qa/handovers/crew-prewrite-independent-20261029.log"
+    },
+    "remaining": [
+      "Vehicle point task still unimplemented",
+      "Actual original FOLLOW restoration remains unsupported",
+      "CQB incoming reconciliation, broader LAMBS/HBQ/Protocol execution and physical validation remain open"
+    ]
   }
 }
