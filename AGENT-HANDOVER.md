@@ -1,3 +1,17 @@
+# Current checkpoint: native physical-clearance task (29 October 2026)
+
+Checkout C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git; branch Adam/cbe-mechanised-support-20261028. PR20 open draft currently pushed through2dd621ff. This native-clear checkpoint is intended as a regular LOCAL commit; keep pushes batched. Audits PAUSED; no game staging/merge/publishing. Preserve unrelated deleted workflows/artwork/requirements and docs/PERFORMANCE-VALIDATION.md.
+
+Added CBE_ModuleClear -> ModuleClear -> optional existing ZEN dialog or native explicit squad/building selectors -> existing authenticated CortexOrderDispatch/Local CLEAR -> CortexClearBuilding/BuildingOperationStep. No new movement owner, settings, teleport or task replay. Native fallback refuses if another Zeus child dialog is open, Cancel submits nothing, choices are display-local, keyboard focus is explicit. Single-building counterpart only. Native UI/layout/keyboard and physical task behaviour remain UNVERIFIED.
+
+Full1505tests/471SQF/11PBO, static0findings, independent package verify pass. Candidate .qa/candidates/native-clear-20261029-2dd621ff; fingerprint4fb743aa98d79e7477a1170b45e1a1912df7f57db9e56a1270133fed7a308521. Unsigned dev base2dd621ff+dirty runtime inputs. Review: releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json. Complete readable taskCQB/taskAssault/doAssaultUnitReset bodies compared; original archive and6selected readable hashes checked. Upstream30m/coin-flip room removal, reposition recovery, per-actor movement loops and defaultWEDGE/AI resets must not be imported.
+
+Next concrete source gaps: finite area-wide building sequencing through existing group-brain and one-building owners, plus an explicit destination assault/withdrawal executor/modules (Press attack is contact-driven, not that equivalent). Do not expose cosmetic area options without actual sequencing and retained partial/inaccessible results. CQB candidate pipeline still ends CANDIDATE_UNSEALED; no authenticated incoming native/settings/phase adoption exists. Another message handler alone would not solve that. Controlled-rappel executor/cleanup remains open. Continue foundations-up via IMPLEMENTATION-GOAL.md, AGENTS.md, master source-review-map and linked LAMBS/HBQ/nineProtocol records.
+
+Latest usage43%remaining. Below10% remaining commit/pushPR/handover immediately. Protected stores/standards and earlier evidence follow; durable continuity folder is not a full Temp/.qa backup.
+
+---
+
 # Current checkpoint: sustained explicit attack approaches (29 October 2026)
 
 CBE checkout: C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; remote AdamWaldie/CombatBehaviourEnhancement; branch Adam/cbe-mechanised-support-20261028; PR20 open draft. Regular checked local commits; batch pushes. Audits PAUSED, no game staging, merge or publication. Preserve unrelated workflow/artwork/requirements deletions and docs/PERFORMANCE-VALIDATION.md.

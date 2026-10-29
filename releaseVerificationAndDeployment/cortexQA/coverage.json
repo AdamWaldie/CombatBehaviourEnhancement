@@ -1555,7 +1555,8 @@
         "addons/infantry/functions/cortexRouteDoors.sqf",
         "addons/infantry/functions/buildingActorHoldOwned.sqf",
         "addons/infantry/functions/indoorActorSample.sqf",
-        "addons/infantry/functions/indoorActorGroupContext.sqf"
+        "addons/infantry/functions/indoorActorGroupContext.sqf",
+        "addons/infantry/functions/moduleClear.sqf"
       ]
     },
     {

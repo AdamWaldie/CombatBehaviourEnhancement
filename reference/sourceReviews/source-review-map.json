@@ -73,7 +73,8 @@
         "huntExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#huntExecution20261029",
         "rushIntegration": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushIntegration20261029",
         "rushExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushExecution20261029",
-        "rushContinuation": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushContinuation20261029"
+        "rushContinuation": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushContinuation20261029",
+        "areaCQBAndPointAssault": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json"
       }
     },
     {

@@ -3365,3 +3365,23 @@ not install permanent aggression. `CBE_Rush_Status` is passive startup/end
 information, never restart authority. Time expiry is cancellation, not combat or
 room-clearance success. Actual attack flow, fire, repeat use, interruption, owner
 handover and measured performance remain unverified while audits are paused.
+
+
+### Native Clear building task
+
+**Clear building** is available in native Zeus as well as optional ZEN. Select the
+exact AI squad and target house; placing on a soldier or building puts that object
+first in its selector. Without ZEN, a native dialog provides both labelled choices
+and a separate request/cancel action. Cancelling submits no order. Selection is
+bounded to 128 squad/building candidates, with houses within 150 metres of placement
+and an attached eligible house included explicitly. A reported interior position
+makes a building selectable; it does not prove native access or hostile-room safety.
+
+Both interfaces call the existing curator-authenticated server dispatcher and
+current-owner physical clearance executor. Acceptance, traversal, partial failure,
+interruption, cleanup and release keep their existing meanings. No settings module,
+new movement controller, teleport or automatic nearest-building assignment is added.
+This requests one building. Area-wide building sequencing and complete
+incoming-owner reconciliation remain separate unfinished capabilities. Native dialog
+layout, keyboard use, repeated task flow and multiplayer behaviour remain unverified
+while audits are paused.

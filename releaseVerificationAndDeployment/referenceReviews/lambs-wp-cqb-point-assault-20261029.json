@@ -1,0 +1,138 @@
+{
+  "date": "2026-10-29",
+  "sourceBase": "2dd621ff31f8e0d35bffcdbf388a74b76285dc09",
+  "workshopId": "1858075458",
+  "pboSHA256": "da03c62978184d2e1b7f28b79cb5e380ae15f40d4cf9ff11d48801b1dfb08534",
+  "sourceRoot": ".qa/lambs-wp-installed-20261029/members",
+  "durableArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/LAMBS/20261029-wp-da03c629",
+  "preservation": "Original durable PBO and all six selected readable member hashes checked against117-member manifest; raw source/assets not copied into product or repository. SQFC bytes retained privately, not semantically certified.",
+  "witnesses": [
+    {
+      "member": "functions/fnc_taskCQB.sqf",
+      "sha256": "6ddfd024edf58f4613a15d17c18d4428b0e4d56c2bf8939c2c3cbbaa2e6657c6",
+      "lines": 235,
+      "review": "Complete readable runtime body"
+    },
+    {
+      "member": "functions/fnc_taskAssault.sqf",
+      "sha256": "857ef0ce4d659e9d32670169643180433fb22a21ebbb9a25ce61abfba8099f07",
+      "lines": 230,
+      "review": "Complete readable runtime body"
+    },
+    {
+      "member": "functions/fnc_doAssaultUnitReset.sqf",
+      "sha256": "14aa4e71406a6bb0ce8a9a36e05701a3424cf7e115dd38ec9ca4b58c028a95df",
+      "lines": 55,
+      "review": "Complete readable runtime body"
+    },
+    {
+      "member": "functions/Modules/fnc_moduleCQB.sqf",
+      "sha256": "0259658d9a65996dbd950c3bdfe3f81c642be94e19e1576b98db2daa14618733",
+      "lines": 112,
+      "review": "Control entry/call-path review; complete wrapper-branch parity not claimed"
+    },
+    {
+      "member": "functions/ZEN/fnc_setCQB.sqf",
+      "sha256": "65403a812fe35dd5f523ec75e311f04ab21ae37bd69cca38cff7a571b73ee95a",
+      "lines": 9,
+      "review": "Control entry/call-path review; complete wrapper-branch parity not claimed"
+    },
+    {
+      "member": "scripts/fnc_wpCQB.sqf",
+      "sha256": "99c2d9fbd10e8d2e665a71f57aa717bcfe0c9eb1028d89ec1eaab6c7cc5a64c9",
+      "lines": 31,
+      "review": "Control entry/call-path review; complete wrapper-branch parity not claimed"
+    }
+  ],
+  "cqb": {
+    "intent": "Select and methodically traverse eligible buildings across an explicit area; move to the next building when current work ends.",
+    "sourceExecution": [
+      "taskCQB scheduled loop searches House/Strategic/Ruins within radius and optional area; side-shared model-position cache selects nearest eligible building.",
+      "Native nearest-known enemy object drives close rush; source samples actual object/building positions. Room assignment selects first remaining node for ready actors.",
+      "Source removes a node when a unit is within30m or by a leader coin flip; this is not physical interior traversal proof.",
+      "Stuck indoor actors may be repositioned with setVehiclePosition when no player is near. Global FULL/FILE/no-flee/attackfalse and per-actor AUTOCOMBAT/SUPPRESSION changes accompany the task. No immutable episode deadline.",
+      "Area is polled repeatedly; cache does not bind position indices to a per-visit object transform. Final cleanup recalls actors and resets stance rather than restoring a complete mission baseline."
+    ],
+    "disposition": {
+      "retainIntent": [
+        "Area-scoped nearest-building sequencing",
+        "Dynamic target membership and continuing to next useful building",
+        "Explicit task/module controls"
+      ],
+      "replaceMethods": [
+        "No distance-only/coin-flip cleared-node removal",
+        "No teleport or hidden-enemy transform route",
+        "No persistent per-unit or whole-area movement loop beside existing CBE owners",
+        "No unconditional feature/formation/attack restore"
+      ]
+    },
+    "currentCBE": [
+      "CortexClearBuilding and BuildingOperationStep already own explicit one-building pair/lane, physical visit/floor/room attempt, inaccessible-node evidence, cover/reserve/egress and exact settings/actor/native receipts. Geometry/visited data binds to object transform and visit context.",
+      "ZenClearModule already exposes explicit single squad/building; new ModuleClear adds native Zeus selectors backed by the same CortexOrderDispatch/Local executor. Optional ZEN is reused when present.",
+      "GroupTick SEARCH has a separate narrow remembered-contact indoor observation for up to two actors, not an area clearance executor.",
+      "CortexDiscover separately replays durable clearance through preflight. Original producer candidates stop at CANDIDATE_UNSEALED; no authenticated incoming native/settings/phase reconciliation consumer exists. Existing retiring callers already guard current ownership; adding a duplicate generic guard would not close that missing chain."
+    ],
+    "missing": [
+      "Finite area-building sequencing executor and matching task controls",
+      "Complete CQB incoming-controller all-writer/settings/native/phase reconciliation",
+      "Physical repeated entry/clearing/isolation/egress and measured performance"
+    ],
+    "nextFiniteImplementation": "Implement one finite owner-local area task using existing group-brain orchestration and existing one-building executor. Snapshot bounded candidates once or on explicitly bounded refresh; retain original total deadline/native mission/epoch. Child acceptance is not completion. Track exact child generation/visit/result and preserve partial/inaccessible results while sequencing; never report area clear from spent queue alone. Cancel on replacement/owner loss without replaying stale work. Only expose area module after real executor exists."
+  },
+  "pointAssault": {
+    "intent": "Deliberate movement to an operator-selected point, optionally a forced retreat, distinct from attack against known contact.",
+    "sourceExecution": [
+      "taskAssault clears known targets and imposes group policy/LINE/FULL/no-flee/attackfalse; disables multiple AI features and installs actor Fired/Hit handlers.",
+      "Each unit has its own PFH issuing repeated halfway moves and forceSpeed24 until within threshold; ATTACK may force temporary group recreation. No original total task deadline.",
+      "A group loop sends ready vehicles to destination and removes cargo boarding permission near it. Mixed crews/infantry share source group task context.",
+      "doAssaultUnitReset enables features to defaults, resets speed/stance, orders follow and may force an animation. Group cleanup imposes WEDGE/AWARE/YELLOW/attacktrue. These restore defaults rather than authored baselines."
+    ],
+    "currentCBE": [
+      "Press attack is contact-driven, not an explicit arbitrary-point assault equivalent. Its bounded approach extension must not be counted as taskAssault source parity.",
+      "CortexRetreat already owns morale-based screened withdrawal, smoke, physical progress, original120-second episode and typed policy restoration; it does not expose this source arbitrary-destination operator task.",
+      "CortexGroupMove and selected-crew movement are lower-level writers, not an authored point-assault module by themselves."
+    ],
+    "disposition": "Retain explicit destination assault/withdrawal intent. Compose on actual common operation/movement owners with immutable deadline and selected crew authority; reject copied per-actor PFHs, repeated raw moves, temporary group recreation, forced animation and default WEDGE/AI resets.",
+    "missing": [
+      "Authenticated explicit point-assault/withdrawal executor and native/optionalZEN behaviour module equivalents",
+      "Physical/MP/repeat/balance and cost validation"
+    ]
+  },
+  "nativeClear": {
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "files": [
+      "addons/infantry/functions/moduleClear.sqf",
+      "addons/main/config.cpp",
+      "addons/main/CfgFunctions.hpp"
+    ],
+    "execution": "CBE_ModuleClear -> ModuleClear -> optionalZenClearModule or native explicit selectors -> CortexOrderDispatch -> CortexOrderLocal CLEAR -> CortexClearBuilding -> existing BuildingOperationStep.",
+    "limits": "Single-building counterpart only; neither area CQB nor explicit point assault is implemented by this module. No acceptance or percentage uplift.",
+    "uiLifecycle": "Display-local choice arrays and control callbacks; cancel submits nothing. Existing child display refuses before createDisplay. No UI global worker or task replay.",
+    "primaryCommandReferences": [
+      "https://community.bistudio.com/wiki/createDisplay",
+      "https://community.bistudio.com/wiki/ctrlCreate"
+    ],
+    "validation": {
+      "tests": 1505,
+      "productionSQF": 471,
+      "pbo": 11,
+      "full": "Full local pipeline exit0; HEMTT/FSM/config/docs/coverage/parity gates passed; static performance0findings.",
+      "candidate": ".qa/candidates/native-clear-20261029-2dd621ff",
+      "fingerprint": "4fb743aa98d79e7477a1170b45e1a1912df7f57db9e56a1270133fed7a308521",
+      "independent": "Package verifier exit0, same fingerprint. Unsigned dev base2dd621ff+dirty inputs; engineering metadata finalized afterward.",
+      "logs": [
+        ".qa/handovers/native-clear-sealed-build-20261029.log",
+        ".qa/handovers/native-clear-independent-20261029.log"
+      ],
+      "retainedFailure": "Initial full build rejected upstream name in player-facing feature guide. Removed it from product prose without weakening boundary check; source comparison remains here. Subsequent pass repeated after actual native UI child-display guard correction.",
+      "physical": "UNVERIFIED;auditsPAUSED;native dialog, keyboard/layout, actual traversal and normal/HC repeat/authority tests pending."
+    },
+    "productHashes": {
+      "addons/infantry/functions/moduleClear.sqf": "d00431f058d1ccef97f36eaecc891b6f6038bd3bb56f9f2569e5031f67c9cfd6",
+      "addons/main/config.cpp": "7d586e5881b29dd007df5a1bf400c40e717132acdcae0123c0f81dae9568c145",
+      "addons/main/CfgFunctions.hpp": "40aa4c03fac679a5989b3529ea90f8584878cdebc337e3c686cb4960293063e1"
+    }
+  },
+  "physicalAcceptance": false,
+  "measuredPerformance": "UNVERIFIED;auditsPAUSED;5%median/10%p95 target remains"
+}

@@ -13,7 +13,8 @@
     "CBE_ModuleRelease",
     "CBE_ModulePatrol",
     "CBE_ModuleHunt",
-    "CBE_ModuleRush"
+    "CBE_ModuleRush",
+    "CBE_ModuleClear"
   ],
   "zen_labels": [
     "Create AI Convoy",
@@ -89,7 +90,8 @@
         "building"
       ],
       "handlers": [
-        "addons/infantry/functions/zenClearModule.sqf"
+        "addons/infantry/functions/zenClearModule.sqf",
+        "addons/infantry/functions/moduleClear.sqf"
       ],
       "executor": "CBE_fnc_CortexOrderDispatch",
       "authority": "Authenticated curator/server task validation and current-owner CortexClearBuilding acknowledgement",

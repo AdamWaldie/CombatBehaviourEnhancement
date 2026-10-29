@@ -6,7 +6,7 @@ class CfgPatches {
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
         requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "CBE_core", "CBE_danger", "CBE_infantry", "CBE_vehicles", "CBE_aircraft", "CBE_support", "CBE_compatibility"};
-        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModulePatrol", "CBE_ModuleHunt", "CBE_ModuleRush", "CBE_ModuleRelease", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
+        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModuleClear", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModulePatrol", "CBE_ModuleHunt", "CBE_ModuleRush", "CBE_ModuleRelease", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
         weapons[] = {};
         version = "0.1.0";
         versionStr = "0.1.0";
@@ -132,6 +132,14 @@ class CfgVehicles {
         isTriggerActivated = 0;
         isDisposable = 1;
         curatorCanAttach = 1;
+    };
+    class CBE_ModuleClear: CBE_ModuleGarrison {
+        displayName = "Clear building";
+        function = "CBE_fnc_ModuleClear";
+        CBE_operation = "CLEAR";
+        class ModuleDescription: ModuleDescription {
+            description = "Select an explicit AI squad and building for physical clearance. Native selectors work without ZEN; optional ZEN uses the same authenticated current-owner executor. Reported model positions are not proof of access or hostile-room safety. This clears one building, not an entire area.";
+        };
     };
     class CBE_ModuleDefend: CBE_ModuleGarrison {
         displayName = "Defend area";
