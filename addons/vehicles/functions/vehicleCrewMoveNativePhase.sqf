@@ -9,7 +9,7 @@
  * epoch and at most two original active local crew are checked again before native writes.
  * This is not movement admission and cannot mint a session, lease, replacement crew or worker.
  * Repeat/JIP: One synchronous phase, original goal/baseline/reply/cleanup clocks retained.
- * Idle-baseline handback requires all surviving originals active, current idle goals and
+ * Idle-only and mixed MOVE/idle handback require every surviving idle original active, current idle goals and
  * measured platform rest; empty return arrays never prove retirement by themselves.
  * Nonlocal/inactive return recipients refuse before native order observation.
  * No publication, timer, independent FSM or replay. Caller publishes the changed journal
@@ -141,6 +141,25 @@ if (_phase == "STOPPING") exitWith {
 };
 if (_phase == "RETURNING") exitWith {
     private _returns=_work get "returns";
+    private _baseline=_work get "baseline";
+    // A nonempty MOVE return list says nothing about the other original's idle order.
+    // Use the caller's same-frame two-seat observation, including survivor duplication.
+    private _originals=_seats arrayIntersect _seats;
+    private _survivingOriginals=_originals select {!isNull _x && {alive _x}};
+    private _idleOriginalsCurrent=_returns isEqualTo [] || {_survivingOriginals isNotEqualTo []
+        && {_survivingOriginals findIf {!(_x in _activeSeats)} < 0}
+        && {_survivingOriginals findIf {
+            private _originalOffset=2*(_originals find _x);
+            if ((_baseline select _originalOffset) == "MOVE") exitWith {false};
+            private _observationOffset=2*(_activeSeats find _x);
+            private _command=_observations select _observationOffset;
+            private _destination=_observations select (_observationOffset+1);
+            private _sample=[_command,_destination,_command,_destination];
+            !(_command in ["","WAIT"]) || {
+                ([_goal,_work get "replyUntil",_sample,_sample,serverTime,_arrivalSample]
+                    call CBE_fnc_VehicleCrewDestinationState) != "OWNED"
+            }
+        } < 0}};
     // Empty return orders mean an original idle baseline, not automatic handback.
     // Reuse the same current-goal/physical-rest evidence as passive retirement proof.
     private _ack=if (_returns isEqualTo []) then {
@@ -162,7 +181,7 @@ if (_phase == "RETURNING") exitWith {
                 call CBE_fnc_VehicleCrewDestinationState) != "OWNED"
         } < 0
     };
-    if (_ack) exitWith {["NATIVE_RETURN_ACKNOWLEDGED",true] call _finish};
+    if (_ack && {_idleOriginalsCurrent}) exitWith {["NATIVE_RETURN_ACKNOWLEDGED",true] call _finish};
     if (serverTime > (_work get "replyUntil")) exitWith {["NATIVE_RETURN_UNKNOWN"] call _finish};
     0.25
 };

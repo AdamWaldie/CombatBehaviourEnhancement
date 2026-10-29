@@ -204,6 +204,14 @@ class ArtilleryFireSessions(unittest.TestCase):
             self.assertIn(proof,idle)
         self.assertLess(returning.index('!local _actor || {!(_actor in _activeSeats)}'),
                         returning.index('private _native=expectedDestination _actor'))
+        # Mixed MOVE/idle returns must check the idle original in both the running
+        # worker and the passive completed-worker path, not only issued recipients.
+        for text in (returning, (ROOT/'addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf').read_text(encoding='utf-8')):
+            self.assertIn('private _idleOriginalsCurrent=',text)
+            self.assertIn('(_baseline select _originalOffset) == "MOVE"',text)
+            self.assertIn('_command in ["","WAIT"]',text)
+            self.assertIn('call CBE_fnc_VehicleCrewDestinationState',text)
+        self.assertIn('if (_ack && {_idleOriginalsCurrent})',returning)
         # A short native return can complete before the first callback. Idle alone,
         # a replaced destination, motion or a remote endpoint cannot prove return.
         def returned(command, destination_error, endpoint_distance, at_rest, vertical_error=0):
@@ -218,6 +226,30 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertFalse(returned('STOP',0,1,True))
         self.assertFalse(returned('WAIT',0,1,True,0.76))
         self.assertTrue(returned('WAIT',0,1,True,0.75))
+        # One MOVE recipient can acknowledge while its idle partner has received
+        # STOP/FOLLOW/MOVE or no longer rests at the held point. Test both seat orders,
+        # duplicate driver/operator identity and the original-survivor case.
+        def mixed_return(baseline, current, alive=(True,True)):
+            if not any(alive):
+                return False
+            return all(not live or (returned(*sample) if old=='MOVE' else
+                       sample[0] in ('','WAIT') and returned(*sample))
+                       for old,sample,live in zip(baseline,current,alive))
+        move=('MOVE',0,100,False)
+        idle=('WAIT',0,0,True)
+        for baseline,good in ((('MOVE','WAIT'),(move,idle)),(('WAIT','MOVE'),(idle,move))):
+            self.assertTrue(mixed_return(baseline,good))
+            idle_index=baseline.index('WAIT')
+            for bad in (('STOP',0,0,True),('FOLLOW',0,0,True),('MOVE',0,0,True),
+                        ('WAIT',1,0,True),('WAIT',0,0,False),('WAIT',0,3,True),
+                        ('WAIT',0,0,True,1)):
+                changed=list(good);changed[idle_index]=bad
+                self.assertFalse(mixed_return(baseline,changed))
+            dead=list((True,True));dead[idle_index]=False
+            self.assertTrue(mixed_return(baseline,good,dead))
+        self.assertTrue(mixed_return(('WAIT','WAIT'),(idle,idle)))
+        self.assertFalse(mixed_return(('MOVE','WAIT'),(move,idle),(False,False)))
+
 
         self.assertIn('[_battery,_token,_serial,_executorSerial] call',fsm)
         retire=(base/'artilleryCrewMoveRetire.sqf').read_text(encoding='utf-8')

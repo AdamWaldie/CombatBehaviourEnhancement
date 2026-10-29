@@ -4,7 +4,8 @@
  * Locality/authority: Read-only on current local platform/group/original actors. The producer
  * must still own the exact journal/reference. An actual completed private original FSM,
  * matching local worker serial/owner/episode epoch are required. RETURN additionally needs
- * recorded original return orders. A remote done flag, ended timer or changed seat alone
+ * recorded original return orders and every surviving idle original at its retained stop goal.
+ * A remote done flag, ended timer or changed seat alone
  * is never sufficient.
  * Current group epoch and any recorded tactical generation must still match; this passive
  * check grants no new command authority. Caller runs it inside its unscheduled retirement call.
@@ -122,6 +123,21 @@ if (_expected isEqualTo []) exitWith {
         && {([_work getOrDefault ["goal",[]],_until,_observations,_observations,serverTime,_arrival]
             call CBE_fnc_VehicleCrewDestinationState) == "OWNED"}
 };
+// MOVE recipients cannot vouch for a different surviving original's idle handback.
+// Reuse the two cached native observations; no extra actor command/query or deadline.
+private _idleOriginalsCurrent=_writers findIf {
+    private _originalOffset=2*(_original find _x);
+    if ((_baseline select _originalOffset) == "MOVE") exitWith {false};
+    private _observationOffset=2*(_writers find _x);
+    private _command=_observations select _observationOffset;
+    private _destination=_observations select (_observationOffset+1);
+    private _sample=[_command,_destination,_command,_destination];
+    !(_command in ["","WAIT"]) || {
+        ([_work getOrDefault ["goal",[]],_until,_sample,_sample,serverTime,_arrival]
+            call CBE_fnc_VehicleCrewDestinationState) != "OWNED"
+    }
+} < 0;
+if (!_idleOriginalsCurrent) exitWith {false};
 _expected findIf {
     _x params ["_actor","_point"];
     private _offset=2*(_writers find _actor);

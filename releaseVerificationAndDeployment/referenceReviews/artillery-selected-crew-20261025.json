@@ -156,5 +156,28 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "mixedNativeReturn20261029": {
+    "base": "4708360726fc89af9b2f386d41947aa1c9c6a937",
+    "source": "Original Protocol artillery fn_artillery.sqf relocation/postfire branches108..176 re-read; complete file SHA2569ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d reverified. Source directly moves driver/commander without a finite return owner; CBE retains selected crew scope and replaces that lifecycle.",
+    "finding": "VehicleCrewMoveNativePhase RETURNING with a nonempty returns list checked only MOVE recipients. VehicleCrewMoveReturnProof similarly checked only expected MOVE recipients after validating metadata. Neither mixed-list branch required a surviving original idle operator to retain idle/rest/held-goal evidence, unlike their existing all-idle branches. Acknowledging one original could therefore retire unresolved work over a changed command on the other.",
+    "change": "Both paths additionally examine surviving originals with an idle baseline using the already supplied/cached two-seat native observation and original stop goal. Current idle/WAIT plus the existing measured-rest/arrival predicate is required. Live missing original recipients refuse. MOVE acknowledgements, original reply/cleanup deadlines and completed-private-FSM/serial/owner/epoch/mission proof remain unchanged. Idle-only episodes retain their existing branch; no new movement, group order, worker, native query, settings or recovery is introduced.",
+    "cost": "At most two original-actor comparisons and two existing destination comparisons for a mixed return; no world/inventory query or added native observation. No measured overhead claim.",
+    "checks": {
+      "existingCase": "ArtilleryFireSessions.test_prefire_positioning_uses_existing_fsm_and_authenticated_physical_handoff",
+      "red": ".qa/handovers/crew-mixed-return-red-20261029.log",
+      "focused": ".qa/handovers/crew-mixed-return-green-20261029.log",
+      "testsAdded": 0,
+      "model": "Both MOVE/idle seat orders, changed STOP/FOLLOW/MOVE, different goal, moving or displaced platform, duplicate identity and dead idle original. Python model/source contracts are not native execution.",
+      "fullBuild": ".qa/handovers/crew-mixed-return-build-20261029.log",
+      "independent": ".qa/handovers/crew-mixed-return-independent-20261029.log",
+      "tests": 1505,
+      "compiledSqf": 461,
+      "pbos": 11,
+      "candidate": ".qa/candidates/crew-mixed-return-20261029-47083607",
+      "fingerprint": "bc8915285392919ae1144ae3d0e5611210529088ef0650a2faf9adba07cc1a39",
+      "provenance": "Unsigned development receipt47083607 plus dirty runtime inputs; engineering metadata finalised afterward. No physical/performance acceptance."
+    },
+    "limits": "Audits paused. This closes false positive mixed native return, not original FOLLOW/formation restoration, complete unknown/casualty handback, general all-writer quiescence, physical mixed-group movement or whole Protocol parity. A mixed return that never shows positive idle evidence remains unresolved within the existing lifecycle; no deadline extension or fallback success."
   }
 }
