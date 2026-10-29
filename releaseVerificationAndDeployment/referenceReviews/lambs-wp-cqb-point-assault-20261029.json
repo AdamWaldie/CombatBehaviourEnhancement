@@ -285,5 +285,42 @@
       "Ground routing, smoke, arrival/casualty/repeat, normal/HC/locality and measured performance",
       "Vehicle point assault and broader whole-source capability gaps remain open"
     ]
+  },
+  "vehiclePointAdmissionReview20261029": {
+    "sourceCommit": "781668dde8e755d1d5d820d91ff4afea96111e04",
+    "status": "SOURCE_BRANCH_AND_EXISTING_ADMISSION_COMPARED_NOT_IMPLEMENTED",
+    "source": {
+      "member": "functions/fnc_taskAssault.sqf",
+      "sha256": "857ef0ce4d659e9d32670169643180433fb22a21ebbb9a25ce61abfba8099f07",
+      "reviewedBranch": "lines174..194 vehicle loop, within previously complete230-line readable body review",
+      "actualMethod": "Selects unitReady ready vehicles; adjusts common destination with findEmptyPosition; vehicle doWatch/doMove; near destination orders cargo and passenger-turret occupants out and disables allowGetIn."
+    },
+    "currentCBEVersions": {
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "5d31ab879c43c8555a7e2b2c8606fca282c3cc963145a665f15d5a3a84a3152a",
+      "addons/vehicles/functions/vehicleTacticalMoveStep.sqf": "383f58add92252d0d8fa7ec95d41d2e15a5549bfdee2a906e1bd4e84b19f459a",
+      "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf": "93bce8c8afad4caadeb40948173f667a48e98514f8b38899b0594380c7e87ff8",
+      "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf": "430ce867a35867857d7cb880ae9de2196104cfde23d95538b53a4cec162014cc",
+      "addons/vehicles/functions/cortexVehicles.sqf": "60e6f534d5faaed91fbab87395f4a08065bbc45731864fec2ec4eee5c2538215"
+    },
+    "reviewBoundary": "Existing CBE entry guards, selected caller branch, source-current step guard and shared handback headers/phase call inspected. Hashes pin files, not a whole-function or whole-mod semantic review claim.",
+    "currentExecution": [
+      "CortexVehicles acquires VEHICLE_STANDOFF movement lease and common operation, then calls VehicleTacticalMoveStart with original driver/commander, generation and deadline. No group waypoint is added by that mover.",
+      "VehicleTacticalMoveStart refuses remoteExecutedOwner>0, requires exact VEHICLE_STANDOFF intent/epoch/generation/lease and Vehicles plus VehicleGunnery permissions. This is not an arbitrary explicit-position transport API.",
+      "VehicleTacticalMoveStep source-current guard also requires VEHICLE_STANDOFF and gunnery permission before delegating to shared VehicleCrewMoveNativePhase. Altering only constructor intent would not create a valid task lifecycle.",
+      "ArtilleryCrewMoveStart is separately bound to POSITION/SCOOT tokens and artillery sessions; it is not a generic point-task admission shortcut.",
+      "VehicleCrewMoveReturnProof requires completed original private worker/reference/current epoch and typed native return observations. Existing MOVE/idle and newer STOP evidence does not establish arbitrary FOLLOW/unknown-order return."
+    ],
+    "disposition": {
+      "retain": "Explicit selected-platform destination intent and useful existing selected-crew native-phase FSM/retirement proof. Preserve group membership, unrelated infantry/native tasks, actual seats and authored route.",
+      "adapt": "Provide a real point-purpose admission/source-current/retirement contract across the existing platform owner, with original request/deadline and native/mission/Zeus checks; expose authenticated behaviour controls only after actual executor admission works. Deliberately reconcile authenticated server dispatch with local-only worker guards.",
+      "reject": "Do not fabricate a VEHICLE_STANDOFF or artillery session, silently require gunnery for ordinary explicit travel, remove remote guards without a bounded trusted admission path, issue group-wide movement over unrelated infantry, or copy unowned watch/cargo allowGetIn resets."
+    },
+    "nextFiniteOutcome": "Implement selected-platform point movement through the existing native-phase owner with explicit purpose and unchanged request/crew/deadline proof at admission, STEP and retirement. Confirm direct/newer-native/deletion/owner-loss paths in existing checks. Add native/optionalZEN controls for that actual task; do not call registration alone implementation.",
+    "retainedGaps": [
+      "Vehicle point task still unimplemented",
+      "Shared FOLLOW/unknown native handback remains unresolved",
+      "Physical mixed infantry/crew travel, repeat/interrupt/normal/HC and measured cost remain unverified"
+    ],
+    "verification": "Metadata-only source review. Existing verified controls runtime remains781668dd with1505tests/477SQF/11PBO and candidate fingerprint5a608449515d838426ac755cc43d1c7d8824e090ca772107b3b92510cb82a5d0. No runtime edits, rebuild, audit or installed-file staging."
   }
 }
