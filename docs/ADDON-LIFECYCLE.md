@@ -2774,3 +2774,12 @@ CortexAirAttack shares one request-time CortexAirReleaseSafe observation between
 Guns and rockets use the shared direct-fire cone (people/land vehicles, at most6000m and64 returned candidates). Bombs and guided weapons check protected actors near the target; bombs additionally check their predicted ballistic impact. Blast radius is at least12m and four times indirectHitRange for damaging explosives, refusing radii over250m and queries over64 results. Vehicle occupants, friendly/civilian actors, captives and ACE surrendering/handcuffed people are protected in blast queries, including aircraft and ships. Own-platform blast proximity also vetoes.
 
 This only vetoes new CBE scripted requests. An attached native DESTROY order may fire independently, and released projectiles cannot be recalled. Current positions/configured blast are conservative observations, not guaranteed future safety, penetration, fragment or full guided flight-path simulation. No extra worker, new equipment or ammunition is created. Physical safety/attack flow and measured performance remain unverified while audits are paused.
+
+
+### Aircraft native contact geometry
+
+CortexAirContact now supplies both initial planning and each active ingress/attack visit from at most eight local combat-effective group members. Personal native evidence takes precedence, then the more recent native observation; legitimate group-shared evidence remains eligible. Missing, ignored, zero or malformed belief refuses scripted progression instead of falling back to the hostile's exact transform. The believed aim position is converted from ATL to ASL for flight geometry.
+
+Range, alignment, bomb target altitude/lead, scripted release safety, approach progress and stand-off closure use that same sample. Contact velocity is estimated from consecutive beliefs for the same observer over0.25..5seconds and bounded to350m/s; observer replacement starts with zero lead. Egress retains the last estimate and its original finite destination. No actual hostile position/velocity fallback, reveal, new worker or extended operation clock is introduced.
+
+Native aimedAtTarget, object target commands and the existing native DESTROY association remain engine-owned; this does not prove their visibility or attachment semantics. Belief accuracy, occlusion, moving targets, observer replacement, handback and runtime cost still require physical verification. Audits remain paused.

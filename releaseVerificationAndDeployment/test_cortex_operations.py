@@ -10490,7 +10490,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _standoffPass=(_job getOrDefault ["pattern",""]) == "STANDOFF"',controller)
         self.assertIn('private _desiredShots=if (_standoffPass) then {1}',controller)
         self.assertIn('private _standoffWindowClosed=_standoffPass',controller)
-        self.assertIn('private _standoffRange=_aircraft distance _target',controller)
+        self.assertIn('private _standoffRange=(getPosASL _aircraft) vectorDistance _targetASL',controller)
         self.assertIn('_standoffRange <= _standoffMinimumRange+150',controller)
         self.assertIn('_standoffForwardAlignment > 0.75',controller)
 
@@ -10524,14 +10524,27 @@ class CortexOperations(unittest.TestCase):
         for branch in ('{_pilotSurfaceRelease}','{!_pilotSurfaceRelease}'):
             self.assertIn('if (_validSolution && {_releaseSafe} && '+branch,controller)
         planner=source('cortexAirAttackPlan')
-        belief=planner.split('private _targetPos=[];',1)[1].split('private _ammoCache=',1)[0]
+        belief=source('cortexAirContact')
         for proof in ('[_pilot]+((units group _pilot)-[_pilot])','select [0,8]',
                       'local _x','CortexCombatEffective','_x targetKnowledge _target',
                       '_knowledge param [0,false,[true]]','_knowledge param [1,false,[true]]',
                       '_knowledge param [7,false,[true]]','_personal && {!_personalWitness}',
                       '_personal isEqualTo _personalWitness','_observedAt > _latestObservation','_x getHideFrom _target',
-                      'count _belief == 3','!finite _x','if (_targetPos isEqualTo []) exitWith'):
+                      'count _belief == 3','!finite _x','if (_targetPos isEqualTo []) exitWith','ATLToASL _targetPos'):
             self.assertIn(proof,belief)
+        for text in (planner,controller,belief):
+            for forbidden in ('getPosATL _target','getPosASL _target','aimPos _target','velocity _target'):
+                self.assertNotIn(forbidden,text)
+        self.assertIn('call CBE_fnc_CortexAirContact',planner)
+        self.assertEqual(controller.count('call CBE_fnc_CortexAirContact'),1)
+        sample=controller.split('private _targetASL=',1)[1].split('private _targetATL=',1)[0]
+        for proof in ('_stage in ["INGRESS","ATTACK"]','!_targetUnavailable',
+                      '_contactUnavailable','TARGET_ESTIMATE_UNAVAILABLE','_elapsed >= 0.25',
+                      '_elapsed <= 5','_estimateSpeed > 350','(_previousEstimate select 1) == _knower'):
+            self.assertIn(proof,sample)
+        self.assertIn('_targetASL vectorAdd (_estimatedVelocity vectorMultiply _fallTime)',controller)
+        self.assertIn('[_operator,_targetASL,_selectedMagazine',controller)
+        self.assertLess(controller.index('if (_contactUnavailable) exitWith'),controller.index('private _points=_job get'))
         self.assertNotIn('getPosATL _target',planner)
         self.assertNotIn('getPosASL _target',planner)
         self.assertNotIn('velocity _target',planner)
@@ -10622,7 +10635,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('configFile >> "CfgAmmo" >> _ammoClass >> "airFriction"',controller)
         self.assertIn('for "_integrationIndex" from 0 to 119',controller)
         self.assertIn('private _integrationPosition=getPosASL _aircraft',controller)
-        self.assertIn('private _targetAltitude=aimPos _target select 2',controller)
+        self.assertIn('private _targetAltitude=_targetASL select 2',controller)
         self.assertNotIn('private _integrationPosition=getPosATL _aircraft',controller)
         self.assertIn('_job getOrDefault ["deliveryAssistSamples",[]]',controller)
         self.assertIn('_job getOrDefault ["deliveryAssistActive",false],_deliveryTerrainClear',controller)
@@ -10727,10 +10740,10 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _stagePassed=',controller)
         self.assertIn('private _ingressBehind=',controller)
         self.assertIn('vectorDotProduct ((ATLToASL _destination) vectorDiff getPosASL _aircraft)',controller)
-        self.assertIn('vectorDotProduct ((getPosASL _target) vectorDiff getPosASL _aircraft)',controller)
+        self.assertIn('vectorDotProduct (_targetASL vectorDiff getPosASL _aircraft)',controller)
         self.assertNotIn('vectorDotProduct (_destination vectorDiff getPosATL _aircraft)',controller)
-        self.assertIn('_aircraft distance2D _target <= 9500',controller)
-        self.assertIn('_ownedWaypoint setWaypointPosition [getPosATL _target,0]',controller)
+        self.assertIn('_aircraft distance2D _targetATL <= 9500',controller)
+        self.assertIn('_ownedWaypoint setWaypointPosition [_targetATL,0]',controller)
         self.assertIn('private _nativeAttackWaypoint=_isPlane && {_stage == "ATTACK"}',controller)
         self.assertIn('setWaypointType "DESTROY"',controller)
         self.assertIn('setWaypointCombatMode "RED"',controller)

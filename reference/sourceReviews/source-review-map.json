@@ -1198,7 +1198,7 @@
       "reviewStatus": "Complete readable source compared; scripted release veto implemented and offline verified; physical/performance pending.",
       "nextSourceReview": "Continue remaining Protocol capabilities; aircraft native autonomous firing, later exact-target execution, handback and physical/performance proof remain open.",
       "recordedImplementationStatus": "READABLE_SOURCE_REVIEWED_SCRIPTED_RELEASE_OFFLINE_VERIFIED_PHYSICAL_PENDING",
-      "recordedRemaining": "Scoped scripted-request veto only, not whole-aircraft parity or physical acceptance.",
+      "recordedRemaining": "Scoped scripted request and native-contact geometry improvements, not full Protocol aircraft parity. Native autonomous DESTROY firing outside veto; object attachment/handback semantics, actual targeting, belief/observer changes, dynamic safety and measured5%median/10%p95 cost remain unverified; audits paused.",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/protocol-aircraft-3828285847-20261030.json",
       "evidenceFilePresent": true,
       "implementationReassessedByThisMap": true,
@@ -1207,7 +1207,8 @@
         "present": true,
         "observedAt": "2026-10-30",
         "scope": "Original3 hashes verified; complete readable source in protected private dated archive, no addon execution."
-      }
+      },
+      "latestIntegration": "Shared initial/active native belief reader removes CBE exact hostile position/velocity from aircraft geometry/lead. Existing finite owner retained; PASS1506 offline, physical/performance pending."
     },
     {
       "workshopId": "3802425539",

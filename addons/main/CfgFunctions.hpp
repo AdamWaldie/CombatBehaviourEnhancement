@@ -372,6 +372,7 @@ class CfgFunctions {
             class CortexAirPilotFeatureAdopt {file = "\z\cbe\addons\aircraft\functions\cortexAirPilotFeatureAdopt.sqf";};
             class CortexAirPilotFeatureRelease {file = "\z\cbe\addons\aircraft\functions\cortexAirPilotFeatureRelease.sqf";};
             class CortexAirWeaponOperatorAvailable {file = "\z\cbe\addons\aircraft\functions\cortexAirWeaponOperatorAvailable.sqf";};
+            class CortexAirContact {file = "\z\cbe\addons\aircraft\functions\cortexAirContact.sqf";};
             class CortexAirReleaseSafe {file = "\z\cbe\addons\aircraft\functions\cortexAirReleaseSafe.sqf";};
             class CortexAirAttackPlan {file = "\z\cbe\addons\aircraft\functions\cortexAirAttackPlan.sqf";};
             class CortexAirAttack {file = "\z\cbe\addons\aircraft\functions\cortexAirAttack.sqf";};

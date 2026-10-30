@@ -62,34 +62,10 @@ if (_target isKindOf "Logic" || {_target isKindOf "HeadlessClient_F"} || {_side 
     || {_target getVariable ["ace_captives_isHandcuffed",false]}) exitWith {createHashMap};
 private _airToAir=_target isKindOf "Air" && {!isTouchingGround _target};
 
-// Resolve belief before expensive weapon and terrain planning for either target domain.
-// Unit knowsAbout reads shared group knowledge; require a native knownByGroup record
-// and a valid believed position. Prefer actual personal evidence without discarding
-// legitimate group-shared spotter reports when no personal witness is available.
-private _targetPos=[];
-private _latestObservation=-1;
-private _personalWitness=false;
-private _observers=([_pilot]+((units group _pilot)-[_pilot])) select [0,8];
-{
-    if (local _x && {[_x] call CBE_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}) then {
-        private _knowledge=_x targetKnowledge _target;
-        private _observedAt=(_knowledge param [2,-1,[0]]) max (_knowledge param [3,-1,[0]]);
-        private _personal=_knowledge param [1,false,[true]];
-        private _preferred=_targetPos isEqualTo [] || {_personal && {!_personalWitness}}
-            || {_personal isEqualTo _personalWitness && {_observedAt > _latestObservation}};
-        if ((_knowledge param [0,false,[true]]) && {!(_knowledge param [7,false,[true]])}
-            && {finite _observedAt} && {_preferred}) then {
-            private _belief=_x getHideFrom _target;
-            if (count _belief == 3 && {_belief isNotEqualTo [0,0,0]}
-                && {_belief findIf {!(_x isEqualType 0) || {!finite _x}} < 0}) then {
-                _targetPos=+_belief;
-                _latestObservation=_observedAt;
-                _personalWitness=_personal;
-            };
-        };
-    };
-} forEach _observers;
-if (_targetPos isEqualTo []) exitWith {createHashMap};
+// Resolve the same native believed contact used by active execution before expensive planning.
+private _contact=[_pilot,_target] call CBE_fnc_CortexAirContact;
+if (_contact isEqualTo []) exitWith {createHashMap};
+private _targetPos=ASLToATL (_contact select 0);
 
 private _ammoCache=missionNamespace getVariable ["CBE_Cortex_AirAmmoFacts",createHashMap];
 private _ammoFacts={

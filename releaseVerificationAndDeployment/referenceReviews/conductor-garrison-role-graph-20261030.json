@@ -413,7 +413,7 @@
     "addons/infantry/functions/buildingRoofTop.sqf": "9baad8bfe48e1bb0ce9a0699825dd93779a957945a0f4a18333be76c05ace923",
     "addons/infantry/functions/cortexGarrisonPostChoice.sqf": "318fb7c240f67a43649abc0679a7304a6eec18a35f2836039119a50f3761eb90",
     "addons/infantry/functions/cortexGarrisonRefill.sqf": "d2c99a24d44d0f0addfb50d73bff0e1be5e5eab85230e033c5b68274bfbd9663",
-    "addons/main/CfgFunctions.hpp": "79b83d8a41ad4028c02d11abc08a75f35eebb150e249b46f0f29cde0e8b87059",
+    "addons/main/CfgFunctions.hpp": "5790b603544f90e3212fc39c8123a0ca9b63b7493b1d802342d9326298387179",
     "addons/infantry/functions/cortexStaticRetire.sqf": "469b5905a35c49ba45acdbbd5ba75d4da81a2f4ccedda5cdc8be007785f9c08c",
     "addons/infantry/functions/cortexActorMoveReserved.sqf": "7881fd82ee5073085c3d9500bc38408a579ddfc9ca967a666f77e3670aabf3ca",
     "addons/infantry/functions/dangerSetup.sqf": "c43545795e11d8ec0a82d28440d8fb0c00b46e73fca82482f8e45ba98c6ce9b5",
@@ -444,8 +444,8 @@
     "addons/support/functions/cortexArtilleryMissionStep.sqf": "ae4ccccaad347e4720f79803abc36a762f70ed4cf0b5f501b1128d70413d7f84",
     "addons/support/functions/cortexArtilleryShot.sqf": "de78a7d1bb844010712ecd311d6e5bb87e5f400a5cc9f05214388c5b3e147cea",
     "addons/support/functions/cortexArtilleryAim.sqf": "15d8962a82d8b9e16bdf4b01e9839a8e2cc3544831caed53a94111a2dcb8cdd4",
-    "addons/aircraft/functions/cortexAirAttackPlan.sqf": "50ce2e612585446254895473d8d1d59f3b83e926ed1721260f0940c33c0a899d",
-    "addons/aircraft/functions/cortexAirAttack.sqf": "797d2c4f9545d2f523f86393e91f59e0c450c04dd523a24b5f3697509b1a4ee3"
+    "addons/aircraft/functions/cortexAirAttackPlan.sqf": "b76773dae065ee083c40003fa24a4cf8538ffa1198f0e466755ed5580fb82587",
+    "addons/aircraft/functions/cortexAirAttack.sqf": "d76e0ebf6877033945085cf3b1f3069b637dbdb37916911388405f471f8fc66d"
   },
   "productScope": "Selected actual operator, planning/assignment, role and contact-static owner branches; not complete bodies of every CBE descendant or physical/compiled-source parity.",
   "dispositions": [
@@ -1078,6 +1078,24 @@
       "addons/aircraft/functions/cortexAirAttack.sqf": {
         "previous": "8fac05b693c19089c06c99944905adfc08ff04c2d2519e61c608c4028e1e054a",
         "current": "797d2c4f9545d2f523f86393e91f59e0c450c04dd523a24b5f3697509b1a4ee3"
+      }
+    }
+  },
+  "protocolNativeContactRefresh20261030": {
+    "sourceReview": "releaseVerificationAndDeployment/referenceReviews/protocol-aircraft-3828285847-20261030.json",
+    "scope": "Refresh current shared aircraft hashes only; older reviewed source/candidates remain historical, not rerun. Current priority stays Protocol.",
+    "changes": {
+      "addons/main/CfgFunctions.hpp": {
+        "previous": "79b83d8a41ad4028c02d11abc08a75f35eebb150e249b46f0f29cde0e8b87059",
+        "current": "5790b603544f90e3212fc39c8123a0ca9b63b7493b1d802342d9326298387179"
+      },
+      "addons/aircraft/functions/cortexAirAttackPlan.sqf": {
+        "previous": "50ce2e612585446254895473d8d1d59f3b83e926ed1721260f0940c33c0a899d",
+        "current": "b76773dae065ee083c40003fa24a4cf8538ffa1198f0e466755ed5580fb82587"
+      },
+      "addons/aircraft/functions/cortexAirAttack.sqf": {
+        "previous": "797d2c4f9545d2f523f86393e91f59e0c450c04dd523a24b5f3697509b1a4ee3",
+        "current": "d76e0ebf6877033945085cf3b1f3069b637dbdb37916911388405f471f8fc66d"
       }
     }
   }

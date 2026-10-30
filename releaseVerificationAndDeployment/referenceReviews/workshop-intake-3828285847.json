@@ -33,5 +33,6 @@
     "meta.cpp": "PROTOCOL AI AIRCRAFT - BOMBS & ROCKETS"
   },
   "authorMetadata": "Biden",
-  "remaining": "Scoped scripted-release protection, not full Protocol aircraft parity. Native autonomous DESTROY firing is outside the veto; later surface executor exact-target geometry/velocity and native order handback require further review. Physical attack, blast/cone refusals, repeat/migration, real countermeasure use and 5%median/10%p95 overhead remain unverified; audits paused."
+  "remaining": "Scoped scripted request and native-contact geometry improvements, not full Protocol aircraft parity. Native autonomous DESTROY firing outside veto; object attachment/handback semantics, actual targeting, belief/observer changes, dynamic safety and measured5%median/10%p95 cost remain unverified; audits paused.",
+  "latestIntegration": "Shared initial/active native belief reader removes CBE exact hostile position/velocity from aircraft geometry/lead. Existing finite owner retained; PASS1506 offline, physical/performance pending."
 }

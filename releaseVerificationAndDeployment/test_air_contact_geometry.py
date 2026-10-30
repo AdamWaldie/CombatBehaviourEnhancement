@@ -24,7 +24,7 @@ class AirContactGeometryTests(unittest.TestCase):
         self.assertLess(plan.index('targetKnowledge _target'),plan.index('private _ammoCache='))
         self.assertIn('_startFailure="TARGET_IGNORED"',attack)
         self.assertIn('["TARGET_IGNORED",true] call _finish',attack)
-        self.assertLess(attack.index('["TARGET_IGNORED",true] call _finish'),attack.index('_job set ["lastTargetPositionASL",getPosASL _target]'))
+        self.assertLess(attack.index('["TARGET_IGNORED",true] call _finish'),attack.index('_job set ["lastTargetPositionASL",+_targetASL]'))
         self.assertIn('!((_operator targetKnowledge _guidedTarget) param [7,false,[true]])',attack)
         refused=local.split('// Native ignoreTarget belongs to this group;',1)[1].split('// The caller',1)[0]
         self.assertIn('if (_role == "AIR_ATTACK")',refused)
