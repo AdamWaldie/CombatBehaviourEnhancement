@@ -9005,6 +9005,15 @@ class CortexOperations(unittest.TestCase):
         self.assertIn("!local _battery",boundary)
         self.assertIn("CBE_AIPass_FireToken",boundary)
         self.assertIn("CortexIsEligible",boundary)
+        # Protected people retain faction identity in some captivity implementations.
+        # Extend the existing impact scan, including occupants, rather than adding a scanner.
+        safety=shot.split('private _minimum =',1)[1].split('if (!(_magazine in',1)[0]
+        self.assertEqual(shot.count('nearEntities'),1)
+        for gate in ('[_entity] + crew _entity','alive _x','captive _x',
+                     'ace_captives_isSurrendering','ace_captives_isHandcuffed',
+                     'side _x == civilian','_side getFriend (side _x) >= 0.6',
+                     'exitWith {call _reject}'):
+            self.assertIn(gate,safety)
 
     def test_committed_support_adoption_does_not_reauthorize_contact(self):
         apply=source("cortexSupportApply")

@@ -333,10 +333,34 @@
       "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_analyzeReinforcementPressure.sqf",
       "sha256": "3ce621530e50bc600629d0965e9ed7744bad7a2767885cc9515747cd484d2846",
       "manifestMatch": true,
-      "scope": "Selected lines1-184: requester eligibility, optional pressure provider, direct/relayed evidence gates, unique hostile-entity/group weights and local friendly contribution. Remaining pressure sustain/clear/output branches still require complete review."
+      "scope": "Complete body now read, including sustained/quiet hysteresis, desired-helper cap, source confidence floor and severe-pressure fire-support metadata. Actual FOACT/provider implementations not thereby reviewed."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_classifyThreat.sqf",
+      "sha256": "acd8a5e91cb097da3d90123341220155b98fc211d51800853591aed4bb35f372",
+      "manifestMatch": true,
+      "scope": "Complete body: raw object Air/Tank/LandVehicle config description and armor/air flags; it does not normalize a mounted infantry contact to its vehicle."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/integration/fn_trySteelRainSupport.sqf",
+      "sha256": "6e8da9686103d9bec8b3597acbc99085de2304d57be06b0f40e848aac34ac68d",
+      "manifestMatch": true,
+      "scope": "Complete body: optional severe-pressure handoff, request15/90-second throttle, global vehicle gun selection, target-group busy marker and unretained scheduled provider spawn. Provider acceptance/native completion unacknowledged."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3763118318/extracted-20261011/pinneddown_arty/functions/fn_executeFireMission.sqf",
+      "sha256": "d100959b1d102c00c5099a085c178316b4516bcf14279b45d3901301f4052422",
+      "manifestMatch": true,
+      "scope": "Complete direct body read: target/AA classification and CAS delegation, gun readiness/ammo/range, group battery expansion, busy reservation, optional night illumination, surrender/danger-close checks, VLS target disclosure/fire, bounded30-second volley readiness but continued native retry, rearm/rest/free. Called CAS, prediction, spread, rearm and classification functions not thereby complete."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3763118318/extracted-20261011/pinneddown_arty/functions/fn_sideEnabled.sqf",
+      "sha256": "a8a00ce66e6b8b3cb4cf1d10a19685af5c5540ec933b066912c83062f10d2c7b",
+      "manifestMatch": true,
+      "scope": "Complete body: west/east/resistance feature gates; other sides refuse."
     }
   ],
-  "sourceIntegrity": "55 selected immutable source hashes and37 current product hashes verified against protected manifest/current files. Contact review is source-only; no reference or runtime mutation.",
+  "sourceIntegrity": "59 selected immutable source hashes and46 current product hashes verified; protected manifest unchanged. Latest scoped implementation extends artillery captivity protection only.",
   "productHashes": {
     "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
@@ -374,7 +398,16 @@
     "addons/infantry/functions/cortexReportServer.sqf": "248fe9b613f67721c72b9f679ae5f41cdb6b13b813648cf49d97f14f0a0e0396",
     "addons/infantry/functions/cortexReportLocal.sqf": "c37fe74aaf051050252337280a0402a980eac8aa79e0376b683cb1ccae1a8f69",
     "addons/infantry/functions/cortexKnowledge.sqf": "e9df7da9829402308278a0e5838047001ce2784619086f76e4c0563ef1a91caf",
-    "addons/infantry/functions/cortexGroupTick.sqf": "d25429a68ab5ee5a8be78d5a912e48634b2bf5070a96fce16b0f5d3b5dad6141"
+    "addons/infantry/functions/cortexGroupTick.sqf": "d25429a68ab5ee5a8be78d5a912e48634b2bf5070a96fce16b0f5d3b5dad6141",
+    "addons/support/functions/cortexReinforce.sqf": "2aada198d580d70a379058124ce8ca4b90c108883eccbc9469ee5b8cd25e68c5",
+    "addons/support/functions/cortexArtilleryRequest.sqf": "de9780c74f4901f0e849d9873670c5f9a31b78f801edae8a878c9c7ccf0ab5c6",
+    "addons/support/functions/cortexArtilleryFire.sqf": "320a945f0f817b7ef30c7fecc6e3edef36c18ccddce1f566f565dc61e8c5b280",
+    "addons/infantry/functions/cortexSpotterFix.sqf": "ce7011ab7de083e03550e716daa3a27acbd9e9a6d3e1d440cf188c10686af3b3",
+    "addons/support/functions/cortexArtilleryReport.sqf": "566f9dc13904db886517e150fcbd001c30d61710341a652b8ee3dbdd8f968bb8",
+    "addons/support/functions/cortexArtilleryObserve.sqf": "af7c4dc2c6f04fe1d7577fd9c35044c0eeea23effe5765c419e61fb2ddc3770d",
+    "addons/support/functions/cortexArtilleryMissionStep.sqf": "ae4ccccaad347e4720f79803abc36a762f70ed4cf0b5f501b1128d70413d7f84",
+    "addons/support/functions/cortexArtilleryShot.sqf": "de78a7d1bb844010712ecd311d6e5bb87e5f400a5cc9f05214388c5b3e147cea",
+    "addons/support/functions/cortexArtilleryAim.sqf": "15d8962a82d8b9e16bdf4b01e9839a8e2cc3544831caed53a94111a2dcb8cdd4"
   },
   "productScope": "Selected actual operator, planning/assignment, role and contact-static owner branches; not complete bodies of every CBE descendant or physical/compiled-source parity.",
   "dispositions": [
@@ -910,5 +943,42 @@
     "nextFiniteWork": "Finish complete analyzeReinforcementPressure, classifyThreat and trySteelRainSupport/called executor paths. Compare quiet/sustain/casualty demand and direct-fire authorization with CBE SupportNeed/GroupTick/support consumers before implementing a specific remaining native capability. Do not repeat completed contact-body review.",
     "validation": "PASS3 existing reference-boundary tests and documentation/header/link checker;55 immutable archive source hashes and37 current product hashes verified. Runtime unchanged from11c9266b; reuse previous verified candidate. No new test case, Arma run or full rebuild.",
     "physical": "UNVERIFIED; audits remain PAUSED."
+  },
+  "pressureFireSupport20261030": {
+    "baseCommit": "2da8f8976e01418981e9c9bb843fa6bd65685c68",
+    "sourceScopes": {
+      "3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_analyzeReinforcementPressure.sqf": "Complete body now read, including sustained/quiet hysteresis, desired-helper cap, source confidence floor and severe-pressure fire-support metadata. Actual FOACT/provider implementations not thereby reviewed.",
+      "3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_classifyThreat.sqf": "Complete body: raw object Air/Tank/LandVehicle config description and armor/air flags; it does not normalize a mounted infantry contact to its vehicle.",
+      "3799629858/extracted-20261011/pd_conductor/functions/integration/fn_trySteelRainSupport.sqf": "Complete body: optional severe-pressure handoff, request15/90-second throttle, global vehicle gun selection, target-group busy marker and unretained scheduled provider spawn. Provider acceptance/native completion unacknowledged.",
+      "3763118318/extracted-20261011/pinneddown_arty/functions/fn_executeFireMission.sqf": "Complete direct body read: target/AA classification and CAS delegation, gun readiness/ammo/range, group battery expansion, busy reservation, optional night illumination, surrender/danger-close checks, VLS target disclosure/fire, bounded30-second volley readiness but continued native retry, rearm/rest/free. Called CAS, prediction, spread, rearm and classification functions not thereby complete.",
+      "3763118318/extracted-20261011/pinneddown_arty/functions/fn_sideEnabled.sqf": "Complete body: west/east/resistance feature gates; other sides refuse."
+    },
+    "retainedIntent": [
+      "Use actual local combat evidence plus casualty/strength pressure, hold demand briefly through quiet gaps, and reduce demand after sustained recovery rather than behaviour COMBAT alone. Nearby bodies are not effective support until actually engaged/on station.",
+      "Keep severe-pressure support requesting separate from the fire executor. Match threat, weapon ammunition/range and danger-close conditions, and recheck surrender and friendly protection after delay, before issuing native fire."
+    ],
+    "notCopied": [
+      "Conductor treats LOCAL_REPORTED as direct pressure, floors confidence, counts unique unseen formation identities as at least2 strength each, and lets brief quiet gaps contribute to sustain time. These heuristics are not verified tactical balance or fresh personal knowledge.",
+      "Source support handoff requires free guns before calling a provider whose body can choose CAS without free tubes, hiding air-only opportunities; spawned work and optimistic busy/cooldown markers do not acknowledge acceptance or native completion.",
+      "SteelRain substitutes a formation leader for a foot target, reads moving hostile transforms/prediction and global allUnits proximity, and VLS injects reportRemoteTarget/confirmSensorTarget. CBE keeps authenticated native belief vectors and no reveal.",
+      "Source gun classification by names/magazine substrings, global registry scans, reservation renewal and native reissue after readiness timeout are not copied. Source flare readiness wait has no timeout. Current CBE shot-serial quarantine, finite owner tasks and loaded ammo classification remain."
+    ],
+    "currentCbeScopes": "Complete Reinforce/ArtilleryRequest/SpotterFix/ArtilleryFire/ArtilleryObserve/ArtilleryReport/ArtilleryAim/ArtilleryShot bodies; selected GroupTick contact/reinforce/artillery callers and ArtilleryMissionStep eligibility/observe/warning/shot dispatch. Full pressure policy and physical incident coordination are not proved by these scopes.",
+    "gap": "Existing CBE artillery impact-envelope query protects friendly/civilian people and occupants but omits explicit captive/ACE surrendering/handcuffed states where actors retain hostile side. Direct-fire protection already includes those statuses; artillery should not depend on faction reassignment.",
+    "implementation": "Extend the existing owner-side nearEntities impact scan predicate with captive, ace_captives_isSurrendering and ace_captives_isHandcuffed for living entities/occupants. Preserve query/radius, existing shot refusal/serial receipts, crew/generation/mission authority, native shot and uncertainty behaviour. No extra query, new worker, target transform, setting or forced action.",
+    "limits": "Protection is the existing local pre-issue safety query, not cancellation of an already issued native command/projectile or guarantee about a person entering the radius afterward. No claim of complete Conductor/SteelRain pressure, battery or CAS parity. Physical behaviour/performance unverified; audits paused.",
+    "cost": "Constant additional status checks per actor in the existing impact-envelope query; no new world query or cadence. Live overhead unmeasured.",
+    "validation": {
+      "focused": "PASS618 existing operation tests; existing shot-owner safety contract extended, zero added cases.",
+      "focusedLog": ".qa/handovers/artillery-protected-impact-focused-20261030.log",
+      "full": "PASS1506 existing tests, full SQF/config/FSM/docs/wiki/parity/coverage gates and static performance0 findings. Zero added cases.",
+      "buildLog": ".qa/handovers/artillery-protected-impact-build-20261030.log",
+      "candidate": ".qa/candidates/artillery-protected-impact-20261030-2da8f897",
+      "fingerprint": "53ad14d794c46841ba1b5f08ec1282e511de18937850730ae77f3fa4afd2ed54",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/artillery-protected-impact-independent-20261030.log",
+      "sourceIdentity": "Unsigned development build from dirty base2da8f897 plus checked runtime/test/guide/review inputs. Later handover metadata separate. Not a clean future-commit release or signature verification."
+    },
+    "nextFiniteWork": "Compare actual source requestCAS/predictPosition/classification/rearm lifetimes and existing CBE aircraft/pressure owners. Separate useful severe-pressure demand and battery allocation gaps from external provider completion; no adapter, new omniscient scanner or unverified heuristic import."
   }
 }

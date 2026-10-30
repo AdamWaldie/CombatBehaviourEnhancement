@@ -1,3 +1,15 @@
+## Current implementation checkpoint - 30 October 2026: protected artillery impact area
+
+The user withdrew Universal AI3829519860; committed removal2da8f897 is authoritative. It is absent from the master/private active register and its tracked intake is deleted. Do not restore it from older handovers/recovery snapshots; protected installed sources are untouched. Protocol aircraft3828285847 remains queued.
+
+CBE existing artillery owner safety-radius query now protects living captive/ACE surrendering/handcuffed people and occupants regardless of retained faction. No new query/controller or target tracking; shot refusal receipts, tokens, crew/generation/ROE and uncertainty handling remain. This cannot undo an already issued native command/projectile. Existing shot-owner contract extended, zero added test cases. Full1506 tests and offline gates pass, static performance0 findings; independently verified unsigned candidate .qa/candidates/artillery-protected-impact-20261030-2da8f897 fingerprint53ad14d794c46841ba1b5f08ec1282e511de18937850730ae77f3fa4afd2ed54. Provenance is dirty base2da8f897 plus checked inputs, not a future clean release.
+
+Source comparison: complete Conductor pressure/classifier/SteelRain handoff and SteelRain direct fire-mission/side-gate bodies. Selected scopes/dispositions and exact hashes are in releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#pressureFireSupport20261030. Source confidence floors, live hostile transforms, unacknowledged provider spawn, timeout-based native shot reissue and unbounded flare readiness are not imported. Full reinforcement pressure/battery/CAS parity remains incomplete.
+
+Next finite work: source requestCAS/predictPosition/classification/rearm descendants against existing CBE aircraft/pressure owners; identify a real capability gap before changing authority or importing heuristic scores. Current CBE first-contact/coordinated requests must not be silently removed by pressure policy. Foundations/FSM/LAMBS/HBQ/Protocol priorities remain; compatibility last. Audits PAUSED, no Arma staging/launch, no merge/publication/manual CI. Working C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks; WMP is unrelated. Master reference/sourceReviews/source-review-map.json and IMPLEMENTATION-GOAL.md govern; reference archive C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708 and Workshop E:/SteamLibrary/steamapps/workshop/content/107410 are protected. Unrelated eight dirty paths remain. User low-usage override persists; goal active/incomplete, physical/performance validation unverified.
+
+---
+
 ## Latest user scope correction - Universal AI withdrawn
 
 The user explicitly removed Universal AI / Workshop3829519860 from the CBE implementation register. Its master-map entry, active private recovered entry and tracked intake were removed. Do not restore it from older handover history or dated recovery snapshots. Installed Workshop files and protected originals remain untouched. Protocol aircraft3828285847 remains queued. This correction overrides earlier Universal AI queue/intake statements below.

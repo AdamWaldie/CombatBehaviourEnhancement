@@ -4,6 +4,8 @@
  * Danger-fix expiry is part of shot identity and rechecked at final native issue; no renewal.
  * Positioned shots retain the first READY native destination proof for both operating seats.
  * Changed destinations, native STOP and unavailable movement seats reject instead of rebasing firing authority.
+ * The existing local impact-envelope scan also protects captive, surrendering and handcuffed
+ * actors regardless of their retained faction, including vehicle occupants. No new scan is added.
  * Current gunner availability, protected tasks/treatment, simulation and player/specialist
  * control are checked before safety work and again at the atomic native shot boundary.
  * Executes exactly one checked shot on the current battery owner. The server observes the actual firing event.
@@ -179,7 +181,11 @@ private _minimum = if (_mode == "SMOKE") then {50} else {missionNamespace getVar
 private _side = side group gunner _battery;
 if ((_aim nearEntities [["CAManBase", "LandVehicle", "Air", "Ship"], _minimum]) findIf {
     private _entity = _x;
-    alive _entity && {([_entity] + crew _entity) findIf {alive _x && {side _x == civilian || {_side getFriend (side _x) >= 0.6}}} >= 0}
+    alive _entity && {([_entity] + crew _entity) findIf {alive _x && {
+        captive _x || {_x getVariable ["ace_captives_isSurrendering",false]}
+        || {_x getVariable ["ace_captives_isHandcuffed",false]}
+        || {side _x == civilian} || {_side getFriend (side _x) >= 0.6}
+    }} >= 0}
 } >= 0) exitWith {call _reject};
 if (!(_magazine in getArtilleryAmmo [_battery]) || {(magazinesAllTurrets [_battery,true]) findIf {(_x select 0) == _magazine && {(_x select 2) > 0}} < 0} || {!(_aim inRangeOfArtillery [[_battery], _magazine])}
     || {_battery getArtilleryETA [_aim, _magazine] < 0}) exitWith {call _reject};
