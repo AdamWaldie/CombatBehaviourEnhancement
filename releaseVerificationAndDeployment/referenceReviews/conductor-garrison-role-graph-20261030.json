@@ -88,16 +88,40 @@
       "sha256": "ebb2687aebe992f39d4f68224864588de04775583a7803838f5495028af62da4",
       "manifestMatch": true,
       "scope": "Selected first 10 lines: server gate, mode check and synchronous garrisonTick before disabled exit. Remaining orchestration body not wholly reviewed."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/dispatch/fn_inspectGroupOwnership.sqf",
+      "sha256": "dd04eefa2e47fe7da3191fb5a77c6282782c4e7c55efe56065852498bdcaf75d",
+      "manifestMatch": true,
+      "scope": "Complete143-line body: explicit garrison/player/BL/mission gates, implicitwp0, temporary-name exclusion, critical-waypoint/currentCommand policy and borrowable ordinary routes. No called provider API body inferred."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/integration/fn_claimBattleLinesHandoff.sqf",
+      "sha256": "17595f3a3bcac8dc32db7bb9113e35f72081ecc64d86938a2366b94c603462bb",
+      "manifestMatch": true,
+      "scope": "Complete48-line server claim: canBorrow gate, metadata companion lock/snapshot/token and counters. Writes no native stop/end acknowledgement; canBorrow/provider readers remain separate review."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/groups/fn_registerGroup.sqf",
+      "sha256": "b3fd9ef1c2e7df4df24f0839e0d626852a46babdddedc9bf05def1ba45ba4c81",
+      "manifestMatch": true,
+      "scope": "Complete56-line registration: server/group/side/live gates, stableid/idempotentexistingregistry, oneclassification, sharedrefresh/dirtysignal. Classify/refresh descendants not thereby reviewed."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/groups/fn_getGroupState.sqf",
+      "sha256": "e1ba54fb9f9de7b3a02fd98da5b206d0b4f33cd9f8af4c6d36561c055b8863bb",
+      "manifestMatch": true,
+      "scope": "Complete7-line group/id dictionary lookup; no native owner or completion acknowledgement."
     }
   ],
-  "sourceIntegrity": "14 selected immutable archive source hashes and16 current product hashes verified. No archive/source edits or raw reference copy; selected runtime changes are recorded in each implementation follow-up.",
+  "sourceIntegrity": "18 selected immutable archive source hashes and16 current product hashes verified; archive manifest SHA256 verified. No protected source edits. Selected scopes are recorded, not whole Conductor parity.",
   "productHashes": {
     "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
     "addons/infantry/functions/garrisonTaskDialog.sqf": "670c75d8675268528fb9a6b1d9c52925963a455d03c848f0abed5521dc359b3b",
     "addons/infantry/functions/zenGarrisonModule.sqf": "ab886da14f7d128d37b85bde41a7caf3176153782ac4c5dd2e10d3e645e0b26d",
     "addons/infantry/functions/cortexGarrison.sqf": "36b464f4c72549af8d31319639e1ef0887f978e16661a1a824c2ce4007f7f86e",
-    "addons/infantry/functions/cortexStaticSupport.sqf": "e7ba961056f5e85ae5b39ab1a152e2ce3d4992dd3d4dea663269dedb16cc72c4",
+    "addons/infantry/functions/cortexStaticSupport.sqf": "e874681f45711a8282e5a6d669f11be0651728a196fd6c88e25c88f2c67b6408",
     "addons/infantry/functions/cortexUnitRole.sqf": "2c2c386541c91069a73861ce42eb340e26a56ceea7d766e2b5cd0de27dc3925d",
     "addons/support/functions/cortexSupportApply.sqf": "d2ea4fe8a5c33d140888a94a4faf93b383cbe9f9535e449b2e2f458fff610f3c",
     "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "991c16cf509d4aa8f07cc588944a757cfd005c1bc04bb1de3af2f9fbcb95bfc1",
@@ -144,7 +168,7 @@
   ],
   "newRuntimeImplementation": true,
   "nextRequiredWork": [
-    "Before explicit garrison weapons: complete actual native boarding/retirement/end acknowledgement, supported actor-locality and unknown-command policy in existing owners. Static role and original owner/epoch now match exactly; this is not native quiescence. Registered source wake path and readable activation/tick bodies already inspected. Integrate one finite task owner without forced seating.",
+    "Actual native cancellation/boarding/retirement/end acknowledgement and bounded pending reservation remain missing. Static support now retains its original current authored-order receipt, seat/owner/epoch and native command policy; those protections are not native end. Continue provider enforcement beyond reviewed Battle Lines metadata claim and source ownership gate before explicit garrison weapon roles.",
     "Bounded MEDIC/MG role-post preferences now implemented in initial admission, genuine refill and finite rerouting. Full marksman/observer/AA/capability-aware role model and actual useful firing/accessibility evidence remain incomplete; do not requeue implemented16/4-budget selector.",
     "Continue remaining Conductor registry/contact/proposal/support/provider graphs, plus full LAMBS/HBQ/Protocol production scope. No whole-mod percentages from file/helper counts."
   ],
@@ -404,6 +428,38 @@
       "independentVerification": "PASS",
       "independentLog": ".qa/handovers/static-native-policy-independent-20261030.log",
       "sourceIdentity": "Unsigned dirty base8d7eb176 plus checked runtime/test/guide/review inputs; later engineering metadata/handover separate. Not signed release or native completion proof."
+    },
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "authoredRouteGuard20261030": {
+    "baseCommit": "037e3c3cbf63b61e6da9329ea46f0c4e1d7b3e65",
+    "newSourceScope": {
+      "functions/dispatch/fn_inspectGroupOwnership.sqf": "Complete143-line body: explicit garrison/player/BL/mission gates, implicitwp0, temporary-name exclusion, critical-waypoint/currentCommand policy and borrowable ordinary routes. No called provider API body inferred.",
+      "functions/integration/fn_claimBattleLinesHandoff.sqf": "Complete48-line server claim: canBorrow gate, metadata companion lock/snapshot/token and counters. Writes no native stop/end acknowledgement; canBorrow/provider readers remain separate review.",
+      "functions/groups/fn_registerGroup.sqf": "Complete56-line registration: server/group/side/live gates, stableid/idempotentexistingregistry, oneclassification, sharedrefresh/dirtysignal. Classify/refresh descendants not thereby reviewed.",
+      "functions/groups/fn_getGroupState.sqf": "Complete7-line group/id dictionary lookup; no native owner or completion acknowledgement."
+    },
+    "sourceDispositions": {
+      "retainedIntent": "Stable group registration with a single classification/refresh, explicit mission/player ownership and critical operation exclusion. CBE retains its existing group state/owner, not a second Conductor registry.",
+      "rejectedAuthority": "Source inspectGroupOwnership deliberately suppresses critical native command detection while a source lease exists and treats MOVE as noisy. It excludes temporary waypoints by name and can borrow ordinary routes. CBE must not infer permission for later native tasks from an active lease/name or recreate this broad borrowing.",
+      "claimLimit": "Battle Lines claim writes BL_reservedBy/BL_retaskLocked plus source metadata and snapshot; this body contains no native end/quiescence acknowledgement. Its downstream provider enforcement remains unreviewed. Do not call a metadata lock actual native handover."
+    },
+    "finding": "Static support captured NativeOrderReceipt for final initial admission but did not retain it in its lease. CortexExternalTakeover covers player/curator/declared external control, not authored route replacement. A new current waypoint/metadata can therefore precede an actor command change; active observation and CALM/disable seat cleanup had no original route comparison.",
+    "implementation": "Append original current authored-order receipt once as lease slot9 (ten fields). One lazy read-only comparison per invocation is shared by active observation and direct release. Missing old history or changed NativeOrderReceipt yields matching CBE metadata only, with no orderGetIn false/unassign/GetOut. External-only release short-circuits without a route query. No new receipt is reconstructed on adoption.",
+    "preserved": "Native command policy, exact original seat/clientOwner/epoch, original FOLLOW anchor,20s deadline and role preference. A disjoint sibling CBE manoeuvre may advance CBE_OperationGeneration without invalidating this actor; no broad generation gate added. Original native route itself remains the admission context.",
+    "schema": "[episode,actor,weapon,issuedAt,originalDeadline,status,startPosition,originalFollowAnchor,[issuingClientOwner,originalEpoch,assignedVehicleRole],originalNativeOrderReceipt]. Historical nine-field leases are metadata-only on observation/release.",
+    "cost": "At most one NativeOrderReceipt query in an existing support invocation, cached privately for nested release. Reads waypoint count/current index and at most the selected authored metadata row; engine waypoint-array retrieval still depends on route size. No world scan, handler, timer, extra command, public refresh or constant-time/measured performance claim.",
+    "limits": "Native receipt protects current order metadata/count/index, not arbitrary future same-count waypoint edits or identical native actor/seat replacements. Existing release still requests native cancellation/exit then clears its journal without observing native end; pending-native reservation/actual acknowledgement remains required before claiming a full handover. Source metadata locks and delay are not proof.",
+    "validation": {
+      "focused": "PASS618 existing operation tests with original-route capture/active/release/cache and disjoint-generation assertions added to existing static case. Zero added cases. Full validation recorded below.",
+      "focusedLog": ".qa/handovers/static-authored-route-focused-20261030.log",
+      "full": "PASS1506 existing tests,490 compiled SQF,11PBO; full offline config/FSM/header/docs/wiki/parity/coverage gates and static performance0 findings. Zero added cases.",
+      "buildLog": ".qa/handovers/static-authored-route-build-20261030.log",
+      "candidate": ".qa/candidates/static-authored-route-20261030-037e3c3c",
+      "fingerprint": "635634938d5087c3f089fda82d0943a19119f3ea7b1595d871ed91148f925074",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/static-authored-route-independent-20261030.log",
+      "sourceIdentity": "Unsigned dirty base037e3c3c plus checked runtime/test/guide/review inputs; later engineering metadata/handover separate. Not clean future-commit release or native exit completion proof."
     },
     "physical": "NOT_RUN_AUDITS_PAUSED"
   }

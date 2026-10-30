@@ -3812,3 +3812,5 @@ crews are not reshuffled. This uses the existing role helper, not a complete mar
 classification, and does not add garrison weapon-manning options. Physical balance remains unverified.
 
 Static support shares a finite native-command policy across recruitment, active observation and cleanup. Unknown service tasks and ATTACK/HIDE movement yield without unassigning or dismounting the actor. Existing ambient/contact states remain eligible; FOLLOW requires its observed anchor and GET IN requires the original seat/owner receipt. This does not distinguish an identical replacement order or prove native completion.
+
+Static support retains its original authored group route receipt for active handling and cleanup. A later route replacement or missing historical receipt retires matching CBE metadata without cancelling the seat assignment or forcing exit. This protects mission orders before an actor reports MOVE; unrelated disjoint CBE manoeuvres do not invalidate the static solely by advancing their generation. It is not native exit-completion proof.

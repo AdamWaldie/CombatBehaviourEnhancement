@@ -10,6 +10,9 @@
  * Empty/WAIT/EXPECT and contact aiming/firing states remain eligible; FOLLOW requires its
  * original observed anchor and GET IN requires the original exact CBE seat/owner receipt.
  * Identical native replacement commands cannot be distinguished by currentCommand alone.
+ * The original authored route receipt is retained once at admission. Route replacement or a
+ * missing historical receipt yields active/direct cleanup without native seat or dismount writes.
+ * Sibling disjoint manoeuvres may advance operation generation without changing that route.
  * A later native MOVE or changed FOLLOW anchor also yields without those writes. The original
  * observed follow anchor is captured once at admission; missing history never authorizes recall.
  * Exact original assignedVehicleRole, issuing clientOwner and locality epoch are also required
@@ -77,6 +80,20 @@ private _assignmentOwned={
         && {assignedVehicle _actor == _weapon}
         && {assignedVehicleRole _actor isEqualTo _role}
 };
+// A newer authored group order can arrive before this actor reports MOVE/GET OUT.
+// Compare the original current authored-order identity once per call, shared with release.
+// Missing old history is not reconstructed from a still-matching seat assignment.
+private _routeChecked=false;
+private _routeMatches=false;
+private _nativeOrderCurrent={
+    if (!_routeChecked) then {
+        _routeChecked=true;
+        private _originalOrder=_lease param [9,[],[[]]];
+        _routeMatches=_originalOrder isNotEqualTo []
+            && {_originalOrder isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
+    };
+    _routeMatches
+};
 // Fail closed for native service/task commands not owned by this contact transaction.
 // WAIT/EXPECT are retained ambient states, not proof that native work has ended.
 private _nativeTaskAllowed={
@@ -95,7 +112,7 @@ private _release={
     if (count _lease >= 7) then {
         private _actor=_lease param [1,objNull,[objNull]];
         private _weapon=_lease param [2,objNull,[objNull]];
-        private _protectedTask=([_actor] call _nativeMovementChanged)
+        private _protectedTask=_external || {!(call _nativeOrderCurrent)} || {[_actor] call _nativeMovementChanged}
             || {!([_actor,true,_lease param [7,objNull,[objNull]]] call _nativeTaskAllowed)};
         private _actorMove=_actor getVariable ["CBE_Cortex_ActorMove",[]];
         private _newMove=count _actorMove == 3 && {(_actorMove param [2,-1,[0]]) > time}
@@ -144,6 +161,10 @@ if ((_group getVariable ["CBE_Danger_StaticDeployment",[]]) isNotEqualTo []) exi
     [_group,_state,_enemies] call CBE_fnc_CortexStaticDeployStep
 };
 if (count _lease >= 7) exitWith {
+    if !(call _nativeOrderCurrent) exitWith {
+        [true] call _release;
+        "YIELDED"
+    };
     _lease params ["_leaseEpisode","_actor","_weapon","_issuedAt","_deadline","_status","_startPosition"];
     if (!isNull _actor && {alive _actor} && {local _actor} && {!isNull _weapon}
         && {!([_actor,_weapon] call _assignmentOwned)}) exitWith {
@@ -321,7 +342,7 @@ isNil {
     private _assignmentReceipt=[clientOwner,_admissionEpoch,+(assignedVehicleRole _actor)];
     [_actor] orderGetIn true;
     _actor setVariable ["CBE_Cortex_ActorMove",["STATIC_SUPPORT",getPosATL _weapon,_deadline]];
-    _lease=[_episode,_actor,_weapon,time,_deadline,"MOVING",getPosATL _actor,_followReceipt,_assignmentReceipt];
+    _lease=[_episode,_actor,_weapon,time,_deadline,"MOVING",getPosATL _actor,_followReceipt,_assignmentReceipt,+_orderReceipt];
     _group setVariable ["CBE_Danger_StaticSupport",_lease,true];
     _group setVariable ["CBE_Danger_StaticAttempt",[_episode,"MOVING",serverTime],true];
     _issued=true;

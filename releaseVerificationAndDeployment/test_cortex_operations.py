@@ -1753,7 +1753,16 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(marker,native)
         self.assertIn('formLeader _actor != _followReceipt',commit)
         self.assertIn('[_actor,false,_followReceipt] call _nativeTaskAllowed',commit)
-        self.assertIn('getPosATL _actor,_followReceipt,_assignmentReceipt]',commit)
+        self.assertIn('getPosATL _actor,_followReceipt,_assignmentReceipt,+_orderReceipt]',commit)
+        route=support.split('private _routeChecked=false;',1)[1].split('// Fail closed',1)[0]
+        for proof in ('_lease param [9,[],[[]]]','_originalOrder isNotEqualTo []',
+                      '_originalOrder isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)',
+                      'if (!_routeChecked) then {','_routeChecked=true;'):
+            self.assertIn(proof,route)
+        self.assertIn('call _nativeOrderCurrent',active)
+        self.assertIn('call _nativeOrderCurrent',release)
+        self.assertLess(active.index('call _nativeOrderCurrent'),active.index('_lease params'))
+        self.assertNotIn('CBE_OperationGeneration',route)
         receipt=support.split('private _assignmentOwned=',1)[1].split('private _release=',1)[0]
         for marker in ('_lease param [8,[],[[]]]','count _receipt != 3','== clientOwner',
                        'CBE_AIPass_Epoch','assignedVehicle _actor == _weapon',
