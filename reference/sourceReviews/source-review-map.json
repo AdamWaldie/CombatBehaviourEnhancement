@@ -88,7 +88,8 @@
       "nativeInfantryOptions20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#nativeInfantryOptions20261029",
       "creepIntentGap20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#creepIntentReview20261029",
       "creepTaskImplementation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#creepTaskImplementation20261030",
-      "staggeredRiflePreparation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#staggeredRiflePreparation20261030"
+      "staggeredRiflePreparation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#staggeredRiflePreparation20261030",
+      "usableRequestedCohort20261030": "releaseVerificationAndDeployment/referenceReviews/operation-participant-admission-20261024.json#usableRequestedCohort20261030"
     },
     {
       "workshopId": "3812620045",

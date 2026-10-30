@@ -58,5 +58,45 @@
     "candidate": ".qa/candidates/operation-pace-runtime-procedure-0e2823d3",
     "fingerprint": "4c4fdf75c852f3de0167554d99b0c61079fa9c6da1fc9a3ba0a89a69c02a8783",
     "limits": "Unsigned dirty development includes unrelated dirt; metadata postdates package. No physical/animation/performance/parity/score credit. Audits PAUSED."
+  },
+  "usableRequestedCohort20261030": {
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "sourceIntent": "LAMBS ready-force-before-selected-tactic intent, adapted inside CBE single operation owner. Current preserved tacticsAssess body SHA77b708a13bc888a1e1e0aa4a9e044d4455e5c8aa6847c394f3c671136427dc93 confirmed; source delayed group-only dispatch is not copied or treated as admission proof.",
+    "finding": "OperationStart validated actor types/bounds before replacement but filtered actual eligible participants only after turn/pace/illumination cleanup and predecessor cancellation. A nonempty request containing no usable actors could cancel the old operation and publish an empty participantsRequired successor.",
+    "actualPath": [
+      "Public scheduled or owner-local feature caller supplies explicit bounded actors",
+      "OperationStart typed geometry/partition validation",
+      "New usable-cohort preflight before CortexLocality",
+      "Same check at unscheduled commit before any native/predecessor cleanup",
+      "Existing final capability filter and new no-empty-required publication guard"
+    ],
+    "callersReviewed": [
+      "CortexClearBuilding CLEAR explicit team",
+      "CortexAdvanceStart/CortexAssaultStart/CortexFlankStart/DrillResume explicit elements",
+      "CortexSupportApply explicit footFit",
+      "CortexNavalAssault passenger survivors versus deliberately empty crew approach",
+      "ConvoyTick/AA/artillery group movement deliberately empty participants",
+      "VehiclePointOperation/Jink/Orient and selected standoff crew"
+    ],
+    "implementation": "Extract exactly the existing participant predicate and reuse it. Nonempty requests need a usable original before adoption and commit cleanup; final selection must also be nonempty before publication. No new actor eligibility policy, minimum-count option or task/control writer. Partial cohorts retain historical filtering, and empty-list fallback remains valid.",
+    "cost": "Two additional findIf checks over at most64 requested objects, typically stopping on the first eligible actor. Final full selection already existed. Empty requested cohorts short-circuit both; no world query/PFH/worker/deadline added. Actual overhead unmeasured.",
+    "limits": [
+      "Guard protects this shared admission boundary, not every caller mutation before OperationStart",
+      "A real later takeover during outgoing cleanup may still retire old work; no rollback/revival is invented",
+      "Feature-specific minimum actors, readiness and final native command authority remain with existing callers/executors",
+      "No complete source parity, physical authority or performance acceptance; audits PAUSED"
+    ],
+    "verification": {
+      "red": ".qa/handovers/operation-actor-preflight-red-20261030.log:extended existing generation/Zeus case fails absent preflight guards",
+      "focused": ".qa/handovers/operation-actor-preflight-focused-20261030.log:617existing operation cases passed",
+      "compile": ".qa/handovers/operation-actor-preflight-check-20261030.log:HEMTT check passed",
+      "full": ".qa/handovers/operation-actor-preflight-build-20261030.log:1505existing tests/488SQF/11PBOs; config/FSM/docs/wiki/parity/coverage and static performance0findings passed",
+      "physical": "NOT RUN; audits PAUSED",
+      "candidate": ".qa/candidates/operation-actor-preflight-20261030-3bb0baa4",
+      "fingerprint": "3e298ea9ac732a48a7d37e4d279b1e1ed6e3b84ac5f649b48b587c6aa29b4349",
+      "independent": ".qa/handovers/operation-actor-preflight-independent-20261030.log:exit0 matching fingerprint",
+      "source": "Unsigned development base3bb0baa4 plus delivered runtime/test/guide changes, dirty=true; engineering metadata finalized after packaging."
+    },
+    "runtimeHash": "b6af6ef4d58d599ddd1bedd169b519fb04b6912611ce6e2e4f3b2e2d4295894a"
   }
 }

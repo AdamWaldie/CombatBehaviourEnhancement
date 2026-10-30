@@ -12,6 +12,11 @@
  * Nonempty position objectives and every route point require two/three finite numeric coordinates.
  * Invalid geometry returns before locality adoption, predecessor cleanup or generation mutation;
  * empty objectives/routes and object targets remain supported.
+ * A nonempty requested cohort with no usable original participant refuses before owner
+ * adoption or any predecessor/native cleanup. The same existing actor criterion is rechecked
+ * inside the unscheduled commit and before publication; partial surviving cohorts retain the
+ * historical filtering policy. Explicit empty rosters still use group/platform progress.
+ * This does not replace feature-specific minimum strength or command/role admission.
  * Object objectives retain identity for features which deliberately track a live world object.
  * Progress domain: participant platforms are captured at commitment. Foot actors boarding another
  * vehicle and crews changing vehicle cannot supply progress to the old operation; empty-roster
@@ -36,6 +41,15 @@ if (count _participants > 64
     || {_participants findIf {!(_x isEqualType objNull)} >= 0}
     || {count (_participants arrayIntersect _participants) != count _participants}) exitWith {createHashMap};
 _participants=+_participants;
+// Use the existing commitment criterion at admission too. Supplied actors are an
+// explicit cohort: an entirely unusable request is not the empty-roster fallback API.
+private _participantEligible={
+    params ["_actor"];
+    [_actor] call CBE_fnc_CortexCombatEffective && {local _actor} && {group _actor == _group}
+        && {!isPlayer _actor} && {isNull (remoteControlled _actor)}
+        && {([_actor] call CBE_fnc_CortexExternalOwner) == ""}
+        && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
+};
 // Validate the same private geometry that will be committed. A malformed replacement
 // must not adopt/retire work or consume the current generation. Empty means no position.
 if (count _route > 512 || {_objective isEqualType [] && {!(count _objective in [0,2,3])}}) exitWith {createHashMap};
@@ -62,6 +76,7 @@ if (_pairElements isNotEqualTo [] && {!_partitionValid
     || {count (_partitioned arrayIntersect _partitioned) != count _partitioned}
     || {_participants findIf {!(_x in _partitioned)} >= 0}}) exitWith {createHashMap};
 _pairElements=_pairElements apply {+_x};
+if (_participants isNotEqualTo [] && {_participants findIf {[_x] call _participantEligible} < 0}) exitWith {createHashMap};
 // The shared lifecycle is the final authority boundary for every feature. Check it before
 // retiring an earlier route: a delayed job must not cancel CBE state or issue cleanup after
 // Zeus, a player or a specialist controller has claimed the group.
@@ -80,6 +95,9 @@ private _cbeStartedOperation=createHashMap;
 isNil {
 _cbeStartedOperation=call {
 if (!local _group || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {createHashMap};
+// Adoption or a scheduled caller may have changed actor authority since preflight.
+// Recheck before any native turn/pace/light cleanup or predecessor cancellation.
+if (_participants isNotEqualTo [] && {_participants findIf {[_x] call _participantEligible} < 0}) exitWith {createHashMap};
 // A pending native turn retirement is not free merely because its operation ended.
 if ((_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo createHashMap) then {
     [_group,"RELEASE"] call CBE_fnc_VehicleTurnRetire;
@@ -123,12 +141,10 @@ private _dangerResponse=_group getVariable ["CBE_Danger_Response",[]];
 private _liveDanger=if (count _dangerResponse == 5
     && {(_dangerResponse select 4) == (_group getVariable ["CBE_Danger_Generation",-1])}
     && {time < (_dangerResponse select 3)}) then {+_dangerResponse} else {[]};
-private _capable=_participants select {
-    [_x] call CBE_fnc_CortexCombatEffective && {local _x} && {group _x == _group}
-        && {!isPlayer _x} && {isNull (remoteControlled _x)}
-        && {([_x] call CBE_fnc_CortexExternalOwner) == ""}
-        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
-};
+private _capable=_participants select {[_x] call _participantEligible};
+// Outgoing cleanup can change current authority. Never publish an explicit-cohort
+// successor with no usable participant; later takeover does not revive the old task.
+if (_participants isNotEqualTo [] && {_capable isEqualTo []}) exitWith {createHashMap};
 private _pairs=[];
 if (toUpperANSI _intent in ["ADVANCE","FLANK","ASSAULT","WITHDRAW","CLEAR"]) then {
     if (_pairElements isEqualTo []) then {_pairs=[_group,_capable] call CBE_fnc_CombatPairs} else {

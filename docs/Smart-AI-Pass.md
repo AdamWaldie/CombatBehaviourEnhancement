@@ -3673,3 +3673,22 @@ serial, owner/epoch and lease proof remain mandatory. Existing task controls and
 script entry points are unchanged. Physical travel, native fallback/event ordering,
 repeat use, normal/HC/JIP/Zeus behaviour and measured overhead remain unverified
 while audits are paused. Mixed/unknown formation handover remains unresolved.
+
+
+### Refusing an unusable replacement cohort
+
+A nonempty operation participant list now needs at least one usable requested actor
+before CBE adopts the group or cleans up its predecessor. Dead, foreign-group,
+nonlocal, player, remote-controlled or externally controlled actors cannot by themselves
+replace a working operation. The same existing participant criterion is checked again
+inside the unscheduled commit and before publication. A later takeover during outgoing
+cleanup can still legitimately retire old work; it cannot publish an empty required
+cohort or revive that retired task.
+
+This does not impose a new squad size or alter feature-specific readiness. Partial
+surviving rosters retain existing filtering, while an explicitly empty participant list
+continues to support group/platform operations such as convoys and naval approaches.
+There is no new setting, module, dependency, worker, timer or world scan. The two added
+admission checks inspect at most64 requested actors and stop at the first usable one;
+publication reuses the existing full roster pass. Physical replacement/casualty/locality
+behaviour and measured overhead remain unverified while audits are paused.

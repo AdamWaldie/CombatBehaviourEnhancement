@@ -2079,6 +2079,21 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(guard,start)
             self.assertLess(start.index(guard),start.index('CBE_fnc_CortexLocality'))
             self.assertLess(start.index(guard),start.index('call CBE_fnc_OperationCancel'))
+        actor_preflight='_participants isNotEqualTo [] && {_participants findIf {[_x] call _participantEligible} < 0}'
+        self.assertEqual(start.count(actor_preflight),2)
+        self.assertLess(start.index(actor_preflight),start.index('CBE_fnc_CortexLocality'))
+        commit=start.split('private _cbeStartedOperation=createHashMap;',1)[1]
+        for mutation in ('call CBE_fnc_VehicleTurnRetire','call CBE_fnc_DangerAttackPace',
+                         'call CBE_fnc_CortexIlluminationStep','call CBE_fnc_OperationCancel'):
+            self.assertLess(commit.index(actor_preflight),commit.index(mutation))
+        self.assertIn('_participants select {[_x] call _participantEligible}',start)
+        self.assertIn('_participants isNotEqualTo [] && {_capable isEqualTo []}',start)
+        self.assertLess(start.index('_participants isNotEqualTo [] && {_capable isEqualTo []}'),
+                        start.index('private _operation=createHashMapFromArray'))
+        participant_predicate=start.split('private _participantEligible={',1)[1].split('// Validate the same private geometry',1)[0]
+        for proof in ('CortexCombatEffective','local _actor','group _actor == _group','!isPlayer _actor',
+                      'remoteControlled _actor','CortexExternalOwner','CompatibilityExternalControl'):
+            self.assertIn(proof,participant_predicate)
         self.assertNotIn('["objective",_objective]',start)
         geometry=start.split('// Validate the same private geometry',1)[1].split('// Reject a malformed optional partition',1)[0]
         for guard in ('count _point in [2,3]','!(_x isEqualType 0)','!finite _x',
