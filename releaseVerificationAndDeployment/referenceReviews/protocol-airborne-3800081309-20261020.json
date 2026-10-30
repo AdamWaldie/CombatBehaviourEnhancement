@@ -141,5 +141,32 @@
       "releaseVerificationAndDeployment/test_airborne_drop_fairness.py": "091a05946fcee96ed93ec6e120b058f8db8a8b66330525e54a9524faba57913d"
     },
     "limits": "Offline/source/model evidence only; no physical acceptance/performance/parity or percentage credit. Current group membership read only at potential completed landing; native cost remains unmeasured. Unsigned dirty candidate includes unrelated dirt; review/handover postdate package. Audits PAUSED."
+  },
+  "actualSeatExit20261030": {
+    "base": "9b4f901dc1f9bde46cd9672e4e07292a94674c3a",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "sourcePboSHA256": "9b484e9f8b48b59ee5355f8544f96f2a8668129df0aa73403c5becdc836bff1a",
+    "sourceMainSHA256": "4bd72b47fad6cf35250fff1cbde9d01e225f8f236c35606546d8f3eee066d375",
+    "sourceTrace": "Protocol fn_airborne selects cargo by assignedVehicleRole, then a staggered loop only rechecks alive/in same aircraft before Eject and backpack replacement. CBE Check already uses actual cargo/person-turret occupants, but delayed DropStep selected its original roster and Jump checked only aboard, so a promoted operator could be ejected.",
+    "archive": "C:/Users/AdamW/Documents/AI-Reference-Archives/Protocol/20261030-airborne-9b484e9f",
+    "archiveEvidence": "9 copied original/readable files with provenance hashes; PBO and readable main match prior review; originals rechecked unchanged. No source execution or raw reference content committed.",
+    "owner": "CortexAirborneCheck -> original finite DropStep -> CortexParachuteJump final unscheduled admission -> existing Deploy/ProtectionRelease.",
+    "change": "Jump reads actual occupied fullCrew rows at initial and final gate; cargo/person-turret only, max64 inspected occupied rows. Current native protected task/STOP yields before any protection, assignment, exit or physics write. Uses existing ActorFireTaskAvailable reservation/native-task reader; no duplicate task list. Exit position/velocity moved inside the admitted unscheduled boundary.",
+    "disposition": {
+      "retained": "Staggered real passenger exits and original gun crew remaining aboard; native CBE backpack-preserving chute executor and exact cleanup.",
+      "improved": "Current occupant identity rather than assigned role/old selection, live airframe, native transfer/STOP/task priority, current exit geometry.",
+      "rejected": "Forced old-roster operating-crew exits, replacing backpacks, permanent dropDone, unbounded global target/gunner workers, blind knowledge reveals."
+    },
+    "limits": "Queued original roster is not rewritten. A promoted operator remains aboard and may keep original landing tracking pending until its unchanged deadline; no fake arrival/removal credit. Full native crew query produces its occupied list before the64-row inspection cap; query count <=2/attempt. No worker/scan/timer/controller/module/setting added. Native replication, large/custom aircraft, actual FFV/seat transfers, failed exits, repeated use/HC/JIP and measured cost unverified.",
+    "validation": "PASS1508 tests,498SQF,11PBO/full gates; zero static performance findings; independent unsigned package verification. Extended existing regression only. One old direct predicate-call assertion updated to shared protected-task reader while retaining transitive movement-reservation and explicit STOP checks. Initial failed log retained.",
+    "candidate": ".qa/candidates/protocol-airborne-seat-20261030-9b4f901d",
+    "fingerprint": "13097ce89b9f67ecd9071725da2c741c6c818558f8cb2cc621557b880a449ca5",
+    "provenance": "Unsigned dirty base9b4f901d plus checked inputs; later metadata separate. Not clean release/signature or physical verification.",
+    "engineReference": "https://community.bistudio.com/wiki/fullCrew",
+    "hashes": {
+      "addons/infantry/functions/cortexParachuteJump.sqf": "4f9a4ee53d004ddbc6f2ac3a2862f141f43f70ebdd781b8c58f1fbc4816de907",
+      "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "9d804680232481078ab9835dc48cdc663c41a7ca619e72d2ca573d252fd0916b",
+      "releaseVerificationAndDeployment/test_cortex_operations.py": "4316c7017617c8aa7816f3f75e57e29ebd34d7c79cef560775daa910fd8478c8"
+    }
   }
 }

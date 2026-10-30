@@ -11634,11 +11634,13 @@ class CortexOperations(unittest.TestCase):
 
     def test_parachute_exit_preserves_actor_tasks_before_mutation(self):
         jump=source('cortexParachuteJump')
-        for guard in ['call CBE_fnc_CortexCombatEffective','call CBE_fnc_CortexActorMoveReserved',
+        for guard in ['call CBE_fnc_CortexCombatEffective','call CBE_fnc_CortexActorFireTaskAvailable',
                       'remoteControlled _unit','bis_fnc_moduleRemoteControl_owner',
                       'call CBE_fnc_CortexExternalOwner','call CBE_fnc_CompatibilityExternalControl']:
             self.assertLess(jump.index(guard),jump.index('_unit allowDamage false'))
             self.assertLess(jump.index(guard),jump.index('moveOut _unit'))
+        self.assertIn('CortexActorMoveReserved',source('cortexActorFireTaskAvailable'))
+        self.assertIn('toUpperANSI currentCommand _unit != "STOP"',jump)
 
     def test_combined_ammo_diagnostic_requires_native_empty_state_with_positive_stock(self):
         qa=(ROOT/'releaseVerificationAndDeployment/cortexQA/runCombinedArms.sqf').read_text(encoding='utf-8')
@@ -12031,11 +12033,31 @@ class CortexOperations(unittest.TestCase):
         gate=jump.split('private _mayExit={',1)[1].split('private _chuteClass',1)[0]
         for guard in ('vehicle _unit == _aircraft','local _unit','simulationEnabled _unit',
                       '!isObjectHidden _unit','simulationEnabled _aircraft','!isObjectHidden _aircraft',
-                      'CortexActorMoveReserved','remoteControlled','CortexExternalOwner',
+                      'CortexActorFireTaskAvailable','remoteControlled','CortexExternalOwner',
                       'CompatibilityExternalControl'):
             self.assertIn(guard,gate)
+        for proof in ('alive _aircraft','fullCrew [_aircraft,"",false]',
+                      'count _occupied <= 64','(_x select 0) == _unit',
+                      '_role == "cargo"','_role == "turret" && {_x select 4}'):
+            self.assertIn(proof,gate)
+        self.assertNotIn('assignedVehicleRole _unit',gate)
+        # Current occupancy wins over old selection/assignment. FFV remains a passenger;
+        # operating turrets, pilots/commanders and a different occupant never qualify.
+        def passenger(role,ffv,occupant='selected',count=1):
+            return count<=64 and occupant=='selected' and (role.lower()=='cargo' or
+                role.lower()=='turret' and ffv)
+        for role,ffv in [('cargo',False),('TURRET',True)]:
+            self.assertTrue(passenger(role,ffv))
+        for role,ffv in [('driver',False),('commander',False),('gunner',False),('turret',False)]:
+            self.assertFalse(passenger(role,ffv))
+        self.assertFalse(passenger('cargo',False,occupant='replacement'))
+        self.assertFalse(passenger('cargo',False,count=65))
+        self.assertTrue(passenger('cargo',False,count=64))
         mutation=jump.split('private _exited=false;',1)[1].split('if (!_exited)',1)[0]
         self.assertIn('isNil {',mutation)
+        self.assertLess(mutation.index('call _mayExit'),mutation.index('private _velocity=velocity _aircraft'))
+        self.assertLess(mutation.index('private _exit=_aircraft modelToWorld'),mutation.index('moveOut _unit'))
+        self.assertNotIn('velocity _aircraft',jump.split('private _exited=false;',1)[0])
         self.assertLess(mutation.index('call _mayExit'),mutation.index('isDamageAllowed _unit'))
         self.assertLess(mutation.index('call _mayExit'),mutation.index('_unit allowDamage false'))
         self.assertLess(jump.index('if (!_exited) exitWith {false}'),jump.index('[_unit] call CBE_fnc_CortexParachuteDeploy'))

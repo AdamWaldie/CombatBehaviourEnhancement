@@ -6,8 +6,8 @@
  * static-line class, WALDO_STATIC_STATICCHUTE, default NonSteerable_Parachute_F) is created for him a
  * moment later, so his backpack is never swapped out. He is protected from damage for the few seconds of the exit.
  * Missing classes and non-parachute vehicle classes fall back to the vanilla static chute.
- * Exit admission preserves actor reservations, direct remote control and specialist ownership.
- * Only a visible, simulated aircraft may supply an exit; parachutes and ground/on-foot calls
+ * Exit admission preserves actor reservations, native STOP/protected tasks, direct remote control and specialist ownership.
+ * Only a living, visible, simulated aircraft may supply an exit; parachutes and ground/on-foot calls
  * refuse. Recheck actor/airframe authority without suspension at the exit mutation boundary.
  * Repeat/JIP: one public protection receipt prevents overlapping CBE exits. Owner-local exact
  * deadline cleanup survives native Local/init adoption independently of tactics enablement.
@@ -17,6 +17,10 @@
  *
  * Review contract: Exact receipt cleanup preserves the original damage baseline and rejects stale
  * releases. Failed dismount never applies position/velocity or queues chute deployment.
+ * Actual occupied cargo/person-turret seats are rechecked at exit, never inferred from an
+ * old roster or assignedVehicleRole. New operating crew stay aboard. At most64 occupied
+ * rows are inspected per check; larger manifests refuse without weakening crew protection.
+ * Exit geometry/velocity are sampled inside the same unscheduled admission as moveOut.
  * Chute boarding rechecks current actor authority without suspension.
  * Native Local/init adoption resumes only the finite chute phase; it never replays exit motion.
  * Server-retained finite wake proposals cover connected/JIP peers within the observation
@@ -38,18 +42,30 @@
 
 params [["_unit", objNull, [objNull]], ["_aircraft", objNull, [objNull]]];
 if (isNull _unit || {isNull _aircraft} || {_unit == _aircraft}
-    || {!(_aircraft isKindOf "Air")} || {_aircraft isKindOf "ParachuteBase"}) exitWith {false};
+    || {!alive _aircraft} || {!(_aircraft isKindOf "Air")} || {_aircraft isKindOf "ParachuteBase"}) exitWith {false};
 private _mayExit={
     alive _unit && {local _unit} && {!isPlayer _unit} && {vehicle _unit == _aircraft}
         && {simulationEnabled _unit} && {!isObjectHidden _unit}
         && {simulationEnabled _aircraft} && {!isObjectHidden _aircraft}
         && {[_unit] call CBE_fnc_CortexCombatEffective}
-        && {!([_unit] call CBE_fnc_CortexActorMoveReserved)}
+        && {[_unit] call CBE_fnc_CortexActorFireTaskAvailable}
+        && {toUpperANSI currentCommand _unit != "STOP"}
         && {isNull remoteControlled _unit}
         && {isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
         && {([_unit] call CBE_fnc_CortexExternalOwner) == ""}
         && {!([_unit] call CBE_fnc_CompatibilityExternalControl)}
         && {(_unit getVariable ["CBE_ParachuteProtection",[]]) isEqualTo []}
+        && {alive _aircraft}
+        && {
+            // Use the occupant field, not the assigned unit or a stale cargo selection.
+            private _occupied=fullCrew [_aircraft,"",false];
+            count _occupied <= 64 && {_occupied findIf {
+                (_x select 0) == _unit && {
+                    private _role=toLowerANSI (_x select 1);
+                    _role == "cargo" || {_role == "turret" && {_x select 4}}
+                }
+            } >= 0}
+        }
 };
 if !(call _mayExit) exitWith {false};
 private _chuteClass = missionNamespace getVariable ["WALDO_STATIC_STATICCHUTE", "NonSteerable_Parachute_F"];
@@ -57,14 +73,14 @@ private _chuteClass = missionNamespace getVariable ["WALDO_STATIC_STATICCHUTE", 
 if !(isClass (configFile >> "CfgVehicles" >> _chuteClass) && {_chuteClass isKindOf "ParachuteBase"}) then {
     _chuteClass = "NonSteerable_Parachute_F";
 };
-private _velocity = velocity _aircraft;
-// Just behind and below the airframe, clear of rotors and tail ramp.
-private _exit = _aircraft modelToWorld [0, ((((boundingBoxReal _aircraft) select 0) select 1) min -6) - 2, -3];
 private _receipt=[];
 private _deployReceipt=[];
 private _exited=false;
 isNil {
     if (call _mayExit) then {
+        private _velocity=velocity _aircraft;
+        // Sample the actual airframe now, not before a possible scheduled-call suspension.
+        private _exit=_aircraft modelToWorld [0, ((((boundingBoxReal _aircraft) select 0) select 1) min -6) - 2, -3];
         private _serial=(missionNamespace getVariable ["CBE_ParachuteProtectionSerial",0])+1;
         missionNamespace setVariable ["CBE_ParachuteProtectionSerial",_serial];
         _receipt=[1,_unit,clientOwner,format ["%1:%2",clientOwner,_serial],isDamageAllowed _unit,serverTime+3.8];

@@ -158,6 +158,11 @@
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      },
+      "actualSeatExit20261030": {
+        "review": "protocol-airborne-3800081309-20261020.json#actualSeatExit20261030",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+        "scope": "Final actual cargo/FFV occupancy and native protected-task/STOP checks prevent queued exit from ejecting a promoted flight operator. Current exit geometry sampled inside unscheduled admission; existing finite deployment and original roster/deadlines retained."
       }
     },
     {

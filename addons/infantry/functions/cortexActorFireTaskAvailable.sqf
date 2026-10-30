@@ -11,7 +11,7 @@
  * Return: BOOL, true only for a local actor without a protected task or movement reservation.
  * Current callers: CortexSupportApply fresh capacity, CortexCombinedArmsLocal, CortexCombinedGroundStep, CortexVehicles,
  * CortexAssaultStart, CortexFlankStart, CortexAdvanceStart, CortexTacticalAssess, ConvoyCrewLocal,
- * CortexVehicleOrient/Jink and orientation teardown.
+ * CortexVehicleOrient/Jink and orientation teardown; CortexParachuteJump exit admission.
  * Example: private _available=[gunner tank1] call CBE_fnc_CortexActorFireTaskAvailable;
  */
 params [["_actor",objNull,[objNull]],["_fireOwner","",[""]]];
