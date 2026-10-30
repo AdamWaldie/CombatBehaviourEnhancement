@@ -43,5 +43,33 @@
     "Native dynamic resizing/animation during traversal, physical convoy crossing/HC/handback and measured cost remain unverified.",
     "Shallow ford remains a separate capability gap; no engine-depth/vehicle-water contract was established or relaxed.",
     "No source-count parity/completion credit or copied reference assets."
-  ]
+  ],
+  "bypassWorldDimensions20261030": {
+    "sourceBase": "80c6fc96790b6f258edfb42e0ae347ef1493e4d6",
+    "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+    "sourceTrace": "Protected fn_driveAssist.sqf366-368 samples vehicle model extents;604-616 projects obstacle model corners to world space. Retain real hull/route sensing intent, replace CBE unit mismatch rather than copy upstream controller or collision helpers.",
+    "finding": "DrivingBypassApproach and DrivingBypassPlan used raw vehicle model dimensions against world-projected obstacles. DrivingBypassStep also used raw convoy envelope/column length and final issue footprint, so the prior corridor-only correction did not cover this execution path.",
+    "implementation": [
+      "DrivingBypassApproach, DrivingBypassPlan and final DrivingBypassStep PLAN sample finite positive vehicle scale and convert raw low/high once before turn radius, height and tail journal calculations.",
+      "The <=20 convoy roster contributes scaled world width/length/height and actual body length to the existing envelope/column estimate. Existing spacing remains metre-valued. Invalid scale refuses the episode through an outer flag before any proposal or native command; no partial envelope.",
+      "Obstacle minimum0.5m diagonal uses scale once in approach and proposal. Obstacle projection and actual CROSS_CLEAR modelToWorldWorld corner inputs remain raw because transforms already include scale.",
+      "Existing12m radius, shared path budgets, native/route/crew ownership, original clocks and finite controller remain; no gap/brake tuning, speed writer, transform, world query or timer added."
+    ],
+    "cost": "One scale observation per existing own-hull sample, one per obstacle minimum-diagonal sample, and <=20 per convoy PLAN envelope. No extra discovery/ray call or recurring job. Runtime overhead remains unmeasured.",
+    "validation": {
+      "red": ".qa/handovers/bypass-world-dimensions-red-20261030.log: existing sampling case fails before correction",
+      "focused": ".qa/handovers/bypass-world-dimensions-focused-20261030.log:259existing driving tests pass; affine corner bounds scale0.25/0.5/1/2/3 plus unchanged metre margins/convoy demands",
+      "full": ".qa/handovers/bypass-world-dimensions-build-20261030.log:1505existing tests/488SQF/11PBOs and all config/FSM/docs/wiki/parity/coverage/static performance gates passed",
+      "physical": "NOT RUN; audits PAUSED",
+      "candidate": ".qa/candidates/bypass-world-dimensions-20261030-80c6fc96",
+      "fingerprint": "3263f801189d9ff41069619753faa60b197d9a10077932c64d07ee48a8ef3690",
+      "packageSource": "Unsigned development base80c6fc96 plus delivered runtime/test/guide changes; dirty=true. Engineering metadata finalized afterward; original unrelated dirt preserved.",
+      "independent": ".qa/handovers/bypass-world-dimensions-independent-20261030.log:exit0 matching fingerprint"
+    },
+    "limits": [
+      "Dimension consistency only; native scaled simulated-vehicle physics and dynamic resize remain unsupported/unverified.",
+      "Discrete sampled clearance does not prove continuous swept volume, steering or physical passage.",
+      "Whole-HBQ parity, shallow ford, convoy pacing and physical normal/HC validation remain separate unfinished work."
+    ]
+  }
 }

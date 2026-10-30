@@ -398,7 +398,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-corridor-world-dimensions-20261030.json",
-      "sha256": "8d4e5fd8ccaea87a7dd1f429f245a9b64f3011e30ad5601ed6fc549e48bbcc06",
+      "sha256": "b910c69ff7391b519fa7a7eb43387770af2e7156911b8962b590df3c72be8dbb",
       "scope": "Retain reviewed HBQ navigable-area intent (main controller2380-2469), repairing CBE corridor/path dimension units. Not a new whole-controller review, ford implementation or scaled-vehicle physics acceptance.",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"

@@ -2688,3 +2688,10 @@ There is no new setting, module, dependency, worker, timer or world scan. The tw
 admission checks inspect at most64 requested actors and stop at the first usable one;
 publication reuses the existing full roster pass. Physical replacement/casualty/locality
 behaviour and measured overhead remain unverified while audits are paused.
+
+
+## Bypass hull dimensions (30 October 2026)
+
+Bypass approach, proposal and final issue checks now convert model bounds into world metres once. Convoy planning uses each vehicle's world dimensions for its worst-hull envelope and column body lengths; configured spacing and safety margins remain metres. Invalid scale refuses planning rather than leaving a partial convoy envelope. Obstacle corner transforms already include scale and remain unchanged.
+
+This corrects a geometry mismatch within the existing finite driving controller. It changes no convoy spacing or braking policy, adds no movement controller or world scan, and grants no new recovery authority. Offline checks cover the dimensional contract; native steering, scaled-vehicle physics, dynamic resize, continuous swept clearance and measured cost remain unverified. Audits remain paused.

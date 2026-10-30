@@ -113,7 +113,8 @@
       "auxiliaryReviewEvidence": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-intent-20261026.json#auxiliaryBodyReconciliation20261026",
       "currentSelectedIntegration": "Scoped28Oct correction: ordinary/convoy road and terrain anticipation follows measured backing/native BACK, with direction-bound cache reuse and unchanged observation bounds. See hbq-road-travel-direction-20261028.json. Existing broad HBQ integration gaps remain; no whole-mod or physical parity claim. Roadway Air/Ship hulls and wrecks now enter existing full-hull forward/rear observers; unchanged bounds and no added query. See hbq-traffic-vehicle-categories-20261028.json. Physical/category/performance integration remains unverified. The independent passing-corridor query also includes Air/Ship through existing admission/active-leg observations, preserving its bounds and vertical intervals. Forward traffic now refuses unknown heading/own/peer projected hull geometry through the existing zero-cap sentinel; see hbq-traffic-vehicle-categories-20261028.json#unknownGeometryRefusal20261028. No spacing/cadence change or physical acceptance.",
       "trafficObservationReuseEvidence": "releaseVerificationAndDeployment/referenceReviews/hbq-traffic-world-frame-20261025.json#trafficObservationReuse20261029",
-      "corridorWorldDimensions20261030": "releaseVerificationAndDeployment/referenceReviews/hbq-corridor-world-dimensions-20261030.json"
+      "corridorWorldDimensions20261030": "releaseVerificationAndDeployment/referenceReviews/hbq-corridor-world-dimensions-20261030.json",
+      "bypassWorldDimensions20261030": "releaseVerificationAndDeployment/referenceReviews/hbq-corridor-world-dimensions-20261030.json#bypassWorldDimensions20261030"
     },
     {
       "workshopId": "3799391254",
