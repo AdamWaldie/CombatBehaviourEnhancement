@@ -90,7 +90,7 @@
       "scope": "Selected first 10 lines: server gate, mode check and synchronous garrisonTick before disabled exit. Remaining orchestration body not wholly reviewed."
     }
   ],
-  "sourceIntegrity": "Fourteen selected immutable source hashes remain verified; ten current product hashes identify selected inspected owner/executor versions. No source/archive edits or raw reference copy.",
+  "sourceIntegrity": "Fourteen selected immutable source hashes remain verified; thirteen current product hashes identify selected inspected dependencies. No source/archive edits, raw reference copy or runtime change in final geometry review.",
   "productHashes": {
     "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
@@ -101,7 +101,10 @@
     "addons/infantry/functions/cortexUnitRole.sqf": "c5c8fab841242bdf75c1da9cb8720ce79bd38cf23c9f77780fdc05a08aa69c6c",
     "addons/support/functions/cortexSupportApply.sqf": "d2ea4fe8a5c33d140888a94a4faf93b383cbe9f9535e449b2e2f458fff610f3c",
     "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "d57acfc6143e9b63c7a996a55b44a3e603ea9e9c01c7cbed67bacfe21177a9ff",
-    "addons/core/functions/cortexLocality.sqf": "b0ed5b9246bfc3ee73c634bdbd445e5e952155dcad7bbd62f21409dc38375162"
+    "addons/core/functions/cortexLocality.sqf": "b0ed5b9246bfc3ee73c634bdbd445e5e952155dcad7bbd62f21409dc38375162",
+    "addons/infantry/functions/cortexCoverScreened.sqf": "442491c88fd72fa4187f73366c850ff4566745bcb9f2d4bed1040aa54451dae2",
+    "addons/infantry/functions/cortexFindCover.sqf": "cc10a779cb12e0e72bd92a215e7addaa83985c8c64460317d832d24a85b20945",
+    "addons/infantry/functions/buildingRoofTop.sqf": "43935cda63392616dd3a3419c8d07b4e8c9a91e96ba0475934808e3801a4272a"
   },
   "productScope": "Selected actual operator, planning/assignment, role and contact-static owner branches; not complete bodies of every CBE descendant or physical/compiled-source parity.",
   "dispositions": [
@@ -138,12 +141,13 @@
   ],
   "newRuntimeImplementation": true,
   "nextRequiredWork": [
+    "Reuse BuildingRoofTop once per building during existing bounded garrison admission for the upward roof-ray endpoint, retaining one roof query per candidate and all previous admission/native-order/transform/accessibility/deadline guards. Define explicit refusal/handling for invalid bounds or a non-upward endpoint; do not substitute new permission or a fixed height fallback. Extend the relevant existing geometry regression and full coherent gates. Then build bounded role-aware protection/firing scoring using the appropriate read-only screening observations, without duplicating outdoor FindCover or treating roof/wall scores as path proof.",
     "Before explicit garrison weapons: complete actual native boarding/retirement/end acknowledgement, supported actor-locality and unknown-command policy in existing owners. Static role and original owner/epoch now match exactly; this is not native quiescence. Registered source wake path and readable activation/tick bodies already inspected. Integrate one finite task owner without forced seating.",
     "Implement bounded role-aware protected/firing post selection using actual weapon capability, firing field and accessibility; reviewed source role/LOS intent is not supplied by current height sorting or the isolated watch-height correction.",
     "Continue remaining Conductor registry/contact/proposal/support/provider graphs, plus full LAMBS/HBQ/Protocol production scope. No whole-mod percentages from file/helper counts."
   ],
   "validation": {
-    "hashes": "14 immutable archive source hashes and 10 current product hashes; initial historical hashes retained separately.",
+    "hashes": "14 immutable source /13 current product hashes; initial historical hashes retained separately.",
     "runtime": {
       "focused": "618 existing cases PASS, zero added cases. Existing source contract extended; prior source rejected for missing crew block (actual result in red log).",
       "full": "PASS: all1506 existing tests,489 compiled production SQF,11PBO and complete config/FSM/header/docs/wiki/parity/coverage/static-performance gates.",
@@ -156,7 +160,7 @@
       "independentLog": ".qa/handovers/static-crew-roles-independent-20261030.log",
       "sourceIdentity": "Unsigned development base1417d8efbbee62c13f2cb2173cd19910bb93fc2d plus checked dirty runtime/test/guide/review inputs. Engineering metadata/handover finalized afterward."
     },
-    "reviewChecks": "PASS: three reference-boundary tests, header/documentation checks, register/evidence JSON and14 immutable source /10 current product hashes.",
+    "reviewChecks": "PASS: three reference-boundary tests, header/documentation checks, register/evidence JSON and14 source /13 current product hashes. No runtime changes or unchanged full rebuild; retain2e7caf83 verified runtime candidate.",
     "physical": "NOT_RUN_AUDITS_PAUSED",
     "performance": "UNMEASURED; coordinate arithmetic only; no new queries, callback or controller."
   },
@@ -298,5 +302,20 @@
     },
     "physical": "NOT_RUN_AUDITS_PAUSED",
     "performance": "UNMEASURED; at most64 role classifications once per fresh eligible contact attempt, early stop at first rifleman. No new world query, controller, timer, setting or message."
+  },
+  "garrisonPostGeometry20261030": {
+    "baseCommit": "2e7caf8309232d2cad3d0c409d5c05d315c8991b",
+    "scope": "Read full CortexCoverScreened and BuildingRoofTop bodies; selected CortexFindCover header/admission1-82 and candidate/outside/roof/screening119-147; selected CortexGarrison planning126-142. Not a new whole-function review of every descendant.",
+    "reusable": [
+      "CortexCoverScreened already accepts arbitrary validated ASL endpoints, actor/source exclusions and COVER/CONCEALMENT. It can screen a proposed post against a known threat without moving an actor. It uses one terrain check and at most one object ray with four returned surfaces and excludes human-body screening. It supplies neither a firing field nor accessibility/occupation proof.",
+      "BuildingRoofTop already derives one world-ASL top endpoint above all eight transformed bounding-box corners. It is read-only and adds no geometry query. Current clearance and indoor traversal use it; garrison planning does not yet."
+    ],
+    "notReusableAsInteriorAllocator": "CortexFindCover constructs terrain-level proposals outside the selected object bounds, rejects an overhead hit on that object and checks outdoor support/occupancy before screening. Its 16-post search is not an interior garrison slot allocator; do not move interior actors to its exterior return as a role-scoring shortcut.",
+    "specificUnmetRequirement": "CortexGarrison classifies roofed positions with a fixed positionASL+1 to positionASL+15 ray. A roof above that interval is not tested, so a tall/scaled/tilted building can be sorted as exposed even when it has an overhead roof. This is a post-classification gap, not a demonstrated cause or fix for historical building-entry failures.",
+    "nextFiniteImplementation": "Reuse BuildingRoofTop once per building during existing bounded garrison admission for the upward roof-ray endpoint, retaining one roof query per candidate and all previous admission/native-order/transform/accessibility/deadline guards. Define explicit refusal/handling for invalid bounds or a non-upward endpoint; do not substitute new permission or a fixed height fallback. Extend the relevant existing geometry regression and full coherent gates. Then build bounded role-aware protection/firing scoring using the appropriate read-only screening observations, without duplicating outdoor FindCover or treating roof/wall scores as path proof.",
+    "runtimeImplementation": "NONE_THIS_REVIEW; original fixed15m ray remains and is explicitly queued. Prior checked runtime2e7caf83 retained unchanged.",
+    "validation": "PASS: three reference-boundary tests, header/documentation checks, register/evidence JSON and14 source /13 current product hashes. No runtime changes or unchanged full rebuild; retain2e7caf83 verified runtime candidate.",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "performance": "UNMEASURED; review introduces no runtime work."
   }
 }
