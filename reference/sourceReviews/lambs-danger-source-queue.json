@@ -108,7 +108,8 @@
       "sha256": "d61ab3ff72730cc113372f5bc0bee1005c4de2c6add18b401d002efbb856418c",
       "area": "Tactical group layer",
       "reviewStatus": "Complete readable body reviewed 2026-10-26; execution dependencies and physical integration open",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "next": "Scoped staggered selected-rifle preparation now executes on fresh ordinary CBE bounds with ready cover, original owner transaction and no delayed reset. Broader assault/vehicle/smoke descendants, actual command/animation/HC/handback and measured performance remain; do not count source review or reload acceptance as parity.",
+      "reloadPreparation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#staggeredRiflePreparation20261030"
     },
     {
       "path": "functions/fnc_tacticsAssess.sqf",

@@ -2296,5 +2296,49 @@
       "provenance": "Unsigned development receipt91e2566b plus dirty runtime inputs; review/handover metadata finalised after package."
     },
     "remaining": "Actual native FOLLOW labels, same-frame engine publication, physical return/repeatability, pending cases during shutdown/owner migration and measured cost remain unverified. Unconfirmed native return can remain reserved; time alone cannot prove cancellation. Quiet native rejoin remains request-only and is outside this failed-escape repair. Audits PAUSED."
+  },
+  "staggeredRiflePreparation20261030": {
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "source": ".qa/lambs-danger-installed-20261026/functions/fnc_tacticsAssault.sqf: final needReload/getSuppression/reload block; complete readable body rechecked, other descendants not newly complete",
+    "sha256": "d61ab3ff72730cc113372f5bc0bee1005c4de2c6add18b401d002efbb856418c",
+    "gap": "CBE main-muzzle reserve availability admits rifle capacity but is not a proactive near-empty selected-rifle reload request. Existing vehicle reload and optional UGL illumination are separate owners, not this preparation.",
+    "intent": "Prepare rifle ammunition for an offensive bound while retaining a ready covering soldier.",
+    "adaptation": [
+      "Existing CortexFlankStep exact operation/epoch/phase/roster/native-command transaction only; no second controller or timer",
+      "Fresh ordinary bounds only; skip coordinated support, resume/casualty-rebuild spots, crossing and consolidation",
+      "Ready local covering primary rifle with positive rounds, zero cycling/magazine reload, permissive original ROE and low suppression",
+      "At most four mover proposals and one native request per original bound index/team turn. Parent receipt consumes the budget before native issue, including same-bound casualty rebuilds. Explicit local loop flag handles nested SQF exit scope; actual covering cohort matches current roles.",
+      "Selected main-muzzle bullet rifle, auto-reload still enabled, <=5 rounds and <=quarter magazine, actual carried compatible replacement with more rounds; <=128 inventory rows/classes",
+      "Native explicit-muzzle reload after movement commit, exact unchanged weaponState at request; no forced weapon selection, reload flag mutation, inventory writes, animation acceleration or new clock",
+      "Native acceptance is not completion; original movement/timeout/native handback unchanged"
+    ],
+    "sourceMethodsRejected": [
+      "Broad reload-first-found-muzzle command",
+      "Reloading every group actor together",
+      "Unbound delayed preparation or force-reset on retirement"
+    ],
+    "primaryApiReferences": [
+      "https://community.bistudio.com/wiki/reload",
+      "https://community.bistudio.com/wiki/weaponState",
+      "https://community.bistudio.com/wiki/reloadEnabled",
+      "https://community.bistudio.com/wiki/magazinesAmmo"
+    ],
+    "nonDefectResolved": "Official magazinesAmmo contract confirms soldier results omit already-loaded magazines. Existing CortexPrimaryAmmoAvailable reserve source therefore does not have the suspected loaded-other-muzzle double-count problem; no speculative change made.",
+    "verification": {
+      "hemtt": ".qa/handovers/rifle-preparation-check-20261030.log:initial check passed; final full build covers all refinements",
+      "physical": "NOT RUN; audits PAUSED",
+      "focused": ".qa/handovers/rifle-preparation-focused-20261030.log:617 existing operation cases passed before final exact-cohort and retained-budget corrections; final full build covers those",
+      "full": ".qa/handovers/rifle-preparation-final-build-20261030.log:1505existing tests,487SQF,11PBOs; config/FSM/docs/wiki/parity/coverage/static performance0findings passed",
+      "candidate": ".qa/candidates/rifle-preparation-20261030-00b8fade",
+      "fingerprint": "efb8b309d8a6159319efeb55fb44de68da2c5b16dcbf3da75e5280e55ff62388",
+      "independent": ".qa/handovers/rifle-preparation-independent-20261030.log:exit0 matching fingerprint",
+      "packageProvenance": "Unsigned development base00b8fade with delivered runtime/config/test/guide changes; engineering metadata finalized afterward. Not signed release or physical proof."
+    },
+    "limits": [
+      "No actual native reload/animation/MP/HC acceptance or measured performance claim",
+      "Sparse ready cover is not a proven continuous fire lane or suppression effect",
+      "Conservative selected bullet-rifle support; other weapon types remain native",
+      "No whole-LAMBS parity or completion percentage"
+    ]
   }
 }

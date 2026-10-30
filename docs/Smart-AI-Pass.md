@@ -3619,3 +3619,19 @@ to request retirement. Locality transfer retires this task; it does not replay i
 This is a bounded cautious approach, not proof of concealed travel or complete
 covert-movement behaviour. Native navigation, actual policy readback/restoration, visual
 flow, repeat use, HC/JIP and performance remain unverified while audits are paused.
+
+
+### Rifle preparation between bounds
+
+A fresh ordinary flank, advance or assault bound may request a native rifle reload
+for one mover while a ready covering rifle remains. CBE considers at most four
+movers, only with the main rifle selected, at most five rounds and no more than a
+quarter magazine remaining. A carried compatible replacement must contain more
+rounds. Existing reload/cycling and disabled native auto-reload remain untouched.
+
+This preparation skips nearby threats within35m, suppressed actors, road-crossing
+and consolidation legs, coordinated support and recovered/resumed legs. It changes
+no weapon selection, ammunition quantity, reload animation speed, movement order
+or deadline, and creates no extra timer. Native reload acceptance is not completion
+or firing readiness. In-game timing, cover continuity, modded weapons, interruption,
+repeat/HC behaviour and measured cost remain unverified while audits are paused.

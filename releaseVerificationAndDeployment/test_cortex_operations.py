@@ -5247,6 +5247,27 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('!isObjectHidden _x',support)
         self.assertNotIn('removeMagazine',issue)
         self.assertNotIn('reload ',issue)
+        preparation=step.split('// Preparation belongs to this successful fresh-bound transaction',1)[1].split('private _waypointIndex =',1)[0]
+        for guard in ('!_support','_resumeSpots isEqualTo []','"CROSS_NEAR","CROSS_FAR","CONSOLIDATE"',
+                      '_coverWitness','(_fitSquad-_units)-_recovering','_reloadSpent || {_reloadChecks >= 4}',
+                      '_actor distance2D _enemyPos > 35','getSuppression _actor < 0.2',
+                      'reloadEnabled _actor','isEqualTo (_proposal select 2)'):
+            self.assertLess(preparation.index(guard),preparation.index('_actor reload'))
+        self.assertIn('else {_fit-_units}',preparation)
+        self.assertIn('isNotEqualTo _reloadBound',preparation)
+        self.assertLess(preparation.index('set ["lastReloadPreparation",_preparation]'),preparation.index('_actor reload'))
+        self.assertLess(preparation.index('_reloadSpent=true'),preparation.index('_actor reload'))
+        self.assertEqual(preparation.count('_actor reload'),1)
+        self.assertIn('call CBE_fnc_CortexRifleReloadPlan',preparation)
+        reload_plan=source('cortexRifleReloadPlan').split('*/',1)[1]
+        for proof in ('currentWeapon _actor != _weapon','currentMuzzle _actor != _main',
+                      'count _weaponState != 7','(_weaponState select 4) > 5',
+                      '(_weaponState select 6) != 0','_capacity/4','shotbullet',
+                      'count _compatible > 128','count _carried > 128','magazinesAmmo _actor'):
+            self.assertIn(proof,reload_plan)
+        for forbidden in ('enableReload','selectWeapon','setAmmo','addMagazine','removeMagazine',
+                          'spawn ','CBA_fnc_waitAndExecute','forceSpeed','setUnitPos'):
+            self.assertNotIn(forbidden,preparation+reload_plan)
         def may_bound(support,kind,movers,minimum,cover):
             return kind in ('CROSS_FAR','CONSOLIDATE') or (movers>=minimum and cover)
         self.assertTrue(may_bound(False,'BOUND',1,1,True))

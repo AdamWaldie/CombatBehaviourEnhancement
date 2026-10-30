@@ -5,7 +5,10 @@
  * restrictions are released for fleeing/queued-care actors without issuing movement.
  * Ordinary new-bound admission rechecks main-muzzle ammunition for the surviving mover
  * minimum and at least one cover actor. Road-exit/consolidation and coordinated roles retain
- * their existing policy. No per-movement-sample inventory poll or forced reload is added.
+ * their existing policy. A fresh ordinary bound may request one nearly-empty selected rifle's
+ * native reload while a ready covering rifle remains; <=4 mover proposals, no per-sample
+ * inventory poll, forced weapon selection, reload-setting change or completion claim. Rebuilt/
+ * resumed bounds, crossings, consolidation, close threats and coordinated dispatch skip it.
  * Changed native MOVE destinations and STOP after a recorded MOVE yield the actor. Exact owned cover/arrival holds
  * permit the next bound; only the original two-second MOVE acknowledgement retains a prior hold.
  * Coordinated route-refresh budgets remain in the parent, one per actor/server sequence, across reconstruction.
@@ -1233,6 +1236,56 @@ private _issue = {
             };
         };
     } forEach _planned;
+    // Preparation belongs to this successful fresh-bound transaction, not admission or a
+    // detached timer. Keep the covering team firing; never replay on recovered native legs.
+    private _reloadBound=[_drill get "index",_drill getOrDefault ["teamTurn",0]];
+    private _lastPreparation=_drill getOrDefault ["lastReloadPreparation",[]];
+    if (!_support && {_resumeSpots isEqualTo []} && {!(_kind in ["CROSS_NEAR","CROSS_FAR","CONSOLIDATE"])}
+        && {_planned isNotEqualTo []}
+        && {[_lastPreparation param [2,-1],_lastPreparation param [3,-1]] isNotEqualTo _reloadBound}) then {
+        private _coverWitness=objNull;
+        {
+            private _cover=_x;
+            if ([_cover] call _actorTaskFree && {unitCombatMode _cover in ["YELLOW","RED"]}
+                && {_cover checkAIFeature "FIREWEAPON"} && {getSuppression _cover < 0.2}
+                && {primaryWeapon _cover != ""} && {currentWeapon _cover == primaryWeapon _cover}) then {
+                private _weapon=primaryWeapon _cover;
+                private _muzzles=getArray (configFile >> "CfgWeapons" >> _weapon >> "muzzles");
+                private _main=if ("this" in _muzzles) then {_weapon} else {_muzzles param [0,_weapon]};
+                private _weaponState=_cover weaponState _main;
+                if (currentMuzzle _cover == _main && {count _weaponState == 7}
+                    && {(_weaponState select 4) isEqualType 0} && {finite (_weaponState select 4)}
+                    && {(_weaponState select 4) > 0} && {(_weaponState select 5) isEqualTo 0}
+                    && {(_weaponState select 6) isEqualTo 0}) then {_coverWitness=_cover};
+            };
+            if (!isNull _coverWitness) exitWith {};
+        } forEach (if (_teams isEqualTo []) then {(_fitSquad-_units)-_recovering} else {_fit-_units});
+        if (!isNull _coverWitness) then {
+            private _reloadChecks=0;private _reloadSpent=false;
+            {
+                private _actor=_x select 0;
+                if (_reloadSpent || {_reloadChecks >= 4}) exitWith {};
+                if ([_actor] call _mayIssueMovement && {getSuppression _actor < 0.2}
+                    && {_actor distance2D _enemyPos > 35} && {unitCombatMode _actor in ["YELLOW","RED"]}
+                    && {_actor checkAIFeature "FIREWEAPON"}) then {
+                    _reloadChecks=_reloadChecks+1;
+                    private _proposal=[_actor] call CBE_fnc_CortexRifleReloadPlan;
+                    if (_proposal isNotEqualTo [] && {reloadEnabled _actor}
+                        && {currentMuzzle _actor == (_proposal select 0)}
+                        && {(_actor weaponState (_proposal select 0)) isEqualTo (_proposal select 2)}) exitWith {
+                        // Native request acceptance is not loaded-round evidence. No reload
+                        // cancellation, animation acceleration, ammo insertion or new wait.
+                        _reloadSpent=true;
+                        private _preparation=[_actor,_coverWitness,_reloadBound select 0,
+                            _reloadBound select 1,serverTime,false];
+                        _drill set ["lastReloadPreparation",_preparation];
+                        private _requested=_actor reload (_proposal select [0,2]);
+                        _preparation set [5,_requested];
+                    };
+                };
+            } forEach _planned;
+        };
+    };
     private _waypointIndex = currentWaypoint _group;
     private _waypointSnapshot = [];
     if (_waypointIndex < count waypoints _group) then {
