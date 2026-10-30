@@ -3773,7 +3773,15 @@ Fresh coordinated support now needs three primary-weapon ammunition contributors
 
 This runs on the actual owner after existing admission checks, uses loaded main-muzzle rounds or a compatible reserve, and stops once enough contributors qualify. At most64 foot candidates are examined; coordinated groups above the existing64member capacity-observer bound refuse early. Already acknowledged assignments keep their existing continuation/adoption rules. There is no forced reload, inventory edit, new command, scan, timer or setting. Ammunition availability is not immediate firing readiness or effective cover. Physical admission/reload/AT-only/repeat/normal-HC/JIP and measured performance remain unverified while audits are paused.
 
+## Static-weapon task ownership
+
 Static-weapon support preserves a later native MOVE or changed FOLLOW task during active observation
 and CALM/disable cleanup. Its original follow anchor is captured once; absent history grants no
 permission to cancel boarding or force the actor out. This retires CBE's matching reservation only,
 and does not prove that an earlier engine boarding plan has ended. Physical handback remains pending.
+
+Static support also retains its original issuing machine, locality epoch and exact native gunner
+assignment role. A later role on the same weapon, a changed owner or absent original receipt
+blocks native boarding cancellation and GetOut; CBE retires its matching metadata instead.
+The old receipt is never rebuilt by an incoming owner. This protects replacement assignments;
+it is not physical proof that an earlier engine boarding plan ended.

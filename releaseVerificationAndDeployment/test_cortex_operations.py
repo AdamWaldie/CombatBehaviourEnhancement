@@ -1744,7 +1744,17 @@ class CortexOperations(unittest.TestCase):
                        'formLeader _actor != _originalFollow','_lease param [7,objNull,[objNull]]'):
             self.assertIn(marker,native)
         self.assertIn('formLeader _actor != _followReceipt',commit)
-        self.assertIn('getPosATL _actor,_followReceipt]',commit)
+        self.assertIn('getPosATL _actor,_followReceipt,_assignmentReceipt]',commit)
+        receipt=support.split('private _assignmentOwned=',1)[1].split('private _release=',1)[0]
+        for marker in ('_lease param [8,[],[[]]]','count _receipt != 3','== clientOwner',
+                       'CBE_AIPass_Epoch','assignedVehicle _actor == _weapon',
+                       'assignedVehicleRole _actor isEqualTo _role','["GUNNER","TURRET"]'):
+            self.assertIn(marker,receipt)
+        self.assertIn('call _assignmentOwned',active)
+        self.assertIn('call _assignmentOwned',release)
+        self.assertLess(commit.index('assignAsGunner _weapon'),commit.index('private _assignmentReceipt='))
+        self.assertLess(commit.index('private _assignmentReceipt='),commit.index('orderGetIn true'))
+        self.assertIn('[clientOwner,_admissionEpoch,+(assignedVehicleRole _actor)]',commit)
         self.assertNotIn('moveInGunner',support)
         self.assertNotIn('setPos',support)
         self.assertNotIn('allowDamage',support)

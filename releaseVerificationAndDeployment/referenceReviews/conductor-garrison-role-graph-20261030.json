@@ -3,7 +3,7 @@
   "date": "2026-10-30",
   "sourceBase": "6e999df28909b9bf93a034b4687a8909d6194eec",
   "workshopId": "3799629858",
-  "status": "SELECTED_GARRISON_GRAPH_RECONCILED_WATCH_HEIGHT_AND_STATIC_NATIVE_MOVEMENT_CLEANUP_FIXED_EXPLICIT_WEAPON_ROLE_GAPS_OPEN",
+  "status": "SELECTED_GARRISON_GRAPH_REVIEWED_WATCH_HEIGHT_NATIVE_MOVEMENT_AND_ORIGINAL_STATIC_ASSIGNMENT_OWNER_FIXED_WEAPON_ROLE_TASK_GAPS_OPEN",
   "sources": [
     {
       "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/config.cpp",
@@ -90,17 +90,18 @@
       "scope": "Selected first 10 lines: server gate, mode check and synchronous garrisonTick before disabled exit. Remaining orchestration body not wholly reviewed."
     }
   ],
-  "sourceIntegrity": "Fourteen selected extracted source hashes match immutable archive manifest; selected scopes only. Original packages remain absent. No archive/source writes, source execution or raw reference copy.",
+  "sourceIntegrity": "Fourteen selected immutable source hashes remain verified; ten current product hashes identify selected inspected owner/executor versions. No source/archive edits or raw reference copy.",
   "productHashes": {
     "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
     "addons/infantry/functions/garrisonTaskDialog.sqf": "670c75d8675268528fb9a6b1d9c52925963a455d03c848f0abed5521dc359b3b",
     "addons/infantry/functions/zenGarrisonModule.sqf": "ab886da14f7d128d37b85bde41a7caf3176153782ac4c5dd2e10d3e645e0b26d",
     "addons/infantry/functions/cortexGarrison.sqf": "34caf1a6b87acf9e4918263479b7f92c3cd21063a20ddda10fcdd111216d66fd",
-    "addons/infantry/functions/cortexStaticSupport.sqf": "98dce1d9edde419a9412894e96454d990b42eed4f41ce040140a371a8b9f9f47",
+    "addons/infantry/functions/cortexStaticSupport.sqf": "c60a9b519bf4abeb913e08cfb3f88625b0b40144493209ea76ba9c7a728d3bcc",
     "addons/infantry/functions/cortexUnitRole.sqf": "b302ddfabecd6cbd6dad67ca47eff4b6f95cad0f63e86b7a1331fe9123409428",
     "addons/support/functions/cortexSupportApply.sqf": "d2ea4fe8a5c33d140888a94a4faf93b383cbe9f9535e449b2e2f458fff610f3c",
-    "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "d57acfc6143e9b63c7a996a55b44a3e603ea9e9c01c7cbed67bacfe21177a9ff"
+    "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "d57acfc6143e9b63c7a996a55b44a3e603ea9e9c01c7cbed67bacfe21177a9ff",
+    "addons/core/functions/cortexLocality.sqf": "b0ed5b9246bfc3ee73c634bdbd445e5e952155dcad7bbd62f21409dc38375162"
   },
   "productScope": "Selected actual operator, planning/assignment, role and contact-static owner branches; not complete bodies of every CBE descendant or physical/compiled-source parity.",
   "dispositions": [
@@ -137,26 +138,26 @@
   ],
   "newRuntimeImplementation": true,
   "nextRequiredWork": [
-    "Before explicit garrison weapon roles: finish exact CBE actor/station assignment and actual native boarding/retirement contract. Registered source wake path and activation/tick bodies are now inspected. Existing StaticSupport preserves new native movement but does not prove all native boarding plans ended. Reuse one finite task owner; no duplicate controller or forced seating.",
+    "Before explicit garrison weapons: complete actual native boarding/retirement/end acknowledgement, supported actor-locality and unknown-command policy in existing owners. Static role and original owner/epoch now match exactly; this is not native quiescence. Registered source wake path and readable activation/tick bodies already inspected. Integrate one finite task owner without forced seating.",
     "Implement bounded role-aware protected/firing post selection using actual weapon capability, firing field and accessibility; reviewed source role/LOS intent is not supplied by current height sorting or the isolated watch-height correction.",
     "Continue remaining Conductor registry/contact/proposal/support/provider graphs, plus full LAMBS/HBQ/Protocol production scope. No whole-mod percentages from file/helper counts."
   ],
   "validation": {
-    "hashes": "14 selected source hashes match immutable archive manifest; 9 current product hashes identify inspected versions; historical hashes retained separately.",
+    "hashes": "14 immutable archive source hashes and 10 current product hashes; initial historical hashes retained separately.",
     "runtime": {
-      "baseline": "Extended existing source-contract case rejects prior HEAD with one expected failure, zero errors. Python static contract, not SQF execution.",
+      "baseline": "Existing regression rejects prior HEAD with one expected source-contract failure, zero errors; not SQF execution.",
       "focused": "618 existing cases pass; zero added cases.",
-      "full": "PASS: all 1506 existing tests, 489 SQF compiled, 11 PBOs, full config/FSM/docs/wiki/parity/coverage/static-performance gates.",
-      "buildLog": ".qa/handovers/static-native-movement-build-20261030.log",
-      "focusedLog": ".qa/handovers/static-native-movement-focused-20261030.log",
-      "redLog": ".qa/handovers/static-native-movement-red-20261030.log",
+      "full": "PASS: all1506 existing tests,489 compiled SQF,11PBO; complete config/FSM/header/docs/wiki/parity/coverage/static-performance gates.",
+      "buildLog": ".qa/handovers/static-assignment-owner-build-20261030.log",
+      "focusedLog": ".qa/handovers/static-assignment-owner-focused-20261030.log",
+      "redLog": ".qa/handovers/static-assignment-owner-red-20261030.log",
       "independentVerification": "PASS",
-      "candidate": ".qa/candidates/static-native-movement-20261030-de390066",
-      "fingerprint": "ad5e347d47ee69d3329f2320a57a3439b99df7021d081326a787cf267aa2cbf5",
-      "independentLog": ".qa/handovers/static-native-movement-independent-20261030.log",
-      "sourceIdentity": "Unsigned development base de3900667c2febbc70eecd5742b92aba62b7182d plus checked static-support runtime/test/guide/review inputs; engineering metadata/handover finalized afterward."
+      "candidate": ".qa/candidates/static-assignment-owner-20261030-c760a850",
+      "fingerprint": "803b51ea9d6cd95dae662c37256b1e857ec9eb7871d964b4a0cffdf8b5583f1a",
+      "independentLog": ".qa/handovers/static-assignment-owner-independent-20261030.log",
+      "sourceIdentity": "Unsigned development base c760a850530a7eaf4b6a9625603ee91bbb7b32dd plus dirty checked runtime/test/guide/review inputs. Engineering metadata/handover finalized afterward."
     },
-    "reviewChecks": "PASS: three reference-boundary tests, source-header/documentation checks, register/evidence JSON parsing and 14 archive / 9 current product hashes.",
+    "reviewChecks": "PASS: three reference-boundary tests, header/documentation checks, register/evidence JSON and 14 immutable source / 10 current product hashes.",
     "physical": "NOT_RUN_AUDITS_PAUSED",
     "performance": "UNMEASURED; coordinate arithmetic only; no new queries, callback or controller."
   },
@@ -242,6 +243,37 @@
       "sourceIdentity": "Unsigned development base de3900667c2febbc70eecd5742b92aba62b7182d plus checked static-support runtime/test/guide/review inputs; engineering metadata/handover finalized afterward."
     },
     "physical": "NOT_RUN_AUDITS_PAUSED",
-    "performance": "UNMEASURED; constant current-command/formLeader checks, no new scan, timer, controller or setting."
+    "performance": "UNMEASURED; constant current-command/formLeader checks, no new scan, timer, controller or setting.",
+    "implementationSha256AtC760a850": "98dce1d9edde419a9412894e96454d990b42eed4f41ce040140a371a8b9f9f47"
+  },
+  "staticAssignmentOwner20261030": {
+    "baseCommit": "c760a850530a7eaf4b6a9625603ee91bbb7b32dd",
+    "sourceIntent": "Conductor reserves turret paths and observes actual gunner/turretUnit, but release still uses broad unassignment without the original native role or issuing-owner receipt. Preserve the intent to own one station, not those broad resets.",
+    "currentTrace": "CortexStaticSupport fresh assignAsGunner/orderGetIn transaction, active callback and CALM release-only path inspected. CortexLocality selected epoch-retirement boundary at line343 increments the existing epoch. No new lifecycle/scheduler owner introduced.",
+    "defect": "The existing lease identified actor and weapon only. Native same-weapon cargo/turret reassignment could still permit unassign/GetOut. After migration, an incoming owner with the public lease and local actor could treat the old journal as current boarding authority.",
+    "implementation": "Capture [clientOwner,originalAdmissionEpoch,actual assignedVehicleRole] once immediately after assignAsGunner and before orderGetIn. Shared local assignmentOwned guard checks original issuing machine/epoch, an actual gunner/turret role and exact current assignedVehicleRole on the same weapon. Active valid actors with mismatched/missing proof yield; direct cleanup and GET IN ownership also require the same proof. No reconstruction after owner change and no default role/path.",
+    "leaseShape": "Nine fields: [episode,actor,weapon,issuedAt,originalDeadline,status,startPosition,originalObservedFollowAnchor,[originalIssuingClientOwner,originalEpoch,originalAssignedVehicleRole]]. Missing/invalid role receipt grants no native release authority. No legacy reconstruction, epoch refresh or renewed boarding deadline.",
+    "preserved": "Existing single native boarding attempt, actual physical gunner observation, original20s deadline, once-per-contact cache, player/medical/specialist/native movement protections and exact internal reservation retirement. Carried deployment/pack journals remain separate.",
+    "remaining": "Not a native execution-end seal: prior engine boarding may outlive retired metadata. Same-value reassignment is indistinguishable. Unknown native service commands, actor-specific ownership migration, actual native boarding/cancellation/end acknowledgement and explicit garrison weapon roles remain incomplete.",
+    "officialCommandReferences": [
+      "https://community.bistudio.com/wiki/BIS_fnc_moveIn",
+      "https://community.bistudio.com/wiki/Join_In_Progress",
+      "https://community.bistudio.com/wiki/fullCrew?useskin=darkvector"
+    ],
+    "validation": {
+      "baseline": "Existing regression rejects prior HEAD with one expected source-contract failure, zero errors; not SQF execution.",
+      "focused": "618 existing cases pass; zero added cases.",
+      "full": "PASS: all1506 existing tests,489 compiled SQF,11PBO; complete config/FSM/header/docs/wiki/parity/coverage/static-performance gates.",
+      "buildLog": ".qa/handovers/static-assignment-owner-build-20261030.log",
+      "focusedLog": ".qa/handovers/static-assignment-owner-focused-20261030.log",
+      "redLog": ".qa/handovers/static-assignment-owner-red-20261030.log",
+      "independentVerification": "PASS",
+      "candidate": ".qa/candidates/static-assignment-owner-20261030-c760a850",
+      "fingerprint": "803b51ea9d6cd95dae662c37256b1e857ec9eb7871d964b4a0cffdf8b5583f1a",
+      "independentLog": ".qa/handovers/static-assignment-owner-independent-20261030.log",
+      "sourceIdentity": "Unsigned development base c760a850530a7eaf4b6a9625603ee91bbb7b32dd plus dirty checked runtime/test/guide/review inputs. Engineering metadata/handover finalized afterward."
+    },
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "performance": "UNMEASURED; constant owner/epoch/native assignment comparisons. No scan, new timer/controller, setting or message."
   }
 }

@@ -898,7 +898,7 @@
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Coordination contribution to identify",
       "reviewStatus": "Selected pressure/support/capacity and readable garrison bodies plus registered wake path inspected; explicit weapon/role task and whole provider graph incomplete",
-      "nextSourceReview": "Before explicit garrison weapon roles: finish exact CBE actor/station assignment and actual native boarding/retirement contract. Registered source wake path and activation/tick bodies are now inspected. Existing StaticSupport preserves new native movement but does not prove all native boarding plans ended. Reuse one finite task owner; no duplicate controller or forced seating. Implement bounded role-aware protected/firing post selection using actual weapon capability, firing field and accessibility; reviewed source role/LOS intent is not supplied by current height sorting or the isolated watch-height correction.",
+      "nextSourceReview": "Before explicit garrison weapons: complete actual native boarding/retirement/end acknowledgement, supported actor-locality and unknown-command policy in existing owners. Static role and original owner/epoch now match exactly; this is not native quiescence. Registered source wake path and readable activation/tick bodies already inspected. Integrate one finite task owner without forced seating. Implement bounded role-aware protected/firing post selection using actual weapon capability, firing field and accessibility; reviewed source role/LOS intent is not supplied by current height sorting or the isolated watch-height correction.",
       "recordedImplementationStatus": "SELECTED_PRESSURE_SUPPORT_POLICY_AND_AMMO_ADMISSION_IMPLEMENTED_WHOLE_SOURCE_INCOMPLETE",
       "recordedRemaining": "Selected morale/support policy/ammo work is implemented. Explicit garrison weapon roles and role-aware firing/protected post selection are not implemented by existing contact statics/height sorting. Whole coordinator/provider/registry/contact/activation/tick graphs and physical/performance evidence remain incomplete.",
       "implementationAssessmentCommit": "ca778db2",
@@ -924,7 +924,8 @@
       "supportPrimaryCapacity20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-support-primary-capacity-20261030.json",
       "garrisonRoleGraph20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json",
       "garrisonWatchHeight20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#lifecycleAndWatchCorrection20261030",
-      "staticNativeMovement20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#staticNativeMovement20261030"
+      "staticNativeMovement20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#staticNativeMovement20261030",
+      "staticAssignmentOwner20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#staticAssignmentOwner20261030"
     },
     {
       "workshopId": "3800356547",

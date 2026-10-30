@@ -8,6 +8,9 @@
  * A newer STOP yields cleanup without native unassign/GetOut writes.
  * A later native MOVE or changed FOLLOW anchor also yields without those writes. The original
  * observed follow anchor is captured once at admission; missing history never authorizes recall.
+ * Exact original assignedVehicleRole, issuing clientOwner and locality epoch are also required
+ * before native release. Same-vehicle role changes or owner migration retire metadata only;
+ * no new owner reconstructs boarding authority from the old public journal.
  * Purpose: Give one otherwise uncommitted infantry actor a finite chance to occupy a nearby useful
  * empty static weapon during confirmed contact, without taking the squad's movement operation. If
  * no existing emplacement is available, delegates compatible carried weapon bags to the finite
@@ -53,6 +56,20 @@ private _nativeMovementChanged={
         isNull _originalFollow || {formLeader _actor != _originalFollow}
     }}
 };
+// A vehicle match alone cannot own a later cargo/turret reassignment. The original
+// issuing machine, locality epoch and actual gunner role are sampled once after
+// assignAsGunner; neither active observation nor a new owner can mint this receipt.
+private _assignmentOwned={
+    params ["_actor","_weapon"];
+    private _receipt=_lease param [8,[],[[]]];
+    if (isNull _actor || {isNull _weapon} || {count _receipt != 3}) exitWith {false};
+    private _role=_receipt param [2,[],[[]]];
+    (_receipt param [0,-1,[0]]) == clientOwner
+        && {(_receipt param [1,-1,[0]]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+        && {toUpperANSI (_role param [0,"",[""]]) in ["GUNNER","TURRET"]}
+        && {assignedVehicle _actor == _weapon}
+        && {assignedVehicleRole _actor isEqualTo _role}
+};
 private _release={
     params ["_external"];
     if (count _lease >= 7) then {
@@ -60,7 +77,7 @@ private _release={
         private _weapon=_lease param [2,objNull,[objNull]];
         private _command=toUpperANSI currentCommand _actor;
         private _ownedBoarding=_command == "GET IN" && {!isNull _weapon}
-            && {assignedVehicle _actor == _weapon};
+            && {[_actor,_weapon] call _assignmentOwned};
         private _protectedTask=([_actor] call _nativeMovementChanged) || {!_ownedBoarding && {_command in ["STOP","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}};
         private _actorMove=_actor getVariable ["CBE_Cortex_ActorMove",[]];
         private _newMove=count _actorMove == 3 && {(_actorMove param [2,-1,[0]]) > time}
@@ -72,7 +89,7 @@ private _release={
             && {simulationEnabled _actor} && {!isObjectHidden _actor} && {!fleeing _actor}
             && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
-            && {!isNull _weapon} && {assignedVehicle _actor == _weapon}) then {
+            && {[_actor,_weapon] call _assignmentOwned}) then {
             [_actor] orderGetIn false;
             unassignVehicle _actor;
             if (vehicle _actor == _weapon) then {_actor action ["GetOut",_weapon]};
@@ -110,6 +127,11 @@ if ((_group getVariable ["CBE_Danger_StaticDeployment",[]]) isNotEqualTo []) exi
 };
 if (count _lease >= 7) exitWith {
     _lease params ["_leaseEpisode","_actor","_weapon","_issuedAt","_deadline","_status","_startPosition"];
+    if (!isNull _actor && {alive _actor} && {local _actor} && {!isNull _weapon}
+        && {!([_actor,_weapon] call _assignmentOwned)}) exitWith {
+        [true] call _release;
+        "YIELDED"
+    };
     private _operation=_group getVariable ["CBE_Operation",createHashMap];
     private _operationConflict=count _operation > 0 && {
         (_operation getOrDefault ["intent",""]) in ["WITHDRAW","VEHICLE_WITHDRAW"]
@@ -262,9 +284,10 @@ isNil {
         || {crew _weapon isNotEqualTo []} || {locked _weapon >= 2}
         || {!([_weapon] call _seatAvailable)}) exitWith {};
     _actor assignAsGunner _weapon;
+    private _assignmentReceipt=[clientOwner,_admissionEpoch,+(assignedVehicleRole _actor)];
     [_actor] orderGetIn true;
     _actor setVariable ["CBE_Cortex_ActorMove",["STATIC_SUPPORT",getPosATL _weapon,_deadline]];
-    _lease=[_episode,_actor,_weapon,time,_deadline,"MOVING",getPosATL _actor,_followReceipt];
+    _lease=[_episode,_actor,_weapon,time,_deadline,"MOVING",getPosATL _actor,_followReceipt,_assignmentReceipt];
     _group setVariable ["CBE_Danger_StaticSupport",_lease,true];
     _group setVariable ["CBE_Danger_StaticAttempt",[_episode,"MOVING",serverTime],true];
     _issued=true;
