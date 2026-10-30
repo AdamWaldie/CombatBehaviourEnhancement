@@ -5,6 +5,8 @@
  * group must both be local. A live exact worker receives release without a second executor.
  * A locality change or failed worker can resume STOPPING/RETURNING observation, never outward
  * movement. Crew, original native route and external-control gates remain in the worker.
+ * Positive native FOLLOW retirement interrupts only the old task; no recall, task completion
+ * or continuation of an old support bound is inferred. Original group membership is unchanged.
  * Repeat/JIP: Exact token/serial/public reference, private owner/epoch/handle and original
  * deadlines. One exact retirement-FSM creation refusal may retry inside its original cleanup
  * window, retaining the saved phase/native observations. No other unresolved reason reopens.
@@ -32,7 +34,7 @@ isNil {
     if (_wasRetiring && {(_work getOrDefault ["token",""]) == _token}
         && {(_work getOrDefault ["serial",-2]) == _serial}
         && {(_work getOrDefault ["phase",""]) == "RETIRED"}
-        && {(_work getOrDefault ["result",""]) in ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER","NATIVE_STOP_OBSERVED_AFTER_WORKER"]}) then {
+        && {(_work getOrDefault ["result",""]) in ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER","NATIVE_STOP_OBSERVED_AFTER_WORKER","NATIVE_FOLLOW_OBSERVED_AFTER_WORKER"]}) then {
             if ((_work getOrDefault ["kind","POSITION"]) == "SCOOT"
                 && {(_battery getVariable ["CBE_Cortex_ArtilleryScootToken",""]) == _token}
                 && {(_battery getVariable ["CBE_Cortex_ArtilleryScootSession",[]]) isEqualTo (_work get "session")}) then {

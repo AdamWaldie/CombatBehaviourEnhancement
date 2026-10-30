@@ -11,7 +11,11 @@
  * recorded original return is positively acknowledged, or every surviving original operator
  * accepts a newer active STOP with measured platform rest and, if dismounted, individual
  * rest. No command is issued for
- * either passive proof; STOP interrupts the task and never reports its physical completion.
+ * these passive proofs; STOP/FOLLOW interrupt the task and never report its physical completion.
+ * FOLLOW requires every surviving original to follow a living different same-group formation
+ * anchor after actual original FSM exit; it never issues recall or restores a formation. Mixed
+ * MOVE/WAIT/FOLLOW and unknown anchors retain unresolved ownership. Native fallback may supply
+ * FOLLOW; no provenance as a new authored order or renewed support bound is inferred.
  * Dead original crew plus measured rest can retire only the
  * matching reservation and lease. Worker loss is not proof of native quiescence.
  * Arguments: 0 platform OBJECT,objNull; 1 token STRING,""; 2 serial NUMBER,-1;
@@ -74,10 +78,14 @@ isNil {
         private _stopObserved=!_live && {_phase == "UNRESOLVED"}
             && {[_battery,_work,_executor,_battery getVariable [_executorSerialKey,-1],"EXTERNAL_STOP"]
                 call CBE_fnc_VehicleCrewMoveReturnProof};
+        private _followObserved=!_live && {_phase in ["REQUESTED","MOVING","HOLD","STOPPING","RETURNING","UNRESOLVED"]}
+            && {!_returnObserved} && {!_stopObserved}
+            && {[_battery,_work,_executor,_battery getVariable [_executorSerialKey,-1],"EXTERNAL_FOLLOW"]
+                call CBE_fnc_VehicleCrewMoveReturnProof};
         // Otherwise only death of every original actor plus measured rest can retire
         // unresolved movement. Never infer handback from expiry, script loss or new seats.
-        if ((_phase == "UNRESOLVED" && {!_retryRefused}) || {_returnObserved} || {_stopObserved}) exitWith {
-            private _nativeRetired=_returnObserved || {_stopObserved} || {call {
+        if ((_phase == "UNRESOLVED" && {!_retryRefused}) || {_returnObserved} || {_stopObserved} || {_followObserved}) exitWith {
+            private _nativeRetired=_returnObserved || {_stopObserved} || {_followObserved} || {call {
                 private _originalCrew=_work getOrDefault ["crew",[]];
                 private _linear=vectorMagnitude velocity _battery;
                 private _angular=vectorMagnitude angularVelocity _battery;
@@ -104,7 +112,9 @@ isNil {
             private _terminal=+_work;
             _terminal set ["phase","RETIRED"];
             _terminal set ["result",if (_stopObserved) then {"NATIVE_STOP_OBSERVED_AFTER_WORKER"} else {
-                ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER"] select _returnObserved
+                if (_followObserved) then {"NATIVE_FOLLOW_OBSERVED_AFTER_WORKER"} else {
+                    ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER"] select _returnObserved
+                }
             }];
             _battery setVariable [_workKey,_terminal,true];
             if (!_artillery) then {_group setVariable [_referenceKey,nil,true]};

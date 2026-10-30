@@ -250,6 +250,12 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertNotIn('_phase in ["ISSUE","STOPPING","RETURNING"]',phase_guard)
         native_body=kernel.split('private _nativePhaseResult=call {',1)[1]
         refusal=native_body.index('"NATIVE_RETURN_BASELINE_UNSUPPORTED"')
+        self.assertIn('"ACTOR_NATIVE_COMMAND_REPLACED"',native_body)
+        command_refusal=native_body.index('"ACTOR_NATIVE_COMMAND_REPLACED"')
+        self.assertIn('(_observations select _x) in ["","WAIT","MOVE"]',native_body)
+        for first_write in ('_work set ["goal",+_hold]', '_x doMove _hold', '_x doMove _goal'):
+            self.assertLess(command_refusal,native_body.index(first_write))
+
         for first_write in ('_work set ["goal",+_hold]', '_x doMove _hold', '_x doMove _goal'):
             self.assertLess(refusal,native_body.index(first_write))
         self.assertIn('"NATIVE_RETURN_BASELINE_UNSUPPORTED",_phase == "ISSUE"',phase_guard)
@@ -379,9 +385,56 @@ class ArtilleryFireSessions(unittest.TestCase):
 
         self.assertIn('"EXTERNAL_STOP"]',retirement)
         self.assertIn('NATIVE_STOP_OBSERVED_AFTER_WORKER',retirement)
+        self.assertIn('if (_mode == "EXTERNAL_FOLLOW") exitWith {',proof)
+        follow=proof.split('if (_mode == "EXTERNAL_FOLLOW") exitWith {',1)[1].split('private _returns=',1)[0]
+        for guard in ('_followingWriters isEqualTo []','!local _x','group _x != _group',
+                      'currentCommand _x != "FOLLOW"','private _anchor=formLeader _x',
+                      'isNull _anchor','!alive _anchor','_anchor == _x','group _anchor != _group',
+                      '!isNull _parent && {_parent != _battery}',
+                      '!(_x in _followingWriters)'):
+            self.assertIn(guard,follow)
+        self.assertLess(follow.index('!local _x'),follow.index('formLeader _x'))
+        for forbidden in ('unitReady','expectedDestination','velocity','doFollow','doMove',
+                          'setVariable','_work set','serverTime+'):
+            self.assertNotIn(forbidden,follow)
+        self.assertIn('"EXTERNAL_FOLLOW"]',retirement)
+        self.assertIn('NATIVE_FOLLOW_OBSERVED_AFTER_WORKER',retirement)
+        self.assertIn('_nativeRetired=_returnObserved || {_stopObserved} || {_followObserved}',retirement)
+        # Only positive native FOLLOW on every living original can release metadata;
+        # it is not restoration of the captured formation or task success.
+        def following_originals(actors, worker_done=True, replacement=False, phase="UNRESOLVED"):
+            return bool(actors) and worker_done and not replacement and phase in (
+                "REQUESTED","MOVING","HOLD","STOPPING","RETURNING","UNRESOLVED") and all(
+                local and same_group and parent in ('original',None) and command=='FOLLOW'
+                and anchor in ('valid_player','valid_ai')
+                for local,same_group,parent,command,anchor in actors)
+        aboard=(True,True,'original','FOLLOW','valid_player')
+        foot=(True,True,None,'FOLLOW','valid_ai')
+        self.assertTrue(following_originals([aboard,foot]))
+        self.assertTrue(following_originals([aboard]))
+        for phase in ('REQUESTED','MOVING','HOLD','STOPPING','RETURNING','UNRESOLVED'):
+            self.assertTrue(following_originals([aboard],phase=phase))
+        for phase in ('ISSUE','RETIRED','UNKNOWN'):
+            self.assertFalse(following_originals([aboard],phase=phase))
+
+        for changed in ((False,True,None,'FOLLOW','valid_ai'),(True,False,None,'FOLLOW','valid_ai'),
+                        (True,True,'other','FOLLOW','valid_ai'),(True,True,None,'MOVE','valid_ai'),
+                        (True,True,None,'WAIT','valid_ai'),(True,True,None,'STOP','valid_ai'),
+                        (True,True,None,'FOLLOW','self'),(True,True,None,'FOLLOW','dead'),
+                        (True,True,None,'FOLLOW','foreign'),(True,True,None,'FOLLOW','missing')):
+            self.assertFalse(following_originals([aboard,changed]))
+        self.assertFalse(following_originals([]))
+        self.assertFalse(following_originals([aboard],worker_done=False))
+        self.assertFalse(following_originals([aboard],replacement=True))
         tactical=(ROOT/'addons/vehicles/functions/vehicleTacticalMoveRetire.sqf').read_text()
         self.assertIn('_reason == "NATIVE_RETURN_OBSERVED_AFTER_WORKER"',tactical)
         self.assertIn('NATIVE_STOP_OBSERVED_AFTER_WORKER',tactical)
+        self.assertIn('NATIVE_FOLLOW_OBSERVED_AFTER_WORKER',tactical)
+        artillery_retire=(ROOT/'addons/support/functions/artilleryCrewMoveRetire.sqf').read_text()
+        self.assertIn('NATIVE_FOLLOW_OBSERVED_AFTER_WORKER',artillery_retire)
+        continuation=(ROOT/'addons/vehicles/functions/cortexMechanisedContinue.sqf').read_text()
+        self.assertNotIn('NATIVE_FOLLOW_OBSERVED_AFTER_WORKER',continuation)
+
 
         deletion=(ROOT/'addons/vehicles/functions/vehicleCrewMoveDeletionWatch.sqf').read_text(encoding='utf-8')
         for guard in ('addEventHandler ["Deleted"',
@@ -431,7 +484,7 @@ class ArtilleryFireSessions(unittest.TestCase):
         tactical_retire=(ROOT/'addons/vehicles/functions/vehicleTacticalMoveRetire.sqf').read_text(encoding='utf-8')
         self.assertIn('([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_after get "route")',tactical_retire)
 
-        casualty=retire.split('if ((_phase == "UNRESOLVED" && {!_retryRefused}) || {_returnObserved} || {_stopObserved}) exitWith {',1)[1].split('private _journal=+_work;',1)[0]
+        casualty=retire.split('if ((_phase == "UNRESOLVED" && {!_retryRefused}) || {_returnObserved} || {_stopObserved} || {_followObserved}) exitWith {',1)[1].split('private _journal=+_work;',1)[0]
         self.assertIn('"ORIGINAL_CREW_LOST_AT_REST"',casualty)
         self.assertIn('alive _x',casualty)
         self.assertIn('!finite _linear',casualty)

@@ -3650,3 +3650,26 @@ physics or permission to cross water. Discrete samples do not prove continuous
 clearance, dynamic resizing, native steering or successful bridge traversal.
 Physical crossing, interruption/HC behaviour and processing cost remain unverified
 while audits are paused.
+
+
+### Selected crew yielding to native formation control
+
+After an artillery or selected vehicle movement worker has actually ended,
+CBE can release its exact old reservation when every surviving original operator is
+already following a living, different formation leader in the same group. Originals
+must be local, either aboard the original platform or dismounted; replacement crew,
+another occupied platform, mixed MOVE/WAIT/FOLLOW or missing/invalid anchors refuse.
+Active workers also yield to changed native commands before any hold or return write,
+even if the destination coordinates match. No follow, stop, seat, group change or route
+command is issued by the passive proof. The newer/native
+FOLLOW may continue moving; this is neither a completed return journey nor proof of
+the captured original formation. The old task is interrupted, not completed, and an
+old mechanised support bound cannot resume from this result. Original peer-gun
+reservations and unrelated infantry retain their existing owners.
+
+This uses existing owner maintenance with at most two original operators and adds no
+setting, module, dependency, worker, timer or world query. Exact original private FSM,
+serial, owner/epoch and lease proof remain mandatory. Existing task controls and
+script entry points are unchanged. Physical travel, native fallback/event ordering,
+repeat use, normal/HC/JIP/Zeus behaviour and measured overhead remain unverified
+while audits are paused. Mixed/unknown formation handover remains unresolved.

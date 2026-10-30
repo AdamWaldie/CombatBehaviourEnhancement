@@ -181,7 +181,8 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
-      }
+      },
+      "nativeFollowSupersession20261030": "releaseVerificationAndDeployment/referenceReviews/artillery-selected-crew-20261025.json#nativeFollowSupersession20261030"
     },
     {
       "workshopId": "3802121807",

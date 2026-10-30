@@ -15,6 +15,9 @@
  * Idle-only and mixed MOVE/idle handback require every surviving idle original active, current idle goals and
  * measured platform rest; empty return arrays never prove retirement by themselves.
  * Nonlocal/inactive return recipients refuse before native order observation.
+ * Every active phase also requires MOVE/WAIT/idle native command observations before
+ * a hold/return write; matching destinations never authorize replacing FOLLOW or another
+ * native task. Unknown/malformed command observations retire unresolved without a hold.
  * No publication, timer, independent FSM or replay. Caller publishes the changed journal
  * and applies its domain-specific terminal/arrival policy in the same unscheduled callback.
  * Arguments: 0 platform OBJECT,objNull; 1 current journal HASHMAP,empty; 2 journal key STRING,"";
@@ -64,6 +67,14 @@ private _baselineRestorable=_returnBaseline isEqualType [] && {count _returnBase
         || {!((_returnBaseline select (_x+1)) isEqualType [])}} < 0};
 if (!_baselineRestorable) exitWith {
     ["NATIVE_RETURN_BASELINE_UNSUPPORTED",_phase == "ISSUE"] call _finish
+};
+// Matching goal coordinates cannot make another native command ours. In particular,
+// FOLLOW may retain the old endpoint while the engine changes formation intent. Refuse
+// before retirement can replace that command with a hold/return, in every active phase.
+if (_phase != "ISSUE" && {count _observations != 4
+    || {[0,2] findIf {isNil {_observations select _x}
+        || {!((_observations select _x) in ["","WAIT","MOVE"])}} >= 0}}) exitWith {
+    ["ACTOR_NATIVE_COMMAND_REPLACED"] call _finish
 };
 // Refuse changed native actor orders. An issued MOVE may naturally settle into WAIT/idle.
 if (_phase != "ISSUE" && {!([_goal] call _goalsMatch)}

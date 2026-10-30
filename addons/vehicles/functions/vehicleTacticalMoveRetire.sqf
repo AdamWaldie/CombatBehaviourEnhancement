@@ -4,6 +4,8 @@
  * Locality/authority: Trusted owner maintenance or server cancellation; no new movement admission.
  * Maintenance leaves a current live worker alone. Shutdown requests retirement across the
  * controlled epoch edge. Shared retirement preserves original identities and cleanup clocks.
+ * Positive native FOLLOW retirement interrupts only the old task; no recall, task completion
+ * or continuation of an old support bound is inferred. Original group membership is unchanged.
  * Repeat/JIP: Missing/nonlocal/foreign work is refused; no reference is cleared on a timer.
  * Dead-original-crew retirement ends only its matching generic operation, without native orders.
  * Arguments: platform OBJECT,objNull; token STRING,""; serial NUMBER,-1;
@@ -41,7 +43,7 @@ isNil {
         private _after=_battery getVariable ["CBE_VehicleTacticalMove_Work",createHashMap];
         if ((_after getOrDefault ["token",""]) == _token && {(_after getOrDefault ["serial",-2]) == _serial}
             && {(_after getOrDefault ["phase",""]) == "RETIRED"}
-            && {(_after getOrDefault ["result",""]) in ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER","NATIVE_STOP_OBSERVED_AFTER_WORKER"]}) then {
+            && {(_after getOrDefault ["result",""]) in ["ORIGINAL_CREW_LOST_AT_REST","NATIVE_RETURN_OBSERVED_AFTER_WORKER","NATIVE_STOP_OBSERVED_AFTER_WORKER","NATIVE_FOLLOW_OBSERVED_AFTER_WORKER"]}) then {
             private _generation=_after get "operationGeneration";
             private _reason=_after get "result";
             private _complete=_reason == "NATIVE_RETURN_OBSERVED_AFTER_WORKER"

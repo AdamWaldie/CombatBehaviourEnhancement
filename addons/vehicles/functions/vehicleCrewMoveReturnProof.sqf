@@ -18,21 +18,30 @@
  * STOP is intentionally perpetual, so readiness is not required.
  * It never restores or cancels that newer order. A legacy FOLLOW baseline can be
  * superseded by this positive STOP proof; RETURN still refuses FOLLOW as unrestored.
+ * EXTERNAL_FOLLOW retires only an ended issued-phase worker: every surviving original
+ * must show current native FOLLOW to a living different formation anchor in its own group,
+ * aboard this platform or dismounted. Replacement operators/another occupied platform refuse.
+ * Native FOLLOW may still be moving; neither rest nor completed travel is inferred. It may
+ * reflect native fallback rather than a new authored order. This proves only that this
+ * completed positional worker no longer owns those native commands, not original formation
+ * restoration. The caller retires the interrupted task; it never resumes a support bound.
  * Arguments: platform OBJECT,objNull; journal HASHMAP,empty; private worker ARRAY,[];
  * current private worker serial NUMBER,-1; optional evidence mode STRING,RETURN
- * (EXTERNAL_STOP is restricted to ended UNRESOLVED work).
- * Return: BOOL original return or explicit newer STOP observed, not physical returned travel.
- * Current callers: VehicleCrewMoveRetire for ended RETURNING/UNRESOLVED episodes.
+ * (EXTERNAL_STOP: ended UNRESOLVED; EXTERNAL_FOLLOW: ended issued phase, never ISSUE).
+ * Return: BOOL original return or positive native STOP/FOLLOW observed, not physical returned travel.
+ * Current callers: VehicleCrewMoveRetire for exact ended-worker retirement.
  * Example: [_vehicle,_work,_privateWorker,_workerSerial] call CBE_fnc_VehicleCrewMoveReturnProof;
  */
 params [["_battery",objNull,[objNull]],["_work",createHashMap,[createHashMap]],
     ["_executor",[],[[]]],["_executorSerial",-1,[0]],["_mode","RETURN",[""]]];
 private _group=_work getOrDefault ["group",grpNull];
 if (isNull _battery || {!local _battery} || {!(_group isEqualType grpNull)}
-    || {isNull _group} || {!local _group} || {!(_mode in ["RETURN","EXTERNAL_STOP"])}
+    || {isNull _group} || {!local _group} || {!(_mode in ["RETURN","EXTERNAL_STOP","EXTERNAL_FOLLOW"])}
     || {_mode == "RETURN" && {!("returns" in _work)}}
     || {_mode == "EXTERNAL_STOP" && {(_work getOrDefault ["phase",""]) != "UNRESOLVED"}}
-    || {!((_work getOrDefault ["phase",""]) in ["RETURNING","UNRESOLVED"])}
+    || {if (_mode == "EXTERNAL_FOLLOW") then {
+        !((_work getOrDefault ["phase",""]) in ["REQUESTED","MOVING","HOLD","STOPPING","RETURNING","UNRESOLVED"])
+    } else {!((_work getOrDefault ["phase",""]) in ["RETURNING","UNRESOLVED"])}}
     || {count _executor != 5} || {!finite _executorSerial} || {_executorSerial < 0}
     || {[0,1,2,3,4] findIf {!((_executor select _x) isEqualType 0)
         || {!finite (_executor select _x)}} >= 0}
@@ -75,6 +84,28 @@ if (_mode == "EXTERNAL_STOP") exitWith {
     private _linear=vectorMagnitude velocity _battery;
     private _angular=vectorMagnitude angularVelocity _battery;
     finite _linear && {finite _angular} && {_linear < 0.278} && {_angular < 0.01}
+};
+// This executor only issues positional movement. Positive current FOLLOW therefore
+// belongs to native/another control path, not to an outstanding request from this worker.
+// Observe every surviving original, never guess an anchor or issue formation recall.
+if (_mode == "EXTERNAL_FOLLOW") exitWith {
+    if (!(_seats isEqualType []) || {count _seats != 2}
+        || {_seats findIf {!(_x isEqualType objNull)} >= 0}
+        || {!(_baseline isEqualType [])} || {count _baseline != 4}
+        || {[0,2] findIf {!((_baseline select _x) in ["","WAIT","MOVE","FOLLOW"])} >= 0}) exitWith {false};
+    private _followingWriters=(_seats arrayIntersect _seats) select {!isNull _x && {alive _x}};
+    if (_followingWriters isEqualTo [] || {_followingWriters findIf {
+        if (!local _x || {group _x != _group}
+            || {currentCommand _x != "FOLLOW"}) exitWith {true};
+        private _parent=objectParent _x;
+        private _anchor=formLeader _x;
+        !isNull _parent && {_parent != _battery}
+            || {isNull _anchor} || {!alive _anchor} || {_anchor == _x}
+            || {group _anchor != _group}
+    } >= 0} || {[driver _battery,effectiveCommander _battery] findIf {
+        !isNull _x && {alive _x} && {!(_x in _followingWriters)}
+    } >= 0}) exitWith {false};
+    true
 };
 private _returns=_work get "returns";
 private _until=_work getOrDefault ["replyUntil",-1];
