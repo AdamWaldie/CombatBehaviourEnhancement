@@ -9044,6 +9044,20 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_live vectorDistance (_receipt select 3) <= 0.25',gate)
         self.assertIn('(_receipt select 1) == (_job get "generation")',gate)
         self.assertIn("&& {_commandOwned}",gate)
+        watch=apply.split('private _watchActor=_x;',1)[1].split('_watchActor doWatch _watch;',1)[0]
+        for marker in ('eyePos _watchActor','if (!isNull _watchBuilding)',
+                       'forEach [0,90,180,270]','forEach _watchBearings',
+                       'terrainIntersectASL [_watchEye,_probe]',
+                       'objNull,true,1,"VIEW","NONE"','objNull,true,1,"FIRE","NONE"',
+                       '[5*sin _x,5*cos _x,0]','50*sin _bearing'):
+            self.assertIn(marker,watch)
+        self.assertEqual(watch.count('lineIntersectsSurfaces'),2)
+        self.assertLess(callback.index('if ([_x,_assignment] call _assignmentArrived) then {'),
+                        callback.index('private _watchActor=_x;'))
+        self.assertIn('then {_assignment select 5} else {',watch)
+        for forbidden in ('doMove','doTarget','doFire','reveal','setVariable'):
+            self.assertNotIn(forbidden,watch)
+
 
     def test_garrison_release_preserves_replacement_move_and_follow(self):
         apply=source("cortexGarrisonApplyLocal"); release=source("cortexGarrisonRelease")

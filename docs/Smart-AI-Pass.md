@@ -114,6 +114,11 @@ Roof preference uses the transformed building top, so it is not limited to a 15-
 Invalid model bounds exclude that building from this admission; a post at or above the roof-ray
 endpoint stays exposed without a downward query. Other valid buildings remain available.
 This classifies overhead screening, not accessible rooms or successful building entry.
+On first physical arrival at an interior building post, watch selection tests the preferred outward
+bearing and up to four building-relative headings. A direction needs a clear five-metre terrain, VIEW and FIRE
+probe. The first qualifying direction is used; otherwise the original direction remains. This does
+not move the defender, reveal enemies or authorise fire. It does not prove a longer firing lane.
+Exterior guards keep their exit watch, and already-held posts do not acquire a continuous rescan.
 On physical interior arrival, the outward watch point keeps the defender's current eye altitude across
 terrain and floors. Exterior guards retain their assigned exit watch point. This is a watch-height
 correction, not proof of a clear firing lane or role-aware defensive post selection.

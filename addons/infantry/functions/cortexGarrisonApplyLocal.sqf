@@ -16,6 +16,10 @@
  * Exterior arrival requires a 2 m/0.75 m supported exterior pose with an actual observation ray.
  * Interior arrival watches outward at actual eye ASL height, converted at the remote endpoint;
  * it does not flatten an upstairs watch point to ground or prove a clear firing lane.
+ * Physical interior arrival probes at most5 bearings for5m: outward first, then building-relative headings.
+ * Separate terrain/VIEW/FIRE checks choose the first clear direction; none keeps the original.
+ * Exterior exit observation and building-free in-place poses do not run this scan.
+ * PATH-held same-owner posts are not continuously rescanned; no new worker or deadline.
  * Other actors retain their native approach. Only validated physical arrival locks PATH; a fixed safety deadline records
  * failure and leaves movement enabled rather than renewing forever around an unreachable doorway.
  * Exhausted interior posts leave this order refill/reassignment pool in one bounded batch;
@@ -526,11 +530,30 @@ private _buildingAnchor = {
                     _x disableAI "PATH";
                     // Preserve exterior exit observation. Interior getPos offsets discard height;
                     // construct the horizontal watch ray in ASL before converting its endpoint.
+                    private _watchActor=_x;
                     private _watch=if ((_assignment param [4,"INTERIOR"]) == "EXTERIOR") then {_assignment select 5} else {
                         private _bearing=_assignment select 1;
-                        ASLToAGL ((eyePos _x) vectorAdd [50*sin _bearing,50*cos _bearing,0])
+                        private _watchEye=eyePos _watchActor;
+                        private _watchBuilding=_assignment param [2,objNull];
+                        if (!isNull _watchBuilding) then {
+                            // Prefer the original bearing, then try four building-relative headings.
+                            // Separate VIEW/FIRE probes observe only5m, not an effective firing lane.
+                            private _watchBearings=[_bearing];
+                            private _buildingBearing=getDir _watchBuilding;
+                            {_watchBearings pushBackUnique ((_buildingBearing+_x) mod 360)} forEach [0,90,180,270];
+                            {
+                                private _probe=_watchEye vectorAdd [5*sin _x,5*cos _x,0];
+                                if (!terrainIntersectASL [_watchEye,_probe]
+                                    && {(lineIntersectsSurfaces [_watchEye,_probe,_watchActor,objNull,true,1,"VIEW","NONE"]) isEqualTo []}
+                                    && {(lineIntersectsSurfaces [_watchEye,_probe,_watchActor,objNull,true,1,"FIRE","NONE"]) isEqualTo []}) exitWith {
+                                    _bearing=_x;
+                                };
+                            } forEach _watchBearings;
+                        };
+                        // A failed probe retains the original direction, with no new route or time.
+                        ASLToAGL (_watchEye vectorAdd [50*sin _bearing,50*cos _bearing,0])
                     };
-                    _x doWatch _watch;
+                    _watchActor doWatch _watch;
                 };
             } else {
                 if (serverTime > (_job get "deadline")) then {

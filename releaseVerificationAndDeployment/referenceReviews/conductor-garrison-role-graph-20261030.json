@@ -3,7 +3,7 @@
   "date": "2026-10-30",
   "sourceBase": "6e999df28909b9bf93a034b4687a8909d6194eec",
   "workshopId": "3799629858",
-  "status": "SELECTED_GARRISON_GRAPH_RECONCILED_STATIC_ORIGINAL_OWNER_ROLE_AND_CREW_PREFERENCE_IMPLEMENTED_EXPLICIT_GARRISON_WEAPON_POST_GAPS_OPEN",
+  "status": "SELECTED_GARRISON_GRAPH_RECONCILED_ROOF_WATCH_OPENING_STATIC_CREW_AND_OWNERSHIP_IMPROVEMENTS_IMPLEMENTED_ROLE_POST_AND_NATIVE_HANDOFF_GAPS_OPEN",
   "sources": [
     {
       "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/config.cpp",
@@ -90,7 +90,7 @@
       "scope": "Selected first 10 lines: server gate, mode check and synchronous garrisonTick before disabled exit. Remaining orchestration body not wholly reviewed."
     }
   ],
-  "sourceIntegrity": "Fourteen selected immutable source hashes remain verified; thirteen current product hashes identify selected inspected dependencies. No source/archive edits, raw reference copy or runtime change in final geometry review.",
+  "sourceIntegrity": "14 selected immutable archive source hashes and13 current product hashes verified. No archive/source edits or raw reference copy; selected runtime changes are recorded in each implementation follow-up.",
   "productHashes": {
     "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
@@ -100,7 +100,7 @@
     "addons/infantry/functions/cortexStaticSupport.sqf": "251bcd6dbaaa544b43c984bea862bd4b747cae9abebe63975d64c67a8b127d37",
     "addons/infantry/functions/cortexUnitRole.sqf": "c5c8fab841242bdf75c1da9cb8720ce79bd38cf23c9f77780fdc05a08aa69c6c",
     "addons/support/functions/cortexSupportApply.sqf": "d2ea4fe8a5c33d140888a94a4faf93b383cbe9f9535e449b2e2f458fff610f3c",
-    "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "d57acfc6143e9b63c7a996a55b44a3e603ea9e9c01c7cbed67bacfe21177a9ff",
+    "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "cb67184a11c7817617e90d7c10ba82c10d08ec3385555f1d787661a6d5c79741",
     "addons/core/functions/cortexLocality.sqf": "b0ed5b9246bfc3ee73c634bdbd445e5e952155dcad7bbd62f21409dc38375162",
     "addons/infantry/functions/cortexCoverScreened.sqf": "442491c88fd72fa4187f73366c850ff4566745bcb9f2d4bed1040aa54451dae2",
     "addons/infantry/functions/cortexFindCover.sqf": "cc10a779cb12e0e72bd92a215e7addaa83985c8c64460317d832d24a85b20945",
@@ -148,15 +148,17 @@
   "validation": {
     "hashes": "14 immutable source /13 current product hashes; initial historical hashes retained separately.",
     "runtime": {
-      "fullBuild": "PASS:1506 existing tests,489 compiled SQF,11PBO; full config/FSM/header/docs/wiki/parity/coverage/static-performance gates. Existing roof geometry tests extended; zero added cases.",
+      "focused": "618 existing source-contract cases pass; existing garrison ownership case extended; zero added cases.",
+      "full": "PASS:1506 existing tests,489 compiled SQF,11PBO; complete config/FSM/header/docs/wiki/parity/coverage/static-performance gates; zero added test cases.",
+      "focusedLog": ".qa/handovers/garrison-watch-opening-focused-20261030.log",
+      "buildLog": ".qa/handovers/garrison-watch-opening-build-20261030.log",
       "independentVerification": "PASS",
-      "candidate": ".qa/candidates/garrison-roof-height-20261030-4423aebb",
-      "fingerprint": "7b26e3c10c432e98f58040e6ef56a6f0359f1edecd52c6e239c6d7915d4f011e",
-      "buildLog": ".qa/handovers/garrison-roof-height-build-20261030.log",
-      "independentLog": ".qa/handovers/garrison-roof-height-independent-20261030.log",
-      "sourceIdentity": "Unsigned dirty base4423aebb plus checked runtime/test/guide inputs. Engineering review and handover finalized afterward; not a clean future-commit build."
+      "candidate": ".qa/candidates/garrison-watch-opening-20261030-08a2d21e",
+      "fingerprint": "aa7a03f911868355244c87e4bbbc3ac66ae6bdd47b266c2dc2b165cc7ff1d570",
+      "independentLog": ".qa/handovers/garrison-watch-opening-independent-20261030.log",
+      "sourceIdentity": "Unsigned dirty base08a2d21e plus checked runtime/test/guide/review inputs; later engineering metadata/handover separate, not a clean future-commit package."
     },
-    "reviewChecks": "PASS:3 reference-boundary tests, header/docs, register/evidence JSON,14 immutable archive /13 current product hashes.",
+    "reviewChecks": "PASS:3 reference-boundary tests, header/docs, register/evidence JSON and14 immutable archive /13 current product hashes.",
     "physical": "NOT_RUN_AUDITS_PAUSED",
     "performance": "UNMEASURED; coordinate arithmetic only; no new queries, callback or controller."
   },
@@ -331,5 +333,26 @@
     },
     "remaining": "This classifies overhead screening, not actual interior access, protected role allocation, firing fields or a cause/fix of historical CQB entry failures. Physical tall/scaled/tilted/invalid-bound/normal-HC behaviour and measured performance unverified. Full production objective remains incomplete.",
     "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "nearWatchOpening20261030": {
+    "baseCommit": "08a2d21e29caf5097cf16f5c4b3b3ea02dacc28e",
+    "sourceIntent": "Previously reviewed Conductor activation232-275 tests near5m openings before choosing a watch direction. Adapt the near-opening intent at actual settled actor eye position, not source unbounded24bearing scans across every building position or assumed firing-post safety.",
+    "implementation": "In existing CortexGarrisonApplyLocal physical-arrival and exact native movement/owner guard, preserve original exterior exit target. For a real interior building, test the preferred outward bearing first and up to four headings relative to current building yaw. A direction requires5m terrain plus separate VIEW and FIRE clearance, each returning at most one surface. First passing bearing sets the existing50m eye-ASL watch direction; no passing direction keeps the original. Building-free in-place holds do not run the scan. No new target, reveal, fire, movement, job, deadline, setting, message or persistent permission.",
+    "lifecycle": "Runs only in the existing arrival/PATH-lock command boundary. Current actor is captured before nested numeric forEach to prevent implicit _x type confusion. Existing same-owner PATH-held posts do not enter this arrival branch again. Locality adoption/physical reapproach retains original current owner/assignment/arrival/command checks; it observes fresh eye/world geometry rather than replaying a clear-probe certificate.",
+    "cost": "At most5 short terrain checks and10 one-surface object rays per qualifying interior arrival, with lazy checks/early exit. Fresh admission permits at most64 assigned actors. Many simultaneous arrivals can therefore have a bounded additional burst; actual timing and the5%median/10%p95 budget remain unmeasured. No new recurring scanner or search. Not a claim of zero runtime cost.",
+    "limits": "Near5m clearance is neither long-range firing clearance, projectile/friendly-fire safety, window classification, useful post allocation, room clearance nor guaranteed native facing. Irregular/tilted building openings may not match the sampled yaw headings; live bodies/doors can occlude probes and later geometry can change. Original direction remains fallback, not a failed physical occupation. Bounded role-aware protected/firing posts and actual native handbacks remain open.",
+    "validation": {
+      "focused": "618 existing source-contract cases pass; existing garrison ownership case extended; zero added cases.",
+      "full": "PASS:1506 existing tests,489 compiled SQF,11PBO; complete config/FSM/header/docs/wiki/parity/coverage/static-performance gates; zero added test cases.",
+      "focusedLog": ".qa/handovers/garrison-watch-opening-focused-20261030.log",
+      "buildLog": ".qa/handovers/garrison-watch-opening-build-20261030.log",
+      "independentVerification": "PASS",
+      "candidate": ".qa/candidates/garrison-watch-opening-20261030-08a2d21e",
+      "fingerprint": "aa7a03f911868355244c87e4bbbc3ac66ae6bdd47b266c2dc2b165cc7ff1d570",
+      "independentLog": ".qa/handovers/garrison-watch-opening-independent-20261030.log",
+      "sourceIdentity": "Unsigned dirty base08a2d21e plus checked runtime/test/guide/review inputs; later engineering metadata/handover separate, not a clean future-commit package."
+    },
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "userDirection": "User explicitly answered Override cutoff and continue after usage3%; continue implementation without repeatedly requesting a pause solely for that standing cutoff."
   }
 }
