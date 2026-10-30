@@ -1002,10 +1002,10 @@
       "name": "FPVSCARE",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "AI reactions to FPV threats",
-      "reviewStatus": "Source reviewed; design/implementation pending",
-      "nextSourceReview": "Finish design from reviewed source, including credible threat cues, cover/evasion and original task handback.",
-      "recordedImplementationStatus": "SOURCE_REVIEWED_PENDING_DESIGN_AND_IMPLEMENTATION",
-      "recordedRemaining": "See dated intake; registration is not implementation.",
+      "reviewStatus": "Recovered all10 original readable hashes; selected classifier/threat bodies plus init scan/config declarations reviewed; visual approach cue built, full intent incomplete",
+      "nextSourceReview": "Continue remaining credible warning/evasion/vehicle intent through existing owners; do not restore global scanner, fabricated misses or forced firing. Verify native timing/visibility/geometry and handback in separate normal/HC batches only when audits resume.",
+      "recordedImplementationStatus": "SELECTED_VISUAL_APPROACH_CUE_IMPLEMENTED_PHYSICAL_UNVERIFIED",
+      "recordedRemaining": "Current known/visible near-collision foot-observer cue only. Buddy/hearing/vehicle/custom-class and expanded evasion integration remain incomplete; physical timing/path/ROE/owner transfer and measured cost unverified.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3820669449.json",
       "evidenceFilePresent": true,
@@ -1015,7 +1015,8 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
-      }
+      },
+      "selectedVisualApproach20261030": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3820669449.json#selectedVisualApproach20261030"
     },
     {
       "workshopId": "3820871877",

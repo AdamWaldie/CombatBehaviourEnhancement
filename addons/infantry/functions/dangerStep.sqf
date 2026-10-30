@@ -183,7 +183,7 @@ if (_action == "RELEASE") exitWith {
     if (_remaining isNotEqualTo [] || {count _live == 5 && {(_live select 4) == _generation}
         && {time < (_live select 3)}}) then {0.25} else {-1}
 };
-if (_action != "FORCED" && {_sourceKnown}) then {
+if (_action != "FORCED" && {_cause != "UAV_APPROACH" && {_sourceKnown}}) then {
     _group setVariable ["CBE_Danger_Contact",[_source,_observedAt,(time+2) min _sourceUntil,_generation],true];
 };
 // A concrete native task is an ownership boundary, not a tactical response mode. The engine FSM may
@@ -227,11 +227,17 @@ if (_cause == "BODY_FOUND" && {_action == "HIDE"} && {_observedAt <= time}) then
 };
 // This is a finite handoff, not a target assignment or movement order. The group tactics FSM can
 // respond on its already-owned scheduler cycle while retaining route, operation and external ownership.
-private _responseDurations=createHashMapFromArray [["HIT",3],["EXPLOSION",2.5],["SUPPRESSED",2],["CASUALTY",2],["BODY_FOUND",1.5],["SCREAM",1.5],["PROXIMITY",1.5],["CANFIRE",1.5],["DETECTED",1.5],["GUNFIRE",1]];
+private _responseDurations=createHashMapFromArray [["HIT",3],["EXPLOSION",2.5],["SUPPRESSED",2],["CASUALTY",2],["BODY_FOUND",1.5],["SCREAM",1.5],["PROXIMITY",1.5],["CANFIRE",1.5],["DETECTED",1.5],["GUNFIRE",1],["UAV_APPROACH",1]];
 private _responseLifetime=_responseDurations getOrDefault [_cause,1];
-private _response=[_cause,+_position,_observedAt,time+_responseLifetime,_generation];
+private _responseUntil=time+_responseLifetime;
+// A derived fast-air approach cannot acquire fresh geometry/identity time at assessment.
+// Other native causes retain their existing finite response duration.
+if (_cause == "UAV_APPROACH") then {
+    _responseUntil=_responseUntil min (_selected select 3) min _sourceUntil;
+};
+private _response=[_cause,+_position,_observedAt,_responseUntil,_generation];
 private _existing=_group getVariable ["CBE_Danger_Response",[]];
-private _priority=createHashMapFromArray [["HIT",9],["CANFIRE",8],["SUPPRESSED",7],["CASUALTY",6],["SCREAM",5],["PROXIMITY",4],["EXPLOSION",3],["BODY_FOUND",3],["DETECTED",2],["GUNFIRE",1]];
+private _priority=createHashMapFromArray [["HIT",9],["CANFIRE",8],["SUPPRESSED",7],["CASUALTY",6],["SCREAM",5],["PROXIMITY",4],["EXPLOSION",3],["BODY_FOUND",3],["DETECTED",2],["GUNFIRE",1],["UAV_APPROACH",6]];
 private _replace=_existing isEqualTo [] || {count _existing != 5}
     || {(_existing select 4) != _generation}
     || {time >= (_existing select 3)}
@@ -247,7 +253,7 @@ if (_replace) then {
     // Keep the responder beside the action lease. CBE_Danger_LastAssessment is intentionally the
     // newest evaluated record and may therefore change while this higher-priority response survives;
     // it cannot be used as durable ownership for the physical reaction.
-    _group setVariable ["CBE_Danger_Action",[_action,_cause,_observedAt,time+_responseLifetime,_generation,_observer],true];
+    _group setVariable ["CBE_Danger_Action",[_action,_cause,_observedAt,_responseUntil,_generation,_observer],true];
     if (_action == "VEHICLE") then {
         private _vehicle=vehicle _observer;
         private _profile=[_observer] call CBE_fnc_DangerVehicleProfile;
@@ -255,7 +261,7 @@ if (_replace) then {
         // Dedicated vehicle consumers can therefore distinguish a close threat at an emplacement
         // from approximate targetless damage without scanning for or manufacturing an enemy.
         private _vehicleSource=if (_sourceKnown) then {_source} else {objNull};
-        _group setVariable ["CBE_Danger_VehicleContext",[_profile,_vehicle,_cause,+_position,_observedAt,time+_responseLifetime,_generation,_vehicleSource,_sourceUntil,_sourceObserver],true];
+        _group setVariable ["CBE_Danger_VehicleContext",[_profile,_vehicle,_cause,+_position,_observedAt,_responseUntil,_generation,_vehicleSource,_sourceUntil,_sourceObserver],true];
     } else {
         _group setVariable ["CBE_Danger_VehicleContext",nil,true];
     };
@@ -270,7 +276,7 @@ private _responsiveUntil=if (count _effectiveResponse == 5
     && {time < (_effectiveResponse select 3)}) then {
     _effectiveResponse select 3
 } else {
-    time+_responseLifetime
+    _responseUntil
 };
 // A group retains one movement/decision owner. Events only shorten its existing deadline.
 // Startup reuses a live current generation or replaces stale/cancelled/ended work. This

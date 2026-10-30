@@ -341,6 +341,9 @@ if (count _dangerAction >= 6
     if (!isNull _observedActor && {alive _observedActor} && {local _observedActor}
         && {group _observedActor == _group}) then {_dangerCoverActor=_observedActor};
 };
+// A derived visual UAV cue belongs to its actual personal witness. An unavailable
+// witness cannot transfer that cue's cover movement to a fallback squad representative.
+private _dangerWitnessCurrent=!isNull _dangerCoverActor;
 if (isNull _dangerCoverActor) then {_dangerCoverActor=[_group] call CBE_fnc_CortexGroupAnchor};
 if (isNull _dangerCoverActor) then {_dangerCoverActor=_leader};
 private _dangerActionName=if (count _dangerAction >= 5
@@ -363,13 +366,16 @@ private _dangerTactical=_dangerActive
 private _dangerAlert=_dangerActive && {
     combatMode _group in ["BLUE","GREEN"]
     || {(_dangerResponse param [0,"",[""]]) in ["CASUALTY","BODY_FOUND","SCREAM"]}
+    || {(_dangerResponse param [0,"",[""]]) == "UAV_APPROACH"}
     || {(_dangerResponse param [0,"",[""]]) in ["DETECTED","PROXIMITY","CANFIRE","GUNFIRE"] && {_dangerActionName == "HIDE"}}
 };
 private _dangerVehicleSafety=_dangerActive && {_dangerActionName == "VEHICLE"};
 // Casualty and scream observations raise awareness but are not incoming-fire geometry. Treating
 // their reported position as a physical threat sent soldiers away from bodies or voices and made
 // harmless evidence look like suppression. Only immediate hazards may own this cover reflex.
-private _physicalCoverCause=(_dangerResponse param [0,"",[""]]) in ["HIT","EXPLOSION","SUPPRESSED","GUNFIRE"];
+// A directly seen near-collision UAV cue also permits cover, without inventing gunfire.
+private _physicalCoverCause=(_dangerResponse param [0,"",[""]]) in ["HIT","EXPLOSION","SUPPRESSED","GUNFIRE"]
+    || {(_dangerResponse param [0,"",[""]]) == "UAV_APPROACH" && {_dangerWitnessCurrent}};
 // A native-known detection can justify concealment without authorising engagement.
 // The existing cover owner still refuses STOP, native travel/planning, reservations and newer tasks.
 private _stealthCover=_dangerActionName == "ENGAGE"
@@ -748,6 +754,9 @@ private _autonomousActor=_alive findIf {
 if (_autonomousActor < 0) exitWith {_delay};
 
 ([_group] call CBE_fnc_CortexKnowledge) params ["_enemies", "_seenCount"];
+// One native-known visible near-collision cue, no additional detection or movement owner.
+// Let its existing finite danger FSM assess before ordinary autonomous contact planning.
+if ([_group,_state,_enemies,_alive] call CBE_fnc_CortexUAVApproach) exitWith {_delay min 0.5};
 // Reuse this bounded native query only for the current explicit attack. Poll time does
 // not refresh native observation age; the arrived-bound consumer adds elapsed time.
 if (count ((_state getOrDefault ["drill",createHashMap]) getOrDefault ["explicitOrder",[]]) == 4) then {

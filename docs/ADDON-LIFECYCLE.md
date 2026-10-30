@@ -2709,3 +2709,10 @@ All proposals share the existing sixteen-position budget and retain screening, r
 An owned danger-cover approach that times out can now retain one recent failed post for that soldier for eight seconds. A later danger observation under the same group, original orders and nearby threat can try another position through the existing cover or indoor-refuge selection. The record expires without extending any travel deadline and is discarded after order/context changes. It does not mark a building unreachable.
 
 Arrival, cancellation and native takeover do not create this exclusion. Existing native destination, task ownership, return-anchor and floor-aware separation checks remain. There is no new scan, timer, movement controller or forced retry; inaccessible alternatives may still refuse. Actual repeated movement and tactical quality remain unverified while audits are paused.
+
+
+## Visible small-UAV approach cue (30 October 2026)
+
+With danger response enabled, an eligible idle infantry observer can request existing cover behaviour after personally seeing a known hostile small UAV closing on a near collision course. The check reuses the squad's current native knowledge, confirms visibility and relative approach, and then hands a short observation to the existing danger FSM. It does not assume hearing or reveal an unseen drone.
+
+The original observer must remain available for cover dispatch. Committed operations and native/Zeus/specialist orders retain control; BLUE/GREEN fire restrictions remain authoritative. No engagement contact, forced shot, manufactured miss, movement controller or global drone scan is added. Existing cover/refuge availability and native travel determine the result. This visual cue is not complete drone avoidance, vehicle protection, warning propagation or guaranteed timely escape. Physical behaviour and performance remain unverified while audits are paused.

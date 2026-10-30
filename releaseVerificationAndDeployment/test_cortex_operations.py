@@ -1292,7 +1292,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(action.index('_sourceObserver knowsAbout _source <= 0'),action.index('exitWith {"MAINTAIN"}'))
         self.assertIn('private _vehicleSource=if (_sourceKnown) then {_source} else {objNull};',assessment)
         self.assertIn('_generation,_vehicleSource,_sourceUntil,_sourceObserver],true]',assessment)
-        self.assertIn('if (_action != "FORCED" && {_sourceKnown})',assessment)
+        self.assertIn('if (_action != "FORCED" && {_cause != "UAV_APPROACH" && {_sourceKnown}})',assessment)
         # An approximate event remains usable, but a substitute observer cannot renew identity.
         def source_authority(witness_alive,witness_local,same_group,knowledge):
             return witness_alive and witness_local and same_group and knowledge>0
@@ -1655,7 +1655,7 @@ class CortexOperations(unittest.TestCase):
         observer_selection=group_tick.split('private _dangerAction=',1)[1].split('private _dangerActionName=',1)[0]
         self.assertIn('param [5,objNull,[objNull]]',observer_selection)
         self.assertIn('group _observedActor == _group',observer_selection)
-        self.assertIn('[_action,_cause,_observedAt,time+_responseLifetime,_generation,_observer]',source('dangerStep'))
+        self.assertIn('[_action,_cause,_observedAt,_responseUntil,_generation,_observer]',source('dangerStep'))
         scheduler_audit=(ROOT/'releaseVerificationAndDeployment/cortexQA/runScheduler.sqf').read_text(encoding='utf-8')
         danger_audit=scheduler_audit.split('// This section diagnoses the real FSM-to-existing-job bridge.',1)[1]
         self.assertIn('CBE_GroupBrain',danger_audit)
@@ -13442,6 +13442,56 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('doMove',deferred)
         self.assertIn('call _deferRestore',section)
 
+
+    def test_visible_known_small_uav_approach_uses_existing_danger_owner(self):
+        import math
+        def collision(position,velocity):
+            distance=math.sqrt(sum(x*x for x in position))
+            speed=math.sqrt(sum(x*x for x in velocity))
+            if not (0.1<distance<=120 and speed>4): return False
+            closing=-sum(a*b for a,b in zip(position,velocity))
+            if closing/(distance*speed)<=.8:return False
+            eta=closing/(speed*speed)
+            miss=math.sqrt(sum((p+v*eta)**2 for p,v in zip(position,velocity)))
+            return 0<eta<=4 and miss<=6
+        self.assertTrue(collision((0,60,2),(0,-20,0)))
+        self.assertFalse(collision((0,60,20),(0,-20,0)))
+        self.assertFalse(collision((0,60,2),(0,20,0)))
+        self.assertFalse(collision((0,60,2),(20,0,0)))
+        self.assertFalse(collision((0,60,2),(0,0,0)))
+        self.assertFalse(collision((0,5,0),(0,10,0)))
+        self.assertFalse(collision((0,121,0),(0,-40,0)))
+        self.assertFalse(collision((0,100,0),(0,-20,0)))
+        observe=source('cortexUAVApproach')
+        for marker in ('_enemies select [0,8]','_actors select [0,64]','_size > 5',
+                       'unitIsUAV','_age > 1','_error > 5','_knowledge param [1,false',
+                       '_knowledge param [7,false','time-_lastSeen <= 1',
+                       'checkVisibility','_eta > 4','_miss > 6','_observedAt+4',
+                       '"UAV_APPROACH"','call CBE_fnc_DangerRequest'):
+            self.assertIn(marker,observe)
+        self.assertLess(observe.index('checkVisibility'),observe.index('velocity _drone'))
+        for forbidden in ('allUnitsUAV','nearEntities','nearestObjects','reveal','forceWeaponFire',
+                          'doMove','doStop','setUnitPos','forceSpeed','setVelocity','spawn','waitUntil'):
+            self.assertNotIn(forbidden,observe.split('params [[',1)[1])
+        tick=source('cortexGroupTick')
+        self.assertIn('[_group,_state,_enemies,_alive] call CBE_fnc_CortexUAVApproach',tick)
+        self.assertLess(tick.index('call CBE_fnc_CortexKnowledge'),tick.index('call CBE_fnc_CortexUAVApproach'))
+        self.assertIn('"UAV_APPROACH"',source('dangerRequest'))
+        for name in ('dangerSelect','dangerStep'):
+            self.assertIn('["UAV_APPROACH",6]',source(name))
+        action=source('dangerActionSelect')
+        self.assertIn('if (_cause == "UAV_APPROACH") exitWith {"HIDE"}',action)
+        self.assertLess(action.index('if (count (_group getVariable ["CBE_Operation"'),action.index('if (_cause == "UAV_APPROACH") exitWith'))
+        self.assertIn('_cause != "UAV_APPROACH" && {_sourceKnown}',source('dangerStep'))
+        step=source('dangerStep')
+        self.assertIn('_responseUntil=_responseUntil min (_selected select 3) min _sourceUntil',step)
+        self.assertIn('[_action,_cause,_observedAt,_responseUntil,_generation,_observer]',step)
+        original_expiry=11
+        for assessed_at in (10,10.5,10.99):
+            self.assertEqual(min(assessed_at+1,original_expiry,original_expiry),original_expiry)
+
+        self.assertIn('== "UAV_APPROACH" && {_dangerWitnessCurrent}',tick)
+        self.assertLess(tick.index('private _dangerWitnessCurrent='),tick.index('if (isNull _dangerCoverActor) then'))
 
     def test_cover_candidate_uses_rotated_bounds_and_stays_in_search_radius(self):
         text=source('cortexFindCover')

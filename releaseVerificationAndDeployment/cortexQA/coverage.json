@@ -377,7 +377,7 @@
       "id": "CONTACT",
       "title": "Contact detection",
       "setup": "Expose real enemies, then occlude them; compare live engine knowledge and Cortex phase. Separately expose a firing-capable squad with an authored HOLD or SENTRY waypoint.",
-      "expected": "Real sightings trigger contact; no omniscient acquisition; contact-off leaves explicit orders usable. Authored HOLD/SENTRY permits native observation and fire but blocks every autonomous CBE movement owner and replacement waypoint.",
+      "expected": "Real sightings trigger contact; no omniscient acquisition; contact-off leaves explicit orders usable. Authored HOLD/SENTRY permits native observation and fire but blocks every autonomous CBE movement owner and replacement waypoint. A personally known and visible small hostile UAV on a near collision course can request existing finite cover, preserving ROE and committed tasks; off/occluded/friendly/hovering/receding/crossing/expired cues do nothing. Dedicated native-UAV physical fixture remains pending; existing contact fixtures do not prove this path.",
       "settings": [
         "CBE_AIPass_Contact_Enable",
         "CBE_AIPass_EngageRange",
@@ -432,7 +432,8 @@
         "addons/infantry/functions/casualtyWeaponRecover.sqf",
         "addons/infantry/functions/dangerPostureStep.sqf",
         "addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf",
-        "addons/vehicles/functions/cortexDismountStop.sqf"
+        "addons/vehicles/functions/cortexDismountStop.sqf",
+        "addons/infantry/functions/cortexUAVApproach.sqf"
       ]
     },
     {

@@ -94,7 +94,7 @@ if (_cause in ["RESTORE","RELEASE"]) exitWith {
 // Handoffs cannot restart a response clock. Validate before any posture write.
 if (!(_responseUntil isEqualType 0) || {!finite _responseUntil}
     || {_responseUntil != -1 && {_responseUntil <= time}}) exitWith {"IGNORED"};
-if !(_cause in ["HIT","EXPLOSION","SUPPRESSED","DETECTED","PROXIMITY","CANFIRE","GUNFIRE","CASUALTY","BODY_FOUND","SCREAM"]) exitWith {"IGNORED"};
+if !(_cause in ["HIT","EXPLOSION","SUPPRESSED","DETECTED","PROXIMITY","CANFIRE","GUNFIRE","CASUALTY","BODY_FOUND","SCREAM","UAV_APPROACH"]) exitWith {"IGNORED"};
 if (_yieldToOwner) exitWith {"IGNORED"};
 // The immediate FSM response is deliberately posture-only. Movement, target assignment and route
 // ownership stay with native AI or the already-running CBE operation. This makes the classifier
@@ -144,7 +144,7 @@ if ((_operation getOrDefault ["phase",""]) == "CANCELLED") exitWith {"ASSESS"};
 // callback can outlive operation cleanup, so reclassify that orphaned label instead of treating it
 // as evidence of movement ownership.
 if (_action == "MAINTAIN" && {count _operation == 0}) then {
-    _action=["ENGAGE","HIDE"] select (_cause in ["HIT","EXPLOSION","SUPPRESSED","CASUALTY","BODY_FOUND","SCREAM"]);
+    _action=["ENGAGE","HIDE"] select (_cause in ["HIT","EXPLOSION","SUPPRESSED","CASUALTY","BODY_FOUND","SCREAM","UAV_APPROACH"]);
 };
 // Expiry permits cleanup; it does not prove cleanup has run. A late renewing event must
 // preserve the original baseline while the exact owned values still remain applied.

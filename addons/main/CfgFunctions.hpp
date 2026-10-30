@@ -412,6 +412,7 @@ class CfgFunctions {
             class PatrolRouteCommit {file = "\z\cbe\addons\infantry\functions\patrolRouteCommit.sqf";};
             class CortexGroupState {file = "\z\cbe\addons\infantry\functions\cortexGroupState.sqf";};
             class CortexGroupTick {file = "\z\cbe\addons\infantry\functions\cortexGroupTick.sqf";};
+            class CortexUAVApproach {file = "\z\cbe\addons\infantry\functions\cortexUAVApproach.sqf";};
             class CortexKnowledge {file = "\z\cbe\addons\infantry\functions\cortexKnowledge.sqf";};
             class CortexTacticalAssess {file = "\z\cbe\addons\infantry\functions\cortexTacticalAssess.sqf";};
             class CortexTacticalReposition {file = "\z\cbe\addons\infantry\functions\cortexTacticalReposition.sqf";};
