@@ -19,6 +19,40 @@ class CoverOrderContextTests(unittest.TestCase):
             self.assertLess(cleanup.index(proof),follow)
         self.assertNotIn('_leasedActor doFollow (leader _group)',source)
         self.assertNotIn('_lease set [6,',source)
+        # A real owned timed-out approach may discourage just that post briefly;
+        # a new danger generation does not renew its expiry or blacklist a house.
+        self.assertIn('if (_endReason == "TIMEOUT") then {',cleanup)
+        self.assertIn('"CBE_Danger_CoverFailedApproach",[time,_group,+_entryContext,+(_lease select 4),+_leasedSpot]',cleanup)
+        self.assertLess(cleanup.index('currentCommand _leasedActor in ["","MOVE"]'),cleanup.index('"CBE_Danger_CoverFailedApproach"'))
+        admission=source.split('private _recentFailedPosts=',1)[1].split('private _failedSearches=',1)[0]
+        for guard in ('count _failedApproach == 5','finite _failedAt','time >= _failedAt',
+                      'time < _failedAt+8','(_failedApproach param [1,grpNull,[grpNull]]) == _group',
+                      '(_failedApproach param [2,[],[[]]]) isEqualTo _entryContext',
+                      '_failedThreat vectorDistance _threat <= 3'):
+            self.assertIn(guard,admission)
+        self.assertNotIn('_failedAt=time',admission)
+        self.assertIn('abs (_x select 2) <= 1.5',admission)
+        self.assertIn('[_origin,_threat,18,_failedGroundPosts,_group,_screenMode,_actor]',source)
+        self.assertIn('[_actor,_origin,_threat,false,_recentFailedPosts]',source)
+        # Only one exact actor/context observation survives; unknown/expired data
+        # is discarded, not interpreted as permission or a renewed travel allowance.
+        def avoid(now,recorded,same_group=True,same_order=True,threat_delta=0):
+            return recorded <= now < recorded+8 and same_group and same_order and threat_delta<=3
+        self.assertTrue(avoid(10,10))
+        self.assertTrue(avoid(17.99,10))
+        self.assertFalse(avoid(18,10))
+        self.assertFalse(avoid(9,10))
+        self.assertFalse(avoid(10,10,same_group=False))
+        self.assertFalse(avoid(10,10,same_order=False))
+        self.assertFalse(avoid(10,10,threat_delta=3.01))
+        # SQF scalar rounding must not discard a just-recorded failure when a
+        # leader/new generation can re-evaluate in the same callback.
+        import struct
+        f32=lambda x:struct.unpack('f',struct.pack('f',x))[0]
+        recorded=f32(4.1)
+        self.assertGreater(f32(f32(recorded+8)-8),recorded)
+        self.assertTrue(avoid(recorded,recorded))
+
         def can_return(saved,current,available=True,same_group=True,arrived=False):
             return saved is not None and saved==current and available and same_group and not arrived
         self.assertTrue(can_return('team-lead','team-lead'))

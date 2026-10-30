@@ -7,7 +7,7 @@ class DangerCoverAdmission(unittest.TestCase):
         s=(ROOT/'addons/infantry/functions/dangerCoverStep.sqf').read_text(encoding='utf-8')
         first=s.index('call CBE_fnc_CortexActorMoveReserved')
         self.assertLess(first,s.index('call CBE_fnc_CortexFindCover'))
-        self.assertIn('[_origin,_threat,18,[],_group,_screenMode,_actor]',s)
+        self.assertIn('[_origin,_threat,18,_failedGroundPosts,_group,_screenMode,_actor]',s)
         cover=(ROOT/'addons/infantry/functions/cortexFindCover.sqf').read_text(encoding='utf-8')
         self.assertIn('findIf {_x != _actor} < 0',cover)
         self.assertEqual(cover.count('lineIntersectsSurfaces'),3)

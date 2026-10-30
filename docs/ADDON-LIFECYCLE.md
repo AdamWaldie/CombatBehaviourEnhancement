@@ -2702,3 +2702,10 @@ This corrects a geometry mismatch within the existing finite driving controller.
 When the normal central cover posts fail, the existing search can now propose the closest point along an object's protected face before its two original lateral alternatives. This makes nearby cover usable near the end of a long wall without extending the search radius. The face follows the threat direction and actual rotated bounds; the new point keeps metre-valued rear clearance and end inset.
 
 All proposals share the existing sixteen-position budget and retain screening, reservations, occupancy and configured body-clearance checks. A proposal grants no movement or arrival credit. Existing danger/operation owners still control travel, refusal and interruption. No extra scan, ray budget, timer or movement controller is added; actual reachability, tactical quality and cost remain unverified while audits are paused.
+
+
+## Repeated failed cover approaches (30 October 2026)
+
+An owned danger-cover approach that times out can now retain one recent failed post for that soldier for eight seconds. A later danger observation under the same group, original orders and nearby threat can try another position through the existing cover or indoor-refuge selection. The record expires without extending any travel deadline and is discarded after order/context changes. It does not mark a building unreachable.
+
+Arrival, cancellation and native takeover do not create this exclusion. Existing native destination, task ownership, return-anchor and floor-aware separation checks remain. There is no new scan, timer, movement controller or forced retry; inaccessible alternatives may still refuse. Actual repeated movement and tactical quality remain unverified while audits are paused.

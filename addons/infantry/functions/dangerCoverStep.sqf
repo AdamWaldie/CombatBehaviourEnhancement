@@ -4,6 +4,10 @@
  * Purpose: Give one stationary exposed soldier a single bounded move to nearby physical cover after an immediate danger event.
  * Locality / Authority: Called by the group brain while it already runs in CBE's shared scheduler.
  * Native fleeing retires matching metadata without a native recall command.
+ * One owned timed-out approach retains its exact post for8seconds on that actor, bound
+ * to original local group/order context and nearby threat. Later danger observations may
+ * try another post without renewing that exclusion or any movement clock. It is not an
+ * unreachable-house claim. Ground-cover exclusions do not spread across another floor.
  * Failed-approach return retains the original subformation anchor. Changed, missing or
  * unavailable anchors grant no follow command; arrival still leaves the soldier in cover.
  * Cross-observer cleanup checks the leased soldier itself for combat effectiveness and
@@ -158,11 +162,7 @@ if (count _lease >= 4) then {
             if (!_releaseOnly && {_leaseContextCurrent} && {_entryContext isEqualTo (call _readOrderContext)}
                 && {[_leasedActor] call CBE_fnc_CortexCombatEffective} && {!fleeing _leasedActor} && {!isPlayer _leasedActor} && {isNull remoteControlled _leasedActor}
                 && {([_leasedActor] call CBE_fnc_CortexExternalOwner) == ""} && {group _leasedActor == _group}
-                && {isNull objectParent _leasedActor} && {_leasedActor != leader _group}
-                && {!isNull _returnAnchor} && {_returnAnchor != _leasedActor}
-                && {group _returnAnchor == _group}
-                && {[_returnAnchor] call CBE_fnc_CortexCombatEffective}
-                && {formLeader _leasedActor isEqualTo _returnAnchor}
+                && {isNull objectParent _leasedActor}
                 // Successful arrival is useful cover, not a reason to run back across exposure.
                 // Only a failed owned approach needs this bounded return-to-formation recovery.
                 && {_distance > 2 || {_height > 1.5}}
@@ -176,7 +176,17 @@ if (count _lease >= 4) then {
                 && {simulationEnabled _leasedActor} && {!isObjectHidden _leasedActor}
                 && {(_leasedActor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
                 && {currentCommand _leasedActor in ["","MOVE"]}) then {
-                _leasedActor doFollow _returnAnchor;
+                // This is a failed owned travel attempt, not evidence of a permanently
+                // inaccessible house. Store only one point and its original observation time.
+                if (_endReason == "TIMEOUT") then {
+                    _leasedActor setVariable ["CBE_Danger_CoverFailedApproach",[time,_group,+_entryContext,+(_lease select 4),+_leasedSpot]];
+                };
+                if (_leasedActor != leader _group && {!isNull _returnAnchor} && {_returnAnchor != _leasedActor}
+                    && {group _returnAnchor == _group}
+                    && {[_returnAnchor] call CBE_fnc_CortexCombatEffective}
+                    && {formLeader _leasedActor isEqualTo _returnAnchor}) then {
+                    _leasedActor doFollow _returnAnchor;
+                };
             };
         };
     };
@@ -234,6 +244,25 @@ private _screenMode=if (_sameSearch && {(_decision select 0) == "NO_VALID_COVER"
     && {[_group,"CBE_AIPass_DangerConcealment_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
     "CONCEALMENT"
 } else {"COVER"};
+// A new observation may try another post, not immediately repeat the last owned timeout.
+private _recentFailedPosts=[];
+private _failedApproach=_actor getVariable ["CBE_Danger_CoverFailedApproach",[]];
+private _failedAt=_failedApproach param [0,-1,[0]];
+private _failedThreat=_failedApproach param [3,[],[[]]];
+private _failedSpot=_failedApproach param [4,[],[[]]];
+if (count _failedApproach == 5 && {finite _failedAt} && {time >= _failedAt} && {time < _failedAt+8}
+    && {(_failedApproach param [1,grpNull,[grpNull]]) == _group}
+    && {(_failedApproach param [2,[],[[]]]) isEqualTo _entryContext}
+    && {[_failedThreat,_failedSpot] findIf {count _x != 3
+        || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}} < 0}
+    && {_failedThreat vectorDistance _threat <= 3}) then {
+    _recentFailedPosts pushBack +_failedSpot;
+} else {
+    if (_failedApproach isNotEqualTo []) then {_actor setVariable ["CBE_Danger_CoverFailedApproach",nil]};
+};
+// Exterior candidates use ground ATL height0; an upper-floor timeout must not
+// exclude a ground post sharing its XY. Indoor selection retains its floor-aware gate.
+private _failedGroundPosts=_recentFailedPosts select {abs (_x select 2) <= 1.5};
 // Continuous rounds can change the danger generation without changing useful geometry.
 // Cache only failure, never a successful destination: destructible/movable cover is retried
 // after three seconds, or immediately when the actor/threat materially changes position.
@@ -243,9 +272,9 @@ private _sameGeometry=count _failedSearch == 3 && {time < (_failedSearch select 
     && {_origin vectorDistance (_failedSearch select 1) <= 2}
     && {_threat vectorDistance (_failedSearch select 2) <= 3};
 private _cover=if (_sameGeometry) then {[_origin,false]} else {
-    private _result=[_origin,_threat,18,[],_group,_screenMode,_actor] call CBE_fnc_CortexFindCover;
+    private _result=[_origin,_threat,18,_failedGroundPosts,_group,_screenMode,_actor] call CBE_fnc_CortexFindCover;
     if (!(_result select 1) && {_screenMode == "COVER"}) then {
-        private _refuge=[_actor,_origin,_threat] call CBE_fnc_DangerRefugeSelect;
+        private _refuge=[_actor,_origin,_threat,false,_recentFailedPosts] call CBE_fnc_DangerRefugeSelect;
         if (_refuge isNotEqualTo []) then {_result=[+_refuge,true]};
     };
     if !(_result select 1) then {

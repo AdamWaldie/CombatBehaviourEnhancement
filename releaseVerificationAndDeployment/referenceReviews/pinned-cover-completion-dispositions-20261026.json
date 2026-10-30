@@ -173,5 +173,42 @@
       "No whole Pinned Down/LAMBS parity, physical behaviour or performance acceptance claim.",
       "Only already-discovered objects are considered. The fallback does not recover a long object omitted by native radius discovery. Regression includes an object origin inside the original10.8m radius with all previous central posts outside and the nearest protected face inside."
     ]
+  },
+  "recentFailedApproach20261030": {
+    "date": "2026-10-30",
+    "sourceBase": "4a1bd50c85797692e5f2e0ff872e6ae546b8ff38",
+    "source": {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3775025723/extracted-20261011/pd_cover_concealment/MoveToCover.fsm",
+      "sha256": "abbacdb15729795f735a707424a8aa21e1733073bc3ece7d3848d6f29232476e",
+      "scope": "Selected existing moveexit branch215-243 distinguishes cycle cancellation, invalid destination, native MOVE_FAILED and TIMEOUT; complete FSM/dependency review not renewed."
+    },
+    "intent": "A failed approach is not useful cover or permission to replay the same travel indefinitely. Preserve cancellation/native authority and finite return rather than importing perpetual holds or global forced movement.",
+    "finding": "CBE already ends its original finite cover travel and suppresses the same danger generation on timeout, but a later generation can reselect the same failed post without any retained travel-failure input.",
+    "implementation": [
+      "DangerCoverStep records one actor-local5field [recordedAt,group,originalOrderContext,threat,post] only on an actual TIMEOUT while exact original marker, current native destination/command and original group/order plus active/specialist/Zeus/medical/pose authority still permit its failed-approach cleanup. A group leader may retain a failed post without receiving a follow command.",
+      "The original8second observation is read on a later admissible search only for the same group/epoch/operation/native-order context, finite original time window and threat within3m. It is not renewed by a new danger generation. Expired/unknown/context-changed data is discarded; other actors have independent records. Retain recordedAt directly; comparing current time with recordedAt and recordedAt+8 avoids subtracting the allowance from a rounded expiry and accidentally deleting same-frame observations.",
+      "Existing CortexFindCover reserved-post input rejects that one recent ground post while retaining all16position/geometry bounds; a failed upper-floor post cannot exclude ground cover sharing XY. DangerRefugeSelect receives the point through its existing floor-aware reserved input, with no signature or candidate-budget change.",
+      "Existing exact return anchor and arrival semantics are preserved. No movement retry allowance, deadline, forced move, route reset, controller, timer, scan or ray budget is added. A timeout is not a permanent unreachable/cleared/safe building classification."
+    ],
+    "cost": "One local recent-post read and bounded shape/context checks per otherwise admissible new search; at most one3D threat comparison and one candidate exclusion. One local write on a qualified timeout, no accumulating history or callbacks. Existing candidate/query limits unchanged. Runtime5%median/10%p95 remains unmeasured.",
+    "validation": {
+      "red": ".qa/handovers/cover-failed-approach-red-20261030.log:existing ownership test fails before implementation",
+      "focused": ".qa/handovers/cover-failed-approach-focused-20261030.log:6existing danger cases pass; .qa/handovers/cover-failed-approach-operations-20261030.log:617existing operation cases pass; expiry/group/order/threat change, nonrenewal and both real selection inputs covered",
+      "full": ".qa/handovers/cover-failed-approach-final-build-20261030.log:1505existing tests/488SQF/11PBOs; all config/FSM/docs/wiki/parity/coverage/static performance gates passed",
+      "physical": "NOT RUN; audits PAUSED",
+      "retainedIntermediate": ".qa/handovers/cover-failed-approach-build-20261030.log passed before final review caught expiry-minus8 float32 cancellation. .qa/handovers/cover-failed-approach-clock-red-20261030.log retains the red regression; no candidate from that intermediate was sealed.",
+      "candidate": ".qa/candidates/cover-failed-approach-20261030-4a1bd50c",
+      "fingerprint": "a7123b362cfa0b77d036192e42acf3b3f49998c4bf6eff9a20ba1e69ee9b3ecb",
+      "packageSource": "Unsigned development base4a1bd50c plus delivered runtime/test/guide changes; dirty=true; engineering metadata finalized afterward. Original unrelated dirt preserved.",
+      "independent": ".qa/handovers/cover-failed-approach-independent-20261030.log:exit0 matching fingerprint"
+    },
+    "limits": [
+      "One recent post per actor, not complete path failure history; alternative posts may still be inaccessible.",
+      "Eight-second exclusion is a conservative temporary refusal, not a native path diagnosis. A moved/opened/destroyed object may become usable during that interval and be retried afterward.",
+      "Existing original failed-search cache and native command admission can delay re-evaluation further; no guarantee of immediate new movement.",
+      "No persistent building blacklist, all-source parity, physical flow/cover quality, HC/JIP or performance claim."
+    ],
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "runtimeSha256": "07fcb83466252b50829da6557f4407021900b4378bffa36c38e45649036a9ec8"
   }
 }
