@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-30",
+  "sourceBase": "26601870edb77c7c4d5c019d9db17ea37433a103",
+  "workshopId": "1858075458",
+  "status": "FOUR_READABLE_ASSAULT_HELPERS_RECONCILED_SELECTED_CURRENT_PATHS_NO_NEW_RUNTIME",
+  "sources": [
+    {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doAssaultSpeed.sqf",
+      "sha256": "0004608370622dcdc5c33628fe94ca6b321ea556be545876bdb8872bb932c105",
+      "readableLines": 27,
+      "reviewScope": "Complete readable helper body; no SQFC execution, installed freshness or whole-LAMBS claim."
+    },
+    {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doAssault.sqf",
+      "sha256": "d232f587dff55bfe1389e32c4c7b9551688c61353d7ad42d61c36e7c65eaa7cf",
+      "readableLines": 142,
+      "reviewScope": "Complete readable helper body; no SQFC execution, installed freshness or whole-LAMBS claim."
+    },
+    {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doAssaultMemory.sqf",
+      "sha256": "51e411c26bdc009af473007b94a9de7adc0daf4085d92c7df0822e66b1b14b84",
+      "readableLines": 113,
+      "reviewScope": "Complete readable helper body; no SQFC execution, installed freshness or whole-LAMBS claim."
+    },
+    {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doAssaultCQB.sqf",
+      "sha256": "309bdcfb8a3cae817263aa78107a3743d706b3e4327235a6f3c03d4510f8aff1",
+      "readableLines": 119,
+      "reviewScope": "Complete readable helper body; no SQFC execution, installed freshness or whole-LAMBS claim."
+    }
+  ],
+  "productHashes": {
+    "addons/infantry/functions/dangerAttackPace.sqf": "1a3e59c20b575f5eeb4abfae0d5facce5c9bdc2939f096675caf03a1731c65d3",
+    "addons/infantry/functions/cortexClearSettingsApply.sqf": "888000dc52bb3fae215cbbc369cb228dfa0cbbe18730db1362654a0c19ccbfd6",
+    "addons/infantry/functions/buildingOperationStep.sqf": "b2f5a2a98e423a51f3808bd9a0e2d9aa2579af7395ab564eb7f15666ae8d4234",
+    "addons/infantry/functions/cortexTacticalStart.sqf": "8677faa0c9992df0e9da93cd4be2b46d79dca462d5f960470b4fabc389c00690",
+    "addons/infantry/functions/cortexAssaultStart.sqf": "eac18a6e5b32fe59caa6f737c9528e8f0add5c680aec7efae2f388f5b17065ee",
+    "addons/infantry/functions/cortexBuildingContact.sqf": "681c9c5b39f7b2cc110adb17c1f18b9a1d91add3019687e9ed3a919a4afddd36",
+    "addons/infantry/functions/buildingContactSelect.sqf": "a9e06efb6637cd2ade0aedc5bc531e0177a6a33283154aaedba301b8b35038ef",
+    "addons/infantry/functions/indoorActorDispatch.sqf": "63fe67d939f2ff288011e5c82e351f520c64f6c7a284b650413aa257865be27c",
+    "addons/infantry/functions/indoorActorOperation.sqf": "72eb53fcf53d30592ad50271d52fa54b1d26a63239d55ce2e21396955d9db056",
+    "addons/infantry/functions/cortexGroupTick.sqf": "b18c311a1fd677bbd6c6cd8877a1b356f6a1f30adc703e4098adc44005bd49a1"
+  },
+  "productReviewScope": "Selected actual admission, command/settings, visit and repeat-call branches, not complete bodies of every CBE descendant. Hashes identify inspected revisions, not whole-file review credit.",
+  "sourceCallerEdges": [
+    "lambs_danger brainForced ATTACK -> doAssaultSpeed",
+    "lambs_danger brainEngage -> doAssault -> doAssaultSpeed",
+    "lambs_danger brainAssess groupMemory -> doAssaultMemory -> doAssaultSpeed",
+    "doAssaultCQB -> doAssaultSpeed and one7second CBA self-callback while positions remain"
+  ],
+  "dispositions": [
+    {
+      "helper": "doAssaultSpeed",
+      "intent": "Pace an assault by stealth, suppression, leader/personal morale and close range.",
+      "source": "STEALTH forceSpeed1; otherwise4/3 with one leader-or-negative-morale decrement and one distance2D<5 decrement. Direct forceSpeed has no matching-baseline handback in this helper.",
+      "cbe": "DangerAttackPace START retains the same native-ATTACK pace factors from known belief and a speed-only ActorSettings lease, original response/target/destination and deadline. CHECK requires the actual native setting. Clearance uses existing phase/arrival pacing: same-floor3D near arrival gives2, otherwise4/3 at suppression>=0.2; live STEALTH cap1 through CortexClearSettingsApply and the same canonical settings owner. Lower mission caps remain lower.",
+      "decision": "Retain adapted pacing and exact restoration; no second forceSpeed writer or redundant hook. Clearance threshold/3D policy deliberately differs; not literal helper equivalence for every group drill."
+    },
+    {
+      "helper": "doAssault",
+      "intent": "Act on a known hostile position, use nearby building positions, retain a useful native pursuit and avoid crowding.",
+      "source": "Within20m and exact FIRE visibility, watches target and stays at current unit position. Otherwise uses getHideFrom, nearby building positions, actual target ASL floor, optional indoor stay, and random surface offsets near another actor; writes doMove or setDestination. It can seed groupMemory within40m.",
+      "cbe": "CONTACT decision tries group CortexBuildingContact, then IndoorActorDispatch, then CortexTacticalStart. Group clearance needs actual eligible strength and uses BuildingContactSelect roof/owned-bounds around supplied fresh native belief, not live hostile transform. TacticalStart delegates selected assault/flank/advance to the finite existing executor. Actor investigations retain their own task/geometry/knowledge ownership.",
+      "decision": "Retain known-belief indoor/open-ground intent through these owners. Do not import live hostile-floor lookup, native destination replacement over newer work, forgetTarget, random unverified floor offsets or a parallel per-actor movement loop. Exact short-range native stop-and-fire quality remains physically unverified."
+    },
+    {
+      "helper": "doAssaultMemory",
+      "intent": "Other group members investigate remembered interior positions without each requiring a newly seen enemy.",
+      "source": "Filters memory within142m of leader and beyond1.5m of actor, sorts floor then leader distance, changes selection during planning, deletes nearby visible points, shortens far approach and randomizes a crowded target. Empty memory sends all group units doFollow current leader.",
+      "cbe": "CortexGroupTick retains bounded searchMemory/indoor jobs and at most two replacement attempts within the original episode; IndoorActorDispatch uses the existing two-actor contact path. IndoorActorOperation retains building transform, native context and original deadline; it does not equate a clue visit with hostile-room safety. Actual operation/motion/settings owners gate command requests.",
+      "decision": "Preserve sympathetic investigation through finite owners. Do not copy mutable unversioned group lists, floor-first-as-reachability, arbitrary actor offsets or a group-wide follow that recreates exterior formation around an indoor leader. Remaining source descendant/path quality is not closed by this map."
+    },
+    {
+      "helper": "doAssaultCQB",
+      "intent": "Progress through buildings/positions and return actors when work is exhausted.",
+      "source": "Reads group inCQB and side-keyed position lists; defaults empty selection to building model origin; writes randomized doMove plus setDestination. RND(0.95) OR actual proximity deletes a point, so most requests can consume a point before physical arrival. Remaining points queue another call7s later without original operation/epoch receipt.",
+      "cbe": "BuildingOperationStep alone updates shared visit coverage after eligible physical actor pose within1.5m, vertical separation<=0.75m, inside observation and room segment clear. Inaccessible points remain separately classified. Existing building transform/generation/native/setting boundaries and room/pair/entry/egress/relief journals govern repeats. Incoming cross-owner candidate remains nonexecuting without full seal; historical metadata is not resumed authority.",
+      "decision": "Retain building progression and task lifecycle intent, reject random completion, model-origin-as-reachable-room, dual native movement writers, unqualified7second repeat and generic follow reset. Physical visit is navigation evidence, not a hostile-room safety verdict. Full CQB incoming handover and physical flow remain incomplete."
+    }
+  ],
+  "remaining": [
+    "Actual physical entry/route/weapon-response/formation quality and repeated normal/HC/JIP cases while audits paused.",
+    "Incoming CQB actual all-writer/native/settings seal and controlled provider handovers remain incomplete.",
+    "Whole LAMBS main/danger/waypoint descendants and other registered capabilities remain incomplete; these four leaf helpers do not establish whole-mod parity.",
+    "Source current-generation scope of doAssaultCQB callers beyond inspected danger/selected helper edges remains incomplete; no full compiled callgraph or licence/reuse determination."
+  ],
+  "runtimeChanges": false,
+  "validation": {
+    "sourceIntegrity": "Four preserved extracted helper byte hashes recorded; source originals untouched. Not an independent installed-package freshness check.",
+    "currentRuntimeCandidate": ".qa/candidates/flight-cover-retention-20261030-98085a0b",
+    "currentRuntimeFingerprint": "366885a33d49b665be9d078808de4baabef28edf654a1ccee788af15c210c75e",
+    "runtimeChecks": "Retain preceding1506-test/full build/independent verification evidence; no runtime inputs changed in this review, no unchanged rebuild.",
+    "reviewChecks": "PASS: all4 source/10 selected product hashes match; register/queue/evidence JSON parse; existing reference-boundary tests and documentation contracts pass. Logs .qa/handovers/assault-descendant-{boundary,docs}-20261030.log.",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "performance": "UNMEASURED"
+  }
+}

@@ -24,22 +24,25 @@
       "sha256": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
       "area": "Actor FSM foundation",
       "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
-      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
+      "next": "Four main assault helper bodies and selected current CBE owners reconciled in lambs-assault-descendants-20261030.json. Do not duplicate speed/memory/CQB movement writers or import random room completion. Continue genuinely unmet descendants, incoming all-writer handover and physical flow; no whole-mod/compiled/physical parity claim.",
+      "assaultDescendantReconciliation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-assault-descendants-20261030.json"
     },
     {
       "path": "functions/fnc_brainEngage.sqf",
       "sha256": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
       "area": "Actor FSM foundation",
       "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
-      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
+      "next": "Four main assault helper bodies and selected current CBE owners reconciled in lambs-assault-descendants-20261030.json. Do not duplicate speed/memory/CQB movement writers or import random room completion. Continue genuinely unmet descendants, incoming all-writer handover and physical flow; no whole-mod/compiled/physical parity claim.",
+      "assaultDescendantReconciliation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-assault-descendants-20261030.json"
     },
     {
       "path": "functions/fnc_brainForced.sqf",
       "sha256": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
       "area": "Actor FSM foundation",
       "reviewStatus": "Complete readable helper body reconciled2026-10-28 in forcedAndLeaderHelpers20261028; not all descendants, compiled runtime parity or physical proof",
-      "next": "Retain finite flight/pace delegation and original policies. Selected doFleeing material-cover retention now precedes quiet formation request; native/physical handback and remaining descendants still open. Do not duplicate existing escape/rejoin, rifle preparation or blind posture/speed resets.",
-      "flightCoverRetention20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-flight-cover-retention-20261030.json"
+      "next": "Four main assault helper bodies and selected current CBE owners reconciled in lambs-assault-descendants-20261030.json. Do not duplicate speed/memory/CQB movement writers or import random room completion. Continue genuinely unmet descendants, incoming all-writer handover and physical flow; no whole-mod/compiled/physical parity claim.",
+      "flightCoverRetention20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-flight-cover-retention-20261030.json",
+      "assaultDescendantReconciliation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-assault-descendants-20261030.json"
     },
     {
       "path": "functions/fnc_brainHide.sqf",
@@ -133,7 +136,8 @@
       "sha256": "ed8324ac0d36f64fb87924683fa5b2df737e1f836ae4eafc60d0e0a192587f7d",
       "area": "Tactical group layer",
       "reviewStatus": "Complete readable body reviewed 2026-10-26; selected intent/authority comparison in evidence",
-      "next": "Reconcile remaining descendants and actual enabled callers; no compiled, physical or whole-mod parity claim."
+      "next": "Four main assault helper bodies and selected current CBE owners reconciled in lambs-assault-descendants-20261030.json. Do not duplicate speed/memory/CQB movement writers or import random room completion. Continue genuinely unmet descendants, incoming all-writer handover and physical flow; no whole-mod/compiled/physical parity claim.",
+      "assaultDescendantReconciliation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-assault-descendants-20261030.json"
     },
     {
       "path": "functions/fnc_tacticsFlank.sqf",
