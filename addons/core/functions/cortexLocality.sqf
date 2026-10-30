@@ -96,7 +96,7 @@ if (local _group) then {
             private _unavailable=_previousOperation getOrDefault ["unavailable",[]];
             private _boundSpent=_previousOperation getOrDefault ["boundRetryAttempts",createHashMap];
             private _boundProgress=_previousOperation getOrDefault ["boundProgress",[]];
-            if (count _supportLease == 6 && {(_previousOperation getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}
+            if (count _supportLease == 7 && {(_previousOperation getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}
                 && {(_previousOperation getOrDefault ["supportToken",""]) == (_supportLease select 0)}
                 && {(_previousOperation getOrDefault ["supportExpiry",-1]) == (_supportLease select 2)}
                 && {_spent isEqualType createHashMap} && {count _spent <= 64}
@@ -649,7 +649,7 @@ if (_inheritedDrill isNotEqualTo [] && {_withdrawalIntent isEqualTo []} && {_tra
 // acceptance path so every feature gate, vehicle exclusion, COMPAT handover and movement flag keeps
 // exactly one implementation. The new owner reconstructs semantics; it never replays an old job.
 private _supportAdoptable=_withdrawalIntent isEqualTo [] && {_transitionIntent isEqualTo []}
-    && {count _supportLease == 6} && {count _supportStatus == 4}
+    && {count _supportLease == 7} && {count _supportStatus == 4}
     && {(_supportLease select 0) == (_supportStatus select 0)}
     && {serverTime < (_supportLease select 2)} && {_supportStatus select 2}
     && {!([_group] call CBE_fnc_CortexZeusHeld)};

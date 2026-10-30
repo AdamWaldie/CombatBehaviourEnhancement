@@ -3755,3 +3755,10 @@ Unscreened actors retain the existing quiet rejoin and finite escape rules. Ther
 Recent reports of a vehicle and its mounted crew now count as one platform in the outnumbering part of squad morale. Separate foot soldiers and separate vehicles remain distinct. This avoids treating several reports of one gun truck as several independent opponents. The existing age window, pressure weights, no-AT armour rule, close-overmatch withdrawal and authored HOLD/SENTRY veto remain. No unseen enemy membership, extra vehicle weighting or minimum enemy squad size is inferred.
 
 The existing native-knowledge shortlist is consumed once; the first fresh overmatch is retained while the scan finishes the unique count. There are no new world queries, targets, jobs, timers or controllers. This uses current platform identity and does not reconstruct old mounting state. Actual reporting, embark/disembark balance and performance remain unverified while audits are paused.
+
+
+## Original reinforcement radius (30 October 2026)
+
+Reinforcement radius is next-operation policy. A new support request captures its validated radius once, and each seven-field reservation carries it after the existing token, requester, expiry, rally, AT requirement and attack fields. Editing the CBA value affects later requests; delivery, retry and owner adoption use the original radius. Missing, malformed or out-of-range policy grants no new support authority.
+
+Before reserving a responder, the server checks its current friendly-anchor distance to the requester against that original radius. The owner still performs its full admission and the server still authenticates the exact acknowledgement and original request. Candidate ranking and request expiry are unchanged; no new scan, rescan, timer, controller or message is added. Saved audit consumers use the same seven-field contract. Actual mid-delivery edits, migration, movement and measured cost remain unverified while audits are paused.

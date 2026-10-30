@@ -188,7 +188,7 @@ private _lease=_group getVariable ["CBE_AIPass_SupportLease",[]];
 private _supportLeaseCurrent=_supportToken != "" && {(_state getOrDefault ["supportToken",""]) == _supportToken}
     && {_state getOrDefault ["assaulting",false]}
     && {_authoredCurrent}
-    && {count _lease == 6} && {(_lease select 0) == _supportToken} && {serverTime < (_lease select 2)};
+    && {count _lease == 7} && {(_lease select 0) == _supportToken} && {serverTime < (_lease select 2)};
 // A role handover issues no native command. Carry only current-drill owned STOPs
 // into the same parent support journal before the child drill retires.
 private _nextRole=_group getVariable ["CBE_Cortex_SupportRole",[]];

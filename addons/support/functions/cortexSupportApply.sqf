@@ -39,6 +39,8 @@
  * the original lease expiry. Duplicate actual-owner adoption never restarts that window.
  * Coordinated adoption requires the original parent recovery budget snapshot. Spent counts
  * and unavailable actors survive; running recovery commands/timers are never replayed.
+ * Original response radius is required in canonical lease slot6; next-operation setting
+ * changes cannot enlarge/shrink this assignment during delivery, retry or owner adoption.
  * Arguments: 0: job <HASHMAP> containing group, lease, waitUntil and optional adopt <BOOL>, authoredOrder <ARRAY> and authoredRevoked <BOOL> holdProof <ARRAY> and recoveryProof <ARRAY> for coordinated adoption.
  * Return Value: Retry delay in seconds or -1 after acknowledgement.
  * Current callers: SupportLocal through the existing scheduler and CortexLocality adoption.
@@ -48,6 +50,8 @@
 params ["_job"];
 private _group = _job get "group";
 private _lease = _job get "lease";
+if (count _lease != 7 || {!((_lease select 6) isEqualType 0)}
+    || {!finite (_lease select 6)} || {(_lease select 6) < 100} || {(_lease select 6) > 2000}) exitWith {-1};
 if (!local _group) exitWith {-1};
 private _current = _group getVariable ["CBE_AIPass_SupportLease",[]];
 if (_current isNotEqualTo _lease) exitWith {
@@ -56,7 +60,7 @@ if (_current isNotEqualTo _lease) exitWith {
         -1
     }
 };
-_lease params ["_token","_requester","_expiry","_rally","_needAT","_attack"];
+_lease params ["_token","_requester","_expiry","_rally","_needAT","_attack","_responseRadius"];
 private _state = [_group] call CBE_fnc_CortexGroupState;
 private _publicStatus=_group getVariable ["CBE_AIPass_SupportStatus",[]];
 private _adopting=_job getOrDefault ["adopt",false]
@@ -169,7 +173,7 @@ private _okay = missionNamespace getVariable ["CBE_AIPass_Active",false] && {!([
     && {(_state getOrDefault ["supportAuthoredRevokedToken",""]) != _token} && {!_attackAllowed || {_committedAttack} || {_contactFresh}}
     && {!_operatingCrew} && {count _footFit >= 3} && {!isNull _anchor} && {behaviour _anchor != "CARELESS"} && {!fleeing _anchor}
     && {_same || {getSuppression _anchor <= ([0.2,0.65] select _contactPeer)}}
-    && {_groupTransmitter distance2D _requesterTransmitter <= (missionNamespace getVariable ["CBE_AIPass_Reinforce_Radius",600])}
+    && {_groupTransmitter distance2D _requesterTransmitter <= _responseRadius}
     && {(_group getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []} && {(_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []}
     && {!(_group getVariable ["CBE_AIPass_ClearBuilding",false])} && {!(_group getVariable ["CBE_AIPass_RegroupQueued",false])}
     && {_same || {(_phase == "CALM" || {_contactPeer}) && {!(_state getOrDefault ["responding",false])}}}

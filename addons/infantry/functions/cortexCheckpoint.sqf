@@ -127,7 +127,7 @@ private _supportLease=_group getVariable ["CBE_AIPass_SupportLease",[]];
 private _supportGeneration=_state getOrDefault ["supportOperationGeneration",-1];
 private _supportEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _supportOrder=_state getOrDefault ["supportAuthoredOrder",[]];
-if (_supportToken != "" && {count _supportLease == 6} && {(_supportLease select 0) == _supportToken}
+if (_supportToken != "" && {count _supportLease == 7} && {(_supportLease select 0) == _supportToken}
     && {serverTime < (_supportLease select 2)} && {_supportGeneration == (_group getVariable ["CBE_OperationGeneration",-2])}
     && {!(_state getOrDefault ["supportAuthoredRevoked",false])}
     && {_supportOrder isNotEqualTo []} && {_supportOrder isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}) then {

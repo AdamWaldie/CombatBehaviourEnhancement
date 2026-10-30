@@ -194,7 +194,7 @@ if ([_group] call CBE_fnc_CortexIlluminationStep) then {_delay=_delay min 1};
 // a live coordinated COVER helper on this existing callback within its six-second TTL.
 private _supportLease=_group getVariable ["CBE_AIPass_SupportLease",[]];
 private _supportRole=_group getVariable ["CBE_Cortex_SupportRole",[]];
-if (_state getOrDefault ["assaulting",false] && {count _supportLease == 6}
+if (_state getOrDefault ["assaulting",false] && {count _supportLease == 7}
     && {count _supportRole == 5} && {(_supportRole select 0) == (_supportLease select 0)}
     && {(_supportRole select 2) == "COVER"} && {serverTime < (_supportLease select 2)}) then {
     _delay=_delay min 2;

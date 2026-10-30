@@ -56,7 +56,7 @@ private _dispatched=[];
     private _prepared=count _eligibility == 3 && {(_eligibility select 0) == _token}
         && {(_eligibility select 1) == groupOwner _helper} && {serverTime < (_eligibility select 2)};
     private _executing=count _status == 4 && {(_status select 0) == _token} && {_status select 2};
-    if (_accepted == "ACCEPTED" && {count _lease == 6} && {(_lease select 0) == _token}
+    if (_accepted == "ACCEPTED" && {count _lease == 7} && {(_lease select 0) == _token}
         && {_prepared || {_executing}}
         && {!isNull ([_helper] call CBE_fnc_CortexGroupTransmitter)}
         && {count ((units _helper) select {[_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}}) >= 3}
@@ -117,7 +117,7 @@ if (_sent > 0) then {
         _x params ["_helper","_token"];
         if (_dispatched findIf {(_x select 0) == _helper && {(_x select 1) == _token}} < 0) then {
             private _lease=_helper getVariable ["CBE_AIPass_SupportLease",[]];
-            if (count _lease == 6 && {(_lease select 0) == _token}) then {
+            if (count _lease == 7 && {(_lease select 0) == _token}) then {
                 _helper setVariable ["CBE_Cortex_SupportContact",nil,true]; _helper setVariable ["CBE_AIPass_SupportLease",nil,true];
                 _helper setVariable ["CBE_Cortex_SupportRoleDeadline",nil,true]; _helper setVariable ["CBE_Cortex_SupportRole",nil,true];
             _helper setVariable ["CBE_Cortex_SupportEligibility",nil,true];
@@ -137,7 +137,7 @@ if (_sent > 0) then {
     {
         _x params ["_helper","_token"];
         private _lease=_helper getVariable ["CBE_AIPass_SupportLease",[]];
-        if (count _lease == 6 && {(_lease select 0) == _token}) then {
+        if (count _lease == 7 && {(_lease select 0) == _token}) then {
             _helper setVariable ["CBE_Cortex_SupportContact",nil,true]; _helper setVariable ["CBE_AIPass_SupportLease",nil,true];
             _helper setVariable ["CBE_Cortex_SupportRoleDeadline",nil,true]; _helper setVariable ["CBE_Cortex_SupportRole",nil,true];
             _helper setVariable ["CBE_Cortex_SupportEligibility",nil,true];

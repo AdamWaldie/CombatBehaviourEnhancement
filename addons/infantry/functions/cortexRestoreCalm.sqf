@@ -142,7 +142,7 @@ _state deleteAt "supportHeld";
 _state deleteAt "supportBoundSequence";
 // Withdrawals, calm restoration and external handovers retire the shared assignment.
 private _supportLease=_group getVariable ["CBE_AIPass_SupportLease",[]];
-if (count _supportLease == 6 && {(_state getOrDefault ["supportToken",""]) == (_supportLease select 0)}) then {
+if (count _supportLease == 7 && {(_state getOrDefault ["supportToken",""]) == (_supportLease select 0)}) then {
     [_group,_supportLease select 0,false,_supportLease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
 };
 [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;

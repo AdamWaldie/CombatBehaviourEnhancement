@@ -83,7 +83,7 @@ if (isNull _group || {!local _group} || {!([_group] call CBE_fnc_CortexIsEligibl
 private _reported = [];
 private _role = _group getVariable ["CBE_Cortex_SupportRole",[]];
 private _lease = _group getVariable ["CBE_AIPass_SupportLease",[]];
-if (count _role == 5 && {count _lease == 6}
+if (count _role == 5 && {count _lease == 7}
     && {(_role select 0) == (_lease select 0)}
     && {(_role select 0) == (_state getOrDefault ["supportToken",""])}
     && {serverTime < (_lease select 2)} && {_state getOrDefault ["assaulting",false]}

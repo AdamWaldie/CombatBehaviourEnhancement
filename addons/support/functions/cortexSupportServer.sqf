@@ -3,6 +3,8 @@
  * Creates a bounded cross-owner support-discovery request or upgrades its remaining capacity for armour.
  * Snapshot nearby unique groups once; the existing support FSM scores at most eight per callback.
  * Request creation does not synchronously inspect every candidate transmitter/roster.
+ * The validated response radius is captured once as NEXT_OPERATION policy; discovery and
+ * every responder lease retain it rather than rereading a later settings value.
  * Locality/authority: server owns reservations; current group owners validate and execute orders.
  * Publishes a bounded responder index on the requester so its owner never scans every group.
  * Only groups with at least three combat-effective dismounts can enter the infantry responder
@@ -50,6 +52,7 @@ private _configuredMaximum = missionNamespace getVariable ["CBE_AIPass_Reinforce
 private _maximum = ([_configuredMaximum,_configuredMaximum max 2] select _requesterCoordinated) + ([0,1] select _at);
 if (_maximum <= 0) exitWith {};
 private _radius = missionNamespace getVariable ["CBE_AIPass_Reinforce_Radius",600];
+if (!(_radius isEqualType 0) || {!finite _radius} || {_radius < 100} || {_radius > 2000}) exitWith {};
 private _requesterPosition=getPosATL _requesterTransmitter;
 // A reinforcement candidate must have a transmitter inside the configured response radius.
 // Build a unique group set from that local envelope instead of walking every mission group.

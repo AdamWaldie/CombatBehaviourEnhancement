@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-30",
+  "sourceBase": "2dba5d1a92bcc70a836566d4941c4c7382bf9478",
+  "workshopId": "3799629858",
+  "scope": "Selected support candidate source branches compared; repair CBE own declared NEXT_OPERATION radius policy in its existing support FSM. Not source global coordinator, scoring or full-source implementation.",
+  "source": {
+    "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/support/fn_findSupportCandidates.sqf",
+    "sha256": "c7d53e96a246cd33e7f3b5c10da205f6edc0b67b94ecf7602ae279b65b38e76e",
+    "manifestMatch": true,
+    "reviewScope": "Readable request/friendly-area setup, scan invalidation/backoff, selected eligibility/scoring, result publication and dispatch branches inspected. Long trace formatting and called gate/destination/proposal/provider graph not complete."
+  },
+  "sourceDispositions": [
+    "Retain useful live friendly-support-area distance filtering before deeper work; CBE already has spatial discovery, eight-group slices, stable nearest-first ranking and owner acknowledgements. Do not install another global coordinator or source cache.",
+    "Source itself reads global search distance per evaluation. Original radius retention comes from CBE declared NEXT_OPERATION contract, not a claim that this source has that guarantee. Source confidence/type/casualty weight tuning and cooperative provider gates remain unimplemented/review-incomplete."
+  ],
+  "finding": "Reinforce_Radius is NEXT_OPERATION in CortexTuningSpec/settings reference and SupportServer already captures discoveryRadius, but SupportApply reread current mission setting at delivery/adoption. Operator edits could shrink/enlarge an existing request. Later reservation also used stale discovery distance without current friendly-anchor range recheck.",
+  "implementation": [
+    "SupportServer validates original finite100..2000metre radius before discovery and retains existing discoveryRadius. Invalid policy refuses without world candidate queries.",
+    "Canonical support lease becomes7fields: [token,requester,originalExpiry,rally,needAT,attack,originalResponseRadius]. Slots0..5 unchanged. SupportStep rechecks live helper/requester transmitter distance within original job radius before publishing any reservation.",
+    "Owner SupportApply requires7fields and finite in-range original radius, uses that value for distance eligibility and never reads fresh radius setting. Repeated delivery/owner adoption retains identical original policy. Server Ack matches exact full snapshot and its radius to original request discoveryRadius.",
+    "All production support-reservation shape readers, diagnostics, role, cleanup, locality/ack/coordinated paths and saved support/coordinated audit assertions move to7fields. Unrelated posture/flight/hold/formation/driving schemas unchanged. Six-field/missing-policy reservations grant no new admission or continuation authority; no current/default-policy adapter.",
+    "SupportMaintain retires invalid/missing radius metadata through existing owned release; no new native reset. Existing request300second expiry, token, parent/epoch/route/actor/Zeus/provider checks, snapshot rank and eight-candidate work bounds remain. Attack updates copy the complete lease, preserving radius."
+  ],
+  "changedRuntimeAndChecks": [
+    "addons/core/functions/aiGetDiagnostics.sqf",
+    "addons/core/functions/cortexFireControl.sqf",
+    "addons/core/functions/cortexLocality.sqf",
+    "addons/infantry/functions/cortexCheckpoint.sqf",
+    "addons/infantry/functions/cortexFlankEnd.sqf",
+    "addons/infantry/functions/cortexGroupTick.sqf",
+    "addons/infantry/functions/cortexRestoreCalm.sqf",
+    "addons/infantry/functions/cortexRetreat.sqf",
+    "addons/infantry/functions/groupBrainStep.sqf",
+    "addons/support/functions/cortexCoordinatedAssault.sqf",
+    "addons/support/functions/cortexSupportAck.sqf",
+    "addons/support/functions/cortexSupportApply.sqf",
+    "addons/support/functions/cortexSupportAssaultServer.sqf",
+    "addons/support/functions/cortexSupportBoundStart.sqf",
+    "addons/support/functions/cortexSupportCoordinateStep.sqf",
+    "addons/support/functions/cortexSupportLocal.sqf",
+    "addons/support/functions/cortexSupportMaintain.sqf",
+    "addons/support/functions/cortexSupportServer.sqf",
+    "addons/support/functions/cortexSupportStep.sqf",
+    "releaseVerificationAndDeployment/cortexQA/runCoordinated.sqf",
+    "releaseVerificationAndDeployment/cortexQA/runSupport.sqf",
+    "releaseVerificationAndDeployment/test_calm_actor_reservations.py",
+    "releaseVerificationAndDeployment/test_cortex_operations.py"
+  ],
+  "cost": "One scalar appended per existing lease; finite number/type/range comparisons and one live friendly distance per candidate at reservation. No new actor/world scan, candidate rescan, timer, worker, controller, remote message or settings lookup in owner Apply; original request deadline unchanged. Actual net/CPU cost unmeasured.",
+  "validation": {
+    "red": ".qa/handovers/support-original-radius-red-20261030.log",
+    "focused": ".qa/handovers/support-original-radius-focused-20261030.log",
+    "focusedResult": "PASS: existing618 operation tests; existing support discovery case extended for original radius and policy change/boundary cases, no new test case.",
+    "fullBuild": "PASS: all1506 tests/489 compiled SQF/11PBO and config/FSM/docs/wiki/parity/coverage/static-performance gates.",
+    "audits": "PAUSED_NOT_RUN",
+    "physical": "Unverified radius edits during actual delivery/adoption, refusal/cleanup, normal-client/actual-provider HC and JIP.",
+    "buildLog": ".qa/handovers/support-original-radius-build-20261030.log",
+    "candidate": ".qa/candidates/support-original-radius-20261030-2dba5d1a",
+    "fingerprint": "43e198541d7a743c8fba610619a2aade2e3bf5f551ec3ca778c96f05e4d815ce",
+    "independentVerify": "PASS: package integrity independently matched; .qa/handovers/support-original-radius-independent-20261030.log"
+  },
+  "remaining": [
+    "Conductor full support/registry/contact/request/proposal/provider graphs and lifecycle integration incomplete.",
+    "Public lease shape migration is first-release candidate-only; no six-field live-mission upgrade adapter. Installed Arma and existing protected packages untouched.",
+    "Actual support movement, native all-writer handovers, performance target and full CBE production goal remain incomplete."
+  ]
+}

@@ -386,7 +386,7 @@ class CoordinationLeaseReplacementTests(unittest.TestCase):
         self.assertLess(active.index('call _sameLease'),active.index('CBE_Cortex_SupportRetryAfter'))
         self.assertLess(active.index('call _sameLease'),active.index('_stillActive pushBack _x'))
         helper=source.split('private _sameLease={',1)[1].split('private _teams=[];',1)[0]
-        for guard in ['isNull _group','count _lease == 6','(_lease select 0) == _token','serverTime < (_lease select 2)']:
+        for guard in ['isNull _group','count _lease == 7','(_lease select 0) == _token','serverTime < (_lease select 2)']:
             self.assertIn(guard,helper)
         publication=source.split('// Compare the live role here:',1)[1].split('} forEach _teams;',1)[0]
         self.assertIn('(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _role',publication)

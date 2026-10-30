@@ -1195,7 +1195,7 @@ switch (_state get "phase") do {
                 || {_now > (_state getOrDefault ["respondUntil", 0])}) then {
                 private _supportLease = _group getVariable ["CBE_AIPass_SupportLease",[]];
                 private _supportToken = _state getOrDefault ["supportToken",""];
-                if (count _supportLease == 6 && {_supportToken == (_supportLease select 0)}) then {
+                if (count _supportLease == 7 && {_supportToken == (_supportLease select 0)}) then {
                     [_group,_supportToken,false,_supportLease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
                 };
                 private _ownedMovement = _state getOrDefault ["movementLease",[]];

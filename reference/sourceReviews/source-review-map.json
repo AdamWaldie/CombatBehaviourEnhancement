@@ -897,10 +897,10 @@
       "name": "Pinned Down Conductor",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Coordination contribution to identify",
-      "reviewStatus": "Selected pressure entity-deduplication branch plus four related leaf bodies reviewed; whole source incomplete",
+      "reviewStatus": "Selected pressure and support-candidate branches plus related leaves reviewed; whole source incomplete",
       "nextSourceReview": "Continue unreconciled actual coordination/support graph using the protected snapshot. Do not duplicate this selected pressure estimator, add unseen group-strength floors or install a competing coordinator merely because these bodies exist.",
-      "recordedImplementationStatus": "SELECTED_PLATFORM_PRESSURE_DEDUPLICATION_IMPLEMENTED_WHOLE_SOURCE_INCOMPLETE",
-      "recordedRemaining": "Known-platform pressure count integrated in existing morale owner. Whole Conductor registry/contact/need/proposal/lease/adapter graph and physical balance/performance remain incomplete.",
+      "recordedImplementationStatus": "SELECTED_PRESSURE_AND_SUPPORT_POLICY_IMPLEMENTED_WHOLE_SOURCE_INCOMPLETE",
+      "recordedRemaining": "Platform pressure count and original support-radius policy integrated in existing CBE owners. Whole Conductor coordinator/registry/contact/need/proposal/lease/adapter graphs and physical balance/performance incomplete.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
@@ -919,7 +919,8 @@
         "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
       },
       "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
-      "platformPressure20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-platform-pressure-20261030.json"
+      "platformPressure20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-platform-pressure-20261030.json",
+      "supportRadiusPolicy20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-support-radius-policy-20261030.json"
     },
     {
       "workshopId": "3800356547",

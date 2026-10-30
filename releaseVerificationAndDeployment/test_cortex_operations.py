@@ -91,7 +91,7 @@ class CortexOperations(unittest.TestCase):
     def test_prepared_coordination_is_separate_from_execution_and_rally(self):
         brain=source('groupBrainStep')
         maintenance=brain.split('// Capacity freshness is a protocol deadline',1)[1].split('private _legacyPhase=',1)[0]
-        for guard in ('count _supportLease == 6','count _supportRole == 5',
+        for guard in ('count _supportLease == 7','count _supportRole == 5',
                       '(_supportRole select 0) == (_supportLease select 0)',
                       '(_supportRole select 2) == "COVER"','serverTime < (_supportLease select 2)',
                       '_delay=_delay min 2'):
@@ -6128,6 +6128,21 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_discoveryCursor+_forEachIndex',discovery)
         self.assertIn('_scored sort true',discovery)
         self.assertIn('_job deleteAt "discoveryGroups"',discovery)
+        # NEXT_OPERATION radius is original request policy, not a live setting
+        # that can reject an in-flight dispatch after an operator edits CBA.
+        apply=source('cortexSupportApply')
+        self.assertIn('"_responseRadius"',apply)
+        self.assertIn('_groupTransmitter distance2D _requesterTransmitter <= _responseRadius',apply)
+        self.assertNotIn('getVariable ["CBE_AIPass_Reinforce_Radius"',apply)
+        self.assertIn('[_token,_requester,_job get "expiry",_rally,_job get "at",[],_job get "discoveryRadius"]',step)
+        self.assertIn('_helperTransmitter distance2D _requesterTransmitter <= (_job get "discoveryRadius")',step)
+        self.assertIn('count _lease != 7',apply)
+        self.assertIn('!finite (_lease select 6)',apply)
+        self.assertIn('(_lease select 6) isNotEqualTo (_job get "discoveryRadius")',source('cortexSupportAck'))
+        self.assertIn('!finite _radius',support)
+        for saved,current,distance,expected in [(600,100,400,True),(100,2000,400,False),(600,2000,600,True),(600,100,601,False)]:
+            self.assertEqual(distance<=saved,expected)
+
         self.assertNotIn('remoteExec',discovery)
         self.assertNotIn('"expiry",',discovery)
         self.assertNotIn('nearEntities',discovery)
@@ -7071,7 +7086,7 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(selection.index('if (_selected isNotEqualTo [])'),selection.index('_next=_group'))
     def test_support_ack_rejects_expired_exact_reservations(self):
         ack=source('cortexSupportAck')
-        self.assertIn('count _lease != 6',ack)
+        self.assertIn('count _lease != 7',ack)
         self.assertIn('_lease isNotEqualTo _snapshot',ack)
         self.assertIn('_accepted=_accepted && {serverTime < (_lease select 2)}',ack)
         self.assertIn('serverTime < (_job get "expiry")',ack)
@@ -8266,7 +8281,7 @@ class CortexOperations(unittest.TestCase):
     def test_support_gate_closure_rejects_server_token_and_clears_local_role(self):
         text=source('cortexSupportMaintain')
         release=text.split('private _releaseSupport={',1)[1].split('if (_lease isEqualTo []',1)[0]
-        self.assertIn('count _lease == 6',release)
+        self.assertIn('count _lease == 7',release)
         self.assertIn('_token == (_lease select 0)',release)
         self.assertIn('remoteExecCall ["CBE_fnc_CortexSupportAck",2]',release)
         for key in ['supportToken','responding','respondingTo','respondUntil','arrivedAt','assaulting']:

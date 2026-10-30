@@ -293,12 +293,12 @@ private _helperStarts=_helpers apply {getPosATL _x};
 ["Reinforcement travel","The three idle helpers must walk to the rally point behind the squad in contact. All three must arrive within 45 m; a reservation or waypoint is insufficient.",_rally] call _phase;
 private _assigned=[{
     private _lease=_receiver getVariable ["CBE_AIPass_SupportLease",[]];
-    count _lease >= 4 && {(_lease select 1) == _sender}
+    count _lease == 7 && {(_lease select 1) == _sender}
         && {((_receiver getVariable ["CBE_AIPass_State",createHashMap]) getOrDefault ["supportToken",""]) == (_lease select 0)}
 },35] call _wait;
 ["REINFORCE-correct-requester-assignment",_assigned,str (_receiver getVariable ["CBE_AIPass_SupportLease",[]])] call _check;
 private _assignedLease=+(_receiver getVariable ["CBE_AIPass_SupportLease",[]]);
-if (_assigned && {count _assignedLease >= 4}) then {_rally=+(_assignedLease select 3)};
+if (_assigned && {count _assignedLease == 7}) then {_rally=+(_assignedLease select 3)};
 ["Reinforcement assigned rally","Follow the actual assigned rally area. Every helper must travel at least 15 m and finish within 45 m of that area; an assignment alone does not pass.",_rally] call _phase;
 private _arrived=[{
     _assigned && {_helpers findIf {!alive _x || {_x distance2D _rally > 45} || {_x distance2D (_helperStarts select (_helpers find _x)) < 15}} < 0}

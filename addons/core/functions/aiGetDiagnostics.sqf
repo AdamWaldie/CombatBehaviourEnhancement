@@ -785,7 +785,7 @@ _checks pushBack ["ai","cortex-snapshot-scope","LOADED",format ["Snapshot server
         private _leaseToken=_supportLease param [0,""];
         private _leaseExpiry=_supportLease param [2,0];
         private _roleToken=_supportRole param [0,""];
-        private _supportHealthy=count _supportLease == 6 && {serverTime < _leaseExpiry}
+        private _supportHealthy=count _supportLease == 7 && {serverTime < _leaseExpiry}
             && {_supportToken in ["",_leaseToken]} && {_roleToken in ["",_leaseToken]};
         _checks pushBack ["ai",format ["cortex-support-ownership-%1",netId _group],["ERROR","LOADED"] select _supportHealthy,format ["group=%1 leaseToken=%2 localToken=%3 roleToken=%4 secondsRemaining=%5 responding=%6 assaulting=%7 movementLease=%8. Token disagreement or an expired retained lease identifies overlapping or orphaned coordinated work.",groupId _group,_leaseToken,_supportToken,_roleToken,(_leaseExpiry-serverTime) max 0,_state getOrDefault ["responding",false],_state getOrDefault ["assaulting",false],_state getOrDefault ["movementLease",[]]]];
     };
