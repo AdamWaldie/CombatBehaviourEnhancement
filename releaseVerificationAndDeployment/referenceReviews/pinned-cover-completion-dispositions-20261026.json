@@ -136,5 +136,42 @@
     },
     "runtimeHash": "bff63731b7694d8e933277764d7390f0243b596eb9e4b3556e5b72a561469975",
     "limits": "Terrain classification is not path reachability. Refusal ends the current drill rather than finding a global alternative; tactical replanning and physical behaviour remain unverified."
+  },
+  "nearestProtectedFace20261030": {
+    "date": "2026-10-30",
+    "sourceBase": "f9b6af5ab40dc2ee5ca6ce1e38b64cf7e58e0689",
+    "source": {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3775025723/extracted-20261011/pd_cover_concealment/functions/fn_getDefensivePositions.sqf",
+      "sha256": "82e7098ec61fcabe38deef14afde4a6763ea177411567ca7640f93587d82eaba",
+      "reviewScope": "Complete158-line readable body, helper dependencies/classification and full fn_findCover/MoveToCover graph not renewed; raw source read-only, not copied or shipped."
+    },
+    "finding": "CBE central shadow and two2.25m offsets can all lie outside a local search near the end of a long wall, although a nearby protected-face point exists.",
+    "sourceIntent": "Read-only protected-side proposals around real defensive geometry; threat-facing choice, lateral distribution, native building positions and real height, independent screening and separation.",
+    "disposition": {
+      "adapted": "One nearest protected-face point after all original primary posts fail. Choose the dominant threat-away model face about the actual bounds centre; project the search point onto its lateral extent.0.8m rear margin and0.45m end inset use world units through finite positive scale. No class-name guesswork.",
+      "retained": "Original primary search/ranking unchanged, then nearest face and original two lateral alternatives; all share existing<=16post budget across<=10ranked objects. Each proposal repeats outside-footprint, radius, water, reservation, roof and configured body/slope/occupancy plus COVER/CONCEALMENT screen checks.",
+      "notImported": "Whole-wall position enumeration, object classification cache writes, use of native building positions as reachability proof, VIEW-only screening as ballistic protection, trench internal positions flattened to terrain, and any upstream task/controller are not imported.",
+      "gaps": "Explicit trench/bunker interior access and elevation, safe firing arcs, role scoring, actual route/travel and whole source integration remain separate."
+    },
+    "execution": "Existing DangerCoverStep -> CortexFindCover -> current danger actor movement lease. Shared flank/grenade/AT/exterior consumers receive only a screened proposal; no automatic reservation, motion, pose, native route or acceptance credit.",
+    "cost": "Same<=16candidate budget and unchanged per-post world-query bound. Failed primary search adds one worldToModel for each fallback object reached (<=4), bounded scalar arithmetic, no discovery/ray/timer/worker or movement command. Successful original searches add none. Runtime budget5%median/10%p95 remains unmeasured.",
+    "validation": {
+      "red": ".qa/handovers/cover-nearest-face-red-20261030.log:existing rotated-cover case fails before fallback",
+      "focused": ".qa/handovers/cover-nearest-face-focused-20261030.log:617existing operation cases pass; long-wall old-point failure and local fallback, world margins/spacing scale0.5/1/2, translation/rotation, original outside/screening/budget contracts; final focused rerun also passes the discovery-eligible24x4m hull counterexample",
+      "full": ".qa/handovers/cover-nearest-face-build-20261030.log:1505existing tests/488SQF/11PBOs; config/FSM/docs/wiki/parity/coverage and static performance0findings pass",
+      "physical": "NOT RUN; audits PAUSED",
+      "candidate": ".qa/candidates/cover-nearest-face-20261030-f9b6af5a",
+      "fingerprint": "b9977dc779ba05f9b37d3c33a57bb226ae32459044198d46e0e9f2083fe29760",
+      "packageSource": "Unsigned development source basef9b6af5a plus delivered runtime/test/guide changes; dirty=true; engineering metadata finalized afterward. Original unrelated dirt preserved.",
+      "independent": ".qa/handovers/cover-nearest-face-independent-20261030.log:exit0 matching fingerprint"
+    },
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "limits": [
+      "A screened position is not a reachable route, firing solution, continuous safety or arrival.",
+      "Placed/native/modded objects with no physically accessible position may still fail; finite movement refusal/recovery remains with existing owner.",
+      "First successful original post retains priority; fallback budget can run out without examining every object.",
+      "No whole Pinned Down/LAMBS parity, physical behaviour or performance acceptance claim.",
+      "Only already-discovered objects are considered. The fallback does not recover a long object omitted by native radius discovery. Regression includes an object origin inside the original10.8m radius with all previous central posts outside and the nearest protected face inside."
+    ]
   }
 }

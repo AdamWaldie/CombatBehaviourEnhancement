@@ -3699,3 +3699,10 @@ behaviour and measured overhead remain unverified while audits are paused.
 Bypass approach, proposal and final issue checks now convert model bounds into world metres once. Convoy planning uses each vehicle's world dimensions for its worst-hull envelope and column body lengths; configured spacing and safety margins remain metres. Invalid scale refuses planning rather than leaving a partial convoy envelope. Obstacle corner transforms already include scale and remain unchanged.
 
 This corrects a geometry mismatch within the existing finite driving controller. It changes no convoy spacing or braking policy, adds no movement controller or world scan, and grants no new recovery authority. Offline checks cover the dimensional contract; native steering, scaled-vehicle physics, dynamic resize, continuous swept clearance and measured cost remain unverified. Audits remain paused.
+
+
+## Cover near the end of long walls (30 October 2026)
+
+When the normal central cover posts fail, the existing search can now propose the closest point along an object's protected face before its two original lateral alternatives. This makes nearby cover usable near the end of a long wall without extending the search radius. The face follows the threat direction and actual rotated bounds; the new point keeps metre-valued rear clearance and end inset.
+
+All proposals share the existing sixteen-position budget and retain screening, reservations, occupancy and configured body-clearance checks. A proposal grants no movement or arrival credit. Existing danger/operation owners still control travel, refusal and interruption. No extra scan, ray budget, timer or movement controller is added; actual reachability, tactical quality and cost remain unverified while audits are paused.

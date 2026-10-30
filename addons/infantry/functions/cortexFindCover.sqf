@@ -2,9 +2,12 @@
  * Author: WaldoTheWarfighter
  * Finds a covered position near a point, on the far side of a solid object from a threat.
  *
- * Up to three nearby posts per object share a sixteen-post budget across ten ranked objects.
- * Every original threat-away post keeps its ranked priority before lateral fallback posts
- * nominally2.25m either side are considered. Successful original searches do no extra post work.
+ * Up to four posts per object share a sixteen-post budget across ten ranked objects.
+ * Every original threat-away post keeps its ranked priority. Only after those fail, try
+ * the closest protected-face post, then original lateral posts nominally2.25m either side.
+ * The nearest face uses0.8m rear clearance and0.45m lateral end inset, in world metres;
+ * it is a proposal, never proof of a firing position, walkable route or physical arrival.
+ * Successful original searches do no extra post work or transforms.
  * Each alternate independently retains reservations, occupancy and screening; native access
  * and actual movement remain the caller's responsibility. No stance or movement is written.
  * The candidate sits outside the
@@ -86,12 +89,32 @@ private _postChecks=0;
         };
         private _primary=_modelCentre vectorAdd (_direction vectorMultiply (_edge+0.8));
         private _side=[-(_direction select 1),_direction select 0,0];
-        private _offsets=if (_pass == 0) then {[0]} else {[2.25,-2.25]};
+        private _nearest=[];
+        if (_pass == 1) then {
+            // The central shadow can be far outside the local search at a long wall.
+            // Project the requested point onto the nearest protected face instead of
+            // extending the search or sampling the whole wall. Screening still decides.
+            private _faceAxis=if (abs (_direction select 0) >= abs (_direction select 1)) then {0} else {1};
+            private _lateralAxis=1-_faceAxis;
+            private _faceSign=if ((_direction select _faceAxis) >= 0) then {1} else {-1};
+            private _searchPoint=+_position;
+            if (count _searchPoint == 2) then {_searchPoint pushBack 0};
+            private _modelPosition=_object worldToModel _searchPoint;
+            private _lateralLimit=((_half select _lateralAxis)-0.45/_scale) max 0;
+            private _lateral=((_modelPosition select _lateralAxis)-(_modelCentre select _lateralAxis))
+                max (-_lateralLimit) min _lateralLimit;
+            _nearest=+_modelCentre;
+            _nearest set [_faceAxis,(_modelCentre select _faceAxis)+_faceSign*((_half select _faceAxis)+0.8/_scale)];
+            _nearest set [_lateralAxis,(_modelCentre select _lateralAxis)+_lateral];
+        };
+        private _offsets=if (_pass == 0) then {[0]} else {[0,2.25,-2.25]};
         {
             if (_postChecks >= 16 || {_result isNotEqualTo []}) exitWith {};
             _postChecks=_postChecks+1;
             private _offset=_x;
-            private _modelCandidate=_primary vectorAdd (_side vectorMultiply (_offset/_scale));
+            private _modelCandidate=if (_pass == 1 && {_offset == 0}) then {_nearest} else {
+                _primary vectorAdd (_side vectorMultiply (_offset/_scale))
+            };
             // Lateral alternatives must remain outside the same rotated footprint.
             // An oblique offset can otherwise put one of them back inside the object.
             private _outside=(_modelCandidate select 0) < (_minimum select 0)

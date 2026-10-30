@@ -13467,7 +13467,40 @@ class CortexOperations(unittest.TestCase):
                 self.assertEqual(len(free),2)
                 self.assertTrue(all(math.isclose(math.dist(p,primary),2.25) for p in free))
                 self.assertFalse(math.dist(primary,primary)>=2)
-        self.assertIn('private _offsets=if (_pass == 0) then {[0]} else {[2.25,-2.25]}',text)
+        self.assertIn('private _offsets=if (_pass == 0) then {[0]} else {[0,2.25,-2.25]}',text)
+        self.assertIn('if (_pass == 1 && {_offset == 0}) then {_nearest}',text)
+        self.assertIn('private _faceAxis=',text)
+        self.assertIn('(_half select _faceAxis)+0.8/_scale',text)
+        self.assertIn('((_half select _lateralAxis)-0.45/_scale) max 0',text)
+        self.assertIn('_object worldToModel _searchPoint',text)
+        # Near the end of a long wall every old central post is outside a local
+        # search, while the closest protected-face point remains close and behind
+        # the actual wall. World margins survive rotation, scale and asymmetric origin.
+        for scale in (.5,1,2):
+            # The cover object's origin is itself inside the unchanged10.8m
+            # discovery radius; this is not a point-only example that the native
+            # object search would necessarily omit. Same24x4m hull at each scale.
+            lo=(-12/scale,-2/scale); hi=(12/scale,2/scale); actor=(8,-7)
+            radius=10.8
+            self.assertLess(math.dist((0,0),actor),radius)
+            primary=(0,2+.8*scale)
+            self.assertTrue(all(math.dist((shift,primary[1]),actor)>radius for shift in (0,2.25,-2.25)))
+            lateral_limit=max((hi[0]-lo[0])/2-.45/scale,0)
+            nearest=(max(-lateral_limit,min(lateral_limit,actor[0]/scale))*scale,hi[1]*scale+.8)
+            self.assertLess(math.dist(nearest,actor),radius)
+            self.assertAlmostEqual(nearest[1]-hi[1]*scale,.8)
+            self.assertGreaterEqual(hi[0]*scale-nearest[0],.45-1e-9)
+            for angle in (0,30,90):
+                theta=math.radians(angle)
+                def transformed(p):
+                    x,y=p
+                    return (123+x*math.cos(theta)-y*math.sin(theta),
+                            -77+x*math.sin(theta)+y*math.cos(theta))
+                self.assertAlmostEqual(math.dist(transformed(nearest),transformed(actor)),math.dist(nearest,actor))
+        # Fallback has no permission to skip body clearance, occupancy or screening.
+        self.assertIn('_candidate nearEntities ["CAManBase",1.2]',text)
+        self.assertIn('(surfaceNormal _candidate select 2) >= 0.65',text)
+
         self.assertIn('forEach [0,1]',text)
         # At an oblique far corner one nominal side step can re-enter the wall.
         # A lateral proposal must not inherit the primary post's outside proof.
