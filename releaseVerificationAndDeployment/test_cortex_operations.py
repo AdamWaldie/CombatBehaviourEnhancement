@@ -3172,7 +3172,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_count,_index,[_group,"",false,_index] call CBE_fnc_AuthoredRouteReceipt]',receipt)
         metadata=source('authoredRouteReceipt')
         self.assertIn('if (isNull _vehicle && {isNull _object}) then {waypointPosition _waypoint} else {[]}',metadata)
-        self.assertIn('_previous param [9,_nativeOrderReceipt,[[]]]',start)
+        self.assertIn('_previous select 9',start)
         self.assertIn('["nativeOrderReceipt",_nativeOrderReceipt]',start)
         gate=step.index('([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo _nativeOrderReceipt')
         self.assertLess(gate,step.index('if ((_job getOrDefault ["phase","CLEAR"]) == "EGRESS")'))
@@ -3791,7 +3791,7 @@ class CortexOperations(unittest.TestCase):
     def test_clearance_absolute_lifetime_survives_resume_and_cannot_be_renewed_by_progress(self):
         admission=source('cortexClearBuilding')
         step=source('buildingOperationStep')
-        self.assertIn('_previous param [10,_deadline,[0]]',admission)
+        self.assertIn('_previous select 10',admission)
         self.assertIn('(240 max (60*count _positions)) min 900',admission)
         self.assertIn('[_building, _cleared, _deadline',admission)
         self.assertIn('_nativeOrderReceipt, _hardDeadline, _contactBelief, _continueRoute, +_admissionTransform], true]',admission)
@@ -13916,7 +13916,8 @@ class CortexOperations(unittest.TestCase):
     def test_clearance_resume_refusals_precede_other_task_handoff(self):
         text=source('cortexClearBuilding')
         deadline=text.index('if (serverTime >= (_deadline min _hardDeadline)) exitWith')
-        changed_order=text.index('if (_resume && {(_previous param [9,_nativeOrderReceipt')
+        changed_order=text.index('if (_resume && {(_previous select 9')
+        self.assertLess(text.index('call CBE_fnc_ClearOrderValid'),changed_order)
         for cleanup in ('call CBE_fnc_CortexReleaseGroup',
                         'call CBE_fnc_CortexGarrisonRelease','call CBE_fnc_CortexDefendRelease'):
             self.assertLess(deadline,text.index(cleanup))
@@ -13997,7 +13998,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('vectorDistance (AGLToASL (_stage select 0)) <= 2',replay)
         self.assertIn('<= 0.75',replay)
 
-        self.assertLess(start.index('_previous param [9,_nativeOrderReceipt'),start.index('// Keep reserve search consumption'))
+        self.assertLess(start.index('_previous select 9'),start.index('// Keep reserve search consumption'))
         step=source('buildingOperationStep')
         publish=step.split('private _stageBudget=[_job] call CBE_fnc_BuildingStageJournal;',1)[1].split('// Release reservations before selection',1)[0]
         self.assertIn('count _stageBudget == 5',publish)

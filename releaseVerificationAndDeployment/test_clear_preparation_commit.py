@@ -19,6 +19,26 @@ class ClearPreparationCommitTests(unittest.TestCase):
         for forbidden in ('setVariable','doMove','doStop','forceSpeed','setUnitPos','CortexClearRelease','serverTime+'):
             self.assertNotIn(forbidden,preflight)
         self.assertLess(text.index('if (_resumeSettingsPending) exitWith'),text.index('call CBE_fnc_OperationStart'))
+        valid=(ROOT/'addons/infantry/functions/clearOrderValid.sqf').read_text(encoding='utf-8')
+        body=valid.split('*/',1)[1]
+        for proof in ('count _order != 14','count _failures > 512','_expectedCount != _size',
+                      '(_cleared arrayIntersect _unreachable)','count _retries > _size',
+                      '!isNil {_retries select _i}','_spent != floor _spent',
+                      '_native findIf {isNil "_x"}','_transform findIf {isNil "_x"}'):
+            self.assertIn(proof,body)
+        for forbidden in ('setVariable','set [','pushBack','resize','serverTime','doMove','remoteExec'):
+            self.assertNotIn(forbidden,body)
+        self.assertLess(text.index('["INVALID_PRIOR_CLEAR_ORDER"]'),text.index('private _resumeCurrent='))
+        self.assertLess(text.index('["RESUME_ROOM_HISTORY_MISMATCH"]'),text.index('call CBE_fnc_OperationStart'))
+        for forbidden in ('_previous param [7,serverTime]','_previous param [10,_deadline',
+                          '_previous param [8,attackEnabled','_previous param [9,_nativeOrderReceipt',
+                          'if (count _failedBy != count _positions) then'):
+            self.assertNotIn(forbidden,text)
+        for field in (4,5,6,7,8,9,10,11,12):self.assertIn('_previous select '+str(field),text)
+        discover=(ROOT/'addons/core/functions/cortexDiscover.sqf').read_text(encoding='utf-8')
+        resume=discover.split('if (_clear isNotEqualTo [] && {!(_group getVariable ["CBE_AIPass_ClearApplied", false])}',1)[1]
+        self.assertLess(resume.index('call CBE_fnc_ClearOrderValid'),resume.index('_clear select 0'))
+
         self.assertLess(text.index('RESUME_ACTOR_SETTINGS_CHANGED'),text.index('call CBE_fnc_CortexReleaseGroup'))
         self.assertIn('!([false] call _inspectResumeSettings)',text)
         gate=text.split('private _commitPreparation={',1)[1].split('// A valid new operation',1)[0]

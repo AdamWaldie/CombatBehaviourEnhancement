@@ -2615,3 +2615,15 @@ there is no task replay or second movement loop. Posture and formation are delib
 left with their existing owners; no new actor-setting lease is needed. Earlier notes
 calling the Creep executor unimplemented are superseded by this scoped implementation,
 not by physical acceptance or complete covert-movement behaviour.
+
+
+Clearance resume now validates the complete durable order before startup and checks
+room-history count against the current selected geometry. Missing progress time,
+failure rows, original attack permission, hard deadline or native-route receipt no
+longer receive fresh defaults. Sparse retry entries retain absence and spent values.
+A malformed incoming order refuses without retiring a newer task or erasing history;
+discovery cannot index an invalid resume order into a startup request.
+
+These data checks do not authenticate a producer, stop an old writer, acknowledge
+native commands/settings or seal a transfer. Complete incoming phase reconstruction
+and physical owner-transfer acceptance remain unfinished; audits are paused.

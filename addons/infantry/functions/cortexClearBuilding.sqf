@@ -29,6 +29,8 @@
  * Geometry is captured before queries and rechecked before replacement and publication.
  * The worker retains that original snapshot, never a recaptured post-planning pose.
  * Resume is adoption only: missing, replaced or different-target orders never become fresh tasks.
+ * Durable progress/settings/clock shape is validated before startup; missing failure history or
+ * progress time cannot become empty history or a new timestamp.
  * Discovery supplies its exact durable order/generation; admission rechecks them before handoff.
  * Prepared worker startup retains the admitted operation epoch. Refusal reports false and
  * retires only this still-owned clear; a new owner or successor retains its durable state.
@@ -168,6 +170,9 @@ private _admissionGeneration=_group getVariable ["CBE_AIPass_ClearGeneration",0]
 private _previous = _group getVariable ["CBE_AIPass_ClearOrder", []];
 private _resumeRequested=_options getOrDefault ["resume",false];
 if !(_resumeRequested isEqualType true) exitWith {["INVALID_RESUME"] call _refuse};
+if ((_resumeRequested || {_previous isNotEqualTo []}) && {!([_previous] call CBE_fnc_ClearOrderValid)}) exitWith {
+    ["INVALID_PRIOR_CLEAR_ORDER"] call _refuse
+};
 private _expectedOrder=_options getOrDefault ["resumeOrder",_previous];
 private _expectedGeneration=_options getOrDefault ["resumeGeneration",_admissionGeneration];
 private _resumeCurrent={
@@ -253,6 +258,9 @@ private _positions = _allPositions select {
 // permission to advertise every model position as a verified interior room.
 if (_positions isEqualTo []) exitWith {
     ["NO_VALID_ROOFED_POSITIONS"] call _refuse
+};
+if (_resumeRequested && {!([_previous,count _positions] call CBE_fnc_ClearOrderValid)}) exitWith {
+    ["RESUME_ROOM_HISTORY_MISMATCH"] call _refuse
 };
 private _leader = [_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
@@ -377,7 +385,7 @@ if (_useResumeRoster) then {
 };
 // A one-time native belief may seed a floor's route, never track an unseen live target.
 // Preserve the original timestamp across owner adoption; a stale hint is not renewed.
-private _contactBelief=if (_resume) then {+(_previous param [11,[],[[]]])} else {_options getOrDefault ["contactBelief",[]]};
+private _contactBelief=if (_resume) then {+(_previous select 11)} else {_options getOrDefault ["contactBelief",[]]};
 private _validBelief=_contactBelief isEqualType [] && {count _contactBelief == 2}
     && {(_contactBelief select 0) isEqualType []} && {count (_contactBelief select 0) == 3}
     && {(_contactBelief select 0) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
@@ -394,32 +402,31 @@ if (_validBelief) then {
 if (!_validBelief) then {_contactBelief=[]} else {_contactBelief=[+(_contactBelief select 0),_contactBelief select 1]};
 private _baseBehaviour = if (_previous isEqualTo []) then {behaviour _leader} else {_previous select 3};
 private _cleared = if (_resume) then {+(_previous select 1)} else {[]};
-private _unreachable = if (_resume) then {+(_previous param [4, []])} else {[]};
-private _retryCounts = if (_resume) then {+(_previous param [5, []])} else {[]};
-private _failedBy = if (_resume) then {+(_previous param [6, _positions apply {[]}])} else {_positions apply {[]}};
-if (count _failedBy != count _positions) then {_failedBy = _positions apply {[]}};
-private _lastProgressAt = if (_resume) then {_previous param [7,serverTime]} else {serverTime};
+private _unreachable = if (_resume) then {+(_previous select 4)} else {[]};
+private _retryCounts = if (_resume) then {+(_previous select 5)} else {[]};
+private _failedBy = if (_resume) then {+(_previous select 6)} else {_positions apply {[]}};
+private _lastProgressAt = if (_resume) then {_previous select 7} else {serverTime};
 private _deadline = if (_resume) then {_previous select 2} else {serverTime + 240};
 // Genuine approach progress may renew the stall lease, but never the episode lifetime.
 // Retain the absolute server-clock boundary across HC resume; legacy orders keep their
 // already published deadline rather than gaining a fresh lifetime on each owner.
 private _lifetime = (240 max (60*count _positions)) min 900;
-private _hardDeadline = if (_resume) then {_previous param [10,_deadline,[0]]} else {serverTime+_lifetime};
+private _hardDeadline = if (_resume) then {_previous select 10} else {serverTime+_lifetime};
 if (_taskDeadline >= 0) then {_hardDeadline=_hardDeadline min _taskDeadline;_deadline=_deadline min _hardDeadline};
 if (_resume && {!(call _resumeCurrent)}) exitWith {["RESUME_ORDER_CHANGED"] call _refuse};
 if (serverTime >= (_deadline min _hardDeadline)) exitWith {[] call _retireResume; false};
 // Validate the new building/team before one release/publication commit. A fresh request
 // may supersede the observed task, never a later task which appeared during preparation.
 if !(call _admissionStable) exitWith {["TARGET_CHANGED_DURING_ADMISSION"] call _refuse};
-private _baseAttack=if (_resume) then {_previous param [8,attackEnabled _leader,[true]]} else {attackEnabled _leader};
+private _baseAttack=if (_resume) then {_previous select 8} else {attackEnabled _leader};
 private _nativeOrderReceipt=[_group] call CBE_fnc_NativeOrderReceipt;
-if (_resume && {(_previous param [9,_nativeOrderReceipt,[[]]]) isNotEqualTo _nativeOrderReceipt}) exitWith {
+if (_resume && {(_previous select 9) isNotEqualTo _nativeOrderReceipt}) exitWith {
     [false] call _retireResume;
     false
 };
 if !([_group,false,false,true] call CBE_fnc_CortexIsEligible) exitWith {["GROUP_INELIGIBLE"] call _refuse};
 private _preserveBrain=_options getOrDefault ["preserveBrain",false];
-private _continueRoute=if (_resume) then {_previous param [12,false,[true]]} else {_options getOrDefault ["continueRoute",false]};
+private _continueRoute=if (_resume) then {_previous select 12} else {_options getOrDefault ["continueRoute",false]};
 if (!(_continueRoute isEqualType true)) exitWith {["INVALID_CONTINUATION"] call _refuse};
 if (!(_preserveBrain isEqualType true)) exitWith {["INVALID_PRESERVE_BRAIN"] call _refuse};
 // A delayed lane/roster publication must not consume the durable order by entering

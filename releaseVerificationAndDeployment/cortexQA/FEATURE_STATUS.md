@@ -60,7 +60,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | DEFEND - Defence orders | 0 | 0 | 5 | `runServer.sqf` | 0 | implemented_partial |
 | CLEAR - Building clearance | 2 | 0 | 46 | `runBuildingComparison.sqf`, `runIndoorActors.sqf`, `runIndoorActorsHC.sqf`, `runIndoorNatural.sqf` | 2 | implemented_partial |
 | UI - CBA configuration and diagnostics | 0 | 0 | 9 | `runClient.sqf` | 0 | implemented_partial |
-| LIFECYCLE - Transfer, disconnect and JIP | 0 | 0 | 19 | `runLifecycle.sqf` | 6 | implemented_partial |
+| LIFECYCLE - Transfer, disconnect and JIP | 0 | 0 | 20 | `runLifecycle.sqf` | 6 | implemented_partial |
 | MULTI-FLANK - Multi-squad flank cohesion | 0 | 0 | 0 | `runMultiManoeuvre.sqf` | 1 | implemented_partial |
 | MULTI-BOUND - Squad and multi-squad bounding overwatch | 0 | 0 | 0 | `runMultiManoeuvre.sqf` | 1 | implemented_partial |
 | MULTI-WITHDRAW - Multi-squad screened withdrawal | 0 | 0 | 0 | `runReactions.sqf` | 0 | implemented_partial |
@@ -414,7 +414,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 **Expected:** One owner executes each action, restored controls match prior state, public results replay and jobs/handlers do not leak.
 
-**Automation and open work:** runLifecycle.sqf retains the accepted disable/restart, Zeus replacement and leader-casualty cases. Additive active-state cases now migrate INVESTIGATE, naturally reached SEARCH and production RETREAT to an HC: each requires OWNERSHIP_RESUME, the original deadline/start, and continued physical movement. RETREAT must not replay smoke, and Zeus must permanently release all three states. These new cases are saved but unexecuted. ACE migration, disconnect, JIP, deletion and remaining action phases remain open.
+**Automation and open work:** runLifecycle.sqf retains the accepted disable/restart, Zeus replacement and leader-casualty cases. Additive active-state cases now migrate INVESTIGATE, naturally reached SEARCH and production RETREAT to an HC: each requires OWNERSHIP_RESUME, the original deadline/start, and continued physical movement. RETREAT must not replay smoke, and Zeus must permanently release all three states. These new cases are saved but unexecuted. ACE migration, disconnect, JIP, deletion and remaining action phases remain open. Durable CQB resume orders now require complete typed progress/settings/clocks and matching room-history size before startup; synthetic fresh progress/failure defaults removed. This is not a sealed all-writer transfer or native-readiness proof.
 
 ### MULTI-FLANK - Multi-squad flank cohesion
 

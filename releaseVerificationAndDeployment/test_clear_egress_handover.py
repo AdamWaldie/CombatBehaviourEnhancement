@@ -73,7 +73,7 @@ class ClearEgressHandoverTests(unittest.TestCase):
         contact=(ROOT/'addons/infantry/functions/cortexBuildingContact.sqf').read_text(encoding='utf-8')
         s=(ROOT/'addons/infantry/functions/buildingOperationStep.sqf').read_text(encoding='utf-8')
         self.assertIn('["continueRoute",true]',contact)
-        self.assertIn('_previous param [12,false,[true]]',admission)
+        self.assertIn('_previous select 12',admission)
         self.assertIn('_options getOrDefault ["continueRoute",false]',admission)
         self.assertIn('"INVALID_CONTINUATION"',admission)
         self.assertIn('_job getOrDefault ["continueRoute",false],+(_job get "buildingTransform")], true]',s)

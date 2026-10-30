@@ -219,6 +219,7 @@ class CfgFunctions {
             class IndoorActorNodeSelect {file = "\z\cbe\addons\infantry\functions\indoorActorNodeSelect.sqf";};
             class BuildingLaneJournal {file = "\z\cbe\addons\infantry\functions\buildingLaneJournal.sqf";};
             class BuildingStageJournal {file = "\z\cbe\addons\infantry\functions\buildingStageJournal.sqf";};
+            class ClearOrderValid {file = "\z\cbe\addons\infantry\functions\clearOrderValid.sqf";};
             class BuildingRoomJournal {file = "\z\cbe\addons\infantry\functions\buildingRoomJournal.sqf";};
             class BuildingProducerRegister {file = "\z\cbe\addons\infantry\functions\buildingProducerRegister.sqf";};
             class BuildingActorJournal {file = "\z\cbe\addons\infantry\functions\buildingActorJournal.sqf";};

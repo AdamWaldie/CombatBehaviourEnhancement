@@ -241,7 +241,8 @@ if (_tacticalReference isEqualType [] && {count _tacticalReference == 5}) then {
             };
             _clear=_group getVariable ["CBE_AIPass_ClearOrder",[]];
         };
-        if (_clear isNotEqualTo [] && {!(_group getVariable ["CBE_AIPass_ClearApplied", false])}) then {
+        if (_clear isNotEqualTo [] && {!(_group getVariable ["CBE_AIPass_ClearApplied", false])}
+            && {[_clear] call CBE_fnc_ClearOrderValid}) then {
             [_group, _clear select 0, createHashMapFromArray [["resume", true],["resumeOrder",+_clear],["resumeGeneration",_group getVariable ["CBE_AIPass_ClearGeneration",0]]]] call CBE_fnc_CortexClearBuilding;
         };
         // Aircraft occupants have dedicated flight, flare, missile-reaction and airborne controllers.

@@ -9,7 +9,7 @@ class ClearContactBeliefTests(unittest.TestCase):
         self.assertIn('call CBE_fnc_BuildingContactSelect',contact)
         self.assertIn('[+_belief,serverTime-(_x select 2)]',source('buildingContactSelect'))
         self.assertIn('["contactBelief",_contactBelief]',contact)
-        self.assertIn('_previous param [11,[],[[]]]',start)
+        self.assertIn('_previous select 11',start)
         for check in ('!finite _x','finite (_contactBelief select 1)',
                       'serverTime-(_contactBelief select 1) >= 0',
                       'serverTime-(_contactBelief select 1) <= 5',
