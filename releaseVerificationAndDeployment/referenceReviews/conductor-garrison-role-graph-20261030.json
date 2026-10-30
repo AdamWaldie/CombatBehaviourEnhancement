@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-30",
+  "sourceBase": "6e999df28909b9bf93a034b4687a8909d6194eec",
+  "workshopId": "3799629858",
+  "status": "SELECTED_READABLE_OPERATOR_ROLE_AND_RELEASE_GRAPH_RECONCILED_EXPLICIT_MANNING_AND_FIRE_POST_GAPS_NOT_IMPLEMENTED",
+  "sources": [
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/config.cpp",
+      "sha256": "b47db48642a0cb03d07ea5cff1d50705310fce6fb3b451017cdec85b9dc6344b",
+      "manifestMatch": true,
+      "scope": "Selected garrison waypoint registration, module category and module declaration, including scope2/scopeCurator0; not whole config."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/integration/fn_canSupportGroup.sqf",
+      "sha256": "026db92b759f993bd115985984f0a098345dd21c5e5c73f267faaf4b57dbd5b7",
+      "manifestMatch": true,
+      "scope": "Readable ownership/capability/mission/player/lease/cooperative gates inspected; called ownership/BattleLines provider graph incomplete."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/garrison/fn_moduleGarrison.sqf",
+      "sha256": "fafaf918f67c75df5d0c058ff71a001700b820090087e0cee8c6859539a4f1cf",
+      "manifestMatch": true,
+      "scope": "Readable entry/readiness/synchronization/dispatch body inspected; descendants not thereby complete."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/garrison/fn_waypointGarrison.sqf",
+      "sha256": "6c3430e5080e3f6d7ce60da0e995cfd066f69fc2be92d83b05b1aa67ddf0c74e",
+      "manifestMatch": true,
+      "scope": "Readable staging, broad policy reset, group approach and repeated PFH callback body inspected; called activation incomplete."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/garrison/fn_requestGarrison.sqf",
+      "sha256": "6ca335c7e54908a7b8dc3173bdc1c38c053090493d99bb6ae1dad3826f0d8e07",
+      "manifestMatch": true,
+      "scope": "Complete 16-line API wrapper."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/garrison/fn_getGarrisonRole.sqf",
+      "sha256": "011b56e5c7e987acfe6f331d5dfdbd7f8639c753d0e8472682e5005cc285288e",
+      "manifestMatch": true,
+      "scope": "Complete 44-line role-priority classifier."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/garrison/fn_findGarrisonWeapons.sqf",
+      "sha256": "508ac807d1ac99adc091d4f7a2fce951428ae4c8407b9ee5de19f253e6af918b",
+      "manifestMatch": true,
+      "scope": "Complete 66-line empty direct-fire LandVehicle turret discovery helper. Does not handle StaticWeapon itself."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/garrison/fn_scoreGarrisonCover.sqf",
+      "sha256": "7dd101e595106bc14721865dd3bc9910b34a669639a326da552a3f7e6e5ce23c",
+      "manifestMatch": true,
+      "scope": "Complete 48-line low/front/side/rear geometry score helper; assumed preceding clear-fire LOS not validated here."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/garrison/fn_releaseGarrison.sqf",
+      "sha256": "b41741d037b09f60dbed0e1e51366be585a534c2f55673938964c0d70d6c0823",
+      "manifestMatch": true,
+      "scope": "Complete 157-line release body."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/garrison/fn_activateGarrison.sqf",
+      "sha256": "377b06f3509b37fb66344e821933abe143c88843f1ff6aad2a116269ac8e6902",
+      "manifestMatch": true,
+      "scope": "Selected static assignment/normal boarding versus forced instant seating and vehicle-turret reservation/assignment branches,400..576. Whole1005line activation and earlier candidate/admission graph incomplete."
+    }
+  ],
+  "sourceIntegrity": "Ten inspected extracted-source byte hashes match immutable archive manifest. Original packages remain absent; no source/archive writes, raw source copied or source execution.",
+  "productHashes": {
+    "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
+    "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
+    "addons/infantry/functions/garrisonTaskDialog.sqf": "670c75d8675268528fb9a6b1d9c52925963a455d03c848f0abed5521dc359b3b",
+    "addons/infantry/functions/zenGarrisonModule.sqf": "ab886da14f7d128d37b85bde41a7caf3176153782ac4c5dd2e10d3e645e0b26d",
+    "addons/infantry/functions/cortexGarrison.sqf": "34caf1a6b87acf9e4918263479b7f92c3cd21063a20ddda10fcdd111216d66fd",
+    "addons/infantry/functions/cortexStaticSupport.sqf": "6bcea120f309736923447436551a00cb058bf5e65c9d9a87285d1f88f1294d7f",
+    "addons/infantry/functions/cortexUnitRole.sqf": "b302ddfabecd6cbd6dad67ca47eff4b6f95cad0f63e86b7a1331fe9123409428",
+    "addons/support/functions/cortexSupportApply.sqf": "d2ea4fe8a5c33d140888a94a4faf93b383cbe9f9535e449b2e2f458fff610f3c"
+  },
+  "productScope": "Selected actual operator, planning/assignment, role and contact-static owner branches; not complete bodies of every CBE descendant or physical/compiled-source parity.",
+  "dispositions": [
+    {
+      "intent": "One clear garrison operator task with walking or explicit instant placement.",
+      "source": "Eden scope2/curator0 module invokes activation with SETPOS after readiness PFH; synced groups need server-local leaders. Scripted waypoint uses walking activation after formation approach.",
+      "current": "CBE existing curator module, native task dialog, optional ZEN and script API already expose walking/instant, radius and height preference through authenticated server/current owner. Instant applies only initial building positions; replay/adoption does not repeat it.",
+      "decision": "Keep one task intent and existing frontend options; no duplicate source-branded/settings module. Dedicated Eden synchronized-module approach/attributes are not currently supplied by curator-only class scope1; do not silently claim literal frontend parity or modify curator authentication to impersonate Eden."
+    },
+    {
+      "intent": "Man useful empty defensive weapons as part of an explicit garrison.",
+      "source": "Static branch uses assignAsGunner/orderGetIn; direct-fire LandVehicle helper enumerates unoccupied turret paths, rejects enemy crew/locked/damaged/artillery candidates and reserves stringified turret path. Instant mode uses moveInGunner/moveInTurret.",
+      "current": "CortexStaticSupport already has finite contact-episode native static boarding and compatible bag deployment; it is not an explicit garrison weapon option. CortexGarrison allocates foot building/exterior positions. CortexVehicleCrewRecover is a selected existing commander seat change, not fresh garrison manning.",
+      "decision": "Explicit garrison static/empty vehicle-turret roles remain a real implementation gap. Integrate through actual original actor/station/garrison ownership and finite native boarding/ack/release; do not create another autonomous controller, infer vacancy from only turretUnit or force-seat as a shortcut. Caller-approved building teleport does not establish seat-mutation authority. Existing contact static implementation must not be duplicated."
+    },
+    {
+      "intent": "Put appropriate defenders in useful firing positions.",
+      "source": "Role helper uses MEDIC trait, then classname/display-name/weapon substring MG and marksman tests, binocular observer, secondary-weapon AT, general. Cover helper scores low sill and side/rear obstructions, assuming clear firing view already proved.",
+      "current": "CBE Garrison sorts roofed posts then height/random preference and retains per-actor geometry/transform. CortexUnitRole has different shared LEADER/AT/MG/MEDIC/RIFLE policy; no matching garrison role-specific firing-post allocator is demonstrated.",
+      "decision": "Role-aware protected/firing-post selection remains incomplete. Do not relabel raw high-post sorting as a clear firing lane, blindly sort medics into exterior surplus, infer all launchers are AT or copy fragile classname substrings. Actual firing field, physical accessibility, protected/support roles and operator preference must be reconciled before assigning quality scores."
+    },
+    {
+      "intent": "Repeat and release without leaving native work behind.",
+      "source": "Waypoint changes attack/posture/speed/follow and reissues group move after staging windows; module readiness PFH has no original finite timeout. Release removes known approach PFH, then broadly unassigns statics/turrets, restores stored attack/PATH/speed/posture and usually follows current leader. Turret reservations remove by path string without an original transaction token in this body.",
+      "current": "Current CBE garrison/static owners have their own admission/assignment/native/settings/epoch boundaries. Existing support has tokened original-radius leases; source broad private flags are not matching authority.",
+      "decision": "Reject unqualified repeated approach, broad native reset, default baseline reconstruction and flag-only seat cleanup. Completing source flags is not actual worker/native quiescence. Pending actual boarding/assignment/exit, deletion and provider/mission supersession must retain original identity/deadline/seat proof; whole activation1005line and tick533line graphs still need reconciliation."
+    },
+    {
+      "intent": "Borrow only available support groups.",
+      "source": "canSupportGroup protects requester/player/lease/mission/garrison/pressure/own engagement and delegates cooperative BattleLines authority to provider functions.",
+      "current": "CBE SupportApply already has native/Zeus/provider, authored-order, same-contact, operator-crew and actual-owner capability gates. Fresh primary-ammo admission is the preceding implemented checkpoint.",
+      "decision": "No new support movement or provider quiescence is established by this review. Provider callback/return graph and actual source ownership inspection remain incomplete; do not adopt public helper flags as execution authority."
+    }
+  ],
+  "newRuntimeImplementation": false,
+  "nextRequiredWork": [
+    "Before explicit garrison weapon roles: finish actual activation/tick assignment, bounded worker and release graph, then reuse/adapt one owner-local native boarding transaction with original slot assignment and actual acknowledgement. Expose only implemented per-task options through existing garrison surfaces.",
+    "Before role-aware posts: reconcile source LOS/admission and current bounded geometry/role/assignment rules; do not substitute height ranking or arbitrary actor ordering for the desired firing/protection intent.",
+    "Continue remaining Conductor registry/contact/proposal/support/provider graphs, plus full LAMBS/HBQ/Protocol production scope. No whole-mod percentages from file/helper counts."
+  ],
+  "validation": {
+    "hashes": "All10 selected source files match archive manifest;8 selected product hashes identify current inspected revisions.",
+    "reviewChecks": "PASS: 3 reference-boundary tests, source-header/documentation-link checker, register/evidence JSON parsing, 10 immutable archive manifest hashes and 8 current product hashes. Runtime unchanged; no full rebuild repeated.",
+    "runtime": "No runtime inputs changed. Retain6e999df2 full1506tests/489SQF/11PBO and independent candidate .qa/candidates/support-primary-capacity-20261030-add7204e, fingerprint0b944dbf435e12ffd7b8c6c066be293a0f9a6e30ef7357308885d7b057053986. No unchanged rebuild.",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "performance": "UNMEASURED"
+  }
+}
