@@ -356,12 +356,13 @@
       "id": "MEDICAL",
       "title": "Finite squad medical assistance",
       "setup": "Use a local on-foot medic and one injured squad-mate in CALM and SECURITY. Repeat with active contact, a Zeus replacement order, a specialist medical owner, no medic, a vehicle passenger, and an unreachable casualty.",
-      "expected": "Only an eligible medic physically approaches and uses native treatment during CALM or SECURITY. CBE never changes health, teleports, merges groups or holds an assault. Contact, a newer Zeus order, specialist medical ownership, loss of an actor or no physical progress cancel the matching finite operation without replacing an external command.",
+      "expected": "Only an eligible medic physically approaches and uses native treatment during CALM or SECURITY. CBE never changes health, teleports, merges groups or holds an assault. Contact, a newer Zeus order, specialist medical ownership, loss of an actor or no physical progress cancel the matching finite operation without replacing an external command. Native leg-only injury above the configured threshold also qualifies for aid, and completion uses the original body/leg policy and deadline. New thresholds or timeout apply only to later attempts. Leg-only native treatment and live settings-change fixtures remain pending; existing fixtures do not prove them.",
       "settings": [
         "CBE_AIPass_MedicalAssist_Enable",
         "CBE_AIPass_MedicalAssist_Range",
         "CBE_AIPass_MedicalAssist_DamageThreshold",
-        "CBE_AIPass_MedicalAssist_Timeout"
+        "CBE_AIPass_MedicalAssist_Timeout",
+        "CBE_AIPass_MedicalAssist_LegThreshold"
       ],
       "status": "implemented_partial",
       "live_evidence": [],

@@ -17,7 +17,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | LAND - Helicopter landing | 21 | 0 | 8 | `runLanding.sqf` | 1 | implemented_partial |
 | DECEL - Helicopter braking | 14 | 1 | 3 | `runDeceleration.sqf` | 0 | implemented_partial |
 | REGROUP - Survivor regroup | 9 | 0 | 2 | `runMechanics.sqf` | 0 | implemented_partial |
-| MEDICAL - Finite squad medical assistance | 4 | 0 | 1 | `runReactions.sqf` | 0 | implemented_partial |
+| MEDICAL - Finite squad medical assistance | 5 | 0 | 1 | `runReactions.sqf` | 0 | implemented_partial |
 | CONTACT - Contact detection | 10 | 0 | 33 | `runContact.sqf`, `runCombat.sqf`, `runTacticalAssessment.sqf`, `runScheduler.sqf`, `runVehicleDrills.sqf` | 0 | implemented_partial |
 | POST - Post-contact search | 5 | 0 | 2 | `runMechanics.sqf`, `runContact.sqf` | 0 | implemented_partial |
 | FLANK - Flanking bounds | 8 | 0 | 6 | `runCombat.sqf` | 3 | implemented_partial |
@@ -154,7 +154,7 @@ Feature cases: **65**. Required variant categories: **14**.
 
 ### MEDICAL - Finite squad medical assistance
 
-**Expected:** Only an eligible medic physically approaches and uses native treatment during CALM or SECURITY. CBE never changes health, teleports, merges groups or holds an assault. Contact, a newer Zeus order, specialist medical ownership, loss of an actor or no physical progress cancel the matching finite operation without replacing an external command.
+**Expected:** Only an eligible medic physically approaches and uses native treatment during CALM or SECURITY. CBE never changes health, teleports, merges groups or holds an assault. Contact, a newer Zeus order, specialist medical ownership, loss of an actor or no physical progress cancel the matching finite operation without replacing an external command. Native leg-only injury above the configured threshold also qualifies for aid, and completion uses the original body/leg policy and deadline. New thresholds or timeout apply only to later attempts. Leg-only native treatment and live settings-change fixtures remain pending; existing fixtures do not prove them.
 
 **Automation and open work:** The production path is exercised through the shared owner-local group job and records a generation-owned MEDICAL_AID operation. Static checks cover capability gating, finite lifecycle, owner handover, cancellation and prohibited shortcuts. Physical treatment, specialist medical ownership, Zeus interruption, HC migration and performance acceptance are queued for the next packaged batch.
 

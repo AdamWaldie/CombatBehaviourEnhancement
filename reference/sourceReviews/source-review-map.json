@@ -612,10 +612,10 @@
       "name": "Pinned Down Medical Solution",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Squad medical assistance",
-      "reviewStatus": "Verified extracted source available; deep review unreconciled",
-      "nextSourceReview": "Use the verified extracted snapshot to trace aid allocation, casualty approach and ACE/native medical task ownership.",
-      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
-      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "reviewStatus": "Complete native need/kit leaves and selected dispatch/retry region reviewed; body/leg eligibility and original attempt policy built; whole-source reconciliation open",
+      "nextSourceReview": "Continue complete aid allocation, medical native command lifecycle, captured formation return and remaining source graph. Do not equate selected eligibility changes with whole-source integration or import arbitrary-item healing/health mutation.",
+      "recordedImplementationStatus": "SELECTED_NATIVE_MEDICAL_POLICY_IMPLEMENTED_WHOLE_SOURCE_INCOMPLETE",
+      "recordedRemaining": "Native body/leg predicate and immutable aid policy integrated. Self-care/evacuation/KO/drag/carry/retry, native treatment end/quiescence and subformation return remain incomplete; physical treatment and cost unverified.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
@@ -633,7 +633,10 @@
         "readableSourceFiles": 23,
         "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
       },
-      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
+      "selectedReviewEvidence": [
+        "releaseVerificationAndDeployment/referenceReviews/pinned-medical-eligibility-policy-20261030.json"
+      ]
     },
     {
       "workshopId": "3721618614",

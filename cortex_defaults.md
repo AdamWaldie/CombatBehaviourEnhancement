@@ -74,6 +74,7 @@ CounterBattery_Mode is a legacy compatibility value; automatic acquisition does 
 | `CBE_AIPass_MedicalAssist_Enable` | `true` | BOOL: one local medic uses native treatment during CALM or SECURITY; yields to active medical ownership, Zeus and combat. |
 | `CBE_AIPass_MedicalAssist_Range` | `80` | METRES: maximum local medic-to-casualty selection distance. |
 | `CBE_AIPass_MedicalAssist_DamageThreshold` | `0.35` | DAMAGE: minimum engine damage considered for one finite treatment attempt. |
+| `CBE_AIPass_MedicalAssist_LegThreshold` | `0.25` | HITPOINT: native leg damage above this also qualifies for aid; 1 disables leg-only selection. Captured per attempt. |
 | `CBE_AIPass_MedicalAssist_Timeout` | `45` | SECONDS: finite native treatment limit; CBE releases without changing health. |
 | `CBE_AIPass_Regroup_MaxRemnantSize` | `2` | COUNT: living members at or below this make a remnant. |
 | `CBE_AIPass_Regroup_MinimumPeakSize` | `3` | COUNT: smaller deliberate teams are never merged. |

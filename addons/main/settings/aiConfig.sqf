@@ -138,6 +138,7 @@
  * - CBE_AIPass_MedicalAssist_Enable (MISSION MAKER): a local medic physically treats a hurt squad-mate during CALM or SECURITY when no medical controller owns treatment. Default true.
  * - CBE_AIPass_MedicalAssist_Range (ADVANCED): maximum medic-to-casualty selection distance in metres.
  * - CBE_AIPass_MedicalAssist_DamageThreshold (ADVANCED): minimum engine damage before CBE considers vanilla assistance.
+ * - CBE_AIPass_MedicalAssist_LegThreshold (ADVANCED): native leg damage above this also qualifies for aid; default0.25, 1 disables leg-only selection. Captured with the original body threshold and timeout.
  * - CBE_AIPass_MedicalAssist_Timeout (ADVANCED): finite treatment attempt limit; failure releases without health changes.
  * - CBE_AIPass_Regroup_MaxRemnantSize (ADVANCED): a group this small or smaller counts as a remnant.
  * - CBE_AIPass_Regroup_MinimumPeakSize (ADVANCED): groups that never reached this size (snipers,
@@ -326,6 +327,7 @@ createHashMapFromArray [
         ["CBE_AIPass_MedicalAssist_Enable", true], // BOOL: local vanilla medic assistance during CALM/SECURITY; yields to medical controllers.
         ["CBE_AIPass_MedicalAssist_Range", 80], // METRES: maximum eligible medic-to-casualty selection distance.
         ["CBE_AIPass_MedicalAssist_DamageThreshold", 0.35], // DAMAGE: minimum engine damage considered for treatment.
+        ["CBE_AIPass_MedicalAssist_LegThreshold", 0.25], // HITPOINT: native leg damage above this also qualifies; 1 disables.
         ["CBE_AIPass_MedicalAssist_Timeout", 45], // SECONDS: bounded native treatment attempt before release.
         ["CBE_AIPass_Regroup_MaxRemnantSize", 2], // COUNT: living members at or below this make a remnant.
         ["CBE_AIPass_Regroup_MinimumPeakSize", 3], // COUNT: smaller deliberate teams are never merged.

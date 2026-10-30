@@ -126,6 +126,7 @@ Vehicle combat and passengers use the Vehicles page. Registered convoy travel, d
 | `CBE_AIPass_Regroup_MaxRemnantSize` | Remnant size | SLIDER | 2 | [1, 8, 0] | NEXT_OPERATION | Maximum surviving members eligible for remnant recovery. |
 | `CBE_AIPass_MedicalAssist_Range` | Medical selection range (m) | SLIDER | 80 | [10, 200, 0] | NEXT_OPERATION | Maximum local medic-to-casualty distance considered for one finite assistance attempt. |
 | `CBE_AIPass_MedicalAssist_DamageThreshold` | Medical damage threshold | SLIDER | 0.35 | [0.1, 0.9, 2] | NEXT_OPERATION | Minimum engine damage before CBE considers vanilla medical assistance. |
+| `CBE_AIPass_MedicalAssist_LegThreshold` | Medical leg injury threshold | SLIDER | 0.25 | [0.1, 1, 2] | NEXT_OPERATION | Native HitLegs damage above this value also qualifies for vanilla aid. One shared predicate checks body and leg recovery; 1 disables leg-only selection. Captured for the next attempt, never applied retroactively. |
 | `CBE_AIPass_MedicalAssist_Timeout` | Medical attempt limit (s) | SLIDER | 45 | [10, 120, 0] | NEXT_OPERATION | Maximum duration of one native treatment attempt before CBE releases it without altering health. |
 | `CBE_AIPass_Regroup_MinimumPeakSize` | Minimum previous squad size | SLIDER | 3 | [2, 16, 0] | NEXT_OPERATION | Protects deliberately small teams from automatic merging. |
 | `CBE_AIPass_Regroup_SearchRadius` | Recovery host search (m) | SLIDER | 400 | [50, 1000, 0] | NEXT_OPERATION | Search radius for a compatible friendly host squad. |

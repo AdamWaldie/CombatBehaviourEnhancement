@@ -15,6 +15,10 @@
  * approach destination can explain MOVE; a patient MOVE or a different destination yields.
  * Admission and each native treatment request require a carried Medikit/FirstAidKit or subclass.
  * Consuming the last FAK does not cancel a native treatment already in progress.
+ * Admission and completion share overall-damage and native HitLegs thresholds. The12field
+ * aid record retains both original thresholds and its original timeout deadline; next-operation
+ * setting edits cannot make a patient treated or extend an active attempt. Missing native
+ * HitLegs reads0 on the supported engine; no health/limb damage is ever assigned here.
  * Terminal cleanup recalls only a still-matching owned approach; generic native healing actions
  * are left intact because their writer/target cannot be identified by currentCommand alone.
  * Arguments:
@@ -51,13 +55,18 @@ private _hasMedicalKit={
             || {_x isKindOf ["FirstAidKit",configFile >> "CfgWeapons"]}
     } >= 0
 };
+// Native damage only; this does not interpret or mutate a specialist wound model.
+private _needsAid={
+    params ["_patient","_bodyThreshold","_legThreshold"];
+    damage _patient >= _bodyThreshold || {(_patient getHitPointDamage "HitLegs") > _legThreshold}
+};
 private _finish = {
     params ["_result","_reason"];
     private _aid=_group getVariable ["CBE_Cortex_MedicalAid",[]];
     private _generation=_aid param [0,-1];
     // Recall only the approach we can still identify. ACTION/HEAL is deliberately
     // untouched: its native target/writer cannot be proved from the generic command.
-    if (count _aid == 9) then {
+    if (count _aid == 12) then {
         isNil {
             private _medic=_aid select 1;
             private _approach=_aid select 8;
@@ -126,10 +135,18 @@ if (_aid isNotEqualTo []) exitWith {
     // danger FSM has produced a live response, then return false so the same group tick can consume
     // that response instead of waiting for another medical interval.
     if (_dangerActive) exitWith {["CANCELLED","COMBAT_RESUMED"] call _finish};
-    _aid params ["_generation","_medic","_casualty","_startedAt","_lastOrderAt","_bestDistance","_lastProgressAt"];
-    // Missing legacy proof cannot adopt whatever mission order is current now.
-    if (count _aid != 9 || {(_aid select 7) isNotEqualTo _medicalOrder}) exitWith {
+    // Missing original policy/order proof cannot adopt whatever is current now.
+    if (count _aid != 12 || {(_aid select 7) isNotEqualTo _medicalOrder}) exitWith {
         ["CANCELLED","ORDER_CHANGED"] call _finish
+    };
+    _aid params ["_generation","_medic","_casualty","_startedAt","_lastOrderAt","_bestDistance","_lastProgressAt"];
+    private _threshold=_aid select 9;
+    private _legThreshold=_aid select 10;
+    private _deadline=_aid select 11;
+    if ([_threshold,_legThreshold,_startedAt,_deadline] findIf {!(_x isEqualType 0) || {!finite _x}} >= 0
+        || {_threshold < 0.1} || {_threshold > 0.9} || {_legThreshold < 0.1} || {_legThreshold > 1}
+        || {_deadline < _startedAt+10} || {_deadline > _startedAt+120}) exitWith {
+        ["CANCELLED","MEDICAL_POLICY_UNKNOWN"] call _finish
     };
     // Treatment may legitimately make no spatial progress, but it still needs the same
     // generation/owner proof as approach movement before counting success or issuing HealSoldier.
@@ -164,12 +181,12 @@ if (_aid isNotEqualTo []) exitWith {
                 || {_destination vectorDistance _requestedApproach > 0.25}
         }}) then {_newActorTask=true};
     if (_newActorTask) exitWith {["CANCELLED","ACTOR_TASK_CHANGED"] call _finish};
-    if (damage _casualty < (missionNamespace getVariable ["CBE_AIPass_MedicalAssist_DamageThreshold",0.35])) exitWith {
+    if (_phase in ["CONTACT","RETREAT"] || {time >= _deadline}) exitWith {
+        ["CANCELLED",["COMBAT_RESUMED","TIMEOUT"] select (time >= _deadline)] call _finish
+    };
+    if !([_casualty,_threshold,_legThreshold] call _needsAid) exitWith {
         missionNamespace setVariable ["CBE_AIPass_MedicalAssists",(missionNamespace getVariable ["CBE_AIPass_MedicalAssists",0])+1];
         ["COMPLETE","TREATED"] call _finish
-    };
-    if (_phase in ["CONTACT","RETREAT"] || {time-_startedAt >= (missionNamespace getVariable ["CBE_AIPass_MedicalAssist_Timeout",45])}) exitWith {
-        ["CANCELLED",["COMBAT_RESUMED","TIMEOUT"] select (time-_startedAt >= (missionNamespace getVariable ["CBE_AIPass_MedicalAssist_Timeout",45]))] call _finish
     };
     private _distance=(getPosASL _medic) vectorDistance (getPosASL _casualty);
     private _inTreatmentRange=_distance <= 4
@@ -236,6 +253,13 @@ if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0
 // already in reach; it does not grant permission to pull a sentry off its position.
 if (_authoredOrder && {!_stationaryOrder}) exitWith {false};
 
+// NEXT_OPERATION policy: capture once at admission, never resample in active treatment.
+private _threshold=missionNamespace getVariable ["CBE_AIPass_MedicalAssist_DamageThreshold",0.35];
+private _legThreshold=missionNamespace getVariable ["CBE_AIPass_MedicalAssist_LegThreshold",0.25];
+private _timeout=missionNamespace getVariable ["CBE_AIPass_MedicalAssist_Timeout",45];
+if ([_threshold,_legThreshold,_timeout] findIf {!(_x isEqualType 0) || {!finite _x}} >= 0
+    || {_threshold < 0.1} || {_threshold > 0.9} || {_legThreshold < 0.1} || {_legThreshold > 1}
+    || {_timeout < 10} || {_timeout > 120}) exitWith {false};
 private _members=(units _group) select {
     private _free=!([_x] call CBE_fnc_CortexActorMoveReserved);
     alive _x && {[_x] call _actorEligible} && {group _x == _group} && {_free}
@@ -243,10 +267,9 @@ private _members=(units _group) select {
         && {vehicle _x == _x} && {[_x] call CBE_fnc_CortexCombatEffective}
         && {!(_x getVariable ["ACE_isUnconscious",false])}
 };
-private _threshold=missionNamespace getVariable ["CBE_AIPass_MedicalAssist_DamageThreshold",0.35];
 // Command succession is independent of medical eligibility. A wounded current leader still needs a
 // living medic; the pair selection below excludes only self-treatment.
-private _casualties=_members select {damage _x >= _threshold};
+private _casualties=_members select {[_x,_threshold,_legThreshold] call _needsAid};
 if (_casualties isEqualTo []) exitWith {false};
 private _medics=_members select {(_x getUnitTrait "Medic" || {(_x getVariable ["ace_medical_medicClass",0]) > 0})
     && {[_x] call _hasMedicalKit}};
@@ -282,6 +305,8 @@ if ((_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) sel
     && {!(_medic checkAIFeature "MOVE") || {!(_medic checkAIFeature "PATH")}}) exitWith {
     [_group,_generation,"MOVEMENT_DISABLED"] call CBE_fnc_OperationCancel; false
 };
+private _startedAt=time;
+private _deadline=_startedAt+_timeout;
 private _approach=[];
 if (_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) select 2)) > 1.5}) then {
     _approach=getPosATL _casualty;
@@ -289,5 +314,5 @@ if (_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) sele
 } else {
     _medic action ["HealSoldier",_casualty];
 };
-_group setVariable ["CBE_Cortex_MedicalAid",[_operation get "generation",_medic,_casualty,time,time,_best,time,+_medicalOrder,+_approach],true];
+_group setVariable ["CBE_Cortex_MedicalAid",[_operation get "generation",_medic,_casualty,_startedAt,_startedAt,_best,_startedAt,+_medicalOrder,+_approach,_threshold,_legThreshold,_deadline],true];
 true

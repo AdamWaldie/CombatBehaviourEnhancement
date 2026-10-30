@@ -2485,7 +2485,25 @@ class CortexOperations(unittest.TestCase):
     def test_medical_assistance_can_treat_a_wounded_leader_without_self_treatment(self):
         """Leader succession must not make a leader ineligible for aid or select a medic as their own patient."""
         medical=source('cortexMedicalStep')
-        self.assertIn('private _casualties=_members select {damage _x >= _threshold};',medical)
+        self.assertIn('private _casualties=_members select {[_x,_threshold,_legThreshold] call _needsAid};',medical)
+        self.assertIn('_patient getHitPointDamage "HitLegs"',medical)
+        self.assertIn('[_casualty,_threshold,_legThreshold] call _needsAid',medical)
+        def need(body,legs,body_threshold=.35,leg_threshold=.25):
+            return body>=body_threshold or legs>leg_threshold
+        self.assertTrue(need(.2,.8))  # Old body-only selection misses mobility injury.
+        self.assertTrue(need(.35,0))
+        self.assertFalse(need(.34,.25))
+        self.assertFalse(need(0,0))  # Missing native HitLegs reads0 on supported engine.
+        self.assertTrue(need(.5,.3))
+        self.assertFalse(need(.5,.3,.9,.9))  # New settings must not redefine an old attempt.
+        self.assertIn('_threshold,_legThreshold,_deadline],true]',medical)
+        self.assertIn('private _threshold=_aid select 9;',medical)
+        self.assertIn('private _legThreshold=_aid select 10;',medical)
+        self.assertIn('private _deadline=_aid select 11;',medical)
+        self.assertIn('time >= _deadline',medical)
+        self.assertLess(medical.index('time >= _deadline'),medical.index('if !([_casualty,_threshold,_legThreshold] call _needsAid)'))
+        self.assertNotIn('time-_startedAt >= (missionNamespace getVariable',medical)
+
         self.assertIn('if (_medic != _x && {_distance < _best}',medical)
         self.assertNotIn('_x != leader _group && {damage _x >= _threshold}',medical)
 
@@ -2506,7 +2524,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_OperationCancel',medical)
         self.assertIn('CBE_fnc_OperationRelease',medical)
         finish=medical.split('private _finish = {',1)[1].split('private _medicalEnabled=',1)[0]
-        for guard in ('count _aid == 9','isNil {','CBE_fnc_NativeOrderReceipt',
+        for guard in ('count _aid == 12','isNil {','CBE_fnc_NativeOrderReceipt',
                       'CBE_fnc_CortexExternalTakeover','CBE_fnc_CortexActorMoveReserved',
                       'currentCommand _medic == "MOVE"','_destination vectorDistance _approach <= 0.25',
                       'ownerEpoch','"MEDICAL_AID"'):
@@ -2544,8 +2562,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('"NO_MEDICAL_KIT"',medical)
         for forbidden in ('addItem','removeItem','addMagazine','setDamage'):
             self.assertNotIn(forbidden,kits)
-        self.assertIn('count _aid != 9 || {(_aid select 7) isNotEqualTo _medicalOrder}',medical)
-        self.assertIn('time,time,_best,time,+_medicalOrder,+_approach],true]',medical)
+        self.assertIn('count _aid != 12 || {(_aid select 7) isNotEqualTo _medicalOrder}',medical)
+        self.assertIn('_startedAt,_startedAt,_best,_startedAt,+_medicalOrder,+_approach,_threshold,_legThreshold,_deadline],true]',medical)
         self.assertIn('if (_authoredOrder && {!_stationaryOrder}) exitWith {false};',medical)
         self.assertIn('!_stationaryOrder || {_distance <= 4',medical)
         self.assertIn('if (_stationaryOrder && {!_inTreatmentRange}) exitWith',medical)
@@ -2554,8 +2572,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_destination vectorDistance _requestedApproach > 0.25',medical)
         self.assertIn('_aid set [8,+_approach];',medical)
         self.assertIn('currentCommand _x in ["MOVE","ATTACK","FIRE","SUPPRESS"',medical)
-        self.assertLess(medical.index('private _requestedApproach='),medical.index('if (damage _casualty <'))
-        self.assertLess(medical.index('count _aid != 9'),medical.index('if (damage _casualty <'))
+        self.assertLess(medical.index('private _requestedApproach='),medical.index('if !([_casualty,_threshold,_legThreshold] call _needsAid)'))
+        self.assertLess(medical.index('count _aid != 12'),medical.index('if !([_casualty,_threshold,_legThreshold] call _needsAid)'))
         permission=medical.split('private _mayIssueMedical = {',1)[1].split('private _aid=',1)[0]
         self.assertIn('CBE_fnc_NativeOrderReceipt) isEqualTo _medicalOrder',permission)
         for forbidden in ['setDamage', 'setPos', 'joinSilent', 'addWaypoint']:

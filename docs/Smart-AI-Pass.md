@@ -3720,3 +3720,10 @@ Arrival, cancellation and native takeover do not create this exclusion. Existing
 With danger response enabled, an eligible idle infantry observer can request existing cover behaviour after personally seeing a known hostile small UAV closing on a near collision course. The check reuses the squad's current native knowledge, confirms visibility and relative approach, and then hands a short observation to the existing danger FSM. It does not assume hearing or reveal an unseen drone.
 
 The original observer must remain available for cover dispatch. Committed operations and native/Zeus/specialist orders retain control; BLUE/GREEN fire restrictions remain authoritative. No engagement contact, forced shot, manufactured miss, movement controller or global drone scan is added. Existing cover/refuge availability and native travel determine the result. This visual cue is not complete drone avoidance, vehicle protection, warning propagation or guaranteed timely escape. Physical behaviour and performance remain unverified while audits are paused.
+
+
+## Native leg-injury assistance and original policy (30 October 2026)
+
+Calm or security medical assistance now considers native leg damage as well as overall damage. The CBA Medical leg injury threshold defaults to0.25;1 disables leg-only selection. Selection and completion share the same predicate, so improved overall damage alone cannot finish an attempt while its leg criterion still requires aid. This reads native damage, not a specialist wound model.
+
+Each accepted attempt retains its original body/leg thresholds and absolute timeout. These settings apply to the next attempt; later edits cannot declare an existing patient treated or extend that attempt. Original ownership, native orders, kits, movement and treatment checks remain. CBE requests native treatment and never assigns health. Native treatment-end acknowledgement, captured formation return, physical leg recovery and performance remain unfinished or unverified; audits stay paused.
