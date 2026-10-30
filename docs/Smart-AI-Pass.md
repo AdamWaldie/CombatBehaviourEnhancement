@@ -3772,3 +3772,8 @@ Before reserving a responder, the server checks its current friendly-anchor dist
 Fresh coordinated support now needs three primary-weapon ammunition contributors before it acknowledges eligibility, matching the existing later COVER capacity check. Ordinary rally support retains its three-person minimum and needs one such contributor. Dedicated AT rally support keeps its usable-launcher requirement. A medic or other unarmed member may still accompany an otherwise capable group; living members are not relabelled as casualties because ammunition is low.
 
 This runs on the actual owner after existing admission checks, uses loaded main-muzzle rounds or a compatible reserve, and stops once enough contributors qualify. At most64 foot candidates are examined; coordinated groups above the existing64member capacity-observer bound refuse early. Already acknowledged assignments keep their existing continuation/adoption rules. There is no forced reload, inventory edit, new command, scan, timer or setting. Ammunition availability is not immediate firing readiness or effective cover. Physical admission/reload/AT-only/repeat/normal-HC/JIP and measured performance remain unverified while audits are paused.
+
+Static-weapon support preserves a later native MOVE or changed FOLLOW task during active observation
+and CALM/disable cleanup. Its original follow anchor is captured once; absent history grants no
+permission to cancel boarding or force the actor out. This retires CBE's matching reservation only,
+and does not prove that an earlier engine boarding plan has ended. Physical handback remains pending.

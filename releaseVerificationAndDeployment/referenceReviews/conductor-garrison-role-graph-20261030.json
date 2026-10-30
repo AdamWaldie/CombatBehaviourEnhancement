@@ -3,7 +3,7 @@
   "date": "2026-10-30",
   "sourceBase": "6e999df28909b9bf93a034b4687a8909d6194eec",
   "workshopId": "3799629858",
-  "status": "READABLE_GARRISON_ACTIVATION_TICK_ROLE_RELEASE_REVIEWED_INTERIOR_WATCH_HEIGHT_CORRECTED_WEAPON_AND_ROLE_TASK_GAPS_OPEN",
+  "status": "SELECTED_GARRISON_GRAPH_RECONCILED_WATCH_HEIGHT_AND_STATIC_NATIVE_MOVEMENT_CLEANUP_FIXED_EXPLICIT_WEAPON_ROLE_GAPS_OPEN",
   "sources": [
     {
       "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/config.cpp",
@@ -70,18 +70,37 @@
       "sha256": "f479b52e3f129ce9b2bfe9538ee358944161d5077eecfbc1c69b6867fb737a8f",
       "manifestMatch": true,
       "scope": "Complete 533-line readable tick body; scheduler registration and external owner descendants remain incomplete."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/XEH_postInit.sqf",
+      "sha256": "1ca398bf399847af494dac9a415690f6b305d53701b48a21e72e368894f559ff",
+      "manifestMatch": true,
+      "scope": "Complete readable boot callback file: settings-initialized event and idempotent 2 s fallback both call PDCO_fnc_PD_start."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/core/fn_PD_start.sqf",
+      "sha256": "2184827baf00ac9d478751fae975e2f85daac8dacb65f659e46d689911e048c5",
+      "manifestMatch": true,
+      "scope": "Selected lines 1-18 and 104-end: server/idempotence gate, 1 s main PFH registration, readiness publication. Intermediate registry/provider initialization not wholly reviewed."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/core/fn_tick.sqf",
+      "sha256": "ebb2687aebe992f39d4f68224864588de04775583a7803838f5495028af62da4",
+      "manifestMatch": true,
+      "scope": "Selected first 10 lines: server gate, mode check and synchronous garrisonTick before disabled exit. Remaining orchestration body not wholly reviewed."
     }
   ],
-  "sourceIntegrity": "Eleven inspected extracted-source byte hashes match immutable archive manifest. Original packages remain absent; no source/archive writes, raw source copied or source execution.",
+  "sourceIntegrity": "Fourteen selected extracted source hashes match immutable archive manifest; selected scopes only. Original packages remain absent. No archive/source writes, source execution or raw reference copy.",
   "productHashes": {
     "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
     "addons/infantry/functions/garrisonTaskDialog.sqf": "670c75d8675268528fb9a6b1d9c52925963a455d03c848f0abed5521dc359b3b",
     "addons/infantry/functions/zenGarrisonModule.sqf": "ab886da14f7d128d37b85bde41a7caf3176153782ac4c5dd2e10d3e645e0b26d",
     "addons/infantry/functions/cortexGarrison.sqf": "34caf1a6b87acf9e4918263479b7f92c3cd21063a20ddda10fcdd111216d66fd",
-    "addons/infantry/functions/cortexStaticSupport.sqf": "6bcea120f309736923447436551a00cb058bf5e65c9d9a87285d1f88f1294d7f",
+    "addons/infantry/functions/cortexStaticSupport.sqf": "98dce1d9edde419a9412894e96454d990b42eed4f41ce040140a371a8b9f9f47",
     "addons/infantry/functions/cortexUnitRole.sqf": "b302ddfabecd6cbd6dad67ca47eff4b6f95cad0f63e86b7a1331fe9123409428",
-    "addons/support/functions/cortexSupportApply.sqf": "d2ea4fe8a5c33d140888a94a4faf93b383cbe9f9535e449b2e2f458fff610f3c"
+    "addons/support/functions/cortexSupportApply.sqf": "d2ea4fe8a5c33d140888a94a4faf93b383cbe9f9535e449b2e2f458fff610f3c",
+    "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "d57acfc6143e9b63c7a996a55b44a3e603ea9e9c01c7cbed67bacfe21177a9ff"
   },
   "productScope": "Selected actual operator, planning/assignment, role and contact-static owner branches; not complete bodies of every CBE descendant or physical/compiled-source parity.",
   "dispositions": [
@@ -118,22 +137,26 @@
   ],
   "newRuntimeImplementation": true,
   "nextRequiredWork": [
-    "For explicit garrison weapons: inspect source scheduler registration and actual CBE boarding/actor/station/native handback owners, then integrate finite boarding and dismount/replacement lifecycle into existing task. Source activation/tick bodies now reviewed; whole provider graph still incomplete.",
+    "Before explicit garrison weapon roles: finish exact CBE actor/station assignment and actual native boarding/retirement contract. Registered source wake path and activation/tick bodies are now inspected. Existing StaticSupport preserves new native movement but does not prove all native boarding plans ended. Reuse one finite task owner; no duplicate controller or forced seating.",
     "Implement bounded role-aware protected/firing post selection using actual weapon capability, firing field and accessibility; reviewed source role/LOS intent is not supplied by current height sorting or the isolated watch-height correction.",
     "Continue remaining Conductor registry/contact/proposal/support/provider graphs, plus full LAMBS/HBQ/Protocol production scope. No whole-mod percentages from file/helper counts."
   ],
   "validation": {
-    "hashes": "11 source files match immutable archive manifest; 8 initial product hashes and current ApplyLocal hash identify inspected revisions.",
+    "hashes": "14 selected source hashes match immutable archive manifest; 9 current product hashes identify inspected versions; historical hashes retained separately.",
     "runtime": {
-      "fullBuild": "PASS: 1506 tests, 489 compiled production SQF, 11 PBOs; config/FSM/header/docs/wiki/parity/coverage/static-performance gates. No added test case.",
+      "baseline": "Extended existing source-contract case rejects prior HEAD with one expected failure, zero errors. Python static contract, not SQF execution.",
+      "focused": "618 existing cases pass; zero added cases.",
+      "full": "PASS: all 1506 existing tests, 489 SQF compiled, 11 PBOs, full config/FSM/docs/wiki/parity/coverage/static-performance gates.",
+      "buildLog": ".qa/handovers/static-native-movement-build-20261030.log",
+      "focusedLog": ".qa/handovers/static-native-movement-focused-20261030.log",
+      "redLog": ".qa/handovers/static-native-movement-red-20261030.log",
       "independentVerification": "PASS",
-      "candidate": ".qa/candidates/garrison-watch-height-20261030-00678f86",
-      "fingerprint": "4ef27e25aa8792c3faf3f2c5133d0eb84ef131227d14bad55a62b3b86e2017b8",
-      "sourceIdentity": "Unsigned development base 00678f86cf81bf61e4c92e47ad41eae474b3da45 plus current runtime and guide inputs; engineering review/handover metadata finalized afterward.",
-      "buildLog": ".qa/handovers/garrison-watch-height-build-20261030.log",
-      "independentLog": ".qa/handovers/garrison-watch-height-independent-20261030.log"
+      "candidate": ".qa/candidates/static-native-movement-20261030-de390066",
+      "fingerprint": "ad5e347d47ee69d3329f2320a57a3439b99df7021d081326a787cf267aa2cbf5",
+      "independentLog": ".qa/handovers/static-native-movement-independent-20261030.log",
+      "sourceIdentity": "Unsigned development base de3900667c2febbc70eecd5742b92aba62b7182d plus checked static-support runtime/test/guide/review inputs; engineering metadata/handover finalized afterward."
     },
-    "reviewChecks": "PASS: three reference-boundary tests, documentation/header checks, register/evidence JSON parsing and 11 archive / 9 current product hashes.",
+    "reviewChecks": "PASS: three reference-boundary tests, source-header/documentation checks, register/evidence JSON parsing and 14 archive / 9 current product hashes.",
     "physical": "NOT_RUN_AUDITS_PAUSED",
     "performance": "UNMEASURED; coordinate arithmetic only; no new queries, callback or controller."
   },
@@ -180,5 +203,45 @@
     "runtime": "No runtime inputs changed. Retain6e999df2 full1506tests/489SQF/11PBO and independent candidate .qa/candidates/support-primary-capacity-20261030-add7204e, fingerprint0b944dbf435e12ffd7b8c6c066be293a0f9a6e30ef7357308885d7b057053986. No unchanged rebuild.",
     "physical": "NOT_RUN_AUDITS_PAUSED",
     "performance": "UNMEASURED"
+  },
+  "initialProductHashesAt6e999df2": {
+    "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
+    "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
+    "addons/infantry/functions/garrisonTaskDialog.sqf": "670c75d8675268528fb9a6b1d9c52925963a455d03c848f0abed5521dc359b3b",
+    "addons/infantry/functions/zenGarrisonModule.sqf": "ab886da14f7d128d37b85bde41a7caf3176153782ac4c5dd2e10d3e645e0b26d",
+    "addons/infantry/functions/cortexGarrison.sqf": "34caf1a6b87acf9e4918263479b7f92c3cd21063a20ddda10fcdd111216d66fd",
+    "addons/infantry/functions/cortexStaticSupport.sqf": "6bcea120f309736923447436551a00cb058bf5e65c9d9a87285d1f88f1294d7f",
+    "addons/infantry/functions/cortexUnitRole.sqf": "b302ddfabecd6cbd6dad67ca47eff4b6f95cad0f63e86b7a1331fe9123409428",
+    "addons/support/functions/cortexSupportApply.sqf": "d2ea4fe8a5c33d140888a94a4faf93b383cbe9f9535e449b2e2f458fff610f3c"
+  },
+  "staticNativeMovement20261030": {
+    "baseCommit": "de3900667c2febbc70eecd5742b92aba62b7182d",
+    "sourceWakePath": "config.cpp Core registers PD_start, not fn_start. XEH_postInit settings event and 2 s fallback enter server/idempotent PD_start. Its 1 s CBA PFH calls tick, whose selected prefix invokes garrisonTick before the disabled exit. No CBE additional PFH copied. fn_start is not assumed to be the registered production entry.",
+    "sourceDisposition": "Conductor broad unassign/follow policy is not sufficient task identity. Retain one native boarding attempt, actual gunner observation and finite original deadline; do not adopt forced seating or broad release as equivalent CBE handback.",
+    "currentOwnerTrace": [
+      "CortexGroupTick CONTACT calls CortexStaticSupport before fresh tactical start.",
+      "CortexRestoreCalm calls the same release-only path.",
+      "CortexStaticSupport alone journals one empty-static gunner assignment and its matching actor reservation; no doMove/doFollow is issued by this transaction.",
+      "Active observation and release both now inspect reported MOVE or changed/missing-original FOLLOW anchor before native cancellation or GetOut action."
+    ],
+    "defect": "A newer native MOVE or FOLLOW could retain assignedVehicle == original weapon. Active handling and CALM/disable release did not distinguish that native movement replacement; surviving CBE seat metadata could still permit orderGetIn false, unassignVehicle and immediate GetOut.",
+    "implementation": "Capture the original actually observed FOLLOW formLeader once as lease field 7; otherwise objNull. Final admission rechecks that follow anchor. Shared local movement-change classifier makes reported MOVE or FOLLOW without the original matching anchor yield without native release writes, both during active observation and direct release-only cleanup. Original 20 s boarding deadline, phase episode and exact CBE reservation cleanup retained. No recall, unassign, GetOut, follow or fresh lease after replacement.",
+    "contract": "Static support lease now has eight fields [episode,actor,weapon,issuedAt,originalDeadline,status,startPosition,originalObservedFollowAnchor]. Existing consumers read the same original fields; missing anchor history cannot authorise FOLLOW cleanup. No legacy reconstruction or new time allowance.",
+    "remaining": "Exact station/role reassignment identity, unknown native service commands, physical native boarding cancellation/end acknowledgement, migration and explicit garrison static/turret task integration remain incomplete. Same-value FOLLOW replacement remains indistinguishable. Retired metadata is not a seal that previous engine boarding ended.",
+    "validation": {
+      "baseline": "Extended existing source-contract case rejects prior HEAD with one expected failure, zero errors. Python static contract, not SQF execution.",
+      "focused": "618 existing cases pass; zero added cases.",
+      "full": "PASS: all 1506 existing tests, 489 SQF compiled, 11 PBOs, full config/FSM/docs/wiki/parity/coverage/static-performance gates.",
+      "buildLog": ".qa/handovers/static-native-movement-build-20261030.log",
+      "focusedLog": ".qa/handovers/static-native-movement-focused-20261030.log",
+      "redLog": ".qa/handovers/static-native-movement-red-20261030.log",
+      "independentVerification": "PASS",
+      "candidate": ".qa/candidates/static-native-movement-20261030-de390066",
+      "fingerprint": "ad5e347d47ee69d3329f2320a57a3439b99df7021d081326a787cf267aa2cbf5",
+      "independentLog": ".qa/handovers/static-native-movement-independent-20261030.log",
+      "sourceIdentity": "Unsigned development base de3900667c2febbc70eecd5742b92aba62b7182d plus checked static-support runtime/test/guide/review inputs; engineering metadata/handover finalized afterward."
+    },
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "performance": "UNMEASURED; constant current-command/formLeader checks, no new scan, timer, controller or setting."
   }
 }

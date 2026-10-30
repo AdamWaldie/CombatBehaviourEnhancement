@@ -6,6 +6,8 @@
  * at most16 nearby static candidates; final unscheduled admission rechecks the original route,
  * epoch/operation, actor command and seat before assignment/boarding/publication.
  * A newer STOP yields cleanup without native unassign/GetOut writes.
+ * A later native MOVE or changed FOLLOW anchor also yields without those writes. The original
+ * observed follow anchor is captured once at admission; missing history never authorizes recall.
  * Purpose: Give one otherwise uncommitted infantry actor a finite chance to occupy a nearby useful
  * empty static weapon during confirmed contact, without taking the squad's movement operation. If
  * no existing emplacement is available, delegates compatible carried weapon bags to the finite
@@ -39,6 +41,18 @@ private _clearActorMove={
         };
     };
 };
+// This transaction never issues doMove or doFollow. A reported MOVE therefore belongs
+// to another native task. Only the original observed FOLLOW anchor may remain while
+// the one boarding order starts; missing history or a changed anchor grants no cleanup.
+private _nativeMovementChanged={
+    params ["_actor"];
+    if (isNull _actor) exitWith {false};
+    private _command=toUpperANSI currentCommand _actor;
+    private _originalFollow=_lease param [7,objNull,[objNull]];
+    _command == "MOVE" || {_command == "FOLLOW" && {
+        isNull _originalFollow || {formLeader _actor != _originalFollow}
+    }}
+};
 private _release={
     params ["_external"];
     if (count _lease >= 7) then {
@@ -47,7 +61,7 @@ private _release={
         private _command=toUpperANSI currentCommand _actor;
         private _ownedBoarding=_command == "GET IN" && {!isNull _weapon}
             && {assignedVehicle _actor == _weapon};
-        private _protectedTask=!_ownedBoarding && {_command in ["STOP","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]};
+        private _protectedTask=([_actor] call _nativeMovementChanged) || {!_ownedBoarding && {_command in ["STOP","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}};
         private _actorMove=_actor getVariable ["CBE_Cortex_ActorMove",[]];
         private _newMove=count _actorMove == 3 && {(_actorMove param [2,-1,[0]]) > time}
             && {(_actorMove select 0) != "STATIC_SUPPORT" || {(_actorMove select 2) != (_lease select 4)}};
@@ -101,7 +115,7 @@ if (count _lease >= 7) exitWith {
         (_operation getOrDefault ["intent",""]) in ["WITHDRAW","VEHICLE_WITHDRAW"]
             || {_actor in (_operation getOrDefault ["participants",[]])}
     };
-    if (_operationConflict || {!isNull _actor && {fleeing _actor || {!simulationEnabled _actor} || {isObjectHidden _actor}}}
+    if ([_actor] call _nativeMovementChanged || {_operationConflict} || {!isNull _actor && {fleeing _actor || {!simulationEnabled _actor} || {isObjectHidden _actor}}}
         || {!isNull _actor && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}}
         || {!isNull _actor && {currentCommand _actor in ["STOP","GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED"]}}) exitWith {
         [true] call _release;
@@ -221,12 +235,14 @@ _rankedActors sort true;
 private _actor=(_rankedActors select 0) select 1;
 private _deadline=time+20;
 private _commandReceipt=currentCommand _actor;
+private _followReceipt=if (_commandReceipt == "FOLLOW") then {formLeader _actor} else {objNull};
 private _issued=false;
 isNil {
     if (!local _group || {!local _actor} || {group _actor != _group}
         || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {isPlayer _actor}
         || {!simulationEnabled _actor} || {isObjectHidden _actor} || {fleeing _actor}
         || {currentCommand _actor != _commandReceipt}
+        || {_commandReceipt == "FOLLOW" && {isNull _followReceipt || {formLeader _actor != _followReceipt}}}
         || {_commandReceipt in ["MOVE","STOP","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
             "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
         || {!isNull assignedVehicle _actor} || {!isNull objectParent _actor}
@@ -248,7 +264,7 @@ isNil {
     _actor assignAsGunner _weapon;
     [_actor] orderGetIn true;
     _actor setVariable ["CBE_Cortex_ActorMove",["STATIC_SUPPORT",getPosATL _weapon,_deadline]];
-    _lease=[_episode,_actor,_weapon,time,_deadline,"MOVING",getPosATL _actor];
+    _lease=[_episode,_actor,_weapon,time,_deadline,"MOVING",getPosATL _actor,_followReceipt];
     _group setVariable ["CBE_Danger_StaticSupport",_lease,true];
     _group setVariable ["CBE_Danger_StaticAttempt",[_episode,"MOVING",serverTime],true];
     _issued=true;

@@ -1735,6 +1735,16 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('isNil {',commit)
         self.assertLess(commit.index('call _seatAvailable'),commit.index('assignAsGunner'))
         self.assertIn('CBE_fnc_NativeOrderReceipt',commit)
+        # Native movement replacement must be observed both during the lease and
+        # before CALM/disable cleanup; a surviving seat assignment is not authority.
+        self.assertIn('call _nativeMovementChanged',active)
+        self.assertIn('call _nativeMovementChanged',release)
+        native=support.split('private _nativeMovementChanged=',1)[1].split('private _release=',1)[0]
+        for marker in ('_command == "MOVE"','_command == "FOLLOW"','isNull _originalFollow',
+                       'formLeader _actor != _originalFollow','_lease param [7,objNull,[objNull]]'):
+            self.assertIn(marker,native)
+        self.assertIn('formLeader _actor != _followReceipt',commit)
+        self.assertIn('getPosATL _actor,_followReceipt]',commit)
         self.assertNotIn('moveInGunner',support)
         self.assertNotIn('setPos',support)
         self.assertNotIn('allowDamage',support)
