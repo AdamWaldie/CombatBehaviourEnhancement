@@ -112,9 +112,81 @@
       "sha256": "e1ba54fb9f9de7b3a02fd98da5b206d0b4f33cd9f8af4c6d36561c055b8863bb",
       "manifestMatch": true,
       "scope": "Complete7-line group/id dictionary lookup; no native owner or completion acknowledgement."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/integration/fn_canBorrowBattleLinesGroup.sqf",
+      "sha256": "7130cd91c7fe2be93dc05ed037e02a4b29eea0881eb81e4dfd9b7fd7b4731241",
+      "manifestMatch": true,
+      "scope": "Complete115-line body: server/local/interface/task/role/transport gate, signature-bound stable negative cache, uncached final provider query, distance and side concurrency. External BL functions not reviewed by this body."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/integration/fn_releaseBattleLinesHandoff.sqf",
+      "sha256": "82716e53005260033703363c1f6c43d10bc1166b091d12154c800ed95d7c245e",
+      "manifestMatch": true,
+      "scope": "Complete26-line body: restore metadata lock/reservation only while token matches; no provider resume/end acknowledgement."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/integration/fn_getBattleLinesHandoffState.sqf",
+      "sha256": "59211d7dff9352aaae5ac3a58e9cdcbbd109565049ed75c8bb052595381d2db6",
+      "manifestMatch": true,
+      "scope": "Complete21-line interface/settings descriptor; active plus function existence is readiness/detection, not writer quiescence."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/integration/fn_validateBattleLinesHandoff.sqf",
+      "sha256": "7f1e05bb3c2ff7d50b95c6bb9dbd3d2003d29aae7970a5091a222ac17f3bd0f7",
+      "manifestMatch": true,
+      "scope": "Complete34-line active metadata token/player/strategic-task/lock/interface/group-membership gate; no actor/native writer/end acknowledgement."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/dispatch/fn_captureMissionState.sqf",
+      "sha256": "fa137a5bc5493bab40d2f73e270e22739816681faeac8097b765c06cf851a554",
+      "manifestMatch": true,
+      "scope": "Complete32-line snapshot of all waypoint index/name/type/position/speed plus current/completion/origin/group modes. Does not capture full authored metadata or settings write receipts."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/dispatch/fn_restoreMissionState.sqf",
+      "sha256": "3d3de5e42318811ef5e806eb8ddaff58a152a317e99478b01dd0635046c50192",
+      "manifestMatch": true,
+      "scope": "Complete71-line restore: finished-at-borrow shortcut, original-index selection then name/type-near-position fallback, saved waypoint speed/current selection. No full-current-identity revalidation."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/dispatch/fn_removeLeaseWaypoint.sqf",
+      "sha256": "d55d71ab452ab19316f8f282609a5ed345ae2f1818c09d3014420b61aee52653",
+      "manifestMatch": true,
+      "scope": "Complete22-line first matching waypoint-name deletion and waypointCreated flag clear. Name alone is not exact created-waypoint ownership."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/dispatch/fn_releaseSupportLease.sqf",
+      "sha256": "b34d49241547975f47a6b6e85ff16dbb099ab636aa76df3cf41d7e2e38821f6f",
+      "manifestMatch": true,
+      "scope": "Complete165-line release, restoration-safety selection, idle reinforcement return-to-origin240s path, speed restore, BL metadata release, lease/request/index/cooldown retirement. No native end acknowledgement."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/dispatch/fn_createSupportLease.sqf",
+      "sha256": "27812d7b12a5bac58d252195b6b6622ce0c11e27127a804d9200ca995ac2e67b",
+      "manifestMatch": true,
+      "scope": "Complete133-line final validation, pre-movement mission snapshot and BL claim, registry-before-command ordering, MOVE/HOLD waypoint, forced FULL speed, lease publication and proposal bookkeeping."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/dispatch/fn_validateDispatchCandidate.sqf",
+      "sha256": "df3213d7b94aafb53e57bcb3256851c18b066175dd393c89cb93c6e51dd79fa8",
+      "manifestMatch": true,
+      "scope": "Complete104-line immediate validity/medical/effectiveness/mobility/ammo/pressure/cooldown/lease/helper-count/ownership and cooperative gates. Scope fall-through findings recorded separately."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/dispatch/fn_tryDispatchSupport.sqf",
+      "sha256": "23b2b7c8e74c74f7d156ad7906cf90f042021de1fbd1b70cddb369e2c10c86e6",
+      "manifestMatch": true,
+      "scope": "Complete99-line mode/execute/need/proposal/helper limit and current request reload across matches, final validation/create, counters and API return. Referenced candidate scoring/request creation not thereby reviewed."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/dispatch/fn_processSupportLeases.sqf",
+      "sha256": "6f3eb622f977387d2bbe0960971ba96c48fc03d1f447a19682216ab75034970f",
+      "manifestMatch": true,
+      "scope": "Complete272-line active/return phases,2s cadence, enable/mode/request/helper-pressure/deadline gates, destination updates, mounted progress witness,10m net progress, source T&B deferral and lease release. Not a full upstream provider/transport graph."
     }
   ],
-  "sourceIntegrity": "18 selected immutable archive source hashes and19 current product hashes verified. No protected source edits; native retirement observations are not whole source or physical parity.",
+  "sourceIntegrity": "30 selected immutable archive source hashes and22 current product hashes verified; protected manifest verified. Latest borrowing review is source-only: retained runtime60f89c7f and its existing verified candidate, no new build or native claim.",
   "productHashes": {
     "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
@@ -134,7 +206,10 @@
     "addons/main/CfgFunctions.hpp": "a468fa55b7e015ce99c79269d46e1b6b46fe6e39f6bc9603095da33674a2aa51",
     "addons/infantry/functions/cortexStaticRetire.sqf": "469b5905a35c49ba45acdbbd5ba75d4da81a2f4ccedda5cdc8be007785f9c08c",
     "addons/infantry/functions/cortexActorMoveReserved.sqf": "150a8a764539dae909674989627edadb77bce0647faeaa425f2a35811d9ce4cc",
-    "addons/infantry/functions/dangerSetup.sqf": "c43545795e11d8ec0a82d28440d8fb0c00b46e73fca82482f8e45ba98c6ce9b5"
+    "addons/infantry/functions/dangerSetup.sqf": "c43545795e11d8ec0a82d28440d8fb0c00b46e73fca82482f8e45ba98c6ce9b5",
+    "addons/support/functions/cortexSupportStep.sqf": "bfd88c2ce8bac33551ef57cf0a3c27165163e5aa7c78982e5e3467c48ec9330e",
+    "addons/support/functions/cortexSupportMaintain.sqf": "8d98c24064e738a51013c0393efba004f2d88ea5b75f7c70b78ab1d65456f08b",
+    "addons/support/functions/cortexSupportAck.sqf": "2b89a336a27ed547a9809864e9cece0429d20a78d6b36ef3769fb7ae1ff4da8d"
   },
   "productScope": "Selected actual operator, planning/assignment, role and contact-static owner branches; not complete bodies of every CBE descendant or physical/compiled-source parity.",
   "dispositions": [
@@ -488,5 +563,46 @@
       "sourceIdentity": "Unsigned dirty baseaec7b59d plus checked runtime/test/guide/coverage/review inputs; later engineering metadata/handover separate. Not clean future-commit package, signed release or physical native-end proof."
     },
     "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "supportBorrowingSource20261030": {
+    "baseCommit": "60f89c7f2bc139b47370fb2aaa2da569ee57b860",
+    "runtimeImplementation": "NONE_THIS_REVIEW; retain checked static-retirement runtime60f89c7f unchanged.",
+    "newFullBodyScopes": {
+      "functions/integration/fn_canBorrowBattleLinesGroup.sqf": "Complete115-line body: server/local/interface/task/role/transport gate, signature-bound stable negative cache, uncached final provider query, distance and side concurrency. External BL functions not reviewed by this body.",
+      "functions/integration/fn_releaseBattleLinesHandoff.sqf": "Complete26-line body: restore metadata lock/reservation only while token matches; no provider resume/end acknowledgement.",
+      "functions/integration/fn_getBattleLinesHandoffState.sqf": "Complete21-line interface/settings descriptor; active plus function existence is readiness/detection, not writer quiescence.",
+      "functions/integration/fn_validateBattleLinesHandoff.sqf": "Complete34-line active metadata token/player/strategic-task/lock/interface/group-membership gate; no actor/native writer/end acknowledgement.",
+      "functions/dispatch/fn_captureMissionState.sqf": "Complete32-line snapshot of all waypoint index/name/type/position/speed plus current/completion/origin/group modes. Does not capture full authored metadata or settings write receipts.",
+      "functions/dispatch/fn_restoreMissionState.sqf": "Complete71-line restore: finished-at-borrow shortcut, original-index selection then name/type-near-position fallback, saved waypoint speed/current selection. No full-current-identity revalidation.",
+      "functions/dispatch/fn_removeLeaseWaypoint.sqf": "Complete22-line first matching waypoint-name deletion and waypointCreated flag clear. Name alone is not exact created-waypoint ownership.",
+      "functions/dispatch/fn_releaseSupportLease.sqf": "Complete165-line release, restoration-safety selection, idle reinforcement return-to-origin240s path, speed restore, BL metadata release, lease/request/index/cooldown retirement. No native end acknowledgement.",
+      "functions/dispatch/fn_createSupportLease.sqf": "Complete133-line final validation, pre-movement mission snapshot and BL claim, registry-before-command ordering, MOVE/HOLD waypoint, forced FULL speed, lease publication and proposal bookkeeping.",
+      "functions/dispatch/fn_validateDispatchCandidate.sqf": "Complete104-line immediate validity/medical/effectiveness/mobility/ammo/pressure/cooldown/lease/helper-count/ownership and cooperative gates. Scope fall-through findings recorded separately.",
+      "functions/dispatch/fn_tryDispatchSupport.sqf": "Complete99-line mode/execute/need/proposal/helper limit and current request reload across matches, final validation/create, counters and API return. Referenced candidate scoring/request creation not thereby reviewed.",
+      "functions/dispatch/fn_processSupportLeases.sqf": "Complete272-line active/return phases,2s cadence, enable/mode/request/helper-pressure/deadline gates, destination updates, mounted progress witness,10m net progress, source T&B deferral and lease release. Not a full upstream provider/transport graph."
+    },
+    "retainedMethods": [
+      "Cache only signature-matching negative proposal results, never positive mutation permission; source final claim passes false to requery provider. Existing CBE proposal/reservation/actual-owner execution boundaries remain separate.",
+      "Register reservation before movement and reload current request between helpers to respect simultaneous capacity. CBE SupportStep already publishes seven-field lease before actual-owner dispatch; SupportAck authenticates owner/token/exact snapshot.",
+      "Quiet pressure scale-down avoids rapidly recalling helpers; progress should mean approaching destination, with an appropriate real platform witness for mounted formations, not arbitrary actor displacement. CBE infantry support deliberately rejects mounted groups, so do not broaden it through a static source witness shortcut.",
+      "Retain intent of a finite return to original post for a helper originally idle/end-of-route, rather than leaving every responder at the support rally. Existing CBE exact native/settings/actor gates must own such a future implementation. Source behaviour is now mapped; CBE equivalent is not established by this selected comparison."
+    ],
+    "rejectedMethods": [
+      "Source createSupportLease places denied-claim exitWith inside the _blHandoff then block; that exits the inner block and execution can proceed into lease/waypoint publication. Source validateDispatchCandidate similarly places denial exits inside inner cooperative then/else blocks before unconditional allowed=true. Static SQF scope analysis, not an executed upstream test. Never adopt this fall-through; original snapshots remain untouched.",
+      "Source restoreMissionState first accepts the saved numeric waypoint index without rechecking identity, then may use name alone or same type within15m. Source removeLeaseWaypoint deletes first name match. These can select a changed/reused order; CBE full current authored receipt and exact owner proof take precedence.",
+      "Source snapshots speed/formation/combat state but speed restore is not guarded by a compare-with-applied-value receipt. Do not overwrite later mission tuning or invent fallback NORMAL as restoration authority.",
+      "Source RETURNING_HOME is processed before general enable/support/mode gates and runs up to240s. A CBE return must observe shutdown/new mission/owner/task at the same native boundary, not inherit a shutdown exception.",
+      "Source ON_STATION within150m and RETURN_COMPLETE from leader within12m are position observations, not squad arrival, coherent security, tactical effectiveness or native-end proof.",
+      "BL lock/token/task metadata and nonempty T&B job state are not a complete all-writer stop/resume contract. No BL compatibility adapter or transport-controller copy added."
+    ],
+    "currentCbeComparison": {
+      "scope": "Selected SupportStep135-190 reservation/dispatch; SupportApply1-70 header/admission and127-147 original authored-order adoption; SupportMaintain60-101 authored revocation and157-192 exact actor hold return; SupportAck header and sender/snapshot/role observation guards. These are selected current branches, not full review of all descendants.",
+      "existingStrongerBoundaries": "CBE actor-owner acknowledgement/exact canonical snapshot, bounded eight-candidate slices, original response radius, actual dismount/ammo admission, native authored-order revocation and actor/epoch/generation/expected-destination/formation receipt before recall remain. Do not replace with server-only source control, proximity or metadata-only acknowledgement."
+    },
+    "providerBoundary": "BL_fnc_retaskEligibility and BL_fnc_isBattleGroup source bodies were not found by filename search in this preserved PinnedDown archive. This does not establish global unavailability or provider enforcement. Interface body/string/lock is not proof; no integration claim. Compatibility expansion stays last.",
+    "nextFiniteWork": "Complete the classifier middle weapon/vehicle/capability branches and138-line refreshGroup against current CBE capability/owner admission. Existing primary-capacity review covered only classifier1-63/168-183, so do not count whole classifier done. Separately map finite return-to-post into existing support owner and exact authored/settings receipts before implementing it. Whole Conductor/LAMBS/HBQ/Protocol and native handover goal remain incomplete.",
+    "validation": "PASS source-only:30 selected immutable archive hashes/22 product hashes plus manifest verified;3 existing reference-boundary tests, source headers/documentation links and JSON parse pass. Retain runtime60f89c7f candidate9c795e27266638ab3595d3bf37b377c15557489c158886c0d4caa6fef942c343 (1506 existing tests,491 compiled SQF,11PBO/full gates+independent). No runtime edits, unchanged full rebuild, new test cases or Arma launch.",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "performance": "UNMEASURED; source-only review adds no runtime workload."
   }
 }
