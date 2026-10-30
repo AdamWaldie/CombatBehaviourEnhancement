@@ -110,6 +110,15 @@ Cortex building actions use a finite physical progression:
 
 **Clear** sweeps reachable interior positions then establishes security.
 **Garrison** occupies defensible interior positions with exterior security. Walking is the default.
+Fresh garrison allocation favours roofed, materially screened posts for medics and observed outward
+fields for machine gunners. Medics then MGs receive slots first; other roles keep the existing order.
+A private admission budget profiles at most16 existing positions, shared across those choices.
+Casualty refill and finite rerouting use the same selector with a four-profile budget; existing
+occupants are not shuffled and failed routes keep their original retry/deadline limits. In-place
+orders retain their original poses. Unknown geometry falls back to the original post order.
+The virtual-position observations rank proposals; actual entry, arrival, native firing safety and
+casualty coverage still need their existing checks. This is not a full marksman/observer/AA model.
+
 Roof preference uses the transformed building top, so it is not limited to a 15-metre ceiling.
 Invalid model bounds exclude that building from this admission; a post at or above the roof-ray
 endpoint stays exposed without a downward query. Other valid buildings remain available.

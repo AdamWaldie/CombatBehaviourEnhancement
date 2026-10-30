@@ -355,6 +355,7 @@ private _buildingAnchor = {
         -1
     };
     private _retiredPosts=createHashMap;
+    private _postBudget=createHashMap;
     private _assignmentValid=_job get "assignmentValid";
     private _assignmentArrived=_job get "assignmentArrived";
     private _invalidActors=(units _group) select {
@@ -641,7 +642,12 @@ private _buildingAnchor = {
                                     if (_reassignments < 2 && {_alternatives isNotEqualTo []} && {[_x] call _mayIssueMovement}) then {
                                         private _routeUnit=_x;
                                         _alternatives=[_alternatives,[],{(_x select 0) distance2D getPosATL _routeUnit},"ASCEND"] call BIS_fnc_sortBy;
-                                        private _replacement=_alternatives select 0;
+                                        if (count _postBudget == 0) then {
+                                            _postBudget=createHashMapFromArray [["remaining",4],["profiles",createHashMap],["roofs",createHashMap]];
+                                        };
+                                        private _role=[_routeUnit,true] call CBE_fnc_CortexUnitRole;
+                                        private _choice=[_alternatives,_role,_postBudget] call CBE_fnc_CortexGarrisonPostChoice;
+                                        private _replacement=_alternatives select _choice;
                                         private _replacementDestination=_replacement select 0;
                                         private _replacementBuilding=_replacement param [2,objNull];
                                         private _replacementEntries=[_replacementBuilding,_x,_replacementDestination] call (_job get "buildingEntries");

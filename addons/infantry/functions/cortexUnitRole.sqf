@@ -9,7 +9,8 @@
  *
  * Repeat/JIP: current feature gates and eligibility are rechecked; owner jobs are retired on migration.
  * Arguments:
- * 0: unit <OBJECT>
+ * 0: unit <OBJECT>, objNull
+ * 1: medical-first assignment view <BOOL>, false; true preserves dual-role medics before equipment/leader classification.
  *
  * Return Value:
  * String - "LEADER", "MG", "AT", "MEDIC" or "RIFLE"
@@ -19,11 +20,13 @@
  * Result: machine gunners are preferred for suppression and kept in the base of fire.
  *
  * Current callers: CortexFireControl, CortexLocality, CortexAdvanceStart, CortexAssaultStart,
- * CortexFlankStart, CortexFlankStep, CortexGroupTick, DangerGroupHideStep and CortexStaticSupport.
+ * CortexFlankStart, CortexFlankStep, CortexGroupTick, DangerGroupHideStep, CortexStaticSupport,
+ * CortexGarrison, CortexGarrisonRefill and CortexGarrisonApplyLocal. Default role ordering is unchanged.
  */
 
-params [["_unit", objNull, [objNull]]];
+params [["_unit", objNull, [objNull]],["_medicalFirst",false,[false]]];
 if (isNull _unit) exitWith {"RIFLE"};
+if (_medicalFirst && {_unit getUnitTrait "Medic" || {(_unit getVariable ["ace_medical_medicClass",0]) > 0}}) exitWith {"MEDIC"};
 if (leader group _unit == _unit) exitWith {"LEADER"};
 if ("AT" in ([_unit] call CBE_fnc_CortexCapabilities)) exitWith {"AT"};
 private _cache = missionNamespace getVariable ["CBE_AIPass_MagazineSizes", createHashMap];
@@ -35,5 +38,5 @@ if (_size < 0) then {
     missionNamespace setVariable ["CBE_AIPass_MagazineSizes", _cache];
 };
 if (_size >= 75) exitWith {"MG"};
-if (_unit getUnitTrait "Medic" || {(_unit getVariable ["ace_medical_medicClass", 0]) > 0}) exitWith {"MEDIC"};
+if (!_medicalFirst && {_unit getUnitTrait "Medic" || {(_unit getVariable ["ace_medical_medicClass", 0]) > 0}}) exitWith {"MEDIC"};
 "RIFLE"

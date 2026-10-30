@@ -898,9 +898,9 @@
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Coordination contribution to identify",
       "reviewStatus": "Selected pressure/support/capacity and readable garrison bodies plus registered wake path inspected; explicit weapon/role task and whole provider graph incomplete",
-      "nextSourceReview": "Roof extent and bounded near-opening watch selection now implemented in existing garrison owners. Continue actual bounded role-aware protected/firing-post selection and native boarding/end acknowledgement before explicit garrison weapon roles. Near5m clearance is not long firing-field/access/clearance proof. Whole Conductor/provider graph remains incomplete; do not duplicate completed roof/watch/static crew/ownership batches.",
+      "nextSourceReview": "Bounded MEDIC/MG post preferences now implemented across initial admission, genuine refill and finite rerouting, following roof/watch improvements. Full role model, actual native boarding/retirement/end acknowledgement and whole provider graph remain incomplete. Do not repeat completed selector or roof/watch/static crew/ownership batches.",
       "recordedImplementationStatus": "SELECTED_PRESSURE_SUPPORT_POLICY_AND_AMMO_ADMISSION_IMPLEMENTED_WHOLE_SOURCE_INCOMPLETE",
-      "recordedRemaining": "Selected morale/support policy/ammo work is implemented. Explicit garrison weapon roles and role-aware firing/protected post selection are not implemented by existing contact statics/height sorting. Whole coordinator/provider/registry/contact/activation/tick graphs and physical/performance evidence remain incomplete.",
+      "recordedRemaining": "Selected support policy/ammo, roof/watch and bounded medic/MG post preferences implemented. Explicit garrison weapon roles, full marksman/observer/AA model, actual native-end acknowledgement, whole source graph and physical/performance validation remain incomplete.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
@@ -929,7 +929,8 @@
       "staticCrewRoles20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#staticCrewRoles20261030",
       "garrisonPostGeometry20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#garrisonPostGeometry20261030",
       "garrisonRoofLimitImplementation20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#roofLimitImplementation20261030",
-      "nearWatchOpening20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#nearWatchOpening20261030"
+      "nearWatchOpening20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#nearWatchOpening20261030",
+      "rolePostPreference20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#rolePostPreference20261030"
     },
     {
       "workshopId": "3800356547",

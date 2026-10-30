@@ -1233,6 +1233,7 @@
         "addons/infantry/functions/cortexGarrisonRelease.sqf",
         "addons/infantry/functions/cortexGarrisonFailedPosts.sqf",
         "addons/infantry/functions/cortexGarrisonRefill.sqf",
+        "addons/infantry/functions/cortexGarrisonPostChoice.sqf",
         "addons/infantry/functions/cortexGarrisonArrived.sqf",
         "addons/infantry/functions/cortexGarrisonSettings.sqf"
       ]
