@@ -188,6 +188,7 @@ class CfgFunctions {
             class DangerEngineSubmit {file = "\z\cbe\addons\infantry\functions\dangerEngineSubmit.sqf";};
             class CortexIlluminationStep {file = "\z\cbe\addons\infantry\functions\cortexIlluminationStep.sqf";};
             class CortexStaticSupport {file = "\z\cbe\addons\infantry\functions\cortexStaticSupport.sqf";};
+            class CortexStaticRetire {file = "\z\cbe\addons\infantry\functions\cortexStaticRetire.sqf";};
             class CortexStaticDeployStep {file = "\z\cbe\addons\infantry\functions\cortexStaticDeployStep.sqf";};
             class CortexStaticPackStep {file = "\z\cbe\addons\infantry\functions\cortexStaticPackStep.sqf";};
             class CortexStaticNativeMoveState {file = "\z\cbe\addons\infantry\functions\cortexStaticNativeMoveState.sqf";};

@@ -16,8 +16,31 @@ class CalmActorReservationTests(unittest.TestCase):
                       '!finite _x','finite (_lease select 2)'):
             self.assertIn(guard,shared)
         # Pending native cleanup is checked before the empty ordinary-marker shortcut.
-        for journal in ('CBE_Danger_FlightLease','CBE_Cortex_NavalEgressMove'):
+        for journal in ('CBE_Danger_FlightLease','CBE_Cortex_NavalEgressMove','CBE_Cortex_StaticRetirement'):
             self.assertLess(shared.index(journal),shared.index('if (_lease isEqualTo [])'))
+        retirement=(ROOT/'addons/infantry/functions/cortexStaticRetire.sqf').read_text()
+        ended=retirement.split('private _ended=',1)[1].split('if (_ended',1)[0]
+        for proof in ('_wasMounted || {_sawBoarding}','!_boarding','isNull objectParent _actor',
+                      'isNull assignedVehicle _actor','isNull attachedTo _actor'):
+            self.assertIn(proof,ended)
+        timeout=retirement.split('if (serverTime >= _deadline',1)[1].split('// Discovery',1)[0]
+        self.assertIn('"UNRESOLVED"',timeout)
+        self.assertNotIn('"CBE_Cortex_StaticRetirement",nil',timeout)
+        for bound in ('_attempt >= 20','_issued+10','CBE_Cortex_StaticRetirementWork',
+                      '_identity isNotEqualTo _id','_this call CBE_fnc_CortexStaticRetire'):
+            self.assertIn(bound,retirement)
+        for command in ('orderGetIn','unassignVehicle',' doMove',' doFollow',' action [','setPos','nearestObjects'):
+            self.assertNotIn(command,retirement)
+        support=(ROOT/'addons/infantry/functions/cortexStaticSupport.sqf').read_text()
+        release=support.split('private _release=',1)[1].split('// Both contact',1)[0]
+        self.assertIn('isNil {',release)
+        self.assertLess(release.index('call CBE_fnc_CortexStaticRetire'),release.index('orderGetIn false'))
+        self.assertIn('== "ADMITTED"',release)
+        migration=retirement.split('if (!local _actor)',1)[1].split('if (!(_mode',1)[0]
+        self.assertIn('"CBE_Cortex_StaticRetirementWork",nil',migration)
+        self.assertNotIn('"CBE_Cortex_StaticRetirement",nil',migration)
+        setup=(ROOT/'addons/infantry/functions/dangerSetup.sqf').read_text()
+        self.assertIn('["REAP",_x] call CBE_fnc_CortexStaticRetire',setup)
         for forbidden in ('doFollow','doMove','setVariable','lineIntersects','nearEntities'):
             self.assertNotIn(forbidden,helper)
     def test_old_hold_cannot_recall_a_live_successor(self):

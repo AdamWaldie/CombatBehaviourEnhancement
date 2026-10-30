@@ -114,14 +114,14 @@
       "scope": "Complete7-line group/id dictionary lookup; no native owner or completion acknowledgement."
     }
   ],
-  "sourceIntegrity": "18 selected immutable archive source hashes and16 current product hashes verified; archive manifest SHA256 verified. No protected source edits. Selected scopes are recorded, not whole Conductor parity.",
+  "sourceIntegrity": "18 selected immutable archive source hashes and19 current product hashes verified. No protected source edits; native retirement observations are not whole source or physical parity.",
   "productHashes": {
     "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
     "addons/infantry/functions/garrisonTaskDialog.sqf": "670c75d8675268528fb9a6b1d9c52925963a455d03c848f0abed5521dc359b3b",
     "addons/infantry/functions/zenGarrisonModule.sqf": "ab886da14f7d128d37b85bde41a7caf3176153782ac4c5dd2e10d3e645e0b26d",
     "addons/infantry/functions/cortexGarrison.sqf": "36b464f4c72549af8d31319639e1ef0887f978e16661a1a824c2ce4007f7f86e",
-    "addons/infantry/functions/cortexStaticSupport.sqf": "e874681f45711a8282e5a6d669f11be0651728a196fd6c88e25c88f2c67b6408",
+    "addons/infantry/functions/cortexStaticSupport.sqf": "1207fd6ddbd29043214dd532fe7eaa37e76102ef091477b16c9858bc6fce76d8",
     "addons/infantry/functions/cortexUnitRole.sqf": "2c2c386541c91069a73861ce42eb340e26a56ceea7d766e2b5cd0de27dc3925d",
     "addons/support/functions/cortexSupportApply.sqf": "d2ea4fe8a5c33d140888a94a4faf93b383cbe9f9535e449b2e2f458fff610f3c",
     "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "991c16cf509d4aa8f07cc588944a757cfd005c1bc04bb1de3af2f9fbcb95bfc1",
@@ -131,7 +131,10 @@
     "addons/infantry/functions/buildingRoofTop.sqf": "9baad8bfe48e1bb0ce9a0699825dd93779a957945a0f4a18333be76c05ace923",
     "addons/infantry/functions/cortexGarrisonPostChoice.sqf": "318fb7c240f67a43649abc0679a7304a6eec18a35f2836039119a50f3761eb90",
     "addons/infantry/functions/cortexGarrisonRefill.sqf": "d2c99a24d44d0f0addfb50d73bff0e1be5e5eab85230e033c5b68274bfbd9663",
-    "addons/main/CfgFunctions.hpp": "62f9e54cc166335d1e892ce00b3cded84eab925768d10510d58752a337334ac1"
+    "addons/main/CfgFunctions.hpp": "a468fa55b7e015ce99c79269d46e1b6b46fe6e39f6bc9603095da33674a2aa51",
+    "addons/infantry/functions/cortexStaticRetire.sqf": "469b5905a35c49ba45acdbbd5ba75d4da81a2f4ccedda5cdc8be007785f9c08c",
+    "addons/infantry/functions/cortexActorMoveReserved.sqf": "150a8a764539dae909674989627edadb77bce0647faeaa425f2a35811d9ce4cc",
+    "addons/infantry/functions/dangerSetup.sqf": "c43545795e11d8ec0a82d28440d8fb0c00b46e73fca82482f8e45ba98c6ce9b5"
   },
   "productScope": "Selected actual operator, planning/assignment, role and contact-static owner branches; not complete bodies of every CBE descendant or physical/compiled-source parity.",
   "dispositions": [
@@ -168,7 +171,7 @@
   ],
   "newRuntimeImplementation": true,
   "nextRequiredWork": [
-    "Actual native cancellation/boarding/retirement/end acknowledgement and bounded pending reservation remain missing. Static support now retains its original current authored-order receipt, seat/owner/epoch and native command policy; those protections are not native end. Continue provider enforcement beyond reviewed Battle Lines metadata claim and source ownership gate before explicit garrison weapon roles.",
+    "Static support guarded native cancellation/exit now retains pending actor reservation and finite observations; timeout/never-observed command remains unresolved. Physically verify mounted exit/on-foot command transitions/late completion/migration, and finish same-value replacement/all-writer/provider quiescence before claiming full native handover or explicit weapon roles. Do not duplicate implemented retirement journal/observer.",
     "Bounded MEDIC/MG role-post preferences now implemented in initial admission, genuine refill and finite rerouting. Full marksman/observer/AA/capability-aware role model and actual useful firing/accessibility evidence remain incomplete; do not requeue implemented16/4-budget selector.",
     "Continue remaining Conductor registry/contact/proposal/support/provider graphs, plus full LAMBS/HBQ/Protocol production scope. No whole-mod percentages from file/helper counts."
   ],
@@ -460,6 +463,29 @@
       "independentVerification": "PASS",
       "independentLog": ".qa/handovers/static-authored-route-independent-20261030.log",
       "sourceIdentity": "Unsigned dirty base037e3c3c plus checked runtime/test/guide/review inputs; later engineering metadata/handover separate. Not clean future-commit release or native exit completion proof."
+    },
+    "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "staticRetirement20261030": {
+    "baseCommit": "aec7b59d88ae902491e9d02b1432f1bbd2e20ced",
+    "finding": "Guarded static-support release requested orderGetIn false/unassign/GetOut then discarded its lease and ordinary actor marker. No pending journal kept later CBE admission out while native cancellation/exit was unresolved. Existing flight/naval/indoor reservation and bounded holder callback patterns supply reusable lifecycle intent; no independent controller needed.",
+    "implementation": "CortexStaticRetire START publishes an actor-locality/identity journal before the existing one guarded native cancellation/exit request, all inside unscheduled release boundary. Helper performs metadata-only observation; it never issues movement/seat commands. Shared CortexActorMoveReserved refuses any nonempty retirement journal even after ordinary marker expiry. One coalesced half-second callback chain stops at original10s or20 callbacks per owner. Existing DangerSetup first64 actor discovery supports late REAP/adoption with remaining original time. No new scanner or request retry.",
+    "observedCompletion": "Originally mounted actor must be physically detached, unassigned, unattached and no longer GET IN/GET OUT. For on-foot boarding cancellation, an actual GET IN/GET OUT state must have been observed before its departure, alongside those same detached/unassigned checks. Idle alone, metadata clearing or elapsed deadline never confirms a never-observed request. Death records DEAD separately. Matching journal is removed only after observed completion/death.",
+    "migration": "Old nonlocal callback removes only its own machine-local work marker and stops; replicated pending journal survives. Current owner may observe/reap metadata without adopting native command authority. Identity mismatch rejects stale callback; local work identity coalesces ordinary discovery. Deadline never renewed. Already unresolved journals receive only existing discovery observations, not a restarted callback chain.",
+    "schema": "CBE_Cortex_StaticRetirement=[identity,sourceGroup,weapon,issuedServerTime,originalDeadline,wasMounted,sawBoardingCommand,status]. identity=[originalClientOwner,originalEpoch,contactEpisode,originalLeaseIssuedAt]. Separate local work=[identity,currentClientOwner]; result=[identity,RELEASED/DEAD/UNRESOLVED,observedServerTime,weapon]. Original ten-field static-support lease is unchanged.",
+    "limits": "Covers only native cancellation/exit actually admitted through current guarded static-support release. Foreign/ambiguous ownership remains metadata-only without claiming native completion. A never-observed on-foot pending command stays unresolved and reserved rather than presumed ended; this may withhold CBE participation until actual command evidence appears. Same-value queued native replacements/all-writer quiescence are not proved. Late discovery availability and live transitions/physics/timing remain unverified; no new controller writes on timeout or takeover.",
+    "cost": "At most20 half-second callbacks per owner within one immutable10s window, cheap actor/assignment/currentCommand observations, status-edge replication only. Existing bounded64-actor discovery adds one journal-presence check per actor and reaps only present journals. No world ray/query, recurring world scanner or native retry; actual5%median/10%p95 impact unmeasured.",
+    "validation": {
+      "focused": "PASS618 operation and48 calm-reservation cases; existing pending-reservation case extended for native end, timeout retention, callback identity/migration and publish-before-command ordering. Zero new cases.",
+      "focusedLog": ".qa/handovers/static-retirement-focused-20261030.log",
+      "reservationLog": ".qa/handovers/static-retirement-reservation-20261030.log",
+      "full": "PASS1506 existing tests,491 compiled SQF,11PBO; full offline config/FSM/header/docs/wiki/parity/coverage gates and static performance0 findings. New production helper mapped into existing feature case; no new audit family.",
+      "buildLog": ".qa/handovers/static-retirement-build-20261030.log",
+      "candidate": ".qa/candidates/static-retirement-20261030-aec7b59d",
+      "fingerprint": "9c795e27266638ab3595d3bf37b377c15557489c158886c0d4caa6fef942c343",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/static-retirement-independent-20261030.log",
+      "sourceIdentity": "Unsigned dirty baseaec7b59d plus checked runtime/test/guide/coverage/review inputs; later engineering metadata/handover separate. Not clean future-commit package, signed release or physical native-end proof."
     },
     "physical": "NOT_RUN_AUDITS_PAUSED"
   }

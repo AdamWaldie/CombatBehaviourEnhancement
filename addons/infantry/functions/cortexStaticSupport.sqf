@@ -13,6 +13,8 @@
  * The original authored route receipt is retained once at admission. Route replacement or a
  * missing historical receipt yields active/direct cleanup without native seat or dismount writes.
  * Sibling disjoint manoeuvres may advance operation generation without changing that route.
+ * Guarded release publishes actor retirement proof before requesting native cancel/exit. The
+ * observer reserves the actor until observed detachment/command-end; timeout is unresolved, not free.
  * A later native MOVE or changed FOLLOW anchor also yields without those writes. The original
  * observed follow anchor is captured once at admission; missing history never authorizes recall.
  * Exact original assignedVehicleRole, issuing clientOwner and locality epoch are also required
@@ -109,6 +111,7 @@ private _nativeTaskAllowed={
 };
 private _release={
     params ["_external"];
+    isNil {
     if (count _lease >= 7) then {
         private _actor=_lease param [1,objNull,[objNull]];
         private _weapon=_lease param [2,objNull,[objNull]];
@@ -125,12 +128,16 @@ private _release={
             && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
             && {!([_actor] call CBE_fnc_CompatibilityExternalControl)}
             && {[_actor,_weapon] call _assignmentOwned}) then {
-            [_actor] orderGetIn false;
-            unassignVehicle _actor;
-            if (vehicle _actor == _weapon) then {_actor action ["GetOut",_weapon]};
+            // Publish pending proof before the one native cancellation/exit request.
+            if ((["START",_actor,_group,_lease] call CBE_fnc_CortexStaticRetire) == "ADMITTED") then {
+                [_actor] orderGetIn false;
+                unassignVehicle _actor;
+                if (vehicle _actor == _weapon) then {_actor action ["GetOut",_weapon]};
+            };
         };
     };
     _group setVariable ["CBE_Danger_StaticSupport",nil,true];
+    };
 };
 
 // Both contact and CALM teardown share the same actor-task and assignment protections.

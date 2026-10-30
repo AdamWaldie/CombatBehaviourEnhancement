@@ -425,6 +425,7 @@
         "addons/infantry/functions/dangerReact.sqf",
         "addons/infantry/functions/cortexGroupAnchor.sqf",
         "addons/infantry/functions/cortexStaticSupport.sqf",
+        "addons/infantry/functions/cortexStaticRetire.sqf",
         "addons/infantry/functions/cortexStaticDeployStep.sqf",
         "addons/infantry/functions/cortexStaticPackStep.sqf",
         "addons/infantry/functions/cortexStaticNativeMoveState.sqf",

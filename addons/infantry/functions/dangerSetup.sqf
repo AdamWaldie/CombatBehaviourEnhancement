@@ -104,6 +104,9 @@ if (_paceActors isNotEqualTo []) then {
             && {!( ["CHECK",_x] call CBE_fnc_DangerAttackPace)}) then {
             ["RELEASE",_x] call CBE_fnc_DangerAttackPace;
         };
+        if (local _x && {(_x getVariable ["CBE_Cortex_StaticRetirement",[]]) isNotEqualTo []}) then {
+            ["REAP",_x] call CBE_fnc_CortexStaticRetire;
+        };
         if (local _x && {(_x getVariable ["CBE_Cortex_NavalEgressMove",[]]) isNotEqualTo []}) then {
             ["REAP",_x] call CBE_fnc_CortexNavalEgressActor;
         };
