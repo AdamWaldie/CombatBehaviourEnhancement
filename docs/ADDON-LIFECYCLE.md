@@ -2723,3 +2723,10 @@ The original observer must remain available for cover dispatch. Committed operat
 Calm or security medical assistance now considers native leg damage as well as overall damage. The CBA Medical leg injury threshold defaults to0.25;1 disables leg-only selection. Selection and completion share the same predicate, so improved overall damage alone cannot finish an attempt while its leg criterion still requires aid. This reads native damage, not a specialist wound model.
 
 Each accepted attempt retains its original body/leg thresholds and absolute timeout. These settings apply to the next attempt; later edits cannot declare an existing patient treated or extend that attempt. Original ownership, native orders, kits, movement and treatment checks remain. CBE requests native treatment and never assigns health. Native treatment-end acknowledgement, captured formation return, physical leg recovery and performance remain unfinished or unverified; audits stay paused.
+
+
+## Original medical formation anchor (30 October 2026)
+
+A medic's original subformation anchor is now retained before assistance begins. When retiring a still-matching CBE approach, cleanup may request return to that same anchor only while it remains current, combat-effective and in the same group. Incapacitation, disabled movement/pathfinding, changed native orders or an unavailable/changed/self anchor grant no recall; cleanup does not substitute a new group leader.
+
+Native treatment actions remain untouched when their writer and target cannot be identified. This change adds no movement-policy reset, waypoint restart or animation override. A follow request is not proof of accepted movement or physical formation rejoin; native treatment-end and complete post-treatment handback remain unfinished, with audits paused.

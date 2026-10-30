@@ -15,10 +15,13 @@
  * approach destination can explain MOVE; a patient MOVE or a different destination yields.
  * Admission and each native treatment request require a carried Medikit/FirstAidKit or subclass.
  * Consuming the last FAK does not cancel a native treatment already in progress.
- * Admission and completion share overall-damage and native HitLegs thresholds. The12field
+ * Admission and completion share overall-damage and native HitLegs thresholds. The13field
  * aid record retains both original thresholds and its original timeout deadline; next-operation
  * setting edits cannot make a patient treated or extend an active attempt. Missing native
  * HitLegs reads0 on the supported engine; no health/limb damage is ever assigned here.
+ * Approach cleanup recalls only the captured original subformation anchor while that exact
+ * anchor remains combat-effective, same-group and current. Missing/changed/self anchors,
+ * incapacitation or disabled MOVE/PATH grant no recall; there is no leader fallback.
  * Terminal cleanup recalls only a still-matching owned approach; generic native healing actions
  * are left intact because their writer/target cannot be identified by currentCommand alone.
  * Arguments:
@@ -66,10 +69,11 @@ private _finish = {
     private _generation=_aid param [0,-1];
     // Recall only the approach we can still identify. ACTION/HEAL is deliberately
     // untouched: its native target/writer cannot be proved from the generic command.
-    if (count _aid == 12) then {
+    if (count _aid == 13) then {
         isNil {
             private _medic=_aid select 1;
             private _approach=_aid select 8;
+            private _returnAnchor=_aid param [12,objNull,[objNull]];
             private _operation=_group getVariable ["CBE_Operation",createHashMap];
             if (local _group && {(_group getVariable ["CBE_Cortex_MedicalAid",[]]) isEqualTo _aid}
                 && {(_operation getOrDefault ["generation",-1]) == _generation}
@@ -77,13 +81,17 @@ private _finish = {
                 && {(_operation getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
                 && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_aid select 7)}
                 && {!([_group] call CBE_fnc_CortexExternalTakeover)}
-                && {[_medic] call _actorEligible} && {alive _medic} && {group _medic == _group}
+                && {[_medic] call _actorEligible} && {[_medic] call CBE_fnc_CortexCombatEffective} && {group _medic == _group}
+                && {_medic checkAIFeature "MOVE"} && {_medic checkAIFeature "PATH"}
+                && {!isNull _returnAnchor} && {_returnAnchor != _medic}
+                && {group _returnAnchor == _group} && {[_returnAnchor] call CBE_fnc_CortexCombatEffective}
+                && {formLeader _medic isEqualTo _returnAnchor}
                 && {isNull objectParent _medic} && {count _approach == 3}
                 && {!([_medic] call CBE_fnc_CortexActorMoveReserved)}
                 && {currentCommand _medic == "MOVE"}) then {
                 private _destination=(expectedDestination _medic) param [0,[]];
                 if (count _destination == 3 && {_destination vectorDistance _approach <= 0.25}) then {
-                    _medic doFollow leader _group;
+                    _medic doFollow _returnAnchor;
                 };
             };
         };
@@ -136,7 +144,8 @@ if (_aid isNotEqualTo []) exitWith {
     // that response instead of waiting for another medical interval.
     if (_dangerActive) exitWith {["CANCELLED","COMBAT_RESUMED"] call _finish};
     // Missing original policy/order proof cannot adopt whatever is current now.
-    if (count _aid != 12 || {(_aid select 7) isNotEqualTo _medicalOrder}) exitWith {
+    if (count _aid != 13 || {(_aid select 7) isNotEqualTo _medicalOrder}
+        || {!((_aid select 12) isEqualType objNull)}) exitWith {
         ["CANCELLED","ORDER_CHANGED"] call _finish
     };
     _aid params ["_generation","_medic","_casualty","_startedAt","_lastOrderAt","_bestDistance","_lastProgressAt"];
@@ -307,6 +316,7 @@ if ((_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) sel
 };
 private _startedAt=time;
 private _deadline=_startedAt+_timeout;
+private _returnAnchor=formLeader _medic;
 private _approach=[];
 if (_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) select 2)) > 1.5}) then {
     _approach=getPosATL _casualty;
@@ -314,5 +324,5 @@ if (_best > 4 || {abs (((getPosASL _medic) select 2)-((getPosASL _casualty) sele
 } else {
     _medic action ["HealSoldier",_casualty];
 };
-_group setVariable ["CBE_Cortex_MedicalAid",[_operation get "generation",_medic,_casualty,_startedAt,_startedAt,_best,_startedAt,+_medicalOrder,+_approach,_threshold,_legThreshold,_deadline],true];
+_group setVariable ["CBE_Cortex_MedicalAid",[_operation get "generation",_medic,_casualty,_startedAt,_startedAt,_best,_startedAt,+_medicalOrder,+_approach,_threshold,_legThreshold,_deadline,_returnAnchor],true];
 true

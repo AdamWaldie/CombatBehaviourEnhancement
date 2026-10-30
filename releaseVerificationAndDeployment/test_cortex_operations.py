@@ -2496,7 +2496,7 @@ class CortexOperations(unittest.TestCase):
         self.assertFalse(need(0,0))  # Missing native HitLegs reads0 on supported engine.
         self.assertTrue(need(.5,.3))
         self.assertFalse(need(.5,.3,.9,.9))  # New settings must not redefine an old attempt.
-        self.assertIn('_threshold,_legThreshold,_deadline],true]',medical)
+        self.assertIn('_threshold,_legThreshold,_deadline,_returnAnchor],true]',medical)
         self.assertIn('private _threshold=_aid select 9;',medical)
         self.assertIn('private _legThreshold=_aid select 10;',medical)
         self.assertIn('private _deadline=_aid select 11;',medical)
@@ -2524,13 +2524,34 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('CBE_fnc_OperationCancel',medical)
         self.assertIn('CBE_fnc_OperationRelease',medical)
         finish=medical.split('private _finish = {',1)[1].split('private _medicalEnabled=',1)[0]
-        for guard in ('count _aid == 12','isNil {','CBE_fnc_NativeOrderReceipt',
+        for guard in ('count _aid == 13','isNil {','CBE_fnc_NativeOrderReceipt',
                       'CBE_fnc_CortexExternalTakeover','CBE_fnc_CortexActorMoveReserved',
                       'currentCommand _medic == "MOVE"','_destination vectorDistance _approach <= 0.25',
                       'ownerEpoch','"MEDICAL_AID"'):
-            self.assertLess(finish.index(guard),finish.index('_medic doFollow leader _group;'))
+            self.assertLess(finish.index(guard),finish.index('_medic doFollow _returnAnchor;'))
         self.assertNotIn('CancelAction',finish)
-        self.assertLess(finish.index('_medic doFollow leader _group;'),finish.index('CBE_fnc_OperationCancel'))
+        self.assertNotIn('_medic doFollow leader _group',finish)
+        self.assertLess(medical.index('private _returnAnchor=formLeader _medic;'),medical.rindex('_medic doMove _approach'))
+        for guard in ('private _returnAnchor=_aid param [12,objNull,[objNull]]',
+                      '[_medic] call CBE_fnc_CortexCombatEffective',
+                      '_medic checkAIFeature "MOVE"','_medic checkAIFeature "PATH"',
+                      '!isNull _returnAnchor','_returnAnchor != _medic',
+                      'group _returnAnchor == _group','[_returnAnchor] call CBE_fnc_CortexCombatEffective',
+                      'formLeader _medic isEqualTo _returnAnchor'):
+            self.assertLess(finish.index(guard),finish.index('_medic doFollow _returnAnchor;'))
+        self.assertNotIn('_aid set [12,',medical)
+        def can_return(saved,current,same_group=True,effective=True,mover=True,path=True,self_anchor=False):
+            return saved is not None and saved==current and same_group and effective and mover and path and not self_anchor
+        self.assertTrue(can_return('team-lead','team-lead'))
+        self.assertFalse(can_return('team-lead','new-group-lead'))
+        self.assertFalse(can_return(None,'group-lead'))
+        self.assertFalse(can_return('team-lead','team-lead',same_group=False))
+        self.assertFalse(can_return('team-lead','team-lead',effective=False))
+        self.assertFalse(can_return('team-lead','team-lead',mover=False))
+        self.assertFalse(can_return('team-lead','team-lead',path=False))
+        self.assertFalse(can_return('self','self',self_anchor=True))
+
+        self.assertLess(finish.index('_medic doFollow _returnAnchor;'),finish.index('CBE_fnc_OperationCancel'))
         self.assertIn('private _mayIssueMedical = {',medical)
         eligible=medical.split('private _actorEligible={',1)[1].split('private _finish = {',1)[0]
         for guard in ('simulationEnabled _actor','!isObjectHidden _actor','!fleeing _actor',
@@ -2562,8 +2583,8 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('"NO_MEDICAL_KIT"',medical)
         for forbidden in ('addItem','removeItem','addMagazine','setDamage'):
             self.assertNotIn(forbidden,kits)
-        self.assertIn('count _aid != 12 || {(_aid select 7) isNotEqualTo _medicalOrder}',medical)
-        self.assertIn('_startedAt,_startedAt,_best,_startedAt,+_medicalOrder,+_approach,_threshold,_legThreshold,_deadline],true]',medical)
+        self.assertIn('count _aid != 13 || {(_aid select 7) isNotEqualTo _medicalOrder}',medical)
+        self.assertIn('_startedAt,_startedAt,_best,_startedAt,+_medicalOrder,+_approach,_threshold,_legThreshold,_deadline,_returnAnchor],true]',medical)
         self.assertIn('if (_authoredOrder && {!_stationaryOrder}) exitWith {false};',medical)
         self.assertIn('!_stationaryOrder || {_distance <= 4',medical)
         self.assertIn('if (_stationaryOrder && {!_inTreatmentRange}) exitWith',medical)
@@ -2573,7 +2594,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_aid set [8,+_approach];',medical)
         self.assertIn('currentCommand _x in ["MOVE","ATTACK","FIRE","SUPPRESS"',medical)
         self.assertLess(medical.index('private _requestedApproach='),medical.index('if !([_casualty,_threshold,_legThreshold] call _needsAid)'))
-        self.assertLess(medical.index('count _aid != 12'),medical.index('if !([_casualty,_threshold,_legThreshold] call _needsAid)'))
+        self.assertLess(medical.index('count _aid != 13'),medical.index('if !([_casualty,_threshold,_legThreshold] call _needsAid)'))
         permission=medical.split('private _mayIssueMedical = {',1)[1].split('private _aid=',1)[0]
         self.assertIn('CBE_fnc_NativeOrderReceipt) isEqualTo _medicalOrder',permission)
         for forbidden in ['setDamage', 'setPos', 'joinSilent', 'addWaypoint']:
