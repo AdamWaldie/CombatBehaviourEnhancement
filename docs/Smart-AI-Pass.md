@@ -3810,3 +3810,5 @@ selection. Specialists remain eligible if no preferred actor is available. The p
 64 nearest eligible actors once per fresh contact attempt and stops at the nearest rifleman; active
 crews are not reshuffled. This uses the existing role helper, not a complete marksman/observer/AA
 classification, and does not add garrison weapon-manning options. Physical balance remains unverified.
+
+Static support shares a finite native-command policy across recruitment, active observation and cleanup. Unknown service tasks and ATTACK/HIDE movement yield without unassigning or dismounting the actor. Existing ambient/contact states remain eligible; FOLLOW requires its observed anchor and GET IN requires the original seat/owner receipt. This does not distinguish an identical replacement order or prove native completion.

@@ -1728,9 +1728,17 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('_row select 5',seat)
         self.assertIn('!alive _incoming',seat)
         self.assertIn('select [0,16]',support)
-        self.assertIn('"STOP"',admission)
-        self.assertIn('"STOP"',active)
-        self.assertIn('"STOP"',release)
+        native_policy=support.split('private _nativeTaskAllowed=',1)[1].split('private _release=',1)[0]
+        for path in (admission,active,release):
+            self.assertIn('call _nativeTaskAllowed',path)
+        allowed=re.search(r'_command in (\[[^\]]+\])',native_policy).group(1)
+        allowed=json.loads(allowed)
+        self.assertEqual(set(allowed),{'','WAIT','EXPECT','TARGET','WATCH','FIRE','ATTACKFIRE','SUPPRESS'})
+        self.assertTrue(set(allowed).isdisjoint({'MOVE','STOP','ATTACK','HIDE','ACTION','GET IN',
+            'GET OUT','HEAL','REPAIR','HOOK CARGO','VIV GETIN','FUTURE SERVICE'}))
+        self.assertIn('formLeader _actor == _follow',native_policy)
+        self.assertIn('call _assignmentOwned',native_policy)
+        self.assertIn('false\n};',native_policy)
         commit=support.split('private _issued=false;',1)[1]
         self.assertIn('isNil {',commit)
         self.assertLess(commit.index('call _seatAvailable'),commit.index('assignAsGunner'))
@@ -1744,6 +1752,7 @@ class CortexOperations(unittest.TestCase):
                        'formLeader _actor != _originalFollow','_lease param [7,objNull,[objNull]]'):
             self.assertIn(marker,native)
         self.assertIn('formLeader _actor != _followReceipt',commit)
+        self.assertIn('[_actor,false,_followReceipt] call _nativeTaskAllowed',commit)
         self.assertIn('getPosATL _actor,_followReceipt,_assignmentReceipt]',commit)
         receipt=support.split('private _assignmentOwned=',1)[1].split('private _release=',1)[0]
         for marker in ('_lease param [8,[],[[]]]','count _receipt != 3','== clientOwner',

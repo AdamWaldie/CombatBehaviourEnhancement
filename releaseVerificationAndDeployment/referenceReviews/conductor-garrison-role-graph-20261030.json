@@ -97,7 +97,7 @@
     "addons/infantry/functions/garrisonTaskDialog.sqf": "670c75d8675268528fb9a6b1d9c52925963a455d03c848f0abed5521dc359b3b",
     "addons/infantry/functions/zenGarrisonModule.sqf": "ab886da14f7d128d37b85bde41a7caf3176153782ac4c5dd2e10d3e645e0b26d",
     "addons/infantry/functions/cortexGarrison.sqf": "36b464f4c72549af8d31319639e1ef0887f978e16661a1a824c2ce4007f7f86e",
-    "addons/infantry/functions/cortexStaticSupport.sqf": "251bcd6dbaaa544b43c984bea862bd4b747cae9abebe63975d64c67a8b127d37",
+    "addons/infantry/functions/cortexStaticSupport.sqf": "e7ba961056f5e85ae5b39ab1a152e2ce3d4992dd3d4dea663269dedb16cc72c4",
     "addons/infantry/functions/cortexUnitRole.sqf": "2c2c386541c91069a73861ce42eb340e26a56ceea7d766e2b5cd0de27dc3925d",
     "addons/support/functions/cortexSupportApply.sqf": "d2ea4fe8a5c33d140888a94a4faf93b383cbe9f9535e449b2e2f458fff610f3c",
     "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "991c16cf509d4aa8f07cc588944a757cfd005c1bc04bb1de3af2f9fbcb95bfc1",
@@ -367,7 +367,7 @@
     "lifecycle": "Read-only index/proposal, no movement/firing/target/native authority. Transform-bound private cache; no adoption/public permission. Existing admission, actor/native/task guards, failed-post ledger, actual entry/arrival and issued-command ownership still apply. No new setting, module, task, deadline or retry renewal.",
     "limits": "MEDIC and MG only; leader/AT/rifle ordering otherwise unchanged. First16 remaining may omit a better distant post; single outward bearing is approximate, not full field optimization. Geometry may change; roof/material screening is not route reachability, room safety, friendly-fire safety or actual eye/muzzle aim. No full marksman/observer/AA model, weapon-role task or real native-end acknowledgement.",
     "validation": {
-      "focused": "PASS618 existing operation checks plus4 preflight checks; existing case extended, zero added cases. Coverage mapped to existing GARRISON feature and regenerated report. Full build pending.",
+      "focused": "PASS618 existing operation checks plus4 preflight checks; existing case extended, zero added cases. Coverage mapped to existing GARRISON feature and regenerated report. Full validation is recorded below.",
       "focusedLog": ".qa/handovers/garrison-role-posts-focused-20261030.log",
       "preflightLog": ".qa/handovers/garrison-role-posts-preflight-20261030.log",
       "full": "PASS:1506 existing tests,490 compiled SQF,11PBO; complete config/FSM/header/docs/wiki/parity/coverage/static-performance gates. Zero new test cases. Static performance0 findings; live timing not measured.",
@@ -380,5 +380,31 @@
     },
     "physical": "NOT_RUN_AUDITS_PAUSED",
     "userDirection": "Explicit Override cutoff and continue remains in force."
+  },
+  "nativeCommandPolicy20261030": {
+    "baseCommit": "8d7eb17663c8e2b4f573af6dab3dacf255c1483c",
+    "finding": "CortexStaticSupport used separate reject lists in recruitment, unscheduled assignment, active observation and CALM/disable release. Any unlisted native task could be admitted or cleaned up; ATTACK/HIDE movement was also not protected by its MOVE/FOLLOW-only replacement check.",
+    "sourceIntent": "Conductor native crew selection/release intent remains useful, but broad native boarding/unassign/reset is not CBE authority. Retain one current owner and finite native task boundary rather than importing another controller.",
+    "engineReference": {
+      "currentCommand": "https://community.bohemia.net/wiki/currentCommand",
+      "groupCommandChanged": "https://community.bohemia.net/wiki/Arma_3:_Event_Handlers#CommandChanged",
+      "observation": "Official indexed currentCommand lists ATTACK/HIDE and service commands; group CommandChanged also documents cargo/ViV families. Direct wiki opens403; indexed official page text available. Group event strings are not asserted to be currentCommand outputs. Unknown strings are deliberately refused."
+    },
+    "implementation": "One private _nativeTaskAllowed predicate is used by fresh recruitment, final unscheduled admission, active observation and direct release. Empty/WAIT/EXPECT and existing TARGET/WATCH/FIRE/ATTACKFIRE/SUPPRESS contact states remain eligible. FOLLOW requires an observed matching anchor; only ongoing original GET IN may match the exact seat/owner/epoch receipt. Other commands, including ATTACK/HIDE and unknown future services, yield. Cleanup retires matching CBE metadata without native unassign/GetOut when refused.",
+    "preserved": "Original20s boarding deadline, episode selection, seat vacancy/role/owner checks, native route receipt, existing medic/RIFLE preference, no reissue, no teleport, no new controller/timer/settings/message. WATCH/TARGET remain tolerated existing labels, not asserted documented currentCommand outputs.",
+    "cost": "Constant-size local command membership/anchor/receipt checks replace separate reject lists. No new scan, ray, task, event handler or network state. Live timing remains unmeasured.",
+    "limits": "WAIT/EXPECT remain permitted ambient engine states and are not native completion acknowledgements. Identical replacement commands/roles cannot be distinguished by currentCommand and assignedVehicleRole. Actual native boarding/cancellation/end acknowledgement and controlled owner handover remain open; no garrison weapon roles added.",
+    "validation": {
+      "focused": "PASS618 existing operation tests; existing static-support contract extended with common-path wiring and permitted/foreign-command set checks; zero added cases. Full validation recorded below.",
+      "focusedLog": ".qa/handovers/static-native-policy-focused-20261030.log",
+      "full": "PASS1506 existing tests,490 compiled SQF,11PBO; complete offline config/FSM/header/docs/wiki/parity/coverage gates; static performance0 findings. Zero added cases. Existing modularity release contract now checks delegated exact receipt instead of obsolete inline variable.",
+      "buildLog": ".qa/handovers/static-native-policy-build-20261030.log",
+      "candidate": ".qa/candidates/static-native-policy-20261030-8d7eb176",
+      "fingerprint": "8b9fbe99514ded5865a063d0e84f174d7a564bad76c9c4af9fd7f001336e419f",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/static-native-policy-independent-20261030.log",
+      "sourceIdentity": "Unsigned dirty base8d7eb176 plus checked runtime/test/guide/review inputs; later engineering metadata/handover separate. Not signed release or native completion proof."
+    },
+    "physical": "NOT_RUN_AUDITS_PAUSED"
   }
 }

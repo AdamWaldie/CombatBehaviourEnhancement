@@ -5,7 +5,11 @@
  * An empty gunner seat with a living incoming assignment is not available. Discovery inspects
  * at most16 nearby static candidates; final unscheduled admission rechecks the original route,
  * epoch/operation, actor command and seat before assignment/boarding/publication.
- * A newer STOP yields cleanup without native unassign/GetOut writes.
+ * Unrecognised native tasks and explicit ATTACK/HIDE movement yield without unassign/GetOut.
+ * One finite allowlist is shared by admission, active observation and direct release.
+ * Empty/WAIT/EXPECT and contact aiming/firing states remain eligible; FOLLOW requires its
+ * original observed anchor and GET IN requires the original exact CBE seat/owner receipt.
+ * Identical native replacement commands cannot be distinguished by currentCommand alone.
  * A later native MOVE or changed FOLLOW anchor also yields without those writes. The original
  * observed follow anchor is captured once at admission; missing history never authorizes recall.
  * Exact original assignedVehicleRole, issuing clientOwner and locality epoch are also required
@@ -73,15 +77,26 @@ private _assignmentOwned={
         && {assignedVehicle _actor == _weapon}
         && {assignedVehicleRole _actor isEqualTo _role}
 };
+// Fail closed for native service/task commands not owned by this contact transaction.
+// WAIT/EXPECT are retained ambient states, not proof that native work has ended.
+private _nativeTaskAllowed={
+    params ["_actor",["_boarding",false],["_follow",objNull]];
+    if (isNull _actor) exitWith {false};
+    private _command=toUpperANSI currentCommand _actor;
+    if (_command in ["","WAIT","EXPECT","TARGET","WATCH","FIRE","ATTACKFIRE","SUPPRESS"]) exitWith {true};
+    if (_command == "FOLLOW") exitWith {!isNull _follow && {formLeader _actor == _follow}};
+    if (_command == "GET IN" && {_boarding}) exitWith {
+        [_actor,_lease param [2,objNull,[objNull]]] call _assignmentOwned
+    };
+    false
+};
 private _release={
     params ["_external"];
     if (count _lease >= 7) then {
         private _actor=_lease param [1,objNull,[objNull]];
         private _weapon=_lease param [2,objNull,[objNull]];
-        private _command=toUpperANSI currentCommand _actor;
-        private _ownedBoarding=_command == "GET IN" && {!isNull _weapon}
-            && {[_actor,_weapon] call _assignmentOwned};
-        private _protectedTask=([_actor] call _nativeMovementChanged) || {!_ownedBoarding && {_command in ["STOP","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}};
+        private _protectedTask=([_actor] call _nativeMovementChanged)
+            || {!([_actor,true,_lease param [7,objNull,[objNull]]] call _nativeTaskAllowed)};
         private _actorMove=_actor getVariable ["CBE_Cortex_ActorMove",[]];
         private _newMove=count _actorMove == 3 && {(_actorMove param [2,-1,[0]]) > time}
             && {(_actorMove select 0) != "STATIC_SUPPORT" || {(_actorMove select 2) != (_lease select 4)}};
@@ -142,7 +157,7 @@ if (count _lease >= 7) exitWith {
     };
     if ([_actor] call _nativeMovementChanged || {_operationConflict} || {!isNull _actor && {fleeing _actor || {!simulationEnabled _actor} || {isObjectHidden _actor}}}
         || {!isNull _actor && {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}}
-        || {!isNull _actor && {currentCommand _actor in ["STOP","GET OUT","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED"]}}) exitWith {
+        || {!([_actor,true,_lease param [7,objNull,[objNull]]] call _nativeTaskAllowed)}) exitWith {
         [true] call _release;
         "YIELDED"
     };
@@ -234,10 +249,8 @@ private _candidates=(units _group) select {
         && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []} && {vehicle _x == _x}
         && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
         && {isNull assignedVehicle _x}
-        // Native contact commands such as TARGET and WATCH are transient observations, not an
-        // external movement owner. Reject only concrete actor tasks which boarding would actually
-        // interrupt; the group-level Zeus/mission-order gate above already protects authored work.
-        && {!(toUpperANSI (currentCommand _x) in ["STOP","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"])}
+        // Only known ambient/contact states are recruitable. Unknown native tasks yield.
+        && {[_x,false,formLeader _x] call _nativeTaskAllowed}
         && {(_x getVariable ["CBE_Cortex_ActorMove",[]]) isEqualTo []}
         && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
         && {currentCommand _x != "MOVE"}
@@ -287,8 +300,7 @@ isNil {
         || {!simulationEnabled _actor} || {isObjectHidden _actor} || {fleeing _actor}
         || {currentCommand _actor != _commandReceipt}
         || {_commandReceipt == "FOLLOW" && {isNull _followReceipt || {formLeader _actor != _followReceipt}}}
-        || {_commandReceipt in ["MOVE","STOP","GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED",
-            "HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}
+        || {!([_actor,false,_followReceipt] call _nativeTaskAllowed)}
         || {!isNull assignedVehicle _actor} || {!isNull objectParent _actor}
         || {[_actor] call CBE_fnc_CortexActorMoveReserved}
         || {(_actor getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
