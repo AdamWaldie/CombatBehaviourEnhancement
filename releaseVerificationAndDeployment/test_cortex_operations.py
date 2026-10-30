@@ -2407,6 +2407,21 @@ class CortexOperations(unittest.TestCase):
         self.assertEqual(scan.count('forEach _enemies'),1)
         self.assertIn('_overmatchIndex=_forEachIndex',scan)
         self.assertNotIn('_enemies select _armourIndex',scan)
+        # One known platform may be reported by its hull and several crew; these
+        # are not independent enemies for outnumbering. Foot contacts stay distinct.
+        self.assertIn('_recentPlatforms pushBackUnique _enemy',scan)
+        self.assertIn('private _recent = count _recentPlatforms;',morale)
+        self.assertNotIn('if (_overmatchIndex >= 0) exitWith {};',scan)
+        self.assertIn('_overmatchIndex < 0 && {(_x select 2) <= 10}',scan)
+        self.assertNotIn('units group _enemy',scan)
+        def report_strength(reports):
+            return len({platform for platform,age in reports if platform is not None and age<=30})
+        self.assertEqual(report_strength([('tank',1),('tank',2),('tank',0),('foot-a',3)]),2)
+        self.assertEqual(report_strength([('foot-a',1),('foot-b',2),('foot-c',0)]),3)
+        self.assertEqual(report_strength([('truck-a',1),('truck-b',2),('truck-a',0)]),2)
+        self.assertEqual(report_strength([('tank',31),('foot-a',2),(None,0)]),1)
+        self.assertEqual(report_strength([('tank',30),('tank',31)]),1)
+
         # Stale nearest armour must not mask a fresh second contact; pressure still
         # remembers old armour. Usable AT and authored holds keep their own veto.
         def decision(contacts, has_at=False, hold=False):

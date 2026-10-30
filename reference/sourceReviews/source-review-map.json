@@ -897,10 +897,10 @@
       "name": "Pinned Down Conductor",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Coordination contribution to identify",
-      "reviewStatus": "Verified extracted source available; deep review unreconciled",
-      "nextSourceReview": "Use the verified extracted snapshot to identify actual coordination decisions and ensure complementary methods share one CBE owner.",
-      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
-      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "reviewStatus": "Selected pressure entity-deduplication branch plus four related leaf bodies reviewed; whole source incomplete",
+      "nextSourceReview": "Continue unreconciled actual coordination/support graph using the protected snapshot. Do not duplicate this selected pressure estimator, add unseen group-strength floors or install a competing coordinator merely because these bodies exist.",
+      "recordedImplementationStatus": "SELECTED_PLATFORM_PRESSURE_DEDUPLICATION_IMPLEMENTED_WHOLE_SOURCE_INCOMPLETE",
+      "recordedRemaining": "Known-platform pressure count integrated in existing morale owner. Whole Conductor registry/contact/need/proposal/lease/adapter graph and physical balance/performance remain incomplete.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
@@ -918,7 +918,8 @@
         "readableSourceFiles": 76,
         "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
       },
-      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
+      "platformPressure20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-platform-pressure-20261030.json"
     },
     {
       "workshopId": "3800356547",

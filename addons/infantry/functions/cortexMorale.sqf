@@ -8,8 +8,11 @@
  * members do not count as fighters. Temporary service tasks or flight alone are not casualties.
  * Weighted pressure: unavailable fighters against peak living strength (45%), average
  * suppression (20%), losing the leader it started the fight with (10%), being outnumbered by enemies
- * seen in the last 30 s (15%), known armour within 400 m with no anti-tank gunner in the squad (20%)
- * and average wounds (10%). Average courage skill offsets it, so AI Rebalance profiles and mission
+ * represented by distinct known foot soldiers/vehicles in the last30s (15%), known armour within
+ * 400m with no anti-tank gunner in the squad (20%), and average wounds (10%). Crew/hull reports
+ * share one platform; no unseen hostile membership or extra vehicle weight is inferred. The existing
+ * native knowledge shortlist is consumed once, reusing vehicle identity for armour and count;
+ * it does not reconstruct historic mounting state. Average courage skill offsets pressure, so mission
  * skills still matter. CBE_AIPass_Cohesion (AI Tuning, default 1) divides the pressure, so squads
  * hold longer above 1 and break sooner below it. Morale falls quickly towards the pressure and
  * recovers slowly:60% versus10% of the gap per nominal two seconds, scaled by elapsed time.
@@ -81,23 +84,27 @@ _suppression = _suppression / _count;
 _wounds = _wounds / _count;
 private _contactLeader = _state getOrDefault ["contactLeader", leader _group];
 private _leaderLost = [0, 1] select (!([_contactLeader] call CBE_fnc_CortexCombatEffective));
-private _recent = {(_x select 2) <= 30} count _enemies;
-private _outnumbered = (((_recent / _count) - 1) max 0) min 2;
 private _hasAT = _fighters findIf {"AT" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0;
 // General pressure may retain a30s armour memory. Immediate overmatch needs its own
 // fresh contact: the first stale tank must not mask a later freshly observed one.
 // One pass over the existing bounded knowledge list, no additional sensing or sort.
+private _recentPlatforms=[];
 private _armourIndex=-1;
 private _overmatchIndex=-1;
 {
     private _enemy=vehicle (_x select 0);
+    // A known hull and its reported mounted crew represent one platform, not an
+    // unseen extra squad. On-foot actors remain their own distinct identities.
+    if (!isNull _enemy && {(_x select 2) <= 30}) then {_recentPlatforms pushBackUnique _enemy};
     if ((_enemy isKindOf "Tank" || {_enemy isKindOf "Wheeled_APC_F"})
         && {(_x select 3) <= 400} && {(_x select 2) <= 30}) then {
         if (_armourIndex < 0) then {_armourIndex=_forEachIndex};
-        if ((_x select 2) <= 10 && {(_x select 3) <= 120}) exitWith {_overmatchIndex=_forEachIndex};
+        if (_overmatchIndex < 0 && {(_x select 2) <= 10} && {(_x select 3) <= 120}) then {_overmatchIndex=_forEachIndex};
     };
-    if (_overmatchIndex >= 0) exitWith {};
+    // Retain the first fresh overmatch but finish the same bounded list for pressure.
 } forEach _enemies;
+private _recent = count _recentPlatforms;
+private _outnumbered = (((_recent / _count) - 1) max 0) min 2;
 private _armour = [0, 1] select (!_hasAT && {_armourIndex >= 0});
 // Heavy armour at assault distance is tactical overmatch, not a slow morale adjustment. Without
 // a capable launcher, continuing into the ordinary manoeuvre selector makes riflemen charge a

@@ -2744,3 +2744,10 @@ The original kit, actor, reservation, native-order, generation and epoch checks 
 An idle fleeing soldier now receives the existing material-screen observation before either quiet formation rejoin or escape search. Previously, quiet rejoin could request FOLLOW first and bypass that observation. A screened current position receives no CBE movement request; this is no forced hold, safe-room verdict or protection from every threat. Native engine and mission orders retain control.
 
 Unscreened actors retain the existing quiet rejoin and finite escape rules. There is no new controller, timer, posture/speed reset, reservation or renewed deadline. Non-quiet observations keep their existing query count. A previously successful quiet rejoin now costs at most one terrain intersection and one object ray with four returned surfaces, under the unchanged group2second/actor15second throttle. Actual shelter retention, native return and measured performance remain unverified while audits are paused.
+
+
+## Distinct reported platforms in morale pressure (30 October 2026)
+
+Recent reports of a vehicle and its mounted crew now count as one platform in the outnumbering part of squad morale. Separate foot soldiers and separate vehicles remain distinct. This avoids treating several reports of one gun truck as several independent opponents. The existing age window, pressure weights, no-AT armour rule, close-overmatch withdrawal and authored HOLD/SENTRY veto remain. No unseen enemy membership, extra vehicle weighting or minimum enemy squad size is inferred.
+
+The existing native-knowledge shortlist is consumed once; the first fresh overmatch is retained while the scan finishes the unique count. There are no new world queries, targets, jobs, timers or controllers. This uses current platform identity and does not reconstruct old mounting state. Actual reporting, embark/disembark balance and performance remain unverified while audits are paused.
