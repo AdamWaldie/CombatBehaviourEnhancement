@@ -1,6 +1,6 @@
 # CBE implementation goal
 
-Deliver a standalone Arma 3 AI improvement addon by selecting, combining, fixing and improving useful AI functionality from the source register. Gameplay quality, tactical plausibility, balance and engine performance govern the implementation. Implement useful LAMBS functionality inside CBE and evolve it without requiring LAMBS. Reconcile the entire relevant HBQ controller and all nine registered Protocol capabilities at their appropriate layers.
+Deliver a standalone Arma 3 AI improvement addon by selecting, combining, fixing and improving useful AI functionality from the source register. Gameplay quality, tactical plausibility, balance and engine performance govern the implementation. Implement useful LAMBS functionality inside CBE and evolve it without requiring LAMBS. Reconcile the entire relevant HBQ controller and registered Protocol capabilities, including the newly queued aircraft source 3828285847, at their appropriate layers.
 
 ## Current execution direction — 29 October 2026
 
@@ -37,7 +37,7 @@ Use these existing records before choosing or claiming work:
 - `reference/sourceReviews/source-review-map.json` and `reference/sourceReviews/SOURCE-REVIEW-MAP.md`: recoverable master source queue and selected intent.
 - `reference/sourceReviews/lambs-danger-source-queue.json`: readable danger/FSM review scope and unresolved source paths.
 - `releaseVerificationAndDeployment/referenceReviews/hbq-reference-index.json`: HBQ review evidence and unresolved historical pointers. Review the entire relevant HBQ source, including every major branch; selected helpers do not establish whole-mod coverage.
-- `releaseVerificationAndDeployment/referenceReviews/protocol-implementation-programme-20261020.json`: all nine Protocol references and their capability/integration gaps.
+- `releaseVerificationAndDeployment/referenceReviews/protocol-implementation-programme-20261020.json`: the original nine Protocol references and the newly queued tenth aircraft source 3828285847, with their capability/integration gaps.
 
 For each selected capability, record the source version/hash and actual execution path, intended benefit, existing CBE owner, useful differences, implementation gaps and next concrete change. Mark source methods as retained, adapted, replaced or rejected with a reason. Rejecting an unsafe method does not resolve a required capability: retain the capability gap until a suitable implementation exists. Missing historical evidence remains missing. Inventory, source review and test counts alone earn no implementation credit.
 

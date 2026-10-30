@@ -87,7 +87,7 @@
       "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/core/fn_tick.sqf",
       "sha256": "ebb2687aebe992f39d4f68224864588de04775583a7803838f5495028af62da4",
       "manifestMatch": true,
-      "scope": "Selected first 10 lines: server gate, mode check and synchronous garrisonTick before disabled exit. Remaining orchestration body not wholly reviewed."
+      "scope": "Complete orchestration body: contacts then legacy provider then due10-second pruning only while communications enabled; staged need analysis and5-second request quiet/TTL closure/candidate review. Descendants not thereby complete."
     },
     {
       "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/dispatch/fn_inspectGroupOwnership.sqf",
@@ -256,9 +256,87 @@
       "sha256": "43a7fce17e93d0b6fbc6475f52c48e85408153519c9ff75eca6bbff25cc32722",
       "manifestMatch": true,
       "scope": "Complete59-line reporter removal, desired/ratio recomputation, exact alias deletion, last reporter close or surviving requester reassignment. Actual caller/expiry delivery graph remains separate."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/adapters/fn_registerContactProvider.sqf",
+      "sha256": "a023baf0e144e39cf835ac6c4d1504866dccb00b286978cf11b3a59a0d534bc9",
+      "manifestMatch": true,
+      "scope": "Complete body: implicit metadata registration, stable registered time and counters; no provider callback or authenticated ownership contract."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/adapters/fn_receiveProviderContact.sqf",
+      "sha256": "ed6b7b17cfa747ed916ec3f845de7fc8f859afb30dc79d3578481e8fd88a15ae",
+      "manifestMatch": true,
+      "scope": "Complete body: server/enable/communication gates, implicit registration, event/2-second fallback dedupe and provenance copy into reportContact. No trusted origin timestamp supplied by this interface."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/contacts/fn_reportContact.sqf",
+      "sha256": "a609c667c57332ec2e4bf9900639faeacd14c7516489e58c17ab5da0ea62b9c8",
+      "manifestMatch": true,
+      "scope": "Complete body: source rank, accepted refresh, peak-confidence retention, expiry renewal, bounded8 provenance and5-second relay gate. No reveal call; object fallback still reads live position."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/contacts/fn_relayContact.sqf",
+      "sha256": "b2be27efb1d4bcdc4efc3c75fadcdab8686d8f17552de1f85144294959e40e0c",
+      "manifestMatch": true,
+      "scope": "Complete body: one-hop metadata, tier range, one-direction friendship, stronger-live-source precedence, confidence0.65 and new0.75-max-age expiry; full group-order recipient scan."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/contacts/fn_scanContacts.sqf",
+      "sha256": "e1cd58f803ef6da9ef6c2e5ebb3b4c4bd86ef784155e172f79c6964fab5600c1",
+      "manifestMatch": true,
+      "scope": "Complete body: staggered8 groups and6 native candidates/group, leader-only knowledge and current line-of-sight query; reads aimPos/getPosATL without personal visual witness validation."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/contacts/fn_pruneContacts.sqf",
+      "sha256": "89cf22f8d77d6f4e72e8d421c2bad9c5051b24b56a3b62dad2dc22a3c4bf518c",
+      "manifestMatch": true,
+      "scope": "Complete body: full registry/contact iteration, expiry marks STALE, removal after2maxAge since last update, serverTime dedupe cleanup."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/contacts/fn_getContacts.sqf",
+      "sha256": "c809a89d69a3a0d95d05fa352fa60772498a94d892271307a0336bc85e8e85b5",
+      "manifestMatch": true,
+      "scope": "Complete body: source-label filter and freshness sort only, no live expiresAt test."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/adapters/fn_scanTracksBootsProvider.sqf",
+      "sha256": "fa895e820b155e3bb70e715f7d243aef33cc776453020039b036ae93f4dd2b39",
+      "manifestMatch": true,
+      "scope": "Complete body:3-second legacy broadcast fallback, disabled once provider registered, current target transform substituted for broadcast position; full provider job/packet scan."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_processNeedAnalysis.sqf",
+      "sha256": "9da45c93e5354b19dc38f605498a3075e13278901e6de7c88cb1e38407a90931",
+      "manifestMatch": true,
+      "scope": "Complete body: staged1..8 group analysis; need metadata forwarded into120-second support request; quiet-ready reporter clearing and optional SteelRain call. Called SteelRain executor not thereby reviewed."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_analyzeGroupNeeds.sqf",
+      "sha256": "d251602f82f3d19a3297fb5095f7bf215f034c5ca6163331e2056a7918f435c8",
+      "manifestMatch": true,
+      "scope": "Complete body: threat confidence/age/side gates and live object distance, AT/AA shortfall, medical threshold and reinforcement-analysis call. Threat classifier and full reinforcement body not thereby reviewed."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_isGroupLocallyEngaged.sqf",
+      "sha256": "db9571428e273f5c9cdf6239678681f7b136ee67b1e1945325cf8820a8f61b00",
+      "manifestMatch": true,
+      "scope": "Complete body: existing pressure short circuit, direct/local report35-second gates and stored-position radius, optional FOACT pressure evidence. LOCAL_REPORTED is treated as direct evidence."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/core/fn_start.sqf",
+      "sha256": "9e6f48a2a5a876157dd177f1f2373c34b960c97e61001c486def59071f78fa88",
+      "manifestMatch": true,
+      "scope": "Selected lines69-87: CONDUCTOR registration and CBA provider event installation. Remaining startup body not wholly reviewed."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_analyzeReinforcementPressure.sqf",
+      "sha256": "3ce621530e50bc600629d0965e9ed7744bad7a2767885cc9515747cd484d2846",
+      "manifestMatch": true,
+      "scope": "Selected lines1-184: requester eligibility, optional pressure provider, direct/relayed evidence gates, unique hostile-entity/group weights and local friendly contribution. Remaining pressure sustain/clear/output branches still require complete review."
     }
   ],
-  "sourceIntegrity": "42 selected immutable archive source hashes and32 current product hashes verified; protected manifest verified. Latest request guard checks finite external coordinates and fresh responder policy; original inputs untouched.",
+  "sourceIntegrity": "55 selected immutable source hashes and37 current product hashes verified against protected manifest/current files. Contact review is source-only; no reference or runtime mutation.",
   "productHashes": {
     "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
@@ -291,7 +369,12 @@
     "addons/core/functions/operationStart.sqf": "b6af6ef4d58d599ddd1bedd169b519fb04b6912611ce6e2e4f3b2e2d4295894a",
     "addons/infantry/functions/cortexGroupMove.sqf": "c4df1a2c462797d3f5b7663a2eb7472c6f8343f27e5c01dbd10a09784cc5bad5",
     "addons/support/functions/cortexSupportServer.sqf": "1beb392ee12dbe2415985c292d20d0f72ae48945e9ee39b35eb7c1a4e668f9f1",
-    "addons/support/functions/supportRequestStart.sqf": "ad041403d97ed9383214b70b3a260e5363316f84bce39c117afdeab0d1b4106a"
+    "addons/support/functions/supportRequestStart.sqf": "ad041403d97ed9383214b70b3a260e5363316f84bce39c117afdeab0d1b4106a",
+    "addons/support/functions/cortexContactReport.sqf": "a8361c1a4e6086395b135ae9f985bc7decb48bf670d09be67cd9371b099df7c7",
+    "addons/infantry/functions/cortexReportServer.sqf": "248fe9b613f67721c72b9f679ae5f41cdb6b13b813648cf49d97f14f0a0e0396",
+    "addons/infantry/functions/cortexReportLocal.sqf": "c37fe74aaf051050252337280a0402a980eac8aa79e0376b683cb1ccae1a8f69",
+    "addons/infantry/functions/cortexKnowledge.sqf": "e9df7da9829402308278a0e5838047001ce2784619086f76e4c0563ef1a91caf",
+    "addons/infantry/functions/cortexGroupTick.sqf": "d25429a68ab5ee5a8be78d5a912e48634b2bf5070a96fce16b0f5d3b5dad6141"
   },
   "productScope": "Selected actual operator, planning/assignment, role and contact-static owner branches; not complete bodies of every CBE descendant or physical/compiled-source parity.",
   "dispositions": [
@@ -790,5 +873,42 @@
     },
     "nextFiniteWork": "Review contact/provider registration20, receive49, report99, relay72 and scan46 plus expiry/clear caller paths against CBE native belief/communication authority. No direct source execution or parallel registry. Newly added Protocol aircraft3828285847 and Universal AI3829519860 intakes are source-unreviewed and remain queued after foundations.",
     "physical": "NOT_RUN_AUDITS_PAUSED"
+  },
+  "contactProvenanceReview20261030": {
+    "baseCommit": "11c9266b604314fc8e4e9abacce22de7c656ebff",
+    "scopes": {
+      "functions/adapters/fn_registerContactProvider.sqf": "Complete body: implicit metadata registration, stable registered time and counters; no provider callback or authenticated ownership contract.",
+      "functions/adapters/fn_receiveProviderContact.sqf": "Complete body: server/enable/communication gates, implicit registration, event/2-second fallback dedupe and provenance copy into reportContact. No trusted origin timestamp supplied by this interface.",
+      "functions/contacts/fn_reportContact.sqf": "Complete body: source rank, accepted refresh, peak-confidence retention, expiry renewal, bounded8 provenance and5-second relay gate. No reveal call; object fallback still reads live position.",
+      "functions/contacts/fn_relayContact.sqf": "Complete body: one-hop metadata, tier range, one-direction friendship, stronger-live-source precedence, confidence0.65 and new0.75-max-age expiry; full group-order recipient scan.",
+      "functions/contacts/fn_scanContacts.sqf": "Complete body: staggered8 groups and6 native candidates/group, leader-only knowledge and current line-of-sight query; reads aimPos/getPosATL without personal visual witness validation.",
+      "functions/contacts/fn_pruneContacts.sqf": "Complete body: full registry/contact iteration, expiry marks STALE, removal after2maxAge since last update, serverTime dedupe cleanup.",
+      "functions/contacts/fn_getContacts.sqf": "Complete body: source-label filter and freshness sort only, no live expiresAt test.",
+      "functions/adapters/fn_scanTracksBootsProvider.sqf": "Complete body:3-second legacy broadcast fallback, disabled once provider registered, current target transform substituted for broadcast position; full provider job/packet scan.",
+      "functions/analysis/fn_processNeedAnalysis.sqf": "Complete body: staged1..8 group analysis; need metadata forwarded into120-second support request; quiet-ready reporter clearing and optional SteelRain call. Called SteelRain executor not thereby reviewed.",
+      "functions/analysis/fn_analyzeGroupNeeds.sqf": "Complete body: threat confidence/age/side gates and live object distance, AT/AA shortfall, medical threshold and reinforcement-analysis call. Threat classifier and full reinforcement body not thereby reviewed.",
+      "functions/analysis/fn_isGroupLocallyEngaged.sqf": "Complete body: existing pressure short circuit, direct/local report35-second gates and stored-position radius, optional FOACT pressure evidence. LOCAL_REPORTED is treated as direct evidence.",
+      "functions/core/fn_tick.sqf": "Complete orchestration body: contacts then legacy provider then due10-second pruning only while communications enabled; staged need analysis and5-second request quiet/TTL closure/candidate review. Descendants not thereby complete.",
+      "functions/core/fn_start.sqf": "Selected lines69-87: CONDUCTOR registration and CBA provider event installation. Remaining startup body not wholly reviewed.",
+      "functions/analysis/fn_analyzeReinforcementPressure.sqf": "Selected lines1-184: requester eligibility, optional pressure provider, direct/relayed evidence gates, unique hostile-entity/group weights and local friendly contribution. Remaining pressure sustain/clear/output branches still require complete review."
+    },
+    "actualPath": "start CBA PDCO_providerContact -> receiveProviderContact -> reportContact -> relayContact; tick scanContacts + legacy TracksBoots fallback -> reportContact, then due10-second prune; staged processNeedAnalysis -> analyzeGroupNeeds/reinforcement -> requestSupport or clearReinforcementNeed;5-second support review closes quiet/expired requests.",
+    "retainedIntent": [
+      "Keep reports as provenance-labelled believed areas, separate from native target knowledge and firing permission. Preserve one-hop semantics rather than echoing incoming reports.",
+      "Stagger scans and need analysis; bound provenance and deduplicate provider events. Local pressure should require actual local evidence, not COMBAT behaviour alone; relayed evidence should not fabricate personal detection."
+    ],
+    "notCopied": [
+      "A clear ray to a group-known target is not proof that the leader personally sees it. Source scan and legacy provider read current target transforms; CBE keeps native targetKnowledge/getHideFrom witnesses and reported vectors.",
+      "Source accepted refresh retains max old confidence, resets expiry, and resets relayDepth0. Provider interface has no original observation timestamp; ingestion can make old information appear new. Relays receive a fresh0.75-max-age clock. CBE retains original finite server observation time and refuses older/duplicate area evidence.",
+      "getContacts filters STALE labels rather than expiresAt. Pruning is periodic and disabled with communications; analyzeGroupNeeds checks maxAge from receipt, not shorter relay expiry. Do not depend on deferred cleanup for belief validity.",
+      "Registry-wide relay/prune/provider-job scans and unbounded provider identifiers/event-cache growth are not suitable replacements for CBE bounded delivery. Source sender-direction friendship alone is weaker than current bilateral live checks.",
+      "Provider registration/metadata is not authentication or owner authority. Source LOCAL_REPORTED can count as direct pressure; keep provider reports separate from personal visual evidence. No compatibility adapter or direct foreign registration added."
+    ],
+    "currentCbeComparison": "Full ContactReport/ReportServer/ReportLocal/Knowledge bodies plus selected GroupTick report and CALM investigation consumers checked. CBE sends at most3 timestamped side-qualified vectors, authenticates sender group owner on server and server delivery at receiver, rechecks bilateral allegiance/radios/voice/jamming and feature gates, delivers8 recipients/job step, stores one non-target area expiring at original observed+30, and only investigates through existing GroupMove admission. Knowledge retains bounded8-target/8-member native witness validation. No reveal or object-target import added.",
+    "implementation": "NONE_THIS_SOURCE_REVIEW. Existing CBE report/native-belief separation already covers selected useful communication intent. No source-backed runtime defect established in this comparison; retain prior verified runtime and candidate. No new tests or full rebuild for unchanged runtime.",
+    "limits": "Not whole Conductor parity, external provider enforcement, complete pressure/expiry executor trace, physical communication/investigation acceptance or measured performance. Source observations are static analysis; reference scripts not executed.",
+    "nextFiniteWork": "Finish complete analyzeReinforcementPressure, classifyThreat and trySteelRainSupport/called executor paths. Compare quiet/sustain/casualty demand and direct-fire authorization with CBE SupportNeed/GroupTick/support consumers before implementing a specific remaining native capability. Do not repeat completed contact-body review.",
+    "validation": "PASS3 existing reference-boundary tests and documentation/header/link checker;55 immutable archive source hashes and37 current product hashes verified. Runtime unchanged from11c9266b; reuse previous verified candidate. No new test case, Arma run or full rebuild.",
+    "physical": "UNVERIFIED; audits remain PAUSED."
   }
 }
