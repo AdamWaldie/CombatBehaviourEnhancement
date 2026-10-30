@@ -96,7 +96,7 @@
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
     "addons/infantry/functions/garrisonTaskDialog.sqf": "670c75d8675268528fb9a6b1d9c52925963a455d03c848f0abed5521dc359b3b",
     "addons/infantry/functions/zenGarrisonModule.sqf": "ab886da14f7d128d37b85bde41a7caf3176153782ac4c5dd2e10d3e645e0b26d",
-    "addons/infantry/functions/cortexGarrison.sqf": "34caf1a6b87acf9e4918263479b7f92c3cd21063a20ddda10fcdd111216d66fd",
+    "addons/infantry/functions/cortexGarrison.sqf": "50d1d6f0859c4b5ac89e82cc0374a4c7f8b4957a227a468e344f1c9389223a52",
     "addons/infantry/functions/cortexStaticSupport.sqf": "251bcd6dbaaa544b43c984bea862bd4b747cae9abebe63975d64c67a8b127d37",
     "addons/infantry/functions/cortexUnitRole.sqf": "c5c8fab841242bdf75c1da9cb8720ce79bd38cf23c9f77780fdc05a08aa69c6c",
     "addons/support/functions/cortexSupportApply.sqf": "d2ea4fe8a5c33d140888a94a4faf93b383cbe9f9535e449b2e2f458fff610f3c",
@@ -104,7 +104,7 @@
     "addons/core/functions/cortexLocality.sqf": "b0ed5b9246bfc3ee73c634bdbd445e5e952155dcad7bbd62f21409dc38375162",
     "addons/infantry/functions/cortexCoverScreened.sqf": "442491c88fd72fa4187f73366c850ff4566745bcb9f2d4bed1040aa54451dae2",
     "addons/infantry/functions/cortexFindCover.sqf": "cc10a779cb12e0e72bd92a215e7addaa83985c8c64460317d832d24a85b20945",
-    "addons/infantry/functions/buildingRoofTop.sqf": "43935cda63392616dd3a3419c8d07b4e8c9a91e96ba0475934808e3801a4272a"
+    "addons/infantry/functions/buildingRoofTop.sqf": "9baad8bfe48e1bb0ce9a0699825dd93779a957945a0f4a18333be76c05ace923"
   },
   "productScope": "Selected actual operator, planning/assignment, role and contact-static owner branches; not complete bodies of every CBE descendant or physical/compiled-source parity.",
   "dispositions": [
@@ -141,7 +141,6 @@
   ],
   "newRuntimeImplementation": true,
   "nextRequiredWork": [
-    "Reuse BuildingRoofTop once per building during existing bounded garrison admission for the upward roof-ray endpoint, retaining one roof query per candidate and all previous admission/native-order/transform/accessibility/deadline guards. Define explicit refusal/handling for invalid bounds or a non-upward endpoint; do not substitute new permission or a fixed height fallback. Extend the relevant existing geometry regression and full coherent gates. Then build bounded role-aware protection/firing scoring using the appropriate read-only screening observations, without duplicating outdoor FindCover or treating roof/wall scores as path proof.",
     "Before explicit garrison weapons: complete actual native boarding/retirement/end acknowledgement, supported actor-locality and unknown-command policy in existing owners. Static role and original owner/epoch now match exactly; this is not native quiescence. Registered source wake path and readable activation/tick bodies already inspected. Integrate one finite task owner without forced seating.",
     "Implement bounded role-aware protected/firing post selection using actual weapon capability, firing field and accessibility; reviewed source role/LOS intent is not supplied by current height sorting or the isolated watch-height correction.",
     "Continue remaining Conductor registry/contact/proposal/support/provider graphs, plus full LAMBS/HBQ/Protocol production scope. No whole-mod percentages from file/helper counts."
@@ -149,18 +148,15 @@
   "validation": {
     "hashes": "14 immutable source /13 current product hashes; initial historical hashes retained separately.",
     "runtime": {
-      "focused": "618 existing cases PASS, zero added cases. Existing source contract extended; prior source rejected for missing crew block (actual result in red log).",
-      "full": "PASS: all1506 existing tests,489 compiled production SQF,11PBO and complete config/FSM/header/docs/wiki/parity/coverage/static-performance gates.",
-      "buildLog": ".qa/handovers/static-crew-roles-build-20261030.log",
-      "focusedLog": ".qa/handovers/static-crew-roles-focused-20261030.log",
-      "redLog": ".qa/handovers/static-crew-roles-red-20261030.log",
+      "fullBuild": "PASS:1506 existing tests,489 compiled SQF,11PBO; full config/FSM/header/docs/wiki/parity/coverage/static-performance gates. Existing roof geometry tests extended; zero added cases.",
       "independentVerification": "PASS",
-      "candidate": ".qa/candidates/static-crew-roles-20261030-1417d8ef",
-      "fingerprint": "1785a9a46758b50749fd2df7c1fa89bdb50424f2cec2c45e3a161f554f2145cf",
-      "independentLog": ".qa/handovers/static-crew-roles-independent-20261030.log",
-      "sourceIdentity": "Unsigned development base1417d8efbbee62c13f2cb2173cd19910bb93fc2d plus checked dirty runtime/test/guide/review inputs. Engineering metadata/handover finalized afterward."
+      "candidate": ".qa/candidates/garrison-roof-height-20261030-4423aebb",
+      "fingerprint": "7b26e3c10c432e98f58040e6ef56a6f0359f1edecd52c6e239c6d7915d4f011e",
+      "buildLog": ".qa/handovers/garrison-roof-height-build-20261030.log",
+      "independentLog": ".qa/handovers/garrison-roof-height-independent-20261030.log",
+      "sourceIdentity": "Unsigned dirty base4423aebb plus checked runtime/test/guide inputs. Engineering review and handover finalized afterward; not a clean future-commit build."
     },
-    "reviewChecks": "PASS: three reference-boundary tests, header/documentation checks, register/evidence JSON and14 source /13 current product hashes. No runtime changes or unchanged full rebuild; retain2e7caf83 verified runtime candidate.",
+    "reviewChecks": "PASS:3 reference-boundary tests, header/docs, register/evidence JSON,14 immutable archive /13 current product hashes.",
     "physical": "NOT_RUN_AUDITS_PAUSED",
     "performance": "UNMEASURED; coordinate arithmetic only; no new queries, callback or controller."
   },
@@ -316,6 +312,24 @@
     "runtimeImplementation": "NONE_THIS_REVIEW; original fixed15m ray remains and is explicitly queued. Prior checked runtime2e7caf83 retained unchanged.",
     "validation": "PASS: three reference-boundary tests, header/documentation checks, register/evidence JSON and14 source /13 current product hashes. No runtime changes or unchanged full rebuild; retain2e7caf83 verified runtime candidate.",
     "physical": "NOT_RUN_AUDITS_PAUSED",
-    "performance": "UNMEASURED; review introduces no runtime work."
+    "performance": "UNMEASURED; review introduces no runtime work.",
+    "followup": "Roof classification implemented by roofLimitImplementation20261030; do not requeue the fixed15m endpoint change. Original review scope/provenance retained."
+  },
+  "roofLimitImplementation20261030": {
+    "baseCommit": "4423aebb4725df2bebec7a8607ea5133a9d49536",
+    "sourceIntent": "Reviewed Conductor role/roof-dependent post preference and actual CBE garrison geometry gap; adapt existing shared transformed-bound helper instead of another fixed ray or copied scorer.",
+    "implementation": "CortexGarrison invokes BuildingRoofTop once for each living building with positions, within existing64building/512position admission limits. Invalid/nonfinite bounds skip that building before position admission; other valid buildings remain available. No remaining valid positions still refuse before previous task cleanup. A candidate whose ray endpoint is not above its1m start is exposed without a query. Other candidates retain one upward roof ray to the world-ASL transformed model top. Existing slot schema, height/random ranking, native-order/actor generation guards, transform identity, retries, deadlines, walking/explicit placement and arrival/accessibility rules remain.",
+    "cost": "One boundingBoxReal and eight modelToWorldWorld corner transforms per considered nonempty living building. No extra object search, new callback/controller or setting. At most one existing roof ray per valid post; non-upward candidates skip it. Actual cost unmeasured.",
+    "verification": {
+      "fullBuild": "PASS:1506 existing tests,489 compiled SQF,11PBO; full config/FSM/header/docs/wiki/parity/coverage/static-performance gates. Existing roof geometry tests extended; zero added cases.",
+      "independentVerification": "PASS",
+      "candidate": ".qa/candidates/garrison-roof-height-20261030-4423aebb",
+      "fingerprint": "7b26e3c10c432e98f58040e6ef56a6f0359f1edecd52c6e239c6d7915d4f011e",
+      "buildLog": ".qa/handovers/garrison-roof-height-build-20261030.log",
+      "independentLog": ".qa/handovers/garrison-roof-height-independent-20261030.log",
+      "sourceIdentity": "Unsigned dirty base4423aebb plus checked runtime/test/guide inputs. Engineering review and handover finalized afterward; not a clean future-commit build."
+    },
+    "remaining": "This classifies overhead screening, not actual interior access, protected role allocation, firing fields or a cause/fix of historical CQB entry failures. Physical tall/scaled/tilted/invalid-bound/normal-HC behaviour and measured performance unverified. Full production objective remains incomplete.",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
   }
 }

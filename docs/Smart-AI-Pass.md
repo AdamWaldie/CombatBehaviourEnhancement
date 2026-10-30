@@ -110,6 +110,10 @@ Cortex building actions use a finite physical progression:
 
 **Clear** sweeps reachable interior positions then establishes security.
 **Garrison** occupies defensible interior positions with exterior security. Walking is the default.
+Roof preference uses the transformed building top, so it is not limited to a 15-metre ceiling.
+Invalid model bounds exclude that building from this admission; a post at or above the roof-ray
+endpoint stays exposed without a downward query. Other valid buildings remain available.
+This classifies overhead screening, not accessible rooms or successful building entry.
 On physical interior arrival, the outward watch point keeps the defender's current eye altitude across
 terrain and floors. Exterior guards retain their assigned exit watch point. This is a watch-height
 correction, not proof of a clear firing lane or role-aware defensive post selection.

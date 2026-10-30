@@ -5,6 +5,9 @@
  * Orders an AI group to garrison the buildings around a point.
  *
  * Uses height-sorted, roofed positions and outward watch sectors. PATH locks only after arrival.
+ * Roof classification uses the transformed model top once per building, not a fixed height.
+ * Invalid bounds skip that building; non-upward endpoints classify exposed without a ray.
+ * Roof preference grants neither native access nor physical arrival/clearance proof.
  * Defenders duck under fire; local handlers and assignments replay after ownership changes.
  * Positions: building positions within the radius, roofed positions first, then highest first by default or one-time randomized distribution.
  * Each soldier is sent to his own position, then held there with PATH disabled, watching outward.
@@ -129,13 +132,20 @@ if (_inPlace) then {
         private _positions=_building buildingPos -1;
         _positionsSeen=_positionsSeen+count _positions;
         if (_positionsSeen > 512) exitWith {_planningValid=false};
-        if (alive _building) then {
+        if (alive _building && {_positions isNotEqualTo []}) then {
+            private _roofTop=[_building] call CBE_fnc_BuildingRoofTop;
+            // Invalid bounds cannot establish roof preference. Skip only this building;
+            // admission still preserves the old task if no other valid positions remain.
+            if (!finite _roofTop || {_roofTop == -1e12}) exitWith {};
             {
                 private _position=_x;
                 if (count _position == 3 && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
                     && {!surfaceIsWater _position} && {[AGLToASL _position,_taken,1] call CBE_fnc_PositionBucketAdmit}) then {
                     private _positionASL=AGLToASL _position;
-                    private _roofed=(lineIntersectsSurfaces [_positionASL vectorAdd [0,0,1],_positionASL vectorAdd [0,0,15],objNull,objNull,true,1]) isNotEqualTo [];
+                    private _roofed=_roofTop > (_positionASL select 2)+1 && {
+                        (lineIntersectsSurfaces [_positionASL vectorAdd [0,0,1],
+                            [_positionASL select 0,_positionASL select 1,_roofTop],objNull,objNull,true,1]) isNotEqualTo []
+                    };
                     _candidates pushBack [[1,0] select _roofed,if (_sortByHeight) then {-(_position select 2)} else {random 1},count _candidates,_position,getPosATL _building,_building];
                 };
             } forEach _positions;
