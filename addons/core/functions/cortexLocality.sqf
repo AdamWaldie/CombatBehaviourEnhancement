@@ -77,6 +77,11 @@ private _navalIntent = _group getVariable ["CBE_Cortex_NavalOperation",[]];
 // Retire the old owner's common operation before this owner rebuilds any durable semantic intent.
 // Its public order remains available below (for example, a partially completed building clear),
 // but no stale route can survive long enough to compete with the reconstructed operation.
+// Group policy has only direct unscheduled writers. Stage retirement on the receiver
+// before its epoch changes; never replay the old cautious-approach task.
+if (_gained && {local _group} && {!isNil {_group getVariable "CBE_CreepPolicy"}}) then {
+    ["HANDOVER",_group,_group getVariable ["CBE_Operation",createHashMap]] call CBE_fnc_CreepPolicy;
+};
 private _inheritedAttackLease=[];
 private _inheritedDrill=[];
 private _inheritedSupportRecovery=[];
@@ -336,6 +341,9 @@ if (!_gained && {!local _group} && {count _clearRetireCapture == 17}
 };
 _group setVariable ["CBE_VehicleTurn_Cleanup",nil];
 _group setVariable ["CBE_AIPass_Epoch", (_group getVariable ["CBE_AIPass_Epoch", 0]) + 1];
+if (_gained && {local _group} && {!isNil {_group getVariable "CBE_CreepPolicy"}}) then {
+    ["RETIRE",_group] call CBE_fnc_CreepPolicy;
+};
 if (_gained && {local _group}) then {
     _group setVariable ["CBE_Cortex_LauncherTransfer",[clientOwner,_group getVariable ["CBE_AIPass_Epoch",0],serverTime+5]];
     {if (local _x && {(_x getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap}) then {

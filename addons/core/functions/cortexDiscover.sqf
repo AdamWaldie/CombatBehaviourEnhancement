@@ -81,6 +81,11 @@ private _vehicleCursor=_job get "vehicleCursor";
 private _spotters=_job get "spotters";
 {
     private _group = _x;
+    // Existing discovery services a finite split-locality policy handback. An unresolved
+    // receipt is observation-only; no extra job or renewed restoration window is installed.
+    if (local _group && {!isNil {_group getVariable "CBE_CreepPolicy"}}) then {
+        ["RETIRE",_group] call CBE_fnc_CreepPolicy;
+    };
     if (isServer) then {
         private _supportBrain=_group getVariable ["CBE_Support_Brain",createHashMap];
         if (count _supportBrain > 0 && {!(_supportBrain getOrDefault ["cancelled",false])}

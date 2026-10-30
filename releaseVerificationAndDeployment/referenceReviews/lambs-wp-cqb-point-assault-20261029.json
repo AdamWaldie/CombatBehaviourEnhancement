@@ -531,5 +531,32 @@
     "currentCBE": "HuntOperation supplies finite native-belief search, not this deliberate covert approach/fire-control behaviour. Do not count Hunt or these native controls as a Creep implementation.",
     "required": "Implement a finite cautious-approach policy through existing movement owner and reversible exact-owned group pace/ROE/behaviour lifecycle; honour authored stricter permissions, native belief, mission/Zeus/specialist control and actual compromise. Include a real behaviour module only with the executor. Reject omniscient target tracking, permanent/reset-to-default policy and unowned per-actor loops.",
     "status": "UNIMPLEMENTED_SELECTED_INTENT_NO_PARITY_CREDIT"
+  },
+  "creepPolicyFoundation20261029": {
+    "base": "cf1145d787760f1b7c5e9176e136b6d44964c964",
+    "status": "POLICY_PREREQUISITE_TASK_EXECUTOR_AND_MODULE_UNFINISHED",
+    "sourceIntent": "creepIntentReview20261029 cautious limited-pace/hold-fire approach; CBE preserves native behaviour instead of adding unnecessary behaviour writes.",
+    "implementation": "Internal exact operation/generation/epoch-owned COMBAT/SPEED policy with immutable baselines, BLUE preservation, individual ROE guards and actual group/individual readback. No behaviour/formation/forceSpeed/stance mutation. Synchronous native writers only; no deferred policy command callback.",
+    "lifecycle": "OperationRestore releases this policy even when groupAttack receipt is absent. CortexLocality stages receiver retirement before epoch increment; afterwards and in existing CortexDiscover, exact receiver/epoch retires within the first original cleanup window. No movement/task replay. Unconfirmed applies/releases, unavailable actors, newer operations and expiry remain pending/unresolved; no success by timeout.",
+    "scope": "Foundation for the selected Creep intent only. No Creep approach, posture/compromise logic, server task intake or module exists yet; no whole-LAMBS parity credit.",
+    "primaryApiEvidence": [
+      "https://community.bistudio.com/wiki?mobileaction=toggle_view_desktop&title=setCombatMode&useskin=vector",
+      "https://community.bistudio.com/wiki?mobileaction=toggle_view_mobile&title=unitCombatMode"
+    ],
+    "apiLimit": "Official docs distinguish group and individual fire modes; getter/readback contract is not evidence of actual in-engine hold-fire, self-defence or restoration. Historical bug reports not treated as current engine truth.",
+    "cost": "Fast no-receipt return for other operations; no new scan/job/cache. At most64 actor readiness/individual-ROE observations and two property rows per policy call; actual native cost unmeasured.",
+    "validation": {
+      "focused": ".qa/handovers/creep-policy-focused-20261029.log:5 existing cases passed; initial comment-token false positive fixed by checking executable source.",
+      "hemttCheck": ".qa/handovers/creep-policy-hemtt-check-20261029.log passed before final native individual-readback additions.",
+      "full": ".qa/handovers/creep-policy-build-20261029.log:1505 existing tests,483 SQF,11 PBOs; config/FSM/docs/coverage/parity/static performance gates passed.",
+      "physicalAcceptance": false,
+      "measuredPerformance": false,
+      "candidate": ".qa/candidates/creep-policy-20261030-cf1145d7",
+      "fingerprint": "aa82d70138bd7befca0822558e764fe076c2631ac4d93dd290026c2bdd377827",
+      "independent": ".qa/handovers/creep-policy-independent-20261030.log: exit0 matching fingerprint",
+      "provenance": "Unsigned development basecf1145d7 plus policy/hooks/config/test/guide changes. Engineering metadata finalized afterwards; task/module still unfinished."
+    },
+    "runtimeLFHash": "7c11f33c11a88aaec01443d9f63bb25040da4c3b14ef1d635b49aaa2f81724e9",
+    "nextRequired": "Complete finite native-belief approach on existing Patrol/group movement owner, immutable custom approach route/task deadline, original ActorSettings posture lifecycle, compromise/close-range release, authenticated server/current-owner dispatch and native/optionalZEN behaviour control. Do not stop at this prerequisite or claim a usable Creep task."
   }
 }

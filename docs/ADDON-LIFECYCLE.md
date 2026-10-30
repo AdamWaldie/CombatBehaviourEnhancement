@@ -2577,3 +2577,26 @@ The existing single discovery query, 256-hull projection and 64-prediction limit
 The one permitted same-owner recovery of an ended clearance FSM can continue an already-started egress after its sweep window expires. Both original local and server exit deadlines must still be current. The exact original producer, job, generation and owner epoch must match; a different owner or new job gains no post-sweep allowance. Entry, sweep and replan retain their original sweep limits. An expired exit window refuses startup even when the sweep deadline remains in the future.
 
 Recovery retains the original exit assignments, progress and retry consumption. It issues no new exit clock, movement request or room visit itself; the existing FSM and scheduled step continue the existing egress. Live duplicates retain their worker, and the existing one-restart limit remains. This repairs startup admission, not complete cross-owner CQB handover or demonstrated physical exit. Runtime recovery and performance remain unverified while audits are paused.
+
+
+### Cautious-approach policy prerequisite (task unfinished)
+
+The internal CreepPolicy helper can own temporary group hold-fire and limited pace for an
+exact marked operation. It preserves BLUE discipline, native behaviour, formation and individual
+forced-speed settings. Admission refuses conflicting individual fire modes. Group and individual
+fire-mode readback is required before acquisition or restoration is credited. This is a prerequisite;
+there is no Creep movement task or behaviour module yet.
+
+Original baselines and deadlines survive repeated calls. Operation cleanup requests each exact
+unchanged property back once; unconfirmed native results remain pending. Receiving ownership
+stages retirement before the epoch changes and services it afterwards through existing discovery,
+including split actor locality. It never resumes the old movement task. Cleanup has at most30s
+within the original deadline plus30s. Expiry leaves observation-only unresolved proof rather than
+success or a renewed write budget; changed native values and newer operations retain authority.
+This is CBE-internal policy retirement, not generic third-party controller quiescence.
+
+The helper adds no worker or world query. Only groups holding a receipt enter the discovery path;
+ordinary cleanup without a receipt returns immediately. Admission/check/restoration rosters are
+capped at64 actors and two properties. No physical ROE, pace, handover or performance acceptance
+is established while audits are paused. Complete the finite approach executor and real task
+controls before advertising Creep as available.

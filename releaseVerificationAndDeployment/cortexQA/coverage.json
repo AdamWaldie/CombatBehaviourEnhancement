@@ -1629,6 +1629,7 @@
         "addons/core/functions/operationRelease.sqf",
         "addons/core/functions/operationRestore.sqf",
         "addons/core/functions/operationAttackPolicy.sqf",
+        "addons/infantry/functions/creepPolicy.sqf",
         "addons/core/functions/actorSettings.sqf"
       ]
     },
