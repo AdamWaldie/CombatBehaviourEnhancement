@@ -3635,3 +3635,18 @@ no weapon selection, ammunition quantity, reload animation speed, movement order
 or deadline, and creates no extra timer. Native reload acceptance is not completion
 or firing readiness. In-game timing, cover continuity, modded weapons, interruption,
 repeat/HC behaviour and measured cost remain unverified while audits are paused.
+
+
+### Navigation corridor hull dimensions
+
+Corridor admission measures the lead and the largest convoy hull in world metres,
+including object scale, before checking width, overhead space and tail clearance.
+Unknown dimensions refuse the proposal. Shared path sampling also retains the
+vehicle's actual width and height when a caller supplies a smaller footprint.
+Existing larger safety envelopes remain in effect; sample/ray limits are unchanged.
+
+This is a dimension-consistency correction, not support for arbitrary scaled-vehicle
+physics or permission to cross water. Discrete samples do not prove continuous
+clearance, dynamic resizing, native steering or successful bridge traversal.
+Physical crossing, interruption/HC behaviour and processing cost remain unverified
+while audits are paused.

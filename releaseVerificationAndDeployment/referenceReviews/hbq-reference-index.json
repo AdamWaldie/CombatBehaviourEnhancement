@@ -397,6 +397,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-corridor-world-dimensions-20261030.json",
+      "sha256": "8d4e5fd8ccaea87a7dd1f429f245a9b64f3011e30ad5601ed6fc549e48bbcc06",
+      "scope": "Retain reviewed HBQ navigable-area intent (main controller2380-2469), repairing CBE corridor/path dimension units. Not a new whole-controller review, ford implementation or scaled-vehicle physics acceptance.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-crew-flight-20261021.json",
       "sha256": "29f7ee2683fdb2a6a4176e6e2562422542d76d0d6824913839e8978ae101ccfb",
       "scope": "Native crew flight ownership in ordinary recovery",

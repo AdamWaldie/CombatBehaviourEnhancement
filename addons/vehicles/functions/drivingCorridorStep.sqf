@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
  * Native water-damaged engines refuse new movement/crew admission; cleanup remains available.
+ * Convoy admission uses world-metre hull dimensions; unknown scale refuses the shared proposal.
  * Queued ACE treatment vetoes steering before the native medical task appears.
  * Native crew flight vetoes new steering and route recall; exact cap-only release remains separate.
  * Admission snapshots both native crew commands before geometry, then atomically rechecks
@@ -389,14 +390,23 @@ _selected params ["_area","_definition","_transform","_context","_side","_axis"]
 private _envelope=[];
 if (_convoy) then {
     _envelope=[0,0,0];
+    private _invalidEnvelope=false;
     {
+        if (_invalidEnvelope) exitWith {};
         if (!isNull _x && {alive _x}) then {
-            private _bounds=boundingBoxReal _x;private _low=_bounds select 0;private _high=_bounds select 1;
+            private _scale=getObjectScale _x;
+            if (!finite _scale || {_scale <= 0}) exitWith {_invalidEnvelope=true};
+            private _bounds=boundingBoxReal _x;
+            private _low=(_bounds select 0) vectorMultiply _scale;
+            private _high=(_bounds select 1) vectorMultiply _scale;
             _envelope set [0,(_envelope select 0) max ((abs (_low select 0)) max (abs (_high select 0)))];
             _envelope set [1,(_envelope select 1) max ((abs (_low select 1)) max (abs (_high select 1)))];
             _envelope set [2,(_envelope select 2) max ((_high select 2)-(_low select 2))];
         };
     } forEach (_configuration param [4,[]]);
+    // The existing geometry admission rejects this sentinel before any support/body rays.
+    // Unknown follower size must never collapse into a lead-only or partial envelope.
+    if (_invalidEnvelope) then {_envelope=[-1,-1,-1]};
 };
 private _proposal=[_vehicle,_area,_definition,_side,_envelope] call CBE_fnc_DrivingCorridorGeometry;
 if (!(_proposal select 0)) exitWith {

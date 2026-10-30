@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-30",
+  "sourceBase": "77a6fdf7185be3e2917936d1a20b1a7db763f260",
+  "workshopId": "3812620045",
+  "source": "functions/fn_driveAssist.sqf",
+  "sourceSha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+  "sourceSnapshot": ".qa/hbq-complete-source-20261025",
+  "scope": "Retain reviewed HBQ navigable-area intent (main controller2380-2469), repairing CBE corridor/path dimension units. Not a new whole-controller review, ford implementation or scaled-vehicle physics acceptance.",
+  "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+  "finding": "CBE corridor admission used boundingBoxReal model coordinates directly as world-metre support/body offsets and convoy dimensions. Active CROSS already transforms all hull corners with modelToWorldWorld. Lead admission, worst-follower envelope and shared path minimum dimensions could therefore disagree for non-unit scale.",
+  "implementation": [
+    "DrivingCorridorGeometry reads finite positive object scale and scales raw low/high exactly once before width/height/tail-extension calculations. Existing world-metre convoy envelope and safety margins are not scaled again.",
+    "DrivingCorridorStep builds the worst envelope from each alive convoy hull in world metres, same <=20 roster. Invalid scale becomes an INVALID_ENVELOPE sentinel rather than a partial/lead-only envelope. Explicit loop flag prevents nested SQF exit scope from concealing a bad follower.",
+    "DrivingPathGeometry cannot shrink a supplied footprint below the current scaled vehicle width/height; unknown or >20m sampling dimensions refuse before casts. Existing larger caller radii remain conservative.",
+    "Existing actual-corner CROSS checks retain world transforms and never multiply those points again. No change to controller ownership, requests, native orders, clocks, physics, retries, clearance credit or completed task interpretation."
+  ],
+  "preserved": [
+    "Dry/static solid support only; no permission to ford water",
+    "Same geometry station/body-ray limits and current route/area/crew/native ownership fences",
+    "No new worker, world scan, speed writer or vehicle transform",
+    "Scale1 calculations preserve previous accepted dimensions except deliberate shared actual-hull lower bound"
+  ],
+  "cost": "One extra scale read per corridor hull; shared path validation adds one current bounding-box and scale observation per existing invocation. No extra world/ray query or recurring callback. Actual5%median/10%p95 overhead remains unmeasured.",
+  "validation": {
+    "focused": ".qa/handovers/corridor-hull-scale-focused-20261030.log:25existing cases passed, including geometric asymmetric model-corner checks at scale0.25/0.5/1/2/3 and old wrong-width admission counterexample",
+    "full": ".qa/handovers/corridor-hull-scale-build-20261030.log:1505existing tests,487SQF,11PBOs; config/FSM/docs/wiki/parity/coverage/static performance0findings passed",
+    "physical": "NOT RUN; auditsPAUSED",
+    "candidate": ".qa/candidates/corridor-world-dimensions-20261030-77a6fdf7",
+    "fingerprint": "4080cfa0097ea3bb8be9e961a472218f5ea62e2beb96f6c9993b8a619010b409",
+    "independent": ".qa/handovers/corridor-hull-scale-independent-20261030.log:exit0 matching fingerprint",
+    "packageSource": "Unsigned development base77a6fdf7 plus delivered runtime/test/guide edits; engineering metadata finalized afterward. Unrelated original dirt preserved.",
+    "sourceIndex": ".qa/handovers/corridor-hull-scale-index-verify-20261030.log:29 source files/104 readable pointers/31 unresolved historic texts; no parity inferred"
+  },
+  "primaryApiReferences": [
+    "https://community.bistudio.com/wiki/boundingBoxReal",
+    "https://community.bistudio.com/wiki/modelToWorld",
+    "https://community.bistudio.com/wiki/setObjectScale"
+  ],
+  "limits": [
+    "Native scaled simulated-vehicle operation is not officially guaranteed; this correction is dimension-consistency, not a claim that such vehicles drive reliably.",
+    "Discrete support/body rays do not prove continuous hull clearance, changed-scale runtime feasibility, steering or bridge traversal.",
+    "Native dynamic resizing/animation during traversal, physical convoy crossing/HC/handback and measured cost remain unverified.",
+    "Shallow ford remains a separate capability gap; no engine-depth/vehicle-water contract was established or relaxed.",
+    "No source-count parity/completion credit or copied reference assets."
+  ]
+}

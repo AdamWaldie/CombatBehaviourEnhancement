@@ -3,6 +3,8 @@
  * Purpose: Validates a bounded ASL path proposal against support, lateral slope and body geometry.
  * Locality / Authority: Read-only vehicle owner. No route, movement, physics or speed commands.
  * Repeat/JIP: Fresh proposal only; no cache, handles or historical clearance replay.
+ * Caller envelopes cannot shrink below the current scaled hull width/height. Unknown or
+ * over-budget real dimensions refuse before rays; no persistent size cache is introduced.
  * Rejected proposals stop remaining support/body samples; clear paths retain every probe.
  * Returned ray count records actual issued work. Consumers
  * must revalidate their target/route/owner receipt before execution and observe runtime geometry.
@@ -29,6 +31,18 @@ if (count _guide < 2 || {count _guide > 24} || {!finite _halfWidth} || {!finite 
     || {_guide findIf {!(_x isEqualType []) || {count _x != 3}
         || {_x findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}} >= 0}) exitWith {["INVALID_PATH"] call _fail};
 if (!isNull _ignored && {!(_ignored isKindOf "Logic")}) exitWith {["INVALID_IGNORED_OBJECT"] call _fail};
+// Caller radii/convoy envelopes remain conservative. Real model dimensions are in model
+// units, whereas support offsets and body beams below are metres in ASL world space.
+private _scale=getObjectScale _vehicle;
+if (!finite _scale || {_scale <= 0}) exitWith {["HULL_SCALE_UNAVAILABLE"] call _fail};
+private _bounds=boundingBoxReal _vehicle;
+private _low=(_bounds select 0) vectorMultiply _scale;
+private _high=(_bounds select 1) vectorMultiply _scale;
+_halfWidth=_halfWidth max ((abs (_low select 0)) max (abs (_high select 0)));
+_height=_height max ((_high select 2)-(_low select 2));
+if (!finite _halfWidth || {!finite _height} || {_halfWidth > 20} || {_height > 20}) exitWith {
+    ["HULL_DIMENSIONS_EXCEEDED"] call _fail
+};
 private _valid=true;private _invalidReason="SEGMENT_BUDGET";
 for "_i" from 1 to (count _guide-1) do {
     private _length=(_guide select (_i-1)) distance2D (_guide select _i);
