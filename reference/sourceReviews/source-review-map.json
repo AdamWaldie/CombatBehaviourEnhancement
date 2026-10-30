@@ -293,7 +293,7 @@
       "reviewStatus": "Readable scripts reviewed; integration/scope gaps remain",
       "nextSourceReview": "Resolve real finite Advanced Rappelling provider contract and dependencies; detection alone does not implement rappelling.",
       "recordedImplementationStatus": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
-      "recordedRemaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature.",
+      "recordedRemaining": "Bounded route geometry and guarded native pose primitive built/offline checked only. Controlled actor exit/rope/device/support-arrival physics, full cleanup/flight orchestration/ground handover and behaviour module remain unimplemented. Physical/normal-HC/JIP/deformation/performance unverified; stock provider activity flag is not quiescence.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment\\referenceReviews\\protocol-rappel-3819636004-20261020.json",
       "evidenceFilePresent": true,
@@ -306,7 +306,12 @@
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
       },
-      "flightOperatingActorRights20261029": "releaseVerificationAndDeployment/referenceReviews/protocol-rappel-3819636004-20261020.json#flightOperatingActorRights20261029"
+      "flightOperatingActorRights20261029": "releaseVerificationAndDeployment/referenceReviews/protocol-rappel-3819636004-20261020.json#flightOperatingActorRights20261029",
+      "controlledPoseBoundary20261030": {
+        "review": "releaseVerificationAndDeployment/referenceReviews/protocol-rappel-3819636004-20261020.json#controlledPoseBoundary20261030",
+        "status": "POSE_BUILDING_BLOCK_OFFLINE_VERIFIED_NO_DESCENT_EXECUTOR",
+        "scope": "Immutable original authority, finite native pose apply/clear, permanent observed-loss withdrawal, private route baseline and unresolved reservation guard. PASS1507 offline, physical pending. Not a working insertion task."
+      }
     },
     {
       "workshopId": "3822504009",

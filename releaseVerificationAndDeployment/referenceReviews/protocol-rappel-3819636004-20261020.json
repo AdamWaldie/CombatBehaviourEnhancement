@@ -306,5 +306,39 @@
     "finding": "The stock actor API retains force-exit/random start relocation/device overshoot and independent delayed animation/overspeed/damage writers. Shared tactical scheduler explicitly defers during ENDEX/SafeStart and doubles low-FPS delays, so continuous hanging-actor physics cannot simply be dropped into an ordinary tactical job. Source activity flag is still not quiescence.",
     "nextRequired": "Controlled actor descent must own its complete physics/animation/rope/cleanup graph and exact authority, preserve original damage/simulation, handle loss of actor/flight control without stale writes and prove actual support arrival. Flight orchestration, ground handover and module must compose that executor. Do not expose unchanged stock API as working insertion. Physical movement/replication uncertainties remain while audits paused.",
     "disposition": "Rappel remains required and unimplemented beyond route geometry; continue independent Protocol jamming behaviour-module gap in this batch. No wrapper/controller or animation/sound asset copied."
+  },
+  "controlledPoseBoundary20261030": {
+    "intent": "Replace the provider animation/remote-repair/simulation-writer subgraph as a prerequisite to complete owned descent, not a wrapper over an activity marker.",
+    "source": "Unchanged MIT713709341 main source35c63f68; original animation worker613-734 re-read. Its remote repair loops, AnimChanged reinjection and unconditional enableSimulation are not called. Independent native-command implementation; no source animation/sound asset copied.",
+    "engineSources": [
+      "https://community.bistudio.com/wiki/switchMove",
+      "https://community.bistudio.com/wiki/ropeCreate",
+      "https://community.bistudio.com/wiki/attachTo"
+    ],
+    "engineEvidence": "Official switchMove documentation: owner-local command has global effect/JIP sync; alternative2.18 syntax starts the move without an extra playMoveNow call. This supports trying one owned command instead of stock remote repair workers. Native handler timing/actual visuals not verified. Ropes still require valid alive rope-enabled transport/entity attachments; native description alone does not prove a new descent implementation.",
+    "implementation": "Internal RappelPoseLocal START/RELEASE; no controlled descent caller/module yet. Caller supplies immutable original group/epoch/generation/flight revision plus actor/aircraft/token/deadline. Current RAPPEL operation/participant, exact RAPPEL:token actor lease, flight identity, ordinary configured human and matching installed AR no-actions rifle/pistol asset required. <=64 participants/waypoints, deadline<=60s. At most one native apply and one clear per identity. Compact10-field current custody/7-field last identity public; full route baseline private. No simulation/damage/weapon/physics/seat/flight writes or provider workers.",
+    "cleanup": "Exact receipt and original authority/actor lease/private route/live eligibility required to reset still-present pose, within originaldeadline+30s. Clear attempt consumed before command; refusal then observes only. Observed authority loss permanently disables reset. Native pose absence permits exact passive retirement even after group/epoch change, without successor pose reset; only matching local baseline removed. Shared movement/fire predicate holds unresolved custody. No old epoch/generation stamping, replay after completion, unowned AR pose adoption or timeout handover inference. Full native actor-order/physical safety and whole-operation quiescence remain caller responsibilities.",
+    "limits": "Required building block, not physical rappel functionality or provider handback. No controlled descent caller, rope/device/entry/support-arrival/flight/ground handover exists yet. Unknown pose under new owner/task requires later confirmed cleanup; no timeout inference. Standard skeleton class check does not prove absence of deformation/artifacts. Asset dependency stays optional to core, missing assets refuse. Audits paused.",
+    "validation": {
+      "focused": "PASS1 new targeted actuator-ownership contract, justified by native actor-state risk. Existing suite now1507, not physical execution.",
+      "full": "PASS1507 tests,498 compiled SQF,11PBO/full offline gates; static performance0 findings.",
+      "buildLog": ".qa/handovers/protocol-rappel-pose-20261030-final-build.log",
+      "independent": "PASS unsigned development package verification",
+      "independentLog": ".qa/handovers/protocol-rappel-pose-20261030-independent.log",
+      "candidate": ".qa/candidates/protocol-rappel-pose-20261030-b624b905",
+      "fingerprint": "9b48715711ff0f58384b4837797981ff83233903baf965ae8f5dea8aa1f41697",
+      "provenance": "Unsigned dirty baseb624b905 plus checked implementation/test/guide/review/coverage inputs; later metadata separate, not clean future-commit release or signature verification.",
+      "development": "Focused guard initially matched remoteExecutedOwner as if it were remoteExec; tightened command-token assertion. After initial full passes, review tightened observed-loss custody, original caller context, single native attempts, weapon variants and route publication; final full build passes exact final source. No blanket acceptance/removed gates.",
+      "physical": "UNVERIFIED; audits PAUSED. No source execution, Arma staging/launch, pose capture or measured cost."
+    },
+    "currentProductHashes": {
+      "addons/aircraft/functions/rappelPoseLocal.sqf": "bd1e69f7e345cd23a6b37cfb8aa649daef32ee84ae92bd41b6817814ca034033",
+      "addons/infantry/functions/cortexActorMoveReserved.sqf": "d40f1f83b141f4f44aabf178ff038273fe3e37203c77ae92d38a70a434d7265a",
+      "addons/main/CfgFunctions.hpp": "e74fa383d01ffea4d3bd5e7cf278b8307549a48fffcba0dbb33503e0d0bf8fb4"
+    },
+    "custodyCorrection": "First full build passed, then source review found reset permission could revive after observed authority loss/token reuse. Exact-receipt withdrawal now permanently disables native reset; only actual pose absence permits later passive retirement. Retry binds original flight-lease revision. Post-native loss cannot mutate a nonlocal actor. No speculative scheduler suspension claim; actual animation-event timing unverified.",
+    "weaponPosePolicy": "Retain source separate rifle/pistol no-actions moves. Ordinary human unarmed/primary/handgun eligible; launcher/other selected weapons refuse. No imposed weapon switch. A changed selection cannot silently repair/replay a pose; post-request weapon must still match for acceptance. A completed identity cannot reapply; future legitimate task needs new original identity. This does not prove pose deformation quality or successful engine admission.",
+    "routePublication": "Only compact custody metadata is public. Full authored route/waypoint statements stay in the exact owner-local baseline; cannot be used as permission by a joining/migrated owner. Passive pose-absence retirement removes only the matching private baseline. No full route payload broadcast or JIP animation replay.",
+    "originalContextAndReplay": "Caller must supply immutable original group/epoch/generation/flight revision, compared with live state; never reconstruct identity from current metadata. Compact7-field last identity prevents replay after completion. Clear permission consumed before one native clear attempt; later calls observe only. Foreign/unowned AR animation family refuses new admission even after provider flag absence. No full route broadcast."
   }
 }

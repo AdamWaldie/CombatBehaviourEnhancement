@@ -4,7 +4,7 @@
  * Locality/authority: Read-only on the actor owner; remote/nonlocal actors refuse admission.
  * Repeat/JIP: No mutation, detach or expiry renewal. A native attachment reserves the actor until detached.
  * Without an attachment or pending journal, empty markers are free; unknown/malformed markers
- * remain reserved. Unresolved static retirement, flight/naval-egress, point and indoor journals block admission
+ * remain reserved. Unresolved rappel-pose custody, static retirement, flight/naval-egress, point and indoor journals block admission
  * after the ordinary marker expires; only their exact cleanup may retire pending native proof.
  * Only a fully typed finite three-field lease without that journal can expire on its local clock.
  * Arguments: 0 actor <OBJECT>, objNull.
@@ -19,6 +19,9 @@ params [["_actor",objNull,[objNull]]];
 if (isNull _actor || {!local _actor}) exitWith {true};
 // An attachment owns the transform independently of seating or the ordinary CBE lease.
 if (!isNull (attachedTo _actor)) exitWith {true};
+// Pose custody is not released by a clock or locality change; only exact pose cleanup
+// can retire it. This also protects fire-task admission through the shared predicate.
+if ((_actor getVariable ["CBE_Rappel_Pose",[]]) isNotEqualTo []) exitWith {true};
 // An expired ordinary marker cannot admit a new task over an unconfirmed native flight request.
 // Only that feature's exact cleanup retires its journal; this predicate grants no native command.
 if ((_actor getVariable ["CBE_Danger_FlightLease",[]]) isNotEqualTo []) exitWith {true};

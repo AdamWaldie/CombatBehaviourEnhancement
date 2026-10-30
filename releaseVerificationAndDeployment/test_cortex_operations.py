@@ -10320,6 +10320,43 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('if (_blocked isNotEqualTo []) exitWith {_safe=false}',plan)
         self.assertIn('"observedAt",diag_tickTime',plan)
 
+    def test_controlled_rappel_pose_has_exact_owned_cleanup_without_provider_workers(self):
+        text=source('rappelPoseLocal')
+        for forbidden in ('spawn','sleep','addEventHandler','addPerFrameHandler','remoteExec [',
+                          'remoteExecCall [','allowDamage','enableSimulation','AR_Enable',
+                          'AR_Client','setPos','moveOut','createVehicle','HubSittingChair'):
+            self.assertNotIn(forbidden,text)
+        for proof in ('isNil {','CBE_OperationGeneration','CBE_AIPass_Epoch',
+                      '"RAPPEL:"+_token','_deadline > time+60','"RAPPEL",_token',
+                      'CfgMovesMaleSdr','AR_01_Idle_Pistol_No_Actions','_receipt isEqualTo _expected',
+                      'AuthoredRouteReceipt','count waypoints _group > 64','_original params',
+                      'isEqualTo _generation','isEqualTo _epoch','isEqualTo _flightRevision'):
+            self.assertIn(proof,text)
+        release=text.split('if (_mode == "RELEASE") exitWith {',1)[1].split('        if (!(call _opCurrent)',1)[0]
+        self.assertLess(release.index('_receipt set [9,false]'),release.index('_actor switchMove'))
+        self.assertIn('if (!(_receipt select 9)) exitWith {false}',release)
+        self.assertIn('time > _deadline+30',release)
+        self.assertIn('call _routeMatches',release)
+        self.assertIn('exitWith {call _retire}',release)
+        retire=text.split('private _retire={',1)[1].split('private _opCurrent=',1)[0]
+        self.assertNotIn('switchMove',retire)
+        self.assertIn('isNotEqualTo _receipt',retire)
+        withdraw=text.split('private _withdraw={',1)[1].split('private _routeMatches=',1)[0]
+        self.assertIn('local _actor',withdraw)
+        self.assertIn('_withdrawn set [9,false]',withdraw)
+        self.assertNotIn('switchMove',withdraw)
+        self.assertIn('CBE_Rappel_PoseLast',text)
+        self.assertIn('find "ar_" == 0',text)
+        after=text.split('_actor switchMove [_animation,0,1,true];',1)[1]
+        for proof in ('call _opCurrent','call _ordinary','call _leaseMatches',
+                      'call _flightMatches','call _routeMatches','currentWeapon _actor == _weapon'):
+            self.assertIn(proof,after)
+        baseline=text.split('setVariable ["CBE_Rappel_PoseRoute",[+_identity,',1)[1].split(';',1)[0]
+        self.assertNotIn(',true',baseline)
+        reserve=source('cortexActorMoveReserved')
+        self.assertLess(reserve.index('CBE_Rappel_Pose'),reserve.index('private _expired='))
+        self.assertIn('CortexActorMoveReserved',source('cortexActorFireTaskAvailable'))
+
     def test_infantry_illumination_uses_finite_native_inventory_and_release_evidence(self):
         text=source('cortexIlluminationStep')
         for proof in ('serverTime+25','serverTime+60','select [0,16]','count _muzzles > 8',

@@ -347,14 +347,19 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-rappel-3819636004-20261020.json",
-      "remaining": "Bounded read-only route geometry helper implemented, with no actor or flight command writer and no behaviour module. Controlled actor descent/cleanup, flight orchestration and actual ground handover remain unimplemented. Follow controlledPortConstraints20261028; geometry snapshots are not execution permission or arrival.",
+      "remaining": "Bounded route geometry and guarded native pose primitive built/offline checked only. Controlled actor exit/rope/device/support-arrival physics, full cleanup/flight orchestration/ground handover and behaviour module remain unimplemented. Physical/normal-HC/JIP/deformation/performance unverified; stock provider activity flag is not quiescence.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
       },
       "providerHandoverFinding": "Both installed actor APIs clear active markers before delayed unconditional damage restoration and provide no completion receipt. Current marker compatibility is not complete handback. Controlled finite rope execution or a corrected provider API is still required; see protocol-rappel-3819636004-20261020.json providerQuiescenceContract20261023. Feature remains required and unimplemented.",
       "controlledPortReview": "protocol-rappel-3819636004-20261020.json#controlledPortConstraints20261028",
-      "geometryPrerequisite": "protocol-rappel-3819636004-20261020.json#boundedRouteGeometry20261028"
+      "geometryPrerequisite": "protocol-rappel-3819636004-20261020.json#boundedRouteGeometry20261028",
+      "controlledPoseBoundary20261030": {
+        "review": "releaseVerificationAndDeployment/referenceReviews/protocol-rappel-3819636004-20261020.json#controlledPoseBoundary20261030",
+        "status": "POSE_BUILDING_BLOCK_OFFLINE_VERIFIED_NO_DESCENT_EXECUTOR",
+        "scope": "Immutable original authority, finite native pose apply/clear, permanent observed-loss withdrawal, private route baseline and unresolved reservation guard. PASS1507 offline, physical pending. Not a working insertion task."
+      }
     },
     {
       "workshopId": "3822504009",
@@ -501,5 +506,5 @@
     "localRegisteredProtocolItems": 11,
     "boundary": "Prior readable/binary review checkpoints cover their dated original sources only; the new item has metadata/package inventory, not source-review or implementation credit. This is not proof that every Workshop Protocol item has been discovered."
   },
-  "currentFocus20261030": "Protocol-first: current AA16-platform allocation cadence repaired/offline verified; jamming native/optional ZEN task and aircraft shared native-belief execution also built/offline checked. Continue remaining capability/task-equivalent gaps through existing owners, not repeated inventories. Rappel controlled execution/cleanup and real handovers still required; audits paused."
+  "currentFocus20261030": "Protocol-first: controlled rappel native pose boundary built/offline verified, but actual actor exit/rope/device/support-arrival physics, complete cleanup, flight orchestration and ground handover/module still required. Integrate those next through original owner-local task/FSM, not unchanged stock provider wrappers or repeated inventory. Jamming operator task, aircraft belief execution and AA allocation cadence checkpoints remain offline evidence only. Audits paused."
 }

@@ -1197,7 +1197,7 @@
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runAirborne.sqf: runtime 165401 normal and invalid-class fallback both deployed parachutes and landed alive with backpacks and operating crew retained. Normal post-landing movement passed (50.6/48.7 m). Fallback raw FAIL recorded 70.2/27.3 m travel with both inside the destination area: leader-relative destination made one route too short. Saved route now starts at least 65 m from every passenger; unexecuted. Automatic trigger, varied aircraft and owner/JIP variants remain open. Normal base fixture now uses a mixed operating crew/cargo group and observes automatic independent ground squad, crew route preservation and ground-brain startup before ordinary movement. This changed fixture is prepared only; earlier landing evidence does not validate the new handover. Native Zeus ModuleAirborne passenger/aircraft-bound dispatch is implemented offline only; no-ZEN module placement, seat/airframe changes, owner acknowledgement and actual drop remain unrun.",
+      "automation": "runAirborne.sqf: runtime 165401 normal and invalid-class fallback both deployed parachutes and landed alive with backpacks and operating crew retained. Normal post-landing movement passed (50.6/48.7 m). Fallback raw FAIL recorded 70.2/27.3 m travel with both inside the destination area: leader-relative destination made one route too short. Saved route now starts at least 65 m from every passenger; unexecuted. Automatic trigger, varied aircraft and owner/JIP variants remain open. Normal base fixture now uses a mixed operating crew/cargo group and observes automatic independent ground squad, crew route preservation and ground-brain startup before ordinary movement. This changed fixture is prepared only; earlier landing evidence does not validate the new handover. Native Zeus ModuleAirborne passenger/aircraft-bound dispatch is implemented offline only; no-ZEN module placement, seat/airframe changes, owner acknowledgement and actual drop remain unrun. Controlled rappel pose START/RELEASE primitive now exists behind existing operation/actor/flight lease proof, no provider workers or simulation/damage overrides. No controlled descent caller/module exists yet. Pose replication/JIP, reentrant animation handlers, cleanup/migration and physical quality are not implemented/run fixture variants; no full rappel acceptance.",
       "executable_sources": [
         "runAirborne.sqf"
       ],
@@ -1212,7 +1212,8 @@
         "addons/infantry/functions/cortexParachuteObserve.sqf",
         "addons/infantry/functions/cortexParachutePublish.sqf",
         "addons/aircraft/functions/moduleAirborne.sqf",
-        "addons/aircraft/functions/rappelRoutePlan.sqf"
+        "addons/aircraft/functions/rappelRoutePlan.sqf",
+        "addons/aircraft/functions/rappelPoseLocal.sqf"
       ]
     },
     {

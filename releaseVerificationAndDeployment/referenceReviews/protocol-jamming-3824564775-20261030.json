@@ -29,7 +29,7 @@
     "addons/infantry/functions/cortexJammingFactor.sqf": "bd6083306340695ce48cefa7508f01c8551d36b452d83ccd0f7b129546b2e699",
     "addons/infantry/functions/cortexCanTransmit.sqf": "3b1fb13aa069c291adc5e2d0e26ff1fe9e76fad68c6544236025e121536cffc6",
     "addons/infantry/functions/cortexGroupTransmitter.sqf": "1a677e94334b992094c80132e41f0bc8b962ab227848eaddd1917c78296cfb96",
-    "addons/main/CfgFunctions.hpp": "8f221c01a00ff7f88f51768eca1050498d6cd9c72eef3d6bf6706596ae055d98"
+    "addons/main/CfgFunctions.hpp": "e74fa383d01ffea4d3bd5e7cf278b8307549a48fffcba0dbb33503e0d0bf8fb4"
   },
   "executionGraph": "CfgPatches requires A3_Data_F/cba_xeh; preInit registers9 CBA settings; postInit execVM -> spawned perpetual scanner; private disable/enable routines only accept players; scanner enumerates vehicles/radars, allUnits and per-radar UAVs, then starts additional audio/UAV loops. Config patch name metadata says CQB while patch identifier is jamming.",
   "retainedIntent": [
@@ -85,7 +85,7 @@
     "addons/infantry/functions/cortexJammingField.sqf": "01b3ea6d8c683a90fa1ce21430ff614d787d0e58f47ab4f14968902006bbf46c",
     "addons/infantry/functions/moduleJamming.sqf": "b48f95290848f01ac3ca2777e9b3dc8cf35bf5bdb286a2b664283dd458cd0284",
     "addons/infantry/functions/jammingTaskDialog.sqf": "2cd36e55623283ca55a0822fb1cdd0a40314f432acb37079aea009817f6c7a8d",
-    "addons/main/CfgFunctions.hpp": "8f221c01a00ff7f88f51768eca1050498d6cd9c72eef3d6bf6706596ae055d98",
+    "addons/main/CfgFunctions.hpp": "e74fa383d01ffea4d3bd5e7cf278b8307549a48fffcba0dbb33503e0d0bf8fb4",
     "addons/main/config.cpp": "9ba7a8a76c801b70f9dce4158f8c04a57a504c1a24648ed3dbce9bf89dfbcbd4",
     "addons/main/bootstrap/zenRegister.sqf": "38c1f0decf2a8785f4e8c93c21cebcfebf7cfb6cffbd003fa94f59efbddb4814"
   },
@@ -95,5 +95,19 @@
     "addons/infantry/functions/cortexCanTransmit.sqf": "3b1fb13aa069c291adc5e2d0e26ff1fe9e76fad68c6544236025e121536cffc6",
     "addons/infantry/functions/cortexGroupTransmitter.sqf": "1a677e94334b992094c80132e41f0bc8b962ab227848eaddd1917c78296cfb96",
     "addons/main/CfgFunctions.hpp": "8ed45a76b7d71468c4cd093e340140b480d6c90c0b0080c11d2203d19174f706"
+  },
+  "controlledPoseBindingRefresh20261030": {
+    "review": "releaseVerificationAndDeployment/referenceReviews/protocol-rappel-3819636004-20261020.json",
+    "scope": "Current shared binding/reservation hashes only; older source reviews/candidates remain historical, not rerun.",
+    "changed": {
+      "productHashes:addons/main/CfgFunctions.hpp": {
+        "previous": "8f221c01a00ff7f88f51768eca1050498d6cd9c72eef3d6bf6706596ae055d98",
+        "current": "e74fa383d01ffea4d3bd5e7cf278b8307549a48fffcba0dbb33503e0d0bf8fb4"
+      },
+      "currentProductHashes:addons/main/CfgFunctions.hpp": {
+        "previous": "8f221c01a00ff7f88f51768eca1050498d6cd9c72eef3d6bf6706596ae055d98",
+        "current": "e74fa383d01ffea4d3bd5e7cf278b8307549a48fffcba0dbb33503e0d0bf8fb4"
+      }
+    }
   }
 }

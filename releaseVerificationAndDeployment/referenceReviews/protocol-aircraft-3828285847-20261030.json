@@ -50,7 +50,7 @@
     "addons/infantry/functions/cortexFireCountermeasure.sqf": "946516ad5d6ce5c58c3b1e37d70a0bca6508fc73b4f14d4fff36ff6f60cad200",
     "addons/aircraft/functions/cortexMissileDefenceStep.sqf": "08af36029f73cb068e8938697848c8fe01257146e0b3645063f2beece4565cfd",
     "addons/infantry/functions/cortexLineOfFireClear.sqf": "7992b0aeb301f18977b24b65465fda0b76ee097b9691bdc408c398e7a19b2e43",
-    "addons/main/CfgFunctions.hpp": "5790b603544f90e3212fc39c8123a0ca9b63b7493b1d802342d9326298387179",
+    "addons/main/CfgFunctions.hpp": "e74fa383d01ffea4d3bd5e7cf278b8307549a48fffcba0dbb33503e0d0bf8fb4",
     "addons/aircraft/functions/cortexAirContact.sqf": "87756dc5157a888a2cdbcd4829f0e8dad33209fbbcd470e0425a24dc6ba10be2"
   },
   "validation": {
@@ -83,6 +83,16 @@
       "provenance": "Unsigned dirty basea68d17f2 plus checked runtime/test/guide inputs; later metadata/handover separate, not clean future-commit release or signature verification.",
       "retainedDevelopmentFailures": "Initial focused ordering assertion compared against an earlier cleanup closure. Full gates caught older exact-target literals in3 existing contracts; migrated to native-belief/ASL assertions, then complete gates passed. No checks weakened.",
       "physical": "UNVERIFIED; audits PAUSED, no installed-game staging or launch."
+    }
+  },
+  "controlledPoseBindingRefresh20261030": {
+    "review": "releaseVerificationAndDeployment/referenceReviews/protocol-rappel-3819636004-20261020.json",
+    "scope": "Current shared binding/reservation hashes only; older source reviews/candidates remain historical, not rerun.",
+    "changed": {
+      "currentProductHashes:addons/main/CfgFunctions.hpp": {
+        "previous": "5790b603544f90e3212fc39c8123a0ca9b63b7493b1d802342d9326298387179",
+        "current": "e74fa383d01ffea4d3bd5e7cf278b8307549a48fffcba0dbb33503e0d0bf8fb4"
+      }
     }
   }
 }
