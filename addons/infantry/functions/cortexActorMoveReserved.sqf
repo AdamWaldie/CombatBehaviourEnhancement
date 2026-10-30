@@ -9,7 +9,7 @@
  * Only a fully typed finite three-field lease without that journal can expire on its local clock.
  * Arguments: 0 actor <OBJECT>, objNull.
  * Return: BOOL, true for attached/reserved/unknown/nonlocal actor; false only for an otherwise free actor.
- * Current callers: CortexAdvanceStart/FlankStart/AssaultStart and CortexClearBuilding admission,
+ * Current callers: CortexGroupMove whole-group route boundary, CortexAdvanceStart/FlankStart/AssaultStart and CortexClearBuilding admission,
  * CortexGarrison instant placement, CortexGarrisonApplyLocal, CortexDefendApplyLocal,
  * CortexClearRelease/DefendRelease/GarrisonRelease, DangerEngineRelease, OperationStep
  * and RecoveryStep; CortexFireControl and CortexAntiArmour protect the same reservations from injected targeting.

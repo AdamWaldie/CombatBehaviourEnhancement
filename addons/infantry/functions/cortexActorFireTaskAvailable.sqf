@@ -9,7 +9,7 @@
  * Repeat/JIP: No state changes or renewal; reads the current task on every admission and fire boundary.
  * Arguments: 0 actor <OBJECT, objNull>; 1 permitted finite fire-owner token STRING, empty.
  * Return: BOOL, true only for a local actor without a protected task or movement reservation.
- * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep, CortexVehicles,
+ * Current callers: CortexSupportApply fresh capacity, CortexCombinedArmsLocal, CortexCombinedGroundStep, CortexVehicles,
  * CortexAssaultStart, CortexFlankStart, CortexAdvanceStart, CortexTacticalAssess, ConvoyCrewLocal,
  * CortexVehicleOrient/Jink and orientation teardown.
  * Example: private _available=[gunner tank1] call CBE_fnc_CortexActorFireTaskAvailable;

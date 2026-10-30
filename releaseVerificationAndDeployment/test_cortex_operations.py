@@ -6100,6 +6100,19 @@ class CortexOperations(unittest.TestCase):
         self.assertGreaterEqual(step.count(dismount_guard),3)
         self.assertIn('private _footFit = _fit select {isNull objectParent _x}',apply)
         self.assertIn('count _footFit >= 3',apply)
+        fresh=apply.split('if (!_same) then {',1)[1].split('// Group-level rally',1)[0]
+        self.assertIn('if (count _footFit > 64) then {_footFit=[]} else {',fresh)
+        self.assertIn('[_x] call CBE_fnc_CortexActorFireTaskAvailable',fresh)
+        self.assertNotIn('assignedVehicle',fresh)
+        self.assertLess(apply.index('call CBE_fnc_CortexActorFireTaskAvailable'),apply.index('count _footFit >= 3'))
+        self.assertNotIn('setVariable',fresh)
+        group_move=source('cortexGroupMove')
+        group_busy=group_move.split('private _nativeTaskBusy=',1)[1].split('// Callers',1)[0]
+        self.assertIn('alive _x && {[_x] call CBE_fnc_CortexActorMoveReserved',group_busy)
+        self.assertIn('if (call _nativeTaskBusy) exitWith',group_busy)
+        self.assertLess(group_move.index('call _nativeTaskBusy'),group_move.index('private _waypoint = _group addWaypoint'))
+
+
         self.assertIn('_footFit findIf {"AT" in',apply)
         gate=apply.split('if (_okay && {!_same} && {_sharedCoordinated || {!_needAT}}) then {',1)[1].split('// Eligibility acknowledgement',1)[0]
         self.assertIn('private _requiredPrimary=[1,3] select _sharedCoordinated;',gate)

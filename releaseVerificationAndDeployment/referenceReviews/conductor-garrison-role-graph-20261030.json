@@ -184,9 +184,33 @@
       "sha256": "6f3eb622f977387d2bbe0960971ba96c48fc03d1f447a19682216ab75034970f",
       "manifestMatch": true,
       "scope": "Complete272-line active/return phases,2s cadence, enable/mode/request/helper-pressure/deadline gates, destination updates, mounted progress witness,10m net progress, source T&B deferral and lease release. Not a full upstream provider/transport graph."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/groups/fn_classifyGroup.sqf",
+      "sha256": "8861b378fc7fd14434f9117d5852018d74eef397931c86f94ffc5fc67348cde4",
+      "manifestMatch": true,
+      "scope": "Complete185-line body now read including previously partial middle64-167: live/effective/downed partition, foot/assigned crew/cargo, launcher config cache and reserve mags, physical occupied vehicle/turret ammo/platform roles, capability strengths/declared hints/type/mobility/publication. Nested helpers separately scoped below."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/groups/fn_refreshGroup.sqf",
+      "sha256": "0f61a2f482fcce7ad6b336a6dfb6518c2c00bea17500d3ab88b9125643d0fb52",
+      "manifestMatch": true,
+      "scope": "Complete138-line body: optional profile reuse, group/player/local-engagement/casualty/strategic assignment refresh, discrete candidate signature and material dirty signal. No full refresh caller/cadence graph claim."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_classifyAmmo.sqf",
+      "sha256": "3f7e77a1081edd1c08aaba1aa063d9ee4e7b63eb7fe690a9f6e344708ab2866b",
+      "manifestMatch": true,
+      "scope": "Complete30-line config cache and ammo role profile: airLock AA, exclusive non-AA threshold/guidance/simulation AT, explosives; not actual operator/weapon firing permission."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_isUnitCombatEffective.sqf",
+      "sha256": "a88161142880e4fbc471a2fa56bd7ce96402fd81033acb30665930810b708f6f",
+      "manifestMatch": true,
+      "scope": "Complete21-line live/native incapacitation plus active PDMS knockdown and MKY surrender marker gate. Not all hidden/locality/medical/actor task availability."
     }
   ],
-  "sourceIntegrity": "30 selected immutable archive source hashes and22 current product hashes verified; protected manifest verified. Latest borrowing review is source-only: retained runtime60f89c7f and its existing verified candidate, no new build or native claim.",
+  "sourceIntegrity": "34 selected immutable archive source hashes and30 current product hashes verified; protected manifest verified. Latest capacity follow-up changes fresh support availability and existing whole-group reservation boundary. No protected source edits.",
   "productHashes": {
     "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
@@ -195,7 +219,7 @@
     "addons/infantry/functions/cortexGarrison.sqf": "36b464f4c72549af8d31319639e1ef0887f978e16661a1a824c2ce4007f7f86e",
     "addons/infantry/functions/cortexStaticSupport.sqf": "1207fd6ddbd29043214dd532fe7eaa37e76102ef091477b16c9858bc6fce76d8",
     "addons/infantry/functions/cortexUnitRole.sqf": "2c2c386541c91069a73861ce42eb340e26a56ceea7d766e2b5cd0de27dc3925d",
-    "addons/support/functions/cortexSupportApply.sqf": "d2ea4fe8a5c33d140888a94a4faf93b383cbe9f9535e449b2e2f458fff610f3c",
+    "addons/support/functions/cortexSupportApply.sqf": "183f8fa149bdf75f475d477684d513ba051a1eb5df3514647010db12b99f6dfc",
     "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "991c16cf509d4aa8f07cc588944a757cfd005c1bc04bb1de3af2f9fbcb95bfc1",
     "addons/core/functions/cortexLocality.sqf": "b0ed5b9246bfc3ee73c634bdbd445e5e952155dcad7bbd62f21409dc38375162",
     "addons/infantry/functions/cortexCoverScreened.sqf": "68d5dd1f2bef27919434e3de386625cbf8b100ea5b478b17e8842df3cc972292",
@@ -205,11 +229,19 @@
     "addons/infantry/functions/cortexGarrisonRefill.sqf": "d2c99a24d44d0f0addfb50d73bff0e1be5e5eab85230e033c5b68274bfbd9663",
     "addons/main/CfgFunctions.hpp": "a468fa55b7e015ce99c79269d46e1b6b46fe6e39f6bc9603095da33674a2aa51",
     "addons/infantry/functions/cortexStaticRetire.sqf": "469b5905a35c49ba45acdbbd5ba75d4da81a2f4ccedda5cdc8be007785f9c08c",
-    "addons/infantry/functions/cortexActorMoveReserved.sqf": "150a8a764539dae909674989627edadb77bce0647faeaa425f2a35811d9ce4cc",
+    "addons/infantry/functions/cortexActorMoveReserved.sqf": "7881fd82ee5073085c3d9500bc38408a579ddfc9ca967a666f77e3670aabf3ca",
     "addons/infantry/functions/dangerSetup.sqf": "c43545795e11d8ec0a82d28440d8fb0c00b46e73fca82482f8e45ba98c6ce9b5",
     "addons/support/functions/cortexSupportStep.sqf": "bfd88c2ce8bac33551ef57cf0a3c27165163e5aa7c78982e5e3467c48ec9330e",
     "addons/support/functions/cortexSupportMaintain.sqf": "8d98c24064e738a51013c0393efba004f2d88ea5b75f7c70b78ab1d65456f08b",
-    "addons/support/functions/cortexSupportAck.sqf": "2b89a336a27ed547a9809864e9cece0429d20a78d6b36ef3769fb7ae1ff4da8d"
+    "addons/support/functions/cortexSupportAck.sqf": "2b89a336a27ed547a9809864e9cece0429d20a78d6b36ef3769fb7ae1ff4da8d",
+    "addons/infantry/functions/cortexCapabilities.sqf": "37ce82833581f55551e1d512334d70fed135917e38d0ea711d8047fc3aa5d2eb",
+    "addons/infantry/functions/cortexPrimaryAmmoAvailable.sqf": "7a1b8eed86fb101fa0dba9e4e6d13a535b92ddeef5c075a0c4e174b2c39179f4",
+    "addons/infantry/functions/cortexCombatEffective.sqf": "2914f40449f6e189410fbba8ca908585904bfe6d6188adf7964065d358c69ced",
+    "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "47c591890f6c4ccd1e70e069e4305e208710652143ef2d6342840c436c5a567d",
+    "addons/infantry/functions/cortexAntiArmour.sqf": "aef4dbc82c0c3144abc8d61f075adb54f8fe4526f392cebaad73c0f838be4902",
+    "addons/aircraft/functions/cortexAirWeaponOperatorAvailable.sqf": "52c2ba1ba38f4db4a1d9266366b85e81bd92f9237eb69a7ec032afd6cfaf928d",
+    "addons/core/functions/operationStart.sqf": "b6af6ef4d58d599ddd1bedd169b519fb04b6912611ce6e2e4f3b2e2d4295894a",
+    "addons/infantry/functions/cortexGroupMove.sqf": "c4df1a2c462797d3f5b7663a2eb7472c6f8343f27e5c01dbd10a09784cc5bad5"
   },
   "productScope": "Selected actual operator, planning/assignment, role and contact-static owner branches; not complete bodies of every CBE descendant or physical/compiled-source parity.",
   "dispositions": [
@@ -604,5 +636,42 @@
     "validation": "PASS source-only:30 selected immutable archive hashes/22 product hashes plus manifest verified;3 existing reference-boundary tests, source headers/documentation links and JSON parse pass. Retain runtime60f89c7f candidate9c795e27266638ab3595d3bf37b377c15557489c158886c0d4caa6fef942c343 (1506 existing tests,491 compiled SQF,11PBO/full gates+independent). No runtime edits, unchanged full rebuild, new test cases or Arma launch.",
     "physical": "NOT_RUN_AUDITS_PAUSED",
     "performance": "UNMEASURED; source-only review adds no runtime workload."
+  },
+  "capabilityAvailability20261030": {
+    "baseCommit": "1e202514ae36e62c5a6eda7c408546347a2b275a",
+    "newFullBodyScopes": {
+      "functions/groups/fn_classifyGroup.sqf": "Complete185-line body now read including previously partial middle64-167: live/effective/downed partition, foot/assigned crew/cargo, launcher config cache and reserve mags, physical occupied vehicle/turret ammo/platform roles, capability strengths/declared hints/type/mobility/publication. Nested helpers separately scoped below.",
+      "functions/groups/fn_refreshGroup.sqf": "Complete138-line body: optional profile reuse, group/player/local-engagement/casualty/strategic assignment refresh, discrete candidate signature and material dirty signal. No full refresh caller/cadence graph claim.",
+      "functions/analysis/fn_classifyAmmo.sqf": "Complete30-line config cache and ammo role profile: airLock AA, exclusive non-AA threshold/guidance/simulation AT, explosives; not actual operator/weapon firing permission.",
+      "functions/analysis/fn_isUnitCombatEffective.sqf": "Complete21-line live/native incapacitation plus active PDMS knockdown and MKY surrender marker gate. Not all hidden/locality/medical/actor task availability."
+    },
+    "sourceDispositions": {
+      "retain": "Separate live, combat-effective and downed strength; immutable config caching; usable role/ammo observations; discrete material candidate revision instead of treating movement/noisy commands as full proposal invalidation. Final actual owner must recheck capacity and authority.",
+      "rejectOrRedesign": [
+        "Source footCount plus assigned cargo can double-count an actor awaiting boarding because assignedVehicleRole is not actual seating. CBE actual objectParent dismount observation remains distinct; assigned transport alone is not a blanket veto for intentional dismounts.",
+        "Source combatGunCount is footCount, not primary-ammunition capacity. Vehicle magazine totals and configured transportSoldier seats do not prove local usable operator/seat/reachable platform. Config hints or BL declared capability strings never grant firing/movement authority.",
+        "Source ammo AA airLock excludes AT by construction; CBE immutable usage-flag/dual-role classification and live mission overrides remain. Source launcher magazine array cache omits engine magazine-well resolution; CBE compatibleMagazines remains.",
+        "Source medical identity uses vanilla trait/items and source-specific down/surrender flags; do not replace CBE native/ACE captivity/effectiveness or inventory-specific medical feasibility with those coarse counts. No external medical adapter added.",
+        "Refresh can exclude noisy commands from candidate signature, but actual command/owner/actor reservation checks cannot be skipped or represented by that signature. No second global candidate registry added."
+      ]
+    },
+    "cbeComparisonScope": "Full CortexCapabilities, CortexPrimaryAmmoAvailable, CortexCombatEffective, CortexActorFireTaskAvailable and CortexAirWeaponOperatorAvailable bodies read. Selected AntiArmour69-121 actual-actor/loaded AT admission; SupportApply76-94 and163-208 actual foot/fresh primary capacity; SupportBoundStart95-114 actor availability; SupportMaintain520-538 COVER capacity; OperationStart33-45 participant validation. Not full weapon, vehicle, movement or medical descendants.",
+    "finding": "Fresh SupportApply excluded dormant/fleeing/care-busy feet and checked ammunition but did not exclude independent actor movement reservations or protected native tasks. Those bodies could provide the three-person/primary/AT admission capacity despite being unavailable to later actual executors. OperationStart already refuses more than64 participants, so oversized fresh cohorts could also be acknowledged before start failure. Companion trace: CortexGroupMove protected native command labels but not pending actor reservations; a group-wide rally could still affect a reserved nonparticipant even after fresh cohort filtering.",
+    "implementation": "Only !_same fresh cohort: refuse more than64 physical feet before per-actor availability work; otherwise reuse CortexActorFireTaskAvailable in the existing filter before count>=3 and primary/AT checks. It refuses nonlocal/fleeing/care-busy/reserved actors, pending native journals and protected native service/SUPPRESS tasks. Existing group/player/specialist guards remain. Existing assignment/adoption rosters retain their separate execution rules. No assignedVehicle blanket veto, no new controller/cache/task/setting/native/inventory write. Companion fix: existing CortexGroupMove _nativeTaskBusy includes shared CortexActorMoveReserved for each living group member at its original admission/update/commit checks. A partial free cohort never authorizes whole-group route changes over another member reservation. Independent actor commands are not disabled.",
+    "limits": "This is usable admission capacity, not immediate firing readiness or proof that every later actor/route can execute. Existing group ROE, FIREWEAPON, actual owner/settings/native task and physical executor checks remain authoritative. No whole classifier-to-provider parity, full platform AA/CAS/medical profile or measured timing claim. Shared predicate semantics intentionally retained; no new broad unknown-command policy added here.",
+    "cost": "At most64 fresh actor shared availability calls after the existing health/physical filter, plus cheap fresh cohort count; no new world scans/rays or callbacks. Existing initial group health/foot enumeration still scales with group size. No additional admission work on !_same false established leases; measured5%median/10%p95 impact unverified. GroupMove reuses its existing member footprint and command-boundary calls, adding a read-only reservation predicate until first busy member; no extra member traversal or retained permission. Existing footprint still scales with group size.",
+    "validation": {
+      "focused": "Initial618 existing operation tests passed after fresh-capacity change; final full1506 includes the companion whole-group reservation assertions and existing generation-commit case. Zero added cases.",
+      "focusedLog": ".qa/handovers/support-available-capacity-focused-20261030.log",
+      "full": "PASS1506 existing tests,491 compiled SQF,11PBO; complete offline config/FSM/header/docs/wiki/parity/coverage gates and static performance0 findings. Existing group-generation contract now verifies both shared reservation and retained fleeing checks; command ordering targets actual addWaypoint rather than header text.",
+      "buildLog": ".qa/handovers/support-available-capacity-build-20261030.log",
+      "candidate": ".qa/candidates/support-available-capacity-20261030-1e202514",
+      "fingerprint": "679650975a9505a4b564a6e7b95abb4478f64b422584043f5d9ad454bef1760e",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/support-available-capacity-independent-20261030.log",
+      "sourceIdentity": "Unsigned dirty base1e202514 plus checked runtime/tests/guide/review inputs; later engineering metadata/handover separate. Not clean future-commit package, signed release or physical capacity proof."
+    },
+    "nextFiniteWork": "Trace source23-line markCandidateStateChanged,326-line findSupportCandidates and85-line generateProposal against existing CBE sliced support selection. Do not replay completed classifier/refresh/helper review or add a parallel candidate registry. Finite return-to-post remains separately mapped, not implemented/verified by this capacity fix.",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
   }
 }

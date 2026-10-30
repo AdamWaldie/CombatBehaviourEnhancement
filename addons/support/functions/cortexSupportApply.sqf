@@ -41,7 +41,11 @@
  * and unavailable actors survive; running recovery commands/timers are never replayed.
  * Fresh coordinated admission requires three primary-ammunition capacities, matching the
  * existing COVER observer; ordinary rally needs one, while dedicated AT rally retains its
- * actual launcher requirement. Loaded main rounds or compatible reserve qualify, not firing
+ * actual launcher requirement. Fresh feet also require the shared native-task/reservation gate,
+ * so busy or pending-native actors do not supply admission capacity. At most64 fresh feet are
+ * assessed; oversized cohorts refuse before per-actor work, not silently truncated. Existing
+ * assignment/adoption rosters remain unchanged. A retained transport assignment alone is not a
+ * veto for an otherwise available dismounted actor. Loaded main rounds or compatible reserve qualify, not firing
  * readiness. At most64 candidate feet are inspected; acknowledged/adopted tasks are unchanged.
  * Original response radius is required in canonical lease slot6; next-operation setting
  * changes cannot enlarge/shrink this assignment during delivery, retry or owner adoption.
@@ -81,8 +85,13 @@ private _fit = (units _group) select {[_x] call CBE_fnc_CortexCombatEffective};
 // established assignment; its owner-side execution and capacity gates remain separate.
 private _footFit = _fit select {isNull objectParent _x};
 if (!_same) then {
-    _footFit=_footFit select {simulationEnabled _x && {!isObjectHidden _x} && {!fleeing _x}
-        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}};
+    // OperationStart permits64 participants. Refuse oversized fresh cohorts before
+    // per-actor availability work, rather than acknowledge a task that cannot start.
+    if (count _footFit > 64) then {_footFit=[]} else {
+        _footFit=_footFit select {simulationEnabled _x && {!isObjectHidden _x} && {!fleeing _x}
+            && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+            && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}};
+    };
 };
 // Group-level rally destinations also reach native operating crews. A foot subset alone does
 // not make that authority safe: vehicle support retains its own movement operation.

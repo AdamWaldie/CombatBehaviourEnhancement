@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Whole-group route admission/update refuses any living member's independent actor reservation,
+ * including unresolved native cleanup after its ordinary movement marker expires.
  * Purpose: Commits one CBE-owned temporary waypoint without replacing it again while the
  * requested destination, radius and mode remain materially the same. This avoids command churn
  * that makes an engine group stop, turn around or continuously re-form.
@@ -75,11 +77,12 @@ if !(_group getVariable ["CBE_AIPass_Adopted",false]) then {
     [_group,true] call CBE_fnc_CortexLocality;
 };
 if (!local _group || {!([_group,false,false,true] call CBE_fnc_CortexIsEligible)}) exitWith {[grpNull,-1]};
-// A group-wide route cannot preserve an individual boarding, treatment or supply command.
+// A group-wide route cannot preserve an independent actor reservation or pending native journal.
+// Nor can it preserve an individual boarding, treatment or supply command.
 // Do not convert that native task into MOVE, even when the group's general eligibility is valid.
 // This does not disable sensing, firing or independently eligible actor-level operations.
 private _nativeTaskBusy={ (units _group) findIf {
-    alive _x && {fleeing _x || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
+    alive _x && {[_x] call CBE_fnc_CortexActorMoveReserved || {fleeing _x} || {(_x getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []}
         || {toUpperANSI (currentCommand _x) in ["GET IN","GET OUT","ACTION","HEAL","REARM","JOIN","REPAIR","REFUEL","SUPPORT","SCRIPTED","HEAL SOLDIER","PATCH SOLDIER","FIRST AID","HEAL SELF","CARRY SOLDIER","DROP CARRIED","ASSEMBLE","DISASSEMBLE","TAKE BAG","DROP BAG"]}}
 } >= 0 };
 if (call _nativeTaskBusy) exitWith {[grpNull,-1]};
