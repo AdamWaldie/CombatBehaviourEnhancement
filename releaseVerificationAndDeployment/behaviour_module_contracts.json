@@ -20,7 +20,8 @@
     "CBE_ModulePointWithdraw",
     "CBE_ModuleVehiclePoint",
     "CBE_ModuleVehiclePointRelease",
-    "CBE_ModuleCreep"
+    "CBE_ModuleCreep",
+    "CBE_ModuleJamming"
   ],
   "zen_labels": [
     "Create AI Convoy",
@@ -37,7 +38,8 @@
     "Withdraw to position",
     "Position vehicle",
     "Release vehicle position task",
-    "Cautious approach"
+    "Cautious approach",
+    "AI radio denial"
   ],
   "contracts": [
     {
@@ -342,6 +344,28 @@
       "termination": "Original task/leg deadline, stale belief, stand-off, actual nearby danger, changed native/Zeus/specialist control, release or owner loss",
       "guide": "docs/Smart-AI-Pass.md",
       "physical_acceptance": "unverified; audits paused; native policies, approach, interruption, repeat, HC/JIP and measured cost pending"
+    },
+    {
+      "behaviour": "Start/update or end AI radio denial from an explicit emitter",
+      "target": "Exact attached editable object; no nearest-object fallback, spawn or automatic radar classification",
+      "parameters": [
+        "EMIT or STOP",
+        "radius50..100000m in UI; raw server API1..100000",
+        "explicit affected AI sides",
+        "serial and12s expiry transport guards"
+      ],
+      "handlers": [
+        "addons/infantry/functions/jammingTaskDialog.sqf"
+      ],
+      "frontends": [
+        "addons/infantry/functions/moduleJamming.sqf",
+        "addons/main/bootstrap/zenRegister.sqf"
+      ],
+      "executor": "CBE_fnc_CortexJammingField",
+      "authority": "Actual remote owner must have an assigned curator and editable emitter; server revalidates keys/types/bounds/expiry/serial, then atomically applies field and receipt. Raw client bypass refuses.",
+      "termination": "STOP removes field; emitter death/deletion stops effect when observed by querying owners. Passive current snapshot supports JIP, no old command replay.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; native/optional ZEN dialog, authority/replay/expiry, movement/deletion,JIP/HC and actual AI report denial pending while audits paused"
     }
   ]
 }

@@ -1059,7 +1059,7 @@
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runSupport.sqf: REPORT- actual delivery and receiver travel (partial variants; fresh live acceptance required). The whole sight-screen and investigation geometry uses the shared measured terrain transform outside VR. New explicit Protocol-intent field API/query is assigned to this existing communication case; native-field physical variants are NOT implemented/executed by the current runSupport fixture and remain pending while audits are paused. Mapping is source coverage only, not acceptance.",
+      "automation": "runSupport.sqf: REPORT- actual delivery and receiver travel (partial variants; fresh live acceptance required). The whole sight-screen and investigation geometry uses the shared measured terrain transform outside VR. New explicit Protocol-intent field API/query is assigned to this existing communication case; native-field physical variants are NOT implemented/executed by the current runSupport fixture and remain pending while audits are paused. Mapping is source coverage only, not acceptance. Native/optional ZEN jamming task dialog and authenticated server field mutation now exist. Dialog operation, authority rejection, stale/duplicate task, emitter movement/deletion, voice/JIP/HC and radio effects are NOT implemented/run as physical variants in this fixture; UI/behaviour acceptance remains pending.",
       "executable_sources": [
         "runSupport.sqf"
       ],
@@ -1069,7 +1069,9 @@
         "addons/infantry/functions/cortexReportLocal.sqf",
         "addons/infantry/functions/cortexReportServer.sqf",
         "addons/infantry/functions/cortexJammingField.sqf",
-        "addons/infantry/functions/cortexJammingFactor.sqf"
+        "addons/infantry/functions/cortexJammingFactor.sqf",
+        "addons/infantry/functions/moduleJamming.sqf",
+        "addons/infantry/functions/jammingTaskDialog.sqf"
       ]
     },
     {

@@ -398,7 +398,7 @@
   ],
   "sourceIntegrity": "65 selected immutable archive source hashes and48 current product hashes verified; protected manifest unchanged. Latest scoped correction qualifies initial aircraft geometry with native belief; later executor scope remains open.",
   "productHashes": {
-    "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
+    "addons/main/config.cpp": "9ba7a8a76c801b70f9dce4158f8c04a57a504c1a24648ed3dbce9bf89dfbcbd4",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
     "addons/infantry/functions/garrisonTaskDialog.sqf": "670c75d8675268528fb9a6b1d9c52925963a455d03c848f0abed5521dc359b3b",
     "addons/infantry/functions/zenGarrisonModule.sqf": "ab886da14f7d128d37b85bde41a7caf3176153782ac4c5dd2e10d3e645e0b26d",
@@ -413,7 +413,7 @@
     "addons/infantry/functions/buildingRoofTop.sqf": "9baad8bfe48e1bb0ce9a0699825dd93779a957945a0f4a18333be76c05ace923",
     "addons/infantry/functions/cortexGarrisonPostChoice.sqf": "318fb7c240f67a43649abc0679a7304a6eec18a35f2836039119a50f3761eb90",
     "addons/infantry/functions/cortexGarrisonRefill.sqf": "d2c99a24d44d0f0addfb50d73bff0e1be5e5eab85230e033c5b68274bfbd9663",
-    "addons/main/CfgFunctions.hpp": "5790b603544f90e3212fc39c8123a0ca9b63b7493b1d802342d9326298387179",
+    "addons/main/CfgFunctions.hpp": "8f221c01a00ff7f88f51768eca1050498d6cd9c72eef3d6bf6706596ae055d98",
     "addons/infantry/functions/cortexStaticRetire.sqf": "469b5905a35c49ba45acdbbd5ba75d4da81a2f4ccedda5cdc8be007785f9c08c",
     "addons/infantry/functions/cortexActorMoveReserved.sqf": "7881fd82ee5073085c3d9500bc38408a579ddfc9ca967a666f77e3670aabf3ca",
     "addons/infantry/functions/dangerSetup.sqf": "c43545795e11d8ec0a82d28440d8fb0c00b46e73fca82482f8e45ba98c6ce9b5",
@@ -1096,6 +1096,20 @@
       "addons/aircraft/functions/cortexAirAttack.sqf": {
         "previous": "797d2c4f9545d2f523f86393e91f59e0c450c04dd523a24b5f3697509b1a4ee3",
         "current": "d76e0ebf6877033945085cf3b1f3069b637dbdb37916911388405f471f8fc66d"
+      }
+    }
+  },
+  "protocolJammingTaskRefresh20261030": {
+    "review": "releaseVerificationAndDeployment/referenceReviews/protocol-jamming-3824564775-20261030.json",
+    "scope": "Refresh current module/binding hashes only; historical Conductor source and candidate claims remain dated, not rerun.",
+    "changed": {
+      "addons/main/config.cpp": {
+        "previous": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
+        "current": "9ba7a8a76c801b70f9dce4158f8c04a57a504c1a24648ed3dbce9bf89dfbcbd4"
+      },
+      "addons/main/CfgFunctions.hpp": {
+        "previous": "5790b603544f90e3212fc39c8123a0ca9b63b7493b1d802342d9326298387179",
+        "current": "8f221c01a00ff7f88f51768eca1050498d6cd9c72eef3d6bf6706596ae055d98"
       }
     }
   }

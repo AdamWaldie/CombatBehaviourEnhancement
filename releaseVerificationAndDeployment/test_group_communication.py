@@ -157,6 +157,27 @@ class GroupCommunicationTests(unittest.TestCase):
                       '_radius > 100000','_sides findIf','CBE_EW_Fields",_fields,true',
                       '_fields isNotEqualTo _original','_fields deleteAt _index'):
             self.assertIn(proof,field)
+        # Curator tasks authenticate in the same atomic field owner; raw remote bypass stays refused.
+        for proof in ('isNil {','_sender > 2 && {isNull _curator}',
+                      '_emitter in curatorEditableObjects _curator','count _this != 6',
+                      'count (_keys arrayIntersect _keys) != 6','_expires <= serverTime',
+                      '_expires > serverTime+12','_payload isEqualTo (_previous select 1)',
+                      'count _receipts >= 64','_sender > 0 && {_sender != 2}'):
+            self.assertIn(proof,field)
+        dialog=source('jammingTaskDialog');module=source('moduleJamming')
+        self.assertIn('attachedTo _logic',module)
+        self.assertIn('[_emitter] call CBE_fnc_JammingTaskDialog',module)
+        self.assertIn('call CBE_fnc_CortexJammingField',dialog)
+        self.assertIn('deleteVehicle _logic',module)
+        self.assertNotIn('nearest',module)
+        for key in ('mode','emitter','radius','sides','serial','expires'):
+            self.assertIn('["'+key+'",',dialog)
+            self.assertIn('_task get "'+key+'"',field)
+        self.assertIn('isNull _emitter',dialog)
+        self.assertIn('cbChecked',dialog)
+        self.assertIn('_sides isEqualTo []',dialog)
+        self.assertIn('closeDisplay 2',dialog)
+        self.assertNotIn('CBA_fnc_setSetting',dialog)
         for proof in ('count _fields > 32','_side in (_row select 2)',
                       'alive (_row select 0)','getPosASL (_row select 0)',
                       'vectorDistance','exitWith {_factor=1}'):

@@ -342,6 +342,8 @@ class CfgFunctions {
             class CortexArtilleryFire {file = "\z\cbe\addons\support\functions\cortexArtilleryFire.sqf";};
             class CortexArtilleryRequest {file = "\z\cbe\addons\support\functions\cortexArtilleryRequest.sqf";};
             class CortexCanTransmit {file = "\z\cbe\addons\infantry\functions\cortexCanTransmit.sqf";};
+            class ModuleJamming {file = "\z\cbe\addons\infantry\functions\moduleJamming.sqf";};
+            class JammingTaskDialog {file = "\z\cbe\addons\infantry\functions\jammingTaskDialog.sqf";};
             class CortexJammingField {file = "\z\cbe\addons\infantry\functions\cortexJammingField.sqf";};
             class CortexJammingFactor {file = "\z\cbe\addons\infantry\functions\cortexJammingFactor.sqf";};
             class CortexGroupAnchor {file = "\z\cbe\addons\infantry\functions\cortexGroupAnchor.sqf";};

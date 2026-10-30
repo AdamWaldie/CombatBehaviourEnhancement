@@ -300,5 +300,11 @@
         ".qa/handovers/flight-command-rights-independent-20261029.log"
       ]
     }
+  },
+  "executionIntegrationTrace20261030": {
+    "scope": "Re-read actor entry/physics/cleanup and complete animation worker of the preserved713709341 source; compared current flight lease and shared scheduler, no reference execution/edits.",
+    "finding": "The stock actor API retains force-exit/random start relocation/device overshoot and independent delayed animation/overspeed/damage writers. Shared tactical scheduler explicitly defers during ENDEX/SafeStart and doubles low-FPS delays, so continuous hanging-actor physics cannot simply be dropped into an ordinary tactical job. Source activity flag is still not quiescence.",
+    "nextRequired": "Controlled actor descent must own its complete physics/animation/rope/cleanup graph and exact authority, preserve original damage/simulation, handle loss of actor/flight control without stale writes and prove actual support arrival. Flight orchestration, ground handover and module must compose that executor. Do not expose unchanged stock API as working insertion. Physical movement/replication uncertainties remain while audits paused.",
+    "disposition": "Rappel remains required and unimplemented beyond route geometry; continue independent Protocol jamming behaviour-module gap in this batch. No wrapper/controller or animation/sound asset copied."
   }
 }

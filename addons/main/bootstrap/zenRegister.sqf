@@ -59,4 +59,7 @@ missionNamespace setVariable ["CBE_AITweaks_ZenRegisteredLocal", true];
 ["Combat Behaviour Enhancement (CBE)", "Release infantry task", {
     _this call CBE_fnc_ZenReleaseModule;
 }] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "AI radio denial", {
+    [_this select 1] call CBE_fnc_JammingTaskDialog;
+}] call zen_custom_modules_fnc_register;
 true
