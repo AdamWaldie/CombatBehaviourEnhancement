@@ -358,9 +358,45 @@
       "sha256": "a8a00ce66e6b8b3cb4cf1d10a19685af5c5540ec933b066912c83062f10d2c7b",
       "manifestMatch": true,
       "scope": "Complete body: west/east/resistance feature gates; other sides refuse."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3763118318/extracted-20261011/pinneddown_arty/functions/fn_requestCAS.sqf",
+      "sha256": "588ce0d62f89d48ad0bc194ef4224ac382d54434d2907a1f94f3f9ec0b567bba",
+      "manifestMatch": true,
+      "scope": "Complete408-line body: per-side cooldown/concurrency/lifetime settings, known-AA/VLS/low-observable/risk doctrine, airborne/parked/virtual selection, pre-dispatch UAV control recheck, optimistic counters and unretained air-mission spawn, optional finite standby expiry with player-distance egress deferral. Called providers/launch/air executor/janitor graph not thereby complete."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3763118318/extracted-20261011/pinneddown_arty/functions/fn_scanPlanes.sqf",
+      "sha256": "73b2be65bbdbdad202828787770066c3be99d1e93b38a97e6771c035a0397b31",
+      "manifestMatch": true,
+      "scope": "Complete142-line body: full vehicles scan, coarse weapon/name heuristics, capability declarations and Xian exception, player/UAV exclusions, side/busy/someAmmo gates and airborne-first order. Availability is not loaded compatible station, owner acceptance or post-selection authority."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3763118318/extracted-20261011/pinneddown_arty/functions/fn_findAirDefenses.sqf",
+      "sha256": "f76f2a57b7a74cf3ab945a2a6bf11b8264ea77347eda454c17be503e470fbe3f",
+      "manifestMatch": true,
+      "scope": "Complete33-line body: all vehicles, crew/alive/hostility/classifier and spotter knowsAbout threshold; no position/range/freshness envelope. Crewless autonomous AA explicitly not covered."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3763118318/extracted-20261011/pinneddown_arty/functions/fn_predictPosition.sqf",
+      "sha256": "522e38887a3632f8f136b9d7e96bb04d92184a00628120a9ddcb8d609ce0c4d2",
+      "manifestMatch": true,
+      "scope": "Complete body: actual target vehicle ASL position/velocity plus weapon ETA and random dampening. Not a native believed estimate; no unseen hostile motion import into CBE."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3763118318/extracted-20261011/pinneddown_arty/functions/fn_isAirDefense.sqf",
+      "sha256": "25769357d77704aeefd109c2cc8c98f03e8cbed04a90ca481a145c4ff30524a6",
+      "manifestMatch": true,
+      "scope": "Complete body: excludes Man and cruise/VLS loadouts, then radar/classname/localized category/static-launcher heuristics. These do not prove active AA weapon capability and can conflate radar or AT with AA."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3763118318/extracted-20261011/pinneddown_arty/functions/fn_artyRearm.sqf",
+      "sha256": "bfb14fc723dd1677a75e16951519942d5f7b54902757c8dee989de6df3f51ed6",
+      "manifestMatch": true,
+      "scope": "Complete21-line body: unretained delayed refill, alive-only check and setVehicleAmmo1. No actual logistics or current-owner/task/assignment check; not copied."
     }
   ],
-  "sourceIntegrity": "59 selected immutable source hashes and46 current product hashes verified; protected manifest unchanged. Latest scoped implementation extends artillery captivity protection only.",
+  "sourceIntegrity": "65 selected immutable archive source hashes and48 current product hashes verified; protected manifest unchanged. Latest scoped correction qualifies initial aircraft geometry with native belief; later executor scope remains open.",
   "productHashes": {
     "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
@@ -407,7 +443,9 @@
     "addons/support/functions/cortexArtilleryObserve.sqf": "af7c4dc2c6f04fe1d7577fd9c35044c0eeea23effe5765c419e61fb2ddc3770d",
     "addons/support/functions/cortexArtilleryMissionStep.sqf": "ae4ccccaad347e4720f79803abc36a762f70ed4cf0b5f501b1128d70413d7f84",
     "addons/support/functions/cortexArtilleryShot.sqf": "de78a7d1bb844010712ecd311d6e5bb87e5f400a5cc9f05214388c5b3e147cea",
-    "addons/support/functions/cortexArtilleryAim.sqf": "15d8962a82d8b9e16bdf4b01e9839a8e2cc3544831caed53a94111a2dcb8cdd4"
+    "addons/support/functions/cortexArtilleryAim.sqf": "15d8962a82d8b9e16bdf4b01e9839a8e2cc3544831caed53a94111a2dcb8cdd4",
+    "addons/aircraft/functions/cortexAirAttackPlan.sqf": "50ce2e612585446254895473d8d1d59f3b83e926ed1721260f0940c33c0a899d",
+    "addons/aircraft/functions/cortexAirAttack.sqf": "8fac05b693c19089c06c99944905adfc08ff04c2d2519e61c608c4028e1e054a"
   },
   "productScope": "Selected actual operator, planning/assignment, role and contact-static owner branches; not complete bodies of every CBE descendant or physical/compiled-source parity.",
   "dispositions": [
@@ -980,5 +1018,43 @@
       "sourceIdentity": "Unsigned development build from dirty base2da8f897 plus checked runtime/test/guide/review inputs. Later handover metadata separate. Not a clean future-commit release or signature verification."
     },
     "nextFiniteWork": "Compare actual source requestCAS/predictPosition/classification/rearm lifetimes and existing CBE aircraft/pressure owners. Separate useful severe-pressure demand and battery allocation gaps from external provider completion; no adapter, new omniscient scanner or unverified heuristic import."
+  },
+  "airDispatchBelief20261030": {
+    "baseCommit": "384c8536266c89aba0f3870b5dce91d8248a55c5",
+    "sourceScopes": {
+      "fn_requestCAS.sqf": "Complete408-line body: per-side cooldown/concurrency/lifetime settings, known-AA/VLS/low-observable/risk doctrine, airborne/parked/virtual selection, pre-dispatch UAV control recheck, optimistic counters and unretained air-mission spawn, optional finite standby expiry with player-distance egress deferral. Called providers/launch/air executor/janitor graph not thereby complete.",
+      "fn_scanPlanes.sqf": "Complete142-line body: full vehicles scan, coarse weapon/name heuristics, capability declarations and Xian exception, player/UAV exclusions, side/busy/someAmmo gates and airborne-first order. Availability is not loaded compatible station, owner acceptance or post-selection authority.",
+      "fn_findAirDefenses.sqf": "Complete33-line body: all vehicles, crew/alive/hostility/classifier and spotter knowsAbout threshold; no position/range/freshness envelope. Crewless autonomous AA explicitly not covered.",
+      "fn_predictPosition.sqf": "Complete body: actual target vehicle ASL position/velocity plus weapon ETA and random dampening. Not a native believed estimate; no unseen hostile motion import into CBE.",
+      "fn_isAirDefense.sqf": "Complete body: excludes Man and cruise/VLS loadouts, then radar/classname/localized category/static-launcher heuristics. These do not prove active AA weapon capability and can conflate radar or AT with AA.",
+      "fn_artyRearm.sqf": "Complete21-line body: unretained delayed refill, alive-only check and setVehicleAmmo1. No actual logistics or current-owner/task/assignment check; not copied."
+    },
+    "retainedIntent": [
+      "Select an actual available platform suited to the target, prefer airborne physical assets over costly preparation, preserve explicit roles/player ownership, and separate planning from the real flight/weapon executor.",
+      "Use only known AA evidence; evaluate risk and low-observable configuration without treating stealth as immunity or inventing a perfect unseen threat map. Per-side doctrine/budgets are useful intent, not a replacement for mission authority or accepted native execution."
+    ],
+    "notCopied": [
+      "Source class-name and weapon category hints plus someAmmo do not prove a loaded target-suitable station/operator. CBE keeps bounded native weapon-state/station selection and potential AA config classification rather than enemy ammunition disclosure.",
+      "Global vehicles AA scan and exact target ASL/velocity lead are not appropriate replacements for CBE local native-belief evidence. Radio metadata is not personal detection or live enemy tracking.",
+      "CAS call/concurrency/lifetime counters and busy markers are updated before an unretained spawned executor acknowledges acceptance. Parked/virtual launch and deferred standby cleanup still need full writer/authority tracing; spawn/marker success is not native completion.",
+      "setVehicleAmmo1 after an alive-only sleep is free resupply without real logistics/ownership. No delayed refill, virtual asset or risk-roll controller imported."
+    ],
+    "cbeFinding": "Initial surface approach/terrain geometry read getPosATL of the target even when the group only retained old knowledge. Intercepts already used getHideFrom, but their first member selection used shared knowsAbout without native record qualification. Initial planning could follow hidden ground motion or reject a valid later witness.",
+    "implementation": "Resolve initial target belief before weapon/terrain work for both domains. Inspect at most8 local combat-effective members with pilot first, require native knownByGroup and nonignored record plus valid finite nonzero getHideFrom position. Prefer personal witnesses over group-shared evidence, then newest observation. Preserve valid group-shared native beliefs for spotter handoff; missing belief refuses. No actual target transform/velocity fallback in planner; no new helper, scanner, worker, flight command or deadline.",
+    "currentCbeScopes": "Planner selected native target admission, armament/config/AA/initial geometry and returned targetPosition; selected AirAttack admission, plan retention, live intercept, native DESTROY and terminal release calculations. Existing Capabilities potential-mode body inspected. Whole aircraft executor and all native writers are not thereby reviewed.",
+    "cost": "At most8 native targetKnowledge and up to8 getHideFrom reads once per plan; replaces prior exact surface transform or first shared-knower intercept selection and moves refusal before expensive weapon/terrain planning. No recurring scan or added cadence. Actual overhead unmeasured.",
+    "limits": "Later AirAttack surface DESTROY association and live terminal delivery geometry still read target object transforms and require separate native-knowledge/visibility justification or repair; this scoped initial-planner fix is not whole-run belief-only proof. Full CAS selection/launch/air executor/battery/pressure parity, physical flight and5%median/10%p95 acceptance remain incomplete. Audits PAUSED.",
+    "validation": {
+      "focused": "PASS618 existing operation contracts before group-shared native-belief refinement; final full gates pending. Existing air-plan contract extended, zero added cases.",
+      "focusedLog": ".qa/handovers/air-plan-native-belief-focused-20261030.log",
+      "full": "PASS1506 existing tests,491 compiled SQF,11PBO; complete config/FSM/docs/wiki/parity/coverage gates and static performance0 findings. Final native group-shared refinement included; zero added test cases.",
+      "buildLog": ".qa/handovers/air-plan-native-belief-build-20261030.log",
+      "candidate": ".qa/candidates/air-plan-native-belief-20261030-384c8536",
+      "fingerprint": "eebad9051c633c48a78c4fad69fc8e502b13cf4849e4ed7b96bf895dd0e4200e",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/air-plan-native-belief-independent-20261030.log",
+      "sourceIdentity": "Unsigned development candidate from dirty base384c8536 plus checked runtime/tests/guide/review inputs. Later handover metadata separate; not clean future-commit release or signature verification."
+    },
+    "nextFiniteWork": "Trace source executeAirMission/launchParkedPlane/spawnVirtualWing and actual provider cleanup/acknowledgement. For current CBE surface execution, trace target-attached waypoint, progress geometry and terminal release against native observation; preserve real native targeting and group-shared handoff while removing unjustified unseen transforms. Do not mark the whole run belief-only from the initial planner fix."
   }
 }

@@ -7,8 +7,12 @@
  * An airborne hostile receives an intercept plan; a surface target receives a gun strafe, fixed-rocket
  * offset/hook run, guided standoff, bomb run or helicopter lateral gun pass from aircraft type, live
  * ammunition and a bounded
- * sample of targets already known to the pilot. Initial intercept geometry uses native believed
- * position without an exact velocity lead; the live job derives motion from successive estimates,
+ * sample of targets already known to the pilot. Initial surface and intercept geometry use a real
+ * local group member's native believed position. Up to eight members, with the pilot first,
+ * are checked once. Personal witnesses take precedence; valid native group-shared beliefs
+ * remain usable for spotter handoff. Shared knowsAbout alone is not a belief. Unknown, ignored
+ * or invalid beliefs refuse before weapon/terrain work. No exact target pose or velocity lead
+ * enters initial geometry; the live intercept job derives motion from successive estimates,
  * varies height inside a platform-safe envelope and retains a real loaded air-to-air weapon when present.
  * This is an intercept/engage/disengage controller, not a scripted claim to full BFM. A standoff
  * plan retains a native loaded weapon/turret pair; the executor rechecks it before release.
@@ -57,6 +61,35 @@ if (_target isKindOf "Logic" || {_target isKindOf "HeadlessClient_F"} || {_side 
     || {_target getVariable ["ace_captives_isSurrendering",false]}
     || {_target getVariable ["ace_captives_isHandcuffed",false]}) exitWith {createHashMap};
 private _airToAir=_target isKindOf "Air" && {!isTouchingGround _target};
+
+// Resolve belief before expensive weapon and terrain planning for either target domain.
+// Unit knowsAbout reads shared group knowledge; require a native knownByGroup record
+// and a valid believed position. Prefer actual personal evidence without discarding
+// legitimate group-shared spotter reports when no personal witness is available.
+private _targetPos=[];
+private _latestObservation=-1;
+private _personalWitness=false;
+private _observers=([_pilot]+((units group _pilot)-[_pilot])) select [0,8];
+{
+    if (local _x && {[_x] call CBE_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}) then {
+        private _knowledge=_x targetKnowledge _target;
+        private _observedAt=(_knowledge param [2,-1,[0]]) max (_knowledge param [3,-1,[0]]);
+        private _personal=_knowledge param [1,false,[true]];
+        private _preferred=_targetPos isEqualTo [] || {_personal && {!_personalWitness}}
+            || {_personal isEqualTo _personalWitness && {_observedAt > _latestObservation}};
+        if ((_knowledge param [0,false,[true]]) && {!(_knowledge param [7,false,[true]])}
+            && {finite _observedAt} && {_preferred}) then {
+            private _belief=_x getHideFrom _target;
+            if (count _belief == 3 && {_belief isNotEqualTo [0,0,0]}
+                && {_belief findIf {!(_x isEqualType 0) || {!finite _x}} < 0}) then {
+                _targetPos=+_belief;
+                _latestObservation=_observedAt;
+                _personalWitness=_personal;
+            };
+        };
+    };
+} forEach _observers;
+if (_targetPos isEqualTo []) exitWith {createHashMap};
 
 private _ammoCache=missionNamespace getVariable ["CBE_Cortex_AirAmmoFacts",createHashMap];
 private _ammoFacts={
@@ -293,15 +326,6 @@ missionNamespace setVariable ["CBE_Cortex_AirAmmoFacts",_ammoCache];
 missionNamespace setVariable ["CBE_Cortex_AirVehicleAAFacts",_vehicleThreatCache];
 
 private _airPos=getPosATL _aircraft;
-private _targetPos=getPosATL _target;
-if (_airToAir) then {
-    private _knowers=((units group _pilot) select [0,8]) select {
-        local _x && {[_x] call CBE_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}
-    };
-    private _knower=_knowers param [0,objNull,[objNull]];
-    _targetPos=if (isNull _knower) then {[]} else {_knower getHideFrom _target};
-};
-if (_targetPos isEqualTo [] || {_targetPos isEqualTo [0,0,0]}) exitWith {createHashMap};
 private _axis=_targetPos vectorDiff _airPos;
 _axis set [2,0];
 if (vectorMagnitude _axis < 1) then {_axis=[sin getDir _aircraft,cos getDir _aircraft,0]};

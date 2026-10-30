@@ -10508,6 +10508,18 @@ class CortexOperations(unittest.TestCase):
 
     def test_adaptive_air_attack_is_bounded_physical_and_zeus_safe(self):
         planner=source('cortexAirAttackPlan')
+        belief=planner.split('private _targetPos=[];',1)[1].split('private _ammoCache=',1)[0]
+        for proof in ('[_pilot]+((units group _pilot)-[_pilot])','select [0,8]',
+                      'local _x','CortexCombatEffective','_x targetKnowledge _target',
+                      '_knowledge param [0,false,[true]]','_knowledge param [1,false,[true]]',
+                      '_knowledge param [7,false,[true]]','_personal && {!_personalWitness}',
+                      '_personal isEqualTo _personalWitness','_observedAt > _latestObservation','_x getHideFrom _target',
+                      'count _belief == 3','!finite _x','if (_targetPos isEqualTo []) exitWith'):
+            self.assertIn(proof,belief)
+        self.assertNotIn('getPosATL _target',planner)
+        self.assertNotIn('getPosASL _target',planner)
+        self.assertNotIn('velocity _target',planner)
+        self.assertNotIn('if (_airToAir)',belief)
         for requirement in ['nearTargets ([8000,5000]','select [0,16]','CBE_Cortex_AirAmmoFacts',
                             '_vehicleAAFacts','CBE_Cortex_AirVehicleAAFacts','airLock','aiAmmoUsageFlags','STANDOFF','OFFSET','HOOK','STRAFE','BOMB','LATERAL',
                             'INTERCEPT','_airToAir','airWeapon','airWeaponTurret','pylonWeapon','hardpoints','indirectHit']:
