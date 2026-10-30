@@ -1,0 +1,41 @@
+{
+  "workshopId": "3600001673",
+  "name": "AI Auto mount as vehicle Gunner",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3600001673",
+  "added": "2026-10-30",
+  "priority": "2 Complementary AI methods",
+  "status": "REGISTERED_SOURCE_REVIEW_PENDING",
+  "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+  "area": "Crew/vehicle lifecycle",
+  "scope": "Evaluate opportunistic gunner occupancy through CBE seat/operator ownership, static support, convoy and crew recall. Respect players, explicit dismount/unassignment, specialist reservations and newer tasks; require real boarding, interruption and cancellation handling.",
+  "userConditions": {
+    "identityCaution": "Installed meta.cpp publishedid0; source/Workshop binding not independently confirmed by metadata."
+  },
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3600001673",
+  "localPresent": true,
+  "packageCount": 1,
+  "files": {
+    "meta.cpp": "f60fea8189781a370610446369e844d3e9dbc6bb7ba58b58081211ac95bf4773",
+    "Addons/AI_Auto_Mount_As_Vehicle_Gunner.pbo": "c45452bff9f9094195d5f2cbeef4dc38a2037ef5bf1a3eb20b383a8f07b048be"
+  },
+  "metadata": {
+    "meta.cpp": {
+      "publishedid": "0",
+      "name": "AI Auto mount as vehicle Gunner"
+    }
+  },
+  "identityEvidence": "User URL and Workshop page inaccessible through browser tool; installed metadata/package hashes only. No extracted-code review or behaviour proof.",
+  "evaluationTopics": [
+    "Trace actual config/FSM/scripts, callers and native writers; compare selected useful intent with current CBE owners before integration.",
+    "Record retained/adapted/rejected methods and dependencies/licence/provenance. No implementation credit from title, metadata or file counts.",
+    "Preserve mission/Zeus authority, finite owner-local lifecycle, player/specialist ownership and credible animation; avoid extra permanent scanners/controllers."
+  ],
+  "dependencies": "UNVERIFIED; source/config/API review required.",
+  "licence": "UNVERIFIED; establish original upstream and component-specific reuse rights before incorporating code.",
+  "sourceReview": "NOT_STARTED; webpage/local metadata and package inventory only.",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "ordering": "Foundations/FSM first, individual behaviour before squad/combined arms; compatibility expansion last. Reference-only items supply methods rather than an automatic implementation obligation.",
+  "sourceProtection": "Installed Workshop/game files, original signatures/assets and preserved references are read-only. No execution/repacking or copying raw reference assets into the product. Any future extraction uses a separate private dated directory."
+}

@@ -1,0 +1,47 @@
+{
+  "workshopId": "3824564775",
+  "name": "PROTOCOL AI JAMMING",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3824564775",
+  "added": "2026-10-30",
+  "priority": "1 Protocol programme",
+  "status": "REGISTERED_SOURCE_REVIEW_PENDING",
+  "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+  "area": "Protocol communications/EW",
+  "scope": "Review complete AI jamming functionality and selected useful intent for existing CBE communication/jamming ownership. Trace emitters, range/propagation, side policy, radio/voice distinctions, provider APIs and finite setup/update/cleanup; retain TFAR/ACRE requirements from Earshot without inventing native provider support.",
+  "userConditions": {
+    "identityCaution": "Installed meta.cpp publishedid0; Workshop page inaccessible; title from local mod.cpp."
+  },
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3824564775",
+  "localPresent": true,
+  "packageCount": 1,
+  "files": {
+    "mod.cpp": "e8016b372ee889999a27b5bf3ffccd96fccf2ce22e77e7ac23dbbd4be9359ea6",
+    "meta.cpp": "b1e88bb71a4965b0029d3a36cc369d521877d41675714ac209a514f0c576518e",
+    "addons/protocol_ai_jamming.pbo": "3d3a9989c397cbdd97a3d792df7c5b1dee9c40c9318f6e1d09daaeb72fb7951b"
+  },
+  "metadata": {
+    "mod.cpp": {
+      "name": "PROTOCOL AI JAMMING",
+      "overview": "JAMMING for AI",
+      "author": "Biden"
+    },
+    "meta.cpp": {
+      "publishedid": "0",
+      "name": "@PROTOCOL_AI_JAMMING"
+    }
+  },
+  "identityEvidence": "User URL and Workshop page inaccessible through browser tool; installed metadata/package hashes only. No extracted-code review or behaviour proof.",
+  "evaluationTopics": [
+    "Trace actual config/FSM/scripts, callers and native writers; compare selected useful intent with current CBE owners before integration.",
+    "Record retained/adapted/rejected methods and dependencies/licence/provenance. No implementation credit from title, metadata or file counts.",
+    "Preserve mission/Zeus authority, finite owner-local lifecycle, player/specialist ownership and credible animation; avoid extra permanent scanners/controllers."
+  ],
+  "dependencies": "UNVERIFIED; source/config/API review required.",
+  "licence": "UNVERIFIED; establish original upstream and component-specific reuse rights before incorporating code.",
+  "sourceReview": "NOT_STARTED; webpage/local metadata and package inventory only.",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "ordering": "Foundations/FSM first, individual behaviour before squad/combined arms; compatibility expansion last. Reference-only items supply methods rather than an automatic implementation obligation.",
+  "sourceProtection": "Installed Workshop/game files, original signatures/assets and preserved references are read-only. No execution/repacking or copying raw reference assets into the product. Any future extraction uses a separate private dated directory."
+}

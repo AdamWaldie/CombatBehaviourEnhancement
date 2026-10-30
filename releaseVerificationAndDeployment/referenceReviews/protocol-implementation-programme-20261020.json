@@ -458,6 +458,17 @@
       "disposition": "Review complete AI aircraft bomb/rocket scope; select, fix and improve useful intent in existing CBE aircraft/support owners, no wholesale import.",
       "review": "workshop-intake-3828285847.json",
       "remaining": "Config/startup/FSM/scripts, actual behaviour/dependencies/licence and source overlap; implementation, physical and performance validation all pending."
+    },
+    {
+      "workshopId": "3824564775",
+      "name": "PROTOCOL AI JAMMING",
+      "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3824564775",
+      "metadataSHA256": "e8016b372ee889999a27b5bf3ffccd96fccf2ce22e77e7ac23dbbd4be9359ea6",
+      "status": "REGISTERED_PENDING_FULL_SOURCE_REVIEW",
+      "priority": "After foundations/FSM; required Protocol queue",
+      "disposition": "Review complete AI jamming functionality and selected useful intent for existing CBE communication/jamming ownership. Trace emitters, range/propagation, side policy, radio/voice distinctions, provider APIs and finite setup/update/cleanup; retain TFAR/ACRE requirements from Earshot without inventing native provider support.",
+      "review": "workshop-intake-3824564775.json",
+      "remaining": "Complete source/dependencies/licence/API review and selected integration; no implementation/physical/performance credit."
     }
   ],
   "inventoryLimits": "Nine locally installed Protocol-named mod metadata records. Not proof of complete Workshop collection discovery or source implementation. Earlier reviews must be reconciled before repeating work.",
@@ -478,9 +489,10 @@
   "updateScope20261025": "Artillery selected-crew build-path reconciliation only. Other source rows retain their dated evidence; no whole-collection freshness/parity or percentage claim.",
   "intake20261030": {
     "added": [
-      "3828285847"
+      "3828285847",
+      "3824564775"
     ],
-    "localRegisteredProtocolItems": 10,
+    "localRegisteredProtocolItems": 11,
     "boundary": "Prior readable/binary review checkpoints cover their dated original sources only; the new item has metadata/package inventory, not source-review or implementation credit. This is not proof that every Workshop Protocol item has been discovered."
   }
 }

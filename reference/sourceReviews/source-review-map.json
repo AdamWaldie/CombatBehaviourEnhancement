@@ -1208,6 +1208,391 @@
         "observedAt": "2026-10-30",
         "scope": "Metadata and package hashes only; not readable source review or behaviour proof."
       }
+    },
+    {
+      "workshopId": "3802425539",
+      "name": "Earshot",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate voice and radio-speaker audibility, masking and obstruction as bounded perceived sound evidence. Implement ACRE support as well as TFAR through optional provider adapters into existing CBE hearing/investigation owners. No target reveal or independent movement controller.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "requiredRadioProviders": [
+          "TFAR",
+          "ACRE"
+        ],
+        "requirement": "ACRE must work; existing TFAR-only source description does not satisfy this."
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3802425539.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3802425539",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3779029815",
+      "name": "AI Stop Head Lock",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate aiming-anchor changes against current CBE accuracy/fire control and representative vanilla/modded skeletons. Compare hit distribution, body aim and headshot bias; preserve authored skills and realistic weapon alignment. Metadata labels this an aiming-anchor test, not a proven improvement.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "metadataAlias": "AI Aiming Anchor Test",
+        "identityCaution": "Installed meta.cpp publishedid0; local title and user URL association only."
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3779029815.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3779029815",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "2947745583",
+      "name": "AI Cannot See Small Drones",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate fair small-drone visibility/detectability by size, range and environment against current CBE drone/AA perception. Preserve legitimate nearby detection and threats; do not automatically copy the page example captive-height toggle or global invulnerability.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-2947745583.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/2947745583",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "1809358689",
+      "name": "Universal Difficulty Overhaul",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Rework useful difficulty intent for CBE difficulty profiles and add more levels. Keep tactical competence, perception, accuracy and response tuning distinct; preserve mission-authored and other mission frameworks/custom skills through explicit ownership. Verify engine ranges and balance rather than copying advertised over-range skill values.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "requirement": "Rework for our difficulties and more levels; level names/count and values remain to design against CBE current profiles.",
+        "distinctFromWithdrawnBundle": "This exact Workshop ID is requested independently; it does not restore Universal AI3829519860."
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-1809358689.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/1809358689",
+        "present": false,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3763899932",
+      "name": "Realistic Vegetation Concealment",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate foliage occlusion and delayed visual confirmation through existing CBE native knowledge/perception owners; handle loss/reacquisition, dynamic actors and locality without omniscience or competing skill writers.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3763899932.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3763899932",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3475038178",
+      "name": "Turret Tweaks",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate AI turret/MG/coax and selected autocannon accuracy methods against existing CBE turret aiming and fire control; preserve player turrets, mission skill intent and real weapon distinctions. Cherry-pick useful balance rather than blanket accuracy debuffs.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3475038178.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3475038178",
+        "present": false,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3482637456",
+      "name": "Immortal's AI Pathfinder Improvement (Infantry)",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate infantry stuck detection and replanning against CBE finite movement/CQB/formation recovery. Preserve player-led groups, newer native orders, unreachable-position failure and original retry/deadline budgets; no teleport or permanent competing movement loop.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3482637456.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3482637456",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3600001673",
+      "name": "AI Auto mount as vehicle Gunner",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate opportunistic gunner occupancy through CBE seat/operator ownership, static support, convoy and crew recall. Respect players, explicit dismount/unassignment, specialist reservations and newer tasks; require real boarding, interruption and cancellation handling.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "identityCaution": "Installed meta.cpp publishedid0; source/Workshop binding not independently confirmed by metadata."
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3600001673.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3600001673",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3814408624",
+      "name": "Warriors Haven AI MG BurstFire",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Rework useful MG burst timing and coordination for CBE talking guns and fire control already partially implemented. Alternate/support fire with real ammunition, sectors, friendly safety and operator availability; merge through existing firing owners.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "requirement": "Talking guns and fire control integration; extend existing partial implementation rather than add a competing worker."
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3814408624.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3814408624",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3773059814",
+      "name": "No more tanky AI (for ACE3)",
+      "priority": "4 Optional extension",
+      "candidateContribution": "Evaluate only as an optional addon, off unless deliberately enabled, with explicit per-unit exclusions for boss enemies and mission-defined protected actors. Preserve ACE medical authority, player exclusion and damage-event/locality ownership; review fragmentation/pellet/mixed-caliber accounting before any forced-death fallback.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "optionalAddon": true,
+        "defaultEnabled": false,
+        "perUnitExclusionsRequired": true,
+        "exampleExclusion": "Boss enemies",
+        "playerScope": "AI only unless separately authorized; do not inherit source player toggle automatically."
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3773059814.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3773059814",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3443045523",
+      "name": "AI Stow NVGs",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate day/night NVG stow/restore with real inventory capacity, item identity, authored loadouts and current locality. Avoid loss/duplication, inappropriate animation/visibility changes or global all-unit polling when existing CBE discovery can own bounded updates.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3443045523.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3443045523",
+        "present": false,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3673419571",
+      "name": "Fast Reaction AI - FRAI",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate responsiveness intent and animation-speed effects separately from FSM decision latency. Preserve credible motion, weapon contacts and authored modifiers; reject arm stretching, superhuman blanket speed and competing permanent modifier writers. Compare with existing CBE owner-local lifecycle.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3673419571.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3673419571",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3456575967",
+      "name": "Drongos Drone Tweaks",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate useful AI drone deployment, recon/FPV/grenade-drone and spotting methods against existing CBE drone/aircraft/AA owners. Keep inventory/distribution, task selection, native sensing, operator safety and finite cleanup coherent; do not automatically overwrite mission loadouts or import all dependencies.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3456575967.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3456575967",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3742157919",
+      "name": "CL's AI Drone Warfare",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate dynamic AI drone use and squad/operator allocation, inventory/backpack handling and sortie cleanup. Merge useful capability with CBE/other drone sources rather than duplicate equipment distribution, controllers or omniscient target acquisition.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3742157919.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3742157919",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3137367441",
+      "name": "[AI] Efficient Info Share",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Reference for deliberately connected persistent communication networks, sender/receiver exclusions, cooldown/delay and relay-node dependency. Compare with CBE current timestamped area reports, native knowledge, ownership and mission authority; no automatic reveal or all-map communication.",
+      "reviewStatus": "REFERENCE_ONLY_SOURCE_REVIEW_PENDING",
+      "kind": "INFORMATION_SHARING_REFERENCE",
+      "userConditions": {
+        "referenceOnly": true
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REFERENCE_ONLY_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3137367441.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3137367441",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3138998304",
+      "name": "[AI] Vicinity Info Share",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Reference for dynamic nearby-group communication, sender range versus receiver reaction range, exclusions and delay. Account for Zeus/script-spawned groups and locality changes; merge through existing CBE communication owner with bounded discovery and original evidence age.",
+      "reviewStatus": "REFERENCE_ONLY_SOURCE_REVIEW_PENDING",
+      "kind": "INFORMATION_SHARING_REFERENCE",
+      "userConditions": {
+        "referenceOnly": true
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REFERENCE_ONLY_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3138998304.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3138998304",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3824564775",
+      "name": "PROTOCOL AI JAMMING",
+      "priority": "1 Protocol programme",
+      "candidateContribution": "Review complete AI jamming functionality and selected useful intent for existing CBE communication/jamming ownership. Trace emitters, range/propagation, side policy, radio/voice distinctions, provider APIs and finite setup/update/cleanup; retain TFAR/ACRE requirements from Earshot without inventing native provider support.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "identityCaution": "Installed meta.cpp publishedid0; Workshop page inaccessible; title from local mod.cpp."
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3824564775.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3824564775",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
     }
   ],
   "localReferences": [

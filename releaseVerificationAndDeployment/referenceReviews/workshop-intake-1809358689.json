@@ -1,0 +1,34 @@
+{
+  "workshopId": "1809358689",
+  "name": "Universal Difficulty Overhaul",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=1809358689",
+  "added": "2026-10-30",
+  "priority": "2 Complementary AI methods",
+  "status": "REGISTERED_SOURCE_REVIEW_PENDING",
+  "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+  "area": "Difficulty/skills",
+  "scope": "Rework useful difficulty intent for CBE difficulty profiles and add more levels. Keep tactical competence, perception, accuracy and response tuning distinct; preserve mission-authored and other mission frameworks/custom skills through explicit ownership. Verify engine ranges and balance rather than copying advertised over-range skill values.",
+  "userConditions": {
+    "requirement": "Rework for our difficulties and more levels; level names/count and values remain to design against CBE current profiles.",
+    "distinctFromWithdrawnBundle": "This exact Workshop ID is requested independently; it does not restore Universal AI3829519860."
+  },
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/1809358689",
+  "localPresent": false,
+  "packageCount": 0,
+  "files": {},
+  "metadata": {},
+  "identityEvidence": "User URL and accessible Workshop description/title; matching installed folder absent; readable source not located by this intake. No extracted-code review or behaviour proof.",
+  "evaluationTopics": [
+    "Trace actual config/FSM/scripts, callers and native writers; compare selected useful intent with current CBE owners before integration.",
+    "Record retained/adapted/rejected methods and dependencies/licence/provenance. No implementation credit from title, metadata or file counts.",
+    "Preserve mission/Zeus authority, finite owner-local lifecycle, player/specialist ownership and credible animation; avoid extra permanent scanners/controllers."
+  ],
+  "dependencies": "Unverified in source. Page advertises difficulty/skill changes.",
+  "licence": "Workshop description states APL-SA; verify packaged licence and code provenance before reuse.",
+  "sourceReview": "NOT_STARTED; webpage/local metadata and package inventory only.",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "ordering": "Foundations/FSM first, individual behaviour before squad/combined arms; compatibility expansion last. Reference-only items supply methods rather than an automatic implementation obligation.",
+  "sourceProtection": "Installed Workshop/game files, original signatures/assets and preserved references are read-only. No execution/repacking or copying raw reference assets into the product. Any future extraction uses a separate private dated directory."
+}

@@ -1,0 +1,41 @@
+{
+  "workshopId": "3814408624",
+  "name": "Warriors Haven AI MG BurstFire",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3814408624",
+  "added": "2026-10-30",
+  "priority": "2 Complementary AI methods",
+  "status": "REGISTERED_SOURCE_REVIEW_PENDING",
+  "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+  "area": "Talking guns/fire control",
+  "scope": "Rework useful MG burst timing and coordination for CBE talking guns and fire control already partially implemented. Alternate/support fire with real ammunition, sectors, friendly safety and operator availability; merge through existing firing owners.",
+  "userConditions": {
+    "requirement": "Talking guns and fire control integration; extend existing partial implementation rather than add a competing worker."
+  },
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3814408624",
+  "localPresent": true,
+  "packageCount": 1,
+  "files": {
+    "meta.cpp": "31f4590f479ee1c1fafcdddeedbeaa1d775b504641e6910172e5e18f17a91dcf",
+    "addons/whbf_main.pbo": "3253ac4b18eb9bca2218bba76a7a1f1dc5c6b3d4a84b43807b1f7890da47791b"
+  },
+  "metadata": {
+    "meta.cpp": {
+      "publishedid": "3814408624",
+      "name": "Warriors Haven AI MG BurstFire"
+    }
+  },
+  "identityEvidence": "User URL and Workshop page inaccessible through browser tool; installed metadata/package hashes only. No extracted-code review or behaviour proof.",
+  "evaluationTopics": [
+    "Trace actual config/FSM/scripts, callers and native writers; compare selected useful intent with current CBE owners before integration.",
+    "Record retained/adapted/rejected methods and dependencies/licence/provenance. No implementation credit from title, metadata or file counts.",
+    "Preserve mission/Zeus authority, finite owner-local lifecycle, player/specialist ownership and credible animation; avoid extra permanent scanners/controllers."
+  ],
+  "dependencies": "UNVERIFIED; source/config/API review required.",
+  "licence": "UNVERIFIED; establish original upstream and component-specific reuse rights before incorporating code.",
+  "sourceReview": "NOT_STARTED; webpage/local metadata and package inventory only.",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "ordering": "Foundations/FSM first, individual behaviour before squad/combined arms; compatibility expansion last. Reference-only items supply methods rather than an automatic implementation obligation.",
+  "sourceProtection": "Installed Workshop/game files, original signatures/assets and preserved references are read-only. No execution/repacking or copying raw reference assets into the product. Any future extraction uses a separate private dated directory."
+}
