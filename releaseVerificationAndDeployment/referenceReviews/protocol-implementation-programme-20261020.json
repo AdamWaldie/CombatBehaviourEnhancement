@@ -317,6 +317,10 @@
         "review": "protocol-aa-3809708209-20261020.json#explicitRoleDeclaration20261028",
         "scope": "Live per-platform role true/false with unset/-1 inference, uncached declarations and current observer/intercept/allocator boundaries. Resolves the selected mixed-profile clone designation path, not physical/task/provider acceptance.",
         "physicalAcceptance": false
+      },
+      "allocationCadence20261030": {
+        "review": "releaseVerificationAndDeployment/referenceReviews/protocol-aa-3809708209-20261020.json#allocationCadence20261030",
+        "scope": "Existing16-platform native-warning planner now fixed3s pass/zero artificial inter-platform delay; transmitter caches still expire1s. Original8s warning/interceptor limits, group/owner/role/ROE and default-off policy unchanged. PASS1506 offline; analytical feasibility is not physical interception/performance."
       }
     },
     {
@@ -497,5 +501,5 @@
     "localRegisteredProtocolItems": 11,
     "boundary": "Prior readable/binary review checkpoints cover their dated original sources only; the new item has metadata/package inventory, not source-review or implementation credit. This is not proof that every Workshop Protocol item has been discovered."
   },
-  "currentFocus20261030": "Protocol-first: aircraft3828285847 complete readable comparison and scoped scripted-release safety checkpoint offline verified. Merge best useful methods through existing owners; continue remaining Protocol capability gaps. Audits paused."
+  "currentFocus20261030": "Protocol-first: current AA16-platform allocation cadence repaired/offline verified; jamming native/optional ZEN task and aircraft shared native-belief execution also built/offline checked. Continue remaining capability/task-equivalent gaps through existing owners, not repeated inventories. Rappel controlled execution/cleanup and real handovers still required; audits paused."
 }

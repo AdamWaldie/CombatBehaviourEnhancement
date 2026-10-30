@@ -3,9 +3,12 @@
  * Purpose: Share native AA warnings and allocate finite point-defence responders in one group.
  * Locality/authority: Group/crew owner only. Native observer NOTICE contributes exact warning
  * provenance; STEP may invoke existing current-owner interceptor admission, never direct fire.
- * Repeat/JIP: Eight tracks retain first warning expiry<=8s. One coalesced finite1s planner/group,
+ * Repeat/JIP: Eight tracks retain first warning expiry<=8s. One coalesced finite3s planner/group,
  * <=64 roster actors/16 unique AA platforms/one start attempt per callback. Coverage ownership
  * is sampled once across those platforms per callback, then compared for at most8 warnings.
+ * One platform per scheduler visit with zero added delay; lower-FPS/budget deferral still applies.
+ * Three-second pass limit and native warning expiry both stop admission. Cached transmitter
+ * reads expire after one second; longer allocation never grants a longer communication permission.
  * The ephemeral sample grants no fire permission and is never retained. No world scan/replay.
  * Existing active responses are never retargeted or renewed. Overflow refuses new tracks.
  * Urgent approach ranks first; equal-urgency warnings prefer this responder as victim,
@@ -69,7 +72,7 @@ if (_mode == "NOTICE") exitWith {
         private _serial=(_group getVariable ["CBE_AA_AllocationSerial",0])+1;
         _group setVariable ["CBE_AA_AllocationSerial",_serial];
         _plan=createHashMapFromArray [["group",_group],["ownerEpoch",_epoch],["generation",_serial],
-            ["until",time+1],["cursor",0],["vehicles",[]],["linkCache",[]],["initialised",false],["replan",false]];
+            ["until",time+3],["cursor",0],["vehicles",[]],["linkCache",[]],["linkCacheUntil",time+1],["initialised",false],["replan",false]];
         _group setVariable ["CBE_AA_Allocation",_plan];
     } else {
         if (_added) then {_plan set ["replan",true]};
@@ -85,14 +88,20 @@ private _finish={
     // canonical warning may request a subsequent pass, after this one retires.
     if ((_plan get "ownerEpoch") == _epoch && {_plan getOrDefault ["replan",false]}
         && {_tracks isNotEqualTo []}) exitWith {
-        _plan set ["replan",false];_plan set ["until",time+1];_plan set ["cursor",0];
-        _plan set ["vehicles",[]];_plan set ["linkCache",[]];_plan set ["initialised",false];
+        _plan set ["replan",false];_plan set ["until",time+3];_plan set ["cursor",0];
+        _plan set ["vehicles",[]];_plan set ["linkCache",[]];_plan set ["linkCacheUntil",time+1];
+        _plan set ["initialised",false];
         0
     };
     _plan set ["finished",true];-1
 };
 if ((_plan getOrDefault ["ownerEpoch",-1]) != _epoch || {time >= (_plan get "until")}
     || {_tracks isEqualTo []}) exitWith {call _finish};
+// A longer finite pass must not stretch the old one-second radio-hook cache.
+// Admission and active interception still recheck the live link without this cache.
+if (time >= (_plan getOrDefault ["linkCacheUntil",0])) then {
+    _plan set ["linkCache",[]];_plan set ["linkCacheUntil",time+1];
+};
 if !(_plan get "initialised") then {
     private _vehicles=[];
     {
@@ -161,4 +170,6 @@ if (_ranked isNotEqualTo []) then {
     };
 };
 if ((_plan get "cursor") >= count _vehicles) exitWith {call _finish};
-0.05
+// No artificial wait between responders: the shared scheduler already invokes this
+// bounded callback at most once per visit and rotates it behind other due work.
+0

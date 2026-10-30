@@ -432,5 +432,41 @@
       "addons/vehicles/functions/vehicleArmourShot.sqf": "4c306956c7a1b69e94c275ddb4e50b1965312334525a38017c92591d57a2bd2e"
     },
     "sourceDeparture": "Source marker true adds AA, while false falls back to category. CBE deliberately defines false as ordinary-role override and unset/-1 as inheritance, so withdrawal is explicit and observer/command boundaries can recheck it."
+  },
+  "allocationCadence20261030": {
+    "sourceArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/Protocol/20261030-aa-4921491a",
+    "sourceHashes": {
+      "extracted/$PBOPREFIX$": "145142e33281e80aa4999022c7ae89d8e66020aa27c67e1b410021031e86070b",
+      "extracted/bis_addoninfo.hpp": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215",
+      "extracted/config.bin": "ab87881539a0b119987b09a0c1410110e4a1bfd6804cd8f2e51f6a8357011df5",
+      "extracted/config.cpp": "4500e6596a70db7832d343b119befd85e5729b2f42f206449d12d262a0ab3904",
+      "extracted/functions/fn_aa.sqf": "2fdeb2d597f4589a4b35eac7107db1725f84f5ced9a715e2a9bceebfcb427788",
+      "extracted/XEH_preInit.sqf": "3ef5f890312b937aef8c18081f40b50ee84f9e71da8c5e7ad1644a8957ee5b04",
+      "original/addons/protocol_ai_anti_air.pbo": "4921491a6e4afd5b74eeaa9c009e1144e90b6103e92a6167a4e22ba0061877cf",
+      "original/meta.cpp": "b8fb6bce2cd6e4d216714e72c579272f293b26aff147d3edb1cd04eb85411ca3",
+      "original/mod.cpp": "6f8b7b24a8515ad74d09a6dd009efd92d210de542cb1f679decb74b51b952d0d"
+    },
+    "readScope": "Re-read selected source missile prioritisation69-125 and aircraft fallback647-719 against complete prior1380-line review. Original PBO hash4921491a unchanged; extracted main member2fdeb2d5 matches prior review. No source execution or raw copying to product.",
+    "sourceIntent": "Prioritise incoming ordnance before aircraft through useful existing AA assets. Retain current native-warning provenance/relative closest approach, actual station/stock/ROE and finite ownership instead of source15km projectile/8km aircraft scans, unnormalised closing score and omniscient fire.",
+    "demonstratedGap": "Current16-platform planner had a one-second whole-pass deadline and0.05s callback delay. Shared scheduler doubles that ordinary tactical delay under low FPS. At10/15/20FPS analytical scheduling omits later slots even without budget contention; earlier unusable/out-of-range stations can mask a later usable one.",
+    "implementation": "Same coalesced event-driven planner; one platform/start attempt per callback, zero artificial delay, fixed3s pass. Existing scheduler budget/rotation stays, no new worker/global sensor. Original warning lifetime8s/track expiry and interceptor shot/step/episode limits unchanged. Only genuinely new canonical warnings may request another pass, never duplicate renewal. Communication cache clears after1s within the longer pass; START/active checks still use current uncached link.",
+    "limits": "Not all16 platforms guaranteed under arbitrary budget/FPS/scheduler delay or imminent impact; native warnings can expire earlier and still stop admission. Mathematical frame feasibility/static source contracts are not engine performance, real interception, physical layering or fire-control acceptance. Experimental default-off policy unchanged; audits paused.",
+    "validation": {
+      "focused": "PASS2 existing AA observation cases; cadence/cache/analytical schedule assertions extended, zero new cases.",
+      "full": "PASS1506 existing tests,497SQF,11PBO/full gates; static performance0 findings.",
+      "buildLog": ".qa/handovers/protocol-aa-allocation-cadence-20261030-build.log",
+      "independent": "PASS unsigned development package verification",
+      "independentLog": ".qa/handovers/protocol-aa-allocation-cadence-20261030-independent.log",
+      "candidate": ".qa/candidates/protocol-aa-allocation-cadence-20261030-a93208dc",
+      "fingerprint": "d176f1ae9457c10ca3feaa7e385d7e1c3e59df61abc62dd85059bcde7726bdbe",
+      "provenance": "Unsigned dirty basea93208dc plus checked runtime/test/guide/source-review/coverage inputs; later metadata separate, not clean future-commit release/signature verification.",
+      "physical": "UNVERIFIED; audits PAUSED, no game staging/launch. Budget saturation, real layered interception and measured overhead remain open."
+    },
+    "currentProductHashes": {
+      "addons/vehicles/functions/cortexAAAllocate.sqf": "aebc36a76809aef9fc1c196f6a5bc5ae714a85370830f571db05aefe3be82c15",
+      "addons/vehicles/functions/cortexAAWarningLink.sqf": "7857c82e2c42ddc9546a66ec4108da518f362b34b26fcf35f279b27792635a15",
+      "addons/core/functions/cortexSchedulerTick.sqf": "da40ffc6551c0821cc66e8ef60c08e9ec5400b98134624a44bb0fcf6b49de521",
+      "addons/vehicles/functions/cortexAAIntercept.sqf": "809db398f565e4cfccf2d671f310ee8cbdf2b4b7f4eba3dcfdfa95b1ce7644c3"
+    }
   }
 }

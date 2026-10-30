@@ -3841,3 +3841,10 @@ The server authenticates the real remote sender as an assigned curator and reche
 The field follows its emitter's current3D position and affects future CBE AI radio checks. Dead/deleted emitters cease affecting those checks once observed locally; JIP receives the current field snapshot. Voice at close range, player radios, ACRE/TFAR devices, native UAV control and already delivered orders are unchanged. Full radio-addon integration and safe UAV doctrine remain separate work.
 
 Missions enforcing a remote-execution allowlist must permit CBE_fnc_CortexJammingField on the server and the existing CBE_fnc_AITweaksNotifyLocal reply on interfaces; CBE does not relax mission policy. The dialog, native/optional-ZEN paths, authority/duplicate/expiry cases, emitter movement/deletion, JIP/HC and real communication effects still need in-engine verification. Audits remain paused.
+
+
+### AA warning allocation cadence
+
+The existing experimental, default-off AA interception allocator services at most16 same-group AA platforms per event-driven pass, with one platform and at most one interceptor start attempt per shared-scheduler visit. It adds no inter-platform wait. A pass ends within three seconds; the original native warning expiry can end eligibility sooner. Only a genuinely new canonical warning may request another pass. Duplicate warnings never refresh the original eight-second threat or current interceptor limits.
+
+The prior one-second pass plus0.05s delay could omit later stations under the scheduler's low-FPS backoff, including a usable station behind unavailable or out-of-range entries. The revised window/cadence removes that artificial restriction without bypassing the scheduler budget or increasing work per callback. Communication-cache epochs remain at most one second; actual interceptor admission and maintenance still recheck the live link. Arbitrary low FPS, budget contention or imminent impact can still prevent service. Analytical scheduling checks do not prove physical interception, timing or the5%median/10%p95 overhead target. Audits remain paused.

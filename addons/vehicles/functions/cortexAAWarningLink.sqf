@@ -5,7 +5,8 @@
  * before voice or cached-radio acceptance. Own-vehicle defence retains its separate admission.
  * Locality/authority: Read-only world query; caller owns admission. Never acquires actor control.
  * Repeat/JIP: No worker or public state. Optional caller-local cache holds<=32 transmitter reads
- * for one finite planner<=1s; interceptor admission/rechecks pass no cache and read current hooks.
+ * for one <=1s cache epoch within a <=3s planner; interceptor admission/rechecks pass no
+ * cache and read current hooks. Planner invalidates its cache before a later epoch.
  * Arguments: 0 platform OBJECT,objNull; 1 receiving gunner OBJECT,objNull;
  * 2 group GROUP,grpNull; 3 warned asset OBJECT,objNull; 4 query cache ARRAY,[] of[actor,BOOL].
  * Return: BOOL, warning can be delivered; not target knowledge or fire permission.

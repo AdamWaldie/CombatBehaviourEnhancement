@@ -348,6 +348,27 @@ class AAObservation(unittest.TestCase):
                       '_position vectorDotProduct _velocity','_miss <= 30','_time <= 2',
                       '_trackIndex','CortexAAWarningLink'):
             self.assertIn(bound,allocate)
+        self.assertIn('["until",time+3]',allocate)
+        self.assertIn('_plan set ["until",time+3]',allocate)
+        self.assertTrue(allocate.rstrip().endswith('0'))
+        self.assertNotIn('0.05',allocate)
+        cache=allocate.split('// A longer finite pass',1)[1].split('if !(_plan get "initialised")',1)[0]
+        for proof in ('time >= (_plan getOrDefault ["linkCacheUntil",0])',
+                      '_plan set ["linkCache",[]]','_plan set ["linkCacheUntil",time+1]'):
+            self.assertIn(proof,cache)
+        # Scheduler feasibility, not engine timing: one roster slot per due frame. The
+        # old positive delay doubles below the configured FPS threshold; a late usable
+        # station can then be omitted by the one-second whole-pass limit.
+        import math
+        def serviced(fps,delay,deadline):
+            frames=max(1,math.ceil(delay*fps-1e-9))
+            return [slot for slot in range(16) if slot*frames/fps < deadline]
+        for fps in (10,15,20):
+            self.assertLess(len(serviced(fps,0.05*2,1)),16)
+            self.assertEqual(serviced(fps,0,3),list(range(16)))
+        scheduler=(ROOT/'addons/core/functions/cortexSchedulerTick.sqf').read_text()
+        self.assertIn('_delay = _delay * 2',scheduler)
+        self.assertIn('} forEach _jobs;',scheduler)
         self.assertEqual(allocate.count('call CBE_fnc_CortexAAIntercept'),1)
         self.assertEqual(allocate.count('getVariable ["CBE_AA_Intercept",createHashMap]'),1)
         ranking=allocate.split('private _ranked=[];',1)[1].split('} forEach _tracks;',1)[0]
