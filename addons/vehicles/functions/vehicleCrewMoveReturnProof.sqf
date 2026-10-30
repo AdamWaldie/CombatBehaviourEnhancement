@@ -4,7 +4,9 @@
  * Locality/authority: Read-only on current local platform/group/original actors. The producer
  * must still own the exact journal/reference. An actual completed private original FSM,
  * matching local worker serial/owner/episode epoch are required. RETURN additionally needs
- * recorded original return orders and every surviving idle original at its retained stop goal.
+ * recorded original MOVE/FOLLOW return orders and every surviving idle original at its retained stop goal.
+ * FOLLOW must retain its originally captured living same-group anchor and group leader, with
+ * exact recorded request and native command/anchor acknowledgement. Legacy uncaptured FOLLOW refuses.
  * A remote done flag, ended timer or changed seat alone
  * is never sufficient.
  * Current group epoch and any recorded tactical generation must still match; this passive
@@ -112,12 +114,23 @@ private _until=_work getOrDefault ["replyUntil",-1];
 private _cleanup=_work getOrDefault ["cleanupUntil",-1];
 if (!(_seats isEqualType []) || {count _seats != 2} || {_seats findIf {!(_x isEqualType objNull)} >= 0}
     || {!(_baseline isEqualType [])} || {count _baseline != 4}
-    || {[0,2] findIf {!((_baseline select _x) in ["","MOVE","WAIT"])
+    || {[0,2] findIf {!((_baseline select _x) in ["","MOVE","WAIT","FOLLOW"])
         || {!((_baseline select (_x+1)) isEqualType [])}} >= 0}
     || {!(_returns isEqualType [])} || {count _returns > 2}
     || {!(_until isEqualType 0)} || {!finite _until} || {_until < 0}
     || {!(_cleanup isEqualType 0)} || {!finite _cleanup} || {_cleanup < 0}) exitWith {false};
 private _original=_seats arrayIntersect _seats;
+private _followTargets=_work getOrDefault ["followTargets",[]];
+private _hasFollow=[0,2] findIf {(_baseline select _x) == "FOLLOW"} >= 0;
+if (_hasFollow && {!(_followTargets isEqualType []) || {count _followTargets != 2}
+    || {_followTargets findIf {!(_x isEqualType objNull)} >= 0}
+    || {(_work getOrDefault ["followGroupLeader",objNull]) != leader _group}
+    || {[0,1] findIf {
+        if ((_baseline select (_x*2)) != "FOLLOW") exitWith {false};
+        private _anchor=_followTargets select _x;
+        isNull _anchor || {!alive _anchor} || {_anchor == (_seats select _x)}
+            || {group _anchor != _group}
+    } >= 0}}) exitWith {false};
 private _writers=_original select {!isNull _x && {alive _x}};
 if (_writers isEqualTo [] || {_writers findIf {!local _x || {group _x != _group}
     || {objectParent _x != _battery}} >= 0}
@@ -150,7 +163,22 @@ private _observations=[_writers select 0,_writers param [1,_writers select 0]]
 if (count _observations != 4) exitWith {false};
 private _arrival=[ASLToAGL getPosASL _battery,vectorMagnitude velocity _battery,
     vectorMagnitude angularVelocity _battery];
-if (_expected isEqualTo []) exitWith {
+private _followExpected=[];
+{
+    if (_x in _writers && {(_baseline select (_forEachIndex*2)) == "FOLLOW"}) then {
+        _followExpected pushBack [_x,_followTargets select _forEachIndex];
+    };
+} forEach _original;
+private _followReturns=_work getOrDefault ["followReturns",[]];
+if (!(_followReturns isEqualType []) || {count _followReturns > 2}
+    || {_followReturns findIf {!(_x isEqualType []) || {count _x != 2}
+        || {!((_x select 0) isEqualType objNull)} || {!((_x select 1) isEqualType objNull)}} >= 0}
+    || {(_followReturns select {(_x select 0) in _writers}) isNotEqualTo _followExpected}
+    || {_followExpected findIf {
+        _x params ["_actor","_anchor"];
+        currentCommand _actor != "FOLLOW" || {formLeader _actor != _anchor}
+    } >= 0}) exitWith {false};
+if (_expected isEqualTo [] && {!_hasFollow}) exitWith {
     // No original MOVE to restore: require current idle, retained stop goal and physical rest.
     [0,2] findIf {!((_observations select _x) in ["","WAIT"])} < 0
         && {([_work getOrDefault ["goal",[]],_until,_observations,_observations,serverTime,_arrival]
@@ -161,6 +189,7 @@ if (_expected isEqualTo []) exitWith {
 private _idleOriginalsCurrent=_writers findIf {
     private _originalOffset=2*(_original find _x);
     if ((_baseline select _originalOffset) == "MOVE") exitWith {false};
+    if ((_baseline select _originalOffset) == "FOLLOW") exitWith {false};
     private _observationOffset=2*(_writers find _x);
     private _command=_observations select _observationOffset;
     private _destination=_observations select (_observationOffset+1);

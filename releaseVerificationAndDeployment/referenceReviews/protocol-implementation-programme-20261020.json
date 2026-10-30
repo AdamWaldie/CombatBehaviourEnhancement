@@ -169,7 +169,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-artillery-3801354927-20261020.json",
-      "remaining": "Selected mixed-group pre/postfire movement and bounded per-gun same-group reservations are integrated in source. Physical peer movement/formation interaction, terminal unknown/casualty recovery and original idle/formation continuation remain code/evidence gaps. Physical firing/scoot/counter-battery, normal/HC/JIP/Zeus and performance remain unverified. Reuse licensing remains separate.",
+      "remaining": "Selected pre/postfire movement and scoped original FOLLOW return are built/offline checked. Physical mixed-group peer formation effects, casualty/deleted anchor and newer-order transitions, repeated firing/scoot/counter-battery, normal/HC/JIP/Zeus and5%median/10%p95 performance remain unverified. Legacy FOLLOW without captured anchors remains unsupported; no replacement anchor is guessed. Reference reuse licensing remains separate.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
@@ -215,6 +215,11 @@
         "review": "artillery-selected-crew-20261025.json#peerReservationsImplementation20261027",
         "status": "IMPLEMENTED_SOURCE_OFFLINE_CHECKED_PHYSICAL_UNVERIFIED",
         "scope": "Exact per-gun reservations and aggregate lease across admission/HOLD/retirement/locality/stop/deletion; no added movement owner or group-membership change."
+      },
+      "originalFormationReturn20261030": {
+        "review": "protocol-artillery-3801354927-20261020.json#originalFormationReturn20261030",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+        "scope": "Selected artillery FOLLOW admission and original-anchor native return integrated; group/crew preserved, no replacement anchor, no new controller. Mixed MOVE/idle/FOLLOW and pending initial native reply remain bounded; physical formation travel not proven."
       }
     },
     {
@@ -506,5 +511,5 @@
     "localRegisteredProtocolItems": 11,
     "boundary": "Prior readable/binary review checkpoints cover their dated original sources only; the new item has metadata/package inventory, not source-review or implementation credit. This is not proof that every Workshop Protocol item has been discovered."
   },
-  "currentFocus20261030": "Protocol-first: controlled rappel native pose boundary built/offline verified, but actual actor exit/rope/device/support-arrival physics, complete cleanup, flight orchestration and ground handover/module still required. Integrate those next through original owner-local task/FSM, not unchanged stock provider wrappers or repeated inventory. Jamming operator task, aircraft belief execution and AA allocation cadence checkpoints remain offline evidence only. Audits paused."
+  "currentFocus20261030": "Protocol-first, foundations-up: selected artillery original subformation return built/offline checked after the rappel source review identified unresolved multiworker physics/animation handover. Rappel pose/geometry remain prerequisites, not working descent. Next required: controlled rappel exit/rope/support-arrival and complete cleanup then flight/ground handover/module; alternatively continue independent named Protocol implementation gaps without stock unsafe wrappers. Jamming, aircraft belief and AA cadence remain offline evidence only. Audits paused."
 }

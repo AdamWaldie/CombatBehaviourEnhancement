@@ -4,6 +4,8 @@
  * Locality/authority: Current local battery/group/AI crew, authenticated positioning or relocation caller only.
  * Shared movement acquisition first retires ordinary driving; unresolved parent work refuses.
  * No group waypoint or membership is changed. Only the later owner-local FSM may issue crew moves.
+ * Original FOLLOW stores the exact two subformation anchors and group leader. Return may request
+ * only those same living same-group anchors; no replacement leader or entire-group recall.
  * Repeat/JIP: One exact token/session/reference, original deadlines and monotonic serial; existing
  * work never becomes a new baseline. Same-group guns retain separate original deadlines under
  * one aggregate movement reservation. New owners may retire old work, never replay its outward leg.
@@ -101,7 +103,7 @@ isNil {
                 || {([_x] call CBE_fnc_CortexExternalOwner) != ""}
                 || {[_x] call CBE_fnc_CompatibilityExternalControl}
                 || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
-                || {!(currentCommand _x in ["","MOVE","WAIT"])}} < 0
+                || {!(currentCommand _x in ["","MOVE","WAIT","FOLLOW"])}} < 0
         };
         if (!(call _sourceCurrent) || {!(call _crewCurrent)}) exitWith {false};
         // Ordinary driving is group-scoped: authored receipts are waypoint metadata, not
@@ -147,6 +149,19 @@ isNil {
             || {([_group] call CBE_fnc_NativeOrderReceipt) isNotEqualTo (_movementOrder select 1)}) exitWith {call _refuse};
         private _baseline=[_driver,_operator] call CBE_fnc_VehicleCrewNativeObservation;
         if (count _baseline != 4) exitWith {call _refuse};
+        // Capture the actual original subformation, never invent a return to today's leader.
+        private _followTargets=[objNull,objNull];
+        {
+            if ((_baseline select (_forEachIndex*2)) == "FOLLOW") then {
+                _followTargets set [_forEachIndex,formLeader _x];
+            };
+        } forEach _seats;
+        if ([0,1] findIf {
+            if ((_baseline select (_x*2)) != "FOLLOW") exitWith {false};
+            private _anchor=_followTargets select _x;
+            isNull _anchor || {!alive _anchor} || {_anchor == (_seats select _x)}
+                || {group _anchor != _group}
+        } >= 0) exitWith {call _refuse};
         if ([0,2] findIf {(_baseline select _x) == "MOVE" && {
             private _goal=(_baseline select (_x+1)) param [0,[],[[]]];
             count _goal != 3 || {_goal findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
@@ -155,6 +170,7 @@ isNil {
         private _work=createHashMapFromArray [["token",_token],["serial",_serial],["group",_group],["kind",_kind],
             ["owner",clientOwner],["epoch",_epoch],["reference",_reference],["crew",_seats],
             ["session",+_session],["route",+(_movementOrder select 1)],["baseline",_baseline],
+            ["followTargets",_followTargets],["followGroupLeader",leader _group],
             ["goal",+_spot],["spot",+_spot],["phase","ISSUE"],["moveUntil",_until],
             ["holdUntil",_holdUntil],["localLease",_lease],["progressPosition",getPosASL _battery],
             ["progressAt",serverTime],["release",false]];

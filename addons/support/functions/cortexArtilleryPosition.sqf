@@ -122,7 +122,7 @@ private _current={
             || {[_x] call CBE_fnc_CortexExternalOwner != ""}
             || {[_x] call CBE_fnc_CompatibilityExternalControl}
             || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
-            || {!(currentCommand _x in ["","MOVE","WAIT"])}} < 0}
+            || {!(currentCommand _x in ["","MOVE","WAIT","FOLLOW"])}} < 0}
 };
 
 if (_ours && {(_work getOrDefault ["crew",[]]) isNotEqualTo [_driver,_operator]}) exitWith {

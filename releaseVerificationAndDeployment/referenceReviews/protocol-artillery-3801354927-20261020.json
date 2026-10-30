@@ -167,5 +167,36 @@
       "addons\\support\\functions\\cortexArtilleryShot.sqf": "1003e8c5c5db702b0ee0488489060b04ed8234922071505e2f26e2c35f623439"
     },
     "limits": "Fixed two-seat native reads and eligibility calls; no new query loops/workers/deadlines. No physical readiness/repeated fire/false-refusal/handback/performance/parity credit. Selected-battery mixed-group movement remains unimplemented. Audits PAUSED. Unsigned dirty development package includes unrelated existing dirt; review/notes postdate package."
+  },
+  "originalFormationReturn20261030": {
+    "base": "63b326f6eb238133bbd92fa4b5f1680747900c58",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "source": {
+      ".qa/protocol-artillery-3801354927-review/functions/fn_artillery.sqf": "9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d"
+    },
+    "actualSourceTrace": "Selected driver/commander doMove at lines125-127 and170-172; source waits5seconds or20+random15, no captured original formation handback. Preserved readable member hash reverified.",
+    "intent": "Keep selected-gun-only movement and improve it with original subformation continuation; preserve group membership and unrelated infantry orders.",
+    "methods": {
+      "retained": "Selected original operating crew only, existing CBE finite positioning/scoot FSM and native movement ownership.",
+      "adapted": "Original FOLLOW supported by exact captured subformation anchors and original group leader; mixed MOVE/idle/FOLLOW returns checked separately.",
+      "rejected": "Whole-group movement, guessed current-leader recall, source global loops/arbitrary wait as arrival or handback proof, copying restricted source."
+    },
+    "authority": "Admission captures originals once; original route/task/epoch/worker/seat/Zeus/provider guards remain. Only RETURNING with recorded exact follow request permits observed FOLLOW; no retry or deadline renewal. Legacy missing-anchor FOLLOW stays unsupported.",
+    "outcome": "One doFollow per living original FOLLOW recipient after actual owned stop/rest. Acknowledgement observes exact command/anchor, not physical formation arrival. No new module/settings, controller, worker, timer or scan.",
+    "limits": "Target or group-leader replacement refuses without substitution; unresolved native cleanup remains reserved. Native engine formation side effects, physical travel and cost require authorised audits.",
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/doFollow",
+      "https://community.bistudio.com/wiki/formLeader"
+    ],
+    "offline": "PASS1508 tests,498 compiled SQF,11PBO/full gates; native FSM/config/docs/wiki/parity/coverage/static performance pass. No new controller or scan. New bounded mixed-return contract; old blanket-refusal expectations replaced by exact-anchor requirements.",
+    "nativePending": "First MOVE reply may retain original FOLLOW while anchor moves. Exact original command/anchor inside original reply window permits PENDING comparison only; does not mutate stored before receipt or satisfy OWNED positional acknowledgement. No retry/deadline renewal.",
+    "validationCorrections": "New test initially placed below __main__, corrected; full gate then exposed one old blanket FOLLOW-refusal assertion, updated to captured-anchor support. Review added pending-native FOLLOW handling before final passing full build; no failed check hidden.",
+    "hashes": {
+      "addons/support/functions/artilleryCrewMoveStart.sqf": "a5ebdd4111c2802bc1baa157abe87b36881b380557802b16070809778b3ff31e",
+      "addons/support/functions/cortexArtilleryPosition.sqf": "18d56c1e6c1d9cd3386da5c53dfd95814a63f059e4f183218a90b8b992aeeaab",
+      "addons/support/functions/cortexArtilleryScoot.sqf": "66fae7ab03af02ae98ddc7c1abbd7ada7390c52f045a51753ba0f9a9f08b458b",
+      "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf": "703d1997f48065303200b09a177720a7cc2cdfd790007e446ecdf1fcd311118d",
+      "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf": "447d55b6b300627f342793e226da8c335507b5f939ebd2dbb81c824fa9df8646"
+    }
   }
 }

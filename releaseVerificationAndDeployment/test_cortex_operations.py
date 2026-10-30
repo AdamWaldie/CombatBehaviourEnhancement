@@ -8005,7 +8005,7 @@ class CortexOperations(unittest.TestCase):
 
         crew=scoot.split('private _crewReady=',1)[1].split('private _nativeOrder=',1)[0]
         for guard in ('driver _battery == _driver','local _x','CortexActorFireTaskAvailable',
-                      'currentCommand _x in ["","MOVE","WAIT"]','NativeOrderReceipt',
+                      'currentCommand _x in ["","MOVE","WAIT","FOLLOW"]','NativeOrderReceipt',
                       '_destination vectorDistance (waypointPosition [_group,_index]) > 3'):
             self.assertIn(guard,crew)
         self.assertIn('objNull,"VEHICLE"',scoot)
