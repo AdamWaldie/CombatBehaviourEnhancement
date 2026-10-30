@@ -1,19 +1,19 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Native Zeus task parameters for Defend, Patrol, Hunt and Press attack.
+ * Purpose: Native Zeus task parameters for Defend, Patrol, Hunt, Creep and Press attack.
  * Locality/authority: Interface only. Confirmation sends named values through existing
  * CortexOrderDispatch curator authentication and current-owner CortexOrderLocal execution.
  * This helper neither owns movement nor changes addon settings, actor orders or mission policy.
  * Repeat/JIP: One display-local choice snapshot. Cancel submits nothing, occupied Zeus child
  * dialogs are preserved, and confirmation revalidates choices. No worker or historical replay.
  * Arguments: 0 centre ATL ARRAY,[]; 1 attached AI soldier OBJECT,objNull;
- * 2 order STRING,"" (DEFEND/PATROL/HUNT/RUSH).
+ * 2 order STRING,"" (DEFEND/PATROL/HUNT/CREEP/RUSH).
  * Return: BOOL display opened, not owner acceptance, physical progress or combat success.
  * Current callers: ModuleGarrison when optional ZEN is unavailable for these four tasks.
  * Example: [getPosATL soldier1,soldier1,"PATROL"] call CBE_fnc_InfantryTaskDialog;
  */
 params [["_position",[],[[]]],["_target",objNull,[objNull]],["_order","",[""]]];
-if (!hasInterface || {!(_order in ["DEFEND","PATROL","HUNT","RUSH"])}
+if (!hasInterface || {!(_order in ["DEFEND","PATROL","HUNT","CREEP","RUSH"])}
     || {count _position != 3} || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
     || {isNull _target} || {!(_target isKindOf "CAManBase")} || {isPlayer _target}) exitWith {false};
 disableSerialization;
@@ -57,6 +57,13 @@ switch _order do {
         _parameters=[
             ["huntRange","Knowledge range (m)","Requires a recent known ground contact. Search range is also capped by the addon engagement setting.",_ranges,4],
             ["patrolDuration","Task time limit (s)","One finite search sweep with original leg clocks and at most four fresh-belief updates. No claim that enemies or rooms are clear.",_times,5]
+        ];
+    };
+    case "CREEP": {
+        _title="Cautious approach";
+        _parameters=[
+            ["huntRange","Knowledge range (m)","Approach the squad's recent known ground contact. No hidden target position is read; addon engagement range also applies.",_ranges,4],
+            ["creepDuration","Task time limit (s)","Limited pace and self-defence fire discipline until stand-off or nearby danger. Original policies return; fixed posture and formation remain unchanged.",[30,60,120,180,240,300],3]
         ];
     };
     case "RUSH": {

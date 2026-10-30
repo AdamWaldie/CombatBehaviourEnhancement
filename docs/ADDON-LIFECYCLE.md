@@ -2600,3 +2600,18 @@ ordinary cleanup without a receipt returns immediately. Admission/check/restorat
 capped at64 actors and two properties. No physical ROE, pace, handover or performance acceptance
 is established while audits are paused. Complete the finite approach executor and real task
 controls before advertising Creep as available.
+
+
+Creep now consumes the group policy prerequisite through `CreepOperation`.
+`PatrolOperation START` with an internal exactly-three-point approach only prepares
+an operation and original clocks. `BEGIN` requires that same roster, mission,
+generation/epoch and acknowledged Creep policy before its first waypoint.
+Ordinary patrol/Hunt defaults are unchanged. GroupTick services Creep on its
+existing task, reuses its native knowledge query and bypasses ordinary contact
+planning while Creep owns the approach. Nearby danger, stale knowledge, stand-off,
+timeout, native changes and release retire through the common operation owner.
+The published policy receipt retains finite cleanup uncertainty across owner loss;
+there is no task replay or second movement loop. Posture and formation are deliberately
+left with their existing owners; no new actor-setting lease is needed. Earlier notes
+calling the Creep executor unimplemented are superseded by this scoped implementation,
+not by physical acceptance or complete covert-movement behaviour.

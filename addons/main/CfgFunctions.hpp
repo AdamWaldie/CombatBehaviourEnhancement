@@ -321,9 +321,12 @@ class CfgFunctions {
             class ZenClearModule {file = "\z\cbe\addons\infantry\functions\zenClearModule.sqf";};
             class ZenDefendModule {file = "\z\cbe\addons\infantry\functions\zenDefendModule.sqf";};
             class ZenRushModule {file = "\z\cbe\addons\infantry\functions\zenRushModule.sqf";};
+            class ZenCreepModule {file = "\z\cbe\addons\infantry\functions\zenCreepModule.sqf";};
             class ZenHuntModule {file = "\z\cbe\addons\infantry\functions\zenHuntModule.sqf";};
             class ZenPatrolModule {file = "\z\cbe\addons\infantry\functions\zenPatrolModule.sqf";};
             class ZenReleaseModule {file = "\z\cbe\addons\infantry\functions\zenReleaseModule.sqf";};
+            class CreepOperation {file = "\z\cbe\addons\infantry\functions\creepOperation.sqf";};
+            class CreepRoutePlan {file = "\z\cbe\addons\infantry\functions\creepRoutePlan.sqf";};
             class CreepPolicy {file = "\z\cbe\addons\infantry\functions\creepPolicy.sqf";};
             class InfantryTaskDialog {file = "\z\cbe\addons\infantry\functions\infantryTaskDialog.sqf";};
             class GarrisonTaskDialog {file = "\z\cbe\addons\infantry\functions\garrisonTaskDialog.sqf";};

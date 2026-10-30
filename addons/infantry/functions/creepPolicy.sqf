@@ -12,7 +12,7 @@
  * Arguments: 0 mode STRING APPLY/CHECK/RELEASE/HANDOVER/RETIRE default CHECK;
  * 1 group GROUP,grpNull; 2 exact operation HASHMAP,empty; 3 original server deadline NUMBER,-1.
  * Return: STRING ACQUIRED/OWNED/RELEASED/PENDING/CHANGED/REFUSED/NONE.
- * Current callers: OperationRestore, CortexLocality and CortexDiscover; Creep executor pending.
+ * Current callers: OperationRestore, CortexLocality and CortexDiscover and CreepOperation.
  * Example: ["APPLY",_group,_operation,serverTime+180] call CBE_fnc_CreepPolicy;
  */
 params [["_mode","CHECK",[""]],["_group",grpNull,[grpNull]],

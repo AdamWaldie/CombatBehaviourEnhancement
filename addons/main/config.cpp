@@ -6,7 +6,7 @@ class CfgPatches {
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
         requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "CBE_core", "CBE_danger", "CBE_infantry", "CBE_vehicles", "CBE_aircraft", "CBE_support", "CBE_compatibility"};
-        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModuleVehiclePoint", "CBE_ModuleVehiclePointRelease", "CBE_ModulePointAdvance", "CBE_ModulePointWithdraw", "CBE_ModuleClearArea", "CBE_ModuleClear", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModulePatrol", "CBE_ModuleHunt", "CBE_ModuleRush", "CBE_ModuleRelease", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
+        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModuleVehiclePoint", "CBE_ModuleVehiclePointRelease", "CBE_ModulePointAdvance", "CBE_ModulePointWithdraw", "CBE_ModuleClearArea", "CBE_ModuleClear", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModulePatrol", "CBE_ModuleHunt", "CBE_ModuleCreep", "CBE_ModuleRush", "CBE_ModuleRelease", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
         weapons[] = {};
         version = "0.1.0";
         versionStr = "0.1.0";
@@ -194,6 +194,13 @@ class CfgVehicles {
         CBE_operation = "HUNT";
         class ModuleDescription: ModuleDescription {
             description = "Place on an AI soldier to search its own recent native ground-contact belief, within800m and900s by default. CBA engagement range caps knowledge; optional ZEN exposes task limits. No hidden enemy positions, free flares or forced AI policies. Release existing tasks first.";
+        };
+    };
+    class CBE_ModuleCreep: CBE_ModuleGarrison {
+        displayName = "Cautious approach";
+        CBE_operation = "CREEP";
+        class ModuleDescription: ModuleDescription {
+            description = "Place on an AI soldier to request a finite cautious approach to recent known ground contact. Choose knowledge range and30..300s task limit. Limited pace and self-defence discipline retire at stand-off or nearby danger. Original posture, formation and stricter ROE are preserved. Release existing tasks first.";
         };
     };
     class CBE_ModuleRush: CBE_ModuleGarrison {

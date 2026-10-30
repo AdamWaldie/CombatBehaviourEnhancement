@@ -2759,6 +2759,35 @@ class CortexOperations(unittest.TestCase):
             self.assertNotIn(forbidden,patrol)
         self.assertEqual(patrol.count('call CBE_fnc_PatrolRouteCommit'),1)
         self.assertIn('"CIRCUIT_REACHED",true',patrol)
+        creep=source('creepOperation'); approach=source('creepRoutePlan')
+        begin=patrol.split('case "BEGIN": {',1)[1].split('case "CANCEL": {',1)[0]
+        for proof in ('"PREPARED"','call _missionUnchanged','call _membersAvailable',
+                      'CBE_fnc_CreepPolicy','"OWNED"','_task get "participants"'):
+            self.assertLess(begin.index(proof),begin.index('call _startLeg'))
+        start=creep.split('if (_mode == "START") exitWith {',1)[1]
+        self.assertLess(start.index('"APPLY"'),start.index('["BEGIN",_group]'))
+        self.assertIn('"ACQUIRED"',start)
+        for bound in ('count _payload > 8','time+10','(_creep get "updates") >= 4',
+                      '_requestedDuration >', '"CREEP_STANDOFF_REACHED"'):
+            # Upper duration is accepted only through the positive <=300 admission.
+            if bound == '_requestedDuration >':
+                self.assertIn('_requestedDuration <= 300',creep)
+            else: self.assertIn(bound,creep)
+        body=creep.split('*/',1)[1]
+        self.assertEqual(body.count('getPosATL'),1)  # own anchor only
+        self.assertIn('getPosATL _anchor',body)
+        for forbidden in ('doMove','moveTo','addWaypoint','setUnitPos','forceSpeed',
+                          'setBehaviour','setFormation','enableAttack','CortexQueueJob','spawn '):
+            self.assertNotIn(forbidden,body)
+        self.assertIn('[_origin,_candidates,_belief] call CBE_fnc_CortexSelectAvenue',approach)
+        self.assertIn('} forEach [0,20,-20]',approach)
+        self.assertIn('_distance-_standOff-_error-5',approach)
+        self.assertIn('"CREEP_POLICY_CHANGED"',creep)
+        self.assertIn('"CREEP_CONTACT_STALE"',creep)
+        self.assertNotIn('"DETECTED"',body)
+        self.assertIn('"STEP",_group] call CBE_fnc_CreepOperation',tick)
+        self.assertIn('"UPDATE",_group,_enemies] call CBE_fnc_CreepOperation',tick)
+        self.assertIn('exitWith {_delay min 4}',tick)
         self.assertLess(tick.index('["CHECK",_group] call CBE_fnc_PatrolOperation'),
                         tick.index('private _alive ='))
         self.assertIn('_completed=[_group,_generation,"COMPLETE",_reason]',patrol)

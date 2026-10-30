@@ -526,7 +526,10 @@ if ((_priorVehicleLease param [0,""]) in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF",
 };
 if (count (_group getVariable ["CBE_ClearAreaTask",createHashMap]) > 0) then {["STEP",_group] call CBE_fnc_ClearAreaOperation};
 if (count (_group getVariable ["CBE_PatrolTask",createHashMap]) > 0) then {
-    ["STEP",_group,[_dangerActive]] call CBE_fnc_PatrolOperation;
+    private _patrol=_group getVariable ["CBE_PatrolTask",createHashMap];
+    if (count (_patrol getOrDefault ["creep",createHashMap]) > 0) then {
+        ["STEP",_group] call CBE_fnc_CreepOperation;
+    } else {["STEP",_group,[_dangerActive]] call CBE_fnc_PatrolOperation};
 };
 private _movementLease = _state getOrDefault ["movementLease",[]];
 private _movementOwner = _movementLease param [0,""];
@@ -757,6 +760,12 @@ private _sweep=_group getVariable ["CBE_PatrolTask",createHashMap];
 if (count (_sweep getOrDefault ["hunt",createHashMap]) > 0) then {
     ["UPDATE",_group,_enemies] call CBE_fnc_HuntOperation;
 };
+// Reuse the same native observation for the finite cautious-approach policy. While it owns
+// movement/ROE, ordinary contact planners must not create competing actor or group tasks.
+if (count (_sweep getOrDefault ["creep",createHashMap]) > 0) then {
+    ["UPDATE",_group,_enemies] call CBE_fnc_CreepOperation;
+};
+if (count ((_group getVariable ["CBE_PatrolTask",createHashMap]) getOrDefault ["creep",createHashMap]) > 0) exitWith {_delay min 4};
 // Native hostile knowledge is the durable continuation of a short engine danger callback. The
 // danger FSM wakes the shared group brain immediately; once that finite record expires, a group
 // which is still seeing an enemy must retain combat cadence from its own engine knowledge. Without

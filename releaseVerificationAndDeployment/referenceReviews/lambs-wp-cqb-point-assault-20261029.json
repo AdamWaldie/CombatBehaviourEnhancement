@@ -558,5 +558,60 @@
     },
     "runtimeLFHash": "7c11f33c11a88aaec01443d9f63bb25040da4c3b14ef1d635b49aaa2f81724e9",
     "nextRequired": "Complete finite native-belief approach on existing Patrol/group movement owner, immutable custom approach route/task deadline, original ActorSettings posture lifecycle, compromise/close-range release, authenticated server/current-owner dispatch and native/optionalZEN behaviour control. Do not stop at this prerequisite or claim a usable Creep task."
+  },
+  "creepTaskImplementation20261030": {
+    "source": "creepIntentReview20261029; complete selected fnc_taskCreep body only, not all LAMBS descendants",
+    "sourceSha256": "7bca1b8824ade3640f95259e4f7ac71eaa9a30d41983de552c959550ce7335de",
+    "sourcePboSha256": "da03c62978184d2e1b7f28b79cb5e380ae15f40d4cf9ff11d48801b1dfb08534",
+    "status": "IMPLEMENTED_SCOPED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "retained": [
+      "Cautious ground approach",
+      "Limited group pace",
+      "Self-defence-only fire discipline before close contact",
+      "Stop cautious work on close range or actual nearby danger"
+    ],
+    "adapted": [
+      "Recent native ground-contact belief only, no live hostile transform",
+      "Three approach legs selected from three bounded terrain-screened avenues on existing Patrol/group waypoint owner",
+      "Original30..300s task and leg clocks; at most four material replans at least10s apart",
+      "Exact acknowledged group ROE/pace before first movement; original policies restored only if still owned",
+      "Authenticated CREEP named task via CortexOrderDispatch/Local; native and optional ZEN behaviour controls; CBA Contact gate"
+    ],
+    "rejected": [
+      "Perpetual loops",
+      "Omniscient player tracking",
+      "Raw competing per-unit doMove",
+      "Loose FiredNear default RED/attack resets",
+      "Whole-group forced posture/formation/behaviour changes"
+    ],
+    "postureDecision": "Preserve original authored/native posture, individual forced speed and formation. Adaptive source stance is deliberately not ported in this bounded task: adding stance control is not required for the cautious route/ROE executor and would introduce another actor-setting lifecycle. No claim of full Creep or LAMBS parity.",
+    "execution": [
+      "CortexOrderDispatch validates CREEP/range/duration and current native/control receipt, token and12s dispatch deadline",
+      "Current owner CortexOrderLocal repeats task validation and invokes CreepOperation START",
+      "Calm available foot group, no active task/policy; <=8 recent precise ground-contact beliefs",
+      "CreepRoutePlan plans ground stand-off; PatrolOperation START validates and prepares without waypoint",
+      "CreepPolicy APPLY must read back ACQUIRED; BEGIN repeats original mission/roster/epoch/generation and OWNED before common route commit",
+      "Existing GroupBrainStep/CortexGroupTick watchdog, Creep STEP/UPDATE, original finite deadlines; no second worker",
+      "Stand-off, actual nearby fire/hit/explosion/suppression, stale belief, failed route or policy, newer mission/Zeus/specialist work and release cancel; common OperationRestore retires exact policy",
+      "Locality transfer retires policy through existing locality/discovery; no task replay"
+    ],
+    "limits": [
+      "Native path connectivity and geometry selection do not prove concealment or tactical success",
+      "Source stealth/posture/formation/rifle behaviour is not claimed equivalent",
+      "Runtime ROE/readback/restore, native travel, compromise, repeat use, HC/JIP and measured cost unverified; audits paused"
+    ],
+    "checks": {
+      "focusedModules": ".qa/handovers/creep-modules-focused-20261030.log:6 existing cases passed",
+      "hemtt": ".qa/handovers/creep-executor-hemtt-20261030.log: check passed",
+      "operations": ".qa/handovers/creep-operations-final-20261030.log:617 existing cases passed after regenerating the coverage report",
+      "physical": "NOT RUN; user pause; no acceptance or measured-cost uplift",
+      "full": ".qa/handovers/creep-task-final-build-20261030.log:1505 existing cases,486 SQF,11 PBOs; config/FSM/docs/wiki/parity/coverage/static performance passed",
+      "initialFullFailure": "Public docs named an upstream source; corrected the product-document boundary without weakening checks. Restored unchanged pre-existing document bytes after detecting an encoding rewrite.",
+      "candidate": ".qa/candidates/creep-task-20261030-5b1f306b",
+      "packageSource": "Unsigned development package records base5b1f306b plus actual working runtime/config/test/guide edits; engineering metadata finalized afterward",
+      "fingerprint": "bdcc4c40d79878d359ec6705401c169e2d3b3849a85d3d8350d4ca4e384cfc7f",
+      "independent": ".qa/handovers/creep-task-independent-20261030.log:exit0, matching fingerprint"
+    },
+    "previousFoundation": "5b1f306bc21bf24f76b2f75fa8fe3b5fef57ba47 local policy prerequisite; this consumer supersedes its missing-executor note"
   }
 }

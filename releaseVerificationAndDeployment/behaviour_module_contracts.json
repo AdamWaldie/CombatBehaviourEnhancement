@@ -19,7 +19,8 @@
     "CBE_ModulePointAdvance",
     "CBE_ModulePointWithdraw",
     "CBE_ModuleVehiclePoint",
-    "CBE_ModuleVehiclePointRelease"
+    "CBE_ModuleVehiclePointRelease",
+    "CBE_ModuleCreep"
   ],
   "zen_labels": [
     "Create AI Convoy",
@@ -35,7 +36,8 @@
     "Advance to position",
     "Withdraw to position",
     "Position vehicle",
-    "Release vehicle position task"
+    "Release vehicle position task",
+    "Cautious approach"
   ],
   "contracts": [
     {
@@ -321,6 +323,25 @@
         "calls": "CBE_fnc_VehiclePointDialog"
       },
       "owner_executor": "CBE_fnc_VehiclePointOperation -> VehicleTacticalMoveStart/Step -> VehicleCrewMoveNativePhase"
+    },
+    {
+      "behaviour": "Cautious native-belief approach",
+      "target": "Explicit AI foot squad and its recent known ground contact",
+      "parameters": [
+        "squad",
+        "huntRange",
+        "creepDuration"
+      ],
+      "handlers": [
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenCreepModule.sqf",
+        "addons/infantry/functions/infantryTaskDialog.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Authenticated server request and exact current-owner CreepOperation through PatrolOperation; CreepPolicy acknowledgement before first movement",
+      "termination": "Original task/leg deadline, stale belief, stand-off, actual nearby danger, changed native/Zeus/specialist control, release or owner loss",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; audits paused; native policies, approach, interruption, repeat, HC/JIP and measured cost pending"
     }
   ]
 }

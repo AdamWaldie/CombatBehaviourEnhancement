@@ -63,7 +63,7 @@
         "runtime-20260927-032658: CORE MASTER/GROUP/UNIT/EXTERNAL/SIDE refusal and physical arrival passed.",
         "runtime-20260927-094454: 53 lifecycle checks passed, zero SQF errors, server and client complete. Held-defence Zeus takeover and replacement arrival passed for server and two CBE HC variants after return to server. Added server mid-movement interruption, replacement arrival and 15-second no-resurrection checks passed. Real curator event delivery and interruption during every feature remain unverified; prior HC replacement failure retained."
       ],
-      "automation": "runGates.sqf: five closed-gate refusal and no-movement checks, each followed by reopened physical arrival. All ten passed in runtime-20260927-032658. Player-led, Zeus and locality variants remain outstanding. Standalone addon readiness and catalogue assertions run in runAddon; ZEN notifications, setting changes, diagnostics and compatibility side effects still require live checks. A finite owner-local script Patrol task now sequences bounded geometry through the existing group brain/common operation and checks actual destinations, cohort proximity, original mission receipts, combat suspension and original deadlines. Patrol native/optional ZEN task controls and scoped Release now use the existing authenticated dispatcher; locality continuation and physical patrol evidence remain pending.",
+      "automation": "runGates.sqf: five closed-gate refusal and no-movement checks, each followed by reopened physical arrival. All ten passed in runtime-20260927-032658. Player-led, Zeus and locality variants remain outstanding. Standalone addon readiness and catalogue assertions run in runAddon; ZEN notifications, setting changes, diagnostics and compatibility side effects still require live checks. A finite owner-local script Patrol task now sequences bounded geometry through the existing group brain/common operation and checks actual destinations, cohort proximity, original mission receipts, combat suspension and original deadlines. Patrol native/optional ZEN task controls and scoped Release now use the existing authenticated dispatcher; locality continuation and physical patrol evidence remain pending. Creep adds a finite native-belief three-leg cautious approach on the same patrol owner, with policy acquisition before movement, bounded updates and original-policy retirement. Offline wiring is not physical stealth or approach acceptance.",
       "executable_sources": [
         "runGates.sqf",
         "runAddon.sqf"
@@ -108,7 +108,10 @@
         "addons/infantry/functions/patrolRouteCommit.sqf",
         "addons/infantry/functions/patrolOperation.sqf",
         "addons/infantry/functions/huntOperation.sqf",
-        "addons/infantry/functions/rushOperation.sqf"
+        "addons/infantry/functions/rushOperation.sqf",
+        "addons/infantry/functions/creepOperation.sqf",
+        "addons/infantry/functions/creepRoutePlan.sqf",
+        "addons/infantry/functions/zenCreepModule.sqf"
       ]
     },
     {

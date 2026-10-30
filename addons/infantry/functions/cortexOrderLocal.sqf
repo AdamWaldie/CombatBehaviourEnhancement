@@ -88,6 +88,12 @@ if (_order == "HUNT" && {!(_huntRange isEqualType 0) || {!finite _huntRange}
     || {!finite _patrolDuration} || {_patrolDuration < 30} || {_patrolDuration > 1800}}) exitWith {
     [_token,false,false,clientOwner,"Invalid finite Hunt parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
 };
+private _creepDuration=_settings getOrDefault ["creepDuration",180];
+if (_order == "CREEP" && {!(_huntRange isEqualType 0) || {!finite _huntRange}
+    || {_huntRange < 50} || {_huntRange > 2000} || {!(_creepDuration isEqualType 0)}
+    || {!finite _creepDuration} || {_creepDuration < 30} || {_creepDuration > 300}}) exitWith {
+    [_token,false,false,clientOwner,"Invalid cautious-approach parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
 private _rushDuration=_settings getOrDefault ["rushDuration",180];
 if (_order == "RUSH" && {!(_huntRange isEqualType 0) || {!finite _huntRange}
     || {_huntRange < 50} || {_huntRange > 2000} || {!(_rushDuration isEqualType 0)}
@@ -117,7 +123,7 @@ private _executionTaskKeys=["CBE_ClearAreaSerial","CBE_AIPass_ClearGeneration","
     "CBE_AIPass_DefendGeneration","CBE_OperationGeneration"];
 private _executionTasks=_executionTaskKeys apply {_group getVariable [_x,-1]};
 private _temporaryControl=[];
-if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "RUSH", "CLEAR_AREA", "ADVANCE_POINT", "WITHDRAW_POINT", "VEHICLE_POINT"]) then {
+if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "CREEP", "RUSH", "CLEAR_AREA", "ADVANCE_POINT", "WITHDRAW_POINT", "VEHICLE_POINT"]) then {
     _group setVariable ["CBE_AIPass_ZeusControlKind",nil,true];
     _group setVariable ["CBE_AIPass_ZeusWaypoints", false, true];
     _group setVariable ["CBE_AIPass_ZeusHold", [random 1e6, 0], true];
@@ -133,6 +139,7 @@ private _previousGarrisonFailure=_group getVariable ["CBE_Cortex_GarrisonAdmissi
         case "ADVANCE_POINT": {["START",_group,[_position,_arrivalRadius,_pointDuration]] call CBE_fnc_PointAdvanceOperation};
         case "CLEAR_AREA": {["START",_group,[_position,_radius,_areaBuildings,_areaDuration]] call CBE_fnc_ClearAreaOperation};
         case "RUSH": {["START",_group,[_huntRange,_rushDuration]] call CBE_fnc_RushOperation};
+        case "CREEP": {["START",_group,[_huntRange,_creepDuration]] call CBE_fnc_CreepOperation};
         case "HUNT": {["START",_group,[_huntRange,_patrolDuration]] call CBE_fnc_HuntOperation};
         case "PATROL": {["START",_group,[_position,_radius,_patrolNodes,_patrolDuration]] call CBE_fnc_PatrolOperation};
         case "GARRISON": {[_group, _position, (_radius max 15) min 150, createHashMapFromArray [["teleport",_teleport],["sortByHeight",_sortByHeight]]] call CBE_fnc_CortexGarrison};
@@ -259,6 +266,9 @@ if (!_accepted && {_order == "CLEAR_AREA"}) then {
 };
 if (!_accepted && {_order == "RUSH"}) then {
     _executionReason="Attack was not started. Check fresh native contact, a fully dismounted AI squad with at least two capable soldiers, ammunition/ROE, steady morale, safe approach and enabled contact/advance/assault settings. Existing tasks, protected native orders or another controller also take priority.";
+};
+if (!_accepted && {_order == "CREEP"}) then {
+    _executionReason="Cautious approach was not started. Use an available foot squad with recent precise native knowledge of a ground enemy outside stand-off range. Contact behaviours must be enabled; existing tasks, nearby danger, protected orders and pending policy handback refuse. Module placement does not reveal an enemy.";
 };
 if (!_accepted && {_order == "HUNT"}) then {
     _executionReason="Hunt was not started. The squad needs recent native knowledge of a ground enemy, enabled contact behaviours and available foot soldiers. Release existing tasks first; module placement does not reveal a target.";

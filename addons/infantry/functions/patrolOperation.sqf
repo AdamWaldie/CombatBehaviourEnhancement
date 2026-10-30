@@ -8,10 +8,12 @@
  * Repeat/JIP: START refuses existing work. STEP runs in CortexGroupTick, never its own job.
  * CANCEL releases only this task's operation/lease. Locality loss retires rather than replays;
  * passive status is diagnostic, not a transferable task. No flags, formation, skills or seats change.
- * Arguments: 0 mode STRING START|CHECK|STEP|CANCEL; 1 group GROUP,grpNull;
- * 2 payload ARRAY: START [centreATL,radius=100,nodes=4,duration=900 (30..1800 seconds)],
+ * Arguments: 0 mode STRING START|BEGIN|CHECK|STEP|CANCEL; 1 group GROUP,grpNull;
+ * 2 payload ARRAY: START [centreATL,radius=100,nodes=4,duration=900 (30..1800 seconds),approachRoute=[]],
  * CHECK [] (deadline only), STEP [native danger active=false], CANCEL [reason=RELEASED]. One circuit, <=8 legs;
  * each leg has a distance-scaled <=900 seconds including combat suspension. No automatic recovery/retry.
+ * An explicit exactly3-point approach prepares without movement; BEGIN requires the exact
+ * current Creep policy acknowledgement and original mission/roster. Ordinary patrol is unchanged.
  * Return: BOOL - START accepted, STEP task retained, CANCEL exact local task retired.
  * Current callers: CortexGroupTick, CortexReleaseGroup, CortexOrderLocal, owner-local script API.
  * Example: ["START",_group,[getMarkerPos "patrol",100,4,900]] call CBE_fnc_PatrolOperation;
@@ -31,6 +33,10 @@ private _publish={
     _group setVariable ["CBE_Patrol_Status",[_phase,_reason,_task getOrDefault ["index",0],
         count (_task getOrDefault ["route",[]]),serverTime],true];
     private _hunt=_task getOrDefault ["hunt",createHashMap];
+    private _creep=_task getOrDefault ["creep",createHashMap];
+    if (count _creep > 0) then {
+        _group setVariable ["CBE_Creep_Status",[_phase,_reason,_creep get "updates",serverTime],true];
+    };
     if (count _hunt > 0) then {
         _group setVariable ["CBE_Hunt_Status",[_phase,_reason,_hunt get "updates",serverTime],true];
     };
@@ -130,7 +136,7 @@ private _startLeg={
 };
 switch (toUpperANSI _mode) do {
     case "START": {
-        _payload params [["_centre",[],[[]]],["_radius",100,[0]],["_nodes",4,[0]],["_duration",900,[0]]];
+        _payload params [["_centre",[],[[]]],["_radius",100,[0]],["_nodes",4,[0]],["_duration",900,[0]],["_approach",[],[[]]]];
         if (count _task > 0 || {!finite _duration} || {_duration < 30} || {_duration > 1800}
             || {!(missionNamespace getVariable ["CBE_AIPass_Active",false])}
             || {!([_group] call CBE_fnc_CortexIsEligible)}
@@ -140,7 +146,20 @@ switch (toUpperANSI _mode) do {
             || {(_group getVariable ["CBE_Cortex_MovementLease",[]]) isNotEqualTo []}
             || {(_group getVariable ["CBE_Cortex_GroupMoveIntent",createHashMap]) isNotEqualTo createHashMap}
             || {!([units _group] call _membersAvailable)}) exitWith {false};
-        private _route=[_centre,_radius,_nodes] call CBE_fnc_PatrolRoutePlan;
+        private _route=[];
+        if (_approach isEqualTo []) then {
+            _route=[_centre,_radius,_nodes] call CBE_fnc_PatrolRoutePlan;
+        } else {
+            // Internal Creep preparation has no waypoint until its finite policy is acquired.
+            private _anchor=[_group] call CBE_fnc_CortexGroupAnchor;
+            if (_nodes == 3 && {count _approach == 3} && {_duration <= 300} && {!isNull _anchor}
+                && {_approach findIf {!(_x isEqualType []) || {count _x != 3}
+                    || {_x findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+                    || {(_x select 2) < -0.5} || {(_x select 2) > 2.5}} < 0}) then {
+                _route=[getPosATL _anchor,[_approach],[],[],objNull,"INFANTRY",objNull,false,true]
+                    call CBE_fnc_CortexSelectAvenue;
+            };
+        };
         if (_route isEqualTo []) exitWith {false};
         if (!([_group,true] call CBE_fnc_GroupBrainStart)) exitWith {false};
         private _deadline=time+_duration;
@@ -159,6 +178,21 @@ switch (toUpperANSI _mode) do {
             ["deadline",_deadline],["serverDeadline",_serverDeadline]];
         _task set ["legDeadline",call _legDeadline];
         _group setVariable ["CBE_PatrolTask",_task];
+        if (_approach isNotEqualTo []) exitWith {_task set ["phase","PREPARED"]; true};
+        if (!(call _startLeg)) exitWith {["LEG_REFUSED"] call _finish; false};
+        true
+    };
+    case "BEGIN": {
+        private _operation=_group getVariable ["CBE_Operation",createHashMap];
+        if ((_task getOrDefault ["phase",""]) != "PREPARED"
+            || {(_task get "epoch") != (_group getVariable ["CBE_AIPass_Epoch",-1])}
+            || {time >= (_task get "deadline")} || {time >= (_task get "legDeadline")}
+            || {(_operation getOrDefault ["generation",-2]) != (_task get "generation")}
+            || {(["CHECK",_group,_operation] call CBE_fnc_CreepPolicy) != "OWNED"}
+            || {!([-1] call _missionUnchanged)} || {!([units _group] call _membersAvailable)}
+            || {(units _group) isNotEqualTo (_task get "participants")}) exitWith {
+            ["PREPARE_REFUSED"] call _finish; false
+        };
         if (!(call _startLeg)) exitWith {["LEG_REFUSED"] call _finish; false};
         true
     };
@@ -168,9 +202,9 @@ switch (toUpperANSI _mode) do {
     };
     case "CHECK": {
         if (count _task == 0) exitWith {false};
-        if (count (_task getOrDefault ["hunt",createHashMap]) > 0
+        if ((count (_task getOrDefault ["hunt",createHashMap]) > 0 || {count (_task getOrDefault ["creep",createHashMap]) > 0})
             && {!([_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {
-            ["HUNT_DISABLED"] call _finish; false
+            ["CONTACT_TASK_DISABLED"] call _finish; false
         };
         private _reason=if ((_task get "epoch") != (_group getVariable ["CBE_AIPass_Epoch",-1])) then {
             "OWNER_CHANGED"
@@ -198,8 +232,14 @@ switch (toUpperANSI _mode) do {
         private _original=_task get "participants";
         if (_members findIf {!(_x in _original)} >= 0
             || {_original findIf {alive _x && {group _x != _group}} >= 0}) exitWith {["PARTICIPANTS_CHANGED"] call _finish; false};
+        if ((_task getOrDefault ["phase",""]) == "PREPARED") exitWith {
+            ["PREPARE_NOT_COMMITTED"] call _finish; false
+        };
+        // Creep retires on actual compromise in its policy wrapper. Merely detecting a
+        // contact must not pause its cautious approach or create a second controller.
+        private _isCreep=count (_task getOrDefault ["creep",createHashMap]) > 0;
         private _combat=(_payload param [0,false,[true]])
-            || {(_state getOrDefault ["phase","CALM"]) in ["CONTACT","RETREAT"]};
+            || {!_isCreep && {(_state getOrDefault ["phase","CALM"]) in ["CONTACT","RETREAT"]}};
         private _operation=_group getVariable ["CBE_Operation",createHashMap];
         private _generation=_task get "generation";
         if ((_task getOrDefault ["phase",""]) == "PAUSED") exitWith {

@@ -3583,3 +3583,39 @@ The native dialog adds a capped one-shot group list and at most three parameter 
 no AI controller, recurring scan or worker is added. In-game layout, keyboard/selection/cancel,
 real acknowledgement, movement/combat, repeat/HC/JIP and measured cost remain unverified while
 audits are paused.
+
+
+### Cautious approach (Creep)
+
+Use **Cautious approach** on an AI soldier to select its squad, knowledge range
+(default800m, capped by the CBA engagement range) and original time limit
+(default180s,30..300s). Both native Zeus and optional ZEN expose these task choices.
+The squad needs a recent native belief about a ground enemy; placing the module
+near an enemy does not reveal it. Release an existing task first.
+
+Creep follows one three-leg ground approach through the ordinary group waypoint
+owner. It selects among three terrain-screened avenues, uses limited group pace
+and self-defence fire discipline, and retains stricter authored BLUE permission.
+Existing posture, formation, forced speed, individual ROE overrides and skills are
+preserved; mixed individual ROE overrides refuse admission. No per-soldier movement
+controller, live hostile-position tracking or automatic attack is added.
+
+The approach ends near40m from an infantry belief or150m from a vehicle belief,
+plus its uncertainty margin. Nearby gunfire, hits, explosions or suppression end
+it early. A detection report alone is not compromise. Original group pace and
+fire policy are restored only while still owned; newer native/Zeus/specialist work
+wins. Reaching stand-off returns decisions to the existing native/contact system,
+and does not override the mission's permission to fire. Original task and leg
+budgets include updates; at most four material replans are sampled ten seconds
+apart. Missing recent knowledge, unsuitable ground, protected actors, pending
+policy handback and conflicting orders cause refusal or finite cancellation.
+
+Owner-local script: `["START",_group,[800,180]] call CBE_fnc_CreepOperation`.
+Authenticated server task: `[[["order","CREEP"],["group",_group],
+["huntRange",800],["creepDuration",180]],2] call CBE_fnc_CortexOrderDispatch`.
+Use **Release infantry task** or `["CANCEL",_group] call CBE_fnc_CreepOperation`
+to request retirement. Locality transfer retires this task; it does not replay it.
+
+This is a bounded cautious approach, not proof of concealed travel or complete
+covert-movement behaviour. Native navigation, actual policy readback/restoration, visual
+flow, repeat use, HC/JIP and performance remain unverified while audits are paused.
