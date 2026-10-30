@@ -3,7 +3,7 @@
   "date": "2026-10-30",
   "sourceBase": "6e999df28909b9bf93a034b4687a8909d6194eec",
   "workshopId": "3799629858",
-  "status": "SELECTED_GARRISON_GRAPH_REVIEWED_WATCH_HEIGHT_NATIVE_MOVEMENT_AND_ORIGINAL_STATIC_ASSIGNMENT_OWNER_FIXED_WEAPON_ROLE_TASK_GAPS_OPEN",
+  "status": "SELECTED_GARRISON_GRAPH_RECONCILED_STATIC_ORIGINAL_OWNER_ROLE_AND_CREW_PREFERENCE_IMPLEMENTED_EXPLICIT_GARRISON_WEAPON_POST_GAPS_OPEN",
   "sources": [
     {
       "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/config.cpp",
@@ -97,8 +97,8 @@
     "addons/infantry/functions/garrisonTaskDialog.sqf": "670c75d8675268528fb9a6b1d9c52925963a455d03c848f0abed5521dc359b3b",
     "addons/infantry/functions/zenGarrisonModule.sqf": "ab886da14f7d128d37b85bde41a7caf3176153782ac4c5dd2e10d3e645e0b26d",
     "addons/infantry/functions/cortexGarrison.sqf": "34caf1a6b87acf9e4918263479b7f92c3cd21063a20ddda10fcdd111216d66fd",
-    "addons/infantry/functions/cortexStaticSupport.sqf": "c60a9b519bf4abeb913e08cfb3f88625b0b40144493209ea76ba9c7a728d3bcc",
-    "addons/infantry/functions/cortexUnitRole.sqf": "b302ddfabecd6cbd6dad67ca47eff4b6f95cad0f63e86b7a1331fe9123409428",
+    "addons/infantry/functions/cortexStaticSupport.sqf": "251bcd6dbaaa544b43c984bea862bd4b747cae9abebe63975d64c67a8b127d37",
+    "addons/infantry/functions/cortexUnitRole.sqf": "c5c8fab841242bdf75c1da9cb8720ce79bd38cf23c9f77780fdc05a08aa69c6c",
     "addons/support/functions/cortexSupportApply.sqf": "d2ea4fe8a5c33d140888a94a4faf93b383cbe9f9535e449b2e2f458fff610f3c",
     "addons/infantry/functions/cortexGarrisonApplyLocal.sqf": "d57acfc6143e9b63c7a996a55b44a3e603ea9e9c01c7cbed67bacfe21177a9ff",
     "addons/core/functions/cortexLocality.sqf": "b0ed5b9246bfc3ee73c634bdbd445e5e952155dcad7bbd62f21409dc38375162"
@@ -145,19 +145,18 @@
   "validation": {
     "hashes": "14 immutable archive source hashes and 10 current product hashes; initial historical hashes retained separately.",
     "runtime": {
-      "baseline": "Existing regression rejects prior HEAD with one expected source-contract failure, zero errors; not SQF execution.",
-      "focused": "618 existing cases pass; zero added cases.",
-      "full": "PASS: all1506 existing tests,489 compiled SQF,11PBO; complete config/FSM/header/docs/wiki/parity/coverage/static-performance gates.",
-      "buildLog": ".qa/handovers/static-assignment-owner-build-20261030.log",
-      "focusedLog": ".qa/handovers/static-assignment-owner-focused-20261030.log",
-      "redLog": ".qa/handovers/static-assignment-owner-red-20261030.log",
+      "focused": "618 existing cases PASS, zero added cases. Existing source contract extended; prior source rejected for missing crew block (actual result in red log).",
+      "full": "PASS: all1506 existing tests,489 compiled production SQF,11PBO and complete config/FSM/header/docs/wiki/parity/coverage/static-performance gates.",
+      "buildLog": ".qa/handovers/static-crew-roles-build-20261030.log",
+      "focusedLog": ".qa/handovers/static-crew-roles-focused-20261030.log",
+      "redLog": ".qa/handovers/static-crew-roles-red-20261030.log",
       "independentVerification": "PASS",
-      "candidate": ".qa/candidates/static-assignment-owner-20261030-c760a850",
-      "fingerprint": "803b51ea9d6cd95dae662c37256b1e857ec9eb7871d964b4a0cffdf8b5583f1a",
-      "independentLog": ".qa/handovers/static-assignment-owner-independent-20261030.log",
-      "sourceIdentity": "Unsigned development base c760a850530a7eaf4b6a9625603ee91bbb7b32dd plus dirty checked runtime/test/guide/review inputs. Engineering metadata/handover finalized afterward."
+      "candidate": ".qa/candidates/static-crew-roles-20261030-1417d8ef",
+      "fingerprint": "1785a9a46758b50749fd2df7c1fa89bdb50424f2cec2c45e3a161f554f2145cf",
+      "independentLog": ".qa/handovers/static-crew-roles-independent-20261030.log",
+      "sourceIdentity": "Unsigned development base1417d8efbbee62c13f2cb2173cd19910bb93fc2d plus checked dirty runtime/test/guide/review inputs. Engineering metadata/handover finalized afterward."
     },
-    "reviewChecks": "PASS: three reference-boundary tests, header/documentation checks, register/evidence JSON and 14 immutable source / 10 current product hashes.",
+    "reviewChecks": "PASS: three reference-boundary tests, header/documentation checks, register/evidence JSON and14 immutable source /10 current product hashes.",
     "physical": "NOT_RUN_AUDITS_PAUSED",
     "performance": "UNMEASURED; coordinate arithmetic only; no new queries, callback or controller."
   },
@@ -274,6 +273,30 @@
       "sourceIdentity": "Unsigned development base c760a850530a7eaf4b6a9625603ee91bbb7b32dd plus dirty checked runtime/test/guide/review inputs. Engineering metadata/handover finalized afterward."
     },
     "physical": "NOT_RUN_AUDITS_PAUSED",
-    "performance": "UNMEASURED; constant owner/epoch/native assignment comparisons. No scan, new timer/controller, setting or message."
+    "performance": "UNMEASURED; constant owner/epoch/native assignment comparisons. No scan, new timer/controller, setting or message.",
+    "implementationSha256At1417d8ef": "c60a9b519bf4abeb913e08cfb3f88625b0b40144493209ea76ba9c7a728d3bcc"
+  },
+  "staticCrewRoles20261030": {
+    "baseCommit": "1417d8efbbee62c13f2cb2173cd19910bb93fc2d",
+    "sourceScope": "Previously hash-verified Conductor activation lines 355-378: prefer GENERAL before AT/OBSERVER/MG/MARKSMAN for weapon crews, exclude medic. getGarrisonRole classifier already reviewed; no new source files or raw copy.",
+    "intent": "Preserve foot specialist capability when an ordinary eligible rifleman can occupy a support weapon.",
+    "adaptation": "Within existing fresh CortexStaticSupport selection, retain distance-sorted eligibility; classify at most the nearest64 eligible actors, prefer RIFLE then AT then MG then MEDIC, keep nearest within a role and stop at the nearest rifleman. Native Medic trait or ACE medicClass takes precedence over dual MG/AT equipment for this crew choice. Unlike source hard exclusion, medics/specialists remain fallback when no preferred eligible actor is available.",
+    "sharedPolicy": "Reuse current CortexUnitRole and live equipment capability, keeping its global categories/ordering unchanged. Its header current-callers list corrected from actual repository references. This is not a complete marksman/observer/AA role model.",
+    "execution": "Fresh once-per-contact selection only, before the existing guarded native boarding transaction. Existing active lease returns before classification and is not reshuffled. Same actor/reservation/player/medical/native task predicates, one boarding attempt, original deadline, exact owner-role receipt and current native movement cleanup remain.",
+    "remaining": "Physical crew preference/fallback/combined-loadout and balance unverified. This does not expose explicit garrison weapon roles or implement protected/firing-post selection. Native boarding end/quiescence and full source integration remain open.",
+    "validation": {
+      "focused": "618 existing cases PASS, zero added cases. Existing source contract extended; prior source rejected for missing crew block (actual result in red log).",
+      "full": "PASS: all1506 existing tests,489 compiled production SQF,11PBO and complete config/FSM/header/docs/wiki/parity/coverage/static-performance gates.",
+      "buildLog": ".qa/handovers/static-crew-roles-build-20261030.log",
+      "focusedLog": ".qa/handovers/static-crew-roles-focused-20261030.log",
+      "redLog": ".qa/handovers/static-crew-roles-red-20261030.log",
+      "independentVerification": "PASS",
+      "candidate": ".qa/candidates/static-crew-roles-20261030-1417d8ef",
+      "fingerprint": "1785a9a46758b50749fd2df7c1fa89bdb50424f2cec2c45e3a161f554f2145cf",
+      "independentLog": ".qa/handovers/static-crew-roles-independent-20261030.log",
+      "sourceIdentity": "Unsigned development base1417d8efbbee62c13f2cb2173cd19910bb93fc2d plus checked dirty runtime/test/guide/review inputs. Engineering metadata/handover finalized afterward."
+    },
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "performance": "UNMEASURED; at most64 role classifications once per fresh eligible contact attempt, early stop at first rifleman. No new world query, controller, timer, setting or message."
   }
 }

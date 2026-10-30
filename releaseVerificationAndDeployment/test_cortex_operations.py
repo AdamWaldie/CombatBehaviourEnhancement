@@ -1755,6 +1755,13 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(commit.index('assignAsGunner _weapon'),commit.index('private _assignmentReceipt='))
         self.assertLess(commit.index('private _assignmentReceipt='),commit.index('orderGetIn true'))
         self.assertIn('[clientOwner,_admissionEpoch,+(assignedVehicleRole _actor)]',commit)
+        # Fresh role preference is bounded and remains outside existing-lease observation.
+        crew=support.split('private _rankedActors=',1)[1].split('private _deadline=time+20;',1)[0]
+        for marker in ('_rankedActors select [0,64]','getUnitTrait "Medic"','ace_medical_medicClass',
+                       'call CBE_fnc_CortexUnitRole','if (_priority == 0) exitWith',
+                       'if (_priority < _bestRolePriority) then {_actor=_candidate;'):
+            self.assertIn(marker,crew)
+        self.assertLess(support.index('if (count _lease >= 7) exitWith'),support.index('private _bestRolePriority='))
         self.assertNotIn('moveInGunner',support)
         self.assertNotIn('setPos',support)
         self.assertNotIn('allowDamage',support)

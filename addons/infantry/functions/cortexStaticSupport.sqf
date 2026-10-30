@@ -11,6 +11,9 @@
  * Exact original assignedVehicleRole, issuing clientOwner and locality epoch are also required
  * before native release. Same-vehicle role changes or owner migration retire metadata only;
  * no new owner reconstructs boarding authority from the old public journal.
+ * Fresh crew selection prefers the nearest eligible RIFLE, then AT, then MG, then MEDIC.
+ * Vanilla/ACE medical identity takes precedence over a dual MG/AT loadout for this choice.
+ * At most64 nearest eligible actors are classified, once per fresh contact attempt; no role is excluded.
  * Purpose: Give one otherwise uncommitted infantry actor a finite chance to occupy a nearby useful
  * empty static weapon during confirmed contact, without taking the squad's movement operation. If
  * no existing emplacement is available, delegates compatible carried weapon bags to the finite
@@ -255,6 +258,25 @@ if (_candidates isEqualTo []) exitWith {
 private _rankedActors=_candidates apply {[_x distance2D _weapon,_x]};
 _rankedActors sort true;
 private _actor=(_rankedActors select 0) select 1;
+// Keep scarce foot roles available when an eligible rifleman can crew the weapon.
+// Inspect only the nearest64 eligible actors once per fresh contact attempt. Distance
+// breaks ties within a role, and the nearest rifleman ends the pass immediately.
+private _bestRolePriority=5;
+{
+    private _candidate=_x select 1;
+    private _medic=_candidate getUnitTrait "Medic"
+        || {(_candidate getVariable ["ace_medical_medicClass",0]) > 0};
+    private _role=if (_medic) then {"MEDIC"} else {[_candidate] call CBE_fnc_CortexUnitRole};
+    private _priority=switch (_role) do {
+        case "RIFLE": {0};
+        case "AT": {1};
+        case "MG": {2};
+        case "MEDIC": {3};
+        default {4};
+    };
+    if (_priority < _bestRolePriority) then {_actor=_candidate;_bestRolePriority=_priority};
+    if (_priority == 0) exitWith {};
+} forEach (_rankedActors select [0,64]);
 private _deadline=time+20;
 private _commandReceipt=currentCommand _actor;
 private _followReceipt=if (_commandReceipt == "FOLLOW") then {formLeader _actor} else {objNull};

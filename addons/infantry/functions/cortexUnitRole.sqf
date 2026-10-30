@@ -18,7 +18,8 @@
  * if (([_unit] call CBE_fnc_CortexUnitRole) == "MG") then {...};
  * Result: machine gunners are preferred for suppression and kept in the base of fire.
  *
- * Current callers: CBE_fnc_CortexFlankStart, CBE_fnc_CortexFireControl and CBE_fnc_CortexAntiArmour.
+ * Current callers: CortexFireControl, CortexLocality, CortexAdvanceStart, CortexAssaultStart,
+ * CortexFlankStart, CortexFlankStep, CortexGroupTick, DangerGroupHideStep and CortexStaticSupport.
  */
 
 params [["_unit", objNull, [objNull]]];

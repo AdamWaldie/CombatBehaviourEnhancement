@@ -925,7 +925,8 @@
       "garrisonRoleGraph20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json",
       "garrisonWatchHeight20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#lifecycleAndWatchCorrection20261030",
       "staticNativeMovement20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#staticNativeMovement20261030",
-      "staticAssignmentOwner20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#staticAssignmentOwner20261030"
+      "staticAssignmentOwner20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#staticAssignmentOwner20261030",
+      "staticCrewRoles20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#staticCrewRoles20261030"
     },
     {
       "workshopId": "3800356547",

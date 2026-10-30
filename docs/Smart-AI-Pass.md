@@ -3785,3 +3785,10 @@ assignment role. A later role on the same weapon, a changed owner or absent orig
 blocks native boarding cancellation and GetOut; CBE retires its matching metadata instead.
 The old receipt is never rebuilt by an incoming owner. This protects replacement assignments;
 it is not physical proof that an earlier engine boarding plan ended.
+
+Fresh static-weapon crew selection prefers the nearest eligible rifleman, then AT and MG roles,
+with medics last. Vanilla/ACE medical identity takes priority over a dual MG/AT loadout for this
+selection. Specialists remain eligible if no preferred actor is available. The pass classifies at most
+64 nearest eligible actors once per fresh contact attempt and stops at the nearest rifleman; active
+crews are not reshuffled. This uses the existing role helper, not a complete marksman/observer/AA
+classification, and does not add garrison weapon-manning options. Physical balance remains unverified.
