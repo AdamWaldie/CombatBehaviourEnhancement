@@ -1208,25 +1208,6 @@
         "observedAt": "2026-10-30",
         "scope": "Metadata and package hashes only; not readable source review or behaviour proof."
       }
-    },
-    {
-      "workshopId": "3829519860",
-      "name": "Universal AI",
-      "priority": "2 Complementary AI methods",
-      "candidateContribution": "Evaluate the AI bundle component by component for unique useful behaviour and potential CBE integration. Cherry-pick, combine, fix and improve AI intent; no wholesale bundle import, automatic dependency or parity claim.",
-      "reviewStatus": "Registered local metadata/packages; readable source and actual behaviour review pending",
-      "nextSourceReview": "Review the tracked intake topics and protected package identity, extract into a separate private dated folder, and trace config/FSM/scripts and original upstream attribution before selecting implementation.",
-      "recordedImplementationStatus": "REGISTERED_LOCAL_PACKAGES_PRESENT_SOURCE_REVIEW_PENDING",
-      "recordedRemaining": "Complete source/behaviour/dependencies/licence review and selected intent integration; no implementation or physical acceptance.",
-      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3829519860.json",
-      "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false,
-      "installedDirectoryObservation": {
-        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3829519860",
-        "present": true,
-        "observedAt": "2026-10-30",
-        "scope": "Metadata and package hashes only; not readable source review or behaviour proof."
-      }
     }
   ],
   "localReferences": [

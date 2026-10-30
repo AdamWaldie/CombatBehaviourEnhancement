@@ -1,3 +1,11 @@
+## Latest user scope correction - Universal AI withdrawn
+
+The user explicitly removed Universal AI / Workshop3829519860 from the CBE implementation register. Its master-map entry, active private recovered entry and tracked intake were removed. Do not restore it from older handover history or dated recovery snapshots. Installed Workshop files and protected originals remain untouched. Protocol aircraft3828285847 remains queued. This correction overrides earlier Universal AI queue/intake statements below.
+
+Independent work in progress: existing artillery owner impact scan now protects captive/ACE surrendering/handcuffed people and occupants; existing618 operation contracts pass. Full checkpoint gates and source review recording are still pending; do not confuse these uncommitted runtime edits with the source withdrawal. Audits remain PAUSED.
+
+---
+
 ## Current checkpoint - 30 October 2026: contact provenance comparison
 
 Source-only continuation on runtime 11c9266b, draft PR20 / Adam/cbe-mechanised-support-20261028. No runtime change or new build. Twelve complete Conductor contact/provider/caller bodies plus selected startup/pressure sections are mapped in contactProvenanceReview20261030 of releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json. CBE already separates timestamped reports from native target knowledge; source peak-confidence retention, renewed relay age, live hostile transforms, implicit provider authority and deferred-only expiry filtering are rejected. Source scripts were not executed. Three existing reference-boundary tests and documentation/header/link gates pass;55 protected source /37 product hashes verified.

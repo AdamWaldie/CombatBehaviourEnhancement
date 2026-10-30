@@ -169,7 +169,7 @@ Conductor classifier185/refresh138/ammo30/effectiveness21 bodies now fully revie
 
 Conductor candidate invalidation23/matching326/proposal85 bodies fully reviewed at selected scopes. Useful prefilters, friendly-area distance, material-change/semantic output suppression and accepted/blocked separation are mapped. CBE local-envelope8-candidate slices/current-owner authority remain; no global registry, unbounded proposal history or unverified score constants added. Runtime unchanged; request/incident/destination lifecycle is next. See candidateProposalSource20261030.
 
-User additions2026-10-30: PROTOCOL AI AIRCRAFT - BOMBS & ROCKETS (3828285847), one local PBO, joins the Protocol review/implementation queue; Universal AI (3829519860),41 local PBOs, joins component-wise review/potential integration with upstream deduplication first. Metadata/package hashes verified; source/dependencies/licences unreviewed, no implementation credit. Tracked workshop-intake JSONs hold scope and protection rules.
+User addition2026-10-30: PROTOCOL AI AIRCRAFT - BOMBS & ROCKETS (3828285847), one local PBO, joins the Protocol review/implementation queue. Metadata/package hashes verified; source/dependencies/licences unreviewed, no implementation credit. Its tracked workshop-intake JSON holds scope and protection rules.
 
 Conductor request/incident/destination/close/report-clear bodies reviewed. CBE support now rejects non-finite belief coordinates before geometry/reuse and invalid fresh responder policy before arithmetic, preserving captured task budgets. Incident continuity and return-to-post remain mapped scope, not established parity. See requestLifecycleFinite20261030; native contact/provider and expiry caller graphs remain open.
 
