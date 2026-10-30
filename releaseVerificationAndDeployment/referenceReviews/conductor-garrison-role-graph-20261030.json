@@ -226,9 +226,39 @@
       "sha256": "fc8e0336f47bee9d7d43c0c66ffab7f1122bcddb4bb989c589acd00409a1d4ce",
       "manifestMatch": true,
       "scope": "Complete85-line body: best accepted/blocked explanation, live/affected/fallback requester naming, advisory execution-gate label, unbounded proposal registry/history and text/log publication. Proposal state is not actual movement or native completion."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/support/fn_requestSupport.sqf",
+      "sha256": "d6aac8d379ffdfdb5e1d12f4b82c87cabd63e489b04ffa62f7c8e670ebe82f82",
+      "manifestMatch": true,
+      "scope": "Complete295-line body: aliases, target/position and confidence/TTL fields, exact caller dedupe, same-side local threat/reinforcement incident merge, per-reporter pressure/max desired, centroid/representative selection, semantic invalidation, fresh request storage and synchronous candidate dispatch. Called ingestion/expiry graph not thereby reviewed."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/dispatch/fn_getSupportDestination.sqf",
+      "sha256": "e993195e12d39f1af60ef7c88834042bdfc3005d737ca8a3780f4dcf92455c77",
+      "manifestMatch": true,
+      "scope": "Complete34-line body: explicit non-reinforcement friendly area, live affected-group centroid, requester/explicit fallback. Candidate area only; numeric validity, terrain/path/safety not established by centroid."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/support/fn_getRequestActiveLeaseIds.sqf",
+      "sha256": "d9c88c6e6936d50f8787fac8e62befecb36328db224c4a3be7503f2efc83b254",
+      "manifestMatch": true,
+      "scope": "Complete17-line active id/index reconciliation; includes CLAIMED/MOVING/ON_STATION, not RETURNING_HOME. Helper group lease ownership remains until retirement elsewhere."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/support/fn_closeSupportRequest.sqf",
+      "sha256": "8b068b1c29177cb840fc037540ac6521125e3360f9294949d0ab1971d47b9ba7",
+      "manifestMatch": true,
+      "scope": "Complete34-line close/idempotence, all active lease release calls and exact dedupe-index cleanup. Native completion/resume is not established by release request."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/support/fn_clearReinforcementNeed.sqf",
+      "sha256": "43a7fce17e93d0b6fbc6475f52c48e85408153519c9ff75eca6bbff25cc32722",
+      "manifestMatch": true,
+      "scope": "Complete59-line reporter removal, desired/ratio recomputation, exact alias deletion, last reporter close or surviving requester reassignment. Actual caller/expiry delivery graph remains separate."
     }
   ],
-  "sourceIntegrity": "37 selected immutable archive source hashes and31 current product hashes verified; protected manifest verified. Latest candidate/proposal comparison is source-only; retain checked runtimec26c767b unchanged. No protected source edits or new runtime work.",
+  "sourceIntegrity": "42 selected immutable archive source hashes and32 current product hashes verified; protected manifest verified. Latest request guard checks finite external coordinates and fresh responder policy; original inputs untouched.",
   "productHashes": {
     "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
@@ -260,7 +290,8 @@
     "addons/aircraft/functions/cortexAirWeaponOperatorAvailable.sqf": "52c2ba1ba38f4db4a1d9266366b85e81bd92f9237eb69a7ec032afd6cfaf928d",
     "addons/core/functions/operationStart.sqf": "b6af6ef4d58d599ddd1bedd169b519fb04b6912611ce6e2e4f3b2e2d4295894a",
     "addons/infantry/functions/cortexGroupMove.sqf": "c4df1a2c462797d3f5b7663a2eb7472c6f8343f27e5c01dbd10a09784cc5bad5",
-    "addons/support/functions/cortexSupportServer.sqf": "10ed024e5b1a46e74bbcfc6b469167845beb01a97ab1fde389e754d7bf760e23"
+    "addons/support/functions/cortexSupportServer.sqf": "1beb392ee12dbe2415985c292d20d0f72ae48945e9ee39b35eb7c1a4e668f9f1",
+    "addons/support/functions/supportRequestStart.sqf": "ad041403d97ed9383214b70b3a260e5363316f84bce39c117afdeab0d1b4106a"
   },
   "productScope": "Selected actual operator, planning/assignment, role and contact-static owner branches; not complete bodies of every CBE descendant or physical/compiled-source parity.",
   "dispositions": [
@@ -722,5 +753,42 @@
     "validation": "PASS source-only:37 selected immutable archive source hashes/31 product hashes and protected manifest verified;3 existing reference-boundary tests, source headers/docs links and JSON parse pass. Retain runtimec26c767b candidate679650975a9505a4b564a6e7b95abb4478f64b422584043f5d9ad454bef1760e (1506 existing tests,491 compiled SQF,11PBO/full gates+independent). No runtime edit, unchanged full rebuild or added cases.",
     "physical": "NOT_RUN_AUDITS_PAUSED",
     "performance": "UNMEASURED; review adds no runtime workload."
+  },
+  "requestLifecycleFinite20261030": {
+    "baseCommit": "a45f3a54258bb16836080a71700fff450639e740",
+    "newFullBodyScopes": {
+      "functions/support/fn_requestSupport.sqf": "Complete295-line body: aliases, target/position and confidence/TTL fields, exact caller dedupe, same-side local threat/reinforcement incident merge, per-reporter pressure/max desired, centroid/representative selection, semantic invalidation, fresh request storage and synchronous candidate dispatch. Called ingestion/expiry graph not thereby reviewed.",
+      "functions/dispatch/fn_getSupportDestination.sqf": "Complete34-line body: explicit non-reinforcement friendly area, live affected-group centroid, requester/explicit fallback. Candidate area only; numeric validity, terrain/path/safety not established by centroid.",
+      "functions/support/fn_getRequestActiveLeaseIds.sqf": "Complete17-line active id/index reconciliation; includes CLAIMED/MOVING/ON_STATION, not RETURNING_HOME. Helper group lease ownership remains until retirement elsewhere.",
+      "functions/support/fn_closeSupportRequest.sqf": "Complete34-line close/idempotence, all active lease release calls and exact dedupe-index cleanup. Native completion/resume is not established by release request.",
+      "functions/support/fn_clearReinforcementNeed.sqf": "Complete59-line reporter removal, desired/ratio recomputation, exact alias deletion, last reporter close or surviving requester reassignment. Actual caller/expiry delivery graph remains separate."
+    },
+    "retainedIntent": [
+      "Consolidate same-side related incidents using threat identity/local friendly area, preserve reporter-specific demand so recovered reporters can reduce demand, and close all active leases while removing only matching aliases.",
+      "Friendly affected-group destination and surviving reporter continuity are useful intent, not automatic tactical authority transfer or terrain-safe route. Existing CBE belief-only positions, finite requester/serial owner and route selectors remain."
+    ],
+    "notCopied": [
+      "Exact caller dedupe does not itself bind side/need in the source; CBE requester identity remains scoped. No cross-side alias borrowing.",
+      "Source merged confidence/priority use maxima and each refresh renews request TTL. This is not fresh evidence for every old belief nor permission to renew CBE original operation/request clocks.",
+      "Source live object position and unvalidated centroid/array do not supply native enemy knowledge, numeric validity, route or friendly safety. No new live hostile query or centroid waypoint added.",
+      "Source active-id result excludes returning helpers but group leases remain; do not mistake absence from active responder count for native release. Complete incident/return-to-post equivalence remains open."
+    ],
+    "cbeFinding": "SupportServer accepted numeric but non-finite believed coordinates and performed arithmetic on unvalidated runtime responder-count policy before fresh request creation. Bad input could reach geometry or derive unusable request limits.",
+    "implementation": "Reject non-finite coordinates before any existing-request reactivation, geometry or new request. Fresh responder policy must be numeric/finite/nonnegative before max/add/min arithmetic. Existing registered tasks retain original limits/radius/deadlines across setting changes; no fallback policy, new controller/native order or error-triggered request.",
+    "currentCbeScope": "SupportServer full creation/reuse path; selected SupportRequestStart header and registered-job/serial/generation/restart path. Existing exact serial restarts at most once without refreshing original clocks. Not a whole requester/FSM/provider graph review.",
+    "cost": "Constant finite/type checks over three input coordinates and one fresh setting. No new scan, callback, native command or replication. Live timing unmeasured.",
+    "validation": {
+      "focused": "PASS618 existing operation tests; existing support contract extended for validation-before-use/reuse. Zero added cases. Full checkpoint gates pending.",
+      "focusedLog": ".qa/handovers/support-request-finite-focused-20261030.log",
+      "full": "PASS1506 existing tests,491 compiled SQF,11PBO; complete offline config/FSM/header/docs/wiki/parity/coverage gates; static performance0 findings. Both new intake rows and tenth local Protocol registration pass existing checks. Zero added cases.",
+      "buildLog": ".qa/handovers/support-request-finite-build-20261030.log",
+      "candidate": ".qa/candidates/support-request-finite-20261030-a45f3a54",
+      "fingerprint": "897d22af91a1920ce0f991748eeba1a3f0bb230cbe1da0696b50c50b1a83fbf1",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/support-request-finite-independent-20261030.log",
+      "sourceIdentity": "Unsigned dirty basea45f3a54 plus checked runtime/tests/guide/register inputs; later engineering metadata/handover separate. Not clean future-commit or signed release, nor physical support proof."
+    },
+    "nextFiniteWork": "Review contact/provider registration20, receive49, report99, relay72 and scan46 plus expiry/clear caller paths against CBE native belief/communication authority. No direct source execution or parallel registry. Newly added Protocol aircraft3828285847 and Universal AI3829519860 intakes are source-unreviewed and remain queued after foundations.",
+    "physical": "NOT_RUN_AUDITS_PAUSED"
   }
 }

@@ -6097,6 +6097,12 @@ class CortexOperations(unittest.TestCase):
         assault=source('cortexSupportAssaultServer')
         dismount_guard='[_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}'
         self.assertIn('["discoveryGroups",_candidateGroups]',server)
+        self.assertIn('_enemy findIf {!(_x isEqualType 0) || {!finite _x}}',server)
+        self.assertLess(server.index('!finite _x'),server.index('private _existing ='))
+        for proof in ('!(_configuredMaximum isEqualType 0)','!finite _configuredMaximum','_configuredMaximum < 0'):
+            self.assertLess(server.index(proof),server.index('private _maximum ='))
+        self.assertLess(server.index('!finite _configuredMaximum'),server.index('nearEntities'))
+
         self.assertGreaterEqual(step.count(dismount_guard),3)
         self.assertIn('private _footFit = _fit select {isNull objectParent _x}',apply)
         self.assertIn('count _footFit >= 3',apply)

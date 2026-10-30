@@ -3,6 +3,10 @@
  * Creates a bounded cross-owner support-discovery request or upgrades its remaining capacity for armour.
  * Snapshot nearby unique groups once; the existing support FSM scores at most eight per callback.
  * Request creation does not synchronously inspect every candidate transmitter/roster.
+ * Believed coordinates must be finite before geometry or existing-request reactivation.
+ * Fresh responder-count policy must be numeric, finite and nonnegative before arithmetic;
+ * invalid mission overrides refuse instead of creating an unreachable/unbounded request.
+ * Existing requests keep their captured limits and deadlines across settings changes.
  * The validated response radius is captured once as NEXT_OPERATION policy; discovery and
  * every responder lease retain it rather than rereading a later settings value.
  * Locality/authority: server owns reservations; current group owners validate and execute orders.
@@ -36,7 +40,7 @@ if (!isServer || {isNull _requester} || {remoteExecutedOwner > 0 && {remoteExecu
     || {!([_requester,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
     || {!_supportEnabled}
     || {!([_requester] call CBE_fnc_CortexIsEligible)} || {isNull _requesterTransmitter}
-    || {count _enemy != 3} || {_enemy findIf {!(_x isEqualType 0)} >= 0}) exitWith {};
+    || {count _enemy != 3} || {_enemy findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {};
 private _requests = missionNamespace getVariable ["CBE_AIPass_SupportRequests",createHashMap];
 private _key = netId _requester;
 private _existing = _requests getOrDefault [_key,createHashMap];
@@ -49,6 +53,7 @@ if (count _existing > 0) exitWith {
 };
 if (count _requests >= 32) exitWith {};
 private _configuredMaximum = missionNamespace getVariable ["CBE_AIPass_Reinforce_MaxResponders",2];
+if (!(_configuredMaximum isEqualType 0) || {!finite _configuredMaximum} || {_configuredMaximum < 0}) exitWith {};
 private _maximum = ([_configuredMaximum,_configuredMaximum max 2] select _requesterCoordinated) + ([0,1] select _at);
 if (_maximum <= 0) exitWith {};
 private _radius = missionNamespace getVariable ["CBE_AIPass_Reinforce_Radius",600];

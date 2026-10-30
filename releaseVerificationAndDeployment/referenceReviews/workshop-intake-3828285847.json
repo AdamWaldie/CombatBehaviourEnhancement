@@ -1,0 +1,36 @@
+{
+  "workshopId": "3828285847",
+  "name": "PROTOCOL AI AIRCRAFT - BOMBS & ROCKETS",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3828285847",
+  "added": "2026-10-30",
+  "priority": "1 Protocol programme",
+  "status": "REGISTERED_LOCAL_PACKAGES_PRESENT_SOURCE_REVIEW_PENDING",
+  "scope": "Evaluate the complete relevant aircraft AI scope, with initial focus on bomb/rocket attack intent, and select useful methods for existing CBE aircraft/support owners. Do not assume filename or overview establishes individual functionality.",
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3828285847",
+  "identityEvidence": "User-supplied Workshop URL and matching installed folder; mod.cpp/meta.cpp read. Both meta.cpp files have publishedid0, so local metadata is not independent confirmation of Workshop binding. Workshop page inaccessible through browser tool; first ID search returned no result.",
+  "packageCount": 1,
+  "files": {
+    "mod.cpp": "52f1ad068fce764e0c39d57087867daaa0ef7293b7017e26b3f60a6b512401cb",
+    "meta.cpp": "06eeff1b444a86b737859d6905bf8fcce424c4873ffde4df0fcf1917bf24151f",
+    "addons/protocol_ai_aircraft.pbo": "c38af1b322631ccb3a055e0eca4c2e4283471730eb2bf8380b184e45e96c06ab"
+  },
+  "evaluationTopics": [
+    "Review all startup/config/FSM/SQF paths, actual bomb/rocket weapon/operator selection, attack approach/release and abort/return behaviour where present.",
+    "Compare with CBE aircraft attack, CAS and flight ownership, actual station/ammunition, native knowledge, friendly/civilian safety and mission ROE.",
+    "Keep one owner-local finite executor, exact task/native handover, interruption/locality/repeat cleanup and bounded execution. Retain useful methods; fix or reject unsafe shortcuts."
+  ],
+  "dependencies": "UNVERIFIED; inspect actual addon configuration/registration and runtime calls.",
+  "licence": "UNVERIFIED; establish original upstream and component-specific reuse rights before incorporating code.",
+  "sourceProtection": "Installed originals/signatures/assets and preserved references are read-only; do not edit/repack/execute source addons or include raw reference code/assets in product. Use separately dated private extracts for later review.",
+  "sourceReview": "NOT_STARTED; package presence/hashes and metadata only. No extraction, execution, source parity, feature implementation or physical acceptance claimed.",
+  "ordering": "After current foundations/FSM work, following source register; merge selected AI methods through existing owners. Compatibility expansion remains last.",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "masterLedger": "Historical LOCAL_IMPLEMENTATION_LEDGER.md absent; tracked intake and recoverable source-review map preserve this request.",
+  "metadataNames": {
+    "mod.cpp": "PROTOCOL AI AIRCRAFT",
+    "meta.cpp": "PROTOCOL AI AIRCRAFT - BOMBS & ROCKETS"
+  },
+  "authorMetadata": "Biden"
+}

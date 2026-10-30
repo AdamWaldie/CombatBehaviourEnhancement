@@ -897,8 +897,8 @@
       "name": "Pinned Down Conductor",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Coordination contribution to identify",
-      "reviewStatus": "Complete selected classifier/refresh/ammo/effectiveness, candidate/proposal, borrowing/dispatch/return and readable garrison bodies reviewed; request/contact/provider and whole source graph incomplete",
-      "nextSourceReview": "Candidate dirty23/matching326/proposal85 bodies reviewed; retain CBE local-envelope8-candidate slices and actual-owner permission, no new global registry or copied scores. Next requestSupport295/getSupportDestination34/getRequestActiveLeaseIds17 against finite CBE request/contact lifecycle before return-to-post/suitability changes. Native ingestion/provider quiescence and physical performance unproved.",
+      "reviewStatus": "Complete selected request/incident/destination/close, candidate/proposal, classifier and garrison/support bodies reviewed; contact/provider/expiry caller and whole source graph incomplete",
+      "nextSourceReview": "Request295/destination34/active-lease17/close34/reporter-clear59 bodies reviewed; CBE finite-coordinate/fresh-policy guard implemented. Next contact/provider register20/receive49/report99/relay72/scan46 and actual expiry/clear delivery paths against native knowledge/communication ownership. No whole incident/return-to-post parity or native quiescence claim.",
       "recordedImplementationStatus": "SELECTED_PRESSURE_SUPPORT_POLICY_AND_AMMO_ADMISSION_IMPLEMENTED_WHOLE_SOURCE_INCOMPLETE",
       "recordedRemaining": "Selected support policy/ammo, roof/watch and bounded medic/MG post preferences implemented. Explicit garrison weapon roles, full marksman/observer/AA model, actual native-end acknowledgement, whole source graph and physical/performance validation remain incomplete.",
       "implementationAssessmentCommit": "ca778db2",
@@ -936,7 +936,8 @@
       "staticRetirement20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#staticRetirement20261030",
       "supportBorrowingSource20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#supportBorrowingSource20261030",
       "capabilityAvailability20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#capabilityAvailability20261030",
-      "candidateProposalSource20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#candidateProposalSource20261030"
+      "candidateProposalSource20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#candidateProposalSource20261030",
+      "requestLifecycleFinite20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#requestLifecycleFinite20261030"
     },
     {
       "workshopId": "3800356547",
@@ -1187,6 +1188,44 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      }
+    },
+    {
+      "workshopId": "3828285847",
+      "name": "PROTOCOL AI AIRCRAFT - BOMBS & ROCKETS",
+      "priority": "1 Protocol programme",
+      "candidateContribution": "Evaluate the complete relevant aircraft AI scope, with initial focus on bomb/rocket attack intent, and select useful methods for existing CBE aircraft/support owners. Do not assume filename or overview establishes individual functionality.",
+      "reviewStatus": "Registered local metadata/packages; readable source and actual behaviour review pending",
+      "nextSourceReview": "Review the tracked intake topics and protected package identity, extract into a separate private dated folder, and trace config/FSM/scripts and original upstream attribution before selecting implementation.",
+      "recordedImplementationStatus": "REGISTERED_LOCAL_PACKAGES_PRESENT_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Complete source/behaviour/dependencies/licence review and selected intent integration; no implementation or physical acceptance.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3828285847.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3828285847",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata and package hashes only; not readable source review or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3829519860",
+      "name": "Universal AI",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate the AI bundle component by component for unique useful behaviour and potential CBE integration. Cherry-pick, combine, fix and improve AI intent; no wholesale bundle import, automatic dependency or parity claim.",
+      "reviewStatus": "Registered local metadata/packages; readable source and actual behaviour review pending",
+      "nextSourceReview": "Review the tracked intake topics and protected package identity, extract into a separate private dated folder, and trace config/FSM/scripts and original upstream attribution before selecting implementation.",
+      "recordedImplementationStatus": "REGISTERED_LOCAL_PACKAGES_PRESENT_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Complete source/behaviour/dependencies/licence review and selected intent integration; no implementation or physical acceptance.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3829519860.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3829519860",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata and package hashes only; not readable source review or behaviour proof."
       }
     }
   ],
