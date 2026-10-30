@@ -2737,3 +2737,10 @@ Native treatment actions remain untouched when their writer and target cannot be
 Active medical retries now require an idle medic command or the exact previously requested approach MOVE, already checked against the original destination. The patient must be idle or following its ordinary formation. ACTION, HEAL, other medical actions, a medic FOLLOW and unknown commands cannot be overwritten merely because eight seconds elapsed. Both approach retries and additional HealSoldier requests use this gate. Busy work waits within the original aid deadline; its command name does not establish its owner, target or completion.
 
 The original kit, actor, reservation, native-order, generation and epoch checks remain. There is no CancelAction, medicStop, new timer, handler, worker, health mutation or deadline extension. Initial admission retains its existing native-task exclusions. This prevents retries over reported busy commands; it does not establish that every native animation/action is exposed by currentCommand or prove treatment quiescence. Physical treatment, formation return and normal/HC/JIP behaviour remain unverified while audits are paused.
+
+
+## Retain screened fleeing positions before quiet rejoin (30 October 2026)
+
+An idle fleeing soldier now receives the existing material-screen observation before either quiet formation rejoin or escape search. Previously, quiet rejoin could request FOLLOW first and bypass that observation. A screened current position receives no CBE movement request; this is no forced hold, safe-room verdict or protection from every threat. Native engine and mission orders retain control.
+
+Unscreened actors retain the existing quiet rejoin and finite escape rules. There is no new controller, timer, posture/speed reset, reservation or renewed deadline. Non-quiet observations keep their existing query count. A previously successful quiet rejoin now costs at most one terrain intersection and one object ray with four returned surfaces, under the unchanged group2second/actor15second throttle. Actual shelter retention, native return and measured performance remain unverified while audits are paused.

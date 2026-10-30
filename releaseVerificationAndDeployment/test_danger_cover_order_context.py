@@ -174,7 +174,13 @@ class CoverOrderContextTests(unittest.TestCase):
         self.assertIn('["RELEASE",_x] call CBE_fnc_DangerFlight',discovery)
         reserved=(ROOT/'addons/infantry/functions/cortexActorMoveReserved.sqf').read_text(encoding='utf-8')
         self.assertLess(reserved.index('CBE_Danger_FlightLease'),reserved.index('private _expired='))
-        rejoin=flight.split('if (_quietRejoin) exitWith',1)[1].split('private _rayStart=',1)[0]
+        # A sheltered fleeing actor must not receive CBE's quiet formation request
+        # before its existing material-screen observation can retain that position.
+        screen=flight.index('call CBE_fnc_CortexCoverScreened) exitWith {0};')
+        self.assertLess(screen,flight.index('if (_quietRejoin) exitWith'))
+        self.assertLess(flight.index('CBE_Danger_FlightSearchAfter",time+2'),screen)
+        self.assertLess(flight.index('CBE_Danger_FlightAfter",time+15'),screen)
+        rejoin=flight.split('if (_quietRejoin) exitWith',1)[1].split('call CBE_fnc_CortexFindCover',1)[0]
         self.assertIn('_actor doFollow _leader',rejoin)
         rejoin_anchor=flight.split('private _leader=formLeader _actor;',1)[1].split('private _physicalUntil=',1)[0]
         for proof in ('_leader == _actor','group _leader != _group',

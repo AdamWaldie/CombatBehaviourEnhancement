@@ -20,6 +20,8 @@
  * Example: ["START",soldier1,[2,[100,200,0],time+1,objNull]] call CBE_fnc_DangerFlight;
  * Quiet, distant group-only contact may hand an idle follower back to native formation once.
  * Recent personal contact, physical hazards and suppression never grant that rejoin path.
+ * Current material screening is observed before quiet rejoin or cover search; a screened
+ * idle actor receives no CBE movement request. This is not native hold or general safety.
  * Quiet rejoin prefers the current usable native formation anchor, with squad-leader fallback.
  * Native rejoin acquires no flight lease; its request is not acknowledgement or travel.
  * Arrival is a position result, not proof of effective cover or renewed morale. Failed exact
@@ -220,6 +222,12 @@ private _quietRejoin=_cause in [0,3,8] && {_origin distance2D _threat > 75}
     && {[_leader] call CBE_fnc_CortexCombatEffective} && {isNull objectParent _leader}
     && {simulationEnabled _leader} && {!isObjectHidden _leader}
     && {_actor distance2D _leader > 8};
+private _rayStart=(AGLToASL _threat) vectorAdd [0,0,1.6];
+// Observe current material screening before either movement branch, including quiet
+// rejoin. Formation restoration alone must not pull an idle actor out of this shelter.
+// This is no hold order, safe-room verdict or protection against other threat bearings.
+if ([_rayStart,(getPosASL _actor) vectorAdd [0,0,1],_actor,"COVER"]
+    call CBE_fnc_CortexCoverScreened) exitWith {0};
 if (_quietRejoin) exitWith {
     if (call _available && {fleeing _actor} && {_entry isEqualTo (call _context)}
         && {currentCommand _actor == ""} && {abs speed _actor < 0.5}
@@ -231,10 +239,6 @@ if (_quietRejoin) exitWith {
     };
     0
 };
-private _rayStart=(AGLToASL _threat) vectorAdd [0,0,1.6];
-// Already screened actors keep their native position. Never force them out into another route.
-if ([_rayStart,(getPosASL _actor) vectorAdd [0,0,1],_actor,"COVER"]
-    call CBE_fnc_CortexCoverScreened) exitWith {0};
 ([_origin,_threat,18,[],_group,"COVER",_actor] call CBE_fnc_CortexFindCover) params ["_goal","_found"];
 // Exterior cover remains preferred. Native refuge metadata never proves access.
 if (!_found) then {
