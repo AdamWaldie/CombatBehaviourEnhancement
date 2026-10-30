@@ -2,6 +2,10 @@
  * Author: WaldoTheWarfighter
  * Optional internal parent taskDeadline only shortens this episode; areaTaskToken fences preparation.
  * Building geometry identities include scale; stale geometry grants no current task or visit proof.
+ * Automatic cross-owner resume is unavailable until authenticated source/native quiescence
+ * and incoming reconstruction are implemented. Resume now reuses only the exact private
+ * same-owner job through BuildingOperationStart, never the public reconstruction below.
+ * Refusal leaves the durable order and original budgets intact; explicit fresh tasks remain.
  * Resume settings preflight preserves the durable order on known partial/native mismatch,
  * rechecking original canonical/mirror/motion snapshots before operation mutation.
  * Resume startup refuses known actor settings/motion adoption failures; this is not
@@ -194,6 +198,32 @@ if (_resumeRequested && {!(call _resumeCurrent)}) exitWith {["RESUME_ORDER_CHANG
 private _building = if (_target isEqualType objNull) then {_target} else {nearestBuilding _target};
 if (_resumeRequested && {(_previous param [0,objNull,[objNull]]) != _building}) exitWith {
     ["RESUME_TARGET_CHANGED"] call _refuse
+};
+// Independently replicated journals cannot authorize a new producer. Until the sealed
+// incoming executor exists, resume may only reuse the actual private same-owner job.
+// This preserves private phases, reservations, clocks and spent attempts without decoding
+// an incomplete public checkpoint or consuming/replacing the durable order.
+if (_resumeRequested) exitWith {
+    private _continued=false;
+    private _resumeFailure="RESUME_TRANSFER_UNSEALED";
+    isNil {
+        private _producer=_group getVariable ["CBE_BuildingBrain",createHashMap];
+        private _originalJob=_producer getOrDefault ["job",createHashMap];
+        if (!(call _resumeCurrent)
+            || {_admissionEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+            || {(_producer getOrDefault ["producerOwner",-1]) != clientOwner}
+            || {(_producer getOrDefault ["ownerEpoch",-1]) != _admissionEpoch}
+            || {(_producer getOrDefault ["generation",-1]) != _admissionGeneration}
+            || {_producer getOrDefault ["cancelled",false]}
+            || {_producer getOrDefault ["finished",false]}
+            || {(_originalJob getOrDefault ["group",grpNull]) isNotEqualTo _group}
+            || {(_originalJob getOrDefault ["building",objNull]) isNotEqualTo _building}
+            || {(_originalJob getOrDefault ["visitContext",[]]) isNotEqualTo (_group getVariable ["CBE_Cortex_ClearVisitContext",[]])}) exitWith {};
+        _resumeFailure="RESUME_EXECUTOR_REFUSED";
+        _continued=[_originalJob] call CBE_fnc_BuildingOperationStart;
+    };
+    if (!_continued) then {[_resumeFailure] call _refuse};
+    _continued
 };
 if (isNull _building) exitWith {
     [] call _retireResume;

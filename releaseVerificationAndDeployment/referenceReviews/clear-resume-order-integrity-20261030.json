@@ -33,5 +33,37 @@
     "fingerprint": "54eade177b192b860db8c7becda339145ef9039ad4fef61b1c1f74bb33a01f01",
     "independent": ".qa/handovers/clear-order-integrity-independent-20261030.log:exit0 matching fingerprint",
     "packageSource": "Unsigned development source base304d285b plus actual delivered runtime/config/test/lifecycle-guide changes; dirty=true. Engineering metadata finalized afterward. Not physical/native/sealed handover evidence."
+  },
+  "originalExecutorIsolation20261030": {
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_NO_CROSS_OWNER_RESUME",
+    "sourceIntent": "Protocol CQB source-register entry and existing LAMBS building-task lifecycle: one finite movement owner, retained clearance progress, interruption and repeat use. No upstream code copied.",
+    "actualPath": [
+      "CortexDiscover unapplied clear",
+      "CortexClearBuilding resume request",
+      "exact machine-private BuildingBrain/job",
+      "BuildingOperationStart live duplicate or one ended-executor restart"
+    ],
+    "finding": "No receiver consumes CANDIDATE_UNSEALED. The previous public-journal resume path could still reconstruct a successor without actual old-writer retirement or complete original private state.",
+    "change": "Resume now exits through actual original same-owner job only, inside the unscheduled identity/start boundary. Missing/foreign/cancelled/finished producers defer without consuming the durable order or issuing replacement commands. Discovery does not poll absent/foreign producers. Fresh explicit tasks remain available.",
+    "preserved": [
+      "Exact job phase, reservations, spent retries, room progress and original deadlines",
+      "Existing BuildingOperationStart one-restart limit, live-worker reuse, native route/geometry/current operation gates and original egress window",
+      "No new query, worker, timer, replicated marker or command writer"
+    ],
+    "limits": [
+      "Automatic cross-owner clearance resume deliberately unavailable until sealed all-writer/native/settings proof and incoming phase reconstruction are implemented",
+      "No claim of improved physical entry/flow, HC/JIP acceptance or measured performance; audits PAUSED",
+      "Existing public-journal reconstruction code is retained below the early resume exit as unfinished integration material, not an executable transfer path"
+    ],
+    "verification": {
+      "focused": ".qa/handovers/clear-original-executor-focused-20261030.log:3 existing cases passed",
+      "initialFull": ".qa/handovers/clear-original-executor-build-20261030.log:one stale startup-order assertion matched the new original-job call; scoped to the actual reconstructed-job startup, no checks skipped",
+      "full": ".qa/handovers/clear-original-executor-final-build-20261030.log:1505existing tests,488SQF,11PBOs; config/FSM/docs/wiki/parity/coverage/static performance0findings passed",
+      "candidate": ".qa/candidates/clear-original-executor-20261030-55d0b743",
+      "fingerprint": "19a24fb1fa5db51741b6116f67dfb9f0075762c711293dca81045f0b5603b702",
+      "independent": ".qa/handovers/clear-original-executor-independent-20261030.log:exit0 matching fingerprint",
+      "source": "Unsigned development base55d0b743 plus this runtime/test/lifecycle-guide change, dirty=true. Engineering metadata finalized after packaging.",
+      "physical": "NOT RUN; audits PAUSED"
+    }
   }
 }

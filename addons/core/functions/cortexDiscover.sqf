@@ -241,7 +241,15 @@ if (_tacticalReference isEqualType [] && {count _tacticalReference == 5}) then {
             };
             _clear=_group getVariable ["CBE_AIPass_ClearOrder",[]];
         };
+        // No polling/reconstruction from unsealed network state after owner loss.
+        // Only the original private producer may use same-owner executor recovery.
+        private _clearProducer=_group getVariable ["CBE_BuildingBrain",createHashMap];
         if (_clear isNotEqualTo [] && {!(_group getVariable ["CBE_AIPass_ClearApplied", false])}
+            && {(_clearProducer getOrDefault ["producerOwner",-1]) == clientOwner}
+            && {(_clearProducer getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+            && {(_clearProducer getOrDefault ["generation",-1]) == (_group getVariable ["CBE_AIPass_ClearGeneration",-2])}
+            && {!(_clearProducer getOrDefault ["cancelled",false])}
+            && {!(_clearProducer getOrDefault ["finished",false])}
             && {[_clear] call CBE_fnc_ClearOrderValid}) then {
             [_group, _clear select 0, createHashMapFromArray [["resume", true],["resumeOrder",+_clear],["resumeGeneration",_group getVariable ["CBE_AIPass_ClearGeneration",0]]]] call CBE_fnc_CortexClearBuilding;
         };

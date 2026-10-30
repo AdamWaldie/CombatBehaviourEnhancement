@@ -12,7 +12,8 @@
  * are checked in one unscheduled startup block. A repeated start for its live identical job
  * reuses the existing brain; stale work never stamps a new epoch or cancels a successor.
  * Replaces an older clear generation or one ended matching executor. Public room evidence remains durable and a
- * new owner reconstructs actor assignments through the ordinary clear-order resume path.
+ * cross-owner automatic reconstruction is held until a sealed incoming executor exists.
+ * Same-owner resume retains this actual job rather than rebuilding from public progress.
  * Arguments: 0: prepared building job <HASHMAP>.
  * Return Value: Boolean - true when a building brain was started for the current owner.
  * A new producer clears this machine's previous private outgoing lane capture.

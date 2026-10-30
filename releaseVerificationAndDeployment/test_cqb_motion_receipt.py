@@ -86,7 +86,7 @@ class MotionReceiptTests(unittest.TestCase):
     def test_resume_adopts_before_start_without_stopping_owned_move(self):
         text=read('cortexClearBuilding.sqf')
         adopt=text.index('["ADOPT",_motionActor,_job]')
-        self.assertLess(adopt,text.index('call CBE_fnc_BuildingOperationStart'))
+        self.assertLess(adopt,text.index('if !([_job] call CBE_fnc_BuildingOperationStart)'))
         reserve=text.split('private _checkResumeReserveMotion={',1)[1].split('private _actors=createHashMap;',1)[0]
         self.assertIn('count (_stageBudget select 3) > 64',reserve)
         self.assertIn('_stageBudget isNotEqualTo (_group getVariable ["CBE_Cortex_ClearStageBudget",[]])',reserve)

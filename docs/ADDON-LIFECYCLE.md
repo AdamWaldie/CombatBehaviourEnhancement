@@ -2627,3 +2627,13 @@ discovery cannot index an invalid resume order into a startup request.
 These data checks do not authenticate a producer, stop an old writer, acknowledge
 native commands/settings or seal a transfer. Complete incoming phase reconstruction
 and physical owner-transfer acceptance remain unfinished; audits are paused.
+
+
+Automatic clearance transfer is currently held rather than reconstructed from unsealed
+network state. A resume request can reuse only its actual private producer/job with
+matching owner, epoch, clear generation and original visit. It delegates to the existing
+BuildingOperationStart lifecycle, preserving original phase, private reservations and
+spent recovery/restart budgets. It never rebuilds the job from public journals. Missing,
+retired or foreign producers refuse before geometry planning or replacement cleanup.
+Discovery avoids repeated startup requests when that original producer is absent.
+A fresh explicit clearance is still a new task; the original handover remains unfinished.

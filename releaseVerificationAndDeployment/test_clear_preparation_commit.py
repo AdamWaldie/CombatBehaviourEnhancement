@@ -38,6 +38,19 @@ class ClearPreparationCommitTests(unittest.TestCase):
         discover=(ROOT/'addons/core/functions/cortexDiscover.sqf').read_text(encoding='utf-8')
         resume=discover.split('if (_clear isNotEqualTo [] && {!(_group getVariable ["CBE_AIPass_ClearApplied", false])}',1)[1]
         self.assertLess(resume.index('call CBE_fnc_ClearOrderValid'),resume.index('_clear select 0'))
+        same_owner=text.split('if (_resumeRequested) exitWith {',1)[1].split('if (isNull _building)',1)[0]
+        for proof in ('isNil {','call _resumeCurrent','producerOwner','clientOwner','ownerEpoch',
+                      '_admissionEpoch','_admissionGeneration','"cancelled"','"finished"',
+                      'CBE_Cortex_ClearVisitContext','RESUME_TRANSFER_UNSEALED',
+                      '[_originalJob] call CBE_fnc_BuildingOperationStart'):
+            self.assertIn(proof,same_owner)
+        for forbidden in ('CortexClearRelease','call CBE_fnc_OperationStart;','setVariable','set [','serverTime+',
+                          'BuildingLaneJournal','CANDIDATE_UNSEALED','remoteExec'):
+            self.assertNotIn(forbidden,same_owner)
+        self.assertLess(text.index('RESUME_TRANSFER_UNSEALED'),text.index('_building buildingPos -1'))
+        for proof in ('producerOwner','ownerEpoch','"generation"','"cancelled"','"finished"'):
+            self.assertIn(proof,discover.split('private _clearProducer=',1)[1].split('// Aircraft occupants',1)[0])
+
 
         self.assertLess(text.index('RESUME_ACTOR_SETTINGS_CHANGED'),text.index('call CBE_fnc_CortexReleaseGroup'))
         self.assertIn('!([false] call _inspectResumeSettings)',text)
@@ -520,7 +533,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertEqual(encoded_clock(25,30,100),95)
         self.assertEqual(encoded_clock(25,40,110),95)  # Same source time, later capture.
         self.assertLess(journal.index('_job set ["laneJournalLastResult",false]'),journal.index('private _positions='))
-        self.assertLess(text.index('if (!_laneAdopted) exitWith'),text.index('call CBE_fnc_BuildingOperationStart'))
+        self.assertLess(text.index('if (!_laneAdopted) exitWith'),text.index('if !([_job] call CBE_fnc_BuildingOperationStart)'))
         preflight=text.split('private _resumeLanePending=false;',1)[1].split('private _generation=-1;',1)[0]
         for proof in ('!_useResumeRoster','count _resumeLanes != 13','_resumeRosterContext','_resumePairs','_positions','arrayIntersect'):
             self.assertIn(proof,preflight)
