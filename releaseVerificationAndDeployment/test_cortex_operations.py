@@ -10507,6 +10507,22 @@ class CortexOperations(unittest.TestCase):
         self.assertNotIn('(_x select 0) == _selectedMagazine || {(_x select 0) in compatibleMagazines _weapon}',controller)
 
     def test_adaptive_air_attack_is_bounded_physical_and_zeus_safe(self):
+        release=source('cortexAirReleaseSafe')
+        for proof in ('CBE_fnc_CortexLineOfFireClear','count _candidates > 64',
+                      '_radius > 250','_points pushBackUnique +_impactASL',
+                      '["CAManBase","LandVehicle","Air","Ship"]','([_entity]+crew _entity)',
+                      'captive _x','ace_captives_isSurrendering','ace_captives_isHandcuffed',
+                      'side _x == civilian','_side getFriend (side _x) >= 0.6'):
+            self.assertIn(proof,release)
+        controller=source('cortexAirAttack')
+        boundary=controller.split('private _releaseSafe=false;',1)[1].split('private _pilotSurfaceRelease=',1)[0]
+        self.assertIn('_validSolution && {_requestAvailable}',boundary)
+        self.assertIn('CBE_fnc_CortexAirReleaseSafe',boundary)
+        self.assertIn('serverTime+1',boundary)
+        self.assertNotIn('deadline',boundary)
+        self.assertNotIn('fireRequestAttempts',boundary)
+        for branch in ('{_pilotSurfaceRelease}','{!_pilotSurfaceRelease}'):
+            self.assertIn('if (_validSolution && {_releaseSafe} && '+branch,controller)
         planner=source('cortexAirAttackPlan')
         belief=planner.split('private _targetPos=[];',1)[1].split('private _ammoCache=',1)[0]
         for proof in ('[_pilot]+((units group _pilot)-[_pilot])','select [0,8]',
@@ -10767,7 +10783,7 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('[_group,_job,"EGRESS","DELIVERY_WINDOW_PASSED"]',controller)
         self.assertIn('_reason="DELIVERY_MISSED"',controller)
         self.assertNotIn('private _nativePlaneDelivery=',controller)
-        self.assertIn('if (_validSolution && {!_pilotSurfaceRelease} && {_requestAvailable}',controller)
+        self.assertIn('if (_validSolution && {_releaseSafe} && {!_pilotSurfaceRelease} && {_requestAvailable}',controller)
         self.assertIn('serverTime < _requestAt+3',controller)
         self.assertIn('_requestAttempts < 2',controller)
         self.assertIn('_job set ["fireRequestAttempts",0]',controller)
@@ -11734,8 +11750,8 @@ class CortexOperations(unittest.TestCase):
         self.assertLess(plan.index('call CBE_fnc_CortexAirWeaponOperatorAvailable'),plan.index('weaponState [_aircraft'))
         job=source('cortexAirAttack')
         self.assertIn('WEAPON_OPERATOR_UNAVAILABLE',job)
-        for branch in ['if (_weapon != ""','if (_validSolution && {_pilotSurfaceRelease}',
-                       'if (_validSolution && {!_pilotSurfaceRelease}']:
+        for branch in ['if (_weapon != ""','if (_validSolution && {_releaseSafe} && {_pilotSurfaceRelease}',
+                       'if (_validSolution && {_releaseSafe} && {!_pilotSurfaceRelease}']:
             block=job.split(branch,1)[1].split('then {',1)[0]
             self.assertIn('CortexAirWeaponOperatorAvailable',block)
         self.assertIn('_operator == _expectedOperator',job)

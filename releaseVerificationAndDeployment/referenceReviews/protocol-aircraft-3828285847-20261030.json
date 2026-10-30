@@ -1,0 +1,68 @@
+{
+  "workshopId": "3828285847",
+  "name": "PROTOCOL AI AIRCRAFT - BOMBS & ROCKETS",
+  "date": "2026-10-30",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3828285847",
+  "sourceIdentity": "User-supplied Workshop URL and matching installed folder; mod.cpp/meta.cpp read. Both meta.cpp files have publishedid0, so local metadata is not independent confirmation of Workshop binding. Workshop page inaccessible through browser tool; first ID search returned no result.",
+  "protectedArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/Protocol/20261030-aircraft-c38af1b3",
+  "sourceHashes": {
+    "extracted/$PBOPREFIX$": "0fac87ac4b9201a31a06aa0fdb26cbb12206f45771ea1868871fd6e0663b1b44",
+    "extracted/bis_addoninfo.hpp": "90a262913822d5b96b47cdd1f10d279ccfbffded1aa2920f0621fbe849dae215",
+    "extracted/config.bin": "d031a857bca1d04281ff96585b2712a3b4dff80f85e7d8475598811725e03dd7",
+    "extracted/config.cpp": "1bce1b7104dc57e1273a1f7729d8078bd4031ccd9c9c37a86c44dcd5e5688b7a",
+    "extracted/functions/fn_aircraft.sqf": "c72f2325d580d7c8340526877a34eda0d6df6c805ce425d55500c5aa5769d768",
+    "extracted/XEH_preInit.sqf": "d2eb706b4efd9b6590b05576b24bfc789ae9949afd215a77070e6a282521b567",
+    "original/addons/protocol_ai_aircraft.pbo": "c38af1b322631ccb3a055e0eca4c2e4283471730eb2bf8380b184e45e96c06ab",
+    "original/meta.cpp": "06eeff1b444a86b737859d6905bf8fcce424c4873ffde4df0fcf1917bf24151f",
+    "original/mod.cpp": "52f1ad068fce764e0c39d57087867daaa0ef7293b7017e26b3f60a6b512401cb"
+  },
+  "readableScope": "Complete config/preInit and all1063 lines of functions/fn_aircraft.sqf read; four original PBO members, no source execution. Requires A3_Data_F and cba_xeh. No FSM in package.",
+  "sourcePaths": [
+    {
+      "path": "fn_aircraft.sqf:1-380",
+      "intent": "Helicopter target/ordnance pairing, ingress/attack/egress and finite salvos.",
+      "disposition": "Merge into existing finite AirAttackPlan/AirAttack owner; retain real loaded station, native knowledge and physical Fired evidence. Reject global allUnits/vehicles enemy discovery, injected exact knowledge, duplicate weapon classifications, permanent group overrides, missing wait deadlines and busy-scanning."
+    },
+    {
+      "path": "fn_aircraft.sqf:380-830",
+      "intent": "Fixed-wing approach/release/egress and avoiding immediate repeat target allocation.",
+      "disposition": "Existing CBE finite attack stages, loaded operator state, range/alignment/terrain and bomb integration serve useful intent. Reject skill=1 mutation, reveal4, unbounded waits, busy loops, weak name-based station proof and timers as arrival/release proof. Source lacks protected-actor blast gates; CBE scripted requests now gain one."
+    },
+    {
+      "path": "fn_aircraft.sqf:830-1063",
+      "intent": "Repeated countermeasure bursts during threat exposure.",
+      "disposition": "Combine existing bounded approach/egress flares and MissileDefenceStep warning response through CortexFireCountermeasure. Reject free launcher/ammunition creation, world-wide scans, any-known-enemy flare spam, disabled busy spin and workers ignoring off/ownership after start. Real stock/operator and finite callbacks retained."
+    }
+  ],
+  "implementation": {
+    "owner": "Existing CortexAirAttack operation/flight lease; no new controller, settings, worker, task identity or phase clock.",
+    "selectedChange": "CortexAirReleaseSafe gates both scripted doFire/fireAtTarget branches only when a loaded geometric solution and native retry window are ready. Unsafe observation postpones sampling1s without shot credit or deadline renewal.",
+    "direct": "GUN/ROCKET reuse existing full firing-cone helper; its6000m/64-candidate/land-person scope and position-based limitations remain.",
+    "blast": "BOMB/GUIDED use target endpoint and optional required finite3D predicted bomb impact; max2 native nearEntities queries, <=250m radius, refuse>64 candidates. Radius at least12m, four times indirectHitRange for damaging explosives. Include own platform, Air/Ship/LandVehicle crew, civilians/friends/captives/ACE surrender/handcuffs. Not full flight-path, future motion or fragment proof.",
+    "countermeasures": "Existing real CM station/operator/stock path retained; no resupply."
+  },
+  "limits": "Scoped scripted-release protection, not full Protocol aircraft parity. Native autonomous DESTROY firing is outside the veto; later surface executor exact-target geometry/velocity and native order handback require further review. Physical attack, blast/cone refusals, repeat/migration, real countermeasure use and 5%median/10%p95 overhead remain unverified; audits paused.",
+  "licence": "No licence/reuse grant found in four-member package. Private source archived; independent intent implementation, no raw upstream source/assets shipped.",
+  "currentProductHashes": {
+    "addons/aircraft/functions/cortexAirReleaseSafe.sqf": "ee0d168c021539e7dae70b044e92e7c275a277d1b6fddcc85b50dadfa9d8c0fa",
+    "addons/aircraft/functions/cortexAirAttack.sqf": "797d2c4f9545d2f523f86393e91f59e0c450c04dd523a24b5f3697509b1a4ee3",
+    "addons/aircraft/functions/cortexAirAttackPlan.sqf": "50ce2e612585446254895473d8d1d59f3b83e926ed1721260f0940c33c0a899d",
+    "addons/infantry/functions/cortexFireCountermeasure.sqf": "946516ad5d6ce5c58c3b1e37d70a0bca6508fc73b4f14d4fff36ff6f60cad200",
+    "addons/aircraft/functions/cortexMissileDefenceStep.sqf": "08af36029f73cb068e8938697848c8fe01257146e0b3645063f2beece4565cfd",
+    "addons/infantry/functions/cortexLineOfFireClear.sqf": "7992b0aeb301f18977b24b65465fda0b76ee097b9691bdc408c398e7a19b2e43",
+    "addons/main/CfgFunctions.hpp": "79b83d8a41ad4028c02d11abc08a75f35eebb150e249b46f0f29cde0e8b87059"
+  },
+  "validation": {
+    "source": "PASS9 archive and3 installed hashes; originals unchanged.",
+    "offline": "PASS1506 existing tests,494 compiled SQF,11PBO; full config/FSM/docs/wiki/parity/coverage and static performance0 findings. Extended existing contracts, zero new cases.",
+    "physical": "UNVERIFIED; audits PAUSED",
+    "performance": "UNMEASURED; no new world scan/worker, bounded request-time query only.",
+    "buildLog": ".qa/handovers/protocol-aircraft-release-safety-20261030-build.log",
+    "independent": "PASS unsigned development package verifier",
+    "independentLog": ".qa/handovers/protocol-aircraft-release-safety-20261030-independent.log",
+    "candidate": ".qa/candidates/protocol-aircraft-release-safety-20261030-81ed0216",
+    "fingerprint": "05f271a8d467bcc3008b28df0a3ab19943c10eb3defc19e447933a2af0533c54",
+    "provenance": "Unsigned dirty base81ed0216 plus checked runtime/test/guide/coverage/source-review inputs. Later register/validation/handover metadata separate; not clean future-commit release or signature verification.",
+    "developmentCorrections": "Focused existing contract expected the former branch text; updated assertions to require the added safety gate. Source documentation append initially hit Windows default encoding and was retried explicitly as UTF-8. Full final gates passed."
+  }
+}

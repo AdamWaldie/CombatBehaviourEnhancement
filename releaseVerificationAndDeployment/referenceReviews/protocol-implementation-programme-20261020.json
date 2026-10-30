@@ -453,11 +453,11 @@
       "name": "PROTOCOL AI AIRCRAFT - BOMBS & ROCKETS",
       "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3828285847",
       "metadataSHA256": "52f1ad068fce764e0c39d57087867daaa0ef7293b7017e26b3f60a6b512401cb",
-      "status": "REGISTERED_PENDING_FULL_SOURCE_REVIEW",
+      "status": "READABLE_SOURCE_REVIEWED_SCRIPTED_RELEASE_OFFLINE_VERIFIED_PHYSICAL_PENDING",
       "priority": "After foundations and FSM lifecycle; required Protocol AI queue",
       "disposition": "Review complete AI aircraft bomb/rocket scope; select, fix and improve useful intent in existing CBE aircraft/support owners, no wholesale import.",
-      "review": "workshop-intake-3828285847.json",
-      "remaining": "Config/startup/FSM/scripts, actual behaviour/dependencies/licence and source overlap; implementation, physical and performance validation all pending."
+      "review": "protocol-aircraft-3828285847-20261030.json",
+      "remaining": "Scoped scripted-release protection, not full Protocol aircraft parity. Native autonomous DESTROY firing is outside the veto; later surface executor exact-target geometry/velocity and native order handback require further review. Physical attack, blast/cone refusals, repeat/migration, real countermeasure use and 5%median/10%p95 overhead remain unverified; audits paused."
     },
     {
       "workshopId": "3824564775",
@@ -495,9 +495,5 @@
     "localRegisteredProtocolItems": 11,
     "boundary": "Prior readable/binary review checkpoints cover their dated original sources only; the new item has metadata/package inventory, not source-review or implementation credit. This is not proof that every Workshop Protocol item has been discovered."
   },
-  "currentFocus20261030": {
-    "direction": "User explicitly prioritises Protocol AI additions; merge and improve strongest useful methods through existing CBE owners, foundations first within each batch.",
-    "current": "Jamming AI radio-denial fields; no copied player muting, forced UAV physics or persistent loops.",
-    "next": "Protocol aircraft3828285847 complete relevant source comparison and selected integration; all other Protocol gaps remain in queue."
-  }
+  "currentFocus20261030": "Protocol-first: aircraft3828285847 complete readable comparison and scoped scripted-release safety checkpoint offline verified. Merge best useful methods through existing owners; continue remaining Protocol capability gaps. Audits paused."
 }

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Scripted fire requests share CortexAirReleaseSafe; native autonomous fire is outside its veto.
  * Execution and Fired guidance require the original live common operation generation/owner
  * epoch as well as the aircraft flight lease. Cancelled/replaced operations cannot keep attacking.
  * Existing stage deadlines gate execution before planning/command side effects and at shared
@@ -1120,8 +1121,19 @@ if (_stage == "ATTACK") then {
         && {serverTime < _requestAt+3};
     private _requestAvailable=_requestProducedShot || {_requestAt < 0}
         || {!_requestPending && {_requestAttempts < 2}};
+    // Sample protected positions only when an otherwise ready scripted request is due.
+    // One observation gates both native request branches; an unsafe result never renews
+    // phase/operation clocks or counts as a shot attempt. Native DESTROY may fire independently.
+    private _releaseSafe=false;
+    if (_validSolution && {_requestAvailable}
+        && {serverTime >= (_job getOrDefault ["nextWeaponFire",0])}) then {
+        _releaseSafe=[_operator,aimPos _target,_selectedMagazine,_weaponClass,_predictedBombImpact]
+            call CBE_fnc_CortexAirReleaseSafe;
+        _job set ["releaseSafety",[_releaseSafe,serverTime]];
+        if (!_releaseSafe) then {_job set ["nextWeaponFire",serverTime+1]};
+    };
     private _pilotSurfaceRelease=_pilotSurfaceStation;
-    if (_validSolution && {_pilotSurfaceRelease} && {_requestAvailable}
+    if (_validSolution && {_releaseSafe} && {_pilotSurfaceRelease} && {_requestAvailable}
         && {[_aircraft,_group,_operator] call CBE_fnc_CortexAirWeaponOperatorAvailable}
         && {serverTime >= (_job getOrDefault ["nextWeaponFire",0])}) then {
         // The attached DESTROY waypoint establishes the run but does not consistently ask a
@@ -1141,7 +1153,7 @@ if (_stage == "ATTACK") then {
         };
         _job set ["nextWeaponFire",serverTime+_pilotFireDelay];
     };
-    if (_validSolution && {!_pilotSurfaceRelease} && {_requestAvailable}
+    if (_validSolution && {_releaseSafe} && {!_pilotSurfaceRelease} && {_requestAvailable}
         && {[_aircraft,_group,_operator] call CBE_fnc_CortexAirWeaponOperatorAvailable}
         && {serverTime >= (_job getOrDefault ["nextWeaponFire",0])}) then {
         // One native request at a time for an independently aimed turret. Fixed-wing pilots are

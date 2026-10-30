@@ -1195,18 +1195,18 @@
       "name": "PROTOCOL AI AIRCRAFT - BOMBS & ROCKETS",
       "priority": "1 Protocol programme",
       "candidateContribution": "Evaluate the complete relevant aircraft AI scope, with initial focus on bomb/rocket attack intent, and select useful methods for existing CBE aircraft/support owners. Do not assume filename or overview establishes individual functionality.",
-      "reviewStatus": "Registered local metadata/packages; readable source and actual behaviour review pending",
-      "nextSourceReview": "Review the tracked intake topics and protected package identity, extract into a separate private dated folder, and trace config/FSM/scripts and original upstream attribution before selecting implementation.",
-      "recordedImplementationStatus": "REGISTERED_LOCAL_PACKAGES_PRESENT_SOURCE_REVIEW_PENDING",
-      "recordedRemaining": "Complete source/behaviour/dependencies/licence review and selected intent integration; no implementation or physical acceptance.",
-      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3828285847.json",
+      "reviewStatus": "Complete readable source compared; scripted release veto implemented and offline verified; physical/performance pending.",
+      "nextSourceReview": "Continue remaining Protocol capabilities; aircraft native autonomous firing, later exact-target execution, handback and physical/performance proof remain open.",
+      "recordedImplementationStatus": "READABLE_SOURCE_REVIEWED_SCRIPTED_RELEASE_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+      "recordedRemaining": "Scoped scripted-request veto only, not whole-aircraft parity or physical acceptance.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/protocol-aircraft-3828285847-20261030.json",
       "evidenceFilePresent": true,
-      "implementationReassessedByThisMap": false,
+      "implementationReassessedByThisMap": true,
       "installedDirectoryObservation": {
         "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3828285847",
         "present": true,
         "observedAt": "2026-10-30",
-        "scope": "Metadata and package hashes only; not readable source review or behaviour proof."
+        "scope": "Original3 hashes verified; complete readable source in protected private dated archive, no addon execution."
       }
     },
     {
