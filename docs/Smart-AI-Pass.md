@@ -110,6 +110,9 @@ Cortex building actions use a finite physical progression:
 
 **Clear** sweeps reachable interior positions then establishes security.
 **Garrison** occupies defensible interior positions with exterior security. Walking is the default.
+On physical interior arrival, the outward watch point keeps the defender's current eye altitude across
+terrain and floors. Exterior guards retain their assigned exit watch point. This is a watch-height
+correction, not proof of a clear firing lane or role-aware defensive post selection.
 Mission scripts can explicitly request instant interior placement with
 `[group soldier1, getPosATL house1, 40, createHashMapFromArray [["teleport",true]]] call CBE_fnc_CortexGarrison;`.
 This option runs once on the group owner during a fresh order, using the same interior slot selection;

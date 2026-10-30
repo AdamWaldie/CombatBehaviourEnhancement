@@ -897,8 +897,8 @@
       "name": "Pinned Down Conductor",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Coordination contribution to identify",
-      "reviewStatus": "Selected pressure/support/capacity and garrison operator-role-release branches reviewed; full activation/tick/provider graph incomplete",
-      "nextSourceReview": "Finish Conductor actual garrison activation/tick/native-seat lifecycle before explicit static/turret option; reconcile role-specific firing/protected posts with actual geometry and accessibility. Do not duplicate contact StaticSupport, label height sorting as firing quality, copy broad resets or assume provider quiescence. See conductor-garrison-role-graph-20261030.json; remaining registry/contact/support/proposal/provider graph still incomplete.",
+      "reviewStatus": "Selected pressure/support/capacity and readable garrison activation/tick/role/release bodies reviewed; scheduler/provider graph and explicit weapon/role functionality incomplete",
+      "nextSourceReview": "For explicit garrison weapons: inspect source scheduler registration and actual CBE boarding/actor/station/native handback owners, then integrate finite boarding and dismount/replacement lifecycle into existing task. Source activation/tick bodies now reviewed; whole provider graph still incomplete. Implement bounded role-aware protected/firing post selection using actual weapon capability, firing field and accessibility; reviewed source role/LOS intent is not supplied by current height sorting or the isolated watch-height correction.",
       "recordedImplementationStatus": "SELECTED_PRESSURE_SUPPORT_POLICY_AND_AMMO_ADMISSION_IMPLEMENTED_WHOLE_SOURCE_INCOMPLETE",
       "recordedRemaining": "Selected morale/support policy/ammo work is implemented. Explicit garrison weapon roles and role-aware firing/protected post selection are not implemented by existing contact statics/height sorting. Whole coordinator/provider/registry/contact/activation/tick graphs and physical/performance evidence remain incomplete.",
       "implementationAssessmentCommit": "ca778db2",
@@ -922,7 +922,8 @@
       "platformPressure20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-platform-pressure-20261030.json",
       "supportRadiusPolicy20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-support-radius-policy-20261030.json",
       "supportPrimaryCapacity20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-support-primary-capacity-20261030.json",
-      "garrisonRoleGraph20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json"
+      "garrisonRoleGraph20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json",
+      "garrisonWatchHeight20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#lifecycleAndWatchCorrection20261030"
     },
     {
       "workshopId": "3800356547",

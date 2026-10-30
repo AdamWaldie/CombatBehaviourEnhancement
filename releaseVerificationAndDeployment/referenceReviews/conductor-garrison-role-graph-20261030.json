@@ -3,7 +3,7 @@
   "date": "2026-10-30",
   "sourceBase": "6e999df28909b9bf93a034b4687a8909d6194eec",
   "workshopId": "3799629858",
-  "status": "SELECTED_READABLE_OPERATOR_ROLE_AND_RELEASE_GRAPH_RECONCILED_EXPLICIT_MANNING_AND_FIRE_POST_GAPS_NOT_IMPLEMENTED",
+  "status": "READABLE_GARRISON_ACTIVATION_TICK_ROLE_RELEASE_REVIEWED_INTERIOR_WATCH_HEIGHT_CORRECTED_WEAPON_AND_ROLE_TASK_GAPS_OPEN",
   "sources": [
     {
       "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/config.cpp",
@@ -63,10 +63,16 @@
       "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/garrison/fn_activateGarrison.sqf",
       "sha256": "377b06f3509b37fb66344e821933abe143c88843f1ff6aad2a116269ac8e6902",
       "manifestMatch": true,
-      "scope": "Selected static assignment/normal boarding versus forced instant seating and vehicle-turret reservation/assignment branches,400..576. Whole1005line activation and earlier candidate/admission graph incomplete."
+      "scope": "Complete 1005-line readable activation body, assembled from selected 400-576 review and remaining 1-400/577-1005 follow-up. Called helpers and scheduler graph not thereby complete."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/garrison/fn_garrisonTick.sqf",
+      "sha256": "f479b52e3f129ce9b2bfe9538ee358944161d5077eecfbc1c69b6867fb737a8f",
+      "manifestMatch": true,
+      "scope": "Complete 533-line readable tick body; scheduler registration and external owner descendants remain incomplete."
     }
   ],
-  "sourceIntegrity": "Ten inspected extracted-source byte hashes match immutable archive manifest. Original packages remain absent; no source/archive writes, raw source copied or source execution.",
+  "sourceIntegrity": "Eleven inspected extracted-source byte hashes match immutable archive manifest. Original packages remain absent; no source/archive writes, raw source copied or source execution.",
   "productHashes": {
     "addons/main/config.cpp": "ba6d920178ec456f27a3b0aa0a76b18e1264c68a98da22229b7eea085c453383",
     "addons/infantry/functions/moduleGarrison.sqf": "6d12512ea931d71e785bccef883d9501392758ce4bd5c16516f0e8ce0b16787d",
@@ -110,13 +116,65 @@
       "decision": "No new support movement or provider quiescence is established by this review. Provider callback/return graph and actual source ownership inspection remain incomplete; do not adopt public helper flags as execution authority."
     }
   ],
-  "newRuntimeImplementation": false,
+  "newRuntimeImplementation": true,
   "nextRequiredWork": [
-    "Before explicit garrison weapon roles: finish actual activation/tick assignment, bounded worker and release graph, then reuse/adapt one owner-local native boarding transaction with original slot assignment and actual acknowledgement. Expose only implemented per-task options through existing garrison surfaces.",
-    "Before role-aware posts: reconcile source LOS/admission and current bounded geometry/role/assignment rules; do not substitute height ranking or arbitrary actor ordering for the desired firing/protection intent.",
+    "For explicit garrison weapons: inspect source scheduler registration and actual CBE boarding/actor/station/native handback owners, then integrate finite boarding and dismount/replacement lifecycle into existing task. Source activation/tick bodies now reviewed; whole provider graph still incomplete.",
+    "Implement bounded role-aware protected/firing post selection using actual weapon capability, firing field and accessibility; reviewed source role/LOS intent is not supplied by current height sorting or the isolated watch-height correction.",
     "Continue remaining Conductor registry/contact/proposal/support/provider graphs, plus full LAMBS/HBQ/Protocol production scope. No whole-mod percentages from file/helper counts."
   ],
   "validation": {
+    "hashes": "11 source files match immutable archive manifest; 8 initial product hashes and current ApplyLocal hash identify inspected revisions.",
+    "runtime": {
+      "fullBuild": "PASS: 1506 tests, 489 compiled production SQF, 11 PBOs; config/FSM/header/docs/wiki/parity/coverage/static-performance gates. No added test case.",
+      "independentVerification": "PASS",
+      "candidate": ".qa/candidates/garrison-watch-height-20261030-00678f86",
+      "fingerprint": "4ef27e25aa8792c3faf3f2c5133d0eb84ef131227d14bad55a62b3b86e2017b8",
+      "sourceIdentity": "Unsigned development base 00678f86cf81bf61e4c92e47ad41eae474b3da45 plus current runtime and guide inputs; engineering review/handover metadata finalized afterward.",
+      "buildLog": ".qa/handovers/garrison-watch-height-build-20261030.log",
+      "independentLog": ".qa/handovers/garrison-watch-height-independent-20261030.log"
+    },
+    "reviewChecks": "PASS: three reference-boundary tests, documentation/header checks, register/evidence JSON parsing and 11 archive / 9 current product hashes.",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "performance": "UNMEASURED; coordinate arithmetic only; no new queries, callback or controller."
+  },
+  "lifecycleAndWatchCorrection20261030": {
+    "baseCommit": "00678f86cf81bf61e4c92e47ad41eae474b3da45",
+    "sourceScope": "Remaining readable activation lines 1-400 and 577-1005 reviewed, completing the body alongside previously selected 400-576. Entire 533-line garrisonTick body inspected. Source scheduler registration, external helpers and whole Conductor graph remain incomplete.",
+    "tickSource": {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/garrison/fn_garrisonTick.sqf",
+      "sha256": "f479b52e3f129ce9b2bfe9538ee358944161d5077eecfbc1c69b6867fb737a8f",
+      "manifestMatch": true
+    },
+    "findings": [
+      "Activation enumerates up to 501 positions per building across an uncapped nearestObjects result; tests 24 bearings per position and low/front/side/rear cover. This work is not suitable for direct copy into the bounded owner callback.",
+      "Candidate firing watch uses eye-height ASL. Medic prefers covered interior, MG/marksman/observer favour field of fire and height; rifle/AT actors may take close perimeter patrol. Raw height or role order alone does not reproduce this intent.",
+      "Walking tick still setPosATL snaps actors within 2 m, before doStop/PATH lock. Optional stuck teleport also exists; neither is adopted. Medical return and displaced-post retries reset progress clocks and issue broad policy writes.",
+      "Static and turret MANNED require actual gunner/turretUnit. Boarding timeout fallback applies only to source WAYPOINT and only ASSIGNED status; a later dismount from MANNED has no replacement transition. External yield unassigns without exact native assignment receipt. These are not sufficient CBE lifecycle contracts.",
+      "Current CBE arrival watch used getPos [50,bearing], whose alternative syntax returns ground-level Z. This loses upstairs eye altitude and incorrectly follows remote terrain height. Repair only the existing interior watch endpoint in ASL using actual eyePos, then ASLToAGL at endpoint; preserve existing bearing, range, arrival/authority guards, exterior observation and release."
+    ],
+    "implementation": {
+      "path": "addons/infantry/functions/cortexGarrisonApplyLocal.sqf",
+      "sha256": "d57acfc6143e9b63c7a996a55b44a3e603ea9e9c01c7cbed67bacfe21177a9ff",
+      "scope": "Interior settled-watch coordinate correction only. No role-aware allocator, static/turret garrison task, clear-fire proof, new controller, geometry query, native movement or renewed deadline."
+    },
+    "officialCommandReferences": [
+      "https://community.bistudio.com/wiki/getPos?useskin=darkvector",
+      "https://community.bistudio.com/wiki?mobileaction=toggle_view_desktop&title=eyePos&useskin=vector",
+      "https://community.bistudio.com/wiki/Position2D?useskin=darkvector"
+    ],
+    "validation": {
+      "fullBuild": "PASS: 1506 tests, 489 compiled production SQF, 11 PBOs; config/FSM/header/docs/wiki/parity/coverage/static-performance gates. No added test case.",
+      "independentVerification": "PASS",
+      "candidate": ".qa/candidates/garrison-watch-height-20261030-00678f86",
+      "fingerprint": "4ef27e25aa8792c3faf3f2c5133d0eb84ef131227d14bad55a62b3b86e2017b8",
+      "sourceIdentity": "Unsigned development base 00678f86cf81bf61e4c92e47ad41eae474b3da45 plus current runtime and guide inputs; engineering review/handover metadata finalized afterward.",
+      "buildLog": ".qa/handovers/garrison-watch-height-build-20261030.log",
+      "independentLog": ".qa/handovers/garrison-watch-height-independent-20261030.log"
+    },
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "performance": "UNMEASURED; no added search/raycast, callback, controller, setting or network payload."
+  },
+  "initialReviewValidation": {
     "hashes": "All10 selected source files match archive manifest;8 selected product hashes identify current inspected revisions.",
     "reviewChecks": "PASS: 3 reference-boundary tests, source-header/documentation-link checker, register/evidence JSON parsing, 10 immutable archive manifest hashes and 8 current product hashes. Runtime unchanged; no full rebuild repeated.",
     "runtime": "No runtime inputs changed. Retain6e999df2 full1506tests/489SQF/11PBO and independent candidate .qa/candidates/support-primary-capacity-20261030-add7204e, fingerprint0b944dbf435e12ffd7b8c6c066be293a0f9a6e30ef7357308885d7b057053986. No unchanged rebuild.",

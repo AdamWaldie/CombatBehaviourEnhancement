@@ -14,6 +14,8 @@
  * owner and again on any new owner (CBE_fnc_CortexDiscover). Interior arrival requires a
  * 1.5 m/0.75 m floor-aware visit within the building bounds without an intervening building wall.
  * Exterior arrival requires a 2 m/0.75 m supported exterior pose with an actual observation ray.
+ * Interior arrival watches outward at actual eye ASL height, converted at the remote endpoint;
+ * it does not flatten an upstairs watch point to ground or prove a clear firing lane.
  * Other actors retain their native approach. Only validated physical arrival locks PATH; a fixed safety deadline records
  * failure and leaves movement enabled rather than renewing forever around an unreachable doorway.
  * Exhausted interior posts leave this order refill/reassignment pool in one bounded batch;
@@ -522,7 +524,12 @@ private _buildingAnchor = {
                     };
                     _x setVariable ["CBE_AIPass_GarrisonDisabledPath", true, true];
                     _x disableAI "PATH";
-                    private _watch=if ((_assignment param [4,"INTERIOR"]) == "EXTERIOR") then {_assignment select 5} else {(_assignment select 0) getPos [50,_assignment select 1]};
+                    // Preserve exterior exit observation. Interior getPos offsets discard height;
+                    // construct the horizontal watch ray in ASL before converting its endpoint.
+                    private _watch=if ((_assignment param [4,"INTERIOR"]) == "EXTERIOR") then {_assignment select 5} else {
+                        private _bearing=_assignment select 1;
+                        ASLToAGL ((eyePos _x) vectorAdd [50*sin _bearing,50*cos _bearing,0])
+                    };
                     _x doWatch _watch;
                 };
             } else {
