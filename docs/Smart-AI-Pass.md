@@ -3734,3 +3734,10 @@ Each accepted attempt retains its original body/leg thresholds and absolute time
 A medic's original subformation anchor is now retained before assistance begins. When retiring a still-matching CBE approach, cleanup may request return to that same anchor only while it remains current, combat-effective and in the same group. Incapacitation, disabled movement/pathfinding, changed native orders or an unavailable/changed/self anchor grant no recall; cleanup does not substitute a new group leader.
 
 Native treatment actions remain untouched when their writer and target cannot be identified. This change adds no movement-policy reset, waypoint restart or animation override. A follow request is not proof of accepted movement or physical formation rejoin; native treatment-end and complete post-treatment handback remain unfinished, with audits paused.
+
+
+## Medical retries preserve busy native commands (30 October 2026)
+
+Active medical retries now require an idle medic command or the exact previously requested approach MOVE, already checked against the original destination. The patient must be idle or following its ordinary formation. ACTION, HEAL, other medical actions, a medic FOLLOW and unknown commands cannot be overwritten merely because eight seconds elapsed. Both approach retries and additional HealSoldier requests use this gate. Busy work waits within the original aid deadline; its command name does not establish its owner, target or completion.
+
+The original kit, actor, reservation, native-order, generation and epoch checks remain. There is no CancelAction, medicStop, new timer, handler, worker, health mutation or deadline extension. Initial admission retains its existing native-task exclusions. This prevents retries over reported busy commands; it does not establish that every native animation/action is exposed by currentCommand or prove treatment quiescence. Physical treatment, formation return and normal/HC/JIP behaviour remain unverified while audits are paused.

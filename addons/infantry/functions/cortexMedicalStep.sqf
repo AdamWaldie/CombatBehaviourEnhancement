@@ -9,6 +9,9 @@
  * Repeat / JIP: The public operation generation and small aid record are rechecked every group tick. A new owner
  * cancels the old operation rather than resuming a stale treatment command. Approach movement has
  * one native doMove owner and is refreshed only after measured no-progress or an empty command.
+ * Active retries require an idle command or the still-matching owned medic MOVE; native
+ * ACTION/HEAL and unknown work on either actor cannot be overwritten by elapsed retry time.
+ * Busy native work waits within the original deadline; no cancellation action is injected.
  * Authored travel refuses admission; HOLD/SENTRY permits in-place aid only. The captured full native
  * waypoint receipt must match before success and later treatment; changed or missing proof cancels.
  * Admission preserves native MOVE/ATTACK/FIRE/SUPPRESS. During aid only the medic's last requested
@@ -224,7 +227,14 @@ if (_aid isNotEqualTo []) exitWith {
     if (!_inTreatmentRange && {time-_lastProgressAt >= 12}) exitWith {
         ["CANCELLED","NO_PROGRESS"] call _finish
     };
-    if (time-_lastOrderAt >= 8 && {[_medic,_casualty] call _mayIssueMedical}) then {
+    // Generic native action names do not identify their issuer or target, even when
+    // they could be our own treatment. Wait rather than issuing another action or MOVE.
+    // The earlier destination check identifies the sole permitted medic MOVE. FOLLOW
+    // remains ordinary patient formation work; it does not authorize moving the medic.
+    private _nativeWorkFree=currentCommand _medic in ["","NO CMD","STOP","WAIT","MOVE"]
+        && {currentCommand _casualty in ["","NO CMD","STOP","WAIT","FOLLOW"]};
+    if (time-_lastOrderAt >= 8 && {_nativeWorkFree}
+        && {[_medic,_casualty] call _mayIssueMedical}) then {
         if (!_inTreatmentRange) then {
             if (_medic checkAIFeature "MOVE" && {_medic checkAIFeature "PATH"}
                 && {currentCommand _medic in ["","STOP"] || {time-_lastProgressAt >= 8}}) then {

@@ -2580,6 +2580,17 @@ class CortexOperations(unittest.TestCase):
             self.assertIn(kit,kits)
         self.assertIn('&& {[_x] call _hasMedicalKit}',medical)
         self.assertIn('if ([_medic] call _hasMedicalKit) then {',medical)
+        # Retry age is not permission to overwrite native treatment or another action.
+        retry=medical.split('private _nativeWorkFree=',1)[1].split('// Treatment is a security action',1)[0]
+        self.assertIn('currentCommand _medic in ["","NO CMD","STOP","WAIT","MOVE"]',retry)
+        self.assertIn('currentCommand _casualty in ["","NO CMD","STOP","WAIT","FOLLOW"]',retry)
+        self.assertLess(retry.index('&& {_nativeWorkFree}'),retry.index('_medic doMove _approach;'))
+        self.assertLess(retry.index('&& {_nativeWorkFree}'),retry.index('_medic action ["HealSoldier",_casualty];'))
+        self.assertLess(medical.index('_destination vectorDistance _requestedApproach > 0.25'),medical.index('private _nativeWorkFree='))
+        self.assertNotIn('CancelAction',medical)
+        self.assertNotIn('medicStop',medical)
+        self.assertNotIn('_aid set [11,',medical)
+
         self.assertIn('"NO_MEDICAL_KIT"',medical)
         for forbidden in ('addItem','removeItem','addMagazine','setDamage'):
             self.assertNotIn(forbidden,kits)

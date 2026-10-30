@@ -109,5 +109,38 @@
       "Whole Pinned Down medical source/controller integration, self-care/evacuation/KO/drag/carry/retry and live normal/HC/JIP/Zeus/performance remain open."
     ],
     "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED"
+  },
+  "nativeCommandRetry20261030": {
+    "sourceBase": "c5dd54e22e496066f6d83e98be0a761bdcd45bd0",
+    "finding": "Active retry age allowed repeated HealSoldier over generic ACTION/HEAL and stalled approach could issue doMove over busy native commands. Generic commands do not establish treatment ownership or target.",
+    "sourceContext": "Retains earlier selected Pinned Down medical intent and complete resume-helper review. Additional selected fn_selfHealOrSeekMedic.sqf lines895..918 inspected: source uses MedicOther animation and a timed wait; this is not imported or treated as proof of native completion. Entire medical source graph remains incomplete.",
+    "primaryApiReferences": [
+      "https://community.bistudio.com/wiki/Arma_3:_Actions#HealSoldier",
+      "https://community.bistudio.com/wiki/Arma_3:_Event_Handlers#CommandChanged"
+    ],
+    "implementation": [
+      "Gate both active retry writers on reported medic idle or previously destination-validated MOVE, and patient idle or ordinary FOLLOW. Native ACTION/HEAL, other services, medic FOLLOW and unknown commands wait without a replacement request.",
+      "Keep original absolute aid deadline, policy, progress/owner checks and native kit requirement. No forced cancellation, extra controller or settings. Initial admission exclusions unchanged."
+    ],
+    "cost": "At eligible active retry assessment, at most two currentCommand reads and constant-size string membership checks. No world scan, ray, handler, timer or new scheduled work. Native currentCommand may not expose every action/animation; no all-writer quiescence claim.",
+    "validation": {
+      "focused": "Existing618 operation tests pass; existing medical case extended, no new test case.",
+      "fullBuild": "PASS: all1506 tests; SQF/config/FSM/docs/wiki/parity/coverage/static-performance and11PBO package gates pass.",
+      "physical": "NOT_RUN_AUDITS_PAUSED",
+      "candidate": ".qa/candidates/medical-native-command-20261030-c5dd54e2",
+      "fingerprint": "10abeefa7b54dac4917ee5412944d5cee7c044da1564228679ab778b7f5cf9e6",
+      "independentVerify": "PASS: candidate integrity independently matched.",
+      "logs": [
+        ".qa/handovers/medical-native-command-focused-20261030.log",
+        ".qa/handovers/medical-native-command-build-20261030.log",
+        ".qa/handovers/medical-native-command-independent-20261030.log"
+      ]
+    },
+    "remaining": [
+      "Native treatment-end acknowledgement and ownership/target proof",
+      "Idle/leader-self and unknown-anchor handback",
+      "Physical treatment/rejoin, normal/HC/JIP and measured cost",
+      "Remaining whole medical source graph"
+    ]
   }
 }
