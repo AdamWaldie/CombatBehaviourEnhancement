@@ -2637,3 +2637,12 @@ spent recovery/restart budgets. It never rebuilds the job from public journals. 
 retired or foreign producers refuse before geometry planning or replacement cleanup.
 Discovery avoids repeated startup requests when that original producer is absent.
 A fresh explicit clearance is still a new task; the original handover remains unfinished.
+
+
+Local event-listener retirement is separate from native actor command authority.
+The original three/ten-second grenade listener timeouts remove only their own machine's
+matching installed generation and handler ID, even after group/epoch/locality changes.
+Replacement listeners retain their metadata. Native throw/release observations still
+require the original local group, epoch, operation and throw owner; cleanup cannot replay
+fire, movement, projectile changes or formation return. This closes retained listeners,
+not all-writer handover or physical throw acceptance.

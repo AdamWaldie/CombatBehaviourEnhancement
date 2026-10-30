@@ -100,8 +100,9 @@
       "path": "functions/fnc_tactics.sqf",
       "sha256": "5be7f059257f9173eae92d9d1d32a65e09085c44d0df94968189ace056dd3ee5",
       "area": "Tactical group layer",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected CBE mapping, descendants open",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body already reviewed2026-10-26; identical installed hash reconfirmed2026-10-30. Existing groupDispatchReview20261026 remains scoped evidence, not descendant/physical parity.",
+      "next": "Do not repeat the completed top-level body review or implement commented-out CQB/profile hooks or unreachable GARRISON selection. Reconcile actual tactic/support descendants with current owners and close named native handover gaps; retain finite task authority and current source differences.",
+      "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#groupDispatchReview20261026"
     },
     {
       "path": "functions/fnc_tacticsAssault.sqf",
@@ -115,8 +116,9 @@
       "path": "functions/fnc_tacticsAssess.sqf",
       "sha256": "77b708a13bc888a1e1e0aa4a9e044d4455e5c8aa6847c394f3c671136427dc93",
       "area": "Tactical group layer",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected assessment mapping, execution descendants open",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body already reviewed2026-10-26; identical installed hash reconfirmed2026-10-30. Existing groupAssessHoldReview20261026 remains scoped evidence, not descendant/physical parity.",
+      "next": "Do not repeat the completed top-level body review or implement commented-out CQB/profile hooks or unreachable GARRISON selection. Reconcile actual tactic/support descendants with current owners and close named native handover gaps; retain finite task authority and current source differences.",
+      "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#groupAssessHoldReview20261026"
     },
     {
       "path": "functions/fnc_tacticsAttack.sqf",

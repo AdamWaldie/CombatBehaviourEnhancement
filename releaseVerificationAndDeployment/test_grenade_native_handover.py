@@ -25,6 +25,19 @@ class GrenadeNativeHandoverTests(unittest.TestCase):
         self.assertLess(retry.index('if (!local _unit || {!local _group}'),retry.index('private _cancel ='))
         self.assertIn('CBE_Cortex_ThrowOwner",[_group,_ownerEpoch,_operationGeneration,_throwGeneration,clientOwner]',throw)
         self.assertEqual(throw.count('private _throwOwner=_actor getVariable'),2)
+        # Removing this machine's original listener is not native movement/fire authority.
+        # A departed actor, owner change or epoch change must not strand that listener.
+        import re
+        timeouts=re.findall(r'params \["_actor","_handler"[^;]*;(.*?)\},\[_unit,_(?:traceHandler|handler),[^\]]+\],(?:3|10)\] call',throw,re.S)
+        self.assertEqual(len(timeouts),2)
+        for cleanup in timeouts:
+            self.assertIn('_issuer != clientOwner',cleanup)
+            self.assertIn('isNull _actor',cleanup)
+            self.assertIn('removeEventHandler ["FiredMan",_handler]',cleanup)
+            for forbidden in ('local _actor','local _group','group _actor','_group getVariable',
+                              'forceWeaponFire','doFollow','doMove','setUnitPos','forceSpeed','remoteExec'):
+                self.assertNotIn(forbidden,cleanup)
+
         self.assertIn('(_pending select 3) isEqualTo (_throwOwner select 3)',throw)
         self.assertIn('CBE_Cortex_FragFlightGeneration',throw)
         self.assertIn('CBE_Cortex_ThrowTracePending",[]]) param [3,-1,[0]]) != _generation',throw)
@@ -35,8 +48,8 @@ class GrenadeNativeHandoverTests(unittest.TestCase):
         self.assertTrue(timeout_cleanup(3,3,1,1))  # New request2 never installed a listener.
         self.assertFalse(timeout_cleanup(3,3,1,2)) # Reused native ID belongs to successor2.
         self.assertFalse(timeout_cleanup(3,3,1,1,False))
-        self.assertIn('[_unit,_traceHandler,_group,_ownerEpoch,_throwGeneration,clientOwner],3',throw)
-        self.assertIn('[_unit,_handler,_group,_ownerEpoch,_throwGeneration,clientOwner],10',throw)
+        self.assertIn('[_unit,_traceHandler,_throwGeneration,clientOwner],3',throw)
+        self.assertIn('[_unit,_handler,_throwGeneration,clientOwner],10',throw)
         locality=(ROOT/'addons/core/functions/cortexLocality.sqf').read_text()
         self.assertLess(locality.index('setVariable ["CBE_Cortex_ThrowGeneration"'),locality.index('private _fragHandler'))
         self.assertIn('setVariable ["CBE_Cortex_ThrowOwner",nil]',locality)

@@ -33,7 +33,11 @@
  * against that contact, separating a wrong requested target from a wrong native release direction.
  * Actual FiredMan release additionally records body/view alignment, stance and animation;
  * command-time alignment alone is not treated as release-time proof.
- * Neither listener changes the projectile or creates recurring work.
+ * Neither listener changes the projectile or creates recurring work. Timeout retirement
+ * binds the original machine, installed throw generation and exact local handler ID;
+ * it does not require current actor/group locality, membership or epoch. Those command
+ * authority gates remain on firing and release observation. New listeners survive old timers,
+ * including native ID reuse; a newer queued request without installation cannot strand the old one.
  * Arguments:
  * 0: unit <OBJECT>
  * 1: towards <ARRAY> - ATL position
@@ -375,10 +379,11 @@ private _thrown = false;
                 }];
                 _unit setVariable ["CBE_Cortex_ThrowTraceHandler",_traceHandler];
                 [{
-                    params ["_actor","_handler","_group","_epoch","_generation","_issuer"];
-                    if (!local _actor || {!local _group} || {group _actor != _group}
-                        || {_issuer != clientOwner}
-                        || {(_group getVariable ["CBE_AIPass_Epoch",0]) != _epoch}
+                    params ["_actor","_handler","_generation","_issuer"];
+                    // Listener IDs and installed generations are machine-local. Expiry may
+                    // retire this exact registration even after actor/group ownership changes.
+                    // Native firing/observation callbacks retain their full authority gates.
+                    if (isNull _actor || {_issuer != clientOwner}
                         || {((_actor getVariable ["CBE_Cortex_ThrowTracePending",[]]) param [3,-1,[0]]) != _generation}) exitWith {};
 
                     if ((_actor getVariable ["CBE_Cortex_ThrowTraceHandler",-1]) == _handler) then {
@@ -386,7 +391,7 @@ private _thrown = false;
                         _actor setVariable ["CBE_Cortex_ThrowTraceHandler",-1];
                         _actor setVariable ["CBE_Cortex_ThrowTracePending",nil];
                     };
-                },[_unit,_traceHandler,_group,_ownerEpoch,_throwGeneration,clientOwner],3] call CBA_fnc_waitAndExecute;
+                },[_unit,_traceHandler,_throwGeneration,clientOwner],3] call CBA_fnc_waitAndExecute;
                 if (_kind == "FRAG") then {
                     private _old = _unit getVariable ["CBE_Cortex_FragHandler",-1];
                     if (_old >= 0) then {_unit removeEventHandler ["FiredMan",_old]};
@@ -413,17 +418,16 @@ private _thrown = false;
                     }];
                     _unit setVariable ["CBE_Cortex_FragHandler",_handler];
                     [{
-                        params ["_actor","_handler","_group","_epoch","_generation","_issuer"];
-                    if (!local _actor || {!local _group} || {group _actor != _group}
-                        || {_issuer != clientOwner}
-                        || {(_group getVariable ["CBE_AIPass_Epoch",0]) != _epoch}
-                        || {(_actor getVariable ["CBE_Cortex_FragFlightGeneration",-1]) != _generation}) exitWith {};
+                        params ["_actor","_handler","_generation","_issuer"];
+                        // Retire only this machine's original installation, even after transfer.
+                        if (isNull _actor || {_issuer != clientOwner}
+                            || {(_actor getVariable ["CBE_Cortex_FragFlightGeneration",-1]) != _generation}) exitWith {};
 
                         if ((_actor getVariable ["CBE_Cortex_FragHandler",-1]) == _handler) then {
                             _actor removeEventHandler ["FiredMan",_handler];
                             _actor setVariable ["CBE_Cortex_FragHandler",-1];
                         };
-                    },[_unit,_handler,_group,_ownerEpoch,_throwGeneration,clientOwner],10] call CBA_fnc_waitAndExecute;
+                    },[_unit,_handler,_throwGeneration,clientOwner],10] call CBA_fnc_waitAndExecute;
                 _unit setVariable ["CBE_Cortex_ThrowDecision",[time,"RELEASE_REQUESTED",_kind,_throwGeneration,[_muzzle,currentWeapon _unit,stance _unit,+_towards,getDir _unit,eyeDirection _unit]]];
                     _unit forceWeaponFire [_muzzle,_muzzle];
                 } else {

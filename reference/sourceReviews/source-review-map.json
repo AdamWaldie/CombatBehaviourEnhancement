@@ -136,7 +136,8 @@
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
       },
       "egressExecutorRecovery20261029": "releaseVerificationAndDeployment/referenceReviews/building-start-admission-20261018.json#egressRecoveryWindow20261029",
-      "resumeOrderIntegrity20261030": "releaseVerificationAndDeployment/referenceReviews/clear-resume-order-integrity-20261030.json"
+      "resumeOrderIntegrity20261030": "releaseVerificationAndDeployment/referenceReviews/clear-resume-order-integrity-20261030.json",
+      "listenerRetirement20261030": "releaseVerificationAndDeployment/referenceReviews/clear-throw-listener-fence-20261026.json#localListenerRetirement20261030"
     },
     {
       "workshopId": "3800081309",
