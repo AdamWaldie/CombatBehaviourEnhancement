@@ -1576,15 +1576,15 @@
       "name": "PROTOCOL AI JAMMING",
       "priority": "1 Protocol programme",
       "candidateContribution": "Review complete AI jamming functionality and selected useful intent for existing CBE communication/jamming ownership. Trace emitters, range/propagation, side policy, radio/voice distinctions, provider APIs and finite setup/update/cleanup; retain TFAR/ACRE requirements from Earshot without inventing native provider support.",
-      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "reviewStatus": "Complete readable source reviewed; scoped AI radio fields pass offline gates; physical/performance pending",
       "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
       "userConditions": {
         "identityCaution": "Installed meta.cpp publishedid0; Workshop page inaccessible; title from local mod.cpp."
       },
-      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
-      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
-      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
-      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3824564775.json",
+      "nextSourceReview": "Finish this bounded field integration gates/checkpoint, then source-review new Protocol aircraft3828285847 against existing CBE aircraft owners. Keep other Protocol capability gaps queued; do not return to non-Protocol work by default.",
+      "recordedImplementationStatus": "SCOPED_NATIVE_AI_RADIO_FIELDS_IMPLEMENTED_PHYSICAL_PENDING",
+      "recordedRemaining": "Scoped native AI radio-denial build-out, not full EW/Protocol parity. Autonomous role discovery, actual radio-addon integration, operator/Zeus behaviour surface and non-destructive UAV link-loss doctrine remain to design/review where needed. Earshot ACRE support remains required and unimplemented; source variable names do not prove an ACRE API. Physical moving-emitter/deletion/JIP/HC/voice/support behaviour and5%median/10%p95 overhead unverified. Audits paused. Effects apply to future communication checks using locally replicated state, not cancellation of already delivered support orders or native leases. No cross-network delivery barrier is claimed.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/protocol-jamming-3824564775-20261030.json",
       "evidenceFilePresent": true,
       "implementationReassessedByThisMap": false,
       "installedDirectoryObservation": {

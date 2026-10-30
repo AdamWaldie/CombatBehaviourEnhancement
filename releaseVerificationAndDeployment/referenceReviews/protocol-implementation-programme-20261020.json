@@ -464,11 +464,11 @@
       "name": "PROTOCOL AI JAMMING",
       "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3824564775",
       "metadataSHA256": "e8016b372ee889999a27b5bf3ffccd96fccf2ce22e77e7ac23dbbd4be9359ea6",
-      "status": "REGISTERED_PENDING_FULL_SOURCE_REVIEW",
+      "status": "READABLE_SOURCE_REVIEWED_SCOPED_AI_FIELDS_OFFLINE_VERIFIED_PHYSICAL_PENDING",
       "priority": "After foundations/FSM; required Protocol queue",
       "disposition": "Review complete AI jamming functionality and selected useful intent for existing CBE communication/jamming ownership. Trace emitters, range/propagation, side policy, radio/voice distinctions, provider APIs and finite setup/update/cleanup; retain TFAR/ACRE requirements from Earshot without inventing native provider support.",
-      "review": "workshop-intake-3824564775.json",
-      "remaining": "Complete source/dependencies/licence/API review and selected integration; no implementation/physical/performance credit."
+      "review": "protocol-jamming-3824564775-20261030.json",
+      "remaining": "Scoped native AI radio-denial build-out, not full EW/Protocol parity. Autonomous role discovery, actual radio-addon integration, operator/Zeus behaviour surface and non-destructive UAV link-loss doctrine remain to design/review where needed. Earshot ACRE support remains required and unimplemented; source variable names do not prove an ACRE API. Physical moving-emitter/deletion/JIP/HC/voice/support behaviour and5%median/10%p95 overhead unverified. Audits paused. Effects apply to future communication checks using locally replicated state, not cancellation of already delivered support orders or native leases. No cross-network delivery barrier is claimed."
     }
   ],
   "inventoryLimits": "Nine locally installed Protocol-named mod metadata records. Not proof of complete Workshop collection discovery or source implementation. Earlier reviews must be reconciled before repeating work.",
@@ -494,5 +494,10 @@
     ],
     "localRegisteredProtocolItems": 11,
     "boundary": "Prior readable/binary review checkpoints cover their dated original sources only; the new item has metadata/package inventory, not source-review or implementation credit. This is not proof that every Workshop Protocol item has been discovered."
+  },
+  "currentFocus20261030": {
+    "direction": "User explicitly prioritises Protocol AI additions; merge and improve strongest useful methods through existing CBE owners, foundations first within each batch.",
+    "current": "Jamming AI radio-denial fields; no copied player muting, forced UAV physics or persistent loops.",
+    "next": "Protocol aircraft3828285847 complete relevant source comparison and selected integration; all other Protocol gaps remain in queue."
   }
 }

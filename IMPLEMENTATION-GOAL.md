@@ -2,7 +2,9 @@
 
 Deliver a standalone Arma 3 AI improvement addon by selecting, combining, fixing and improving useful AI functionality from the source register. Gameplay quality, tactical plausibility, balance and engine performance govern the implementation. Implement useful LAMBS functionality inside CBE and evolve it without requiring LAMBS. Reconcile the entire relevant HBQ controller and registered Protocol capabilities, including the newly queued aircraft (3828285847) and jamming (3824564775) sources, at their appropriate layers.
 
-## Current execution direction — 29 October 2026
+## Current execution direction — 30 October 2026
+
+Protocol AI additions are the current implementation focus by explicit user direction. Merge and improve the best useful parts of each source through CBE owners; do not copy whole mods or stack controllers. Prioritise newly queued jamming and aircraft, then the remaining Protocol capability gaps. Maintain the foundations-first order inside those batches.
 
 Build upward from finite owner-local FSM foundations, implementing and improving selected source functionality through existing CBE executors. Include equivalent behaviour modules where the selected sources expose operator tasks; CBA remains the settings surface. The master source register and linked reviews govern the queue. Keep audits paused and continue independent build-out, recording physical verification as pending.
 

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-30",
+  "workshopId": "3824564775",
+  "name": "PROTOCOL AI JAMMING",
+  "baseCommit": "b25904fbf52ee3bfe134c42537af36c5cf0167ab",
+  "sourceArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/Protocol/20261030-jamming-3d3a9989",
+  "archiveManifestSHA256": "9fd67dd45c16d0238ec2aec05aab877d3bd64cfa37adc255b5f19340845d63c0",
+  "sourceIdentity": "Installed matching Workshop folder/user URL; publishedid0, web page inaccessible. Original mod/meta/PBO hashes verified against tracked intake and preserved independently. No addon/script execution.",
+  "sourceScopes": {
+    "extracted/config.cpp": {
+      "sha256": "17712d134773e20c58a3f77ddd2c6f3445fff44076637569c78fdbcd01a5e28f",
+      "lines": 28,
+      "scope": "Complete readable body; static review only, source not executed."
+    },
+    "extracted/XEH_preInit.sqf": {
+      "sha256": "fe5a87c0d07089cae693449231e424d5d7a91fa455008e7d5a596da83b8aca70",
+      "lines": 106,
+      "scope": "Complete readable body; static review only, source not executed."
+    },
+    "extracted/functions/fn_jamming.sqf": {
+      "sha256": "37562e35095ecff8218fbfcb52144ecb28261cd0d361c6dbfe3cbfdd4816bbdf",
+      "lines": 380,
+      "scope": "Complete readable body; static review only, source not executed."
+    }
+  },
+  "productHashes": {
+    "addons/infantry/functions/cortexJammingField.sqf": "194b28d143990f9e89affa3e86fe5b714bc67bca985358670b0655380f691537",
+    "addons/infantry/functions/cortexJammingFactor.sqf": "bd6083306340695ce48cefa7508f01c8551d36b452d83ccd0f7b129546b2e699",
+    "addons/infantry/functions/cortexCanTransmit.sqf": "3b1fb13aa069c291adc5e2d0e26ff1fe9e76fad68c6544236025e121536cffc6",
+    "addons/infantry/functions/cortexGroupTransmitter.sqf": "1a677e94334b992094c80132e41f0bc8b962ab227848eaddd1917c78296cfb96",
+    "addons/main/CfgFunctions.hpp": "8ed45a76b7d71468c4cd093e340140b480d6c90c0b0080c11d2203d19174f706"
+  },
+  "executionGraph": "CfgPatches requires A3_Data_F/cba_xeh; preInit registers9 CBA settings; postInit execVM -> spawned perpetual scanner; private disable/enable routines only accept players; scanner enumerates vehicles/radars, allUnits and per-radar UAVs, then starts additional audio/UAV loops. Config patch name metadata says CQB while patch identifier is jamming.",
+  "retainedIntent": [
+    "Local interference depends on live emitter location/radius and the affected side; moving out, disabling, death/deletion should remove the effect.",
+    "Keep controls explicit and radio interference separate from local voice, native target knowledge and actor movement. Integrate with existing information/support communication owners rather than standalone workers."
+  ],
+  "sourceProblems": [
+    "The player-only disable routine explicitly refuses nonplayers, so the supplied script does not deny CBE AI reporting/reinforcement through its logical communication path.",
+    "Every machine starts a perpetual scanner; sleep1 is inside the enabled branch, so a disabled master can busy-loop. Disabling does not restore already affected players and ongoing UAV loops do not read the master switch.",
+    "Any radar/name match is treated as an EW emitter. Side inequality is not hostility/selection policy. Global vehicle/unit scans multiply per radar.",
+    "Player TFAR/ACRE variables and chat/channel/audio changes have no demonstrated API/effect/restoration proof; the registered voice-chat flag is not consumed by the effect path. Baselines/restoration depend on later toggles rather than exact applied ownership.",
+    "UAV workers disable captured crew AI flags, force velocity/attitude/engine state and later blanket-enable flags without original state or current-owner/task receipts. No forced crash or blanket restoration imported."
+  ],
+  "implementation": "Independent CBE AI field layer: server registers/updates/removes explicit emitter/radius/affected-sides rows, at most32. Latest public snapshot supports joining AI owners. Read-only bounded factor checks live3D position and life per query; no timer, global scan, movement, forced crash, radio-addon or player-channel mutation. CortexCanTransmit combines native denial with the existing mission hook without replacing it. Explicit voice selection bypasses radio denial and retains its current range/availability guards.",
+  "contracts": {
+    "registration": "[object,true,radius,[west/east/resistance/civilian]] server call; enable requires explicit finite radius1..100000 and1..4 affected-side entries; [object,false] removes. Duplicate updates coalesce; full registry refuses. Dead/deleted entries have no effect and prune on later registration.",
+    "authority": "Server snapshot owner; untrusted client entry refuses. No remote-exec registration entry or player/Zeus permission bypass. One snapshot is public for JIP; no delayed native side effects to replay.",
+    "query": "ASL position3 finite numbers and a valid side; at most32 rows, early exit first matching live field; no additive overlap or persistent cached permission. Missing/invalid registry gives no native field denial; existing mission hook remains.",
+    "composition": "AI communication only. Engine knowledge inside groups, player voice, TFAR/ACRE devices and UAV controls unchanged. Original sender/receiver bilateral/voice/freshness gates retained."
+  },
+  "limits": "Scoped native AI radio-denial build-out, not full EW/Protocol parity. Autonomous role discovery, actual radio-addon integration, operator/Zeus behaviour surface and non-destructive UAV link-loss doctrine remain to design/review where needed. Earshot ACRE support remains required and unimplemented; source variable names do not prove an ACRE API. Physical moving-emitter/deletion/JIP/HC/voice/support behaviour and5%median/10%p95 overhead unverified. Audits paused. Effects apply to future communication checks using locally replicated state, not cancellation of already delivered support orders or native leases. No cross-network delivery barrier is claimed.",
+  "licence": "No licence/reuse grant found in this4-member PBO. Private reference preserved; raw source/assets not shipped. Functional intent implemented independently through CBE-owned identifiers and existing communication semantics.",
+  "validation": {
+    "focused": "PASS6 existing group communication cases; existing contract extended, zero new cases.",
+    "focusedLog": ".qa/handovers/protocol-jamming-ai-fields-focused-20261030.log",
+    "full": "PASS1506 existing tests,493 compiled SQF,11PBO; full config/FSM/docs/wiki/parity/coverage gates and static performance0 findings. No new test cases.",
+    "initialFullFailure": "Full1506-test gate found2 unmapped production source files in REPORT coverage; existing case now maps fields/query and explicitly records missing physical variants. No checks weakened or new cases added.",
+    "buildLog": ".qa/handovers/protocol-jamming-ai-fields-checkpoint-20261030.log",
+    "candidate": ".qa/candidates/protocol-jamming-ai-fields-20261030-b25904fb",
+    "fingerprint": "28d517db48084c7b770741e61b8f7e54dd67e56df1e2f88f7cd023c10b6ad775",
+    "independentVerification": "PASS",
+    "independentLog": ".qa/handovers/protocol-jamming-ai-fields-independent-20261030.log",
+    "sourceIdentity": "Unsigned development candidate from dirty baseb25904fb plus checked implementation/tests/guide/review/priority inputs. Later handover/validation metadata separate. Not clean future-commit release or signature verification."
+  },
+  "nextFiniteWork": "Finish this bounded field integration gates/checkpoint, then source-review new Protocol aircraft3828285847 against existing CBE aircraft owners. Keep other Protocol capability gaps queued; do not return to non-Protocol work by default."
+}

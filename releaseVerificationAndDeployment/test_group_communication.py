@@ -151,6 +151,20 @@ class GroupCommunicationTests(unittest.TestCase):
         self.assertNotIn('damage _unit',readiness)
         self.assertIn('_factor < 0.5',radio)
         self.assertIn('if (isNil "_factor") exitWith {true}',radio)
+        self.assertLess(radio.index('call CBE_fnc_CortexJammingFactor'),radio.index('private _hook'))
+        field=source('cortexJammingField');factor=source('cortexJammingFactor')
+        for proof in ('!isServer','remoteExecutedOwner','count _original > 32',
+                      '_radius > 100000','_sides findIf','CBE_EW_Fields",_fields,true',
+                      '_fields isNotEqualTo _original','_fields deleteAt _index'):
+            self.assertIn(proof,field)
+        for proof in ('count _fields > 32','_side in (_row select 2)',
+                      'alive (_row select 0)','getPosASL (_row select 0)',
+                      'vectorDistance','exitWith {_factor=1}'):
+            self.assertIn(proof,factor)
+        for worker in ('spawn','sleep','addPerFrameHandler','allUnits','vehicles select',
+                       'setVelocity','engineOn','enableChannel','enableRadio'):
+            self.assertNotIn(worker,field)
+            self.assertNotIn(worker,factor)
 
         for forbidden in ['reveal ', 'doMove', 'doFollow', 'setVariable']:
             self.assertNotIn(forbidden, transmitter)

@@ -413,7 +413,7 @@
     "addons/infantry/functions/buildingRoofTop.sqf": "9baad8bfe48e1bb0ce9a0699825dd93779a957945a0f4a18333be76c05ace923",
     "addons/infantry/functions/cortexGarrisonPostChoice.sqf": "318fb7c240f67a43649abc0679a7304a6eec18a35f2836039119a50f3761eb90",
     "addons/infantry/functions/cortexGarrisonRefill.sqf": "d2c99a24d44d0f0addfb50d73bff0e1be5e5eab85230e033c5b68274bfbd9663",
-    "addons/main/CfgFunctions.hpp": "a468fa55b7e015ce99c79269d46e1b6b46fe6e39f6bc9603095da33674a2aa51",
+    "addons/main/CfgFunctions.hpp": "8ed45a76b7d71468c4cd093e340140b480d6c90c0b0080c11d2203d19174f706",
     "addons/infantry/functions/cortexStaticRetire.sqf": "469b5905a35c49ba45acdbbd5ba75d4da81a2f4ccedda5cdc8be007785f9c08c",
     "addons/infantry/functions/cortexActorMoveReserved.sqf": "7881fd82ee5073085c3d9500bc38408a579ddfc9ca967a666f77e3670aabf3ca",
     "addons/infantry/functions/dangerSetup.sqf": "c43545795e11d8ec0a82d28440d8fb0c00b46e73fca82482f8e45ba98c6ce9b5",
@@ -1056,5 +1056,15 @@
       "sourceIdentity": "Unsigned development candidate from dirty base384c8536 plus checked runtime/tests/guide/review inputs. Later handover metadata separate; not clean future-commit release or signature verification."
     },
     "nextFiniteWork": "Trace source executeAirMission/launchParkedPlane/spawnVirtualWing and actual provider cleanup/acknowledgement. For current CBE surface execution, trace target-attached waypoint, progress geometry and terminal release against native observation; preserve real native targeting and group-shared handoff while removing unjustified unseen transforms. Do not mark the whole run belief-only from the initial planner fix."
+  },
+  "protocolBindingRefresh20261030": {
+    "reason": "Current CBE registry/communication binding changed for independently recorded Protocol jamming layer. Prior candidate receipts remain historical, not rebuilt by this metadata refresh.",
+    "hashes": {
+      "addons/main/CfgFunctions.hpp": {
+        "previous": "a468fa55b7e015ce99c79269d46e1b6b46fe6e39f6bc9603095da33674a2aa51",
+        "current": "8ed45a76b7d71468c4cd093e340140b480d6c90c0b0080c11d2203d19174f706"
+      }
+    },
+    "review": "protocol-jamming-3824564775-20261030.json"
   }
 }

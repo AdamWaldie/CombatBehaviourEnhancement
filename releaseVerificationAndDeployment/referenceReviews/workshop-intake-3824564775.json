@@ -4,7 +4,7 @@
   "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3824564775",
   "added": "2026-10-30",
   "priority": "1 Protocol programme",
-  "status": "REGISTERED_SOURCE_REVIEW_PENDING",
+  "status": "READABLE_SOURCE_REVIEWED_SCOPED_AI_RADIO_FIELDS_OFFLINE_VERIFIED_PHYSICAL_PENDING",
   "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
   "area": "Protocol communications/EW",
   "scope": "Review complete AI jamming functionality and selected useful intent for existing CBE communication/jamming ownership. Trace emitters, range/propagation, side policy, radio/voice distinctions, provider APIs and finite setup/update/cleanup; retain TFAR/ACRE requirements from Earshot without inventing native provider support.",
@@ -38,10 +38,13 @@
   ],
   "dependencies": "UNVERIFIED; source/config/API review required.",
   "licence": "UNVERIFIED; establish original upstream and component-specific reuse rights before incorporating code.",
-  "sourceReview": "NOT_STARTED; webpage/local metadata and package inventory only.",
-  "implementationCredit": false,
+  "sourceReview": "Complete readable config/preInit/main script bodies reviewed against CBE owners; source scripts not executed. No whole EW or radio-provider claim.",
+  "implementationCredit": true,
   "physicalAcceptance": false,
   "audits": "PAUSED",
   "ordering": "Foundations/FSM first, individual behaviour before squad/combined arms; compatibility expansion last. Reference-only items supply methods rather than an automatic implementation obligation.",
-  "sourceProtection": "Installed Workshop/game files, original signatures/assets and preserved references are read-only. No execution/repacking or copying raw reference assets into the product. Any future extraction uses a separate private dated directory."
+  "sourceProtection": "Installed Workshop/game files, original signatures/assets and preserved references are read-only. No execution/repacking or copying raw reference assets into the product. Any future extraction uses a separate private dated directory.",
+  "sourceArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/Protocol/20261030-jamming-3d3a9989",
+  "review": "releaseVerificationAndDeployment/referenceReviews/protocol-jamming-3824564775-20261030.json",
+  "implementationScope": "Explicit native AI radio-denial fields through existing CBE communication owner only; not complete EW/player radio/UAV functionality."
 }

@@ -41,7 +41,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | CNV-HALT - Convoy contact drills | 1 | 0 | 1 | `runServer.sqf` | 0 | implemented_partial |
 | CNV-UNLOAD - Convoy cargo lifecycle | 1 | 0 | 3 | `runConvoySeats.sqf`, `runServer.sqf` | 1 | implemented_partial |
 | HEARING - Gunfire area reports | 1 | 0 | 1 | `runSupport.sqf` | 0 | implemented_partial |
-| REPORT - Contact sharing | 4 | 0 | 4 | `runSupport.sqf` | 0 | implemented_partial |
+| REPORT - Contact sharing | 4 | 0 | 6 | `runSupport.sqf` | 0 | implemented_partial |
 | REINFORCE - Reinforcement | 3 | 0 | 1 | `runSupport.sqf` | 0 | implemented_partial |
 | ART - Spotted artillery bursts | 13 | 0 | 30 | `runServer.sqf` | 0 | implemented_partial |
 | CB - Counter-battery | 10 | 0 | 3 | `runServer.sqf` | 0 | implemented_partial |
@@ -298,9 +298,9 @@ Feature cases: **65**. Required variant categories: **14**.
 
 ### REPORT - Contact sharing
 
-**Expected:** Reports use permitted communication, preserve uncertainty and do not depend on a vanilla radio item.
+**Expected:** Reports use permitted communication, preserve uncertainty and do not depend on a vanilla radio item. Native fields deny only CBE radio paths while live and in range; side/radius/update/deletion changes apply without new workers, player-radio mutation or target reveal. Existing mission hooks and local voice still work.
 
-**Automation and open work:** runSupport.sqf: REPORT- actual delivery and receiver travel (partial variants; fresh live acceptance required). The whole sight-screen and investigation geometry uses the shared measured terrain transform outside VR.
+**Automation and open work:** runSupport.sqf: REPORT- actual delivery and receiver travel (partial variants; fresh live acceptance required). The whole sight-screen and investigation geometry uses the shared measured terrain transform outside VR. New explicit Protocol-intent field API/query is assigned to this existing communication case; native-field physical variants are NOT implemented/executed by the current runSupport fixture and remain pending while audits are paused. Mapping is source coverage only, not acceptance.
 
 ### REINFORCE - Reinforcement
 

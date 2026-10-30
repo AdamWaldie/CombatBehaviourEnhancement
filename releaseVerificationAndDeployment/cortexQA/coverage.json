@@ -1049,8 +1049,8 @@
     {
       "id": "REPORT",
       "title": "Contact sharing",
-      "setup": "Use observing and receiving squads with voice proximity, separated communication and active jamming.",
-      "expected": "Reports use permitted communication, preserve uncertainty and do not depend on a vanilla radio item.",
+      "setup": "Use observing and receiving squads with voice proximity, separated communication and active jamming. Explicit server field variants must cover selected sides, moving/dead/deleted emitters, repeated updates/removal, overlap and32-field capacity, remote owner/JIP delivery and nearby voice.",
+      "expected": "Reports use permitted communication, preserve uncertainty and do not depend on a vanilla radio item. Native fields deny only CBE radio paths while live and in range; side/radius/update/deletion changes apply without new workers, player-radio mutation or target reveal. Existing mission hooks and local voice still work.",
       "settings": [
         "CBE_AIPass_ContactReports_Enable",
         "CBE_AIPass_ContactReports_Radius",
@@ -1059,7 +1059,7 @@
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runSupport.sqf: REPORT- actual delivery and receiver travel (partial variants; fresh live acceptance required). The whole sight-screen and investigation geometry uses the shared measured terrain transform outside VR.",
+      "automation": "runSupport.sqf: REPORT- actual delivery and receiver travel (partial variants; fresh live acceptance required). The whole sight-screen and investigation geometry uses the shared measured terrain transform outside VR. New explicit Protocol-intent field API/query is assigned to this existing communication case; native-field physical variants are NOT implemented/executed by the current runSupport fixture and remain pending while audits are paused. Mapping is source coverage only, not acceptance.",
       "executable_sources": [
         "runSupport.sqf"
       ],
@@ -1067,7 +1067,9 @@
         "addons/infantry/functions/cortexCanTransmit.sqf",
         "addons/infantry/functions/cortexGroupTransmitter.sqf",
         "addons/infantry/functions/cortexReportLocal.sqf",
-        "addons/infantry/functions/cortexReportServer.sqf"
+        "addons/infantry/functions/cortexReportServer.sqf",
+        "addons/infantry/functions/cortexJammingField.sqf",
+        "addons/infantry/functions/cortexJammingFactor.sqf"
       ]
     },
     {
