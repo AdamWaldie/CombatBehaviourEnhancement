@@ -6056,6 +6056,27 @@ class CortexOperations(unittest.TestCase):
         self.assertIn('private _footFit = _fit select {isNull objectParent _x}',apply)
         self.assertIn('count _footFit >= 3',apply)
         self.assertIn('_footFit findIf {"AT" in',apply)
+        gate=apply.split('if (_okay && {!_same} && {_sharedCoordinated || {!_needAT}}) then {',1)[1].split('// Eligibility acknowledgement',1)[0]
+        self.assertIn('private _requiredPrimary=[1,3] select _sharedCoordinated;',gate)
+        self.assertIn('if (_primaryAvailable >= _requiredPrimary) exitWith {};',gate)
+        self.assertIn('[_x] call CBE_fnc_CortexPrimaryAmmoAvailable',gate)
+        self.assertIn('(_footFit select [0,64])',gate)
+        self.assertIn('!_sharedCoordinated || {count units _group <= 64}',gate)
+        self.assertLess(apply.index('if (_okay && {!_same} && {_sharedCoordinated || {!_needAT}})'),apply.index('if (_okay && {_directCoordinationPending})'))
+        self.assertIn('_okay=_primaryAvailable >= _requiredPrimary;',gate)
+        self.assertNotIn('remoteExec',gate)
+        self.assertNotIn('reload',gate)
+        def capacity(primary,coordinated=False,need_at=False,usable_at=False,same=False):
+            return (not need_at or usable_at) and (same or (need_at and not coordinated) or primary >= (3 if coordinated else 1))
+        self.assertFalse(capacity(0))
+        self.assertTrue(capacity(1))
+        self.assertFalse(capacity(2,coordinated=True))
+        self.assertTrue(capacity(3,coordinated=True))
+        self.assertTrue(capacity(0,need_at=True,usable_at=True))
+        self.assertFalse(capacity(0,need_at=True,usable_at=False))
+        self.assertFalse(capacity(0,coordinated=True,need_at=True,usable_at=True))
+        self.assertTrue(capacity(0,same=True))
+
         self.assertIn(dismount_guard,assault)
 
     def test_recurring_cqb_and_support_use_direct_on_foot_checks(self):

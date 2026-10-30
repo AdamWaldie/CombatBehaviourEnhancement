@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-30",
+  "sourceBase": "add7204edf829eae74a8ea263ef09f34044a205d",
+  "workshopId": "3799629858",
+  "source": {
+    "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/groups/fn_classifyGroup.sqf",
+    "sha256": "8861b378fc7fd14434f9117d5852018d74eef397931c86f94ffc5fc67348cde4",
+    "manifestMatch": true,
+    "scope": "Selected initial living/combat-effective/foot count and final reinforcement-strength/publication branches, lines1..63 and168..183. Whole classifier and weapon/vehicle descendants not reviewed."
+  },
+  "sourceFinding": "Conductor separates living and combat-effective state, but combatGunCount is assigned footCount without a primary weapon/ammunition check. The name does not prove available guns. Do not reproduce that ambiguity.",
+  "cbeFinding": "Fresh SupportApply required3 effective foot bodies but not primary ammunition before acknowledgement/rally. Coordinated new-bound capacity already requires3 primary-ammunition contributors through actual owner observations, so empty/unarmed groups could reserve support but never supply the requested capacity.",
+  "implementation": [
+    "Only after existing _okay admission and for a fresh !_same task: coordinated support requires3 actors with loaded main-muzzle rounds or compatible reserve, matching its existing COVER capacity threshold. Groups above64members refuse coordinated admission because existing capacity observation refuses them too.",
+    "Ordinary non-AT rally needs1 primary-ammunition contributor while retaining3-body minimum. Dedicated non-coordinated AT rally retains its already required usable AT launcher instead of imposing an unrelated rifle requirement.",
+    "Use the existing actual-owner CortexPrimaryAmmoAvailable helper; stop after required count and inspect at most64 already eligible foot candidates. No remote inventory inference or server-side ammo census.",
+    "Exact established deliveries/adoption bypass this new-admission gate; existing later COVER/movement/retirement/casualty rules remain. Ammo loss is not relabelled as casualty and does not reset original token/radius/clock.",
+    "No extra actor settings, native command, target, reload/inventory change, scheduler, timer, message, coordinator or CBA setting. Relevant existing helper caller documentation completed."
+  ],
+  "limits": [
+    "Ammunition availability is not immediate weapon readiness, firing permission, accuracy or proof of effective covering fire; existing owner capacity and executor checks remain.",
+    "Fresh eligibility may change before later route delivery; each fresh admission rechecks, and current executable owners retain authority. No guaranteed dispatch success or physical support quality.",
+    "Conductor complete classifier/support/registry/proposal/provider graph remains incomplete; this fixes selected truthful-capacity intent rather than copying the misleading source field."
+  ],
+  "cost": "On otherwise eligible fresh support only: at most64 existing candidate actor ammo checks, early stop at1 or3 successes; helper loaded-main path is cheap and otherwise reads existing compatible reserves. One group-count bound for coordinated mode, no world scan or retained cache. Native inventory enumeration cost and overall overhead unmeasured.",
+  "validation": {
+    "red": ".qa/handovers/support-primary-capacity-red-20261030.log",
+    "focused": ".qa/handovers/support-primary-capacity-focused-20261030.log",
+    "focusedResult": "Existing618 operation checks pass before final nearby caller-doc/bound assertions; complete gates below cover final inputs. Existing support case extended; no new test case.",
+    "fullBuild": "PASS: all1506 tests/489 compiled SQF/11PBO and config/FSM/docs/wiki/parity/coverage/static-performance gates.",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "buildLog": ".qa/handovers/support-primary-capacity-build-20261030.log",
+    "candidate": ".qa/candidates/support-primary-capacity-20261030-add7204e",
+    "fingerprint": "0b944dbf435e12ffd7b8c6c066be293a0f9a6e30ef7357308885d7b057053986",
+    "independentVerify": "PASS: package integrity/fingerprint independently match; .qa/handovers/support-primary-capacity-independent-20261030.log"
+  },
+  "remaining": [
+    "Actual ammo/reload/AT-only and mixed medic squad admission, 64+groups, reject/next-candidate flow, repeats, normal/HC/JIP and physical support unverified.",
+    "Broader source integration, incoming CQB all-writer/native/settings seal, controlled rappel, native handbacks and measured full performance budget remain incomplete."
+  ]
+}

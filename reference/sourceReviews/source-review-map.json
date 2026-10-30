@@ -899,8 +899,8 @@
       "candidateContribution": "Coordination contribution to identify",
       "reviewStatus": "Selected pressure and support-candidate branches plus related leaves reviewed; whole source incomplete",
       "nextSourceReview": "Continue unreconciled actual coordination/support graph using the protected snapshot. Do not duplicate this selected pressure estimator, add unseen group-strength floors or install a competing coordinator merely because these bodies exist.",
-      "recordedImplementationStatus": "SELECTED_PRESSURE_AND_SUPPORT_POLICY_IMPLEMENTED_WHOLE_SOURCE_INCOMPLETE",
-      "recordedRemaining": "Platform pressure count and original support-radius policy integrated in existing CBE owners. Whole Conductor coordinator/registry/contact/need/proposal/lease/adapter graphs and physical balance/performance incomplete.",
+      "recordedImplementationStatus": "SELECTED_PRESSURE_SUPPORT_POLICY_AND_AMMO_ADMISSION_IMPLEMENTED_WHOLE_SOURCE_INCOMPLETE",
+      "recordedRemaining": "Selected platform pressure, original support-radius policy and fresh owner ammunition admission integrated. Whole coordinator/registry/contact/proposal/lease/provider/classifier graphs and physical/performance validation remain incomplete.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
@@ -920,7 +920,8 @@
       },
       "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
       "platformPressure20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-platform-pressure-20261030.json",
-      "supportRadiusPolicy20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-support-radius-policy-20261030.json"
+      "supportRadiusPolicy20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-support-radius-policy-20261030.json",
+      "supportPrimaryCapacity20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-support-primary-capacity-20261030.json"
     },
     {
       "workshopId": "3800356547",
