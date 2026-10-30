@@ -212,6 +212,41 @@ class AAObservation(unittest.TestCase):
         self.assertEqual(barrel(['missing'],'absent',['optic']), '')
         self.assertEqual(barrel([None]*8+['left'],'absent',['left']), '')
         self.assertIn('_vehicle selectionNames "Memory"',intercept)
+        # A native primary gunner may occupy a nonzero/nested path. Resolve exactly
+        # that inherited config node; no first-turret fallback or borrowed geometry.
+        self.assertIn('private _turret=+(_observation get "loadedTurret")',intercept)
+        self.assertIn('private _children=_main >> "Turrets"',intercept)
+        walk=intercept.split('private _main=configOf _vehicle;',1)[1].split('private _optic=',1)[0]
+        self.assertIn('_main=_children select _x',walk)
+        self.assertIn('if (!isClass _main)',walk)
+        self.assertNotIn('configClasses',walk)
+        self.assertNotIn('configProperties',walk)
+        self.assertIn('forEach _turret',intercept)
+        self.assertIn('count _children > 32',intercept)
+        self.assertNotIn('private _turret=[0]',intercept)
+        self.assertNotIn('param [0,configNull]',intercept)
+        for text in (intercept,(ROOT/'addons/vehicles/functions/cortexAAInterceptEffect.sqf').read_text()):
+            self.assertIn('_vehicle turretUnit _turret',text)
+            self.assertIn('_vehicle turretLocal _turret',text)
+        def resolve(nodes,path):
+            if not 1<=len(path)<=8 or any(type(i)!=int or not 0<=i<32 for i in path):
+                return None
+            node=None
+            for i in path:
+                if len(nodes)>32 or i>=len(nodes):return None
+                node=nodes[i]
+                if not node.get('isClass',True):return None
+                nodes=node.get('Turrets',[])
+            return node['name']
+        tree=[{'name':'observer'}, {'name':'AA','Turrets':[{'name':'nested-AA'}]}]
+        self.assertEqual(resolve(tree,[0]),'observer')
+        self.assertEqual(resolve(tree,[1]),'AA')
+        self.assertEqual(resolve(tree,[1,0]),'nested-AA')
+        for bad in ([],[-1],[2],[1,1],[32],[0.5],[True],[0]*9):
+            self.assertIsNone(resolve(tree,bad))
+        self.assertIsNone(resolve([{'name':'too-many'}]*33,[0]))
+        self.assertIsNone(resolve([{'name':'property','isClass':False}], [0]))
+
         self.assertIn('_vehicle lockCameraTo [_point,_turret,true]',intercept)
         release=intercept.split('private _finish={',1)[1].split('if (_mode == "RELEASE")',1)[0]
         unlock=release.index('_vehicle lockCameraTo [objNull,_turret,false]')
@@ -323,6 +358,10 @@ class AAObservation(unittest.TestCase):
         self.assertIn('[_state,"SAMPLE"',intercept)
         self.assertIn('_row set [8,true]',intercept)
         self.assertIn('[_state] call CBE_fnc_CortexAASpot',intercept)
+        self.assertIn('_gunner,+_turret,_episode get "weapon"',spot)
+        self.assertIn('_vehicle turretUnit _turret != _gunner',spot)
+        self.assertIn('_vehicle turretLocal _turret',spot)
+
         self.assertIn('if (_override > 0) then {_speed=_override}',intercept)
         self.assertIn('if (_override < 0) then {_speed=_speed*(-_override)}',intercept)
         self.assertIn('coefGravity',intercept)

@@ -5,7 +5,10 @@
  * START searches bounded station capability; each STEP freshly reads only its exact admitted muzzle.
  * Purpose: Finite experimental point-defence aiming and real-shot observation for a native
  * incoming-missile warning. This is the aim/shot building block, with an optional owner-local measured direct-pass fuse effect.
- * Locality/authority: Current local AI main turret [0] only. Existing task/ROE/owner checks apply.
+ * Locality/authority: Current local AI primary gunner at its observed native turret path.
+ * START accepts1..8 nonnegative indices below32 and resolves that exact inherited config
+ * path once (<=32 native config entries/level). Invalid paths/geometry refuse; never assume[0].
+ * Shot/step/cleanup retain that same occupied local station. Existing task/ROE/owner checks apply.
  * No radar, skill, movement, ammunition creation or projectile steering is changed.
  * Explosive shotBullet cannons may aim/fire through the loaded-magazine blast safety check.
  * Only nonexplosive same-owner real bullet passes may request a missile fuse; effect helper owns that policy.
@@ -54,7 +57,7 @@ private _finish={
     private _releaseGroup=group _actor;
     // Release may remove our exact old lock after feature shutdown or epoch change,
     // but locality and value equality alone do not override a current controller.
-    if (!isNull _actor && {local _actor} && {local _vehicle} && {gunner _vehicle == _actor}
+    if (!isNull _actor && {local _actor} && {local _vehicle} && {gunner _vehicle == _actor} && {_vehicle turretUnit _turret == _actor}
         && {!isNull _releaseGroup} && {local _releaseGroup}
         && {(_actor getVariable ["CBE_AA_InterceptOwner",[]]) isEqualTo [_token,_state get "until"]}
         && {!([_releaseGroup,false,_actor] call CBE_fnc_CortexExternalTakeover)}
@@ -89,8 +92,10 @@ if (_mode == "SHOT") exitWith {
     if (count _rounds >= 8 || {_rounds findIf {(_x select 0) == _round} >= 0}) exitWith {false};
     private _shotGroup=_state get "group";
     private _shotToken=_state get "token";
+    private _shotTurret=_state get "turret";
     if (time >= (_state get "until") || {_state getOrDefault ["finished",false]}
         || {!local _operator} || {!local _shotGroup} || {gunner _vehicle != _operator}
+        || {_vehicle turretUnit _shotTurret != _operator} || {!(_vehicle turretLocal _shotTurret)}
         || {group _operator != _shotGroup} || {isPlayer _operator}
         || {!isNull remoteControlled _operator}
         || {!isNull (_operator getVariable ["bis_fnc_moduleRemoteControl_owner",objNull])}
@@ -163,9 +168,12 @@ if (_mode == "START") exitWith {
     private _registry=(missionNamespace getVariable ["CBE_AA_InterceptVehicles",[]])-[objNull];
     if (count _registry >= 4) exitWith {false};
     private _observation=createHashMap;
-    if (!([_vehicle,_gunner,objNull,_observation,false,false,true] call CBE_fnc_CortexGroundFireReady)
-        || {!((_observation get "loadedTurret") isEqualTo [0])}) exitWith {false};
-    private _turret=[0];
+    if (!([_vehicle,_gunner,objNull,_observation,false,false,true] call CBE_fnc_CortexGroundFireReady)) exitWith {false};
+    private _turret=+(_observation get "loadedTurret");
+    if (!(_turret isEqualType []) || {count _turret < 1} || {count _turret > 8}
+        || {_turret findIf {!(_x isEqualType 0) || {!finite _x}
+            || {_x != floor _x} || {_x < 0} || {_x >= 32}} >= 0}
+        || {_vehicle turretUnit _turret != _gunner} || {!(_vehicle turretLocal _turret)}) exitWith {false};
     private _lock=_vehicle lockedCameraTo _turret;
     if (!isNil "_lock" && {!(_lock isEqualType objNull && {isNull _lock})}) exitWith {false};
     private _magazine=_observation get "loadedMagazine";
@@ -179,8 +187,16 @@ if (_mode == "START") exitWith {
     private _ammoConfig=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
     private _gravity=if (isNumber (_ammoConfig >> "coefGravity")) then {getNumber (_ammoConfig >> "coefGravity")} else {1};
     if (!finite _speed || {!finite _gravity} || {_gravity < 0} || {_gravity > 4}) exitWith {false};
-    private _turretConfig=configOf _vehicle >> "Turrets";
-    private _main=("true" configClasses _turretConfig) param [0,configNull];
+    // Preserve the engine's raw turret config indices (BIS_fnc_turretConfig convention).
+    // Filtering/reordering child classes can select another station's optical/barrel points.
+    private _main=configOf _vehicle;
+    {
+        private _children=_main >> "Turrets";
+        if (count _children > 32 || {_x >= count _children}) exitWith {_main=configNull};
+        _main=_children select _x;
+        if (!isClass _main) exitWith {_main=configNull};
+    } forEach _turret;
+    if (!isClass _main) exitWith {false};
     private _optic=getText (_main >> "memoryPointGunnerOptics");
     private _selections=_vehicle selectionNames "Memory";
     // Native multi-barrel turrets may override inherited gunBeg through this array.
@@ -222,7 +238,8 @@ private _missile=_state get "missile";private _turret=_state get "turret";
 private _token=_state get "token";
 private _valid=local _vehicle && {alive _vehicle} && {local _gunner} && {local _group}
     && {[_vehicle] call CBE_fnc_CortexAirDefenceRole}
-    && {gunner _vehicle == _gunner} && {_vehicle turretLocal _turret}
+    && {gunner _vehicle == _gunner} && {_vehicle turretUnit _turret == _gunner}
+    && {_vehicle turretLocal _turret}
     && {group _gunner == _group} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
     && {simulationEnabled _gunner} && {!isObjectHidden _gunner}
     && {(_group getVariable ["CBE_AIPass_Epoch",0]) == (_state get "ownerEpoch")}

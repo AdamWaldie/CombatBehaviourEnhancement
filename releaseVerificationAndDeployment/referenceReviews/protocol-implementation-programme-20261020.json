@@ -331,6 +331,11 @@
       "allocationCadence20261030": {
         "review": "releaseVerificationAndDeployment/referenceReviews/protocol-aa-3809708209-20261020.json#allocationCadence20261030",
         "scope": "Existing16-platform native-warning planner now fixed3s pass/zero artificial inter-platform delay; transmitter caches still expire1s. Original8s warning/interceptor limits, group/owner/role/ROE and default-off policy unchanged. PASS1506 offline; analytical feasibility is not physical interception/performance."
+      },
+      "actualPrimaryStation20261030": {
+        "review": "protocol-aa-3809708209-20261020.json#actualPrimaryStation20261030",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+        "scope": "Existing interceptor binds original loaded primary gunner station through config geometry/aim/shot/effect/calibration/cleanup; supports nonzero/nested primary paths within bounds, not arbitrary secondary gunner control."
       }
     },
     {

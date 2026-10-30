@@ -3,7 +3,7 @@
  * Purpose: Apply one scripted direct-pass fuse effect from a captured real AA bullet.
  * This is an explicit gameplay fuse approximation, never a claim of native projectile collision.
  * Locality/authority: Unscheduled current turret-owner callback only; both round and warned
- * missile must be local. Scheduled direct calls refuse rather than carry stale geometry to effect.
+ * missile must be local, at the exact captured occupied primary turret path. Scheduled direct calls refuse rather than carry stale geometry to effect.
  * Exact private episode, native shot parents, original deadlines, actual current positions and
  * armed real-shot state qualify the effect. No remote identity guess or nearest copy fallback.
  * Repeat/JIP: One receipt per missile, no replay/worker. Unknown geometry, temporal gaps,
@@ -29,12 +29,16 @@ private _group=_episode getOrDefault ["group",grpNull];
 private _source=_episode getOrDefault ["source",objNull];
 private _victim=_episode getOrDefault ["victim",_vehicle];
 private _token=_episode getOrDefault ["token",""];
+private _turret=_episode getOrDefault ["turret",[]];
 private _until=_episode getOrDefault ["until",-1];
 if (isNull _victim || {!alive _victim} || {isNull _round} || {isNull _missile} || {isNull _vehicle} || {isNull _gunner} || {isNull _source}
     || {!local _round} || {!local _missile} || {!local _vehicle} || {!local _gunner} || {!local _group}
     || {!alive _round} || {!alive _missile} || {!alive _vehicle}
     || {gunner _vehicle != _gunner} || {group _gunner != _group}
-    || {!(_vehicle turretLocal [0])} || {(_episode getOrDefault ["turret",[]]) isNotEqualTo [0]}
+    || {!(_turret isEqualType [])} || {count _turret < 1} || {count _turret > 8}
+    || {_turret findIf {!(_x isEqualType 0) || {!finite _x}
+        || {_x != floor _x} || {_x < 0} || {_x >= 32}} >= 0}
+    || {!(_vehicle turretLocal _turret)} || {_vehicle turretUnit _turret != _gunner}
     || {time >= _until} || {time-_at <= 0} || {time-_at > 0.1}
     || {(_group getVariable ["CBE_AIPass_Epoch",0]) != (_episode getOrDefault ["ownerEpoch",-1])}
     || {(_gunner getVariable ["CBE_AA_InterceptOwner",[]]) isNotEqualTo [_token,_until]}

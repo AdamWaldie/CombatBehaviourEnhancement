@@ -468,5 +468,43 @@
       "addons/core/functions/cortexSchedulerTick.sqf": "da40ffc6551c0821cc66e8ef60c08e9ec5400b98134624a44bb0fcf6b49de521",
       "addons/vehicles/functions/cortexAAIntercept.sqf": "809db398f565e4cfccf2d671f310ee8cbdf2b4b7f4eba3dcfdfa95b1ce7644c3"
     }
+  },
+  "actualPrimaryStation20261030": {
+    "base": "cff2fbb65e6cd39eb79a197a3797f9ddf8eb8b8c",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "sourceArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/Protocol/20261030-aa-4921491a",
+    "sourcePboSHA256": "4921491a6e4afd5b74eeaa9c009e1144e90b6103e92a6167a4e22ba0061877cf",
+    "sourceMainSHA256": "2fdeb2d597f4589a4b35eac7107db1725f84f5ced9a715e2a9bceebfcb427788",
+    "readScope": "Re-read source helper130-152: primary gunner assignedVehicleRole turret path feeds weaponsTurret; missing assignment falls back to personal weapons. Source firing path425 onward forces reveals/native gunner orders. Complete prior source review remains historical; no new whole-mod parity claim.",
+    "intent": "Use actual AA platform gun capability instead of assuming turret[0]; retain source primary-gunner focus and improve station/loaded-round authority in existing CBE interception.",
+    "implementation": "START uses GroundFireReady loadedTurret, validates1..8 nonnegative integer indices<32, exact occupied/local turret, and resolves <=8 raw native config indices with<=32 entries/level. Optics/barrel come only from that node. SHOT/STEP/effect/calibration/cleanup retain original native station occupancy/locality; calibration cache identity includes exact turret path.",
+    "nativeReference": {
+      "pbo": "E:/SteamLibrary/steamapps/common/Arma 3/Addons/functions_f.pbo",
+      "readableMember": "Objects/fn_turretConfig.sqf",
+      "privateCopy": ".qa/native-aa-turret-index-20261030/fn_turretConfig.sqf",
+      "sha256": "4e8f289d484480a70111d384a5af8c14d8d00890248aa2f3c7c459756bed3979",
+      "finding": "Installed readable BIS helper uses raw Turrets config select indices, not filtered class lists. Used as API-convention evidence only; no helper code executed or shipped, compiled .sqfc not assessed."
+    },
+    "disposition": {
+      "retained": "Primary native gunner, existing bounded allocator/interceptor/real-shot/exact-cleanup owners, native[0] compatible path.",
+      "improved": "Actual observed loaded station, matching config geometry, live seat identity through all writers and station-specific correction history.",
+      "rejected": "Hardcoded[0], guessed first/direct class or reordered filtered config list, stale assigned-role fallback/personal weapons, forced reveal or additional turret controller."
+    },
+    "validation": "PASS1508 tests,498SQF,11PBO/full config/FSM/docs/wiki/parity/coverage gates;0 static performance findings; independent unsigned package/hash verification. Two existing AA contracts extended, no new tests. Focused provisional class-walk checks passed but installed readable helper inspection corrected it to raw native indices before full build.",
+    "candidate": ".qa/candidates/protocol-aa-primary-station-20261030-cff2fbb6",
+    "fingerprint": "ea2d6a9cdf95c8ef216c714e0d27886ea9885f16f276f880d70636a68505bdde",
+    "provenance": "Unsigned dirty basecff2fbb6 plus checked runtime/test/guide inputs; later metadata separate, not clean release/signature/physical proof.",
+    "performance": "At most8 native config-index lookups at START; new native occupied-station identity checks, no additional full station search per STEP, no world scan/controller/worker/timer/network. Runtime budget unmeasured.",
+    "limits": "Still one primary gunner, not simultaneous secondary/nested operator control. Actual native turret config ordering/inheritance/geometry, camera ownership/cleanup, Fired events, effects, native secondary control, normal/HC/JIP/Zeus/repeat and5%median/10%p95 cost unverified. Default-off policy unchanged. Other projectile/payload/warhead, station layers and real handover requirements remain open.",
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/turretUnit",
+      "https://community.bistudio.com/wiki/configClasses"
+    ],
+    "hashes": {
+      "addons/vehicles/functions/cortexAAIntercept.sqf": "9ddbc214b6d66ae65b881d2cb41972754b6d5caf2a3f22bb513b60e735faaca7",
+      "addons/vehicles/functions/cortexAAInterceptEffect.sqf": "d7e392cf1c6a0f41d0eb7b3d602f573e56714d99edf99aef1a4578fc0f7243a4",
+      "addons/vehicles/functions/cortexAASpot.sqf": "760452edb06eb696e26a9f7a96c9386a45988d4049cacf6a1441e65a25318fcf",
+      "releaseVerificationAndDeployment/test_aa_observation.py": "7a309538dd045fe34608d42c4e9a16782099379dc05ae4d33de50d7766a113e2"
+    }
   }
 }
