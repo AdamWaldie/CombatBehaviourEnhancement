@@ -260,6 +260,41 @@ class AAObservation(unittest.TestCase):
         # ownership checks, not permission to keep firing or replay an old action.
         self.assertNotIn('CBE_AIPass_AAIntercept_Enable',release)
         self.assertNotIn('CBE_AIPass_Epoch',release)
+        self.assertIn('isNil {',release)
+        self.assertLess(release.index('_state set ["unlockAttempted",true]'),unlock)
+        self.assertIn('time <= (_state get "until")+30',release)
+        self.assertGreater(release.rindex('_lock=_vehicle lockedCameraTo _turret'),unlock)
+        self.assertLess(release.index('if (!_cameraGone) exitWith {false}'),release.index('_vehicle setVariable ["CBE_AA_Intercept",nil]'))
+        self.assertIn('"cameraPending",!_cameraGone',release)
+        self.assertIn('isNil "_lock" || {_lock isEqualType objNull}',release)
+        self.assertIn('_state=_vehicle getVariable ["CBE_AA_Intercept",createHashMap]',intercept)
+        self.assertNotIn('call _finish;_state=createHashMap',intercept)
+        self.assertIn('if (_state getOrDefault ["finished",false]) exitWith',intercept)
+        step=intercept.split('if (_mode != "STEP" || {count _state == 0})',1)[1]
+        self.assertLess(step.index('_job getOrDefault ["token",""]'),step.index('if (_state getOrDefault ["finished",false])'))
+        for name in ('cortexAAInterceptEffect','cortexAASpot'):
+            self.assertIn('_episode getOrDefault ["finished",false]',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text())
+
+        observer=(ROOT/'addons/vehicles/functions/cortexAAObserve.sqf').read_text()
+        self.assertLess(observer.index('_retiring getOrDefault ["finished",false]'),observer.index('if (_eligible && {_current})'))
+        permission=(ROOT/'addons/infantry/functions/cortexActorFireTaskAvailable.sqf').read_text()
+        for bound in ('cameraPending','_platform turretUnit (_camera get "turret") == _actor'):
+            self.assertIn(bound,permission)
+        # Readback, not request/timeout, determines retirement. Foreign current control
+        # is observed only; one refused unlock must never become a repeated writer.
+        def cleanup(local,lock,applied='ours',allowed=True,attempted=False,late=False):
+            if applied is None:return True,False
+            if not local:return False,False
+            gone=lock is None or lock!=applied
+            request=not gone and allowed and not attempted and not late
+            return gone,request
+        self.assertEqual(cleanup(True,None),(True,False))
+        self.assertEqual(cleanup(True,'successor'),(True,False))
+        self.assertEqual(cleanup(True,'ours'),(False,True))
+        for kwargs in ({'allowed':False},{'attempted':True},{'late':True}):
+            self.assertEqual(cleanup(True,'ours',**kwargs),(False,False))
+        self.assertEqual(cleanup(False,None),(False,False))
+
 
         self.assertIn('_lock isEqualTo _applied',intercept)
         permission=(ROOT/'addons/infantry/functions/cortexActorFireTaskAvailable.sqf').read_text()

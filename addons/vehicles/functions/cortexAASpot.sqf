@@ -3,7 +3,8 @@
  * Purpose: Bounded local CIWS aim calibration from measured, stable-track bullet misses.
  * Locality/authority: Current CBE AA episode owner only. Returns lead seconds/elevation radians;
  * no skill, projectile, movement, target knowledge, firing or damage command is issued.
- * Repeat/JIP: At most8 ammo/munition-class rows and4 estimates/axis, no worker/network replay.
+ * Repeat/JIP: Finished episodes cannot read/apply or update calibration, including pending camera cleanup.
+ * At most8 ammo/munition-class rows and4 estimates/axis, no worker/network replay.
  * Owner/epoch/gunner/exact turret path/weapon station changes invalidate history. Corrections halve every30s and expire60s.
  * Three consistent estimates/axis within30s are required; rejected axes cannot refresh learning.
  * Each accepted update is bounded; each accepted update moves20percent toward the median,
@@ -21,7 +22,7 @@ private _gunner=_episode getOrDefault ["gunner",objNull];private _group=_episode
 private _missile=_episode getOrDefault ["missile",objNull];
 private _until=_episode getOrDefault ["until",-1];
 private _turret=_episode getOrDefault ["turret",[]];
-if (remoteExecutedOwner > 0 || {isNull _vehicle} || {isNull _gunner} || {isNull _missile}
+if (remoteExecutedOwner > 0 || {_episode getOrDefault ["finished",false]} || {isNull _vehicle} || {isNull _gunner} || {isNull _missile}
     || {!local _vehicle} || {!local _gunner} || {!local _missile}
     || {gunner _vehicle != _gunner} || {!(_turret isEqualType [])}
     || {count _turret < 1} || {count _turret > 8}

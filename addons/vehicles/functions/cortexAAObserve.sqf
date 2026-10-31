@@ -10,7 +10,8 @@
  * for the original15s even after launcher crew loss. Only fresh personal contact may
  * use it for gunnery priority. No target position or fire permission is added.
  * Repeat/JIP: One versioned local handler pair per eligible native AA vehicle. Discovery removes it
- * after locality/feature loss; shutdown removes tracked handlers. New owners start without a
+ * after locality/feature loss; shutdown removes tracked handlers. Existing discovery also
+ * observes ended camera retirement without replaying interception or renewing its deadline. New owners start without a
  * previous owner's receipt. Live AA role is checked at setup and both native callbacks;
  * role withdrawal supplies no new warning/shot receipt while normal cleanup retains its owner.
  * At most one full shot observation per second; warning receipts
@@ -24,6 +25,12 @@
 params [["_vehicle",objNull,[objNull]],["_release",false,[true]]];
 if (isNull _vehicle) exitWith {false};
 private _record=_vehicle getVariable ["CBE_AA_Observer",[]];
+// Reuse the existing sixteen-vehicle discovery slice. An ended interception can keep
+// its exact native camera receipt after observer removal or a feature shutdown.
+private _retiring=_vehicle getVariable ["CBE_AA_Intercept",createHashMap];
+if (_retiring isEqualType createHashMap && {_retiring getOrDefault ["finished",false]}) then {
+    [_vehicle,"RELEASE"] call CBE_fnc_CortexAAIntercept;
+};
 private _eligible=!_release && {local _vehicle} && {alive _vehicle}
     && {_vehicle isKindOf "LandVehicle"}
     && {[_vehicle] call CBE_fnc_CortexAirDefenceRole}

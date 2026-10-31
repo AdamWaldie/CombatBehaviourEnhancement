@@ -506,5 +506,32 @@
       "addons/vehicles/functions/cortexAASpot.sqf": "760452edb06eb696e26a9f7a96c9386a45988d4049cacf6a1441e65a25318fcf",
       "releaseVerificationAndDeployment/test_aa_observation.py": "7a309538dd045fe34608d42c4e9a16782099379dc05ae4d33de50d7766a113e2"
     }
+  },
+  "nativeCameraRetirement20261031": {
+    "base": "f9966866879a9dcc5c134ac714bdf285aebc5814",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_NATIVE_PHYSICAL_UNVERIFIED",
+    "finding": "_finish requested unlock under exact current control but unconditionally deleted episode/fire lease/registry without native readback. START also assigned an empty map after cleanup, forgetting unresolved native camera state. A still-held point could be mistaken for returned authority after lease expiry.",
+    "sourceIntent": "Improve the existing Protocol-inspired primary-gunner point defence inside its single current CBE executor; finite aim/fire cleanup, never another controller or blanket native reset. Source archive/readable version remains as actualPrimaryStation20261030; this is a CBE owner lifecycle repair, not a fresh full upstream review.",
+    "implementation": "Unscheduled exact-episode finalizer first marks finished. No applied point or a documented local-turret no-lock result/object/different valid position permits retirement without changing successor control. Exact own point may receive one unlock by original until+30s, consumed before command and followed by native readback. Unconfirmed state retains journal/lease/bounded registry slot; START rereads it, not an invented empty state. Existing discovery slice observes finished records even without observer/feature. FireTaskAvailable withholds only current occupant of the pending turret, even after token expiry; dismounted/other-station actors remain free.",
+    "allWriters": "STEP validates original callback token before finished cleanup. SHOT/STEP/fuse/calibration independently refuse finished episodes. No aim/fire/effect/calibration replay from cleanup. Nil native observation is accepted only on the local captured turret per documented lockedCameraTo contract; locality loss alone grants no absence proof.",
+    "outcome": "RELEASE bool now reports own-camera retirement. Result fields0..4 preserved; new field5 CAMERA_PENDING/CAMERA_RELEASED. Does not cancel existing native rounds or prove all-provider quiescence/interception/physical formation.",
+    "bounds": "One native clear, original deadline+30s without renewal; <=4 registry records including unresolved ones; existing16-vehicle discovery, no new worker/timer/scan/network. Metadata may await later discovery/explicit cleanup after master shutdown. Native camera queries only while cleanup is pending, not all active fire checks.",
+    "validation": "PASS1508 tests,498 compiled SQF,11PBO/full config/FSM/docs/wiki/parity/coverage gates;0 static performance findings; independent unsigned package verification. Existing AA contracts extended; no new tests. First full pass was followed by review fixes for stale-STEP token ordering and retired fuse/calibration vetoes; exact final-source full pass retained.",
+    "candidate": ".qa/candidates/protocol-aa-camera-retirement-20261031-f9966866",
+    "fingerprint": "d77acc49379b78671e21c10958255ebbd1355103a563660d1cf0aa3f13d50569",
+    "provenance": "Unsigned dirty basef9966866 plus checked runtime/test/guide inputs; later metadata separate, not clean release/signature/physical proof.",
+    "limits": "Machine-local receipts do not implement incoming-owner reconciliation. Actual rejected unlock/native lock return values, successor same-value ambiguity, camera rest, disabled/shutdown/repeat/normal-HC/JIP/Zeus and5%median/10%p95 measured cost remain unverified; audits paused. Pending native ownership can hold the existing registry capacity until positively resolved.",
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/lockCameraTo",
+      "https://community.bistudio.com/wiki/lockedCameraTo"
+    ],
+    "hashes": {
+      "addons/vehicles/functions/cortexAAIntercept.sqf": "9137c767dd225b4a9e7ab04a5cd39d5f4e5128728fee518ac29e1e08510e6020",
+      "addons/vehicles/functions/cortexAAObserve.sqf": "f9e03f2abf63d55adbe99f9b206c5df96e89a498cd81cbbb8d5b8e31d95f8c07",
+      "addons/vehicles/functions/cortexAAInterceptEffect.sqf": "f4922c490c2f71ffbd86d0355c7e9f8cc5e195737ac5dd255a846aa825342507",
+      "addons/vehicles/functions/cortexAASpot.sqf": "7465085a216e4e93b842e20574956ae8bb91ba4d0cc9d2bb1b819defa0104c84",
+      "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "0f59f461112b742b29bc91c64f4e5391382963d6c93a689b668be911f7d3aa59",
+      "releaseVerificationAndDeployment/test_aa_observation.py": "4cbb0b13741ef3127e765d9b7f0f879988e0d30f572fd8d400d6b4d8243f8eff"
+    }
   }
 }

@@ -6,7 +6,8 @@
  * missile must be local, at the exact captured occupied primary turret path. Scheduled direct calls refuse rather than carry stale geometry to effect.
  * Exact private episode, native shot parents, original deadlines, actual current positions and
  * armed real-shot state qualify the effect. No remote identity guess or nearest copy fallback.
- * Repeat/JIP: One receipt per missile, no replay/worker. Unknown geometry, temporal gaps,
+ * Repeat/JIP: Finished episodes refuse effects even if their exact camera cleanup is pending.
+ * One receipt per missile, no replay/worker. Unknown geometry, temporal gaps,
  * turning over5deg, submunition payloads or cross-owner projectiles refuse without effects.
  * A damaging warhead checks protected entities at its current position: max12m/four times
  * indirectHitRange, <=250m; at most64 entries evaluated. One veto per engine time sample prevents
@@ -20,7 +21,7 @@
  */
 params [["_episode",createHashMap,[createHashMap]],["_row",[],[[]]],
     ["_roundPos",[],[[]]],["_targetPos",[],[[]]]];
-if (remoteExecutedOwner > 0 || {canSuspend} || {count _row != 9}) exitWith {false};
+if (remoteExecutedOwner > 0 || {canSuspend} || {_episode getOrDefault ["finished",false]} || {count _row != 9}) exitWith {false};
 _row params ["_round","_previousRound","_previousMissile","_at","_origin","_previousDir","_previousUp"];
 private _vehicle=_episode getOrDefault ["vehicle",objNull];
 private _missile=_episode getOrDefault ["missile",objNull];

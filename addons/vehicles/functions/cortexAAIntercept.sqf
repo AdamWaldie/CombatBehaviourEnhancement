@@ -18,7 +18,11 @@
  * One eight-second episode/platform, max four local platforms, sixteen fire requests,
  * eight observed rounds and 160 steps. New warnings cannot renew an active episode. No JIP replay.
  * Temporary native point locks release at target/limit; an observed unlocked turret ends the episode.
- * The fire lease expires at the original deadline even after discarded cleanup.
+ * Expired fire leases do not grant station reuse while an ended native camera lock is pending.
+ * Cleanup makes at most one unlock request by original deadline+30s and reads the native result.
+ * Local-turret nil/different target permits exact passive retirement. Unknown/still-owned locks
+ * retain the finished journal, fire lease and registry slot; no aim/fire replay or deadline renewal.
+ * Existing discovery observes pending cleanup, including after feature disable. No new worker.
  * Measured stable-track miss calibration may adjust later aim through bounded CortexAASpot.
  * Shot calibration uses first observed projectile position, not an assumed first-barrel origin.
  * Exact unchanged camera point may be unlocked; successor locks/orders/crew always win.
@@ -27,7 +31,8 @@
  * Arguments: 0 vehicle OBJECT,objNull; 1 mode STRING,START (START/STEP/SHOT/RELEASE);
  * 2 payload ARRAY,[] (START: [canonical shared warning ARRAY8] or native own receipt;
  * STEP: [job state HASHMAP]; SHOT: native Fired arguments).
- * Return: START/SHOT/RELEASE BOOL; STEP NUMBER next delay or -1. Fuse request is not physical intercept proof.
+ * Return: START/SHOT BOOL; RELEASE BOOL true only after camera retirement, not shot cancellation;
+ * STEP NUMBER next delay or -1. Result field5 is CAMERA_PENDING/CAMERA_RELEASED. No physical intercept proof.
  * Callers: CortexAAObserve Fired/cleanup, CortexAAAllocate START and owner-local scheduler adapter.
  * Example: [_vehicle,"START"] call CBE_fnc_CortexAAIntercept;
  */
@@ -38,7 +43,7 @@ if (isNull _vehicle) exitWith {
         private _gone=_payload param [0,createHashMap,[createHashMap]];
         private _actor=_gone getOrDefault ["gunner",objNull];
         private _lease=[_gone getOrDefault ["token",""],_gone getOrDefault ["until",-1]];
-        if (!isNull _actor && {(_actor getVariable ["CBE_AA_InterceptOwner",[]]) isEqualTo _lease}) then {
+        if (!isNull _actor && {local _actor} && {(_actor getVariable ["CBE_AA_InterceptOwner",[]]) isEqualTo _lease}) then {
             _actor setVariable ["CBE_AA_InterceptOwner",nil];
         };
         _gone set ["finished",true];
@@ -50,34 +55,66 @@ if (isNull _vehicle) exitWith {
 private _state=_vehicle getVariable ["CBE_AA_Intercept",createHashMap];
 private _finish={
     params [["_reason","RELEASED"]];
-    if (count _state == 0) exitWith {false};
-    private _actor=_state get "gunner";private _token=_state get "token";
-    private _turret=_state get "turret";
-    private _applied=_state getOrDefault ["applied",[]];
-    private _releaseGroup=group _actor;
-    // Release may remove our exact old lock after feature shutdown or epoch change,
-    // but locality and value equality alone do not override a current controller.
-    if (!isNull _actor && {local _actor} && {local _vehicle} && {gunner _vehicle == _actor} && {_vehicle turretUnit _turret == _actor}
-        && {!isNull _releaseGroup} && {local _releaseGroup}
-        && {(_actor getVariable ["CBE_AA_InterceptOwner",[]]) isEqualTo [_token,_state get "until"]}
-        && {!([_releaseGroup,false,_actor] call CBE_fnc_CortexExternalTakeover)}
-        && {!([_vehicle] call CBE_fnc_CompatibilityExternalControl)}
-        && {_vehicle turretLocal _turret} && {_applied isNotEqualTo []}) then {
-        private _lock=_vehicle lockedCameraTo _turret;
-        if (!isNil "_lock" && {_lock isEqualTo _applied}) then {
-            _vehicle lockCameraTo [objNull,_turret,false];
+    private _retired=false;
+    // Direct script callers can be scheduled; native cleanup and its readback must not
+    // carry an old observation across script suspension. Scheduler callers are already unscheduled.
+    isNil {
+        _retired=call {
+            if (count _state == 0 || {(_vehicle getVariable ["CBE_AA_Intercept",createHashMap]) isNotEqualTo _state}) exitWith {false};
+            private _actor=_state get "gunner";private _token=_state get "token";
+            private _turret=_state get "turret";
+            private _applied=_state getOrDefault ["applied",[]];
+            private _releaseGroup=group _actor;
+            _state set ["finished",true];
+            if !("finishReason" in _state) then {_state set ["finishReason",_reason]};
+            private _cameraGone=_applied isEqualTo [];
+            if (!_cameraGone && {local _vehicle} && {_vehicle turretLocal _turret}) then {
+                private _lock=_vehicle lockedCameraTo _turret;
+                // Native nil means no lock on this LOCAL turret. A different object/point
+                // is successor/native control: observe it without issuing another unlock.
+                private _absent={
+                    isNil "_lock" || {_lock isEqualType objNull}
+                        || {_lock isEqualType [] && {count _lock == 3}
+                            && {_lock findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
+                            && {_lock isNotEqualTo _applied}}
+                };
+                _cameraGone=call _absent;
+                if (!_cameraGone && {!isNil "_lock"} && {_lock isEqualTo _applied}
+                    && {!(_state getOrDefault ["unlockAttempted",false])}
+                    && {time <= (_state get "until")+30}
+                    && {!isNull _actor} && {local _actor} && {gunner _vehicle == _actor}
+                    && {_vehicle turretUnit _turret == _actor}
+                    && {!isNull _releaseGroup} && {local _releaseGroup}
+                    && {(_actor getVariable ["CBE_AA_InterceptOwner",[]]) isEqualTo [_token,_state get "until"]}
+                    && {!([_releaseGroup,false,_actor] call CBE_fnc_CortexExternalTakeover)}
+                    && {!([_vehicle] call CBE_fnc_CompatibilityExternalControl)}) then {
+                    // Consume before the only native clear. Later discovery observes only.
+                    _state set ["unlockAttempted",true];
+                    _vehicle lockCameraTo [objNull,_turret,false];
+                    _lock=_vehicle lockedCameraTo _turret;
+                    _cameraGone=call _absent;
+                };
+            };
+            if ((_vehicle getVariable ["CBE_AA_Intercept",createHashMap]) isNotEqualTo _state) exitWith {false};
+            _state set ["cameraPending",!_cameraGone];
+            _vehicle setVariable ["CBE_AA_InterceptResult",[_state get "finishReason",_state getOrDefault ["shots",0],
+                _state getOrDefault ["closestPass",-1],_state get "until",_state getOrDefault ["effect",[]],
+                ["CAMERA_PENDING","CAMERA_RELEASED"] select _cameraGone]];
+            // Ending our writer or reaching a deadline is not native camera retirement.
+            // Keep the exact original journal/lease and bounded registry slot on uncertainty.
+            if (!_cameraGone) exitWith {false};
+            if (!isNull _actor && {local _actor}
+                && {(_actor getVariable ["CBE_AA_InterceptOwner",[]]) isEqualTo [_token,_state get "until"]}) then {
+                _actor setVariable ["CBE_AA_InterceptOwner",nil];
+            };
+            _vehicle setVariable ["CBE_AA_Intercept",nil];
+            missionNamespace setVariable ["CBE_AA_InterceptVehicles",
+                (missionNamespace getVariable ["CBE_AA_InterceptVehicles",[]])-[_vehicle,objNull]];
+            true
         };
+        false
     };
-    if (!isNull _actor && {(_actor getVariable ["CBE_AA_InterceptOwner",[]]) isEqualTo [_token,_state get "until"]}) then {
-        _actor setVariable ["CBE_AA_InterceptOwner",nil];
-    };
-    _state set ["finished",true];
-    _vehicle setVariable ["CBE_AA_InterceptResult",[_reason,_state getOrDefault ["shots",0],
-        _state getOrDefault ["closestPass",-1],_state get "until",_state getOrDefault ["effect",[]]]];
-    _vehicle setVariable ["CBE_AA_Intercept",nil];
-    missionNamespace setVariable ["CBE_AA_InterceptVehicles",
-        (missionNamespace getVariable ["CBE_AA_InterceptVehicles",[]])-[_vehicle,objNull]];
-    true
+    _retired
 };
 if (_mode == "RELEASE") exitWith {[] call _finish};
 if (_mode == "SHOT") exitWith {
@@ -131,8 +168,9 @@ if (_mode == "SHOT") exitWith {
     true
 };
 if (_mode == "START") exitWith {
-    if (count _state > 0 && {time >= (_state get "until")}) then {
-        ["EXPIRED"] call _finish;_state=createHashMap;
+    if (count _state > 0 && {time >= (_state get "until") || {_state getOrDefault ["finished",false]}}) then {
+        ["EXPIRED"] call _finish;
+        _state=_vehicle getVariable ["CBE_AA_Intercept",createHashMap];
     };
     if (count _state > 0) exitWith {false};
     private _gunner=gunner _vehicle;private _group=group _gunner;
@@ -233,6 +271,7 @@ if (_mode == "START") exitWith {
 if (_mode != "STEP" || {count _state == 0}) exitWith {-1};
 private _job=_payload param [0,createHashMap,[createHashMap]];
 if ((_job getOrDefault ["token",""]) != (_state get "token")) exitWith {-1};
+if (_state getOrDefault ["finished",false]) exitWith {[] call _finish;-1};
 private _gunner=_state get "gunner";private _group=_state get "group";
 private _missile=_state get "missile";private _turret=_state get "turret";
 private _token=_state get "token";

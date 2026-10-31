@@ -336,6 +336,11 @@
         "review": "protocol-aa-3809708209-20261020.json#actualPrimaryStation20261030",
         "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
         "scope": "Existing interceptor binds original loaded primary gunner station through config geometry/aim/shot/effect/calibration/cleanup; supports nonzero/nested primary paths within bounds, not arbitrary secondary gunner control."
+      },
+      "nativeCameraRetirement20261031": {
+        "review": "protocol-aa-3809708209-20261020.json#nativeCameraRetirement20261031",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_NATIVE_PHYSICAL_UNVERIFIED",
+        "scope": "Own native camera readback gates exact retirement; one unlock request; finished-state all-writer refusal; existing discovery observes pending state, and the affected station cannot bypass it on lease expiry. Cross-owner reconciliation and physical handover remain unverified."
       }
     },
     {
