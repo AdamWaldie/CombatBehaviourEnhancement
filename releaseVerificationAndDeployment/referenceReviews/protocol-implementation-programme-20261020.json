@@ -391,6 +391,11 @@
         "review": "releaseVerificationAndDeployment/referenceReviews/protocol-rappel-3819636004-20261020.json#controlledPoseBoundary20261030",
         "status": "POSE_BUILDING_BLOCK_OFFLINE_VERIFIED_NO_DESCENT_EXECUTOR",
         "scope": "Immutable original authority, finite native pose apply/clear, permanent observed-loss withdrawal, private route baseline and unresolved reservation guard. PASS1507 offline, physical pending. Not a working insertion task."
+      },
+      "nativePhysicsDiagnosticPrepared20261031": {
+        "review": "protocol-rappel-3819636004-20261020.json#nativePhysicsDiagnosticPrepared20261031",
+        "status": "PREPARED_UNRUN_NO_PRODUCTION_RAPPEL_IMPLEMENTATION",
+        "scope": "One isolated normal-VR native Man/cargo rope lowering comparison with physical-control prerequisites and release exclusion. Await authorised engine run; no descent wrapper or working-rappel credit."
       }
     },
     {

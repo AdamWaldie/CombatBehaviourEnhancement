@@ -340,5 +340,36 @@
     "weaponPosePolicy": "Retain source separate rifle/pistol no-actions moves. Ordinary human unarmed/primary/handgun eligible; launcher/other selected weapons refuse. No imposed weapon switch. A changed selection cannot silently repair/replay a pose; post-request weapon must still match for acceptance. A completed identity cannot reapply; future legitimate task needs new original identity. This does not prove pose deformation quality or successful engine admission.",
     "routePublication": "Only compact custody metadata is public. Full authored route/waypoint statements stay in the exact owner-local baseline; cannot be used as permission by a joining/migrated owner. Passive pose-absence retirement removes only the matching private baseline. No full route payload broadcast or JIP animation replay.",
     "originalContextAndReplay": "Caller must supply immutable original group/epoch/generation/flight revision, compared with live state; never reconstruct identity from current metadata. Compact7-field last identity prevents replay after completion. Clear permission consumed before one native clear attempt; later calls observe only. Foreign/unowned AR animation family refuses new admission even after provider flag absence. No full route broadcast."
+  },
+  "nativePhysicsDiagnosticPrepared20261031": {
+    "base": "f1bd3ad759bc6d44618ab73ca33a706aee91f458",
+    "status": "PREPARED_UNRUN_NO_PRODUCTION_RAPPEL_IMPLEMENTATION",
+    "sourceSHA256": "35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b",
+    "sourceTrace": "Re-read original AR actor entry/physics/landing/damage cleanup and CBE pose/geometry/scheduler/operation owner contracts. Provider actor manually moved every0.01s plus independent simulation/animation/damage workers; direct native Man rope endpoint documented but physical support remains unknown. Ordinary tactical jobs can defer or discard on pause/ownership changes, so cannot simply own frozen actors. No source wrapper, native hanging writer or body freeze added.",
+    "finiteOutcome": "Prepared one isolated normal-VR rappelphysics harness case: simulated living Man vs simulated slingload crate beneath fixed simulation-off helicopter anchors. Six-second unassisted HOLD, one native unwind request/cell,23s observed descent; >=20 hold samples and <=150 samples/cell. Cargo control must physically hold/lower before Man inference. Actual >=8m descent and native ground contact required; stable anchors/life/locality/simulation observed. Native rope destruction observed then only disposable resources deleted.",
+    "owner": "Existing explicit-focus runServer dispatcher -> runRappelPhysics, normal batch guard in staging and launcher, release_gate explicitly refuses diagnostic promotion. Never automatically included in all/HC or run during preparation.",
+    "disposition": {
+      "retained": "Reference controlled-descent/real support arrival intent; source simulation/animation writer graph stays rejected.",
+      "prepared": "The native actor-endpoint physics alternative is now an executable, bounded comparison with a cargo validity control rather than a paper assumption.",
+      "notImplemented": "No production actor entry/descent/animation/flight orchestration/cargo-ground handover/module or external-provider quiescence."
+    },
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/ropeCreate",
+      "https://community.bistudio.com/wiki/ropeUnwind"
+    ],
+    "limits": "UNRUN; audits paused. Fixed simulation-off anchors and PATH-excluded protected payloads isolate physics, not real hover/entry/animation/deformation/casualty/roof/locality/handover or performance. Failed cargo control is inconclusive, not proof Man is unsupported. No actor transforms/velocity/simulation/damage/pose writes during measurement; initial fixture setup is not production recovery. RPT samples are discrete, not continuous safety proof. A passing diagnostic cannot accept CBE or a release.",
+    "validation": "PASS1509 repository tests,498 compiled production SQF,11PBO/full gates;0 static performance findings; independent unsigned package verification. Focused staging/gate suite PASS26, including one new necessary regression. Diagnostic SQF structurally checked/copied by staging tests; never executed in Arma. Unit staging in disposable repo test folders only; no installed-game staging or launch.",
+    "hashes": {
+      "releaseVerificationAndDeployment/cortexQA/runRappelPhysics.sqf": "73c8d117990ebcf7778cb33aa83ad7301163038db844a3a0567b7e5b65fcccc3",
+      "releaseVerificationAndDeployment/cortexQA/runServer.sqf": "a24465ce9c5b4c1f31df3375a95ac452ac7def375d3a36d63a0e2efb4e881560",
+      "releaseVerificationAndDeployment/mod_pipeline.py": "b72293cc127f4f135ef8ea35d3bfe4a7a506c20b87789a6372eaef23dd773b67",
+      "releaseVerificationAndDeployment/launch_mod_audit.ps1": "f1482332c45dcf1b3f28cc319b320d436f6fbbd87d7fa18f41090d62c8dc3287",
+      "releaseVerificationAndDeployment/test_mod_pipeline.py": "ca65f6ded87cce3ecccee305605cd2482f2d9aba7211ff9371e3614630393c25"
+    },
+    "candidate": ".qa/candidates/protocol-rappel-physics-prepared-20261031-f1bd3ad7",
+    "fingerprint": "9a0d2d14215f204e448cf28a349b60afc2e2b37456bbdc929da8814532a510c7",
+    "provenance": "Unsigned dirty basef1bd3ad7 plus checked QA/pipeline/guide inputs; production runtime unchanged. Metadata afterward. Not clean release/signature or physical evidence.",
+    "buildLog": ".qa/handovers/rappel-native-physics-preparation-20261031-build.log",
+    "independentLog": ".qa/handovers/rappel-native-physics-preparation-20261031-independent.log"
   }
 }

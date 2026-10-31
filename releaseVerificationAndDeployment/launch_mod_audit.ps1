@@ -34,6 +34,7 @@ if ($Focus -eq 'staticsolo' -and ($BatchMode -ne 'normal' -or $HeadlessClients -
 if ($Focus -eq 'nativeflight' -and ($BatchMode -ne 'normal' -or $HeadlessClients -ne 0)) {throw 'Native fleeing mechanics require a normal batch with no HCs'}
 if ($Focus -eq 'illumination' -and ($BatchMode -ne 'normal' -or $HeadlessClients -ne 0)) {throw 'Infantry illumination mechanics require a normal batch with no HCs'}
 if ($Focus -eq 'convoynativestop' -and ($BatchMode -ne 'normal' -or $HeadlessClients -ne 0)) {throw 'Native convoy STOP handover requires a normal batch with no HCs'}
+if ($Focus -eq 'rappelphysics' -and ($BatchMode -ne 'normal' -or $HeadlessClients -ne 0)) {throw 'Native rappel physics requires a separate normal batch with no HCs'}
 if ($ServerOnly -and $Focus -ne 'dangerload') {throw 'ServerOnly is restricted to the dangerload loader diagnostic.'}
 if (!$ArmaPath) {
     $ArmaPath=(Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\bohemia interactive\arma 3').main

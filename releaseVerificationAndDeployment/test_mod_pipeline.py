@@ -65,6 +65,32 @@ class PackagePipelineTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             stage(self.folder,Path(self.temp.name)/'loaded-buildings','nativebuildings')
 
+    def test_rappel_physics_is_isolated_normal_unassisted_and_not_release_evidence(self):
+        mission=stage(self.folder,Path(self.temp.name)/'rappel-physics','rappelphysics')
+        runner=(mission/'cortexQAServer.sqf').read_text(encoding='utf-8')
+        comparison=(mission/'cortexQARappelPhysics.sqf').read_text(encoding='utf-8')
+        self.assertIn('if (_focus == "rappelphysics") exitWith {',runner)
+        self.assertIn('"MAN","CARGO"',comparison)
+        self.assertIn('B_supplyCrate_F',comparison)
+        self.assertIn('count _samples < 150',comparison)
+        self.assertIn('count _samples >= 20',comparison)
+        self.assertIn('private _controlOK=',comparison)
+        self.assertIn('_controlOK && {_man get "lowered"}',comparison)
+        self.assertIn('isTouchingGround _payload',comparison)
+        self.assertIn('_descent >= 8',comparison)
+        measuring=comparison.split('if (_valid) then {',1)[1].split('private _control=',1)[0]
+        for command in ('setPos','setVelocity','enableSimulation','allowDamage','switchMove','attachTo'):
+            self.assertNotIn(command,measuring)
+        self.assertEqual(measuring.count('ropeUnwind ['),1)
+        self.assertIn('ropeDestroy',comparison)
+        self.assertIn('deleteVehicle',comparison)
+        with self.assertRaisesRegex(ValueError,'separate normal batch'):
+            stage(self.folder,Path(self.temp.name)/'rappel-hc','rappelphysics',batch_mode='headless')
+        evidence=Path(self.temp.name)/'rappel-evidence.json'
+        evidence.write_text(json.dumps({'focus':'rappelphysics','status':'PASS','complete':True}))
+        with self.assertRaisesRegex(ValueError,'Native rappel physics diagnostics'):
+            release_gate(self.folder,evidence)
+
     def setUp(self):
         (ROOT/'.test-tmp').mkdir(exist_ok=True)
         self.temp = tempfile.TemporaryDirectory(dir=ROOT/'.test-tmp')
