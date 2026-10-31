@@ -33,5 +33,33 @@
   "sourceHashes": {
     "addons/vehicles/functions/drivingFollowingCap.sqf": "5d3af4960952ea7c7961cc677b4502176ce51113e91052f9314085da6a59430e",
     ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931"
+  },
+  "trafficObservationReuse20261029": {
+    "base": "cfda547fc6869d56c0f0089bbe19d10f56dfa292",
+    "source": "Protected fn_driveAssist.sqf TrafficCap around lines1032-1130: sampled course/speed, following and predictive crossing intent; scoped follow-up, not new whole-source review.",
+    "finding": "CBE reused a four-transform affine hull projection but separately transformed its centre for each retained peer, and read native velocity up to four times per admitted peer.",
+    "implementation": "Sample velocity once before following classification; copy before flattening for crossing. Reconstruct horizontal relative centre from midpoints of unpadded affine right/forward extrema in the existing orthonormal horizontal frame.",
+    "execution": "DrivingAssistStart and ConvoyTick lead/follower -> shared read-only DrivingFollowingCap -> existing current-owner cap application. No command writer, controller, lease or handover changes.",
+    "preserved": "Single discovery query, 256 projection and64 retained prediction limits, dense/scheduled refusal, vertical overlap, outward padding, crossing priorities/windows, queue proof, predecessor pacing and braking coefficients unchanged.",
+    "cost": "One native velocity read per admitted peer instead of up to four; four hull transforms per peer instead of four plus a separate centre transform for up to64 retained predictions. Adds scalar midpoint/reconstruction arithmetic; no extra query, worker, state or cache. Net engine cost unmeasured.",
+    "decisions": "Retain measured-course predictive cap intent and full oriented hulls; adapt redundant observation reuse. No source physical push/teleport, forced recovery or blanket reset.",
+    "validation": {
+      "red": ".qa/handovers/traffic-reuse-red-20261029.log",
+      "focused": ".qa/handovers/traffic-reuse-focused-20261029.log",
+      "numerical": "Extended existing case with independent exhaustive eight-corner oracle for asymmetric bounds, yaw/pitch/roll, forward/reverse frames, scales and large world origins; centre matches independently transformed model midpoint. Existing20 traffic cases retained.",
+      "firstBuild": ".qa/handovers/traffic-reuse-build-20261029.log passed runtime gates before guide/source-review update; final build below covers the documented checkpoint.",
+      "full": ".qa/handovers/traffic-reuse-final-build-20261029.log:1505 existing tests,480 production SQF,11 PBOs; config/FSM/docs/coverage/parity and static performance gates passed.",
+      "physicalAcceptance": false,
+      "measuredPerformance": false,
+      "candidate": ".qa/candidates/traffic-reuse-20261029-cfda547f",
+      "independent": ".qa/handovers/traffic-reuse-independent-20261029.log: exit0, matching fingerprint",
+      "fingerprint": "d7237cfde4bb19c19cd19f6541181acdb5841091815495063a3a8ff25b80faf1",
+      "provenance": "Unsigned development build from cfda547f plus reviewed runtime/test/guide edits. Engineering review/register/handover finalized after package; no installed staging."
+    },
+    "sourceHashes": {
+      "addons/vehicles/functions/drivingFollowingCap.sqf": "a1de1730e7f4e1b06d1194018a8158df3c7972022c70d6331f2847a37af0a820",
+      ".qa/hbq-complete-source-20261025/functions/fn_driveAssist.sqf": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931"
+    },
+    "remaining": "Physical mixed-convoy stop/start, traffic outcomes, whole HBQ reconciliation and5%median/10%p95 performance remain open. Numerical/source checks do not establish engine improvement; audits paused."
   }
 }

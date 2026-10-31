@@ -5,6 +5,11 @@
  * Orders an AI group to garrison the buildings around a point.
  *
  * Uses height-sorted, roofed positions and outward watch sectors. PATH locks only after arrival.
+ * Roof classification uses the transformed model top once per building, not a fixed height.
+ * Invalid bounds skip that building; non-upward endpoints classify exposed without a ray.
+ * Roof preference grants neither native access nor physical arrival/clearance proof.
+ * A private16-profile budget favours roofed/screened medic posts and observed outward MG fields.
+ * Medics then MG receive slots first; other roles retain base order and in-place poses are untouched.
  * Defenders duck under fire; local handlers and assignments replay after ownership changes.
  * Positions: building positions within the radius, roofed positions first, then highest first by default or one-time randomized distribution.
  * Each soldier is sent to his own position, then held there with PATH disabled, watching outward.
@@ -129,13 +134,20 @@ if (_inPlace) then {
         private _positions=_building buildingPos -1;
         _positionsSeen=_positionsSeen+count _positions;
         if (_positionsSeen > 512) exitWith {_planningValid=false};
-        if (alive _building) then {
+        if (alive _building && {_positions isNotEqualTo []}) then {
+            private _roofTop=[_building] call CBE_fnc_BuildingRoofTop;
+            // Invalid bounds cannot establish roof preference. Skip only this building;
+            // admission still preserves the old task if no other valid positions remain.
+            if (!finite _roofTop || {_roofTop == -1e12}) exitWith {};
             {
                 private _position=_x;
                 if (count _position == 3 && {_position findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
                     && {!surfaceIsWater _position} && {[AGLToASL _position,_taken,1] call CBE_fnc_PositionBucketAdmit}) then {
                     private _positionASL=AGLToASL _position;
-                    private _roofed=(lineIntersectsSurfaces [_positionASL vectorAdd [0,0,1],_positionASL vectorAdd [0,0,15],objNull,objNull,true,1]) isNotEqualTo [];
+                    private _roofed=_roofTop > (_positionASL select 2)+1 && {
+                        (lineIntersectsSurfaces [_positionASL vectorAdd [0,0,1],
+                            [_positionASL select 0,_positionASL select 1,_roofTop],objNull,objNull,true,1]) isNotEqualTo []
+                    };
                     _candidates pushBack [[1,0] select _roofed,if (_sortByHeight) then {-(_position select 2)} else {random 1},count _candidates,_position,getPosATL _building,_building];
                 };
             } forEach _positions;
@@ -150,6 +162,24 @@ if (_inPlace) then {
 if (!_inPlace && {!_teleport}) then {
     private _failedPosts=[_group] call CBE_fnc_CortexGarrisonFailedPosts;
     _candidateAssignments=_candidateAssignments select {!((_x select [0,4]) in _failedPosts)};
+};
+private _plannedAssignments=_units apply {[getPosATL _x,0,objNull,[],"EXTERIOR_PENDING"]};
+if (_inPlace) then {_plannedAssignments=+_candidateAssignments} else {
+    private _available=+_candidateAssignments;
+    private _postBudget=createHashMapFromArray [["remaining",16],["profiles",createHashMap],["roofs",createHashMap]];
+    private _actorOrder=[];
+    {
+        private _role=[_x,true] call CBE_fnc_CortexUnitRole;
+        private _priority=switch (_role) do {case "MEDIC":{0};case "MG":{1};default {2}};
+        _actorOrder pushBack [_priority,_forEachIndex,_role];
+    } forEach _units;
+    _actorOrder sort true;
+    {
+        if (_available isEqualTo []) exitWith {};
+        _x params ["_priority","_actorIndex","_role"];
+        private _choice=[_available,_role,_postBudget] call CBE_fnc_CortexGarrisonPostChoice;
+        _plannedAssignments set [_actorIndex,_available deleteAt _choice];
+    } forEach _actorOrder;
 };
 if !(call _admissionCurrent) exitWith {
     _group setVariable ["CBE_Cortex_GarrisonAdmissionFailure",[diag_tickTime,"PLAN_CONTEXT_CHANGED",_group getVariable ["CBE_Cortex_LastTaskSerial",-1]]];
@@ -169,9 +199,7 @@ if ((_group getVariable ["CBE_AIPass_Garrison",[]]) isNotEqualTo []) then {[_gro
 if ((_group getVariable ["CBE_AIPass_Defend",[]]) isNotEqualTo []) then {[_group,false,false] call CBE_fnc_CortexDefendRelease};
 _group setVariable ["CBE_Cortex_GarrisonCandidates",_candidateAssignments,true];
 {
-    private _assignment=if (_forEachIndex < count _candidateAssignments) then {
-        _candidateAssignments select _forEachIndex
-    } else {[getPosATL _x,0,objNull,[],"EXTERIOR_PENDING"]};
+    private _assignment=_plannedAssignments select _forEachIndex;
     _x setVariable ["CBE_AIPass_GarrisonPos",_assignment,true];
 } forEach _units;
 // Instant placement is an explicit one-shot order option, never an approach recovery.

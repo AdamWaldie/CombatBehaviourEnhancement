@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-30",
+  "sourceBase": "808aa4ceef67b243f12d7d7dd27296c5e51580fb",
+  "workshopId": "3799629858",
+  "scope": "Selected combat-pressure estimator intent integrated inside existing owner-local CBE morale; not Conductor registry/support/whole-source parity.",
+  "sourceIntegrity": "Five selected extracted source hashes match immutable PinnedDown manifest; original Workshop packages remain absent. Archive/source files read-only. No raw reference code shipped.",
+  "sources": [
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_analyzeReinforcementPressure.sqf",
+      "sha256": "3ce621530e50bc600629d0965e9ed7744bad7a2767885cc9515747cd484d2846",
+      "manifestMatch": true,
+      "scope": "Selected function entry/pressure context and known-contact entity deduplication/weights/group-floor branch, lines1..126. Remaining15KB helper body not reviewed here."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_analyzeGroupNeeds.sqf",
+      "sha256": "d251602f82f3d19a3297fb5095f7bf215f034c5ca6163331e2056a7918f435c8",
+      "manifestMatch": true,
+      "scope": "Complete readable body: selected request-type/capability dispatch; descendant classifiers and providers not newly complete."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_processNeedAnalysis.sqf",
+      "sha256": "9da45c93e5354b19dc38f605498a3075e13278901e6de7c88cb1e38407a90931",
+      "manifestMatch": true,
+      "scope": "Complete readable staged dispatcher body: existing registry cursor and request/release edges; called graph incomplete."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_isUnitCombatEffective.sqf",
+      "sha256": "a88161142880e4fbc471a2fa56bd7ce96402fd81033acb30665930810b708f6f",
+      "manifestMatch": true,
+      "scope": "Complete readable native/custom incapacitation/surrender predicate."
+    },
+    {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3799629858/extracted-20261011/pd_conductor/functions/analysis/fn_classifyAmmo.sqf",
+      "sha256": "3f7e77a1081edd1c08aaba1aa063d9ee4e7b63eb7fe690a9f6e344708ab2866b",
+      "manifestMatch": true,
+      "scope": "Complete readable cached config classifier; no new CBE ammo policy change."
+    }
+  ],
+  "finding": "CortexMorale counted recent native contact records directly. If known hull and several mounted crew were reported, one platform could inflate the15percent outnumbering term as several independent enemies.",
+  "sourceMethod": "Conductor pressure normalizes a reported target to its vehicle and deduplicates entity identity before adding weights. It also applies type weights and a two-per-observed-group strength floor; those extra policies are not adopted.",
+  "implementation": [
+    "CortexMorale reuses the existing vehicle identity inside its armour loop, adding recent<=30second nonnull identities once. On-foot actors remain separate; mounted crew/hull reports share one platform.",
+    "Retain first qualifying fresh close-armour overmatch while finishing the same original native shortlist for unique count. No hidden crew/group enumeration, hostile exact-position reads, new sensing, sorting or controller.",
+    "Existing15percent outnumbering weight/cap,20percent no-AT armour term, thresholds, authored HOLD/SENTRY veto, available AT, native skills/cohesion and elapsed-time morale blend unchanged. No extra type weights or inferred minimum enemy group size.",
+    "This uses current platform identity of reported objects, as the existing armour classification does; it does not reconstruct historic embark/disembark state. It does not change native knowledge or create targets."
+  ],
+  "sourceDispositions": [
+    "Retain useful deduplication/credible-contact principle inside current CBE owner instead of adding the source global coordinator, requests or capability registry.",
+    "Source direct live target fallback in pressure/need analysis, type/group-floor weights and new support-age/controller policies are outside this fix. They receive no implementation credit.",
+    "CBE existing native/ACE/captive combat-effectiveness and actual native ammo capability owners are compared to selected leaf helpers; no custom health/surrender/private-variable ownership is copied. Broader source interactions remain incomplete."
+  ],
+  "cost": "One pass over existing CortexKnowledge shortlist (caller bound8), at most8 identity insertions and28 prior-identity comparisons for all-distinct contacts. No extra vehicle reads relative to a complete former armour pass; an immediate first overmatch now finishes up to7 additional existing contact classifications instead of early exit. No world ray, entity query, remote work, timer, job or retained cache. Total overhead unmeasured.",
+  "validation": {
+    "red": ".qa/handovers/morale-platform-pressure-red-20261030.log",
+    "focused": ".qa/handovers/morale-platform-pressure-focused-20261030.log",
+    "existingCase": "CortexOperations.test_fresh_heavy_armour_overmatch_withdraws_without_suicidal_manoeuvre",
+    "testCountAdded": 0,
+    "focusedResult": "PASS: existing618 operation cases; duplicate platform, distinct foot/vehicle, deleted/stale/boundary-age cases added to existing case. Existing reordered/stale/fresh overmatch/AT/HOLD cases retained.",
+    "fullBuild": "PASS: all1506 tests; SQF/config/FSM/docs/wiki/parity/coverage/static-performance gates;11PBO package.",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "performance": "UNMEASURED",
+    "buildLog": ".qa/handovers/morale-platform-pressure-build-20261030.log",
+    "candidate": ".qa/candidates/morale-platform-pressure-20261030-808aa4ce",
+    "fingerprint": "e7866937d67ba8141ffb0e3aa426ec53d685c4aba19a146d40378b3a7c8a9c20",
+    "independentVerify": "PASS: package fingerprint/integrity independently matched; .qa/handovers/morale-platform-pressure-independent-20261030.log"
+  },
+  "remaining": [
+    "Conductor whole registry/contact relay/support incident/proposal/lease/adapter/config graph not yet reconciled. Five inspected helper scopes do not close77-file snapshot or reproduce its coordinator.",
+    "Physical morale/balance under crew/hull native reports, embark/disembark, repeated normal/HC/JIP and overhead remain unverified.",
+    "Full CBE production objective, required controller handovers and other LAMBS/HBQ/Protocol build-out remain incomplete."
+  ]
+}

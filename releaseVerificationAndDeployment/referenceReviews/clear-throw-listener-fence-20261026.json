@@ -35,5 +35,47 @@
     "No whole-mod parity, physical handover or performance acceptance claim."
   ],
   "completeHandover": false,
-  "physicalAcceptance": false
+  "physicalAcceptance": false,
+  "localListenerRetirement20261030": {
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "finding": "Existing3s/10s listener timeout callbacks required current actor/group locality, membership and epoch before exact local-ID/generation teardown. A departed actor or epoch change could therefore retain an obsolete listener even though its native release observation was already fenced.",
+    "actualPath": [
+      "CortexThrowGrenade alignment/native release",
+      "trace/fragmentation FiredMan installation",
+      "existing CBA3s/10s timeout",
+      "same-machine installed-generation and handler-ID removal"
+    ],
+    "sourceIntent": "Existing source-register LAMBS grenade/assault sequencing and Protocol CQB interruption lifecycle. CBE-owned listener cleanup only; no upstream code copied or protected inputs changed.",
+    "change": "Timeout payload is actor,handler,installedGeneration,issuer. Original issuer and exact installed generation/handler are required; current movement authority is not a prerequisite for removing this machine-local registration. FiredMan/release native authority guards unchanged.",
+    "preserved": [
+      "Original3s/10s expiry and self-removal",
+      "Successor installed generations and IDs, including ID reuse",
+      "Older installed frag listener can expire after a newer smoke/queued request without treating the shared new ThrowOwner as its installation identity",
+      "No new listener, timer, PFH, RPC, movement/fire/projectile command or deadline"
+    ],
+    "engineReference": [
+      "https://community.bistudio.com/wiki/addEventHandler",
+      "https://community.bistudio.com/wiki/removeEventHandler"
+    ],
+    "limits": [
+      "Static source/gates are not native event-ordering acceptance",
+      "CortexLocality continues its immediate current-roster cleanup; timeout now covers orphaned original registrations",
+      "Full incoming CQB/native/settings handover still unfinished; automatic cross-owner resume remains isolated; audits PAUSED"
+    ],
+    "verification": {
+      "red": ".qa/handovers/throw-listener-retirement-red-20261030.log:extended existing lifecycle assertion fails original callback guards",
+      "focused": ".qa/handovers/throw-listener-retirement-focused-20261030.log:2existing cases pass",
+      "full": ".qa/handovers/throw-listener-retirement-final-build-20261030.log:1505existing tests/488SQF/11PBOs; config/FSM/docs/wiki/parity/coverage and static performance0findings passed",
+      "physical": "NOT RUN; audits PAUSED",
+      "initialFull": ".qa/handovers/throw-listener-retirement-build-20261030.log:one assertion expected superseded six-field timeout payload; updated to exact four-field listener identity, no gate skipped",
+      "candidate": ".qa/candidates/throw-listener-retirement-20261030-3aaace5f",
+      "fingerprint": "4cbe03cfe6fa9517b90b6cb7cc9268c6837765dcf997ce59ebb6ca12e050c5bf",
+      "independent": ".qa/handovers/throw-listener-retirement-independent-20261030.log:exit0 matching fingerprint",
+      "source": "Unsigned development base3aaace5f plus delivered runtime/test/lifecycle-guide changes, dirty=true; engineering metadata finalized after packaging."
+    },
+    "productHashes": {
+      "addons/infantry/functions/cortexThrowGrenade.sqf": "4d898b18e96cdb036a8f53ad3cd810ae0a0243dee76d0932b6911e78a4e7d612",
+      "releaseVerificationAndDeployment/test_grenade_native_handover.py": "b1d490f6bcb1580bc00f6b3f4424b4f5c546fb13876371e09eedbb4ebf0e7e5a"
+    }
+  }
 }

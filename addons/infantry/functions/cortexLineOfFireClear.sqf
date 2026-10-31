@@ -21,7 +21,7 @@
  * 2 actual loaded magazine class <STRING, "">, empty retains the legacy cone-only check.
  * Return Value: BOOL - true only when this bounded position-based observation finds no veto.
  * Current callers: CortexFireControl, CortexAntiArmour, ConvoyCrewLocal, CortexVehicles,
- * CortexAAIntercept, CortexCombinedArmsLocal and CortexCombinedGroundStep.
+ * CortexAAIntercept, CortexCombinedArmsLocal, CortexCombinedGroundStep and CortexAirReleaseSafe.
  * Example: if ([_unit,_targetASL] call CBE_fnc_CortexLineOfFireClear) then {_unit doSuppressiveFire _targetASL};
  */
 

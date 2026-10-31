@@ -308,5 +308,78 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "validation": "Run existing pair lifecycle contract and reference-boundary checks plus documentation checker; no new test or unchanged full build required. Audits remain paused."
+  },
+  "unrecordedReserveMove20261028": {
+    "base": "411dd74d0898eb5a13ad6e31989789fd729b5700",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "registeredIntent": "Keep a surviving/replacement partner and useful opposing roles without stealing a different native task. Refine existing Protocol pair integration within the shared drill owner, not independent pair timing.",
+    "protectedSource": {
+      "member": ".qa/protocol-pairs-installed-20261025-d756b1cb/fn_pairs.sqf",
+      "sha256": "fe29f98ea2341dc2cc753293cf8549fa0d298d2290eef978ed9cb3339a0b5284",
+      "installedPboSha256": "3356e179fb112de8070829dcb8a4408bfa3ad50ba218536bf9c2a881ad143cff"
+    },
+    "sourceComparison": "Complete preserved Protocol pairs body re-read and hashes matched installed original. Consecutive living roster pairing and immediate allGroups-loop alternation issue movement without native-task/admission identity. Retain CBE persistent buddy/refill intent; do not copy those orders or loop.",
+    "finding": "FlankStep _nativeCommandAvailable accepted a MOVE with no nativeCommands row regardless of current element membership. _fitSquad used this predicate before reserve ranking, allowing a replacement outside drill.units with an unrelated native MOVE into _units/teams. Unchanged observed native state at publication is consistency, not authority over that pre-existing task. RebalanceRoles consumes the already selected element; its own generic eligibility is not the first actual recruitment path.",
+    "implementation": "In the existing missing-row policy, a MOVE requires membership in the current admitted drill.units. New unrecorded moving reserves therefore stay out before candidate ranking and roster publication. Existing participants retain initial admission, exact seven-field owned command rows keep their original goal/formLeader/grace proof, and empty/WAIT/ATTACK/FIRE availability and existing STOP policy are unchanged. All candidate, actor medical/reservation, original drill/operation/epoch/native snapshot and final writer checks remain. No extra controller/worker, task write, fallback, deadline or retry.",
+    "cost": "One bounded membership read in the existing missing-row MOVE branch; no world query or new cadence. Runtime cost not measured.",
+    "executionTrace": [
+      "CortexFlankStep _actorTaskFree -> _nativeCommandAvailable -> _fitSquad.",
+      "_fitSquad minus current units/teams -> rankCandidates -> pair-aware reserve selection.",
+      "Unscheduled live drill/operation/epoch/roster-native validation -> teams/units -> RebalanceRoles and same-bound progress reconstruction.",
+      "Existing _mayIssueMovement/final bound writer keep their native-task gates; pair identity alone is not authority."
+    ],
+    "verification": {
+      "red": ".qa/handovers/buddy-refill-native-red-20261028.log: existing refill regression failed on the missing reserve-membership guard.",
+      "focused": ".qa/handovers/buddy-refill-native-focused-20261028.log:617existing operation tests PASS; source/call-path contracts plus missing-row admission matrix; not native SQF execution.",
+      "newTestCases": 0,
+      "physical": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_RUN",
+      "fullBuild": ".qa/handovers/buddy-refill-native-build-20261028.log:1505existing tests/458production SQF/11PBO and complete local build gates PASS; session55964 terminal exit0.",
+      "independent": ".qa/handovers/buddy-refill-native-independent-20261028.log:PASS",
+      "candidate": ".qa/candidates/buddy-refill-native-20261028-411dd74d",
+      "fingerprint": "3c99ba19658b8b4da2620f8cb40630e501e19ced228154215710627c9453e4dd",
+      "provenance": "411dd74d0898eb5a13ad6e31989789fd729b5700 plus dirty runtime; engineering/handover metadata finalized afterward. Unsigned development candidate, no release or physical acceptance.",
+      "referenceIndex": "HBQ local evidence index PASS unchanged29sources/103readable pointers/31unresolved historical texts; not parity"
+    },
+    "productHashes": {
+      "addons/infantry/functions/cortexFlankStep.sqf": "ecf1baa9c46982a353db98e852905385c7325c50bdfdca1f427e53df45cb50d8"
+    },
+    "remaining": [
+      "No complete per-actor native command-origin proof. Existing already-admitted participants retain prior missing-row policy; changed intent on those actors remains a separate boundary.",
+      "A stale but exact-looking owned destination or same-value command is not distinguishable through native observations alone.",
+      "Actual casualty refill/opposite roles/covering fire/arrival and interrupted normal/HC/Zeus/locality behaviour, tactical balance and measured overhead remain unverified. Independent per-pair waves remain optional and not implemented by this repair."
+    ]
+  },
+  "firstBoundAdmissionFollowup20261028": {
+    "review": "lambs-fsm-foundations-20261020.json#firstBoundNativeAdmissionImplementation20261028",
+    "scope": "Shared start/refill original ADMISSION observation, mode-aware direct/formation reader, source-bound standalone resume and explicit no-recall cleanup now implement the earlier initial-participant code gap. Exact owned MOVE/HOLD retain their independent write proof. Not new pair timing or physical/parity evidence.",
+    "physicalAcceptance": false
+  },
+  "nativeAttachmentAdmission20261029": {
+    "source": {
+      "pairs": ".qa/protocol-pairs-installed-20261025-d756b1cb/fn_pairs.sqf",
+      "pairsSha256": "fe29f98ea2341dc2cc753293cf8549fa0d298d2290eef978ed9cb3339a0b5284",
+      "crewHold": ".qa/hbq-complete-source-20261025/functions/fn_crewHold.sqf",
+      "crewHoldSha256": "9e899c2f555c7df5c5da24924697ff973675761c0ecb7c97a5bb7d594ed32076"
+    },
+    "finding": "Protocol pairs filters alive actors and native vehicle seating, then alternates movement without arrival ownership. HBQ crewHold force-seats assigned operators after a delay. Neither method supplies attachment ownership. CBE rejects forced seating and retains its existing arrival-driven task owner.",
+    "execution": "CortexActorMoveReserved now refuses an actual native attachment before empty/expired lease admission. CortexActorFireTaskAvailable gates manoeuvre starts; CortexFlankStep candidate/refill admission and both drivingCrewBoarding paths already call the shared predicate. Pair identity alone remains metadata, not task authority.",
+    "preserved": "Read-only local native getter; no detach, movement command, settings mutation, synthetic lease, scan, timer or controller. Actual detach removes this condition while all original journals and reservations still apply. Crew recall remains optional and off by default. This does not globally disable native firing or all posture paths.",
+    "verification": {
+      "focusedExistingCase": "CortexOperations.test_tactical_drills_do_not_consume_reserved_actors",
+      "red": ".qa/handovers/attached-actor-red-20261029.log",
+      "green": ".qa/handovers/attached-actor-green-20261029.log",
+      "physicalAcceptance": false,
+      "measuredPerformance": false,
+      "fullBuild": ".qa/handovers/attached-actor-build-20261029.log",
+      "independent": ".qa/handovers/attached-actor-independent-20261029.log",
+      "tests": 1505,
+      "compiledSqf": 461,
+      "pbos": 11,
+      "candidate": ".qa/candidates/attached-actor-20261029-87808e99",
+      "fingerprint": "f26fd66163a8de20cb414703365e1bef90bbbd797425f9e95b84b1e6d7dd4504",
+      "provenance": "Unsigned development candidate; base87808e99 plus dirty runtime inputs. Later review/handover metadata is not packaged runtime."
+    },
+    "remaining": "Audits paused. Attached/detached actor admission, interrupted mission scripts, locality migration and actual crew/pair behaviour need in-engine verification. No source-parity percentage change."
   }
 }

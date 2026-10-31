@@ -11,6 +11,8 @@
  * Living assignments (including unconscious
  * soldiers) reserve their slots. New-owner ApplyLocal resets the pending marker before adoption.
  * Replacement actors walk; instant placement belongs only to initial explicit task admission.
+ * At most4 valid vacancies receive the same medical/MG geometry preference as initial admission;
+ * selected-actor eligibility and the existing alternate-exit-observer requirement remain unchanged.
  * Arguments: 0 group <GROUP>, grpNull.
  * Return: BOOL - assignment issued, not physical arrival or occupation success.
  * Current callers: CBE_fnc_CortexGroupTick.
@@ -41,6 +43,7 @@ private _occupiedPosts=[];
     };
 } forEach _living;
 private _failedPosts=[_group] call CBE_fnc_CortexGarrisonFailedPosts;
+private _vacancies=[];
 private _vacancy=[];
 {
     private _candidate=_x;
@@ -51,9 +54,11 @@ private _vacancy=[];
         && {_occupiedPosts findIf {
             (_x select 0) == _building
                 && {(_x select 1) vectorDistance (_candidate select 0) < 1}
-        } < 0}) exitWith {_vacancy=+_candidate};
+        } < 0}) then {_vacancies pushBack +_candidate};
+    if (count _vacancies >= 4) exitWith {};
 } forEach _candidates;
-if (_vacancy isEqualTo []) exitWith {false};
+if (_vacancies isEqualTo []) exitWith {false};
+_vacancy=_vacancies select 0;
 private _eligible=_living select {
     private _actor=_x;
     private _assignment=_actor getVariable ["CBE_AIPass_GarrisonPos",[]];
@@ -96,6 +101,9 @@ private _eligible=_living select {
 if (_eligible isEqualTo []) exitWith {false};
 _eligible=[_eligible,[],{_x distance2D (_vacancy select 0)},"ASCEND"] call BIS_fnc_sortBy;
 private _actor=_eligible select 0;
+private _role=[_actor,true] call CBE_fnc_CortexUnitRole;
+private _postBudget=createHashMapFromArray [["remaining",4],["profiles",createHashMap],["roofs",createHashMap]];
+_vacancy=_vacancies select ([_vacancies,_role,_postBudget] call CBE_fnc_CortexGarrisonPostChoice);
 if (!local _group || {[_group] call CBE_fnc_CortexExternalTakeover}) exitWith {false};
 if ((_actor getVariable ["CBE_AIPass_GarrisonPos",[]]) isNotEqualTo []) then {
     [_group,false,[_actor]] call CBE_fnc_CortexGarrisonRelease;

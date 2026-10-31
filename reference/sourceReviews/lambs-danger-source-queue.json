@@ -16,29 +16,33 @@
       "path": "functions/fnc_brainAdjust.sqf",
       "sha256": "20860fcd690c68c14f9fcbadb23610692213ffb23d801365be21c6c24cb07e9a",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; caller/integration scope in evidence",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body reconciled2026-10-28: source returns supplied/default priorities without adjustment; no missing adaptive priority implementation established",
+      "next": "Retain current bounded DangerEngineSelect priority policy. Do not add a no-op hook or claim new dynamic adaptation from source brainAdjust. New priority changes require a specific gameplay defect and caller evidence."
     },
     {
       "path": "functions/fnc_brainAssess.sqf",
       "sha256": "24cb3d6b2d07dd099994ff2e7420e7707756899d9fcc99b6118e8f9bf2ee918f",
       "area": "Actor FSM foundation",
       "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
-      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
+      "next": "Four main assault helper bodies and selected current CBE owners reconciled in lambs-assault-descendants-20261030.json. Do not duplicate speed/memory/CQB movement writers or import random room completion. Continue genuinely unmet descendants, incoming all-writer handover and physical flow; no whole-mod/compiled/physical parity claim.",
+      "assaultDescendantReconciliation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-assault-descendants-20261030.json"
     },
     {
       "path": "functions/fnc_brainEngage.sqf",
       "sha256": "18ae1b63f4bddf715ee1c713ddd429ddb495c6f38bed20dcaccc6f142141dac6",
       "area": "Actor FSM foundation",
       "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
-      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
+      "next": "Four main assault helper bodies and selected current CBE owners reconciled in lambs-assault-descendants-20261030.json. Do not duplicate speed/memory/CQB movement writers or import random room completion. Continue genuinely unmet descendants, incoming all-writer handover and physical flow; no whole-mod/compiled/physical parity claim.",
+      "assaultDescendantReconciliation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-assault-descendants-20261030.json"
     },
     {
       "path": "functions/fnc_brainForced.sqf",
       "sha256": "4d3fb49387daa159f85c29a75ea41b52250a6684061dc4758d5f119bfa7427bf",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; delegation and CBE placement reconciled in actorDecisionDelegationReview20261026, not whole descendant or physical parity",
-      "next": "Retain single-owner execution placement; close the explicitly retained descendant/physical gaps. Do not add direct movement to the actor assessment branch."
+      "reviewStatus": "Complete readable helper body reconciled2026-10-28 in forcedAndLeaderHelpers20261028; not all descendants, compiled runtime parity or physical proof",
+      "next": "Four main assault helper bodies and selected current CBE owners reconciled in lambs-assault-descendants-20261030.json. Do not duplicate speed/memory/CQB movement writers or import random room completion. Continue genuinely unmet descendants, incoming all-writer handover and physical flow; no whole-mod/compiled/physical parity claim.",
+      "flightCoverRetention20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-flight-cover-retention-20261030.json",
+      "assaultDescendantReconciliation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-assault-descendants-20261030.json"
     },
     {
       "path": "functions/fnc_brainHide.sqf",
@@ -51,8 +55,8 @@
       "path": "functions/fnc_brainReact.sqf",
       "sha256": "c9bdec3da39c0010c806419606a7fb94f5861cf5d0b1ce72e47185d969a50e4c",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body and immediate helper mapping reconciled2026-10-28; existing brainReactReview20261026 and immediateHelperReview20261026 retained, no new implementation or physical parity",
+      "next": "Existing DangerEngineAct already supplies gated prone roll/upright lateral native actions; DangerCoverStep owns screened refuge movement. Retain exact task/cooldown/stance handback and no provider medical-state writes. Source high-suppression/REPLAN/STOP cover dispatch does not authorise overriding native movement. Outstanding work is actual intake-to-cover latency, animation travel/grip and physical response balance after audits resume; do not duplicate already implemented evasive movement."
     },
     {
       "path": "functions/fnc_brainVehicle.sqf",
@@ -65,57 +69,60 @@
       "path": "functions/fnc_contact.sqf",
       "sha256": "8c22ca9070c08e8709b2cfad3b44656ff0191b2be094dd45ecb8e6c524691f0f",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected CBE mapping, descendants open",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable contact body and selected three main communication descendants reconciled2026-10-28 in contactCommunicationReview20261028; not compiled graph, all contact helpers or physical parity",
+      "next": "Contact sharing/range/veto bodies now traced against actual CBE ordinary report/receiver ownership. Retain deliberate uncertain-area balance and unresolved radio-range/equipment/API decisions. Continue independent posture/refuge/callout descendants; do not duplicate existing native-contact cadence handoff."
     },
     {
       "path": "functions/fnc_fsmAllowAnimation.sqf",
       "sha256": "dc3ad67477d3027acd21d1b2d60c48f5762753f2b79b1de397039b26d2833e2a",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; caller/integration scope in evidence",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable predicate reconciled2026-10-28: optional civilian animation eligibility, not movement or a native danger event bridge",
+      "next": "Unarmed/PATH/MOVE/native planner/forced-walk/water predicates do not establish a missing CBE animation or civilian FSM. Preserve current supported native actions and body proportions. Civilian body/scream intake remains the separate civilianNativeCueBoundary20261027 gap; do not override its danger slot merely to collect events."
     },
     {
       "path": "functions/fnc_isForced.sqf",
       "sha256": "b56d7eff15e0fad2019f6a42bb864a82ff321047683355d2473c7c6b780e6376",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable helper body reconciled2026-10-28 in forcedAndLeaderHelpers20261028; not all descendants, compiled runtime parity or physical proof",
+      "next": "Retain native care/equipment/fleeing ownership and finite FORCED waits; ATTACK intentionally remains ordinary combat, with pace delegated to existing owner. Do not add an upstream forceMove flag or duplicate movement controller."
     },
     {
       "path": "functions/fnc_isForcedExit.sqf",
       "sha256": "a35659ea233adf6139114b47e95e5f4e7b6422604690cb2986ef0727ca066be6",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable helper body reconciled2026-10-28 in forcedAndLeaderHelpers20261028; not all descendants, compiled runtime parity or physical proof",
+      "next": "Retain CARELESS/exclusion yield. CBE deliberately preserves sensing/firing/weak posture for immobile defenders; movement-owning helpers separately require MOVE/PATH. Do not globally disable all danger response when MOVE is off."
     },
     {
       "path": "functions/fnc_isLeader.sqf",
       "sha256": "1d54335d79c30a654f85c808d97529f4aed6071293b45ec724f9d26c6d5ec326",
       "area": "Actor FSM foundation",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; caller/integration scope in evidence",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable helper body reconciled2026-10-28 in forcedAndLeaderHelpers20261028; not all descendants, compiled runtime parity or physical proof",
+      "next": "Casualty succession now excludes dormant candidates while preserving highest rank and equal-rank order. Normal tactical pressure/owner gates remain separate; healthy incumbent leadership is unchanged. Physical casualty/simulation/locality behaviour remains pending."
     },
     {
       "path": "functions/fnc_tactics.sqf",
       "sha256": "5be7f059257f9173eae92d9d1d32a65e09085c44d0df94968189ace056dd3ee5",
       "area": "Tactical group layer",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected CBE mapping, descendants open",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body already reviewed2026-10-26; identical installed hash reconfirmed2026-10-30. Existing groupDispatchReview20261026 remains scoped evidence, not descendant/physical parity.",
+      "next": "Do not repeat the completed top-level body review or implement commented-out CQB/profile hooks or unreachable GARRISON selection. Reconcile actual tactic/support descendants with current owners and close named native handover gaps; retain finite task authority and current source differences.",
+      "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#groupDispatchReview20261026"
     },
     {
       "path": "functions/fnc_tacticsAssault.sqf",
       "sha256": "d61ab3ff72730cc113372f5bc0bee1005c4de2c6add18b401d002efbb856418c",
       "area": "Tactical group layer",
       "reviewStatus": "Complete readable body reviewed 2026-10-26; execution dependencies and physical integration open",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "next": "Scoped staggered selected-rifle preparation now executes on fresh ordinary CBE bounds with ready cover, original owner transaction and no delayed reset. Broader assault/vehicle/smoke descendants, actual command/animation/HC/handback and measured performance remain; do not count source review or reload acceptance as parity.",
+      "reloadPreparation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#staggeredRiflePreparation20261030"
     },
     {
       "path": "functions/fnc_tacticsAssess.sqf",
       "sha256": "77b708a13bc888a1e1e0aa4a9e044d4455e5c8aa6847c394f3c671136427dc93",
       "area": "Tactical group layer",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected assessment mapping, execution descendants open",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable body already reviewed2026-10-26; identical installed hash reconfirmed2026-10-30. Existing groupAssessHoldReview20261026 remains scoped evidence, not descendant/physical parity.",
+      "next": "Do not repeat the completed top-level body review or implement commented-out CQB/profile hooks or unreachable GARRISON selection. Reconcile actual tactic/support descendants with current owners and close named native handover gaps; retain finite task authority and current source differences.",
+      "evidence": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#groupAssessHoldReview20261026"
     },
     {
       "path": "functions/fnc_tacticsAttack.sqf",
@@ -129,7 +136,8 @@
       "sha256": "ed8324ac0d36f64fb87924683fa5b2df737e1f836ae4eafc60d0e0a192587f7d",
       "area": "Tactical group layer",
       "reviewStatus": "Complete readable body reviewed 2026-10-26; selected intent/authority comparison in evidence",
-      "next": "Reconcile remaining descendants and actual enabled callers; no compiled, physical or whole-mod parity claim."
+      "next": "Four main assault helper bodies and selected current CBE owners reconciled in lambs-assault-descendants-20261030.json. Do not duplicate speed/memory/CQB movement writers or import random room completion. Continue genuinely unmet descendants, incoming all-writer handover and physical flow; no whole-mod/compiled/physical parity claim.",
+      "assaultDescendantReconciliation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-assault-descendants-20261030.json"
     },
     {
       "path": "functions/fnc_tacticsFlank.sqf",
@@ -156,8 +164,8 @@
       "path": "functions/fnc_tacticsHold.sqf",
       "sha256": "3da8e86db4c590253d57cfedf2f46fcf23377c80bccca0fcd1f17eb005ec4570",
       "area": "Tactical group layer",
-      "reviewStatus": "Complete readable body reviewed 2026-10-26; selected assessment mapping, execution descendants open",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "reviewStatus": "Complete readable hold body reconciled in groupAssessHoldReview20261026 and holdAttackCleanup20261028; downstream/physical parity separate",
+      "next": "Keep existing stationary defence/fire and common typed attack-policy ownership. No duplicate source hold timer, random formDir or unbound baseline restore. Three legacy CBE restore writers/checkpoint flags removed; physical hold/interruption and downstream hide/callout quality remain unverified."
     },
     {
       "path": "functions/fnc_tacticsProfiles.sqf",
@@ -178,7 +186,7 @@
       "sha256": "a2acf7e1fa141a43e4d3addb18dd8448e3ec20df213bb7ecc2427cec190d1bf2",
       "area": "Tactical group layer",
       "reviewStatus": "Complete readable body reviewed 2026-10-26; execution dependencies and physical integration open",
-      "next": "Trace actual callers, relevant writes/termination and CBE owner before selecting or changing implementation."
+      "next": "Selected group-suppression helpers and finite firing-position owner traced in groupSuppressionRosterReview20261026/firingPositionImplementation20261027; ordinaryFiringPosition20261028 now extends that same owner to recent engagement without suppression reserve thresholds. Do not recreate unleased forceSpeed/doMove fallback. Broader mounted/overwatch/source descendants and physical/performance quality remain open."
     },
     {
       "path": "functions/ZEN/fnc_setDisableAI.sqf",

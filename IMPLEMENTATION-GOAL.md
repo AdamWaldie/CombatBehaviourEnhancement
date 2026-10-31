@@ -1,6 +1,20 @@
 # CBE implementation goal
 
-Deliver a standalone Arma 3 AI improvement addon by selecting, combining, fixing and improving useful AI functionality from the source register. Gameplay quality, tactical plausibility, balance and engine performance govern the implementation. Implement useful LAMBS functionality inside CBE and evolve it without requiring LAMBS. Reconcile the entire relevant HBQ controller and all nine registered Protocol capabilities at their appropriate layers.
+Deliver a standalone Arma 3 AI improvement addon by selecting, combining, fixing and improving useful AI functionality from the source register. Gameplay quality, tactical plausibility, balance and engine performance govern the implementation. Implement useful LAMBS functionality inside CBE and evolve it without requiring LAMBS. Reconcile the entire relevant HBQ controller and registered Protocol capabilities, including the newly queued aircraft (3828285847) and jamming (3824564775) sources, at their appropriate layers.
+
+## Current execution direction — 30 October 2026
+
+Protocol AI additions are the current implementation focus by explicit user direction. Merge and improve the best useful parts of each source through CBE owners; do not copy whole mods or stack controllers. Prioritise newly queued jamming and aircraft, then the remaining Protocol capability gaps. Maintain the foundations-first order inside those batches.
+
+Build upward from finite owner-local FSM foundations, implementing and improving selected source functionality through existing CBE executors. Include equivalent behaviour modules where the selected sources expose operator tasks; CBA remains the settings surface. The master source register and linked reviews govern the queue. Keep audits paused and continue independent build-out, recording physical verification as pending.
+
+Regular checked local commits are part of this goal, including before major work-area changes and handover. Batch remote pushes to avoid unnecessary Actions runs. Finish a bounded batch against its stated outcome and checks, then commit it; do not expand its completion criteria or wait for overall mod completion.
+
+## Regular implementation commits
+
+Make regular local commits as work progresses. Commit each coherent implementation or defect-fix checkpoint after its relevant checks, and before switching to a substantial new work area or handing over. Do not wait for the whole feature set, the full production goal, or a low-usage threshold. A necessary work-in-progress checkpoint must state unfinished work and failed or pending checks honestly.
+
+Keep pushes batched at coherent review checkpoints to control GitHub Actions usage. Local commits do not require repeated full builds when runtime inputs are unchanged; completed review/push checkpoints still require the applicable full gates. Before each Git mutation verify the CBE root, remote, branch and intended PR, stage only an exact reviewed whitelist, and preserve unrelated changes. Never treat a commit or green package as physical acceptance.
 
 ## Governing directive — 27 October 2026
 
@@ -25,7 +39,7 @@ Use these existing records before choosing or claiming work:
 - `reference/sourceReviews/source-review-map.json` and `reference/sourceReviews/SOURCE-REVIEW-MAP.md`: recoverable master source queue and selected intent.
 - `reference/sourceReviews/lambs-danger-source-queue.json`: readable danger/FSM review scope and unresolved source paths.
 - `releaseVerificationAndDeployment/referenceReviews/hbq-reference-index.json`: HBQ review evidence and unresolved historical pointers. Review the entire relevant HBQ source, including every major branch; selected helpers do not establish whole-mod coverage.
-- `releaseVerificationAndDeployment/referenceReviews/protocol-implementation-programme-20261020.json`: all nine Protocol references and their capability/integration gaps.
+- `releaseVerificationAndDeployment/referenceReviews/protocol-implementation-programme-20261020.json`: the original nine Protocol references plus newly queued aircraft 3828285847 and jamming 3824564775 sources (11 locally registered items), with their capability/integration gaps.
 
 For each selected capability, record the source version/hash and actual execution path, intended benefit, existing CBE owner, useful differences, implementation gaps and next concrete change. Mark source methods as retained, adapted, replaced or rejected with a reason. Rejecting an unsafe method does not resolve a required capability: retain the capability gap until a suitable implementation exists. Missing historical evidence remains missing. Inventory, source review and test counts alone earn no implementation credit.
 

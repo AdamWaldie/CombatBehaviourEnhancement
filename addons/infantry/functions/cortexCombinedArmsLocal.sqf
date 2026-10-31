@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Radio failure uses a bounded combat-effective voice witness, never an incapable native leader.
+ * Voice witnesses do not grant radio permission; actual3D reach remains required.
  * Applies one expiring combined-arms contact role on the selected asset owner.
  * Direct fire and ground manoeuvre admission require a combat-effective local group gunner
  * and target-suitable loaded station ammo before movement commitment;
@@ -83,8 +85,8 @@ if (count _application == 2 && {(_application select 0) isEqualTo _applicationId
 // A received task remains autonomous; this check belongs after exact duplicate acknowledgement.
 private _senderTransmitter=[_requester] call CBE_fnc_CortexGroupTransmitter;
 private _receiverTransmitter=[_group] call CBE_fnc_CortexGroupTransmitter;
-private _senderAnchor=if (isNull _senderTransmitter) then {leader _requester} else {_senderTransmitter};
-private _receiverAnchor=if (isNull _receiverTransmitter) then {leader _group} else {_receiverTransmitter};
+private _senderAnchor=if (isNull _senderTransmitter) then {[_requester,false] call CBE_fnc_CortexGroupTransmitter} else {_senderTransmitter};
+private _receiverAnchor=if (isNull _receiverTransmitter) then {[_group,false] call CBE_fnc_CortexGroupTransmitter} else {_receiverTransmitter};
 private _communicationAvailable=false;
 if (!isNull _senderAnchor && {alive _senderAnchor} && {!isNull _receiverAnchor} && {alive _receiverAnchor}) then {
     private _senderASL=getPosASL _senderAnchor;

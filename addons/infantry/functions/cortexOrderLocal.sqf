@@ -46,17 +46,84 @@ private _facing = _settings getOrDefault ["facing", 0];
 private _sortByHeight = _settings getOrDefault ["sortByHeight",true];
 private _teleport = _settings getOrDefault ["teleport",false];
 if (!(_sortByHeight isEqualType true) || {!(_teleport isEqualType true)} || {!(_width isEqualType 0)} || {!(_facing isEqualType 0)}) exitWith {[_token,false,false,clientOwner,"Invalid task parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2]};
+private _patrolNodes=_settings getOrDefault ["patrolNodes",4];
+private _patrolDuration=_settings getOrDefault ["patrolDuration",900];
+if (_order == "PATROL" && {!(_radius isEqualType 0) || {!finite _radius} || {_radius < 25} || {_radius > 500}
+    || {!(_patrolNodes isEqualType 0)} || {!finite _patrolNodes} || {_patrolNodes != floor _patrolNodes}
+    || {_patrolNodes < 3} || {_patrolNodes > 8} || {!(_patrolDuration isEqualType 0)}
+    || {!finite _patrolDuration} || {_patrolDuration < 30} || {_patrolDuration > 1800}
+    || {!(_position isEqualType [])} || {count _position != 3}
+    || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {
+    [_token,false,false,clientOwner,"Invalid finite patrol parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
+if (_order == "WITHDRAW_POINT" && {!(_position isEqualType [])
+    || {count _position != 3}
+    || {_position findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}
+    || {(_position select 2) < -0.5} || {(_position select 2) > 2.5}}) exitWith {
+    [_token,false,false,clientOwner,"Withdrawal needs a valid ground destination."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
+private _arrivalRadius=_settings getOrDefault ["arrivalRadius",10];
+private _pointDuration=_settings getOrDefault ["pointDuration",180];
+if (_order == "ADVANCE_POINT" && {!(_arrivalRadius isEqualType 0)
+    || {!finite _arrivalRadius} || {_arrivalRadius < 5} || {_arrivalRadius > 25}
+    || {!(_pointDuration isEqualType 0)} || {!finite _pointDuration} || {_pointDuration < 30} || {_pointDuration > 300}
+    || {!(_position isEqualType [])} || {count _position != 3}
+    || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {
+    [_token,false,false,clientOwner,"Invalid point-advance parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
+private _areaBuildings=_settings getOrDefault ["areaBuildings",4];
+private _areaDuration=_settings getOrDefault ["areaDuration",900];
+if (_order == "CLEAR_AREA" && {!(_radius isEqualType 0)
+    || {!finite _radius} || {_radius < 10} || {_radius > 150}
+    || {!(_areaBuildings isEqualType 0)} || {!finite _areaBuildings} || {_areaBuildings != floor _areaBuildings}
+    || {_areaBuildings < 1} || {_areaBuildings > 8} || {!(_areaDuration isEqualType 0)}
+    || {!finite _areaDuration} || {_areaDuration < 30} || {_areaDuration > 1800}
+    || {!(_position isEqualType [])} || {count _position != 3}
+    || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {
+    [_token,false,false,clientOwner,"Invalid finite area-clearance parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
+private _huntRange=_settings getOrDefault ["huntRange",800];
+if (_order == "HUNT" && {!(_huntRange isEqualType 0) || {!finite _huntRange}
+    || {_huntRange < 50} || {_huntRange > 2000} || {!(_patrolDuration isEqualType 0)}
+    || {!finite _patrolDuration} || {_patrolDuration < 30} || {_patrolDuration > 1800}}) exitWith {
+    [_token,false,false,clientOwner,"Invalid finite Hunt parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
+private _creepDuration=_settings getOrDefault ["creepDuration",180];
+if (_order == "CREEP" && {!(_huntRange isEqualType 0) || {!finite _huntRange}
+    || {_huntRange < 50} || {_huntRange > 2000} || {!(_creepDuration isEqualType 0)}
+    || {!finite _creepDuration} || {_creepDuration < 30} || {_creepDuration > 300}}) exitWith {
+    [_token,false,false,clientOwner,"Invalid cautious-approach parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
+private _rushDuration=_settings getOrDefault ["rushDuration",180];
+if (_order == "RUSH" && {!(_huntRange isEqualType 0) || {!finite _huntRange}
+    || {_huntRange < 50} || {_huntRange > 2000} || {!(_rushDuration isEqualType 0)}
+    || {!finite _rushDuration} || {_rushDuration < 30} || {_rushDuration > 300}}) exitWith {
+    [_token,false,false,clientOwner,"Invalid finite attack parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
+private _pointVehicle=_settings getOrDefault ["vehicle",objNull];
+if (_order in ["VEHICLE_POINT","VEHICLE_POINT_RELEASE"] && {!(_pointVehicle isEqualType objNull)
+    || {isNull _pointVehicle} || {!local _pointVehicle}
+    || {!(_pointVehicle isKindOf "LandVehicle")} || {_pointVehicle isKindOf "StaticWeapon"}
+    || {_order == "VEHICLE_POINT" && {group driver _pointVehicle != _group
+        || {!(_pointDuration isEqualType 0)} || {!finite _pointDuration} || {_pointDuration < 30} || {_pointDuration > 300}
+        || {!(_position isEqualType [])} || {count _position != 3}
+        || {_position findIf {!(_x isEqualType 0) || {!finite _x} || {abs _x > 1e6}} >= 0}
+        || {(_position select 2) < -0.5} || {(_position select 2) > 2.5}}}
+    || {_order == "VEHICLE_POINT_RELEASE" && {
+        ((_pointVehicle getVariable ["CBE_VehicleTacticalMove_Work",createHashMap]) getOrDefault ["group",grpNull]) != _group}}}) exitWith {
+    [_token,false,false,clientOwner,"Invalid selected vehicle, owner or point-task parameters."] remoteExecCall ["CBE_fnc_CortexOrderResult",2];
+};
 private _reason = [_group,_order,_building] call CBE_fnc_CortexOrderReason;
 if (_reason != "") exitWith {[_token,false,false,clientOwner,_reason] remoteExecCall ["CBE_fnc_CortexOrderResult",2]};
 private _oldHold = _group getVariable ["CBE_AIPass_ZeusHold",[]];
 private _oldWaypoints = _group getVariable ["CBE_AIPass_ZeusWaypoints",false];
 private _oldControlKind = _group getVariable ["CBE_AIPass_ZeusControlKind",""];
 private _executionEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
-private _executionTaskKeys=["CBE_AIPass_ClearGeneration","CBE_AIPass_GarrisonGeneration",
+private _executionTaskKeys=["CBE_ClearAreaSerial","CBE_AIPass_ClearGeneration","CBE_AIPass_GarrisonGeneration",
     "CBE_AIPass_DefendGeneration","CBE_OperationGeneration"];
 private _executionTasks=_executionTaskKeys apply {_group getVariable [_x,-1]};
 private _temporaryControl=[];
-if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE"]) then {
+if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE", "PATROL", "HUNT", "CREEP", "RUSH", "CLEAR_AREA", "ADVANCE_POINT", "WITHDRAW_POINT", "VEHICLE_POINT"]) then {
     _group setVariable ["CBE_AIPass_ZeusControlKind",nil,true];
     _group setVariable ["CBE_AIPass_ZeusWaypoints", false, true];
     _group setVariable ["CBE_AIPass_ZeusHold", [random 1e6, 0], true];
@@ -66,10 +133,29 @@ if (_order in ["GARRISON", "DEFEND", "CLEAR", "AIRBORNE"]) then {
 private _previousClearFailure=_group getVariable ["CBE_Cortex_ClearAdmissionFailure",[]];
 private _previousGarrisonFailure=_group getVariable ["CBE_Cortex_GarrisonAdmissionFailure",[]];
     private _accepted = switch (_order) do {
+        case "VEHICLE_POINT": {["START",_pointVehicle,_position,_pointDuration] call CBE_fnc_VehiclePointOperation};
+        case "VEHICLE_POINT_RELEASE": {["CANCEL",_pointVehicle] call CBE_fnc_VehiclePointOperation};
+        case "WITHDRAW_POINT": {["START",_group,_position] call CBE_fnc_PointWithdrawOperation};
+        case "ADVANCE_POINT": {["START",_group,[_position,_arrivalRadius,_pointDuration]] call CBE_fnc_PointAdvanceOperation};
+        case "CLEAR_AREA": {["START",_group,[_position,_radius,_areaBuildings,_areaDuration]] call CBE_fnc_ClearAreaOperation};
+        case "RUSH": {["START",_group,[_huntRange,_rushDuration]] call CBE_fnc_RushOperation};
+        case "CREEP": {["START",_group,[_huntRange,_creepDuration]] call CBE_fnc_CreepOperation};
+        case "HUNT": {["START",_group,[_huntRange,_patrolDuration]] call CBE_fnc_HuntOperation};
+        case "PATROL": {["START",_group,[_position,_radius,_patrolNodes,_patrolDuration]] call CBE_fnc_PatrolOperation};
         case "GARRISON": {[_group, _position, (_radius max 15) min 150, createHashMapFromArray [["teleport",_teleport],["sortByHeight",_sortByHeight]]] call CBE_fnc_CortexGarrison};
         case "DEFEND": {[_group, _position, _facing, (_width max 15) min 150] call CBE_fnc_CortexDefend};
         case "RELEASE": {
+            private _areaReleased=["CANCEL",_group,["MODULE_RELEASE"]] call CBE_fnc_ClearAreaOperation;
             private _released = [_group] call CBE_fnc_CortexClearRelease;
+            _released=_released || {_areaReleased};
+            private _withdrawReleased=["CANCEL",_group] call CBE_fnc_PointWithdrawOperation;
+            _released=_released || {_withdrawReleased};
+            private _pointReleased=["CANCEL",_group] call CBE_fnc_PointAdvanceOperation;
+            _released=_released || {_pointReleased};
+            private _rushReleased=["CANCEL",_group] call CBE_fnc_RushOperation;
+            _released=_released || {_rushReleased};
+            private _patrolReleased=["CANCEL",_group,["MODULE_RELEASE"]] call CBE_fnc_PatrolOperation;
+            _released=_released || {_patrolReleased};
             // Release automatic actor jobs too; no group-wide reset is needed to retire them.
             // Inspect every current member so reordered membership cannot hide an admitted actor.
             {
@@ -162,6 +248,33 @@ if (!_accepted && {_newGarrisonFailure}) then {
         case "NO_VALID_POSITIONS": {"No valid garrison positions were found in the selected area. No earlier task was replaced."};
         default {"Garrison planning was invalid or exceeded its bounded planning budget. No earlier task was replaced."};
     };
+};
+if (!_accepted && {_order == "RELEASE"}) then {
+    _executionReason="No infantry task was released. There may be no matching task, or current native/owner control may still prevent handback.";
+};
+if (!_accepted && {_order in ["VEHICLE_POINT","VEHICLE_POINT_RELEASE"]}) then {
+    _executionReason="Vehicle task refused. Select one local crewed AI land vehicle, dry ground10..2000m away and enabled CBA Vehicles. Existing tasks, protected native commands, another vehicle in active driving or unresolved handback take priority. Release requests retirement only; it does not force a stop.";
+};
+if (!_accepted && {_order == "WITHDRAW_POINT"}) then {
+    _executionReason="Withdrawal was not started. Select a ready, fully dismounted AI squad and a ground destination35..2000m away. Release an existing infantry task first; newer native/Zeus orders and specialist control retain priority.";
+};
+if (!_accepted && {_order == "ADVANCE_POINT"}) then {
+    _executionReason="Advance was not started. Use a fully dismounted AI squad with capable armed fire teams, steady morale, a safe destination within2km and CBA Advance enabled. Existing tasks or protected native orders take priority.";
+};
+if (!_accepted && {_order == "CLEAR_AREA"}) then {
+    _executionReason="Area clearance was not started. Use a fully dismounted AI squad with two capable soldiers and eligible nearby buildings; release existing tasks first. Partial traversal is never building safety.";
+};
+if (!_accepted && {_order == "RUSH"}) then {
+    _executionReason="Attack was not started. Check fresh native contact, a fully dismounted AI squad with at least two capable soldiers, ammunition/ROE, steady morale, safe approach and enabled contact/advance/assault settings. Existing tasks, protected native orders or another controller also take priority.";
+};
+if (!_accepted && {_order == "CREEP"}) then {
+    _executionReason="Cautious approach was not started. Use an available foot squad with recent precise native knowledge of a ground enemy outside stand-off range. Contact behaviours must be enabled; existing tasks, nearby danger, protected orders and pending policy handback refuse. Module placement does not reveal an enemy.";
+};
+if (!_accepted && {_order == "HUNT"}) then {
+    _executionReason="Hunt was not started. The squad needs recent native knowledge of a ground enemy, enabled contact behaviours and available foot soldiers. Release existing tasks first; module placement does not reveal a target.";
+};
+if (!_accepted && {_order == "PATROL"}) then {
+    _executionReason="Patrol was not started. Use an available AI foot squad, release existing CBE tasks first, and choose valid dry ground. Newer orders or another controller take priority.";
 };
 if (!_accepted && {_order == "AIRBORNE"}) then {
     _executionReason="Airborne insertion was refused. Check the selected passenger, squad aircraft, altitude, dry land and AI pilots; newer orders or another controller also take priority.";

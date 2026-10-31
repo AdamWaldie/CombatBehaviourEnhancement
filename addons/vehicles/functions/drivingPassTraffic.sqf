@@ -14,7 +14,9 @@
  * dense results refuse without inspecting a selected prefix. At most65 world-hull projections
  * (260 model transforms); no added world query, raycast or recurring handler.
  * Projected bounds include scale, tilt and origin offsets; unknown hulls refuse.
- * Area discovery includes dead vehicle entities; parked/empty/destroyed hulls remain obstacles.
+ * Area discovery includes land, aircraft and boat hulls, including dead vehicle entities.
+ * Parked/empty/destroyed hulls and measured approaching courses share the same corridor
+ * interval checks; height-separated objects retain the full-hull vertical test. No extra query.
  * The intended predecessor is excluded only from this corridor observer; independent following
  * and collision caps must still constrain it. Mounted people are represented by their vehicle.
  * Predicted risk intersects measured constant-course motion with each expanded corridor segment,
@@ -53,7 +55,7 @@ if (!(_guide isEqualType []) || {count _guide < 2} || {count _guide > 128}
 // Faster modded traffic can still originate beyond this nominal envelope: no clearance guarantee.
 private _range=((_travel+35*_duration+60) max 150) min 1250;
 private _area=[getPosATL _vehicle,_range,_range,0,false,_range];
-private _candidates=_area nearEntities [["LandVehicle","CAManBase"],false,false,false];
+private _candidates=_area nearEntities [["LandVehicle","Air","Ship","CAManBase"],false,false,false];
 if (count _candidates > 64) exitWith {["TRAFFIC_BUDGET",count _candidates] call _fail};
 // Corridor coordinates are world metres. Raw model bounds omit scale/tilt and
 // cannot describe asymmetric vertical extents around the native ASL origin.

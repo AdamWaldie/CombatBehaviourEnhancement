@@ -196,7 +196,7 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('_phase in ["REQUESTED","STOPPING","RETURNING"]',worker)
         self.assertIn('_point vectorDistance _goal <= 0.25',predicate)
         self.assertNotIn('doMove',returning)
-        idle=returning.split('if (_returns isEqualTo []) then {',1)[1].split('} else {',1)[0]
+        idle=returning.split('if (_returns isEqualTo [] && {!_hasFollow}) then {',1)[1].split('} else {',1)[0]
         for proof in ('_rest && {_survivors isNotEqualTo []}',
                       '_survivors findIf {!(_x in _activeSeats)} < 0',
                       'currentCommand _x in ["","WAIT"]',
@@ -204,6 +204,14 @@ class ArtilleryFireSessions(unittest.TestCase):
             self.assertIn(proof,idle)
         self.assertLess(returning.index('!local _actor || {!(_actor in _activeSeats)}'),
                         returning.index('private _native=expectedDestination _actor'))
+        # Mixed MOVE/idle returns must check the idle original in both the running
+        # worker and the passive completed-worker path, not only issued recipients.
+        for text in (returning, (ROOT/'addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf').read_text(encoding='utf-8')):
+            self.assertIn('private _idleOriginalsCurrent=',text)
+            self.assertIn('(_baseline select _originalOffset) == "MOVE"',text)
+            self.assertIn('_command in ["","WAIT"]',text)
+            self.assertIn('call CBE_fnc_VehicleCrewDestinationState',text)
+        self.assertIn('if (_ack && {_idleOriginalsCurrent} && {_followAck})',returning)
         # A short native return can complete before the first callback. Idle alone,
         # a replaced destination, motion or a remote endpoint cannot prove return.
         def returned(command, destination_error, endpoint_distance, at_rest, vertical_error=0):
@@ -218,6 +226,56 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertFalse(returned('STOP',0,1,True))
         self.assertFalse(returned('WAIT',0,1,True,0.76))
         self.assertTrue(returned('WAIT',0,1,True,0.75))
+        # One MOVE recipient can acknowledge while its idle partner has received
+        # STOP/FOLLOW/MOVE or no longer rests at the held point. Test both seat orders,
+        # duplicate driver/operator identity and the original-survivor case.
+        def mixed_return(baseline, current, alive=(True,True)):
+            if any(old not in ('','WAIT','MOVE') for old in baseline):
+                return False
+            if not any(alive):
+                return False
+            return all(not live or (returned(*sample) if old=='MOVE' else
+                       sample[0] in ('','WAIT') and returned(*sample))
+                       for old,sample,live in zip(baseline,current,alive))
+        # A positional hold can make an original FOLLOW appear idle. That is not
+        # restoration, in either mixed seat order or an all-idle current sample.
+        for originals in (('FOLLOW','WAIT'),('WAIT','FOLLOW'),('MOVE','FOLLOW'),
+                          ('FOLLOW','MOVE'),('UNKNOWN','WAIT')):
+            self.assertFalse(mixed_return(originals,(('WAIT',0,0,True),)*2))
+        phase_guard=worker.split('private _returnBaseline=',1)[1].split('if (_phase == "ISSUE") exitWith',1)[0]
+        self.assertIn('_returnBaseline select _x) in ["","MOVE","WAIT","FOLLOW"]',phase_guard)
+        # Even a legacy MOVING/REQUESTED journal can request release. Its original
+        # command must be restorable before a retirement hold changes the goal or
+        # issues doMove; checking only STOPPING is already too late.
+        self.assertNotIn('_phase in ["ISSUE","STOPPING","RETURNING"]',phase_guard)
+        native_body=kernel.split('private _nativePhaseResult=call {',1)[1]
+        refusal=native_body.index('"NATIVE_RETURN_BASELINE_UNSUPPORTED"')
+        self.assertIn('"ACTOR_NATIVE_COMMAND_REPLACED"',native_body)
+        command_refusal=native_body.index('"ACTOR_NATIVE_COMMAND_REPLACED"')
+        self.assertIn('(_observations select _x) in ["","WAIT","MOVE"]',native_body)
+        for first_write in ('_work set ["goal",+_hold]', '_x doMove _hold', '_x doMove _goal'):
+            self.assertLess(command_refusal,native_body.index(first_write))
+
+        for first_write in ('_work set ["goal",+_hold]', '_x doMove _hold', '_x doMove _goal'):
+            self.assertLess(refusal,native_body.index(first_write))
+        self.assertIn('"NATIVE_RETURN_BASELINE_UNSUPPORTED",_phase == "ISSUE"',phase_guard)
+        tactical=(ROOT/'addons/vehicles/functions/vehicleTacticalMoveStart.sqf').read_text(encoding='utf-8')
+        self.assertLess(tactical.index('!((_baseline select _x) in ["","MOVE","WAIT"])'),tactical.index('execFSM'))
+        move=('MOVE',0,100,False)
+        idle=('WAIT',0,0,True)
+        for baseline,good in ((('MOVE','WAIT'),(move,idle)),(('WAIT','MOVE'),(idle,move))):
+            self.assertTrue(mixed_return(baseline,good))
+            idle_index=baseline.index('WAIT')
+            for bad in (('STOP',0,0,True),('FOLLOW',0,0,True),('MOVE',0,0,True),
+                        ('WAIT',1,0,True),('WAIT',0,0,False),('WAIT',0,3,True),
+                        ('WAIT',0,0,True,1)):
+                changed=list(good);changed[idle_index]=bad
+                self.assertFalse(mixed_return(baseline,changed))
+            dead=list((True,True));dead[idle_index]=False
+            self.assertTrue(mixed_return(baseline,good,dead))
+        self.assertTrue(mixed_return(('WAIT','WAIT'),(idle,idle)))
+        self.assertFalse(mixed_return(('MOVE','WAIT'),(move,idle),(False,False)))
+
 
         self.assertIn('[_battery,_token,_serial,_executorSerial] call',fsm)
         retire=(base/'artilleryCrewMoveRetire.sqf').read_text(encoding='utf-8')
@@ -289,6 +347,12 @@ class ArtilleryFireSessions(unittest.TestCase):
         self.assertIn('call CBE_fnc_VehicleCrewMoveReturnProof',retirement)
         self.assertIn('NATIVE_RETURN_OBSERVED_AFTER_WORKER',retirement)
         stop=proof.split('if (_mode == "EXTERNAL_STOP") exitWith {',1)[1].split('private _returns=',1)[0]
+        self.assertIn('in ["","WAIT","MOVE","FOLLOW"]',stop)
+        ordinary=proof.split('private _returns=_work get "returns";',1)[1]
+        self.assertIn('in ["","MOVE","WAIT","FOLLOW"]',ordinary)
+        self.assertIn('if (_hasFollow && {',ordinary)
+        self.assertIn('_followTargets findIf',ordinary)
+        self.assertIn('followGroupLeader',ordinary)
         for guard in ('_stoppedWriters isEqualTo []','!local _x','group _x != _group',
                       'private _parent=objectParent _x','!isNull _parent && {_parent != _battery}',
                       'currentCommand _x != "STOP"','isNull _parent && {',
@@ -323,9 +387,56 @@ class ArtilleryFireSessions(unittest.TestCase):
 
         self.assertIn('"EXTERNAL_STOP"]',retirement)
         self.assertIn('NATIVE_STOP_OBSERVED_AFTER_WORKER',retirement)
+        self.assertIn('if (_mode == "EXTERNAL_FOLLOW") exitWith {',proof)
+        follow=proof.split('if (_mode == "EXTERNAL_FOLLOW") exitWith {',1)[1].split('private _returns=',1)[0]
+        for guard in ('_followingWriters isEqualTo []','!local _x','group _x != _group',
+                      'currentCommand _x != "FOLLOW"','private _anchor=formLeader _x',
+                      'isNull _anchor','!alive _anchor','_anchor == _x','group _anchor != _group',
+                      '!isNull _parent && {_parent != _battery}',
+                      '!(_x in _followingWriters)'):
+            self.assertIn(guard,follow)
+        self.assertLess(follow.index('!local _x'),follow.index('formLeader _x'))
+        for forbidden in ('unitReady','expectedDestination','velocity','doFollow','doMove',
+                          'setVariable','_work set','serverTime+'):
+            self.assertNotIn(forbidden,follow)
+        self.assertIn('"EXTERNAL_FOLLOW"]',retirement)
+        self.assertIn('NATIVE_FOLLOW_OBSERVED_AFTER_WORKER',retirement)
+        self.assertIn('_nativeRetired=_returnObserved || {_stopObserved} || {_followObserved}',retirement)
+        # Only positive native FOLLOW on every living original can release metadata;
+        # it is not restoration of the captured formation or task success.
+        def following_originals(actors, worker_done=True, replacement=False, phase="UNRESOLVED"):
+            return bool(actors) and worker_done and not replacement and phase in (
+                "REQUESTED","MOVING","HOLD","STOPPING","RETURNING","UNRESOLVED") and all(
+                local and same_group and parent in ('original',None) and command=='FOLLOW'
+                and anchor in ('valid_player','valid_ai')
+                for local,same_group,parent,command,anchor in actors)
+        aboard=(True,True,'original','FOLLOW','valid_player')
+        foot=(True,True,None,'FOLLOW','valid_ai')
+        self.assertTrue(following_originals([aboard,foot]))
+        self.assertTrue(following_originals([aboard]))
+        for phase in ('REQUESTED','MOVING','HOLD','STOPPING','RETURNING','UNRESOLVED'):
+            self.assertTrue(following_originals([aboard],phase=phase))
+        for phase in ('ISSUE','RETIRED','UNKNOWN'):
+            self.assertFalse(following_originals([aboard],phase=phase))
+
+        for changed in ((False,True,None,'FOLLOW','valid_ai'),(True,False,None,'FOLLOW','valid_ai'),
+                        (True,True,'other','FOLLOW','valid_ai'),(True,True,None,'MOVE','valid_ai'),
+                        (True,True,None,'WAIT','valid_ai'),(True,True,None,'STOP','valid_ai'),
+                        (True,True,None,'FOLLOW','self'),(True,True,None,'FOLLOW','dead'),
+                        (True,True,None,'FOLLOW','foreign'),(True,True,None,'FOLLOW','missing')):
+            self.assertFalse(following_originals([aboard,changed]))
+        self.assertFalse(following_originals([]))
+        self.assertFalse(following_originals([aboard],worker_done=False))
+        self.assertFalse(following_originals([aboard],replacement=True))
         tactical=(ROOT/'addons/vehicles/functions/vehicleTacticalMoveRetire.sqf').read_text()
         self.assertIn('_reason == "NATIVE_RETURN_OBSERVED_AFTER_WORKER"',tactical)
         self.assertIn('NATIVE_STOP_OBSERVED_AFTER_WORKER',tactical)
+        self.assertIn('NATIVE_FOLLOW_OBSERVED_AFTER_WORKER',tactical)
+        artillery_retire=(ROOT/'addons/support/functions/artilleryCrewMoveRetire.sqf').read_text()
+        self.assertIn('NATIVE_FOLLOW_OBSERVED_AFTER_WORKER',artillery_retire)
+        continuation=(ROOT/'addons/vehicles/functions/cortexMechanisedContinue.sqf').read_text()
+        self.assertNotIn('NATIVE_FOLLOW_OBSERVED_AFTER_WORKER',continuation)
+
 
         deletion=(ROOT/'addons/vehicles/functions/vehicleCrewMoveDeletionWatch.sqf').read_text(encoding='utf-8')
         for guard in ('addEventHandler ["Deleted"',
@@ -375,7 +486,7 @@ class ArtilleryFireSessions(unittest.TestCase):
         tactical_retire=(ROOT/'addons/vehicles/functions/vehicleTacticalMoveRetire.sqf').read_text(encoding='utf-8')
         self.assertIn('([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_after get "route")',tactical_retire)
 
-        casualty=retire.split('if ((_phase == "UNRESOLVED" && {!_retryRefused}) || {_returnObserved} || {_stopObserved}) exitWith {',1)[1].split('private _journal=+_work;',1)[0]
+        casualty=retire.split('if ((_phase == "UNRESOLVED" && {!_retryRefused}) || {_returnObserved} || {_stopObserved} || {_followObserved}) exitWith {',1)[1].split('private _journal=+_work;',1)[0]
         self.assertIn('"ORIGINAL_CREW_LOST_AT_REST"',casualty)
         self.assertIn('alive _x',casualty)
         self.assertIn('!finite _linear',casualty)
@@ -445,5 +556,42 @@ class ArtilleryFireSessions(unittest.TestCase):
         for text in (report,step,gate):
             self.assertIn('if (isNull (_seats select 1)) then {_seats set [1,_seats select 0]}',text)
 
+
+    def test_selected_artillery_returns_only_to_captured_subformation(self):
+        start=(ROOT/'addons/support/functions/artilleryCrewMoveStart.sqf').read_text(encoding='utf-8')
+        phase=(ROOT/'addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf').read_text(encoding='utf-8')
+        proof=(ROOT/'addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf').read_text(encoding='utf-8')
+        self.assertIn('formLeader _x',start)
+        self.assertIn('["followTargets",_followTargets],["followGroupLeader",leader _group]',start)
+        self.assertIn('!_baselineRestorable || {!_followContextValid}',phase)
+        self.assertEqual(phase.count('doFollow _anchor'),1)
+
+        pending=phase.split('private _pendingOriginalFollow=',1)[1].split('// Matching goal coordinates',1)[0]
+        self.assertIn('_phase != "REQUESTED"',pending)
+        self.assertIn('serverTime > (_work get "replyUntil")',pending)
+        self.assertIn('formLeader _actor == (_followTargets select _originalIndex)',pending)
+        self.assertNotIn('_work set',pending)  # original before receipt is immutable
+        self.assertIn('_requestBefore set',pending)
+
+        stopping=phase.split('if (_phase == "STOPPING") exitWith {',1)[1].split('if (_phase == "RETURNING") exitWith {',1)[0]
+        self.assertIn('_rest &&',stopping)
+        self.assertLess(stopping.index('_work set ["followReturns",+_followReturns]'),stopping.index('_x doFollow _anchor'))
+        returning=phase.split('if (_phase == "RETURNING") exitWith {',1)[1]
+        self.assertNotIn('doFollow',returning)
+        for text in (returning,proof):
+            self.assertIn('formLeader _actor != _anchor',text)
+            self.assertIn('currentCommand _actor != "FOLLOW"',text)
+        # Following a different living anchor is not restoration; neither idle nor a
+        # matching positional goal substitutes for FOLLOW. Dead crew need no recall.
+        def follows(old_anchor, live_anchor, command, actor_alive=True,
+                    anchor_alive=True, same_group=True, leader_unchanged=True, recorded=True):
+            return not actor_alive or (recorded and anchor_alive and same_group and
+                leader_unchanged and command=='FOLLOW' and old_anchor==live_anchor)
+        self.assertTrue(follows('A','A','FOLLOW'))
+        self.assertTrue(follows('A','B','WAIT',actor_alive=False))
+        for args in [('A','B','FOLLOW'),('A','A','WAIT'),('A','A','MOVE')]:
+            self.assertFalse(follows(*args))
+        for key in ('anchor_alive','same_group','leader_unchanged','recorded'):
+            self.assertFalse(follows('A','A','FOLLOW',**{key:False}))
 
 if __name__=='__main__': unittest.main()

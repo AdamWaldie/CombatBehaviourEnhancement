@@ -1,0 +1,39 @@
+{
+  "workshopId": "3742157919",
+  "name": "CL's AI Drone Warfare",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3742157919",
+  "added": "2026-10-30",
+  "priority": "2 Complementary AI methods",
+  "status": "REGISTERED_SOURCE_REVIEW_PENDING",
+  "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+  "area": "Drone tactics/lifecycle",
+  "scope": "Evaluate dynamic AI drone use and squad/operator allocation, inventory/backpack handling and sortie cleanup. Merge useful capability with CBE/other drone sources rather than duplicate equipment distribution, controllers or omniscient target acquisition.",
+  "userConditions": {},
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3742157919",
+  "localPresent": true,
+  "packageCount": 1,
+  "files": {
+    "meta.cpp": "f2ce7d3b39474b7aba65c270fe3faa53d95a57bada21a243d7667a11f7bb0e4a",
+    "addons/CL_DroneWarfare.pbo": "90d69cca41246e65a15fe191a3ed4402320c87ca1ef2e13859383e8dbabe9657"
+  },
+  "metadata": {
+    "meta.cpp": {
+      "publishedid": "3742157919",
+      "name": "CL's AI Drone Warfare"
+    }
+  },
+  "identityEvidence": "User URL and accessible Workshop description/title; installed metadata/package hashes only. No extracted-code review or behaviour proof.",
+  "evaluationTopics": [
+    "Trace actual config/FSM/scripts, callers and native writers; compare selected useful intent with current CBE owners before integration.",
+    "Record retained/adapted/rejected methods and dependencies/licence/provenance. No implementation credit from title, metadata or file counts.",
+    "Preserve mission/Zeus authority, finite owner-local lifecycle, player/specialist ownership and credible animation; avoid extra permanent scanners/controllers."
+  ],
+  "dependencies": "UNVERIFIED; source/config/API review required.",
+  "licence": "UNVERIFIED; establish original upstream and component-specific reuse rights before incorporating code.",
+  "sourceReview": "NOT_STARTED; webpage/local metadata and package inventory only.",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "ordering": "Foundations/FSM first, individual behaviour before squad/combined arms; compatibility expansion last. Reference-only items supply methods rather than an automatic implementation obligation.",
+  "sourceProtection": "Installed Workshop/game files, original signatures/assets and preserved references are read-only. No execution/repacking or copying raw reference assets into the product. Any future extraction uses a separate private dated directory."
+}

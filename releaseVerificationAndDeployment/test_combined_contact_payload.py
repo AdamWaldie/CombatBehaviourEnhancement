@@ -116,7 +116,7 @@ class CombinedMountedDiscoveryTests(unittest.TestCase):
         text=(ROOT/'addons/infantry/functions/cortexCombinedArmsServer.sqf').read_text()
         discovery=text.split('private _searchRadius=',1)[1].split('private _orderedGroups=',1)[0]
         self.assertIn('_airRange max _groundRange',discovery)
-        self.assertIn('[getPosATL _requesterAnchor,_searchRadius,_searchRadius,0,false,_searchRadius]',discovery)
+        self.assertIn('[getPosATL _requesterAnchor,_searchRadius,_searchRadius,0,false,-1]',discovery)
         self.assertIn('_searchArea nearEntities [["Man"],false,true,true]',discovery)
         self.assertNotIn('nearEntities ["Man",',discovery)
         self.assertNotIn('allUnits',discovery)
@@ -159,6 +159,27 @@ class ReportObservationAgeTests(unittest.TestCase):
         self.assertIn('finite (_previous select 1)',owner)
         self.assertIn('[+(_best select 0),_observed,_observed+30,"REPORT"]',owner)
         self.assertNotIn('_sent+30',owner)
+        self.assertIn('leader _receiver distance2D (_x select 0) <= _investigationRange',owner)
+        self.assertIn('if (_actionableIndex >= 0) then {_newIndex=_actionableIndex}',owner)
+        self.assertIn('"investigateChance"] call CBE_fnc_CortexProfile',owner)
+        self.assertIn('missionNamespace getVariable ["CBE_AIPass_Investigate_Range",300]',owner)
+        self.assertNotIn('CBE_fnc_CortexTuning',owner)  # Read settings; never mutate them on delivery.
+        # Eligibility is receiver-relative; priority/fallback and original observation survive.
+        def select_report(rows, previous, preference, configured_range=300):
+            newer=[row for row in rows[:3] if row[1] > previous]
+            actionable=[row for row in newer if preference > 0 and row[0] <= configured_range*(.5+.5*preference)]
+            return next(iter(actionable or newer),None)
+        rows=[(400,10),(100,11),(50,12)]
+        self.assertEqual(select_report(rows,9,1),rows[1])
+        self.assertEqual(select_report(rows,10,1),rows[1])
+        self.assertEqual(select_report(rows,11,1),rows[2])
+        self.assertIsNone(select_report(rows,12,1))
+        self.assertEqual(select_report(rows,9,0),rows[0])
+        self.assertEqual(select_report([(200,10),(100,11)],9,.2),(100,11))
+        self.assertEqual(select_report([(400,10),(500,11)],9,1),(400,10))
+        self.assertIsNone(select_report([(20,9)],9,1))
+        self.assertEqual(select_report([(400,10),(500,11),(600,12),(1,13)],9,1),(400,10))
+
 
 
 class SpatialGroupDeduplicationTests(unittest.TestCase):

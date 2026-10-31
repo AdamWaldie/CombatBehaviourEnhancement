@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-30",
+  "sourceBase": "be4ac5022ebabc9c6b5cef2f13f2054841964b5b",
+  "workshopId": "3709853140",
+  "sourceIntegrity": "Selected3 source hashes match immutable archive manifest; source files read-only, original Workshop PBOs remain unavailable. No raw source shipped or executed.",
+  "sources": {
+    "fn_needsHeal.sqf": {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3709853140/extracted-20261011/PD_MedicalSolution/functions/fn_needsHeal.sqf",
+      "sha256": "a0f754a9038affd76f5f07948b65f85f7598400fac2e1f6a5b675f7d2e861562",
+      "scope": "Complete readable leaf body"
+    },
+    "fn_hasKit.sqf": {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3709853140/extracted-20261011/PD_MedicalSolution/functions/fn_hasKit.sqf",
+      "sha256": "e857f7991d3a71b5f86c7bbaa8fcc3176fd2d6bc6c00ac7f389f6032ebdd8ea1",
+      "scope": "Complete readable leaf body"
+    },
+    "fn_selfHealOrSeekMedic.sqf": {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3709853140/extracted-20261011/PD_MedicalSolution/functions/fn_selfHealOrSeekMedic.sqf",
+      "sha256": "0cbb01a2b27cff083d19c790bd1ae6dd1afe7d439d7cc0ca667caeefd34ce029",
+      "scope": "Selected entry/owner dispatch and retry-backoff region1-60 only; no full-body review"
+    }
+  },
+  "finding": "CBE vanilla medical admission and completion used overall damage alone, missing native leg-only injury. Active completion/timeout also resampled NEXT_OPERATION settings, allowing threshold changes to classify a still-hurt casualty treated or extend an original attempt.",
+  "intent": "Retain Pinned Down native body-or-HitLegs eligibility within CBE finite owner-local assistance; preserve real supplies/native treatment rather than assigning health.",
+  "implementation": [
+    "CortexMedicalStep shares one native body/HitLegs predicate for casualty selection and completion. Overall damage>=original body threshold or native legs>original leg threshold needs aid; standard missing native hitpoint reads0 on supported engine.",
+    "New CBA/script LegThreshold default0.25,0.1..1, NEXT_OPERATION;1 disables leg-only admission. Existing body threshold and treatment limit retain their controls. Invalid requested policy refuses before native work.",
+    "Canonical medical aid journal now12fields: existing9 original movement/order fields plus original body threshold, leg threshold and absolute local deadline. Active policy is validated/read from this original record, never fresh settings. Missing policy/order cannot adopt a current default. Original-generation/epoch/actor/native/task proofs precede completion and every treatment request.",
+    "CONTACT/RETREAT and original deadline retire before health-based completion. Deadline and policy are never rewritten; approach refresh updates only existing progress/order slots. Native HealSoldier, actual kit inheritance, same-group no-self pair choice, HOLD/SENTRY in-place restriction and medical/Zeus/specialist/native guards remain.",
+    "Do not import source substring-kit recognition that treats an arbitrary bandage/fak item as native HealSoldier supply. CBE retains actual Medikit/FirstAidKit subclasses. No health/hitpoint assignment, free supplies, forced positioning, new scan, worker, handler, callback or movement owner."
+  ],
+  "cost": "One additional scalar native HitLegs read per otherwise eligible patient whose body damage is below threshold, including completion checks. Existing own-group roster/pair search and cadence unchanged;3policy scalars added to current finite aid record. Runtime overhead remains unmeasured.",
+  "validation": {
+    "red": ".qa/handovers/medical-leg-policy-red-20261030.log:existing medical cases fail before implementation",
+    "focused": ".qa/handovers/medical-leg-policy-focused-20261030.log:618existing operation cases pass; leg-only/body/boundary eligibility, frozen policy, original timeout/order/actor/kit/task gates",
+    "settings": ".qa/handovers/medical-leg-policy-settings-20261030.log and medical-leg-policy-coverage-20261030.log:existing CBA/script/default/coverage controls regenerated and checked",
+    "full": ".qa/handovers/medical-leg-policy-build-20261030.log:1506existing tests/489SQF/11PBOs; all config/FSM/docs/wiki/parity/coverage/static performance gates pass",
+    "physical": "NOT RUN; audits PAUSED; dedicated leg-only treatment and live policy-change native fixtures pending",
+    "candidate": ".qa/candidates/medical-leg-policy-20261030-be4ac502",
+    "fingerprint": "5c13b11d0a6b5e230fd1a93e126da927801b91447ecdb2d69bc4bc7235a78bae",
+    "packageSource": "Unsigned development basebe4ac502 plus delivered runtime/settings/test/coverage/guide changes; dirty=true; engineering metadata finalized afterward. Original unrelated dirt preserved.",
+    "independent": ".qa/handovers/medical-leg-policy-independent-20261030.log:exit0 matching fingerprint"
+  },
+  "primaryApiReferences": [
+    "https://community.bistudio.com/wiki/getHitPointDamage",
+    "https://community.bistudio.com/wiki/damage"
+  ],
+  "remaining": [
+    "Whole Pinned Down Medical source/FSM/controller reconciliation is incomplete; self-care, evacuation/drag/carry/KO and adaptive retry are not implemented by this patch.",
+    "This reads native health, not a specialist/ACE wound model. Existing medical ownership guards remain; broader medical integration is not established.",
+    "Native treatment can be unavailable/ineffective despite a qualified request; actual hitpoint healing, item use, repeat/HC/JIP/Zeus and performance need physical evidence.",
+    "Existing generic ACTION/HEAL does not identify its native writer/target; cleanup leaves it untouched. Treatment-end acknowledgement and native quiescence remain unresolved.",
+    "Scoped captured subformation return for an exact owned approach is recorded in originalReturnAnchor20261030. Native treatment-end/idle/leader-self handback and physical rejoin remain incomplete."
+  ],
+  "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+  "originalReturnAnchor20261030": {
+    "sourceBase": "02f7ea61ec0fe6f65780fcadc112ca75615eb7f9",
+    "source": {
+      "path": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708/3709853140/extracted-20261011/PD_MedicalSolution/functions/fn_resumeUnit.sqf",
+      "sha256": "98ed535482392d5e4b51ce7545ae21789a6480c8d27a2d81335729250ade601d",
+      "scope": "Complete139-line fn_resumeUnit.sqf readable body reviewed; descendants/engine behaviour not executed; archive manifest hash matches."
+    },
+    "sourceBranches": [
+      {
+        "branch": "null/dead/locality/scheduled relay",
+        "disposition": "Retain actual local combat-effective actor/current group authority inside existing callback; no remote spawn/replay worker."
+      },
+      {
+        "branch": "down/wake transition guard,6second timeout, forced unconscious/switchMove recovery",
+        "disposition": "Keep current combat-effective refusal. Do not import health/unconscious or forced animation mutation into medical aid."
+      },
+      {
+        "branch": "any medic animation -> medicStop and0.25second wait, then down recheck",
+        "disposition": "Animation name alone does not identify original treatment writer/target; no generic medicStop/CancelAction. Native treatment-end/quiescence remains a gap."
+      },
+      {
+        "branch": "forceSpeed-1, enable MOVE/PATH, follow current group leader",
+        "disposition": "CBE never acquired those broad policies; preserve their current values. Retain original subformation anchor and require current movement features and matching anchor identity before one still-owned approach recall."
+      },
+      {
+        "branch": "leader doMove current waypoint and diagnostics",
+        "disposition": "No synthesized leader route restart/self-follow, no group-wide order. Source diagnostics are not copied; CBE existing operation/aid records remain."
+      }
+    ],
+    "finding": "CBE approach cleanup followed whatever group leader was current and required only alive for medic health, so it could replace a subformation anchor or request recall while incapacitated or MOVE/PATH disabled.",
+    "implementation": [
+      "Capture formLeader once before first native approach/treatment request, append original OBJECT to aid slot12. Canonical aid record13fields; earlier policy/route fields retain original positions. Active record validates anchor type; objNull is retained as unknown, never replaced with a current leader.",
+      "Unscheduled _finish requires exact aid/current operation/generation/epoch/native order, same actor/group, current provider/medical/reservation/native MOVE and exact3D requested destination proof as before. Add current medic combat effectiveness/MOVE/PATH and original different living combat-effective same-group anchor equal to current formLeader.",
+      "Only that saved anchor receives doFollow. Missing/dead/departed/changed/self anchor grants no recall; anchor is never refreshed during approach or completion. No return command on generic ACTION/HEAL or in-place treatment without an owned approach.",
+      "OperationCancel/Release -> OperationRestore/CreepPolicy with no creep policy, reverse release and group-move marker cleanup were traced; no second medical doFollow/route writer follows this narrow request. Existing native-treatment writer/target/end is not established by this trace.",
+      "No new worker, timer, scan, route, AI flag/speed reset, animation/health mutation or task deadline. Original body/leg thresholds and absolute treatment clock remain unchanged."
+    ],
+    "cost": "One original formLeader capture and one OBJECT in finite aid record; retirement reads current anchor and up to2 combat-effectiveness predicates. No extra recurring world query or native movement command count. Measured cost remains unavailable.",
+    "validation": {
+      "red": ".qa/handovers/medical-return-anchor-red-20261030.log:existing medical lifecycle cases fail before captured anchor/13field integration",
+      "focused": ".qa/handovers/medical-return-anchor-focused-20261030.log:618existing operation cases pass; saved/current/missing/dead/departed/self anchors, movement/path availability and existing authority/policy contracts",
+      "full": ".qa/handovers/medical-return-anchor-build-20261030.log:1506existing tests/489SQF/11PBOs; all config/FSM/docs/wiki/parity/coverage/static performance gates pass",
+      "physical": "NOT RUN; audits PAUSED",
+      "candidate": ".qa/candidates/medical-return-anchor-20261030-02f7ea61",
+      "fingerprint": "4a8ec40dfe23a8a743234efe0d30781d5c9a9ab717d2e58c4e820ecedc6af740",
+      "packageSource": "Unsigned development base02f7ea61 plus delivered runtime/test/guide changes; dirty=true; engineering metadata finalized afterward. Original unrelated dirt preserved.",
+      "independent": ".qa/handovers/medical-return-anchor-independent-20261030.log:exit0 matching fingerprint"
+    },
+    "limits": [
+      "This proves only guarded issuance of an original-anchor follow request for a still-matching approach, not accepted FOLLOW, actual travel or formation rejoin.",
+      "Leader/self or unknown/changed original anchor remains unresolved native handback, with no guessed replacement route.",
+      "Generic native ACTION/HEAL treatment-end and post-treatment idle/formation restoration remain unimplemented/unverified; no cancellation inferred from an animation or timeout.",
+      "Whole Pinned Down medical source/controller integration, self-care/evacuation/KO/drag/carry/retry and live normal/HC/JIP/Zeus/performance remain open."
+    ],
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED"
+  },
+  "nativeCommandRetry20261030": {
+    "sourceBase": "c5dd54e22e496066f6d83e98be0a761bdcd45bd0",
+    "finding": "Active retry age allowed repeated HealSoldier over generic ACTION/HEAL and stalled approach could issue doMove over busy native commands. Generic commands do not establish treatment ownership or target.",
+    "sourceContext": "Retains earlier selected Pinned Down medical intent and complete resume-helper review. Additional selected fn_selfHealOrSeekMedic.sqf lines895..918 inspected: source uses MedicOther animation and a timed wait; this is not imported or treated as proof of native completion. Entire medical source graph remains incomplete.",
+    "primaryApiReferences": [
+      "https://community.bistudio.com/wiki/Arma_3:_Actions#HealSoldier",
+      "https://community.bistudio.com/wiki/Arma_3:_Event_Handlers#CommandChanged"
+    ],
+    "implementation": [
+      "Gate both active retry writers on reported medic idle or previously destination-validated MOVE, and patient idle or ordinary FOLLOW. Native ACTION/HEAL, other services, medic FOLLOW and unknown commands wait without a replacement request.",
+      "Keep original absolute aid deadline, policy, progress/owner checks and native kit requirement. No forced cancellation, extra controller or settings. Initial admission exclusions unchanged."
+    ],
+    "cost": "At eligible active retry assessment, at most two currentCommand reads and constant-size string membership checks. No world scan, ray, handler, timer or new scheduled work. Native currentCommand may not expose every action/animation; no all-writer quiescence claim.",
+    "validation": {
+      "focused": "Existing618 operation tests pass; existing medical case extended, no new test case.",
+      "fullBuild": "PASS: all1506 tests; SQF/config/FSM/docs/wiki/parity/coverage/static-performance and11PBO package gates pass.",
+      "physical": "NOT_RUN_AUDITS_PAUSED",
+      "candidate": ".qa/candidates/medical-native-command-20261030-c5dd54e2",
+      "fingerprint": "10abeefa7b54dac4917ee5412944d5cee7c044da1564228679ab778b7f5cf9e6",
+      "independentVerify": "PASS: candidate integrity independently matched.",
+      "logs": [
+        ".qa/handovers/medical-native-command-focused-20261030.log",
+        ".qa/handovers/medical-native-command-build-20261030.log",
+        ".qa/handovers/medical-native-command-independent-20261030.log"
+      ]
+    },
+    "remaining": [
+      "Native treatment-end acknowledgement and ownership/target proof",
+      "Idle/leader-self and unknown-anchor handback",
+      "Physical treatment/rejoin, normal/HC/JIP and measured cost",
+      "Remaining whole medical source graph"
+    ]
+  }
+}

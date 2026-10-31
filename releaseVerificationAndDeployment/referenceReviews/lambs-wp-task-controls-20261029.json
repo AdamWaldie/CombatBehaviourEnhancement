@@ -1,0 +1,296 @@
+{
+  "date": "2026-10-29",
+  "base": "a4b90468e18c7cf98117c2e25bca93c44691ea29",
+  "workshopId": "1858075458",
+  "scope": "Selected waypoint-task patrol/hunt/rush/reset comparison and scoped release interface; not whole117-member WP source parity.",
+  "sourceSnapshot": ".qa/lambs-wp-installed-20261029",
+  "pboSHA256": "da03c62978184d2e1b7f28b79cb5e380ae15f40d4cf9ff11d48801b1dfb08534",
+  "preservation": "All117 installed PBO members and manifest preserved privately without modifying originals; all member hashes and original PBO reverified. No reference bodies/assets added to product/Git.",
+  "witnesses": [
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/fnc_taskPatrol.sqf",
+      "sha256": "10040f562fc086b0202828efbcd79499d0c165916a4fca6de0667772b7f9285b",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/fnc_taskHunt.sqf",
+      "sha256": "8d0b517efe67a3bd841e9b150af67ccbc7732411067e82cb41e9ad386c519534",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/fnc_taskRush.sqf",
+      "sha256": "11907c2426e67bd5b051ca25f745f51bc9e585f439a2fb78252c9dfa877e0ab8",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/fnc_taskReset.sqf",
+      "sha256": "206b1bc5c307f6447d1d32fb4032927e8bcc3ab8e82a8ff3810c711291f95b78",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/Modules/fnc_modulePatrol.sqf",
+      "sha256": "95977ae4d339226dff2bbe6c8d959de345bc17236b50fadedd03d5e29785ee1b",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/ZEN/fnc_setPatrol.sqf",
+      "sha256": "42e08e0a6e4e837409aa00239b059f8c9f789f40086d071611b299de60cfee4d",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-wp-installed-20261029/members/scripts/fnc_wpPatrol.sqf",
+      "sha256": "ecfe5a1e6128f80998a1190aa8ee4908d5980ad8d60655ff4725dfa0bf5d7572",
+      "scope": "Complete readable body reviewed; compiled SQFC runtime equivalence not established"
+    },
+    {
+      "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/fnc_findClosestTarget.sqf",
+      "sha256": "93e42145ebc9bc9ec771efaf77703f354ec93f5a52a050bc0a14ba12729da363",
+      "scope": "Complete readable target discovery body reviewed"
+    }
+  ],
+  "findings": {
+    "patrol": "Source clears all waypoints, writes SAFE/LIMITED/YELLOW/random formation and forced gunlights; creates MOVE waypoints and loops back via statement. Dynamic statement rewrites non-current group waypoints; optional area rejection loops have no iteration bound. Optional teleport uses setVehiclePosition. Useful task intent: bounded route pattern in selected area, revisiting/changing points and optional reinforcement. CBE currently has no patrol task executor/module; CortexGroupMove owns only one temporary waypoint and does not implement patrol. Garrison/defence do not substitute.",
+    "hunt": "Source scheduled wait loop repeatedly findsClosestTarget, group move with distance-scaled uncertainty, speed/lights/lasers and optional flares (including created fallback). findClosestTarget scans allUnits or playable/switchable units and reads exact transforms without native knowledge. Useful deliberate search/pursuit intent must use native/contact belief and existing search/knowledge owner. CBE autonomous SEARCH is related but is not a selectable Hunt task.",
+    "rush": "Source indefinitely seeks helper-selected targets, disables FSM/AUTOCOMBAT, suppresses fleeing, adds per-actor Fired/Suppressed handlers and repeatedly doMoves exact target positions; source handles nearby armour/air differently. Useful aggressive task intent can use existing assault/advance/combined arms, but CBE has no explicit Rush task. Do not replace the standalone CBE danger FSM, flatten ROE or start a parallel target/movement loop.",
+    "reset": "Source blanket-enables AI features, resets speed/stance/animation, follows leader, clears variables/optional waypoints and by default creates a replacement group. Soft reset retains the group, so taskHunt/Rush loops whose only terminal condition is group death may remain. CBE must preserve mission flags/group/order ownership and exact feature journals; raw reset is rejected, not parity completion.",
+    "moduleIntent": "Patrol native module exposes task radius/count/dynamic pattern/reinforcement/teleport parameters. ZEN context dispatch and waypoint wrapper call the actual task; these are behaviour controls, not CBA setting modules. Native CBE registration currently exposes convoy, garrison, defence, corridor and airborne; optional ZEN also clear. Existing authenticated RELEASE executor was inaccessible as a dedicated native/ZEN behaviour module."
+  },
+  "implemented": {
+    "behaviour": "Release building / defence task",
+    "nativeClass": "CBE_ModuleRelease",
+    "zenFunction": "CBE_fnc_ZenReleaseModule",
+    "path": "Explicit squad selection or attached AI soldier -> existing CortexOrderDispatch -> authenticated serial/deadline/native/Zeus receipt checks -> CortexOrderLocal RELEASE -> existing Clear/Garrison/Defend and temporary infantry actor cleanup.",
+    "policies": "No addon setting changes, nearest squad guess, replacement group, blanket AI/animation reset, waypoint clearing, forced seating/teleport, new worker or RPC. Native module works without ZEN; optional ZEN dialog has a labelled bounded squad selector. Duplicate/late/changed-owner requests retain the existing refusal. Release refusal now has a task-specific explanation.",
+    "scope": "Existing supported infantry task release only; no convoy/flight/artillery/drill stop-all promise. Accepted request is not proven physical formation recovery, and native handback may remain unresolved."
+  },
+  "nextRequired": "Patrol/Hunt task/module surfaces and one finite Press attack/Rush episode with native/optional ZEN equivalents are implemented. Next close Rush longer-range finite approach continuity inside the SAME existing drill FSM under its original deadline, native knowledge and safety/authority proofs; see rushExecution20261029. Broader source/task options, incoming-owner continuation, CQB/external controller handovers, physical/MP and measured performance remain incomplete.",
+  "checks": {
+    "red": ".qa/handovers/infantry-release-module-red-20261029.log",
+    "focused": ".qa/handovers/infantry-release-module-green-20261029.log",
+    "existingCasesExtended": true,
+    "testsAdded": 0,
+    "physicalAcceptance": false,
+    "measuredPerformance": false,
+    "fullBuild": ".qa/handovers/infantry-release-module-final-build-20261029.log",
+    "independent": ".qa/handovers/infantry-release-module-independent-20261029.log",
+    "tests": 1505,
+    "compiledSqf": 462,
+    "pbos": 11,
+    "candidate": ".qa/candidates/infantry-release-module-20261029-a4b90468",
+    "fingerprint": "d03c1af90b00715e996eeb38d3e897e66fa8c048832df34bbfda602358a6c5e6",
+    "failedFull": ".qa/handovers/infantry-release-module-build-20261029.log: stale generated FEATURE_STATUS UI count/text corrected by checker --write-report; no acceptance status changed.",
+    "focusedRunnerFailure": ".qa/handovers/infantry-release-module-registry-green-20261029.log: direct module invocation lacked test-discovery import path; rerun with RD path passed in registry-fixed log. No product change.",
+    "provenance": "Unsigned development receipt a4b90468 plus dirty build inputs; later review/handover metadata not runtime."
+  },
+  "remaining": "Patrol/Hunt/Rush executors/modules remain unimplemented, broader WP source/compiled/dependency/licence mapping incomplete. Actual module dialog, owner acceptance/refusal, pending native cleanup, repeated use, Zeus replacement and normal/HC/JIP behaviour need engine verification. Audits PAUSED; no implementation percentage increase from this source inventory.",
+  "durableSourceArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/LAMBS/20261029-wp-da03c629",
+  "patrolRouteFoundation20261029": {
+    "base": "070ade90af772fbd69dc897a448fe2ecabd4431e",
+    "source": "Same preserved complete taskPatrol body/hash above. Useful spatial patrol intent is retained; source all-waypoint clearing, unbounded area rejection, blanket behaviour/formation/light changes and teleport are not imported.",
+    "implemented": "PatrolRoutePlan returns3..8 ground nodes inside25..500m radius with one random circuit phase and bounded sector/radius variation. At most4 candidates/node:5m empty-position query, dry/slope/map bounds,8m separation and one2m vertical body ray. PatrolRouteCommit requires an actual current PATROL common operation, original generation/epoch/route,3..8 valid nodes, integer index, at most64 group members, no protected/mounted/dormant/STOP living member, and original startedAt+300s issue window. It delegates exactly one leg to CortexGroupMove; existing OperationCancel/OperationRelease and native policy receipts own its cleanup. No new waypoint writer/record/worker/FSM/controller or actor setting change.",
+    "designChoice": "Multi-waypoint insertion would need a separate ownership/rollback protocol. The final implementation reuses the existing single-waypoint writer and exact common cleanup instead; no separate PatrolRouteRelease or common lifecycle edits remain. This is a leg primitive, not a sequential patrol task or physical completion.",
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/findEmptyPosition",
+      "https://community.bistudio.com/wiki/addWaypoint",
+      "https://community.bistudio.com/wiki/currentWaypoint"
+    ],
+    "limits": "Native empty-position searches ignore moving objects and clearance is not navigation connectivity. Destinations remain inside the chosen radius; native paths can leave it. Original issue window does not cancel an outstanding native command or implement a watchdog. Actual route sequencing, leg/task progress and timeout/cancellation, contact/resume, repeats, locality handover and Zeus/script task controls are still pending. No public patrol module exposed and no source-parity/physical/performance uplift.",
+    "checks": {
+      "focused": ".qa/handovers/patrol-route-focused-20261029.log",
+      "hemtt": ".qa/handovers/patrol-route-hemtt-20261029.log",
+      "coverage": ".qa/handovers/patrol-route-coverage-20261029.log",
+      "testsAdded": 0,
+      "model": "Existing route-owner regression extended with finite circuit/radius/separation model and source admission/delegation bounds; no engine clearance, native movement or performance simulation.",
+      "fullBuild": ".qa/handovers/patrol-route-build-20261029.log",
+      "independent": ".qa/handovers/patrol-route-independent-20261029.log",
+      "tests": 1505,
+      "compiledSqf": 464,
+      "pbos": 11,
+      "candidate": ".qa/candidates/patrol-route-20261029-070ade90",
+      "fingerprint": "c8fdc8107940717593150bb82d2500dcf94fd90e5165b15cfcb90d6056613173",
+      "provenance": "Unsigned development receipt070ade90 plus dirty runtime inputs; engineering metadata finalised after packaging."
+    }
+  },
+  "patrolExecutor20261029": {
+    "base": "bb344a8ec37c53143f782a9d88186452beb25d62",
+    "source": "Preserved functions/fnc_taskPatrol.sqf SHA256 10040f562fc086b0202828efbcd79499d0c165916a4fca6de0667772b7f9285b",
+    "intent": "Retain spatial area-patrol and return-to-patrol-after-combat intent within CBE group brain/common operation ownership; preserve original mission route and gameplay policies.",
+    "implemented": "PatrolOperation START/CHECK/STEP/CANCEL: one finite 3..8-node circuit, original <=1800s total (900s default) and distance-scaled90..900s leg windows; common leg issue validates the same original deadline with a300s fallback for standalone primitive callers, at most64 participants/128 native waypoints. Existing group brain callback <=1s, deadline cleanup before medical/dormant early exits, existing PatrolRouteCommit/CortexGroupMove only. Actual committed native destination, anchor<=6m/cohort<=25m and floor checks before every leg; successful OperationRelease required for COMPLETE. Combat can release its exact operation/leases then resume calm/uncontested/unchanged original mission context without renewing deadlines. Current mission node receipt includes policy and normalized same-group sync indices; edited own waypoint yields. New actors, living transferred actors, protected tasks, new operations, Zeus/external owner or locality change retire. No new loop/native writer/actor flags/settings/skills/formation/teleport.",
+    "limits": "Internal owner-local script API only; selectable Patrol modules and broader area/pattern/reinforcement options remain pending. Finite circuit intentionally replaces source infinite loop; no incoming-owner continuation. Terrain geometry is not path connectivity; paths may leave the area. Native actor doMove provenance cannot be inferred from a group waypoint receipt alone. Actual traversal/resume/casualty/Zeus/MP flow and measured cost unverified; audits paused.",
+    "checks": {
+      "full": "1505 tests,465 production SQF,11 PBOs; complete sequential build_mod.ps1 and independent mod_pipeline verify passed",
+      "candidate": ".qa/candidates/patrol-executor-20261029-bb344a8e",
+      "fingerprint": "e287f4001ba13dc38046a2f21be7d7a4b7b50e363c34e1f46eb8ffe912c8468a",
+      "provenance": "Unsigned development build: bb344a8e plus recorded dirty inputs. Engineering handover/source-map updates after this build do not change packaged runtime. Not a clean signed release or physical proof.",
+      "retainedFailures": "Initial full build: newly appended guide cp1252 bytes fixed without changing original UTF8 prefix; indoor source-shape test narrowed from all STEP/QUEUE calls to actual IndoorActorOperation calls. Subsequent review fixed paused actor reservations before final successful build. Logs retained.",
+      "logs": [
+        ".qa/handovers/patrol-executor-focused-20261029.log",
+        ".qa/handovers/patrol-executor-coverage-20261029.log",
+        ".qa/handovers/patrol-executor-build-20261029.log",
+        ".qa/handovers/patrol-executor-build-final-20261029.log",
+        ".qa/handovers/patrol-executor-build-verified-20261029.log",
+        ".qa/handovers/patrol-executor-independent-20261029.log"
+      ],
+      "physical": "Unverified; audits PAUSED",
+      "performance": "Static audit zero findings; runtime5%median/10%p95 budget unmeasured"
+    }
+  },
+  "patrolControls20261029": {
+    "base": "5215351cb411b0e235f89354d765bc2f79fc013e",
+    "sourceModuleSHA256": "95977ae4d339226dff2bbe6c8d959de345bc17236b50fadedd03d5e29785ee1b",
+    "sourceZenSHA256": "42e08e0a6e4e837409aa00239b059f8c9f789f40086d071611b299de60cfee4d",
+    "intent": "Source behaviour modules select squad/area/range/node count and dispatch to group owner. Preserve task controls, not settings modules or unsupported source teleport/indefinite/dynamic options.",
+    "implemented": "Native CBE_ModulePatrol plus optional labelled ZenPatrolModule on existing CortexOrderDispatch/Local. Server/current owner validate radius25..500,nodesinteger3..8,duration30..1800; retain assigned-curator,serial,12s packet deadline,native/Zeus receipts. Native attached-soldier fallback100m/4/900s, no nearby guess. Shared release renamed Release infantry task and calls exact PatrolOperation CANCEL alongside existing infantry cleanup. Added missing ModuleRelease to CfgPatches units inventory alongside new Patrol. Actual internal helpers now accept trusted inherited sender2 context, still refuse other remote senders; no remote registration/new RPC. Empty cancellation does not create tactical state.",
+    "limits": "Task admission is not physical circuit success. Dynamic/reinforcement source options, incoming-owner continuation, full LAMBS/Hunt/Rush parity and physical/MP/performance remain open. Audits PAUSED.",
+    "checks": {
+      "focused": "10 existing authority/module/route regression checks passed; initial reviewed module executor field was corrected from a descriptive chain to its actual dispatcher identifier. Failed focused log retained. No acceptance weakened.",
+      "full": "Complete local1505tests/466productionSQF/11PBO HEMTT,FSM,config/docs/coverage/parity/static-performance gates passed; independent package verification passed.",
+      "candidate": ".qa/candidates/patrol-controls-20261029-5215351c",
+      "fingerprint": "0a927f59d043a40f152de23a1a0c8fc3962efa51921862492c4316b07a60d8cb",
+      "provenance": "Unsigned development base5215351c plus dirty inputs. Post-build engineering metadata does not alter packaged runtime. Not a clean signed release or physical proof.",
+      "logs": [
+        ".qa/handovers/patrol-controls-focused-20261029.log",
+        ".qa/handovers/patrol-controls-focused-final-20261029.log",
+        ".qa/handovers/patrol-controls-coverage-20261029.log",
+        ".qa/handovers/patrol-controls-build-20261029.log",
+        ".qa/handovers/patrol-controls-independent-20261029.log"
+      ],
+      "physical": "Unverified; auditsPAUSED",
+      "performance": "Static0findings; runtimebudgetunmeasured"
+    }
+  },
+  "huntExecution20261029": {
+    "base": "08f4fc3f791f2a1eb4ed09bc097b28a860e482b0",
+    "sourceSHA256": "8d0b517efe67a3bd841e9b150af67ccbc7732411067e82cb41e9ad386c519534",
+    "intent": "Retain pursuit/search of believed enemy locations and periodic useful goal updates, with actual task modules; replace global hidden-position lookup and indefinite movement loop.",
+    "implemented": "HuntOperation stores a private policy inside the existing finite PatrolOperation task, no second owner/loop/worker. One native CortexKnowledge query at START, same existing group result at UPDATE, <=8 records and10s samples, age<=120s/nativeconfidence>=1, believed ground location/range capped by CBA engage range, uncertainty25..300m. Same selected native contact preferred; fresh material displacement/target changes can suggest <=4 three-node retargets. Only existing movement owner applies them after exact native/current mission proof; current leg/task deadlines not renewed. Native/optional ZEN Hunt known enemy module on existing authenticated dispatch, server/owner range validation, existing Release infantry task stops the same underlying sweep. Contact gate, newer mission/Zeus/control, protected actors and locality cleanup retained.",
+    "rejected": "Global allUnits/playable-unit nearest-hidden-target lookup, exact hostile transforms, unlimited scheduled polling/movement, enableAttack false, blanket SAFE/LIMITED/lights/IR lasers and spawned flare fallback. Existing combat/illumination owners remain intact.",
+    "limits": "Finite ground sweep, not indefinite omniscient hunter, enemy neutralization or hostile-room clearance. Dynamic/reinforcement/full source options and incoming-owner continuation remain open. Status is diagnostic and may outlive owner metadata; no replay permission. Physical flow, module/MP/release and measured performance unverified; audits PAUSED. Aggressive/Rush executor and native/optional ZEN equivalent still required.",
+    "checks": {
+      "focused": "10 existing authority/module/native-route regressions passed; initial forbidden-command check matched documentation word reveal, then scoped to function body while retaining command prohibitions. Logs retained.",
+      "full": "Complete1505tests/468productionSQF/11PBO local HEMTT/FSM/config/docs/coverage/settings/Zeus/parity/static-performance gates passed; independent package verify passed.",
+      "candidate": ".qa/candidates/hunt-task-20261029-08f4fc3f",
+      "fingerprint": "695514f9da76ec982d3e2a907701155b78c739dc5405b749dccedf9a36c0cd01",
+      "sourceNote": "Unsigned dev base08f4fc3f plus dirty inputs; metadata after build does not change runtime. Not clean signed release or physical evidence.",
+      "logs": [
+        ".qa/handovers/hunt-task-focused-20261029.log",
+        ".qa/handovers/hunt-task-focused-final-20261029.log",
+        ".qa/handovers/hunt-task-coverage-20261029.log",
+        ".qa/handovers/hunt-task-build-20261029.log",
+        ".qa/handovers/hunt-task-independent-20261029.log"
+      ],
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "performance": "Static0findings; runtimebudgetunmeasured"
+    },
+    "moduleSources": {
+      "functions/Modules/fnc_moduleHunt.sqf": "4de8bef69cbcbd8754caefb6ff2eb438a4e1d6cd5d4b42e995facca34f5953dc",
+      "functions/ZEN/fnc_setHunt.sqf": "b8c3d4a275caccb50c1c71e27a10151ac243bdd5ab2f9ad668fa0d4968d96cc3",
+      "functions/Modules/fnc_moduleRush.sqf": "15df9afcbef89e0cedbb833ecfd3e04afaa54ff4d0f65f4c301bc9847682fbfa",
+      "functions/ZEN/fnc_setRush.sqf": "56f49c018f8aa13b3d29462ed678918674f9f6d52194ac1c0f25421b5d5a0477"
+    },
+    "moduleDisposition": "Runtime Hunt/Rush module/selected-group ZEN dispatch bodies inspected. Source Hunt exposes range/cycle/moving centre/player-only/reinforcement/UGL mode; Rush range/cycle/moving centre/player-only. CBE Hunt retains explicit squad/range/owner dispatch with finite task limit; no hidden-player selector or unsupported toggles. Broader moving/fixed mission area, reinforcement and UGL policy remain explicit gaps, not full module parity. Rush equivalent native/optional ZEN controls are required with its real executor per user clarification."
+  },
+  "rushIntegration20261029": {
+    "base": "f68a2a3c8a946a9e00e0965120072d95f69b3c03",
+    "sourceSHA256": "11907c2426e67bd5b051ca25f745f51bc9e585f439a2fb78252c9dfa877e0ab8",
+    "sourceIntent": "Pursue hostile contact aggressively; source special cases close helicopter suppression and armour launcher/hiding. Source indefinite global target lookup, group FULL/attack/fleeing flags, disabled FSM/AUTOCOMBAT, repeat doMove and per-actor Fired/Suppressed EHs are not a valid CBE ownership implementation.",
+    "actualExecutorTrace": "CortexAssaultStart accepts fresh dismounted infantry at12..min(Assault_Range,60); actor-only advance can use explicit foot roster and fresh contact rather than authored mission destination; both commit existing finite tacticalDrill FSM with native receipts, token/epoch/common generation and CortexFlankEnd cleanup. Generic CortexTacticalReposition default headings go away/sideways, not a Rush approach. CortexTacticalStart scoped element removes reposition/flank fallbacks. A Rush module cannot simply wrap Hunt or assume the generic reposition fallback closes range.",
+    "foundationFault": "CortexAdvanceStart used80m objective completion for fresh contact while assault capped60m. At default settings fresh foot targets60..80m could not advance or assault. With lower configured assault range, selector also kept fixed60m. Mover-centroid goal used distance-20 without checking positivity, potentially sending a close element backwards.",
+    "implemented": "Contact-only dismounted infantry advance and assessment now use configured assault band clamped20..60. Authored objectives/non-foot contacts retain prior60m minimum/80m completion limits. Existing actual mover centroid refuses travel<5m before route creation, preventing negative getPos distance. No new task/worker/flags/queries/ownership or route-safety bypass.",
+    "remaining": "This repairs a dependency; it is NOT Rush execution or its native Zeus/optional ZEN equivalents. Next implement finite explicit aggressive episode on existing advance/assault/drill/fire owners with original budget, native knowledge, actual command/task identities, newer-order/Zeus/actor protection and exact child cleanup. Source armour/air responses should use existing weapon/countermeasure layers, not indiscriminate rush. Parent sequencing and physical acceptance remain unimplemented.",
+    "checks": {
+      "focused": "Existing tactical refusal/route contract passed; initial full suite exposed a pinned old60m source assertion. Updated it to require configured foot threshold and retained non-foot60m floor; no acceptance weakened.",
+      "full": "Complete1505tests/468productionSQF/11PBO HEMTT/FSM/config/docs/settings/parity/coverage/static-performance gates and independent package verify passed.",
+      "candidate": ".qa/candidates/rush-contact-gap-20261029-f68a2a3c",
+      "fingerprint": "37ae92f27eef0c5e01ecb769fe0dab2758830b23f1c2e1b951ccf12f93630e71",
+      "sourceNote": "Unsigned dev basef68a2a3c plus dirty inputs. Later goal/agent/source-review/handover metadata does not change packaged runtime. Not clean signed release or physical proof.",
+      "logs": [
+        ".qa/handovers/rush-contact-gap-focused-20261029.log",
+        ".qa/handovers/rush-contact-gap-build-20261029.log",
+        ".qa/handovers/rush-contact-gap-build-final-20261029.log",
+        ".qa/handovers/rush-contact-gap-independent-20261029.log"
+      ],
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "performance": "Static0findings; runtimebudgetunmeasured"
+    },
+    "nextConcreteImplementation": "Prefer one explicit finite Press attack episode on the existing actor-scoped CortexTacticalStart -> AdvanceStart/AssaultStart -> tacticalDrill FSM. CortexTacticalStart args[group,state,enemies,false,advanceGate,assaultGate,originalFootRoster] can use fresh contact without replacing authored mission destination, preserving threat/morale/ROE/actor/native-order gates. No second repeating pursuit/parent worker is inherently required. Add an immutable request deadline to the exact accepted drill and enforce it in its existing step; scoped Release may end only the tagged explicit task, never unrelated later/autonomous drill. Deliver native CBE_ModuleRush and optional ZenRushModule with actual executor through existing authenticated task dispatch. Do not relabel Hunt or force full-squad doMove/FSM/attack/skill/light changes. Inspect actual target/flags/cleanup/timeout paths before editing."
+  },
+  "rushExecution20261029": {
+    "base": "6ada94774563eb2c0540a48821ba14dbb925e663",
+    "sourceSHA256": "11907c2426e67bd5b051ca25f745f51bc9e585f439a2fb78252c9dfa877e0ab8",
+    "intent": "Retain explicit aggressive pursuit/attack request and native/optional ZEN task equivalents; use informed covered advance/close assault with normal danger awareness rather than source unbounded blind doMove and disabled FSM.",
+    "implemented": "RushOperation delegates once to actor-scoped CortexTacticalStart with full native threat set, fresh knowledge range capped by CBA, live advance/assault gates and immutable30..300s original deadline. Existing tacticalDrill FSM owns native movement/roles/physical progress/recovery/temporary policies and exact cleanup. Exact explicit tag[deadline,epoch,generation,token] is checked before policy settling/movement; early CALM/CONTACT admission supports real module startup while retreat/new tasks/feature-off abort. Existing typed temporary policies remain; no added blanket flag/pose/light/skill/attack/fleeing policy or new controller. Source explicit module intent delivered as CBE_ModuleRush/ZenRushModule Press attack via authenticated named server/owner transport and scoped Release infantry task. Ordinary/unrelated successor drills cannot be released by the explicit-tag path. All living members must be local/dismounted before acquiring the shared group lease, preventing disruption of unrelated flight/vehicle crew. Explicit approach/clear-through geometry uses the accepted drill belief, not old group enemyPos or targetless danger geometry.",
+    "locality": "No controller replay is claimed. Existing checkpoint keeps restoration but does not serialize this owner-timed explicit episode as drillIntent. Startup/tag/checkpoint happen unscheduled before queued drill work, and start chain has no intermediate CortexCheckpoint call. MP/physical handback remain unverified.",
+    "limits": "One finite offensive episode on the existing drill, not yet sustained longer-range pursuit through successive approach chunks under the same deadline. Current advance plans at most three bounds, then existing HOLD can close-assault when in range or end; do not count this as whole Rush parity. Source broader options, armour/air branches and full-source coverage remain incomplete. Physical attack/fire/roles/release/Zeus/MP and measured performance remain unverified; auditsPAUSED.",
+    "checks": {
+      "focused": "10 existing module/authority/tactical contract checks passed; no test cases added.",
+      "full": "Complete1505tests/470productionSQF/11PBO HEMTT,FSM,config/docs/coverage/settings/Zeus/parity/static-performance gates passed; independent package verify passed.",
+      "candidate": ".qa/candidates/rush-task-sealed-20261029-6ada9477",
+      "fingerprint": "05b8bcfd70db1652cb87b39fe9221343489a586ab9e4b03e0671765383362aa4",
+      "provenance": "Unsigned dev base6ada9477 plus dirty inputs. Engineering review/map/handover changes after packaging do not alter runtime. Not clean signed release or physical proof.",
+      "priorCandidatesRetained": [
+        ".qa/candidates/rush-task-20261029-6ada9477",
+        ".qa/candidates/rush-task-final-20261029-6ada9477"
+      ],
+      "reviewCorrections": "Post-pass source tracing found shared group lease could affect mounted crew; constructor now refuses mixed crew. Explicit geometry is pinned to admitted native belief so stale/targetless group enemyPos cannot divert its approach. Full gates repeated after these runtime corrections.",
+      "logs": [
+        ".qa/handovers/rush-task-focused-20261029.log",
+        ".qa/handovers/rush-task-build-20261029.log",
+        ".qa/handovers/rush-task-build-final-20261029.log",
+        ".qa/handovers/rush-task-build-sealed-20261029.log",
+        ".qa/handovers/rush-task-independent-sealed-20261029.log"
+      ],
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "performance": "Static0findings;5%median/10%p95notmeasured"
+    },
+    "nextRequired": "Extend the same explicit FSM episode at physically arrived HOLD when the fresh native objective remains beyond assault range: bounded additional screened approach chunks under the SAME tag/deadline/generation and point/retry budgets, never a new pursuit loop. Existing CortexAdvanceStart caps first approach to3bounds. Reuse existing CortexGroupTick knowledge query with owner-local observation timestamp/target identity/epoch; never use targetless state.enemyPos or live hostile transforms. Reassess full fresh threat set before another chunk so uncountered armour/air and morale/ROE/native actor work can win. Keep full existing native/mission/Zeus proof and exact cleanup. No source-complete claim until this longer-range intent and physical/performance requirements are addressed."
+  },
+  "rushCommandGates20261029": {
+    "sourceContext": "Same preserved LAMBS taskRush review; CBE explicit task uses existing owner-local drill FSM, not the upstream indefinite writer.",
+    "faults": [
+      "Actual helper still required CONTACT although explicit admission permits CALM/CONTACT.",
+      "HOLD commit compared stale group enemyPos against the explicit task native-belief objective, preventing approach-to-assault transition."
+    ],
+    "implementation": [
+      "Explicit actual-command guard now requires unchanged four-field task receipt, valid original identity, unexpired original deadline, CALM/CONTACT, live contact and selected behaviour permission. Ordinary autonomous drill remains CONTACT-only.",
+      "HOLD revalidates explicit drill enemyPos, matching its planner; autonomous drills still revalidate current group contact position."
+    ],
+    "verification": {
+      "focused": "6 existing module contract tests passed, extended assertions within existing case.",
+      "full": "1505 tests passed;470 SQF compiled;11 PBOs built; static performance0 findings; complete offline pipeline exit0.",
+      "candidate": ".qa/candidates/rush-command-gates-20261029-630179c7",
+      "fingerprint": "a2e2eb53d0031d2283c10d485129ba2d548f26bf6657ea78a7838f1a2429062c",
+      "independent": "Package verifier exit0, same fingerprint. Unsigned development package from630179c7 plus dirty fix inputs.",
+      "physical": "UNVERIFIED;audits paused",
+      "performance": "5%median/10%p95 not measured"
+    },
+    "remaining": "Longer-range explicit continuation beyond initial three-bound chunk remains required; same original deadline/generation, bounded routes and fresh native full-threat reassessment. No long-range parity claim."
+  },
+  "rushContinuation20261029": {
+    "source": "Preserved LAMBS WP taskRush execution and same PBO da03c62978184d2e1b7f28b79cb5e380ae15f40d4cf9ff11d48801b1dfb08534; same source witnesses above.",
+    "intent": "Sustain useful approach after a short initial bound without copying indefinite omniscient movement workers.",
+    "implemented": [
+      "Same explicit FSM episode, original task tag/deadline/owner/generation retained; no second task/controller or new native knowledge scan.",
+      "Constructor seeds owner-local native contact snapshot; existing GroupTick query refreshes snapshot only while explicit task exists. Native observation age grows with elapsed sample time.",
+      "Only physically arrived HOLD before assault may reassess full known threat set via CortexTacticalAssess, preserving morale, suppression, weapon domains, ammunition, ROE and independent actor task checks.",
+      "Selected native belief within original knowledge range feeds bounded CortexSelectAvenue/CortexPlanRoute approach chunks; maximum8chunks/64points, including final assault points. Existing actor/native/mission receipts guard each actual write.",
+      "Stale/unviable contact, unsafe avenue or exhausted budget cancels with reason rather than reporting distant objective complete. Once clear-through begins, accepted objective stays fixed. Exact-task retirement deletes private knowledge cache."
+    ],
+    "verification": {
+      "tests": 1505,
+      "sqf": 470,
+      "pbo": 11,
+      "full": "Complete offline pipeline exit0; HEMTT/FSM/config/docs/coverage/parity/static performance gates passed. Static performance0findings.",
+      "candidate": ".qa/candidates/rush-continuation-20261029-2fd78f87",
+      "fingerprint": "593b8772edf68d4bfe477778b6d1eae9d6cfc3a804de0703ac61fa269a6b4808",
+      "independent": "Package verifier exit0; same fingerprint. Unsigned development base2fd78f87+dirty implementation inputs.",
+      "logs": [
+        ".qa/handovers/rush-continuation-final-build-20261029.log",
+        ".qa/handovers/rush-continuation-independent-20261029.log"
+      ],
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "measuredPerformance": "UNVERIFIED;5%median/10%p95 target remains"
+    },
+    "remaining": "Physical long-range approach, interrupted/repeated tasks, casualties and measured cost need authorised audits. Whole LAMBS WP/danger and source-specific threat-domain behaviour remain incomplete. No source parity or percentage uplift from offline checks."
+  }
+}

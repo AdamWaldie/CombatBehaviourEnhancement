@@ -137,6 +137,12 @@
       "floorCandidateSamplingReview": {
         "review": "clear-floor-candidate-sampling-20261026.json",
         "scope": "Interior access samples24/32 candidates after relevant-floor filtering within512 original points. No physical route/visit/parity/performance proof."
+      },
+      "terminalPayloadRelease20261028": {
+        "review": "clear-source-candidate-20261026.json#terminalPayloadRelease20261028",
+        "scope": "Finished source observer drops its frozen capture references under exact observer/capture guards. Server candidates receive one original-expiry/identity-bound cleanup callback retaining no payload. No native commands, complete all-writer seal, incoming transport or physical handover proof.",
+        "physicalAcceptance": false,
+        "scoresChanged": false
       }
     },
     {
@@ -152,6 +158,16 @@
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
+      },
+      "actualSeatExit20261030": {
+        "review": "protocol-airborne-3800081309-20261020.json#actualSeatExit20261030",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+        "scope": "Final actual cargo/FFV occupancy and native protected-task/STOP checks prevent queued exit from ejecting a promoted flight operator. Current exit geometry sampled inside unscheduled admission; existing finite deployment and original roster/deadlines retained."
+      },
+      "operatingCrewWithdrawal20261031": {
+        "review": "protocol-airborne-3800081309-20261020.json#operatingCrewWithdrawal20261031",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+        "scope": "Positive actual passenger-to-crew transfers withdraw irreversibly from the old episode without rewriting original roster or deadline. Remaining landed cargo can use existing ground-squad handover; withdrawn actors are never credited as landed/full success."
       }
     },
     {
@@ -163,7 +179,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-artillery-3801354927-20261020.json",
-      "remaining": "Selected mixed-group pre/postfire movement and bounded per-gun same-group reservations are integrated in source. Physical peer movement/formation interaction, terminal unknown/casualty recovery and original idle/formation continuation remain code/evidence gaps. Physical firing/scoot/counter-battery, normal/HC/JIP/Zeus and performance remain unverified. Reuse licensing remains separate.",
+      "remaining": "Selected pre/postfire movement and scoped original FOLLOW return are built/offline checked. Physical mixed-group peer formation effects, casualty/deleted anchor and newer-order transitions, repeated firing/scoot/counter-battery, normal/HC/JIP/Zeus and5%median/10%p95 performance remain unverified. Legacy FOLLOW without captured anchors remains unsupported; no replacement anchor is guessed. Reference reuse licensing remains separate.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
@@ -209,6 +225,16 @@
         "review": "artillery-selected-crew-20261025.json#peerReservationsImplementation20261027",
         "status": "IMPLEMENTED_SOURCE_OFFLINE_CHECKED_PHYSICAL_UNVERIFIED",
         "scope": "Exact per-gun reservations and aggregate lease across admission/HOLD/retirement/locality/stop/deletion; no added movement owner or group-membership change."
+      },
+      "originalFormationReturn20261030": {
+        "review": "protocol-artillery-3801354927-20261020.json#originalFormationReturn20261030",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+        "scope": "Selected artillery FOLLOW admission and original-anchor native return integrated; group/crew preserved, no replacement anchor, no new controller. Mixed MOVE/idle/FOLLOW and pending initial native reply remain bounded; physical formation travel not proven."
+      },
+      "ignoredObserverTarget20261031": {
+        "review": "protocol-artillery-3801354927-20261020.json#ignoredObserverTarget20261031",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+        "scope": "Shared assigned observer fixes honor native target-ignore. Existing ranging exchange carries exact serial and explicit authenticated veto; finite mission retires without false COMPLETE or unresolved-shot release. No universal shot cancellation or physical claim."
       }
     },
     {
@@ -256,7 +282,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-aa-3809708209-20261020.json",
-      "remaining": "Native-AA idle relocation, same-group native-warning allocation and default-off finite main-turret point-defence aim/shot/local-direct-pass-fuse/calibration code paths exist. Physical interception, balance and performance are unverified. Cross-owner projectile effects, payload/submunition handling, broader weapon/station layers, mixed/custom-AA relocation and authored-route cases remain unsupported or incomplete. Binary registration/declarations are reviewed; runtime dependencies and licensing remain separate.",
+      "remaining": "Native-AA relocation, same-group warning allocation and default-off finite exact-station cannon point-defence paths exist, now primary-preferred with bounded same-defence-group secondary station fallback. Physical interception, balance and performance are unverified. Primary-absent, other-group, driver/FFV and simultaneous multi-station interception, cross-owner projectile effects, incoming-owner reconciliation, payload/submunition handling, broader weapon layers and mixed/custom-AA relocation/authored-route cases remain unsupported or incomplete. Binary registration/declarations reviewed; runtime dependencies and licensing remain separate.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
@@ -297,6 +323,42 @@
         "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
         "scope": "Native first-warning projectile/parent/affiliation receipt survives subsequent launcher crew loss or deletion for bounded allocation and ordinary interception; scripted fuse still requires a non-null matching source.",
         "physicalAcceptance": false
+      },
+      "dedicatedRole20261028": {
+        "review": "protocol-aa-3809708209-20261020.json#dedicatedRole20261028",
+        "scope": "Shared native config role across six consumers; preserves category, adds finite air-dominant profile policy. Generic custom-air gunnery is existing functionality. Role hint only, physical/custom/mixed balance and cost unverified.",
+        "physicalAcceptance": false
+      },
+      "nativeRoleCalibration20261028": {
+        "review": "protocol-aa-3809708209-20261020.json#nativeRoleCalibration20261028",
+        "scope": "12 selected native static inheritance chains checked. Cheetah/Tigris category fallback required; custom-category mixed-profile clone remains a concrete explicit-designation gap. No runtime change or physical acceptance."
+      },
+      "explicitRoleDeclaration20261028": {
+        "review": "protocol-aa-3809708209-20261020.json#explicitRoleDeclaration20261028",
+        "scope": "Live per-platform role true/false with unset/-1 inference, uncached declarations and current observer/intercept/allocator boundaries. Resolves the selected mixed-profile clone designation path, not physical/task/provider acceptance.",
+        "physicalAcceptance": false
+      },
+      "allocationCadence20261030": {
+        "review": "releaseVerificationAndDeployment/referenceReviews/protocol-aa-3809708209-20261020.json#allocationCadence20261030",
+        "scope": "Existing16-platform native-warning planner now fixed3s pass/zero artificial inter-platform delay; transmitter caches still expire1s. Original8s warning/interceptor limits, group/owner/role/ROE and default-off policy unchanged. PASS1506 offline; analytical feasibility is not physical interception/performance."
+      },
+      "actualPrimaryStation20261030": {
+        "review": "protocol-aa-3809708209-20261020.json#actualPrimaryStation20261030",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+        "scope": "Existing interceptor binds original loaded primary gunner station through config geometry/aim/shot/effect/calibration/cleanup; supports nonzero/nested primary paths within bounds, not arbitrary secondary gunner control."
+      },
+      "nativeCameraRetirement20261031": {
+        "review": "protocol-aa-3809708209-20261020.json#nativeCameraRetirement20261031",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_NATIVE_PHYSICAL_UNVERIFIED",
+        "scope": "Own native camera readback gates exact retirement; one unlock request; finished-state all-writer refusal; existing discovery observes pending state, and the affected station cannot bypass it on lease expiry. Cross-owner reconciliation and physical handover remain unverified.",
+        "latestFollowup": "Live stored token/finished state also gates fuse/calibration, and captured rounds must remain in actual live custody; see liveCustodyFollowup. Offline verified only.",
+        "authorityWithdrawal": "Observed original crew/group/locality/lease/external authority loss permanently withdraws the old unlock permission. Native absence/successor observation still retires passively; ordinary feature/epoch cleanup preserved. Offline verified, physical/incoming-owner handover unverified."
+      },
+      "secondaryStationExecution20261031": {
+        "review": "protocol-aa-3809708209-20261020.json#secondaryStationExecution20261031",
+        "scope": "Use an appropriate occupied AA cannon station rather than treating the primary gunner alias as the only usable weapon; merge with existing warning allocation, exact station readiness, owner-local interception, measured calibration and native cleanup.",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+        "physicalAcceptance": false
       }
     },
     {
@@ -323,12 +385,24 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-rappel-3819636004-20261020.json",
-      "remaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature.",
+      "remaining": "Bounded route geometry and guarded native pose primitive built/offline checked only. Controlled actor exit/rope/device/support-arrival physics, full cleanup/flight orchestration/ground handover and behaviour module remain unimplemented. Physical/normal-HC/JIP/deformation/performance unverified; stock provider activity flag is not quiescence.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
       },
-      "providerHandoverFinding": "Both installed actor APIs clear active markers before delayed unconditional damage restoration and provide no completion receipt. Current marker compatibility is not complete handback. Controlled finite rope execution or a corrected provider API is still required; see protocol-rappel-3819636004-20261020.json providerQuiescenceContract20261023. Feature remains required and unimplemented."
+      "providerHandoverFinding": "Both installed actor APIs clear active markers before delayed unconditional damage restoration and provide no completion receipt. Current marker compatibility is not complete handback. Controlled finite rope execution or a corrected provider API is still required; see protocol-rappel-3819636004-20261020.json providerQuiescenceContract20261023. Feature remains required and unimplemented.",
+      "controlledPortReview": "protocol-rappel-3819636004-20261020.json#controlledPortConstraints20261028",
+      "geometryPrerequisite": "protocol-rappel-3819636004-20261020.json#boundedRouteGeometry20261028",
+      "controlledPoseBoundary20261030": {
+        "review": "releaseVerificationAndDeployment/referenceReviews/protocol-rappel-3819636004-20261020.json#controlledPoseBoundary20261030",
+        "status": "POSE_BUILDING_BLOCK_OFFLINE_VERIFIED_NO_DESCENT_EXECUTOR",
+        "scope": "Immutable original authority, finite native pose apply/clear, permanent observed-loss withdrawal, private route baseline and unresolved reservation guard. PASS1507 offline, physical pending. Not a working insertion task."
+      },
+      "nativePhysicsDiagnosticPrepared20261031": {
+        "review": "protocol-rappel-3819636004-20261020.json#nativePhysicsDiagnosticPrepared20261031",
+        "status": "PREPARED_UNRUN_NO_PRODUCTION_RAPPEL_IMPLEMENTATION",
+        "scope": "One isolated normal-VR native Man/cargo rope lowering comparison with physical-control prerequisites and release exclusion. Await authorised engine run; no descent wrapper or working-rappel credit."
+      }
     },
     {
       "workshopId": "3822504009",
@@ -425,6 +499,35 @@
         "evidence": "armour-post-shot-cover-20261025.json#nativeMissileObservation20261027",
         "scope": "Original crew/native control receipts plus selected native missile flight observations integrated. Broader/scripted/burst/multistation scope and physical/performance acceptance remain incomplete."
       }
+    },
+    {
+      "workshopId": "3828285847",
+      "name": "PROTOCOL AI AIRCRAFT - BOMBS & ROCKETS",
+      "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3828285847",
+      "metadataSHA256": "52f1ad068fce764e0c39d57087867daaa0ef7293b7017e26b3f60a6b512401cb",
+      "status": "READABLE_SOURCE_REVIEWED_SCRIPTED_RELEASE_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+      "priority": "After foundations and FSM lifecycle; required Protocol AI queue",
+      "disposition": "Review complete AI aircraft bomb/rocket scope; select, fix and improve useful intent in existing CBE aircraft/support owners, no wholesale import.",
+      "review": "protocol-aircraft-3828285847-20261030.json",
+      "remaining": "Scoped scripted request and native-contact geometry improvements, not full Protocol aircraft parity. Native autonomous DESTROY firing outside veto; object attachment/handback semantics, actual targeting, belief/observer changes, dynamic safety and measured5%median/10%p95 cost remain unverified; audits paused.",
+      "latestIntegration": "Shared initial/active native belief reader removes CBE exact hostile position/velocity from aircraft geometry/lead. Existing finite owner retained; PASS1506 offline, physical/performance pending."
+    },
+    {
+      "workshopId": "3824564775",
+      "name": "PROTOCOL AI JAMMING",
+      "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3824564775",
+      "metadataSHA256": "e8016b372ee889999a27b5bf3ffccd96fccf2ce22e77e7ac23dbbd4be9359ea6",
+      "status": "READABLE_SOURCE_REVIEWED_SCOPED_AI_FIELDS_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+      "priority": "After foundations/FSM; required Protocol queue",
+      "disposition": "Review complete AI jamming functionality and selected useful intent for existing CBE communication/jamming ownership. Trace emitters, range/propagation, side policy, radio/voice distinctions, provider APIs and finite setup/update/cleanup; retain TFAR/ACRE requirements from Earshot without inventing native provider support.",
+      "review": "protocol-jamming-3824564775-20261030.json",
+      "remaining": "Scoped AI EW field plus native/optional ZEN operator task built and offline verified, not full EW/Protocol parity. Actual dialog, native/optional-ZEN/server authority/replay/expiry, dynamic field/JIP/HC/voice/support and measured5%median/10%p95 cost unverified. Automatic discovery, ACRE/TFAR actual API integration and safe UAV link-loss doctrine remain open. Player radios/UAV control unchanged; future CBE checks only, no network barrier or already-delivered order cancellation.",
+      "latestIntegration": "Native/optional ZEN AI radio-denial task built through existing server field owner; authenticated exact editable emitter, range/sides, atomic sequence/expiry mutation. PASS1506 offline; physical/performance pending.",
+      "radarLinkedPolicy20261031": {
+        "review": "protocol-jamming-3824564775-20261030.json#radarLinkedPolicy20261031",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+        "scope": "Explicit optional active-radar-linked AI EW task policy; native emission and actual current crew/side/mutual hostility govern future queries. Fixed fields preserved, no automatic discovery/player/UAV control claim."
+      }
     }
   ],
   "inventoryLimits": "Nine locally installed Protocol-named mod metadata records. Not proof of complete Workshop collection discovery or source implementation. Earlier reviews must be reconciled before repeating work.",
@@ -442,5 +545,14 @@
     "physicalAcceptance": false,
     "performanceMeasured": false
   },
-  "updateScope20261025": "Artillery selected-crew build-path reconciliation only. Other source rows retain their dated evidence; no whole-collection freshness/parity or percentage claim."
+  "updateScope20261025": "Artillery selected-crew build-path reconciliation only. Other source rows retain their dated evidence; no whole-collection freshness/parity or percentage claim.",
+  "intake20261030": {
+    "added": [
+      "3828285847",
+      "3824564775"
+    ],
+    "localRegisteredProtocolItems": 11,
+    "boundary": "Prior readable/binary review checkpoints cover their dated original sources only; the new item has metadata/package inventory, not source-review or implementation credit. This is not proof that every Workshop Protocol item has been discovered."
+  },
+  "currentFocus20261030": "Protocol-first, foundations-up: selected artillery original subformation return built/offline checked after the rappel source review identified unresolved multiworker physics/animation handover. Rappel pose/geometry remain prerequisites, not working descent. Next required: controlled rappel exit/rope/support-arrival and complete cleanup then flight/ground handover/module; alternatively continue independent named Protocol implementation gaps without stock unsafe wrappers. Jamming, aircraft belief and AA cadence remain offline evidence only. Audits paused."
 }

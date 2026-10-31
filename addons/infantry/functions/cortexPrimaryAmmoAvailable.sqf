@@ -8,7 +8,9 @@
  * Return: BOOL, true for loaded main-muzzle rounds or a nonempty compatible reserve.
  * This is ammunition availability, not immediate firing readiness or permission.
  * Current callers: CortexTacticalAssess, CortexAssaultStart, CortexFlankStart,
- * CortexAdvanceStart and CortexFlankStep at reserve/relief selection and ordinary new-bound admission.
+ * CortexAdvanceStart and CortexFlankStep at reserve/relief selection and ordinary new-bound admission;
+ * CortexSupportApply, CortexSupportBoundStart, CortexSupportMaintain and PointActorOperation
+ * at their respective support/point admission or capacity checks.
  * Example: private _armed=[soldier1] call CBE_fnc_CortexPrimaryAmmoAvailable;
  */
 params [["_unit",objNull,[objNull]]];

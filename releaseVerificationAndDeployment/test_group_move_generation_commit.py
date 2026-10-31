@@ -28,7 +28,8 @@ class GroupMoveGeneration(unittest.TestCase):
         self.assertLess(text.index('call _vehicleDrivingBusy'),text.index('call CBE_fnc_CortexLocality'))
         busy=text.split('private _nativeTaskBusy=',1)[1].split('// Callers do not',1)[0]
         self.assertIn('alive _x',busy)
-        self.assertIn('alive _x && {fleeing _x ||',busy)
+        self.assertIn('alive _x && {[_x] call CBE_fnc_CortexActorMoveReserved',busy)
+        self.assertIn('|| {fleeing _x}',busy)
         self.assertNotIn('allowFleeing',text)
         self.assertIn('getVariable ["ace_medical_ai_healQueue",[]]) isNotEqualTo []',busy)
         self.assertIn('call _nativeTaskBusy',same)

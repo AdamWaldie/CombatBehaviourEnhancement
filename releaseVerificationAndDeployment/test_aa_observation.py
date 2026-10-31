@@ -3,11 +3,69 @@ from pathlib import Path
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class AAObservation(unittest.TestCase):
+    def test_dedicated_air_role_is_shared_bounded_config_intent_not_weapon_permission(self):
+        import math
+        classifier=(ROOT/'addons/vehicles/functions/cortexAirDefenceRole.sqf').read_text()
+        for proof in ('isKindOf "LandVehicle"','"editorSubcategory"','"threat"',
+                      'count _threat == 3','!finite _x','_x < 0',
+                      '(_threat select 2) > (_threat select 0)',
+                      '(_threat select 2) > (_threat select 1)',
+                      'count CBE_AirDefenceRoleClasses < 256'):
+            self.assertIn(proof,classifier)
+        def role(category,weights,declared=-1,land=True):
+            if not land:return False
+            if isinstance(declared,bool):return declared
+            if declared != -1:return False
+            if category.lower()=='edsubcat_aas':return True
+            return (len(weights)==3 and all(isinstance(x,(int,float)) and not isinstance(x,bool)
+                    and math.isfinite(x) and x>=0 for x in weights)
+                    and weights[2]>0 and weights[2]>weights[0] and weights[2]>weights[1])
+        for weights in ([0.3,0.3,1],[0,0,0.1],[1,2,3]):self.assertTrue(role('custom',weights))
+        for weights in ([],[1,2],[0,0,0],[1,1,1],[0.7,0.5,0.3],[1,0.9,0.1],
+                        [-1,0,1],[0,0,float('nan')],[0,0,float('inf')],[0,0,'AA']):
+            self.assertFalse(role('custom',weights),weights)
+        self.assertTrue(role('EdSubcat_AAs',[]))
+        for declared,expected in ((-1,False),(True,True),(False,False),(-1,False)):
+            self.assertEqual(role('custom',[0.8,0.6,0.6],declared),expected)
+        for declared,expected in ((-1,True),(False,False),(True,True),(-1,True)):
+            self.assertEqual(role('EdSubcat_AAs',[1,0.6,1],declared),expected)
+        for malformed in ('AA',[],0,1,float('nan')):
+            self.assertFalse(role('EdSubcat_AAs',[1,0.6,1],malformed))
+        self.assertFalse(role('EdSubcat_AAs',[0,0,1],True,land=False))
+        self.assertIn('_declared isEqualType true',classifier)
+        self.assertIn('_declared isEqualTo -1',classifier)
+        self.assertLess(classifier.index('getVariable ["CBE_AirDefenceRole",-1]'),classifier.index('private _class='))
+        interceptor=(ROOT/'addons/vehicles/functions/cortexAAIntercept.sqf').read_text()
+        for block in (interceptor.split('if (_mode == "SHOT")',1)[1].split('if (_mode == "START")',1)[0],
+                      interceptor.split('private _valid=',1)[1].split('if (!_valid',1)[0]):
+            self.assertIn('call CBE_fnc_CortexAirDefenceRole',block)
+        observer=(ROOT/'addons/vehicles/functions/cortexAAObserve.sqf').read_text()
+        for block in (observer.split('addEventHandler ["Fired"',1)[1].split('private _warningHandler',1)[0],
+                      observer.split('addEventHandler ["IncomingMissile"',1)[1]):
+            self.assertIn('call CBE_fnc_CortexAirDefenceRole',block)
+
+        # Native Cheetah/Tigris inherit mixed/tied profiles; category fallback must
+        # remain, and a custom-category clone is an explicit unresolved role case.
+        for native in ([0.8,0.6,0.6],[1.0,0.6,1.0]):
+            self.assertTrue(role('EdSubcat_AAs',native))
+            self.assertFalse(role('custom',native))
+        for ordinary in ([0.8,0.8,0.3],[0,0,0],[0.7,1,0.3]):
+            self.assertFalse(role('',ordinary))
+        self.assertLess(classifier.index('isKindOf "LandVehicle"'),classifier.index('private _class='))
+        for name in ('cortexAAObserve','cortexAAAllocate','cortexAAIntercept','cortexAARelocate',
+                     'cortexVehicles','vehicleArmourShot'):
+            s=(ROOT/'addons/vehicles/functions'/f'{name}.sqf').read_text()
+            self.assertIn('call CBE_fnc_CortexAirDefenceRole',s)
+            self.assertNotIn('edsubcat_aas',s)
+        code=classifier.split('params [[',1)[1]
+        for forbidden in ('nearEntities','weaponsTurret','setVariable','reveal','doFire','doMove','spawn','execFSM'):
+            self.assertNotIn(forbidden,code)
+
     def test_native_receipt_lifecycle_does_not_claim_fire_or_move_authority(self):
         source=(ROOT/'addons/vehicles/functions/cortexAAObserve.sqf').read_text()
         for guard in ('!local _vehicle','isNull _projectile','!local _gunner',
                       'CortexActorFireTaskAvailable','CortexIsEligible','serverTime+1',
-                      'CBE_AIPass_Epoch','removeEventHandler ["Fired"','"edsubcat_aas"'):
+                      'CBE_AIPass_Epoch','removeEventHandler ["Fired"','CortexAirDefenceRole'):
             self.assertIn(guard,source)
         for command in ('doMove','doFire','reveal','setVehicleRadar','setVelocity','spawn','waitUntil'):
             self.assertNotIn(command,source)
@@ -32,13 +90,13 @@ class AAObservation(unittest.TestCase):
         self.assertIn('if (!_eligible && {_record isEqualTo []}',source)
         self.assertIn('(_knowledge select 1)',source)
         self.assertIn('if (_contact isEqualTo []) exitWith {}',source)
-        self.assertIn('private _current=count _record == 4 && {(_record select 0) == 2}',source)
+        self.assertIn('private _current=count _record == 4 && {(_record select 0) == 3}',source)
         self.assertIn('count _record in [3,4]',source)
         self.assertIn('removeEventHandler ["IncomingMissile",_record select 3]',source)
         warning=source.split('private _warningHandler=',1)[1].split('_tracked pushBackUnique',1)[0]
         for proof in ('addEventHandler ["IncomingMissile"','_thisEventHandler','!local _group',
                       'CBE_AIPass_VehicleGunnery_Enable','serverTime+15',
-                      '"CBE_AA_Observer",[2,clientOwner,_handler,_warningHandler]'):
+                      '"CBE_AA_Observer",[3,clientOwner,_handler,_warningHandler]'):
             self.assertIn(proof,warning)
         self.assertIn('"CBE_AA_MissileWarning",nil',source)
         threat=(ROOT/'addons/vehicles/functions/cortexAAThreat.sqf').read_text()
@@ -128,7 +186,9 @@ class AAObservation(unittest.TestCase):
         self.assertIn('["_aaCannon",false,[true]]',ready)
         self.assertIn('!(_bulletSuppression || _aaCannon)',ready)
         self.assertIn('!_bulletSuppression || {getNumber (_ammo >> "indirectHit") <= 0',ready)
-        self.assertIn('[_vehicle,_gunner,objNull,_observation,false,false,true]',intercept)
+        station=(ROOT/'addons/vehicles/functions/cortexAAStationSelect.sqf').read_text()
+        self.assertIn('[_vehicle,_gunner,objNull,_observation,false,false,true]',station)
+        self.assertIn('call CBE_fnc_CortexAAStationSelect',intercept)
         self.assertIn('_state getOrDefault ["directFuse",false]',intercept)
         def admitted(simulation, indirect, explosive, rounds, suppression=False, aa=False):
             return not (suppression or aa) or (simulation == 'shotbullet' and rounds >= 20
@@ -142,9 +202,9 @@ class AAObservation(unittest.TestCase):
         self.assertFalse(admitted('shotbullet',25,.6,19,aa=True))
         # A native dual-barrel declaration may replace inherited gunBeg. Missing
         # geometry must refuse rather than inventing a centre-of-model origin.
-        self.assertIn('(getArray (_main >> "memoryPointGun")) select [0,8]',intercept)
-        self.assertIn('_barrels pushBackUnique getText (_main >> "gunBeg")',intercept)
-        self.assertIn('_x in _selections',intercept)
+        self.assertIn('(getArray (_main >> "memoryPointGun")) select [0,8]',station)
+        self.assertIn('_barrels pushBackUnique getText (_main >> "gunBeg")',station)
+        self.assertIn('_x in _selections',station)
         def barrel(declared, inherited, actual):
             return next((point for point in declared[:8]+[inherited]
                          if isinstance(point,str) and point and point in actual), '')
@@ -153,7 +213,42 @@ class AAObservation(unittest.TestCase):
         self.assertEqual(barrel([],'legacy',['legacy']), 'legacy')
         self.assertEqual(barrel(['missing'],'absent',['optic']), '')
         self.assertEqual(barrel([None]*8+['left'],'absent',['left']), '')
-        self.assertIn('_vehicle selectionNames "Memory"',intercept)
+        self.assertIn('_vehicle selectionNames "Memory"',station)
+        # A native primary gunner may occupy a nonzero/nested path. Resolve exactly
+        # that inherited config node; no first-turret fallback or borrowed geometry.
+        self.assertIn('private _turret=+(_observation get "loadedTurret")',intercept)
+        self.assertIn('private _children=_main >> "Turrets"',station)
+        walk=station.split('private _main=configOf _vehicle;',1)[1].split('private _optic=',1)[0]
+        self.assertIn('_main=_children select _x',walk)
+        self.assertIn('if (!isClass _main)',walk)
+        self.assertNotIn('configClasses',walk)
+        self.assertNotIn('configProperties',walk)
+        self.assertIn('forEach _turret',station)
+        self.assertIn('count _children > 32',station)
+        self.assertNotIn('private _turret=[0]',intercept)
+        self.assertNotIn('param [0,configNull]',intercept)
+        for text in (intercept,(ROOT/'addons/vehicles/functions/cortexAAInterceptEffect.sqf').read_text()):
+            self.assertIn('_vehicle turretUnit _turret',text)
+            self.assertIn('_vehicle turretLocal _turret',text)
+        def resolve(nodes,path):
+            if not 1<=len(path)<=8 or any(type(i)!=int or not 0<=i<32 for i in path):
+                return None
+            node=None
+            for i in path:
+                if len(nodes)>32 or i>=len(nodes):return None
+                node=nodes[i]
+                if not node.get('isClass',True):return None
+                nodes=node.get('Turrets',[])
+            return node['name']
+        tree=[{'name':'observer'}, {'name':'AA','Turrets':[{'name':'nested-AA'}]}]
+        self.assertEqual(resolve(tree,[0]),'observer')
+        self.assertEqual(resolve(tree,[1]),'AA')
+        self.assertEqual(resolve(tree,[1,0]),'nested-AA')
+        for bad in ([],[-1],[2],[1,1],[32],[0.5],[True],[0]*9):
+            self.assertIsNone(resolve(tree,bad))
+        self.assertIsNone(resolve([{'name':'too-many'}]*33,[0]))
+        self.assertIsNone(resolve([{'name':'property','isClass':False}], [0]))
+
         self.assertIn('_vehicle lockCameraTo [_point,_turret,true]',intercept)
         release=intercept.split('private _finish={',1)[1].split('if (_mode == "RELEASE")',1)[0]
         unlock=release.index('_vehicle lockCameraTo [objNull,_turret,false]')
@@ -167,6 +262,59 @@ class AAObservation(unittest.TestCase):
         # ownership checks, not permission to keep firing or replay an old action.
         self.assertNotIn('CBE_AIPass_AAIntercept_Enable',release)
         self.assertNotIn('CBE_AIPass_Epoch',release)
+        self.assertIn('isNil {',release)
+        self.assertLess(release.index('_state set ["unlockAttempted",true]'),unlock)
+        self.assertIn('time <= (_state get "until")+30',release)
+        self.assertIn('!(_state getOrDefault ["unlockWithdrawn",false])',release)
+        self.assertLess(release.index('_state set ["unlockWithdrawn",true]'),unlock)
+        self.assertIn('_releaseGroup == (_state get "group")',release)
+        self.assertIn('&& {_mayUnlock}',release)
+
+        self.assertGreater(release.rindex('_lock=_vehicle lockedCameraTo _turret'),unlock)
+        self.assertLess(release.index('if (!_cameraGone) exitWith {false}'),release.index('_vehicle setVariable ["CBE_AA_Intercept",nil]'))
+        self.assertIn('"cameraPending",!_cameraGone',release)
+        self.assertIn('isNil "_lock" || {_lock isEqualType objNull}',release)
+        self.assertIn('_state=_vehicle getVariable ["CBE_AA_Intercept",createHashMap]',intercept)
+        self.assertNotIn('call _finish;_state=createHashMap',intercept)
+        self.assertIn('if (_state getOrDefault ["finished",false]) exitWith',intercept)
+        step=intercept.split('if (_mode != "STEP" || {count _state == 0})',1)[1]
+        self.assertLess(step.index('_job getOrDefault ["token",""]'),step.index('if (_state getOrDefault ["finished",false])'))
+        for name in ('cortexAAInterceptEffect','cortexAASpot'):
+            self.assertIn('_episode getOrDefault ["finished",false]',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text())
+            live=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text()
+            self.assertIn('_liveEpisode getOrDefault ["finished",false]',live)
+            self.assertIn('_liveEpisode getOrDefault ["token",""]',live)
+
+
+        observer=(ROOT/'addons/vehicles/functions/cortexAAObserve.sqf').read_text()
+        self.assertLess(observer.index('_retiring getOrDefault ["finished",false]'),observer.index('if (_eligible && {_current})'))
+        permission=(ROOT/'addons/infantry/functions/cortexActorFireTaskAvailable.sqf').read_text()
+        for bound in ('cameraPending','_platform turretUnit (_camera get "turret") == _actor'):
+            self.assertIn(bound,permission)
+        # Readback, not request/timeout, determines retirement. Foreign current control
+        # is observed only; one refused unlock must never become a repeated writer.
+        def cleanup(local,lock,applied='ours',allowed=True,attempted=False,late=False):
+            if applied is None:return True,False
+            if not local:return False,False
+            gone=lock is None or lock!=applied
+            request=not gone and allowed and not attempted and not late
+            return gone,request
+        self.assertEqual(cleanup(True,None),(True,False))
+        self.assertEqual(cleanup(True,'successor'),(True,False))
+        self.assertEqual(cleanup(True,'ours'),(False,True))
+        for kwargs in ({'allowed':False},{'attempted':True},{'late':True}):
+            self.assertEqual(cleanup(True,'ours',**kwargs),(False,False))
+        self.assertEqual(cleanup(False,None),(False,False))
+        # Returning to the original actor/seat/host does not revive an episode after
+        # observed player/Zeus/provider/group/seat/locality/lease authority loss.
+        withdrawn=False
+        for current_authority in (False,True,True):
+            withdrawn=withdrawn or not current_authority
+            self.assertEqual(cleanup(True,'ours',allowed=current_authority and not withdrawn),(False,False))
+        self.assertEqual(cleanup(True,None,allowed=False),(True,False))
+        self.assertEqual(cleanup(True,'successor',allowed=False),(True,False))
+
+
 
         self.assertIn('_lock isEqualTo _applied',intercept)
         permission=(ROOT/'addons/infantry/functions/cortexActorFireTaskAvailable.sqf').read_text()
@@ -195,7 +343,7 @@ class AAObservation(unittest.TestCase):
         self.assertFalse(same_muzzle(valid[:5]))
         self.assertIn('_operator != (_state get "gunner")',intercept)
         capture=intercept.split('if (_mode == "SHOT") exitWith {',1)[1].split('if (_mode == "START")',1)[0]
-        for guard in ('!local _operator','gunner _vehicle != _operator','group _operator != _shotGroup',
+        for guard in ('!local _operator','_vehicle turretUnit _shotTurret != _operator','group _operator != _shotGroup',
                       'isPlayer _operator','remoteControlled _operator','CBE_AIPass_Epoch','CBE_AA_InterceptOwner',
                       'CortexActorFireTaskAvailable','CortexExternalTakeover','CompatibilityExternalControl',
                       'CortexIsPaused','unitCombatMode _operator','CBE_fnc_NativeOrderReceipt',
@@ -265,9 +413,13 @@ class AAObservation(unittest.TestCase):
         self.assertIn('[_state,"SAMPLE"',intercept)
         self.assertIn('_row set [8,true]',intercept)
         self.assertIn('[_state] call CBE_fnc_CortexAASpot',intercept)
-        self.assertIn('if (_override > 0) then {_speed=_override}',intercept)
-        self.assertIn('if (_override < 0) then {_speed=_speed*(-_override)}',intercept)
-        self.assertIn('coefGravity',intercept)
+        self.assertIn('_gunner,+_turret,_episode get "weapon"',spot)
+        self.assertIn('_vehicle turretUnit _turret != _gunner',spot)
+        self.assertIn('_vehicle turretLocal _turret',spot)
+
+        self.assertIn('if (_override > 0) then {_speed=_override}',station)
+        self.assertIn('if (_override < 0) then {_speed=_speed*(-_override)}',station)
+        self.assertIn('coefGravity',station)
         self.assertIn('CBE_AA_Corrections",nil',source)
         # Calibration invariants: insufficient/conflicting evidence leaves aim alone;
         # three coherent corrections move toward the measured bias with bounded gain.
@@ -290,6 +442,27 @@ class AAObservation(unittest.TestCase):
                       '_position vectorDotProduct _velocity','_miss <= 30','_time <= 2',
                       '_trackIndex','CortexAAWarningLink'):
             self.assertIn(bound,allocate)
+        self.assertIn('["until",time+3]',allocate)
+        self.assertIn('_plan set ["until",time+3]',allocate)
+        self.assertTrue(allocate.rstrip().endswith('0'))
+        self.assertNotIn('0.05',allocate)
+        cache=allocate.split('// A longer finite pass',1)[1].split('if !(_plan get "initialised")',1)[0]
+        for proof in ('time >= (_plan getOrDefault ["linkCacheUntil",0])',
+                      '_plan set ["linkCache",[]]','_plan set ["linkCacheUntil",time+1]'):
+            self.assertIn(proof,cache)
+        # Scheduler feasibility, not engine timing: one roster slot per due frame. The
+        # old positive delay doubles below the configured FPS threshold; a late usable
+        # station can then be omitted by the one-second whole-pass limit.
+        import math
+        def serviced(fps,delay,deadline):
+            frames=max(1,math.ceil(delay*fps-1e-9))
+            return [slot for slot in range(16) if slot*frames/fps < deadline]
+        for fps in (10,15,20):
+            self.assertLess(len(serviced(fps,0.05*2,1)),16)
+            self.assertEqual(serviced(fps,0,3),list(range(16)))
+        scheduler=(ROOT/'addons/core/functions/cortexSchedulerTick.sqf').read_text()
+        self.assertIn('_delay = _delay * 2',scheduler)
+        self.assertIn('} forEach _jobs;',scheduler)
         self.assertEqual(allocate.count('call CBE_fnc_CortexAAIntercept'),1)
         self.assertEqual(allocate.count('getVariable ["CBE_AA_Intercept",createHashMap]'),1)
         ranking=allocate.split('private _ranked=[];',1)[1].split('} forEach _tracks;',1)[0]
@@ -297,7 +470,7 @@ class AAObservation(unittest.TestCase):
         self.assertIn('private _coverage={_x isEqualTo _missile} count _coverageMissiles;',ranking)
         self.assertNotIn('_plan set ["coverage',allocate)
         coverage=allocate.split('private _coverageMissiles=[];',1)[1].split('} forEach _vehicles;',1)[0]
-        for proof in ('!(_active getOrDefault ["finished",false])','alive _x','local _x','gunner _x == _coverageGunner','group _coverageGunner == _group','CBE_AA_InterceptOwner','[_active get "token",_active get "until"]'):
+        for proof in ('!(_active getOrDefault ["finished",false])','alive _x','local _x','_x turretUnit (_active get "turret") == _coverageGunner','group _coverageGunner == _group','CBE_AA_InterceptOwner','[_active get "token",_active get "until"]'):
             self.assertIn(proof,coverage)
         self.assertLess(coverage.index('!(_active getOrDefault ["finished",false])'),coverage.index('_coverageMissiles pushBack'))
         self.assertIn('if (_freshPlan && {!_added}) exitWith {false}',allocate)
@@ -315,7 +488,7 @@ class AAObservation(unittest.TestCase):
         # cache. A retained positive jamming result cannot grant a dead crew link.
         voice=link.index('private _voice=')
         cached=link.index('private _transmit=')
-        for guard in ('gunner _vehicle != _gunner','group _gunner != _group',
+        for guard in ('vehicle _gunner != _vehicle','group _gunner != _group',
                       '[_sender] call CBE_fnc_CortexCombatEffective',
                       '[_gunner] call CBE_fnc_CortexCombatEffective',
                       '!simulationEnabled _sender','isObjectHidden _sender',
@@ -366,4 +539,75 @@ class AAObservation(unittest.TestCase):
         stop=(ROOT/'addons/core/functions/cortexStop.sqf').read_text()
         self.assertLess(stop.index('[_x,true] call CBE_fnc_CortexAAObserve'),
                         stop.index('if (hasInterface && {!isServer}) exitWith'))
+
+    def test_secondary_station_fallback_keeps_one_exact_episode_and_never_loads_a_reserve(self):
+        station=(ROOT/'addons/vehicles/functions/cortexAAStationSelect.sqf').read_text()
+        identity=(ROOT/'addons/vehicles/functions/cortexAAMagazineIdentity.sqf').read_text()
+        intercept=(ROOT/'addons/vehicles/functions/cortexAAIntercept.sqf').read_text()
+        selector=(ROOT/'addons/infantry/functions/cortexGroundSelectMuzzle.sqf').read_text()
+        ready=(ROOT/'addons/infantry/functions/cortexGroundFireReady.sqf').read_text()
+        # Missing/unsuitable/occupied main weapons must not end the entire platform
+        # search. Native occupied ordering is stable; the primary is preferred.
+        def choose(rows,primary,qualified):
+            if len(rows)>32:return None
+            eligible=[actor for actor,group,role,person in rows
+                      if group=='defence' and role in ('gunner','commander','turret') and not person]
+            ordered=([primary] if primary in eligible else [])+[x for x in eligible if x!=primary]
+            return next((x for x in ordered[:4] if x in qualified),None)
+        rows=[('secondary','defence','turret',False),('primary','defence','gunner',False),
+              ('driver','defence','driver',False),('passenger','defence','turret',True),
+              ('foreign','other','turret',False)]
+        self.assertEqual(choose(rows,'primary',{'primary','secondary'}),'primary')
+        self.assertEqual(choose(rows,'primary',{'secondary'}),'secondary')
+        self.assertIsNone(choose(rows,'primary',{'driver','passenger','foreign'}))
+        extra=[(f't{i}','defence','turret',False) for i in range(5)]
+        self.assertIsNone(choose(extra,'none',{'t4'}))
+        self.assertIsNone(choose(rows*7,'primary',{'primary'}))
+        # A loaded state supplies class/path/count, not a magazine instance id.
+        # Wrong station/count, duplicates and oversized manifests cannot choose one.
+        def loaded_id(inventory,path=(1,),mag='AA',rounds=20):
+            if len(inventory)>128:return None
+            matches=[row for row in inventory if row[:3]==(mag,path,rounds)]
+            return matches[0][3:] if len(matches)==1 else None
+        loaded=('AA',(1,),20,10000001,2)
+        self.assertEqual(loaded_id([loaded,('AA',(0,),20,10000002,2)]),(10000001,2))
+        for inventory in ([],[('AA',(1,),19,10000001,2)],[loaded,loaded],
+                          [loaded,('AA',(1,),20,10000002,2)],[loaded]*129):
+            self.assertIsNone(loaded_id(inventory))
+        for proof in ('count _crew > 32','count _candidates >= 4','call _operating',
+                      'CortexActorFireTaskAvailable','CortexExternalTakeover','CortexAAWarningLink',
+                      'compatibleMagazines [_weapon,_x]','_checks >= 32','count _magazines > 256',
+                      '"gunBeg"','"gunEnd"','stationWeapons','CortexAAMagazineIdentity'):
+            self.assertIn(proof,station)
+        self.assertIn('!_aaCannon && {gunner _asset != _gunner}',ready)
+        self.assertIn('_row select 4',ready)
+        for proof in ('count _inventory > 128','count _matches != 1','(_x select 2) == _rounds',
+                      'weaponsTurret _turret','_weapons isNotEqualTo','_phase != 0'):
+            self.assertIn(proof,identity)
+        for proof in ('_aa getOrDefault ["token",""]','_aa getOrDefault ["finished",false]',
+                      '_aa getOrDefault ["gunner",objNull]','_aa getOrDefault ["turret",[]]'):
+            self.assertIn(proof,selector)
+        fire=intercept.split('// The entry adapter keeps',1)[1]
+        self.assertLess(intercept.index('if (canSuspend)'),intercept.index('private _state='))
+        self.assertIn('isNil {_result=[_vehicle,_mode,_payload]',intercept)
+        self.assertIn('_confirmedLock isEqualTo (_state get "applied")',fire)
+        self.assertLess(fire.index('CortexAAMagazineIdentity'),fire.index('action ["UseMagazine"'))
+        self.assertIn('_identity select 1,_identity select 0',fire)
+        self.assertLess(fire.index('"attempts",(_state get "attempts")+1'),fire.index('CortexAAMagazineIdentity'))
+        self.assertIn('_rear vectorFromTo _front',fire)
+        self.assertNotIn('call CBE_fnc_CortexAAStationSelect',fire)
+        self.assertIn('fireAtTarget [objNull,_state get "muzzle"]',fire)
+        for name in ('cortexAAInterceptEffect','cortexAASpot'):
+            code=(ROOT/'addons/vehicles/functions'/f'{name}.sqf').read_text()
+            self.assertNotIn('gunner _vehicle != _gunner',code)
+            self.assertIn('_vehicle turretUnit _turret != _gunner',code)
+        allocate=(ROOT/'addons/vehicles/functions/cortexAAAllocate.sqf').read_text()
+        self.assertIn('_x turretUnit (_active get "turret") == _coverageGunner',allocate)
+        self.assertIn('count _receivers >= 4',allocate)
+        self.assertIn('_receivers findIf {[_vehicle,_x,_group,_victim',allocate)
+        for code in (station,identity):
+            body=code.split('params [[',1)[1]
+            for forbidden in ('remoteExec','spawn','setAmmo','addMagazine','loadMagazine','doFire','fireAtTarget','action ['):
+                self.assertNotIn(forbidden,body)
+
 if __name__=='__main__':unittest.main()

@@ -5,7 +5,7 @@ ROOT=Path(__file__).resolve().parents[1]
 class AirEgressTests(unittest.TestCase):
     def test_world_velocity_uses_absolute_target_and_aircraft_displacement(self):
         source=(ROOT/'addons/aircraft/functions/cortexAirAttack.sqf').read_text()
-        self.assertIn('_job set ["lastTargetPositionASL",getPosASL _target]',source)
+        self.assertIn('_job set ["lastTargetPositionASL",+_targetASL]',source)
         egress=source.split('private _awayFromTarget=',1)[1].split('// Fast fixed-wing',1)[0]
         self.assertIn('velocity _aircraft',egress)
         self.assertIn('getPosASL _aircraft',egress)

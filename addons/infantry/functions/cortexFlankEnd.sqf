@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * ADMISSION observations grant no actor recall/hold authority; exact settings restoration is separate.
+ * Loose legacy attack flags never authorize permission restoration.
  * Group policy restoration respects native tasks; unresolved pairs are historical evidence only.
  * Native STOP cleanup requires a matching current-drill HOLD receipt; MOVE cleanup requires
  * the actual requested destination. Unknown/changed tasks remain untouched. Restoring owned
@@ -156,9 +158,12 @@ private _returnElement={
 // The acknowledgement interval grants no cleanup right over an unconfirmed native MOVE.
 private _ownsNativeMovement={
     params ["_actor"];
+    private _row=(_drill getOrDefault ["nativeCommands",createHashMap]) getOrDefault [netId _actor,[]];
+    // Admission observed a task but issued none. Settings restoration above stays
+    // independent; this actor receives no movement/hold recall from that observation.
+    if (_row isEqualType [] && {count _row == 7} && {(_row select 1) == "ADMISSION"}) exitWith {false};
     private _command=currentCommand _actor;
     if !(_command in ["STOP","MOVE"]) exitWith {true};
-    private _row=(_drill getOrDefault ["nativeCommands",createHashMap]) getOrDefault [netId _actor,[]];
     if (count _row != 7 || {(_row select 0) != _actor} || {formLeader _actor != (_row select 3)}) exitWith {false};
     private _native=expectedDestination _actor;
     if (_command == "STOP") exitWith {(_row select 1) == "HOLD" && {_native isEqualTo (_row select 2)}};
@@ -183,7 +188,7 @@ private _lease=_group getVariable ["CBE_AIPass_SupportLease",[]];
 private _supportLeaseCurrent=_supportToken != "" && {(_state getOrDefault ["supportToken",""]) == _supportToken}
     && {_state getOrDefault ["assaulting",false]}
     && {_authoredCurrent}
-    && {count _lease == 6} && {(_lease select 0) == _supportToken} && {serverTime < (_lease select 2)};
+    && {count _lease == 7} && {(_lease select 0) == _supportToken} && {serverTime < (_lease select 2)};
 // A role handover issues no native command. Carry only current-drill owned STOPs
 // into the same parent support journal before the child drill retires.
 private _nextRole=_group getVariable ["CBE_Cortex_SupportRole",[]];
@@ -258,7 +263,7 @@ if !(call _stillEnding) exitWith {};
 if (_supportToken != "") then {
     _group setVariable ["CBE_Cortex_SupportBoundResult",[_supportToken,_drill get "supportSequence",_reason],true];
 } else {
-    if (_mayCommand && {_state getOrDefault ["attackChanged",false]}) then {_group enableAttack (_state getOrDefault ["baseAttack",true])};
+    // OperationRelease/Cancel below owns typed attack-policy restoration.
     _state deleteAt "attackChanged";
     _state deleteAt "baseAttack";
 };
@@ -280,6 +285,11 @@ private _retired=false;
 isNil {
 if !(call _stillEnding) exitWith {};
 _group setVariable ["CBE_Cortex_DrillResult",[_type,_reason,time],true];
+if ((_drill getOrDefault ["explicitOrder",[]]) isNotEqualTo []) then {
+    _state deleteAt "explicitKnowledge";
+    private _statusKey=if ((_drill getOrDefault ["pointObjective",[]]) isEqualTo []) then {"CBE_Rush_Status"} else {"CBE_PointAdvance_Status"};
+    _group setVariable [_statusKey,["ENDED",_reason,_endingToken,serverTime],true];
+};
 [_group,_drill,"ENDED",_reason] call CBE_fnc_CortexDrillSetStage;
 // Cancel only this exact queued executor. Its callback may survive until the next
 // scheduler opportunity; it must neither refresh a heartbeat nor act on a successor.

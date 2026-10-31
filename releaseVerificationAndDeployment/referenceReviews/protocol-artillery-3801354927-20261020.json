@@ -167,5 +167,71 @@
       "addons\\support\\functions\\cortexArtilleryShot.sqf": "1003e8c5c5db702b0ee0488489060b04ed8234922071505e2f26e2c35f623439"
     },
     "limits": "Fixed two-seat native reads and eligibility calls; no new query loops/workers/deadlines. No physical readiness/repeated fire/false-refusal/handback/performance/parity credit. Selected-battery mixed-group movement remains unimplemented. Audits PAUSED. Unsigned dirty development package includes unrelated existing dirt; review/notes postdate package."
+  },
+  "originalFormationReturn20261030": {
+    "base": "63b326f6eb238133bbd92fa4b5f1680747900c58",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "source": {
+      ".qa/protocol-artillery-3801354927-review/functions/fn_artillery.sqf": "9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d"
+    },
+    "actualSourceTrace": "Selected driver/commander doMove at lines125-127 and170-172; source waits5seconds or20+random15, no captured original formation handback. Preserved readable member hash reverified.",
+    "intent": "Keep selected-gun-only movement and improve it with original subformation continuation; preserve group membership and unrelated infantry orders.",
+    "methods": {
+      "retained": "Selected original operating crew only, existing CBE finite positioning/scoot FSM and native movement ownership.",
+      "adapted": "Original FOLLOW supported by exact captured subformation anchors and original group leader; mixed MOVE/idle/FOLLOW returns checked separately.",
+      "rejected": "Whole-group movement, guessed current-leader recall, source global loops/arbitrary wait as arrival or handback proof, copying restricted source."
+    },
+    "authority": "Admission captures originals once; original route/task/epoch/worker/seat/Zeus/provider guards remain. Only RETURNING with recorded exact follow request permits observed FOLLOW; no retry or deadline renewal. Legacy missing-anchor FOLLOW stays unsupported.",
+    "outcome": "One doFollow per living original FOLLOW recipient after actual owned stop/rest. Acknowledgement observes exact command/anchor, not physical formation arrival. No new module/settings, controller, worker, timer or scan.",
+    "limits": "Target or group-leader replacement refuses without substitution; unresolved native cleanup remains reserved. Native engine formation side effects, physical travel and cost require authorised audits.",
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/doFollow",
+      "https://community.bistudio.com/wiki/formLeader"
+    ],
+    "offline": "PASS1508 tests,498 compiled SQF,11PBO/full gates; native FSM/config/docs/wiki/parity/coverage/static performance pass. No new controller or scan. New bounded mixed-return contract; old blanket-refusal expectations replaced by exact-anchor requirements.",
+    "nativePending": "First MOVE reply may retain original FOLLOW while anchor moves. Exact original command/anchor inside original reply window permits PENDING comparison only; does not mutate stored before receipt or satisfy OWNED positional acknowledgement. No retry/deadline renewal.",
+    "validationCorrections": "New test initially placed below __main__, corrected; full gate then exposed one old blanket FOLLOW-refusal assertion, updated to captured-anchor support. Review added pending-native FOLLOW handling before final passing full build; no failed check hidden.",
+    "hashes": {
+      "addons/support/functions/artilleryCrewMoveStart.sqf": "a5ebdd4111c2802bc1baa157abe87b36881b380557802b16070809778b3ff31e",
+      "addons/support/functions/cortexArtilleryPosition.sqf": "18d56c1e6c1d9cd3386da5c53dfd95814a63f059e4f183218a90b8b992aeeaab",
+      "addons/support/functions/cortexArtilleryScoot.sqf": "66fae7ab03af02ae98ddc7c1abbd7ada7390c52f045a51753ba0f9a9f08b458b",
+      "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf": "703d1997f48065303200b09a177720a7cc2cdfd790007e446ecdf1fcd311118d",
+      "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf": "447d55b6b300627f342793e226da8c335507b5f939ebd2dbb81c824fa9df8646"
+    }
+  },
+  "ignoredObserverTarget20261031": {
+    "base": "ccc5e3f13e4e54e50523454c4250c3960561a43f",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "sourcePboSHA256": "1cfb0a5cacd7d5156ed44692f3189faffb39349bc787b532fa7f7664a7a387bf",
+    "sourceMainSHA256": "9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d",
+    "sourceTrace": "Installed Protocol PBO and private readable fn_artillery hashes rechecked unchanged. Source collects opposing groups and shared nearTargets, then reads exact hostile position. CBE retains qualified owner-local observations and finite missions rather than global/exact-transform targeting. Aircraft contact already checks native ignored-target knowledge. Assigned artillery observer helper did not explicitly check ignoreTarget and empty ranging replies still moved to READY with the old fix.",
+    "owner": "Assigned CortexSpotterFix acquisition for support/counter -> server WAIT/OBSERVE -> exact owner CortexArtilleryObserve -> authenticated CortexArtilleryReport -> existing CortexArtilleryMissionStep cleanup and ArtilleryMissionStep FSM outcome.",
+    "change": "Observer fixes refuse native ignored targets and zero/malformed believed ATL positions. Existing ranging requests gain positive monotonic mission-local observer serial; replies match original token/spotter/current expected owner/OBSERVE/serial. Explicit TARGET_IGNORED with empty fix latches observerVeto; duplicate/late ordinary replies cannot revive it. Next existing step retires only OBSERVE, preserving unresolved PENDING/UNCERTAIN reservations. FSM records TARGET_IGNORED instead of COMPLETE.",
+    "disposition": {
+      "retained": "Source responsive artillery/counter-battery intent plus existing CBE finite owner-local gun execution, actual shot acknowledgement, original deadlines, ranging and warning policy.",
+      "combined": "Native target-ignore observation policy already used in aircraft contacts, applied to assigned-observer support/counter within existing artillery owner.",
+      "improved": "An explicit observation veto differs from merely lost sight and carries exact exchange identity through server/owner handover.",
+      "rejected": "Global target discovery as knowledge, exact hostile-transform substitution, stale observer replies cancelling a later burst, clearing unresolved shots or claiming shell recall."
+    },
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/targetKnowledge",
+      "https://community.bistudio.com/wiki/ignoreTarget",
+      "https://community.bistudio.com/wiki/getHideFrom"
+    ],
+    "limits": "Observer acquisition and ranging only; no instantaneous/global veto. Already-fired shells, already-dispatched shots, radar-only counter missions, explicit coordinate orders and reactive mortar requests outside this new path. Ordinary absent fixes retain old policy. One extra native targetKnowledge read per existing observation query; private scalar serial/veto; no new worker/scan/timer/module/setting. Physical ignored-target/normal-HC/JIP/repeated-use/ranging timing and performance remain unverified; audits paused.",
+    "hashes": {
+      "addons/infantry/functions/cortexSpotterFix.sqf": "1885ef0699eefd3a96c72ecc87fb8c8d69e975b9867128c7d3bb2827485989be",
+      "addons/support/functions/cortexArtilleryObserve.sqf": "6fdd624d16d97f2c59cf1afa133b6b6cf8f4f68b9fa8566cfd413ed36a4884c2",
+      "addons/support/functions/cortexArtilleryReport.sqf": "33c7feddcabba525821435b0cf63c871083ac4e66d8fbd0de0d3a7e5db3ce972",
+      "addons/support/functions/cortexArtilleryMissionStep.sqf": "d3fc506169a0f4098e931208f723e9419c28fd957371376b306108ddf3a899cb",
+      "addons/support/functions/artilleryMissionStep.sqf": "6866ce2796877f02fc613c1d5e6e081b5f3d9c4c3a8e02904c413d069619cf6d",
+      "releaseVerificationAndDeployment/test_cortex_operations.py": "b909b39a5a77299d7e1284644fabf461bf801aa02f1df56590ee093814adb810"
+    },
+    "validation": "PASS1508 tests,498 compiled SQF,11PBO/full gates;0 static performance findings; independent unsigned package/hash verifier. Existing regression extended; no new cases. Initial focused invocation had wrong Python module path; corrected qualified invocation passed before full gates.",
+    "candidate": ".qa/candidates/protocol-artillery-observer-veto-20261031-ccc5e3f1",
+    "fingerprint": "99abe83cc0bda61356278cab60a3a3fa3ea6d491b6fd1eef479a44f6dde9bc8c",
+    "provenance": "Unsigned dirty baseccc5e3f1 plus checked runtime/test/guide inputs; later metadata separate. Not clean release/signature or physical evidence.",
+    "buildLog": ".qa/handovers/artillery-observer-veto-20261031-build.log",
+    "independentLog": ".qa/handovers/artillery-observer-veto-20261031-independent.log"
   }
 }

@@ -103,6 +103,7 @@
  * Movement receipts distinguish NATIVE from STEERING. New STOP after native MOVE yields the
  * current revision; owned driving STOP boundaries first retire their exact old native receipt.
  * Repeat/JIP: ordered snapshots carry phase/cargo/baselines; a five-second contact checkpoint survives HC migration.
+ * Shared road anticipation follows measured travel/native BACK; direction changes refresh the existing3s cap.
  * Arguments: 0: group <GROUP>; 1: configuration <ARRAY> [revision, km/h, gap, pushThrough, vehicles, phase, cargo, restore, halt reason, believed threat ATL, expiry].
  * Native MOVE requests keep their original two-second acknowledgement receipt, public across
  * locality changes. Only the requested goal consumes it. Unchanged pre-command state waits
@@ -849,10 +850,19 @@ _state set ["spacingObservation",[time,_revision,_spacingPairCount]];
 private _roadCap = _maximum;
 private _trafficAssistEnabled=[_group,"CBE_Convoy_DrivingAssist_Enable",true,_lead] call CBE_fnc_CortexFeatureEnabled;
 if (_trafficAssistEnabled) then {
-    if (time >= (_state getOrDefault ["roadLookAt",-1])) then {
-        private _roadObservation=[_lead,_maximum] call CBE_fnc_DrivingRoadCap;
+    private _roadLongitudinal=(velocity _lead) vectorDotProduct (vectorNormalized vectorDir _lead);
+    private _roadBackMode=toUpperANSI ((vehicleMoveInfo _lead) param [0,"",[""]]) == "BACK";
+    private _roadDirection=if (!finite _roadLongitudinal) then {0} else {
+        [1,-1] select (_roadLongitudinal < -0.15 || {abs _roadLongitudinal <= 0.15 && {_roadBackMode}})
+    };
+    // Lead/revision changes already reconstruct this state. Only a direction change
+    // additionally invalidates the existing three-second geometry cap observation.
+    if (time >= (_state getOrDefault ["roadLookAt",-1])
+        || {_roadDirection != (_state getOrDefault ["roadDirection",0])}) then {
+        private _roadObservation=[_lead,_maximum,_roadDirection] call CBE_fnc_DrivingRoadCap;
         _roadCap=_roadObservation select 0;
         _state set ["roadAssist",_roadObservation];
+        _state set ["roadDirection",_roadDirection];
         _state set ["roadLookAt",time+3];
     } else {_roadCap=(_state getOrDefault ["roadAssist",[_maximum]]) select 0};
 };

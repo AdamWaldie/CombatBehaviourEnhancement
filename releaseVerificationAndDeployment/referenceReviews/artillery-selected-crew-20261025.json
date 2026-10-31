@@ -156,5 +156,82 @@
     "physicalAcceptance": false,
     "performanceMeasured": false,
     "scoresChanged": false
+  },
+  "mixedNativeReturn20261029": {
+    "base": "4708360726fc89af9b2f386d41947aa1c9c6a937",
+    "source": "Original Protocol artillery fn_artillery.sqf relocation/postfire branches108..176 re-read; complete file SHA2569ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d reverified. Source directly moves driver/commander without a finite return owner; CBE retains selected crew scope and replaces that lifecycle.",
+    "finding": "VehicleCrewMoveNativePhase RETURNING with a nonempty returns list checked only MOVE recipients. VehicleCrewMoveReturnProof similarly checked only expected MOVE recipients after validating metadata. Neither mixed-list branch required a surviving original idle operator to retain idle/rest/held-goal evidence, unlike their existing all-idle branches. Acknowledging one original could therefore retire unresolved work over a changed command on the other.",
+    "change": "Both paths additionally examine surviving originals with an idle baseline using the already supplied/cached two-seat native observation and original stop goal. Current idle/WAIT plus the existing measured-rest/arrival predicate is required. Live missing original recipients refuse. MOVE acknowledgements, original reply/cleanup deadlines and completed-private-FSM/serial/owner/epoch/mission proof remain unchanged. Idle-only episodes retain their existing branch; no new movement, group order, worker, native query, settings or recovery is introduced.",
+    "cost": "At most two original-actor comparisons and two existing destination comparisons for a mixed return; no world/inventory query or added native observation. No measured overhead claim.",
+    "checks": {
+      "existingCase": "ArtilleryFireSessions.test_prefire_positioning_uses_existing_fsm_and_authenticated_physical_handoff",
+      "red": ".qa/handovers/crew-mixed-return-red-20261029.log",
+      "focused": ".qa/handovers/crew-mixed-return-green-20261029.log",
+      "testsAdded": 0,
+      "model": "Both MOVE/idle seat orders, changed STOP/FOLLOW/MOVE, different goal, moving or displaced platform, duplicate identity and dead idle original. Python model/source contracts are not native execution.",
+      "fullBuild": ".qa/handovers/crew-mixed-return-build-20261029.log",
+      "independent": ".qa/handovers/crew-mixed-return-independent-20261029.log",
+      "tests": 1505,
+      "compiledSqf": 461,
+      "pbos": 11,
+      "candidate": ".qa/candidates/crew-mixed-return-20261029-47083607",
+      "fingerprint": "bc8915285392919ae1144ae3d0e5611210529088ef0650a2faf9adba07cc1a39",
+      "provenance": "Unsigned development receipt47083607 plus dirty runtime inputs; engineering metadata finalised afterward. No physical/performance acceptance."
+    },
+    "limits": "Audits paused. This closes false positive mixed native return, not original FOLLOW/formation restoration, complete unknown/casualty handback, general all-writer quiescence, physical mixed-group movement or whole Protocol parity. A mixed return that never shows positive idle evidence remains unresolved within the existing lifecycle; no deadline extension or fallback success."
+  },
+  "nativeFollowSupersession20261030": {
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "sourceReference": ".qa/protocol-artillery-3801354927-review/functions/fn_artillery.sqf",
+    "sourceSha256": "9ae6b0a4a86e1b4954a98be716b992c4bcd453868d72274cc0440c79ccdc966d",
+    "sourceReview": "Selected source relocation driver/commander doMove branch reconfirmed at167..176; source lacks a finite selected native command handback. No new whole-source review or copied code.",
+    "intent": "Temporary gun/vehicle positioning must not retain a stale movement reservation after native formation control has positively replaced every original positional command. Preserve user-required group membership and unrelated infantry tasks.",
+    "actualPath": [
+      "VehicleCrewMoveNativePhase same-destination native command fence before hold/return",
+      "ArtilleryCrewMoveRetire / VehicleTacticalMoveRetire owner maintenance",
+      "VehicleCrewMoveRetire exact original journal/reference/private executor",
+      "VehicleCrewMoveReturnProof EXTERNAL_FOLLOW",
+      "exact lease/reservation retirement and domain terminal handling"
+    ],
+    "proof": "Only an ended original issued-phase worker (REQUESTED/MOVING/HOLD/STOPPING/RETURNING/UNRESOLVED, never ISSUE), actual completed private FSM, matching local serial/owner/epoch and any recorded common-operation generation. Every living original must show FOLLOW to a living nonself same-group formLeader after locality checks, aboard original platform or dismounted. Other active operators, foreign platform, mixed command or unknown anchor refuse.",
+    "nativeWriterTrace": "Actual ArtilleryCrewMoveStep and VehicleTacticalMoveStep reject completed private FSM handles; shared VehicleCrewMoveNativePhase is the only positional writer (outward/hold/return doMove) and never issues FOLLOW. Positive current FOLLOW can be native fallback, not necessarily a newer authored instruction. No replay or provenance guess.",
+    "terminal": "NATIVE_FOLLOW_OBSERVED_AFTER_WORKER releases only exact old bookkeeping. Artillery SCOOT token/session cleanup includes the new interrupted result; vehicle common operation releases INCOMPLETE, never COMPLETE from this proof. CortexMechanisedContinue still excludes this result, so no further support bound starts.",
+    "preserved": [
+      "Original group membership/crew identities; no new crew",
+      "Existing native MOVE/idle return and newer STOP proof",
+      "No current local original actor or positive native proof means retained unresolved state",
+      "No new movement, follow, stop, setting, worker, timer, RPC, world query or renewed deadline"
+    ],
+    "cost": "At most2 local original formLeader/native-command observations only for ended unresolved work, skipped when original return or STOP is already proven. Existing bounded maintenance/reservation cleanup reused; actual overhead unmeasured.",
+    "limits": [
+      "Not a request to restore an original FOLLOW baseline; no new FOLLOW admission support",
+      "No proof of physical travelled return or original formation restoration",
+      "Mixed FOLLOW/idle/MOVE, changed crew/owner and unknown native handback remain gaps",
+      "No external-provider quiescence/resume or all-writer CQB seal claim; audits PAUSED"
+    ],
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/formLeader",
+      "https://community.bistudio.com/wiki/currentCommand"
+    ],
+    "verification": {
+      "red": ".qa/handovers/crew-native-follow-red-20261030.log:extended existing case fails absent native FOLLOW branch",
+      "focused": ".qa/handovers/crew-native-follow-focused-20261030.log:4existing selected-crew/fire-session cases pass",
+      "full": ".qa/handovers/crew-native-follow-final-build-20261030.log:1505existing tests/488SQF/11PBOs; config/FSM/docs/wiki/parity/coverage and static performance0findings passed",
+      "physical": "NOT RUN; audits PAUSED",
+      "commandRed": ".qa/handovers/crew-native-command-red-20261030.log:extended existing case fails absent command fence",
+      "intermediateFull": ".qa/handovers/crew-native-follow-build-20261030.log:1505tests/488SQF/11PBOs passed before same-goal command-writer defect was found; superseded by final build",
+      "candidate": ".qa/candidates/crew-native-follow-20261030-be01242c",
+      "fingerprint": "83fb94707f00ad3b07f1e7c2b0fdf97d437b9fa489d67aa49dbea3a02601a4dd",
+      "independent": ".qa/handovers/crew-native-follow-independent-20261030.log:exit0 matching fingerprint",
+      "source": "Unsigned development basebe01242c plus delivered runtime/test/lifecycle-guide changes, dirty=true; engineering metadata finalized after packaging."
+    },
+    "commandWriterFix": "Shared VehicleCrewMoveNativePhase previously used goal coordinates alone in MOVING/HOLD and release transitions. A native FOLLOW could retain the same endpoint and be overwritten by a retirement hold. All active phases now reject any native command outside MOVE/WAIT/idle before goal/reply metadata or any hold/return write. The unchanged same-frame native observation is reused; no extra query. ISSUE retains its exact baseline check. Missing/malformed observations also refuse.",
+    "runtimeHashes": {
+      "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf": "b66ab88e40a781ff2c863ad2158a1a74faa5f16cc28e5044b5846aab56840e57",
+      "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf": "1d7275c065cd0831c201ee2d5b27a41b64c1d013863986b0e1076b4971d338a5",
+      "addons/vehicles/functions/vehicleCrewMoveRetire.sqf": "212daa6e439b87c67bf933341598aca71ff4644c00ed63e7790b47d8498df377",
+      "addons/vehicles/functions/vehicleTacticalMoveRetire.sqf": "fbec5353f49b8888626bd47095490704dd2f81e880653afd7ed21c150a425628",
+      "addons/support/functions/artilleryCrewMoveRetire.sqf": "070d4f32b5940aaa4852c2132a3b516bc68ccc2aa3c3fbf5a8f03d3d189b59b7"
+    }
   }
 }

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-30",
+  "sourceBase": "98085a0bbbd5419fbe2c0a6265ad613f23533ace",
+  "workshopId": "1858075458",
+  "source": {
+    "path": ".qa/lambs-main-installed-20261025-bebceb06/members/functions/UnitAction/fnc_doFleeing.sqf",
+    "sha256": "9eb043092ed20c16e45023d9ff87f8d0b1cbaa496f5429758c53bbd807dbd450",
+    "scope": "Selected on-foot cover-retention and quiet native follow branches compared against current DangerFlight. Complete helper review remains historical in lambs-danger-branch-execution-20261025.json#nativeFlightReturnObservation20261029; no new whole-source claim."
+  },
+  "sourceIntent": "LAMBS doFleeing can retain a calm actor under cover rather than selecting another escape, and otherwise returns to native formation. Its forced DOWN/doStop, blanket posture/speed/medical state changes and vehicle seat action workers are not imported.",
+  "finding": "CBE current material-screen check was below the quiet native rejoin branch. A valid quiet distant group belief could therefore request FOLLOW out of an already screened position before that protection was evaluated.",
+  "implementation": [
+    "Evaluate the existing material-screen observation before both quiet rejoin and screened escape search, under the original group2second and actor15second search clocks.",
+    "If screened, issue no CBE movement, hold, posture, suppression, medical or speed command. Native engine and mission ownership remain unchanged. No cover reservation, safe-room verdict or all-threat protection is claimed.",
+    "Unscreened actors retain original quiet rejoin and escape policies, original maximum12second travel lease and native return observation/cleanup. No route search expansion, new worker/timer/handler or clock renewal."
+  ],
+  "cost": "Non-quiet path retains its existing one material-screen observation. Previously successful quiet rejoin now performs that observation: at most one terrain intersection and one object ray returning four surfaces. Same group2second/actor15second throttle; no entity enumeration or retained cache. Physical reaction and overall overhead require measurement.",
+  "validation": {
+    "red": ".qa/handovers/flight-cover-retention-red-20261030.log",
+    "focused": ".qa/handovers/flight-cover-retention-focused-20261030.log",
+    "existingCase": "CoverOrderContextTests.test_flight_has_one_original_deadline_and_exact_order_cleanup",
+    "testCountAdded": 0,
+    "fullBuild": "PASS: all1506 tests, SQF/config/FSM/docs/wiki/parity/coverage/static-performance gates and11PBO package.",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "buildLog": ".qa/handovers/flight-cover-retention-build-20261030.log",
+    "candidate": ".qa/candidates/flight-cover-retention-20261030-98085a0b",
+    "fingerprint": "366885a33d49b665be9d078808de4baabef28edf654a1ccee788af15c210c75e",
+    "independentVerify": "PASS: package integrity matches; .qa/handovers/flight-cover-retention-independent-20261030.log"
+  },
+  "remaining": [
+    "Observed single threat-bearing screening is not body/route safety, access or protection against other threats.",
+    "Native engine may independently move the actor; CBE does not impose a hold.",
+    "Quiet FOLLOW remains request-only when legitimately issued; native/physical handback remains unverified.",
+    "Remaining LAMBS descendants, mounted behaviour and whole-mod functionality/performance incomplete."
+  ]
+}

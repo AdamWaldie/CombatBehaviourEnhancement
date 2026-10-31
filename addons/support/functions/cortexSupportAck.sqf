@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
  * Records only the current helper owner response for the current reservation token.
+ * The exact seven-field snapshot includes the request original response radius; altered
+ * policy cannot be acknowledged against the server request.
  * Locality/authority: server owns reservations; current group owners validate and execute orders.
  * Repeat/JIP: unique tokens, shared deadlines and owner acknowledgements retire stale assignments.
  * Arguments: 0: helper <GROUP>, grpNull; 1: token <STRING>, empty; 2: accepted <BOOL>, false; 3: exact lease snapshot <ARRAY>, [].
@@ -18,10 +20,10 @@
 params [["_group",grpNull,[grpNull]],["_token","",[""]],["_accepted",false,[true]],["_snapshot",[],[[]]],["_replyOwner",-1,[0]],["_capacity",[],[[]]]];
 if (!isServer || {isNull _group} || {([_replyOwner,groupOwner _group] call CBE_fnc_HeadlessResolveSender) < 0}) exitWith {};
 private _lease = _group getVariable ["CBE_AIPass_SupportLease",[]];
-if (count _lease != 6 || {(_lease select 0) != _token} || {_lease isNotEqualTo _snapshot}) exitWith {};
+if (count _lease != 7 || {(_lease select 0) != _token} || {_lease isNotEqualTo _snapshot}) exitWith {};
 private _requests = missionNamespace getVariable ["CBE_AIPass_SupportRequests",createHashMap];
 private _job = _requests getOrDefault [netId (_lease select 1),createHashMap];
-if (count _job == 0) exitWith {};
+if (count _job == 0 || {(_lease select 6) isNotEqualTo (_job get "discoveryRadius")}) exitWith {};
 // Capacity is an authenticated owner observation, not another reservation acceptance.
 if (_capacity isNotEqualTo []) exitWith {
     if (!_accepted || {count _capacity != 8} || {(_capacity select 0) isNotEqualTo 2}

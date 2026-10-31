@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-28",
+  "base": "5515838547827eabaf77ed50fabecc43bcadd5cf",
+  "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+  "registeredScope": "TERRAIN: Aircraft relief-aware route planning remaining_build_gap, AIR-ATTACK existing owner; selected air-support foundation supporting Emergency Air Support intent3818040165. Not a source port or source-parity uplift.",
+  "sourceContext": {
+    "intake": "workshop-intake-3818040165.json",
+    "sourceReview": "emergency-air-support-intent-20261025.json",
+    "originalPboSha256": "1667ad921aaaf73333f5d383c6ef92216803ce68e8294203ddecf29d4a5c2820",
+    "inspection": "Original PBO hash matches recorded intake; prior source intent remains referenced. No fresh whole-source review or copied code. This is an independent extension of existing CBE terrain planning, not a claimed upstream route algorithm."
+  },
+  "finding": "Current CortexAirAttackPlan forms one pattern axis and uniformly lifts its three stages. Unsafe early join or required lift beyond the platform envelope rejects that only route. It has no alternate bearing attempt even where the same weapon pattern could pass beside relief. The build-out ledger correctly retains no general3Droute search; this selected extension does not close that broader gap.",
+  "implementation": [
+    "Keep original weapon/station/loaded magazine, target belief, sampled speed/heights, capture radii and attack minimum. Original viable route succeeds after one unchanged terrain candidate.",
+    "Only after terrain failure, and only with no observed AA positions, try whole-pattern rotations of -35 then+35degrees around the same believed target. All three points rotate together, retaining target-relative distances, attack-line crossing/broadside geometry and leg lengths. Intercepts skip terrain fallback. Known-AA plans retain their original defensive axis and single attempt.",
+    "Each candidate resets only local clearance/lift results and starts from the original stage altitudes; it repeats the same real aircraft join, early-climb refusal, three lateral lines and platform lift limits. No random height/weapon reroll or relaxed clearance. Accept first passing candidate; all failures return the original empty-plan policy.",
+    "Sample count is cumulative across attempts. Plan stores chosen offset and attempts, copied into existing air-attack job. Existing operation/flight/weapon/pilot/friendly-safety/final mutation boundaries retain command ownership. No new worker, controller, native movement site, lease/deadline or global setting."
+  ],
+  "cost": "At most3 terrain corridors, each bounded to330 lateral/interior samples, <=990 across3, plus <=9 endpoint terrain reads. Conclusive early-join or over-limit lift failure stops all remaining loops in that candidate. Passing candidates retain the complete sample set. Adjacent legs reuse the same vertex terrain height only inside that candidate; no cross-candidate/plan cache. Original successes retain one corridor. This is bounded plan-creation work, not a measured whole-mod5%median/10%p95 result; alternate failed-plan probes may still cost more than the former single-candidate policy.",
+  "verification": {
+    "red": [
+      ".qa/handovers/air-relief-prune-red-20261028.log",
+      ".qa/handovers/air-relief-endpoint-red-20261028.log"
+    ],
+    "focused": ".qa/handovers/air-relief-cost-focused-20261028.log:617 existing checks PASS. Enumerated2500 lift/refusal combinations agree with full-scan viability; accepted models retain full samples and maximum. Source contracts check exits and endpoint reuse. These are offline policy/source checks, not native SQF execution or flight measurements.",
+    "newTestCases": 0,
+    "fullBuild": ".qa/handovers/air-relief-cost-build-20261028.log:1505 existing tests,459 production SQF,11 PBO and complete local gates PASS; session44578 terminal exit0.",
+    "independent": ".qa/handovers/air-relief-cost-independent-20261028.log:PASS",
+    "candidate": ".qa/candidates/air-relief-cost-20261028-6c7f5dbd",
+    "fingerprint": "24ca99dbaf0b7476a4b72c6c365fe381f32aff0c812a280cc256755c65b5c470",
+    "provenance": "6c7f5dbd5df55fcea7f3651302d59f46738fba5f plus dirty runtime. Engineering/handover metadata completed after package. Unsigned development candidate; not release or physical acceptance.",
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "measuredPerformance": "NOT_RUN"
+  },
+  "productHashes": {
+    "addons/aircraft/functions/cortexAirAttackPlan.sqf": "257ec92f86c58294efdaae55d1da137f47852df44c681c8c8c6cd0db0db0487d",
+    "addons/aircraft/functions/cortexAirAttack.sqf": "8fac05b693c19089c06c99944905adfc08ff04c2d2519e61c608c4028e1e054a"
+  },
+  "buildoutAssessment": "Selected alternate-bearing subset implemented. General3Droute search remains absent and the earlier partial TERRAIN build assessment is not raised. Master percentage evidence is not renewed from static checks or this limited planner extension.",
+  "remaining": [
+    "Terrain samples are sparse: no continuous collision/hull/building/tree sweep, aircraft turn/climb dynamics or guaranteed safe native path. Existing emergency clearance/finite abort remains required.",
+    "Known AA suppresses fallback deliberately; threat-aware alternate-axis optimisation is not implemented.",
+    "Only two angles, same pattern and uniform lift: constrained valleys or more complex relief can still refuse. No general3Dpathfinder.",
+    "Actual no-AA ridge case/original-pass parity, weapon delivery and formation authority, abort/locality/normal-HC/Zeus and peak/whole-mod performance remain unverified."
+  ],
+  "queryCostReduction20261028": {
+    "base": "6c7f5dbd5df55fcea7f3651302d59f46738fba5f",
+    "finding": "Rejected candidates continued all sample loops after irreversible early-join refusal or a required-lift maximum above the fixed platform limit. Every leg also reread its start vertex even though join uses live ASL and each later start is the previous endpoint.",
+    "implementation": "Keep monotone rejection and break lateral/sample/leg loops without changing candidate order, clearance, lift limits, successful-route samples or accepted stage heights. Retain the previous endpoint terrain inside each candidate, reducing endpoint reads6 to3 per complete candidate. Rejected candidate diagnostics are intentionally partial and are discarded; cumulative sample count records actual probes.",
+    "checks": {
+      "red": [
+        ".qa/handovers/air-relief-prune-red-20261028.log",
+        ".qa/handovers/air-relief-endpoint-red-20261028.log"
+      ],
+      "focused": ".qa/handovers/air-relief-cost-focused-20261028.log:617 existing checks PASS. Enumerated2500 lift/refusal combinations agree with full-scan viability; accepted models retain full samples and maximum. Source contracts check exits and endpoint reuse. These are offline policy/source checks, not native SQF execution or flight measurements.",
+      "newTestCases": 0,
+      "fullBuild": ".qa/handovers/air-relief-cost-build-20261028.log:1505 existing tests,459 production SQF,11 PBO and complete local gates PASS; session44578 terminal exit0.",
+      "independent": ".qa/handovers/air-relief-cost-independent-20261028.log:PASS",
+      "candidate": ".qa/candidates/air-relief-cost-20261028-6c7f5dbd",
+      "fingerprint": "24ca99dbaf0b7476a4b72c6c365fe381f32aff0c812a280cc256755c65b5c470",
+      "provenance": "6c7f5dbd5df55fcea7f3651302d59f46738fba5f plus dirty runtime. Engineering/handover metadata completed after package. Unsigned development candidate; not release or physical acceptance.",
+      "physical": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_RUN"
+    },
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "measuredPerformance": "NOT_RUN"
+  },
+  "priorVerificationBeforeCostReduction20261028": {
+    "red": ".qa/handovers/air-relief-fallback-red-20261028.log: existing aircraft planner regression fails missing fallback.",
+    "focused": ".qa/handovers/air-relief-fallback-focused-20261028.log:617existing operation tests PASS. Source contracts, independent rotation/collinearity/distance and synthetic ridge cross-section, original-first/AA-veto/three-attempt policy models. Not native flight or complete-route proof.",
+    "newTestCases": 0,
+    "physical": "NOT_RUN_AUDITS_PAUSED",
+    "measuredPerformance": "NOT_RUN",
+    "fullBuild": ".qa/handovers/air-relief-fallback-build-20261028.log:1505existing tests/459production SQF/11PBO and complete local gates PASS; session39915 terminal exit0.",
+    "independent": ".qa/handovers/air-relief-fallback-independent-20261028.log:PASS",
+    "candidate": ".qa/candidates/air-relief-fallback-20261028-55158385",
+    "fingerprint": "c2b7197a04e5dc1596d4a7355436a7251efc2e4117b9513303ae9cbb97a36b54",
+    "provenance": "5515838547827eabaf77ed50fabecc43bcadd5cf plus dirty runtime. Engineering/handover metadata finalized after packaging. Unsigned development candidate; not release or physical acceptance.",
+    "referenceIndex": "HBQ local checker PASS unchanged29sources/103readable pointers/31unresolved historical texts; no parity credit"
+  }
+}

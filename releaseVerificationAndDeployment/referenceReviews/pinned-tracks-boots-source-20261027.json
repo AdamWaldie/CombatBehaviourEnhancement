@@ -4,7 +4,7 @@
   "workshopId": "3776232873",
   "baseline": "abcfe36913fbd1906917d4ab8a8809b9c282c603",
   "sourceRoot": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\PinnedDown\\20261013-013708\\3776232873\\extracted-20261011\\pd_tracks_and_boots",
-  "scope": "Seven selected source helper bodies reviewed (path, water, depth, overwatch, support positioning/update and hold); selected updateJob support call sites located. Not whole-mod/passenger state-machine/caller graph or physical acceptance.",
+  "scope": "Seven selected positioning/water/hold helper bodies plus registration, state dispatch and release-writer inspection. Transitive passenger/crew command callbacks and whole-mod lifecycle are not fully reviewed; no physical acceptance.",
   "sources": [
     {
       "path": "functions/fn_pathBlockedByInfantry.sqf",
@@ -40,6 +40,61 @@
       "path": "functions/fn_holdVehicle.sqf",
       "sha256": "056c7cf2af18fb519906e9ea6b81430ad1239ce02eb8115eac6b0b7926652e0f",
       "scope": "Complete readable helper reviewed; higher caller/registration/release graph remains incomplete."
+    },
+    {
+      "path": "functions/fn_registerJob.sqf",
+      "sha256": "cefa1219efc7d5c741ade0461f60f668547ef9486da38a52e277016f9e7cf22a",
+      "scope": "Registration/state dispatch and release writers inspected; transitive helper/callback closure remains incomplete."
+    },
+    {
+      "path": "functions/fn_updateJob.sqf",
+      "sha256": "9f2879f1294ff8b847b0e174ea1e6968f2530554806633da3ca7733715627f0f",
+      "scope": "Registration/state dispatch and release writers inspected; transitive helper/callback closure remains incomplete."
+    },
+    {
+      "path": "functions/fn_releaseJob.sqf",
+      "sha256": "4231161f5a110502155629c6da512839e37405b12e25b12ba7cdbf2c64d59ff4",
+      "scope": "Registration/state dispatch and release writers inspected; transitive helper/callback closure remains incomplete."
+    },
+    {
+      "path": "functions/fn_releaseVehicle.sqf",
+      "sha256": "ce1bc3c500c9b22190477a345d9b3e317c8061dcdfbb9dcbadb4ea6421455dd0",
+      "scope": "Registration/state dispatch and release writers inspected; transitive helper/callback closure remains incomplete."
+    },
+    {
+      "path": "functions/fn_commandPassenger.sqf",
+      "sha256": "d21760eac61f64c8c4bcc40b03df256cc47ae49e07e4ab51c75e489bca22f903",
+      "scope": "Complete9-line unit-local dispatcher; return true is dispatch, not acknowledgement."
+    },
+    {
+      "path": "functions/fn_deferredCrewRetain.sqf",
+      "sha256": "34c24368f71cd91c989acda073cabddaad81911d73de569d426297640458f0b9",
+      "scope": "Complete80-line delayed reseat callback; validates job before dispatch but receiver has no general job validation."
+    },
+    {
+      "path": "functions/fn_setMovementOwner.sqf",
+      "sha256": "b558913e5c6e4584d76afd0fc454583865704d1b60dfd5a61981ada31e102af3",
+      "scope": "Complete39-line movement marker/release dispatcher; registry retirement does not drain remote events."
+    },
+    {
+      "path": "functions/fn_updateRouteResume.sqf",
+      "sha256": "bf937731fdd60b2648fe48ea0ec4046c73dbcb7d7762b95e768316aefe33a266",
+      "scope": "Complete176-line CURRENT/SAVED native route retry/replay helper."
+    },
+    {
+      "path": "functions/fn_commandPassengerLocal.sqf",
+      "sha256": "9308663a8ea493fe58643f090c41bb9fffdbbfde1b16ee299e6300f3ab3c9c1d",
+      "scope": "Local receiver admission plus boarding, forced recovery, crew seat, release and cancellation branches; source command pipeline evaluated, not all transitive geometry helpers."
+    },
+    {
+      "path": "functions/fn_applyPassengerAILocal.sqf",
+      "sha256": "71d89d50c4ff9607f6c8818fc70f7d4c9b242c42523cbdbd8ca51b1f1a535d50",
+      "scope": "Complete lock/unlock helper; token check covers AI restoration but not subsequent command receiver mutations."
+    },
+    {
+      "path": "functions/fn_postInit.sqf",
+      "sha256": "2abdac7786a16b0ebd78ed39341e5b907abc0639737a095c52ccfe7066b52934",
+      "scope": "Selected CBA passenger command/AI and group restore registrations, lines27..75; wider bootstrap not reviewed here."
     }
   ],
   "findings": [
@@ -68,7 +123,7 @@
     "independentLog": ".qa/handovers/passenger-deck-independent.log"
   },
   "limits": "Offline evidence only, audits paused. Single centre ray is not complete exit-footprint or continuous stability proof; bridge/road proxy identity and modded support need physical verification. No whole-source/combined-arms parity or measured performance claim. Native query cost unchanged, support reads added only to existing water case.",
-  "nextRequiredReview": "Trace source registerJob/tracked passenger element and updateJob->updateSupport->releaseJob/releaseVehicle route/movement writers. Compare existing CBE passenger task owner; define one finite mechanised-support operation before coding. Retain current verified candidate and preserve newer authored/Zeus/specialist tasks.",
+  "nextRequiredReview": "Extend cooperation to separate passenger squads using a finite vehicle-owner record of actual original cargo and passenger-owner dismount intent, without granting cross-owner troop commands or renewing contact/deadline. Then compose repeated bounds under one original escort episode; do not mint indefinite replacement operations.",
   "supportPositioningFollowup20261027": {
     "baseline": "cb523ae73231be4776b378f9012b50e4662fb118",
     "runtimeChanges": false,
@@ -83,5 +138,501 @@
     "selection": "Retain robust troop-body anchor, behind-element candidate plane, negative-result cache, useful overwatch and continuous pacing ideas. Integrate as a distinct mechanised-support intent under existing vehicle movement/operation ownership only after tracing passenger element and original native route/release writers. Preserve existing live-fire corridor rather than relabelling its anchor. Do not copy fixed2D path proof, unbounded source infantry loop, live hidden target position, forceSpeed0 or repeated doMove without original operation identity and finite handback.",
     "limits": "Read-only source/CBE comparison, no new runtime/candidate/build or claimed parity/physical acceptance. Source straight segment is not native planned route or swept-volume proof. Source returned true/arrival radius is not native writer retirement.",
     "nextConcreteWork": "Trace source registerJob/tracked passenger element and updateJob->updateSupport->releaseJob/releaseVehicle route/movement writers. Compare existing CBE passenger task owner; define one finite mechanised-support operation before coding. Retain current verified candidate and preserve newer authored/Zeus/specialist tasks."
+  },
+  "supportLifecycleFollowup20261028": {
+    "baseline": "8b3e8d522484d328d3045697219f00f4d31ed8c0",
+    "sourceTrace": [
+      "registerJob binds actual non-operator AI passengers to a vehicle and snapshots passenger groups, forced speed, unload policy and operating seats. Player-containing passenger groups refuse. It registers Hit/GetOut/GetIn/SeatSwitched callbacks; GetOut can schedule deferredCrewRetain and forced reseating. A passenger/crew marker is not writer quiescence.",
+      "updateJob refreshes the manifest in transit; rejects player takeover and no living infantry, delegates dismount/disabled/remount work. ENGAGING and FOOT_ESCORT call updateSupport; FOOT_ESCORT returns to transit only after all tracked infantry are aboard. Same-side group changes can be joined back to captured groups; do not copy this authority assumption.",
+      "releaseJob marks released and relinquishes source movement/locks, sends passenger RELEASE/ABANDON and crew STATIC_UNLOCK, restores unload/immobile policy, removes vehicle EHs and job registry. It calls releaseVehicle. Delegated remote/deferred passenger/crew writers need their own token/lifetime audit; deleting a job does not establish acknowledgement.",
+      "releaseVehicle restores captured forced speed if source marks it controlled, stop-false/follows driver and actual leader, then can replay Battle Lines destination or saved MOVE leg after the mission pointer advanced. Current MOVE continuation stores a five-second routeResume attempt. No exact authored-route replacement receipt or native writer retirement is demonstrated; returned true is not restored physical route."
+    ],
+    "confirmedCBEGap": "Calm remount public payload had only [deadline, passenger/vehicle rows]. GroupTick and crew stop cooperation could continue after an ordinary native mission waypoint/policy replacement because CortexExternalTakeover covers declared ownership, not arbitrary authored-route changes. Locality adoption could republish the stale list without an original order receipt.",
+    "implementation": {
+      "owner": "Existing CortexRestoreCalm / CortexGroupTick passenger episode; CortexVehicles remains the actual vehicle-owner safe-stop consumer.",
+      "payload": "[original serverTime deadline, pending passenger/vehicle rows, operation generation, full NativeOrderReceipt]",
+      "admission": "Publish before first ordinary seat command; preserve existing feature/care/seat/motion/actor-ownership gates. External yield never creates remount.",
+      "continuation": "GroupTick checks generation and original full native order. Changed intent retires metadata without orderGetIn false or unassignVehicle. Contact retains dismounted actors only from a current episode. Progress retains original deadline/generation/order.",
+      "cooperation": "Crew owner validates the same passenger generation/native receipt before accepting calm boarding-stop cooperation.",
+      "locality": "Validate original intent before cleanup changes generation, compare native receipt again afterward, adopt only unchanged intent under current generation. Never renew deadline or replay an old command.",
+      "diagnostics": "Health requires matching generation and order as well as live deadline and vehicle assignment.",
+      "cost": "No new job, global scan, native movement writer, setting or seat forcing. Receipt comparisons occur only in existing passenger paths; receipt route enumeration retains route-length cost."
+    },
+    "deliberateDepartures": [
+      "No saved route replay, forced crew reseat, group-membership repair or unconditional original-setting restore imported.",
+      "Current combined-ground firing-vehicle anchor and friendly fire corridor remain untouched. Troop-body escort remains a distinct required capability.",
+      "No actual external-provider handover is inferred from source markers or record retirement."
+    ],
+    "verification": {
+      "regressionBefore": ".qa/handovers/remount-order-before-20261028.log",
+      "focusedLog": ".qa/handovers/remount-order-focused-20261028.log",
+      "focusedTests": 660,
+      "fullBuild": "PASS",
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/remount-order-build-20261028.log",
+      "candidate": ".qa/candidates/remount-order-20261028-8b3e8d52",
+      "fingerprint": "3755e3c5a071da355230a65db42f733668d1846d0d529340fbe731938390c97b",
+      "independentLog": ".qa/handovers/remount-order-independent-20261028.log",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "buildProvenance": "Merged main 8b3e8d522484d328d3045697219f00f4d31ed8c0 plus recorded dirty runtime snapshot. Final checkpoint changes review/handover metadata only after packaging."
+    },
+    "limits": "Offline integration only. Same-value actor orders have no native serial; waypoint/generation proof is not native task retirement, actual boarding, escort travel or measured performance. Audits paused.",
+    "nextConcreteWork": "Complete source commandPassenger/deferredCrewRetain/setMovementOwner/updateRouteResume release-writer closure, then add distinct finite troop-body escort within existing vehicle tactical movement ownership, preserving the firing-vehicle corridor and newer native tasks.",
+    "runtimeSha256": {
+      "addons/core/functions/aiGetDiagnostics.sqf": "769dc038c78827ae2cfb513326dc28c17993ea6f36510a4de1c161932ee4e35e",
+      "addons/core/functions/cortexLocality.sqf": "0b5152e1e0cd05a2c8ff03d16177cf25e9c03eb72b3d4ae19d47b7da2507a23d",
+      "addons/infantry/functions/cortexGroupTick.sqf": "0462fc5d31b55c582e285eb712658e3f05f1498ebf7d5ed871230b2d39660785",
+      "addons/infantry/functions/cortexRestoreCalm.sqf": "17d620198b92189b57819a5e5e24ad8551d9c8528e9a2c599eab83a03fc409ae",
+      "addons/vehicles/functions/cortexVehicles.sqf": "2577c780626306bd693e2d8afa84fbea40467d6db54d8b34277c07d3f215b8e1"
+    }
+  },
+  "commandWriterFollowup20261028": {
+    "baseline": "9615e16b1c12b77470e5fa5d49d4040eb4c47dd0",
+    "scope": "Selected original registration/support/release command graph closed through unit-local CBA dispatch, delayed reseat and route-resume writers. Not whole-mod/CBA internals/transitive geometry or proven quiescence.",
+    "confirmedFindings": [
+      "postInit registers PDTB_passengerCommand as a direct call to commandPassengerLocal. commandPassenger returns true after local call/targetEvent without consuming receiver result or owner acknowledgement.",
+      "commandPassengerLocal gates only null/local/player before switch; it does not generally revalidate live vehicle job, token, native route or original group. applyPassengerAILocal can refuse a stale unlock token, but command callers ignore that result and continue unassigning/boarding/releasing.",
+      "CREW_RESEAT changes vehicle policy and assign/moveIn seat. BOARD_FORCE uses moveInCargo. DISPERSE/BOARD_RESCUE/BOARD_HAILMARY use setPos/velocity/direction or hide/reveal shortcuts. These are excluded from CBE natural movement, not implementations to reproduce.",
+      "deferredCrewRetain validates vehicle job ID, registry row, living occupants and safety before dispatch. A remote delivery may occur after release; command receiver has no corresponding general admission guard. Source release removes its job/EHs without queued-command acknowledgements.",
+      "setMovementOwner restores captured group flags and dispatches RELEASEMOVE to marked actors, then clears active boarding array. This is not proof the receiver has stopped. Local receiver RELEASEMOVE unassigns and follows regardless of current native task identity.",
+      "updateRouteResume can switch to SAVED after current waypoint advances, reissue old doMove, and declare handback from speed>2, moveToCompleted or40m arrival. Early follow resets repeat every2s;45s no-progress ends with follow. Neither returned true nor group markers prove native writer retirement.",
+      "VehicleTacticalMoveStart/Step already own finite selected-platform standoff through exact original seats, route, operation generation, owner epoch and original deadlines. They can be reused deliberately for a distinct support bound; they do not currently implement continuous troop-body escort."
+    ],
+    "selectedImprovement": "Retain negative-result caching intent from source updateSupport15s/15m cache, adapted to existing CBE escape planning rather than adding source movement loops.",
+    "confirmedCBEGap": "The shared withdrawal/standoff _selectVehicleEscape replans five candidate routes after every failed selection. Standoff has no failure cooldown before an operation is admitted; repeated contact/danger ticks can repeat unchanged geometry work.",
+    "implementation": {
+      "owner": "Existing owner-local CortexVehicles escape selector. No new executor/native command.",
+      "cache": "One local six-field record per vehicle: original eight-second expiry, owner/group/epoch/generation/crew/threat/distance/screen-mode context, vehicle ASL, supplied believed threat position, full NativeOrderReceipt, heading.",
+      "invalidation": "Changed context/route, vehicle or believed threat displacement>5m, heading delta>15deg or expiry forces fresh planning. Cache hits return [] and never refresh expiry.",
+      "success": "Successful avenue always planned fresh and deletes prior failure; a negative result cannot authorize movement, smoke or completed withdrawal.",
+      "cost": "Existing one selection and five candidate routes retained; cached miss avoids that planning. No new world scan, worker, broadcast or unbounded per-threat store. Route receipt enumeration retains its existing route-length cost.",
+      "tradeoff": "Unchanged-input dynamic obstacle changes can delay a retry by at most eight seconds; no clearance/arrival/physical performance claim."
+    },
+    "verification": {
+      "before": ".qa/handovers/escape-miss-before-20261028.log",
+      "fullBuild": "PASS",
+      "fullTests": 1498,
+      "compiledSQF": 449,
+      "pboCount": 11,
+      "newTestCases": 0,
+      "buildLog": ".qa/handovers/escape-miss-build-20261028.log",
+      "candidate": ".qa/candidates/escape-miss-20261028-9615e16b",
+      "fingerprint": "3e9b804e4a8d4199aec65f1d62f20b6ccf03013eeac82f74083102017721e7da",
+      "independentLog": ".qa/handovers/escape-miss-independent-20261028.log",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "buildProvenance": "9615e16b plus dirty runtime snapshot; final review/handover changes only after successful build."
+    },
+    "nextConcreteWork": "Implement one finite troop-body support bound through existing selected-platform movement ownership. Admit only a current explicitly tracked dismounted element, derive a robust mobile infantry centre and rear hemisphere from supplied native contact belief, preserve the separate firing-vehicle corridor and infantry clearance, keep original episode deadline, and retire without source route/seat replay. Continuous multi-bound escort remains a larger open capability.",
+    "runtimeSha256": {
+      "addons/vehicles/functions/cortexVehicles.sqf": "042bc1d226a9481b734c05a05bda398522f166fc2f86c5cea8cde2eefa9dabe4"
+    }
+  },
+  "finiteSupportBound20261028": {
+    "baseline": "3657338f03ea9d9055b71ccd18dd06e25385a8dc",
+    "status": "IMPLEMENTED_PARTIAL_FINITE_SAME_GROUP_BOUND_NOT_CONTINUOUS_ESCORT",
+    "sourceIntent": "Retain mobile troop-body median, rear support positions, useful sight line, pedestrian separation and finite cooperation; redesign around CBE current owner and original native receipts. Source helper hashes remain in sources.",
+    "execution": "CortexVehicles CONTACT selects a fresh native believed contact after urgent AT standoff/post-shot cover checks. CortexMechanisedSupport reads this platform own-group current CBE dismount receipt and derives a rear goal. Existing ownership lease and OperationStart admit only original operating seats. VehicleTacticalMoveStart validates context before FSM launch; VehicleTacticalMoveStep checks it within the original finite worker; shared VehicleCrewMoveNativePhase/retirement owns native issue/ack/stop/return.",
+    "implemented": [
+      "At most16 recorded original cargo, at least2 local living mobile dismounts, coordinate median of ASL positions. Current driver/commander/gunner are never the troop body. No membership or infantry movement changes.",
+      "Five25m rear candidates at0,+/-30,+/-60deg relative to supplied native believed contact. An already useful20..40m rear position with sight line declines unnecessary movement.",
+      "Proposed straight world-hull corridor excludes a complete native nearby set of at most32friendly pedestrians; dense/unknown hulls refuse. Existing terrain-aware selector and elevated believed-position sight-line observation remain bounded. This is not the engine planned route or future clearance proof.",
+      "Contact original observation expires within30s; original dismount expiry also applies. Context and selected destination never renew or follow the hidden enemy. Changed troop median>15m, replacement live dismount record, fewer than2 mobile dismounts or lost native believed contact refuse continuation.",
+      "One existing selected-crew finite FSM, original parent generation/route/epoch/seats/deadlines. CHECK at most every2s; no new scheduler job or movement controller. Failed planning waits8s per vehicle.",
+      "The new parent generation consumes ordinary dismount admission. Start requires the actual live original record; the admitted worker can retain its snapshot after GroupTick retires that ordinary record. It cannot use a different live record. Incoming owners retire original native commands only, never replay outward movement.",
+      "Existing shared selected-platform movement category remains VEHICLE_STANDOFF, with work kind MECH_SUPPORT and real support-context checks. This reuses authority/acknowledgement/retirement, not just a descriptive label.",
+      "Active coordinated roles exclude this autonomous bound; current combined-ground firing-vehicle anchor and fire-lane implementation are untouched. No source forced seat, hidden displacement, group repair, speed controller or saved-route replay imported.",
+      "Same-group support requires an on-foot troop leader and refuses tracked foot members whose native formLeader is an operating crew member. This prevents the selected hull move from pulling the troop formation rearward; separate passenger groups remain next.",
+      "ISSUE rechecks current troop context immediately before the first native movement request, independent of the ordinary two-second observation cadence. Held/concealed native orders, CBE garrison/defend/clearance and hold-fire policies refuse this optional bound."
+    ],
+    "controls": "Existing CBE_AIPass_Vehicles_Enable and CBE_AIPass_VehicleGunnery_Enable; no new setting/module. Native crew and mission authority remain mandatory.",
+    "cost": "One8s-rate-limited planning path:16troop positions, <=32nearby people, <=5candidates and one existing avenue selector. Existing worker repeats one goal/body/corridor observation at most every2s. No world-wide scan, permanent actor/controller, broadcast stream or cached positive clearance. Frame overhead remains unmeasured.",
+    "verification": {
+      "focusedTestsBeforeCoverageRefresh": 661,
+      "newRegressionCases": 1,
+      "fullBuild": "PASS",
+      "focusedLog": ".qa/handovers/mech-support-focused-20261028.log",
+      "compileLog": ".qa/handovers/mech-support-compile-20261028.log",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "supersededBuilds": [
+        ".qa/handovers/mech-support-build-superseded-20261028.log",
+        ".qa/handovers/mech-support-build-final-20261028.log"
+      ],
+      "supersededReason": "Post-build review tightened before-ISSUE context admission, held-order policy and native infantry formation independence. Earlier passing builds are not final candidates.",
+      "fullTests": 1499,
+      "compiledSQF": 450,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/mech-support-build-formation-20261028.log",
+      "candidate": ".qa/candidates/mech-support-20261028-3657338f",
+      "fingerprint": "fcaa87bfbdcf322e9efade6d91ebdd155a070586849bc5d6884a64f51de96bb6",
+      "independentLog": ".qa/handovers/mech-support-independent-20261028.log",
+      "measuredPerformance": "NOT_MEASURED",
+      "buildProvenance": "3657338f plus dirty runtime snapshot. Only engineering review/register/handover metadata changes after packaging."
+    },
+    "limits": "Same-group cargo only; finite single support bound, not complete continuous mechanised escort. Original report/parent deadline may end before arrival. Shared group operation temporarily precludes a separate CBE whole-group manoeuvre; native infantry orders/firing are left intact. Geometric/sight-line observations do not prove native route clearance, weapon alignment/effects, physical retirement or budget. No physical scenario was run.",
+    "nextConcreteWork": "Extend cooperation to separate passenger squads using a finite vehicle-owner record of actual original cargo and passenger-owner dismount intent, without granting cross-owner troop commands or renewing contact/deadline. Then compose repeated bounds under one original escort episode; do not mint indefinite replacement operations.",
+    "runtimeSha256": {
+      "addons/core/functions/cortexTuningSpec.sqf": "baaba75753a54d7c75a78375c07e02e2dbe66ac1651981e2cce70f04e58fb600",
+      "addons/main/CfgFunctions.hpp": "279ac38d1fa4a9c48cfacc474473cd8fd7782b14a5a763bde486498fb7e50abf",
+      "addons/vehicles/functions/cortexVehicles.sqf": "46161cd9697320d4f64d8cd08402edda9f0a45d2299aab8606e4738fad570697",
+      "addons/vehicles/functions/cortexMechanisedSupport.sqf": "9f4fd99fb71a1cf347b0b03a4cba9b4ef23478a64f6d1530d235e5391cfe198b",
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "dc72ff0af1d3c6daefc18bb90814a7940decefd3fe5da8b98f8803f200905c47",
+      "addons/vehicles/functions/vehicleTacticalMoveStep.sqf": "5c1e2be00458204dce2d9d0829412ab6271a6b9c2ceb5d365f644ffdbb387c6e"
+    }
+  },
+  "passengerStopHandoff20261028": {
+    "baseline": "503be37aa41a72bbc56918756ffa61c5b0065f65",
+    "finding": "Initial finite support admission could retain the independently owned passenger forceSpeed0 cap. The proposed hull move could be accepted but physically unable to travel. Minimum two dismounted actors also did not prove all cargo had completed exit.",
+    "sourceIntent": "Original support/hold/release helpers demonstrated that stop and route/movement writers have distinct lifetimes. Retain useful cooperation, replace unconditional source settings restoration with existing exact CBE stop owner.",
+    "implementation": [
+      "CortexMechanisedSupport refuses any living actual cargo/person-turret occupant before PLAN or CHECK; native seat scan bounds64rows. No forced unload or seat assignment.",
+      "VehicleTacticalMoveStart detects a passenger stop and waits for all actual cargo to leave. It calls existing CortexDismountStop RELEASE before capturing the selected native baseline, even to detect unresolved handback. An authored or unresolved remaining zero cap refuses the move; no forceSpeed-1 fallback.",
+      "CortexDismountStop refuses new cap acquisition over an active or unresolved selected-platform reference/work. RETIRED is the existing explicit finite native handback outcome, not ordinary lease expiry.",
+      "CortexPassengerReady refuses routine boarding/unloading during selected-platform movement, HOLD and unresolved retirement even at instantaneous rest. Emergency engine bailouts remain independent."
+    ],
+    "verification": {
+      "before": ".qa/handovers/mech-stop-handoff-before-20261028.log",
+      "focusedTests": 661,
+      "focusedLog": ".qa/handovers/mech-stop-handoff-focused-20261028.log",
+      "fullBuild": "PASS",
+      "newTestCases": 0,
+      "fullTests": 1499,
+      "compiledSQF": 450,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/mech-stop-handoff-build-20261028.log",
+      "candidate": ".qa/candidates/mech-stop-handoff-20261028-503be37a",
+      "fingerprint": "442fdffb05ff5c665c77f5e2629222ce890c08a702250d9a8115d80f7052cb31",
+      "independentLog": ".qa/handovers/mech-stop-handoff-independent-20261028.log",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "buildProvenance": "503be37a plus dirty runtime snapshot; only engineering/handover metadata changes after packaging."
+    },
+    "cost": "Existing owner/seat metadata only, at most64current seat rows, no new job/world scan/native movement controller. Helper is read-only; exact stop restoration is the existing owner path.",
+    "limits": "Offline evidence only. Metadata replication is not an ordered cross-owner acknowledgement. Physical stop-cap restoration, exits, authored-zero refusal, movement, boarding resumption and normal/HC transfer remain unrun with audits paused.",
+    "nextConcreteWork": "Separate passenger-owner cooperation using actual original cargo and finite owner acknowledgements, then repeated support bounds under one original escort episode. Do not infer nearby infantry was carried or add cross-owner troop commands.",
+    "runtimeSha256": {
+      "addons/vehicles/functions/cortexDismountStop.sqf": "6de9c87148067ea685be7ff0ca32897d27c7f99050c61b7626337773eff7c894",
+      "addons/vehicles/functions/cortexPassengerReady.sqf": "c565c493862c509622245df8e5bb3673189ba054a884a2254050cd7944cfc92a",
+      "addons/vehicles/functions/cortexMechanisedSupport.sqf": "a22fb10855f6e16ece22a73b93bce7f607ee92af612df04551539366f09a2358",
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "1f90f26e5c36bc24fdcf9803c21a180c79ef00fff0c2922a88458704cf95b811"
+    }
+  },
+  "sameHostCargoSupport20261028": {
+    "scope": "One finite support bound for a separately grouped original passenger squad on the same AI host. Not cross-host cooperation or continuous escort.",
+    "sourceEvidence": [
+      {
+        "path": "functions/fn_registerJob.sqf",
+        "sha256": "cefa1219efc7d5c741ade0461f60f668547ef9486da38a52e277016f9e7cf22a",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateJob.sqf",
+        "sha256": "9f2879f1294ff8b847b0e174ea1e6968f2530554806633da3ca7733715627f0f",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_supportPosition.sqf",
+        "sha256": "7c3be4f5a4c08157b820e8368a60451c9120316363d3625792478ce5025e37cb",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateSupport.sqf",
+        "sha256": "fe9da87d9c020df2853c0556af6220c8901bd4403cc05ae388bdfbe63a603aea",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_commandPassengerLocal.sqf",
+        "sha256": "9308663a8ea493fe58643f090c41bb9fffdbbfde1b16ee299e6300f3ab3c9c1d",
+        "matchesRecordedSource": true
+      }
+    ],
+    "sourceIntent": "Adapt actual cargo registration and infantry-body support from Tracks and Boots. Keep crew and passengers in their authored groups; replace free-running support commands and unacknowledged remote passenger writers with the existing owner-local finite worker.",
+    "executionPath": [
+      "CortexOnboardContact records its private owned exit, then ACKs actual mounted cargo once before native exit",
+      "CortexMechanisedCargo retains original local crew/passenger identity, passenger native order and fixed cohort expiry",
+      "CortexVehicles plans from actual on-foot owned exits through CortexMechanisedSupport",
+      "VehicleTacticalMoveStart revalidates the exact source, restores its passenger-stop cap, starts the existing FSM and consumes one admission",
+      "VehicleTacticalMoveStep checks the captured source before ISSUE and every two seconds; existing retirement owns native handback"
+    ],
+    "implemented": [
+      "At most four passenger squads, sixteen original actors per squad, sixty-four seat/owned-exit rows; no proximity-inferred carriage",
+      "Private epochs and dismount state require shared host locality; no public marker masquerades as remote consent",
+      "One original sixty-second cohort expiry; ACK only on new owned exit, never on repeated native exit attempts",
+      "At least two mobile original acknowledged actors remain in the passenger owner dismounted state; held/concealed/explicit task groups skipped",
+      "Passenger drill generation may advance naturally without resetting consent; changed native order, owner epoch, ownership or local exit state invalidates it",
+      "One admitted bound per passenger group/cohort, at most thirty seconds and no renewed contact deadline; CHECK does not self-cancel on consumption",
+      "Actual reporting crew identity/owner/external control checked at native exit command boundary, including synchronous event re-entry"
+    ],
+    "preserved": "Existing Vehicles/Gunnery controls, all cargo out, priority reactions, coordinated-role exclusion, fixed body/goal, friendly hull corridor, visible believed contact, troop independence and selected-crew FSM/native retirement. No infantry movement/group/seat/skill mutation, teleport, new PFH or remote endpoint.",
+    "cost": "Bounded local metadata only on existing exit callbacks and support selection/rechecks. No additional scheduler job or world scan. Existing native-order enumeration cost remains. Actual overhead not measured.",
+    "verification": {
+      "focusedTests": 662,
+      "focusedLog": ".qa/handovers/mech-separate-focused-20261028.log",
+      "fullBuild": "PASS",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "fullTests": 1500,
+      "compiledSQF": 451,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/mech-separate-build-20261028.log",
+      "candidate": ".qa/candidates/mech-separate-20261028-20a9674a",
+      "fingerprint": "28e5e839c80362308abc0f3886556d96689b44da37ee371ed350229a7b260346",
+      "independentLog": ".qa/handovers/mech-separate-independent-20261028.log",
+      "independentVerification": "PASS",
+      "buildProvenance": "20a9674aeaf4213b87c0c5f107de784035787123 plus dirty runtime snapshot; engineering review and handover metadata updated after packaging. Runtime hashes below pin packaged inputs; normalized Git content must match."
+    },
+    "remaining": "Cross-host acknowledgement and withdrawal, continuous multi-bound escort, remount/repeated-insertion integration, broader selected-source closure and physical behaviour remain open.",
+    "runtimeSha256": {
+      "addons/vehicles/functions/cortexMechanisedCargo.sqf": "4c5f752a504a7190c51a0cf5bf4407f55820c830ad17fa8799255d12d518dbf7",
+      "addons/infantry/functions/cortexOnboardContact.sqf": "5dd57717b44189362a067f099b068f55b2b43e43f1b672cec462bcbc8d69166b",
+      "addons/vehicles/functions/cortexPassengerReady.sqf": "e18951160d801151234dd74b7fee63f2d2335ab041b76b973deb2eb9302c30b3",
+      "addons/vehicles/functions/cortexMechanisedSupport.sqf": "48193540d057f056fd3c79438956f2742fa98779a27240f78172542d09d424c8",
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "3d05f766e9466cf3166f33c593d77d133539595cf82b832d75fbbcdf0d27673c",
+      "addons/vehicles/functions/cortexVehicles.sqf": "f61298bb07f45c50034f605e3b35c0ed3e6c34f36f017d78d7e98c20dd6ceed0",
+      "addons/core/functions/cortexTuningSpec.sqf": "a7be1c032b29f09ec11df594113e5e50a8c2452f0c0a8462508de96b63d89b02",
+      "addons/main/CfgFunctions.hpp": "55490aada38f4666bfedeb1dae3ac3c59f3312d9cadfa3961af38b9425e9e6fa"
+    }
+  },
+  "crossHostCargoSupport20261028": {
+    "scope": "Finite original-cargo passenger-owner acknowledgement and withdrawal across server/HC hosts, composed with the existing selected-crew support FSM. Not an external driving-provider handover or continuous escort.",
+    "sourceEvidence": [
+      {
+        "path": "functions/fn_registerJob.sqf",
+        "sha256": "cefa1219efc7d5c741ade0461f60f668547ef9486da38a52e277016f9e7cf22a",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateJob.sqf",
+        "sha256": "9f2879f1294ff8b847b0e174ea1e6968f2530554806633da3ca7733715627f0f",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_supportPosition.sqf",
+        "sha256": "7c3be4f5a4c08157b820e8368a60451c9120316363d3625792478ce5025e37cb",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateSupport.sqf",
+        "sha256": "fe9da87d9c020df2853c0556af6220c8901bd4403cc05ae388bdfbe63a603aea",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_commandPassengerLocal.sqf",
+        "sha256": "9308663a8ea493fe58643f090c41bb9fffdbbfde1b16ee299e6300f3ab3c9c1d",
+        "matchesRecordedSource": true
+      }
+    ],
+    "sourceIntent": "Tracks and Boots registers actual passengers and updates support behind the troop body. Its unacknowledged target-event command delivery, delayed reseat, regrouping and old-route replay do not establish safe remote consent. Adapt the useful cooperation intent with authenticated passive passenger consent; only existing CBE crew movement owns native commands.",
+    "executionPath": [
+      "CortexVehicles OFFER captures actual cargo before publishing crew contact/danger, capped4groups/16actors/64seats and original60seconds",
+      "CortexOnboardContact EXIT submits original private owned-exit acknowledgement while actor still mounted",
+      "CortexMechanisedRemoteServer authenticates current server/live-HC passenger owner and forwards to actual crew/vehicle owner",
+      "CortexMechanisedRemoteCrew checks its private manifest/token, sequence, native order and original owner; PULSE cannot create carriage acknowledgement",
+      "CortexGroupTick sends at most2second pulses per original vehicle episode from current private epoch/native/exit state; empty path exits before route read",
+      "CortexReleaseGroup CLOSE retires permission before cleanup; terminal tombstone rejects queued revival, freshness expiry handles absent owner ticks",
+      "Cargo/MechanisedSupport READ uses exact remote source, original actual actors and at most6second observation lease; selected-crew worker rechecks before ISSUE and at most2seconds"
+    ],
+    "authority": "Server relay is not movement permission; crew checks original private carriage. No public owner epoch/dismount flag is treated as remote consent. No infantry commands, membership, seat, skill or target revelation. Vehicle owner/crew identity, passenger owner/native order, external control, actual all-cargo-out and finite movement retirement remain required.",
+    "deadlineAndReplay": "Crew offer original60second expiry never renews on pulses. Positive lease expires at passenger observationAt+6 capped by original expiry, never receipt time. Monotonic per-original episode sequence plus irreversible CLOSE prevents late positive replies reviving a withdrawn source. Pulse cannot add actors. Source changes cancel captured worker rather than borrowing a new consent. Original bound/contact window remains at most30seconds.",
+    "performance": "No new PFH, job, world scan or permanent controller. Existing report callbacks capture bounded seats; existing group ticks send bounded pulses; server relays only authenticated packets. Four original vehicles/group and four passenger groups/vehicle cap retained records. Native current-node receipt retains existing route enumeration cost. Global/headless actor list used only for authenticating actual HC senders. Actual cost remains unmeasured.",
+    "limits": "Offline integration only. Far scheduler20second cadence can expire6second consent; support is refused, not kept alive with a new controller. Replication lag or packet delay may decline an opportunity. Native travel, message ordering, early withdrawal, owner changes/disconnect, repeated insertion and measured balance/performance need physical verification. No whole-mod or provider-handover completion claim.",
+    "remaining": "Continuous multi-bound/repeated-insertion cooperation and full selected-source reconciliation remain open; cross-host code is not physical acceptance. Audits remain paused.",
+    "verification": {
+      "focusedTests": 663,
+      "focusedLog": ".qa/handovers/mech-remote-focused-20261028.log",
+      "fullBuild": "PASS",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "supersededBuildLog": ".qa/handovers/mech-remote-build-before-offer-validation-20261028.log",
+      "supersededReason": "Final review found nested public offer was consumed before validating its token shape; tightened fail-closed parsing and extended existing regression before final build.",
+      "fullTests": 1501,
+      "compiledSQF": 454,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/mech-remote-build-20261028.log",
+      "candidate": ".qa/candidates/mech-remote-20261028-ecfb9b46",
+      "fingerprint": "49e290f84da05c4c53d00aa6b272dde9011720bf3be3fdea66900c2d7cc0c2b1",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/mech-remote-independent-20261028.log",
+      "buildProvenance": "ecfb9b46fcb29c659efedee1c01afaaef7b191b7 plus dirty runtime snapshot; only engineering review/handover metadata changes after packaging. Raw runtime hashes below pin build inputs; compare normalized committed content separately."
+    },
+    "runtimeSha256": {
+      "addons/vehicles/functions/cortexMechanisedRemote.sqf": "c4040908864a2a7f384220b37e38063d6a6dffb7059c6ad4e825674982c0914a",
+      "addons/vehicles/functions/cortexMechanisedRemoteServer.sqf": "fe54a183962c4d65fa0e1947a7365c262a89560e2cedeff551941de81a719182",
+      "addons/vehicles/functions/cortexMechanisedRemoteCrew.sqf": "e10afc152734de1db2857920e1957c592d6b8e6a5ba16ccc292edd5d35d9c765",
+      "addons/vehicles/functions/cortexMechanisedCargo.sqf": "ddc4792a06d2838f1e9f65467ce9d4fb539930a939bb03c960a46ae796995443",
+      "addons/vehicles/functions/cortexMechanisedSupport.sqf": "60ad99a6c7a97c7e406fbb6d0f5ab95c1a1a58391c2c1e62d88d40b1b08e8c1d",
+      "addons/vehicles/functions/cortexVehicles.sqf": "5fcd1bc6486dad83938d8605dd67f2095a32846abe322b897b70a73ae6745b40",
+      "addons/infantry/functions/cortexOnboardContact.sqf": "741398ff8c2ed077b4eba6a4d5646880b2895c7f9bed88db5f3da9fc44b59a5d",
+      "addons/infantry/functions/cortexGroupTick.sqf": "4bc592eec575fe493ddf4bc7e0df30debe25935a4c321ba91a25ae243b07e603",
+      "addons/infantry/functions/cortexReleaseGroup.sqf": "d31f90855de20245dea284b85e850b125e097def05780a6397d164ab7a26d7aa",
+      "addons/main/CfgFunctions.hpp": "babd47503c011e09caf29f09f30234a9e504885a2eae46f2af331a506dff9913",
+      "addons/core/functions/cortexTuningSpec.sqf": "6cdd8a8d4206c25498474904c8a8388aaabd586a9d527cad74d0bcf6fef36586"
+    }
+  },
+  "followOnSupport20261028": {
+    "scope": "At most three troop-body support legs under the first contact/source/deadline, using completed existing native workers. Not indefinite escort or full repeated insertion.",
+    "sourceEvidence": [
+      {
+        "path": "functions/fn_registerJob.sqf",
+        "sha256": "cefa1219efc7d5c741ade0461f60f668547ef9486da38a52e277016f9e7cf22a",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateJob.sqf",
+        "sha256": "9f2879f1294ff8b847b0e174ea1e6968f2530554806633da3ca7733715627f0f",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_supportPosition.sqf",
+        "sha256": "7c3be4f5a4c08157b820e8368a60451c9120316363d3625792478ce5025e37cb",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateSupport.sqf",
+        "sha256": "fe9da87d9c020df2853c0556af6220c8901bd4403cc05ae388bdfbe63a603aea",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_commandPassengerLocal.sqf",
+        "sha256": "9308663a8ea493fe58643f090c41bb9fffdbbfde1b16ee299e6300f3ab3c9c1d",
+        "matchesRecordedSource": true
+      }
+    ],
+    "sourceIntent": "Tracks and Boots updateSupport repeatedly positions the vehicle behind a moving troop body. Adapt its dynamic support intent through finite native handback between legs, retaining original orders and body/clearance checks instead of repeated free-running forceSpeed/doMove writes.",
+    "executionPath": [
+      "CortexVehicles reads CortexMechanisedContinue only during existing support selection",
+      "Continue requires exact previous MECH_SUPPORT worker, original owner/epoch/crew/order, RETIRED native return outcome, empty reference and actually completed original FSM",
+      "MechanisedSupport retained-context PLAN must exactly match that completed source, preserve original contact/deadline and observe body shift >=15m",
+      "Current private own-group dismount rows or separate local/authenticated remote consent retain origin custody; a fresh own-group exit supersedes the old incident",
+      "VehicleTacticalMoveStart independently checks consumed incident and completed continuation before advancing supportLeg, never falling back to a fresh leg-one admission",
+      "Existing native FSM observes each fixed bound and retires using the unchanged native stop/return machinery"
+    ],
+    "implemented": "At most3legs. Original proof, target, belief, observedAt, passenger source and until unchanged. At least5seconds of original deadline remain. Original completed-worker identity/canonical return result required; marker, missing handle, unresolved retirement, intervening task, changed order/crew/epoch and migration refuse. New anchor/destination only after real troop displacement; useful current position still declines. Existing8second planning backoff retained.",
+    "authorityAndCost": "No new job/controller, world query, troop/seat/group/skill/physics command or setting. Pure continuation gate reads existing worker/receipt/handle. Existing bounded planner and selected-crew owner issue native commands. Acknowledged native handback is not physical returned mission travel. Private own exit intersection bounded16original/64owned rows.",
+    "remaining": "Sustained escort episode lifetime and repeated insertion/remount origin custody still need reconciliation. Physical flow, path quality, handback between legs, failures, casualties, owner transfer, repeat use and measured cost remain unverified.",
+    "verification": {
+      "focusedTests": 615,
+      "focusedLog": ".qa/handovers/mech-follow-focused-20261028.log",
+      "focusedScope": "CortexOperations only; complete checkpoint build includes modularity/full suite and final input-shape admission guard",
+      "fullBuild": "PASS",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "fullTests": 1502,
+      "compiledSQF": 455,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/mech-follow-build-20261028.log",
+      "candidate": ".qa/candidates/mech-follow-20261028-981187b6",
+      "fingerprint": "bfee3da8aca7788b597964aa3bca391deb85af2a0e3ca17b529708b8b8922b93",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/mech-follow-independent-20261028.log",
+      "buildProvenance": "981187b62505f7cf20d014507552b9e7f73ee2f3 plus dirty runtime snapshot; only engineering/handover metadata changes after packaging. Raw runtime hashes pin inputs, normalize line endings for committed content."
+    },
+    "runtimeSha256": {
+      "addons/vehicles/functions/cortexMechanisedContinue.sqf": "0bf1dbfdaf8417b732afd69d101340791d2975d487301b7e3319cee515bda419",
+      "addons/vehicles/functions/cortexMechanisedSupport.sqf": "ed41932f21d14522c534df736390730eaaa03455718fcd794e1f0096f7d17ab6",
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "dd6375f3d8e5695cdccb0f8b17f3113b3f37985951993a2ac81d96f96ceeb389",
+      "addons/vehicles/functions/cortexVehicles.sqf": "d2272c49eb7241e4d32eca55f42a93ed2012b25b76de7c5341b0760638cd8fca",
+      "addons/core/functions/cortexTuningSpec.sqf": "3222a16722721bb4caed13e636ba4df3ff644a972b0bbd324296075007a56487",
+      "addons/main/CfgFunctions.hpp": "3a910c47eb4e723e7e1a9913089298dd969d84ab38d851ae25320bdd21f10bac"
+    },
+    "nextConcreteWork": "Repeated insertion currently needs a fresh carriage identity from an actual native boarding lifecycle. Existing local cohort can reuse old acknowledged actors/consumption within60seconds, and remote CLOSE remains terminal for the old offer. Do not reset using generation changes, elapsed time, proximity or an unproven seat flag. Trace actual GetIn/GetOut observation and existing callback ownership, then retire only the old exact cargo source before fresh real carriage acknowledgement."
+  },
+  "realBoardingSupport20261028": {
+    "scope": "Fresh cargo origin after actual native entry, preserving private owner custody, old source retirement and original remote exit horizon. No physical acceptance or sustained escort completion.",
+    "sourceEvidence": [
+      {
+        "path": "functions/fn_registerJob.sqf",
+        "sha256": "cefa1219efc7d5c741ade0461f60f668547ef9486da38a52e277016f9e7cf22a",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateJob.sqf",
+        "sha256": "9f2879f1294ff8b847b0e174ea1e6968f2530554806633da3ca7733715627f0f",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_supportPosition.sqf",
+        "sha256": "7c3be4f5a4c08157b820e8368a60451c9120316363d3625792478ce5025e37cb",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_updateSupport.sqf",
+        "sha256": "fe9da87d9c020df2853c0556af6220c8901bd4403cc05ae388bdfbe63a603aea",
+        "matchesRecordedSource": true
+      },
+      {
+        "path": "functions/fn_commandPassengerLocal.sqf",
+        "sha256": "9308663a8ea493fe58643f090c41bb9fffdbbfde1b16ee299e6300f3ab3c9c1d",
+        "matchesRecordedSource": true
+      }
+    ],
+    "engineReferences": [
+      {
+        "url": "https://community.bistudio.com/wiki/Arma_3:_Event_Handlers#GetIn",
+        "meaning": "Native entry event is separate from intra-vehicle seat changes; it also fires for external mission moveIn commands. CBE does not issue those commands."
+      },
+      {
+        "url": "https://community.bistudio.com/wiki/addEventHandler",
+        "meaning": "Engine provides _thisEvent and _thisEventHandler in immediate native callback scope."
+      },
+      {
+        "url": "https://hemtt.dev/lints/sqf.html#undefined",
+        "meaning": "Narrow ignore_variables pragma for confirmed caller-provided _thisEvent only; no broad lint/performance suppression."
+      }
+    ],
+    "sourceIntent": "Tracks and Boots registration captures actual carried troops; delayed automatic reseating and regrouping are not imported. Complete CBE repeat custody using native boarding observations, rather than renewed timers or source operation-generation guesses.",
+    "executionPath": [
+      "Existing LandVehicle GetIn callback calls Boarded, with engine event context and current occupied-seat confirmation",
+      "Actor owner removes only that actor old private exit rows and trims old public continuation while retaining other original clocks; BOARD closes old vehicle consent",
+      "Vehicle owner retires acknowledged local/remote cargo identity and captures fresh real cargo via existing OFFER",
+      "An unacknowledged boarding batch may merge actual seats into original manifest, preserving offer expiry; changed passenger owner replaces that unacknowledged row",
+      "Actual vehicle Local acquisition forgets stale private cargo/replies/offer only, without positive replay",
+      "Original mounted EXIT stores immutable60second origin horizon. TICK/EXIT can rebind to a different valid crew token, capped by origin and offer; crew manifest still proves actual carried actors. BOARD/CLOSE never retarget a newer token",
+      "Captured support workers bind vehicle carriage version. Actual tracked boarding or Local acquisition changes it; Step cancels old outward work and Continue refuses old contexts even if transient public proof disappears before sampling."
+    ],
+    "fixedDefects": [
+      "Repeated boarding could leave a passenger marked as the old owned dismount, suppressing its next real exit receipt",
+      "Local consumed cargo key and remote terminal CLOSE could keep a genuinely new insertion on the old identity",
+      "Refreshing an unacknowledged boarding batch must capture later actual entrants without resetting expiry or ignoring current group owner",
+      "A new offer visible at withdrawal must not receive the old consent CLOSE",
+      "Old owner-private carriage must not revive after a vehicle Local roundtrip",
+      "Own-group retained worker contexts could otherwise see a rapid reboard/re-exit as the same actor/vehicle rows after transient public evidence disappeared; a monotonic negative carriage fence prevents borrowing the new incident."
+    ],
+    "costAndAuthority": "Reuses existing GetIn/Local callbacks and owner ticks/relay; no extra handler, PFH, timer, movement/seat/group/skill command or world scan. At most64seat/exit rows,4groups/16original actors. Ordinary untracked boarding is a fast no-op. Actual event plus occupied seating required; native seat change/locality/clock/generation alone never create boarding proof.",
+    "limits": "Engine documents entry but does not prove walked boarding paths. Immediate event/seat view, delayed offer ordering, simultaneous native handlers, repeated actual loads, migration/disconnect and real support travel require physical checks. Audits paused. No measured performance or whole-source parity claim.",
+    "remaining": "Sustained escort episode lifetime, broader selected-source/whole HBQ and Protocol foundation reconciliation, required external-provider handovers and physical/performance validation remain open.",
+    "verification": {
+      "focusedTests": 616,
+      "focusedScope": "CortexOperations only",
+      "focusedLog": ".qa/handovers/mech-board-focused-20261028.log",
+      "fullBuild": "PASS",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "fullTests": 1503,
+      "compiledSQF": 456,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/mech-board-build-20261028.log",
+      "candidate": ".qa/candidates/mech-board-fenced-20261028-cdce864a",
+      "fingerprint": "d37c051156791d2d4ebb5350ab7e6542b9446b8357063ae5442e4f385228f410",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/mech-board-independent-final-20261028.log",
+      "buildProvenance": "cdce864a7e837c7264da0291d54b38eb96f64c3d plus dirty source snapshot. Only engineering/handover metadata changes after packaging; raw runtime hashes pin inputs; normalize Git line endings.",
+      "supersededCandidate": ".qa/candidates/mech-board-20261028-cdce864a",
+      "supersededBuildLog": ".qa/handovers/mech-board-build-before-fence-20261028.log",
+      "supersededReason": "Final own-group trace identified transient public proof/private row reuse during rapid reboard/re-exit. Added captured negative carriage version to actual worker and continuation; old passing candidate is not final evidence."
+    },
+    "runtimeSha256": {
+      "addons/vehicles/functions/cortexMechanisedBoarded.sqf": "ba8e0f469c953967b366c7d3a6612dd9dd248ae32bc7703b4ab699cb4c42e6e3",
+      "addons/vehicles/functions/cortexMechanisedRemote.sqf": "2392340fb34a104fd801e94306a1ad09f8bab4130e817ca0cd181344239da87b",
+      "addons/vehicles/functions/cortexMechanisedRemoteCrew.sqf": "627b7f5ff326c28c1476310f32f0bef1a904018331a4274484c4ce807bb8bb07",
+      "addons/main/XEH_postInit.sqf": "df8a3be16b9fdfc2f80282287e5475fa2daf69874ab60a0218b6775b9aa866da",
+      "addons/main/CfgFunctions.hpp": "46379b1d1433b884676ab2184a0392826809e21ef0be1dcb2517da191cfbc0f8",
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "5d31ab879c43c8555a7e2b2c8606fca282c3cc963145a665f15d5a3a84a3152a",
+      "addons/vehicles/functions/vehicleTacticalMoveStep.sqf": "383f58add92252d0d8fa7ec95d41d2e15a5549bfdee2a906e1bd4e84b19f459a",
+      "addons/vehicles/functions/cortexMechanisedContinue.sqf": "492042461efa0ad416b01653093fadebfe66d00869a73c0a72da6f2df9efa6e8"
+    }
   }
 }

@@ -7,8 +7,12 @@
  * An airborne hostile receives an intercept plan; a surface target receives a gun strafe, fixed-rocket
  * offset/hook run, guided standoff, bomb run or helicopter lateral gun pass from aircraft type, live
  * ammunition and a bounded
- * sample of targets already known to the pilot. Initial intercept geometry uses native believed
- * position without an exact velocity lead; the live job derives motion from successive estimates,
+ * sample of targets already known to the pilot. Initial surface and intercept geometry use a real
+ * local group member's native believed position. Up to eight members, with the pilot first,
+ * are checked once. Personal witnesses take precedence; valid native group-shared beliefs
+ * remain usable for spotter handoff. Shared knowsAbout alone is not a belief. Unknown, ignored
+ * or invalid beliefs refuse before weapon/terrain work. No exact target pose or velocity lead
+ * enters initial geometry; the live intercept job derives motion from successive estimates,
  * varies height inside a platform-safe envelope and retains a real loaded air-to-air weapon when present.
  * This is an intercept/engage/disengage controller, not a scripted claim to full BFM. A standoff
  * plan retains a native loaded weapon/turret pair; the executor rechecks it before release.
@@ -21,13 +25,17 @@
  * Locality/authority: read-only; called on the aircraft owner. It does not reveal enemies, add
  * waypoints, move the aircraft or change crew orders. Immutable magazine facts are cached locally.
  * Each pattern carries separate ingress/attack/egress height, speed, capture radius and minimum
- * firing-leg time. A bounded route corridor is sampled once while the plan is built. When
+ * firing-leg time. A bounded route corridor is sampled while the plan is built. When
  * intervening relief intrudes into the platform's clearance envelope, the same lift is added to all
  * three stages so the attack angle remains intact without a per-frame terrain controller. The join
  * from the aircraft's live position to ingress is sampled as well: relief close enough that the
  * aircraft cannot climb over it causes the plan to be refused rather than hidden by an ingress-only
  * clearance result. A route
- * requiring more than the bounded platform lift is refused so native control remains authoritative;
+ * requiring more than the bounded platform lift may try two whole-pattern rotations (-35/+35deg)
+ * only after the original fails and no AA axis is known. Every candidate repeats the same live-join,
+ * three-line clearance and lift limits; at most990 terrain samples, no per-frame search. All-failed
+ * plans are refused so native control remains authoritative; conclusive early-join/lift failure
+ * stops that candidate immediately. Viable candidates retain the complete original sample set;
  * a knowingly unsafe clamped plan is never returned. STRAFE
  * dives and accelerates through; OFFSET remains oblique; HOOK crosses the
  * target axis on a climbing exit; LATERAL stays abeam long enough for its retained turret; STANDOFF
@@ -53,6 +61,11 @@ if (_target isKindOf "Logic" || {_target isKindOf "HeadlessClient_F"} || {_side 
     || {_target getVariable ["ace_captives_isSurrendering",false]}
     || {_target getVariable ["ace_captives_isHandcuffed",false]}) exitWith {createHashMap};
 private _airToAir=_target isKindOf "Air" && {!isTouchingGround _target};
+
+// Resolve the same native believed contact used by active execution before expensive planning.
+private _contact=[_pilot,_target] call CBE_fnc_CortexAirContact;
+if (_contact isEqualTo []) exitWith {createHashMap};
+private _targetPos=ASLToATL (_contact select 0);
 
 private _ammoCache=missionNamespace getVariable ["CBE_Cortex_AirAmmoFacts",createHashMap];
 private _ammoFacts={
@@ -289,15 +302,6 @@ missionNamespace setVariable ["CBE_Cortex_AirAmmoFacts",_ammoCache];
 missionNamespace setVariable ["CBE_Cortex_AirVehicleAAFacts",_vehicleThreatCache];
 
 private _airPos=getPosATL _aircraft;
-private _targetPos=getPosATL _target;
-if (_airToAir) then {
-    private _knowers=((units group _pilot) select [0,8]) select {
-        local _x && {[_x] call CBE_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}
-    };
-    private _knower=_knowers param [0,objNull,[objNull]];
-    _targetPos=if (isNull _knower) then {[]} else {_knower getHideFrom _target};
-};
-if (_targetPos isEqualTo [] || {_targetPos isEqualTo [0,0,0]}) exitWith {createHashMap};
 private _axis=_targetPos vectorDiff _airPos;
 _axis set [2,0];
 if (vectorMagnitude _axis < 1) then {_axis=[sin getDir _aircraft,cos getDir _aircraft,0]};
@@ -634,70 +638,110 @@ private _terrainClearanceMinimum=0;
 private _terrainSampleCount=0;
 private _terrainCorridor=[75,200] select _isPlane;
 private _terrainViable=true;
+private _terrainRouteOffset=0;
+private _terrainRouteAttempts=0;
 if (!_airToAir) then {
-    _terrainClearanceMinimum=1e6;
-    private _terrainClearanceSamples=[];
-    private _minimumTerrainClearance=[45,300] select _isPlane;
-    private _terrainLiftLimit=[300,1200] select _isPlane;
-    // Include the live join to ingress. That leg starts at the aircraft's real ASL and only the
-    // ingress end can be raised, so required lift is divided by progress along the leg. Unsafe
-    // terrain in the first fifth is too late for a scripted altitude hint to solve and rejects the
-    // plan. Later legs receive the same lift at both ends and retain their attack geometry.
-    private _routePoints=[_airPos,_ingress,_attack,_egress];
-    for "_legIndex" from 0 to 2 do {
-        private _fromPoint=_routePoints select _legIndex;
-        private _toPoint=_routePoints select (_legIndex+1);
-        private _joinLeg=_legIndex == 0;
-        private _fromTerrain=getTerrainHeightASL _fromPoint;
-        private _toTerrain=getTerrainHeightASL _toPoint;
-        private _fromFlightASL=if (_joinLeg) then {(getPosASL _aircraft) select 2}
-            else {_fromTerrain+(_stageAltitudes select (_legIndex-1))};
-        private _toFlightASL=_toTerrain+(_stageAltitudes select _legIndex);
-        private _legVector=_toPoint vectorDiff _fromPoint;
-        private _horizontalLeg=+_legVector;
-        _horizontalLeg set [2,0];
-        private _legLength=vectorMagnitude _horizontalLeg;
-        private _sampleSteps=((ceil (_legLength/300)) max 6) min 36;
-        private _legSide=if (_legLength > 1) then {
-            private _legDirection=vectorNormalized _horizontalLeg;
-            [-(_legDirection select 1),_legDirection select 0,0]
-        } else {[0,0,0]};
-        for "_sampleIndex" from ([1,0] select !_joinLeg) to _sampleSteps do {
-            private _fraction=_sampleIndex/_sampleSteps;
-            private _sampleCentre=_fromPoint vectorAdd (_legVector vectorMultiply _fraction);
-            private _plannedASL=_fromFlightASL+((_toFlightASL-_fromFlightASL)*_fraction);
-            {
-                private _samplePoint=_sampleCentre vectorAdd (_legSide vectorMultiply _x);
-                private _terrainASL=getTerrainHeightASL _samplePoint;
-                private _clearance=_plannedASL-_terrainASL;
-                _terrainClearanceMinimum=_terrainClearanceMinimum min _clearance;
-                _terrainClearanceSamples pushBack [_clearance,[_fraction,1] select !_joinLeg];
-                private _clearanceDeficit=_minimumTerrainClearance-_clearance;
-                if (_clearanceDeficit > 0) then {
-                    if (_joinLeg && {_fraction <= 0.2}) then {
-                        _terrainViable=false;
-                    } else {
-                        private _requiredLift=if (_joinLeg) then {_clearanceDeficit/_fraction}
-                            else {_clearanceDeficit};
-                        _terrainLift=_terrainLift max _requiredLift;
-                    };
-                };
-                _terrainSampleCount=_terrainSampleCount+1;
-            } forEach [-_terrainCorridor,0,_terrainCorridor];
+    // Keep every previously viable plan unchanged. Only a failed terrain corridor
+    // may try two whole-pattern rotations, never a different weapon or random reroll.
+    private _originalRoute=[+_ingress,+_attack,+_egress];
+    private _originalStageAltitudes=+_stageAltitudes;
+    private _terrainRouteOffsets=[0];
+    // Known AA selected this defensive axis; do not rotate it into another threat sector.
+    if (_aaPositions isEqualTo []) then {_terrainRouteOffsets append [-35,35]};
+    {
+        private _routeOffset=_x;
+        _terrainRouteAttempts=_terrainRouteAttempts+1;
+        if (_routeOffset != 0) then {
+            private _rotatedRoute=_originalRoute apply {
+                private _relative=_x vectorDiff _targetPos;
+                private _rotated=_targetPos vectorAdd [
+                    (_relative select 0)*cos _routeOffset-(_relative select 1)*sin _routeOffset,
+                    (_relative select 0)*sin _routeOffset+(_relative select 1)*cos _routeOffset,
+                    _relative select 2];
+                _rotated
+            };
+            _ingress=_rotatedRoute select 0;
+            _attack=_rotatedRoute select 1;
+            _egress=_rotatedRoute select 2;
         };
-    };
-    _terrainRequiredLift=ceil (_terrainLift max 0);
-    _terrainViable=_terrainViable && {_terrainRequiredLift <= _terrainLiftLimit};
-    _terrainLift=_terrainRequiredLift min _terrainLiftLimit;
-    if (_terrainViable && {_terrainLift > 0}) then {
-        _stageAltitudes=_stageAltitudes apply {_x+_terrainLift};
-        // The live aircraft end of the join leg cannot be lifted retroactively. Report the real
-        // post-lift minimum using each sample's share of the climb rather than adding the full lift
-        // to a near-aircraft sample and overstating clearance on rough ground.
-        _terrainClearanceMinimum=selectMin (_terrainClearanceSamples apply {
-            (_x select 0)+(_terrainLift*(_x select 1))
-        });
-    };
+        // Lift/dead-end results belong to one candidate. Total sample count remains
+        // cumulative for cost diagnostics; only an accepted candidate raises its stages.
+        _stageAltitudes=+_originalStageAltitudes;
+        _terrainLift=0;_terrainRequiredLift=0;_terrainViable=true;
+        _terrainClearanceMinimum=1e6;
+        private _terrainClearanceSamples=[];
+        private _minimumTerrainClearance=[45,300] select _isPlane;
+        private _terrainLiftLimit=[300,1200] select _isPlane;
+        // Include the live join to ingress. That leg starts at the aircraft's real ASL and only the
+        // ingress end can be raised, so required lift is divided by progress along the leg. Unsafe
+        // terrain in the first fifth is too late for a scripted altitude hint to solve and rejects the
+        // plan. Later legs receive the same lift at both ends and retain their attack geometry.
+        private _routePoints=[_airPos,_ingress,_attack,_egress];
+        // Adjacent legs share the same vertex; keep its terrain height in this candidate.
+        private _previousTerrain=0;
+        for "_legIndex" from 0 to 2 do {
+            private _fromPoint=_routePoints select _legIndex;
+            private _toPoint=_routePoints select (_legIndex+1);
+            private _joinLeg=_legIndex == 0;
+            private _fromTerrain=_previousTerrain;
+            private _toTerrain=getTerrainHeightASL _toPoint;
+            _previousTerrain=_toTerrain;
+            private _fromFlightASL=if (_joinLeg) then {(getPosASL _aircraft) select 2}
+                else {_fromTerrain+(_stageAltitudes select (_legIndex-1))};
+            private _toFlightASL=_toTerrain+(_stageAltitudes select _legIndex);
+            private _legVector=_toPoint vectorDiff _fromPoint;
+            private _horizontalLeg=+_legVector;
+            _horizontalLeg set [2,0];
+            private _legLength=vectorMagnitude _horizontalLeg;
+            private _sampleSteps=((ceil (_legLength/300)) max 6) min 36;
+            private _legSide=if (_legLength > 1) then {
+                private _legDirection=vectorNormalized _horizontalLeg;
+                [-(_legDirection select 1),_legDirection select 0,0]
+            } else {[0,0,0]};
+            for "_sampleIndex" from ([1,0] select !_joinLeg) to _sampleSteps do {
+                private _fraction=_sampleIndex/_sampleSteps;
+                private _sampleCentre=_fromPoint vectorAdd (_legVector vectorMultiply _fraction);
+                private _plannedASL=_fromFlightASL+((_toFlightASL-_fromFlightASL)*_fraction);
+                {
+                    private _samplePoint=_sampleCentre vectorAdd (_legSide vectorMultiply _x);
+                    private _terrainASL=getTerrainHeightASL _samplePoint;
+                    private _clearance=_plannedASL-_terrainASL;
+                    _terrainClearanceMinimum=_terrainClearanceMinimum min _clearance;
+                    _terrainClearanceSamples pushBack [_clearance,[_fraction,1] select !_joinLeg];
+                    private _clearanceDeficit=_minimumTerrainClearance-_clearance;
+                    if (_clearanceDeficit > 0) then {
+                        if (_joinLeg && {_fraction <= 0.2}) then {
+                            _terrainViable=false;
+                        } else {
+                            private _requiredLift=if (_joinLeg) then {_clearanceDeficit/_fraction}
+                                else {_clearanceDeficit};
+                            _terrainLift=_terrainLift max _requiredLift;
+                            // Required lift is a monotone maximum. No later sample
+                            // can rescue this candidate after it exceeds the envelope.
+                            if (_terrainLift > _terrainLiftLimit) then {_terrainViable=false};
+                        };
+                    };
+                    _terrainSampleCount=_terrainSampleCount+1;
+                    if (!_terrainViable) exitWith {};
+                } forEach [-_terrainCorridor,0,_terrainCorridor];
+                if (!_terrainViable) exitWith {};
+            };
+            if (!_terrainViable) exitWith {};
+        };
+        _terrainRequiredLift=ceil (_terrainLift max 0);
+        _terrainViable=_terrainViable && {_terrainRequiredLift <= _terrainLiftLimit};
+        _terrainLift=_terrainRequiredLift min _terrainLiftLimit;
+        if (_terrainViable && {_terrainLift > 0}) then {
+            _stageAltitudes=_stageAltitudes apply {_x+_terrainLift};
+            // The live aircraft end of the join leg cannot be lifted retroactively. Report the real
+            // post-lift minimum using each sample's share of the climb rather than adding the full lift
+            // to a near-aircraft sample and overstating clearance on rough ground.
+            _terrainClearanceMinimum=selectMin (_terrainClearanceSamples apply {
+                (_x select 0)+(_terrainLift*(_x select 1))
+            });
+        };
+        if (_terrainViable) exitWith {_terrainRouteOffset=_routeOffset};
+    } forEach _terrainRouteOffsets;
 };
 // The engine keeps its ordinary combat task when Cortex cannot form a safe bounded corridor. This
 // is preferable to returning a route which the planner has already measured below clearance and
@@ -717,6 +761,7 @@ createHashMapFromArray [
     ["terrainLift",_terrainLift],["terrainClearanceMinimum",_terrainClearanceMinimum],
     ["terrainRequiredLift",_terrainRequiredLift],["terrainViable",_terrainViable],
     ["terrainSampleCount",_terrainSampleCount],["terrainCorridor",_terrainCorridor],
+    ["terrainRouteOffset",_terrainRouteOffset],["terrainRouteAttempts",_terrainRouteAttempts],
     ["lateralTurret",_lateralTurret],["lateralTurretPath",_lateralTurretPath],
     ["lateralWeapon",_lateralWeapon],["lateralSimulation",_lateralSimulation],
     ["standoffWeapon",_standoffWeapon],["standoffSimulation",_standoffSimulation],

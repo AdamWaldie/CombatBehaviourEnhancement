@@ -3,9 +3,13 @@
  * Purpose: Share native AA warnings and allocate finite point-defence responders in one group.
  * Locality/authority: Group/crew owner only. Native observer NOTICE contributes exact warning
  * provenance; STEP may invoke existing current-owner interceptor admission, never direct fire.
- * Repeat/JIP: Eight tracks retain first warning expiry<=8s. One coalesced finite1s planner/group,
+ * Repeat/JIP: Eight tracks retain first warning expiry<=8s. One coalesced finite3s planner/group,
  * <=64 roster actors/16 unique AA platforms/one start attempt per callback. Coverage ownership
  * is sampled once across those platforms per callback, then compared for at most8 warnings.
+ * One platform per scheduler visit with zero added delay; lower-FPS/budget deferral still applies.
+ * Three-second pass limit and native warning expiry both stop admission. Cached transmitter
+ * <=32 occupied rows/four receiver stations are sampled once per responder; radio
+ * reads expire after one second; longer allocation never grants a longer communication permission.
  * The ephemeral sample grants no fire permission and is never retained. No world scan/replay.
  * Existing active responses are never retargeted or renewed. Overflow refuses new tracks.
  * Urgent approach ranks first; equal-urgency warnings prefer this responder as victim,
@@ -34,7 +38,8 @@ private _tracks=if ((_registry select 0) == clientOwner && {(_registry select 1)
     }
 } else {[]};
 if (_mode == "NOTICE") exitWith {
-    if (!(_input isEqualType objNull) || {isNull _input} || {!local _input}) exitWith {false};
+    if (!(_input isEqualType objNull) || {isNull _input} || {!local _input}
+        || {!([_input] call CBE_fnc_CortexAirDefenceRole)}) exitWith {false};
     private _warning=_input getVariable ["CBE_AA_MissileWarning",[]];
     if (count _warning != 6 || {(_warning select 0) != clientOwner} || {(_warning select 1) != _group}
         || {(_warning select 2) != _epoch} || {serverTime >= (_warning select 3)}
@@ -68,7 +73,7 @@ if (_mode == "NOTICE") exitWith {
         private _serial=(_group getVariable ["CBE_AA_AllocationSerial",0])+1;
         _group setVariable ["CBE_AA_AllocationSerial",_serial];
         _plan=createHashMapFromArray [["group",_group],["ownerEpoch",_epoch],["generation",_serial],
-            ["until",time+1],["cursor",0],["vehicles",[]],["linkCache",[]],["initialised",false],["replan",false]];
+            ["until",time+3],["cursor",0],["vehicles",[]],["linkCache",[]],["linkCacheUntil",time+1],["initialised",false],["replan",false]];
         _group setVariable ["CBE_AA_Allocation",_plan];
     } else {
         if (_added) then {_plan set ["replan",true]};
@@ -84,21 +89,27 @@ private _finish={
     // canonical warning may request a subsequent pass, after this one retires.
     if ((_plan get "ownerEpoch") == _epoch && {_plan getOrDefault ["replan",false]}
         && {_tracks isNotEqualTo []}) exitWith {
-        _plan set ["replan",false];_plan set ["until",time+1];_plan set ["cursor",0];
-        _plan set ["vehicles",[]];_plan set ["linkCache",[]];_plan set ["initialised",false];
+        _plan set ["replan",false];_plan set ["until",time+3];_plan set ["cursor",0];
+        _plan set ["vehicles",[]];_plan set ["linkCache",[]];_plan set ["linkCacheUntil",time+1];
+        _plan set ["initialised",false];
         0
     };
     _plan set ["finished",true];-1
 };
 if ((_plan getOrDefault ["ownerEpoch",-1]) != _epoch || {time >= (_plan get "until")}
     || {_tracks isEqualTo []}) exitWith {call _finish};
+// A longer finite pass must not stretch the old one-second radio-hook cache.
+// Admission and active interception still recheck the live link without this cache.
+if (time >= (_plan getOrDefault ["linkCacheUntil",0])) then {
+    _plan set ["linkCache",[]];_plan set ["linkCacheUntil",time+1];
+};
 if !(_plan get "initialised") then {
     private _vehicles=[];
     {
         private _vehicle=vehicle _x;private _gunner=gunner _vehicle;
         if (_vehicle isKindOf "LandVehicle" && {local _vehicle} && {!isNull _gunner}
             && {local _gunner} && {group _gunner == _group}
-            && {toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas"}) then {
+            && {[_vehicle] call CBE_fnc_CortexAirDefenceRole}) then {
             _vehicles pushBackUnique _vehicle;
         };
         if (count _vehicles >= 16) exitWith {};
@@ -118,21 +129,41 @@ private _coverageMissiles=[];
                 && {time < (_active get "until")}
                 && {(_active get "ownerEpoch") == _epoch}
                 && {alive _x} && {local _x}
+                && {[_x] call CBE_fnc_CortexAirDefenceRole}
                 && {private _coverageGunner=_active getOrDefault ["gunner",objNull];
                     !isNull _coverageGunner && {alive _coverageGunner} && {local _coverageGunner}
-                        && {gunner _x == _coverageGunner} && {group _coverageGunner == _group}
+                        && {_x turretUnit (_active get "turret") == _coverageGunner}
+                        && {_x turretLocal (_active get "turret")} && {group _coverageGunner == _group}
                         && {(_coverageGunner getVariable ["CBE_AA_InterceptOwner",[]])
                             isEqualTo [_active get "token",_active get "until"]}
                 }) then {
                 _coverageMissiles pushBack (_active getOrDefault ["missile",objNull]);
             };
 } forEach _vehicles;
+// Warning ranking must not reject a linked secondary station because the primary
+// operator lacks a radio/voice path. One bounded occupied manifest per responder;
+// this is only a communications hint, not weapon, camera or firing admission.
+private _receivers=[];private _crew=fullCrew [_vehicle,"",false];
+if (count _crew <= 32) then {
+    private _operating={
+        params ["_row"];
+        !isNull (_row select 0) && {group (_row select 0) == _group}
+            && {toLowerANSI (_row select 1) in ["gunner","commander","turret"]} && {!(_row select 4)}
+    };
+    private _primary=gunner _vehicle;
+    private _primaryIndex=_crew findIf {(_x select 0) == _primary && {[_x] call _operating}};
+    if (_primaryIndex >= 0) then {_receivers pushBack _primary};
+    {
+        if (count _receivers >= 4) exitWith {};
+        if ([_x] call _operating) then {_receivers pushBackUnique (_x select 0)};
+    } forEach _crew;
+};
 private _ranked=[];
 {
     private _trackIndex=_forEachIndex;
     private _missile=_x select 4;private _victim=_x select 6;
     if (_vehicle distance _missile <= 1500 && {!(_vehicle in (_x select 7))}
-        && {[_vehicle,gunner _vehicle,_group,_victim,_plan get "linkCache"] call CBE_fnc_CortexAAWarningLink}
+        && {_receivers findIf {[_vehicle,_x,_group,_victim,_plan get "linkCache"] call CBE_fnc_CortexAAWarningLink} >= 0}
         && {[_missile,_group,_x select 5] call CBE_fnc_CortexAAThreat}) then {
         private _position=(getPosASL _missile) vectorDiff (getPosASL _victim);
         private _velocity=(velocity _missile) vectorDiff (velocity _victim);
@@ -159,4 +190,6 @@ if (_ranked isNotEqualTo []) then {
     };
 };
 if ((_plan get "cursor") >= count _vehicles) exitWith {call _finish};
-0.05
+// No artificial wait between responders: the shared scheduler already invokes this
+// bounded callback at most once per visit and rotates it behind other due work.
+0

@@ -12,6 +12,8 @@
  * Executor failure parks an uncertain native shot without replay or deadline renewal; otherwise it retires the registry.
  * Counter-generation cancellation blocks future shots while uncertain native shots retain
  * their token/quarantine; re-enabling cannot revive queued counter missions.
+ * An authenticated native-target-ignore veto while OBSERVE retires this mission before
+ * aim/warning/shot dispatch; no pending or uncertain native shot is released by this path.
  * Each dispatched native shot has a monotonic per-mission serial, independent of fired counts.
  * Arguments: 0: mission <HASHMAP>, created by ArtilleryFire.
  * Return Value: Number next delay, or -1 to finish.
@@ -47,6 +49,13 @@ private _finish = {
     _battery setVariable ["CBE_AIPass_FireToken", nil, true];
     _battery setVariable ["CBE_AIPass_BusyUntil", nil, true];
     -1
+};
+// Only OBSERVE can receive this exact-owner veto. There is no unresolved shot in that
+// phase: a previous burst has already produced its native firing acknowledgements.
+if ((_mission get "phase") == "OBSERVE" && {(_mission getOrDefault ["observerVeto",""]) == "TARGET_IGNORED"}) exitWith {
+    diag_log format ["[CBE] Artillery token=%1 stopped: assigned observer's group ignores target.",_mission get "token"];
+    _mission set ["finishReason","TARGET_IGNORED"];
+    call _finish
 };
 // Executor loss is not proof that an owner-issued round failed. Keep uncertain
 // native work reserved and parked; qualified callbacks may only settle it later.
@@ -191,10 +200,11 @@ if (_phase == "WAIT") then {
     _mission set ["remaining", _mission get "burstSize"];
     private _spotter = _mission get "spotter";
     if (alive _spotter && {_spotter getVariable ["CBE_AIPass_Spotter", false]}) then {
+        _mission set ["observerSerial",(_mission getOrDefault ["observerSerial",0])+1];
         _mission set ["phase", "OBSERVE"];
         _mission set ["observerOwner", owner _spotter];
         _mission set ["due", time + 3];
-        [_battery, _mission get "token", _spotter, _mission get "enemy", _mission getOrDefault ["aim", []]] remoteExecCall ["CBE_fnc_CortexArtilleryObserve", owner _spotter];
+        [_battery, _mission get "token", _spotter, _mission get "enemy", _mission getOrDefault ["aim", []], _mission get "observerSerial"] remoteExecCall ["CBE_fnc_CortexArtilleryObserve", owner _spotter];
     } else {
         if ((_mission get "purpose") == "COUNTER") then {
             // Relocation needs this side's qualified radar receipt, never a global emission or live transform.

@@ -11,6 +11,6 @@
  * Example: [_group, _lease] remoteExecCall ["CBE_fnc_CortexSupportLocal", groupOwner _group];
  */
 params [["_group",grpNull,[grpNull]],["_lease",[],[[]]],["_ownerChange",false,[true]]];
-if (remoteExecutedOwner != 2 || {isNull _group} || {!local _group} || {count _lease != 6}) exitWith {};
+if (remoteExecutedOwner != 2 || {isNull _group} || {!local _group} || {count _lease != 7}) exitWith {};
 [CBE_fnc_CortexSupportApply,createHashMapFromArray [["group",_group],["lease",_lease],
     ["waitUntil",serverTime+5],["ownerChange",_ownerChange],["adopt",_ownerChange]],0] call CBE_fnc_CortexQueueJob;

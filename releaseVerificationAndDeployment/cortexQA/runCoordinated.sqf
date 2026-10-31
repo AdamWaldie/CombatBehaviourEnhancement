@@ -258,7 +258,7 @@ if (_exposeDuringRally) then {
             private _g=group (_x select 0);
             private _lease=_g getVariable ["CBE_AIPass_SupportLease",[]];
             private _status=_g getVariable ["CBE_AIPass_SupportStatus",[]];
-            count _lease != 6 || {count _status != 4} || {!(_status select 2)}
+            count _lease != 7 || {count _status != 4} || {!(_status select 2)}
         } < 0
     },30] call _wait;
     ["COORD-contact-rally-reservations",_reserved] call _check;
@@ -276,7 +276,7 @@ private _rallied=[{
         private _g=group (_x select 0);
         private _status=_g getVariable ["CBE_AIPass_SupportStatus",[]];
         private _lease=_g getVariable ["CBE_AIPass_SupportLease",[]];
-        if (count _status == 4 && {count _lease == 6} && {(_status select 0) == (_lease select 0)}
+        if (count _status == 4 && {count _lease == 7} && {(_status select 0) == (_lease select 0)}
             && {(_status select 1) >= 0} && {!(_status select 3)}
             && {(_x findIf {[_x] call CBE_fnc_CortexCombatEffective && {_x distance2D (_lease select 3) > 45}}) >= 0}) then {
             _prematureReady=true;
@@ -286,7 +286,7 @@ private _rallied=[{
     {
         private _team=_x;
         private _lease = (group (_team select 0)) getVariable ["CBE_AIPass_SupportLease",[]];
-        if (count _lease != 6) then {
+        if (count _lease != 7) then {
             _allRallied=false;
         } else {
             private _area = _lease select 3;
@@ -299,7 +299,7 @@ private _rallied=[{
 ["COORD-no-premature-rally-readiness",!_prematureReady] call _check;
 ["COORD-two-teams-physical-rally",_rallied,str (_helpers apply {getPosATL _x})] call _check;
 private _rallyLeases = _teams apply {(group (_x select 0)) getVariable ["CBE_AIPass_SupportLease",[]]};
-["COORD-distinct-rally-areas",(_rallyLeases findIf {count _x != 6}) < 0 && {
+["COORD-distinct-rally-areas",(_rallyLeases findIf {count _x != 7}) < 0 && {
     ((_rallyLeases select 0) select 3) distance2D ((_rallyLeases select 1) select 3) >= 109
 },str _rallyLeases] call _check;
 diag_log format ["CBE CORTEX QA COORD RALLY: requesterPhase=%1 helperStates=%2",_requester getVariable ["CBE_AIPass_PublicPhase","NONE"],(_teams apply {private _g=group (_x select 0); [groupId _g,_g getVariable ["CBE_AIPass_PublicPhase","NONE"],_g getVariable ["CBE_AIPass_SupportLease",[]],_g getVariable ["CBE_AIPass_SupportStatus",[]]]})];
@@ -340,7 +340,7 @@ private _positionObjectives=[{
         private _g=group (_x select 0);
         private _lease=_g getVariable ["CBE_AIPass_SupportLease",[]];
         private _operation=_g getVariable ["CBE_Operation",createHashMap];
-        count _lease != 6 || {count _operation == 0}
+        count _lease != 7 || {count _operation == 0}
             || {(_operation getOrDefault ["intent",""]) != "COORDINATED_ASSAULT"}
             || {(_operation getOrDefault ["objective",[]]) isNotEqualTo (_lease select 5)}
     } < 0
@@ -548,7 +548,7 @@ private _movementWindowEnded=[{
             private _role=_g getVariable ["CBE_Cortex_SupportRole",[]];
             private _result=_g getVariable ["CBE_Cortex_SupportBoundResult",[]];
             private _lease=_g getVariable ["CBE_AIPass_SupportLease",[]];
-            count _role == 5 || {count _lease == 6 && {serverTime < (_lease select 2)}}
+            count _role == 5 || {count _lease == 7 && {serverTime < (_lease select 2)}}
                 || {count _result < 3} || {!((_result select 2) in ["STALLED","TIME_LIMIT","NOT_READY","RECOVERY_FAILED"])}
         }) < 0
     };

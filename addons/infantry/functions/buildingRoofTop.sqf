@@ -6,7 +6,7 @@
  * Arguments: 0 building OBJECT objNull; 1 optional boundingBoxReal ARRAY [], queried if absent.
  * Return: NUMBER maximum corner ASL height plus one metre; -1e12 if object/bounds invalid.
  * Current callers: CortexClearBuilding, BuildingOperationStep, IndoorActorNodeSelect,
- * IndoorActorOperation. Callers retain live transform/authority and actual nearest-hit checks.
+ * IndoorActorOperation and CortexGarrison. Callers retain live transform/authority and actual nearest-hit checks.
  * Example: private _top=[house1,boundingBoxReal house1] call CBE_fnc_BuildingRoofTop;
  */
 params [["_building",objNull,[objNull]],["_bounds",[],[[]]]];

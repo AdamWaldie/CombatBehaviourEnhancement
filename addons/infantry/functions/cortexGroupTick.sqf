@@ -1,5 +1,9 @@
 /*
  * Author: WaldoTheWarfighter
+ * Active explicit attacks reuse the existing native query as an owner-local timestamped snapshot.
+ * Existing ticks renew only original remote cargo consent; missing ticks let its short lease expire.
+ * Calm remount intent retains its original native waypoint receipt and operation generation;
+ * replacement orders retire boarding without seat cleanup, and migration keeps the original deadline.
  * Building geometry identities include scale; stale geometry grants no current task or visit proof.
  * Shared movement reservations protect pending flight/naval/selected-crew cleanup during contact,
  * search, consolidation and stalled-actor selection without renewing recovery budgets.
@@ -130,6 +134,7 @@ if (!local _group || {!(missionNamespace getVariable ["CBE_AIPass_Active", false
     _group setVariable ["CBE_AIPass_Managed", nil];
     -1
 };
+[_group,"TICK"] call CBE_fnc_CortexMechanisedRemote;
 // A periodic lease expiry must never reset posture after Zeus, a player or a specialist controller
 // claims any member of the group.
 private _dangerYield=[_group] call CBE_fnc_CortexExternalTakeover;
@@ -168,6 +173,10 @@ if (!_dangerYield) then {
         _x setVariable ["CBE_AIPass_TargetHold",nil];
     };
 } forEach units _group;
+// Deadline cleanup precedes dormant/medical early returns; it never issues another leg.
+if (count (_group getVariable ["CBE_PatrolTask",createHashMap]) > 0) then {
+    ["CHECK",_group] call CBE_fnc_PatrolOperation;
+};
 private _alive = (units _group) select {alive _x};
 if (_alive isEqualTo []) exitWith {
     _group setVariable ["CBE_AIPass_Managed", nil];
@@ -242,9 +251,12 @@ if (_group getVariable ["CBE_AIPass_RegroupQueued", false]) exitWith {5};
 // Resolve casualty succession before reading leader knowledge or issuing group orders.
 // Only eligible, locally owned AI groups reach this point. An incapacitated leader cannot drive
 // withdrawal, bounds or contact state, so appoint an acting leader instead of waiting for recovery.
+// Dormant survivors cannot become that command anchor merely because their rank is higher;
+// preserve their simulation/visibility and wait when no active local successor exists.
 private _leader = leader _group;
 if ((isNull _leader || {!([_leader] call CBE_fnc_CortexCombatEffective)}) && {[_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
-    private _successors = _alive select {local _x && {[_x] call CBE_fnc_CortexCombatEffective}};
+    private _successors = _alive select {local _x && {simulationEnabled _x} && {!isObjectHidden _x}
+        && {[_x] call CBE_fnc_CortexCombatEffective}};
     if (_successors isNotEqualTo []) then {
         private _successor = _successors select 0;
         {if (rankId _x > rankId _successor) then {_successor = _x}} forEach _successors;
@@ -329,6 +341,9 @@ if (count _dangerAction >= 6
     if (!isNull _observedActor && {alive _observedActor} && {local _observedActor}
         && {group _observedActor == _group}) then {_dangerCoverActor=_observedActor};
 };
+// A derived visual UAV cue belongs to its actual personal witness. An unavailable
+// witness cannot transfer that cue's cover movement to a fallback squad representative.
+private _dangerWitnessCurrent=!isNull _dangerCoverActor;
 if (isNull _dangerCoverActor) then {_dangerCoverActor=[_group] call CBE_fnc_CortexGroupAnchor};
 if (isNull _dangerCoverActor) then {_dangerCoverActor=_leader};
 private _dangerActionName=if (count _dangerAction >= 5
@@ -351,13 +366,16 @@ private _dangerTactical=_dangerActive
 private _dangerAlert=_dangerActive && {
     combatMode _group in ["BLUE","GREEN"]
     || {(_dangerResponse param [0,"",[""]]) in ["CASUALTY","BODY_FOUND","SCREAM"]}
+    || {(_dangerResponse param [0,"",[""]]) == "UAV_APPROACH"}
     || {(_dangerResponse param [0,"",[""]]) in ["DETECTED","PROXIMITY","CANFIRE","GUNFIRE"] && {_dangerActionName == "HIDE"}}
 };
 private _dangerVehicleSafety=_dangerActive && {_dangerActionName == "VEHICLE"};
 // Casualty and scream observations raise awareness but are not incoming-fire geometry. Treating
 // their reported position as a physical threat sent soldiers away from bodies or voices and made
 // harmless evidence look like suppression. Only immediate hazards may own this cover reflex.
-private _physicalCoverCause=(_dangerResponse param [0,"",[""]]) in ["HIT","EXPLOSION","SUPPRESSED","GUNFIRE"];
+// A directly seen near-collision UAV cue also permits cover, without inventing gunfire.
+private _physicalCoverCause=(_dangerResponse param [0,"",[""]]) in ["HIT","EXPLOSION","SUPPRESSED","GUNFIRE"]
+    || {(_dangerResponse param [0,"",[""]]) == "UAV_APPROACH" && {_dangerWitnessCurrent}};
 // A native-known detection can justify concealment without authorising engagement.
 // The existing cover owner still refuses STOP, native travel/planning, reservations and newer tasks.
 private _stealthCover=_dangerActionName == "ENGAGE"
@@ -512,6 +530,13 @@ private _priorVehicleLease=_state getOrDefault ["movementLease",[]];
 if ((_priorVehicleLease param [0,""]) in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","VEHICLE_ORIENT"]) then {
     [_group,_state,[],true] call CBE_fnc_CortexVehicles;
 };
+if (count (_group getVariable ["CBE_ClearAreaTask",createHashMap]) > 0) then {["STEP",_group] call CBE_fnc_ClearAreaOperation};
+if (count (_group getVariable ["CBE_PatrolTask",createHashMap]) > 0) then {
+    private _patrol=_group getVariable ["CBE_PatrolTask",createHashMap];
+    if (count (_patrol getOrDefault ["creep",createHashMap]) > 0) then {
+        ["STEP",_group] call CBE_fnc_CreepOperation;
+    } else {["STEP",_group,[_dangerActive]] call CBE_fnc_PatrolOperation};
+};
 private _movementLease = _state getOrDefault ["movementLease",[]];
 private _movementOwner = _movementLease param [0,""];
 // Follow the committed screened corridor rather than skipping to its final endpoint. This
@@ -564,6 +589,7 @@ private _crewMovementReserved=(_group getVariable ["CBE_ArtilleryCrew_Reservatio
     || {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []};
 private _groupMovementOwned = _crewMovementReserved || {count _movementLease == 2 && {time < (_movementLease select 1)} && {
     switch (_movementOwner) do {
+        case "PATROL": {count (_group getVariable ["CBE_PatrolTask",createHashMap]) > 0};
         case "TACTICAL_DRILL": {count (_state getOrDefault ["drill",createHashMap]) > 0};
         case "COORDINATED_ASSAULT": {
             _state getOrDefault ["assaulting",false]
@@ -573,6 +599,7 @@ private _groupMovementOwned = _crewMovementReserved || {count _movementLease == 
         // A second marker schema here previously retired valid seven-field turns as five-field.
         case "VEHICLE_WITHDRAW";
         case "VEHICLE_STANDOFF";
+        case "VEHICLE_POINT";
         case "VEHICLE_JINK";
         case "VEHICLE_ORIENT": {true};
         default {
@@ -684,7 +711,15 @@ if ((_state get "phase") == "CALM" && {!_dangerActive} && {!_groupMovementOwned}
     && {!(_state getOrDefault ["responding",false])}) then {
     [_group,_state] call CBE_fnc_CortexRouteDoors;
 };
-if !(["CBE_AIPass_Contact_Enable", true] call _get) exitWith {
+// Explicit withdrawal is a finite operator task, independent of autonomous contact enablement.
+private _pointWithdrawal=_state getOrDefault ["pointWithdrawal",[]];
+private _pointWithdrawalOperation=_group getVariable ["CBE_Operation",createHashMap];
+private _pointWithdrawalOwned=count _pointWithdrawal == 7
+    && {(_pointWithdrawal select 2) == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+    && {(_pointWithdrawal select 3) == (_pointWithdrawalOperation getOrDefault ["generation",-2])}
+    && {(_pointWithdrawalOperation getOrDefault ["intent",""]) == "WITHDRAW"}
+    && {(_state getOrDefault ["phase",""]) == "RETREAT"};
+if (!(["CBE_AIPass_Contact_Enable", true] call _get) && {!_pointWithdrawalOwned}) exitWith {
     // Explicit building orders have their own feature gate and generation-owned FSM.
     // Disabling autonomous contact decisions must not cancel that separate movement owner.
     private _explicitOperation=_group getVariable ["CBE_Operation",createHashMap];
@@ -696,7 +731,15 @@ if !(["CBE_AIPass_Contact_Enable", true] call _get) exitWith {
         || {_state getOrDefault ["assaulting",false]};
     // A calm Contact-off tick still services independent safety and reflex work above.
     // Restore autonomous state once when it actually exists, not on every idle tick.
-    if (!_buildingOwned && {_autonomousState}) then {
+    private _pointDrill=_state getOrDefault ["drill",createHashMap];
+    private _pointReceipt=_pointDrill getOrDefault ["explicitOrder",[]];
+    private _pointOwned=count (_pointDrill getOrDefault ["pointObjective",[]]) == 2
+        && {count _pointReceipt == 4} && {(_pointReceipt select 0) isEqualType 0}
+        && {finite (_pointReceipt select 0)} && {time < (_pointReceipt select 0)}
+        && {(_pointReceipt select 1) == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+        && {(_pointReceipt select 2) == (_explicitOperation getOrDefault ["generation",-2])}
+        && {(_pointReceipt select 3) == (_pointDrill getOrDefault ["token",""])};
+    if (!_buildingOwned && {!_pointOwned} && {_autonomousState}) then {
         [_group,false,"CONTACT_DISABLED",true] call CBE_fnc_CortexReleaseGroup
     };
     _delay
@@ -711,6 +754,27 @@ private _autonomousActor=_alive findIf {
 if (_autonomousActor < 0) exitWith {_delay};
 
 ([_group] call CBE_fnc_CortexKnowledge) params ["_enemies", "_seenCount"];
+// One native-known visible near-collision cue, no additional detection or movement owner.
+// Let its existing finite danger FSM assess before ordinary autonomous contact planning.
+if ([_group,_state,_enemies,_alive] call CBE_fnc_CortexUAVApproach) exitWith {_delay min 0.5};
+// Reuse this bounded native query only for the current explicit attack. Poll time does
+// not refresh native observation age; the arrived-bound consumer adds elapsed time.
+if (count ((_state getOrDefault ["drill",createHashMap]) getOrDefault ["explicitOrder",[]]) == 4) then {
+    _state set ["explicitKnowledge",[time,_group getVariable ["CBE_AIPass_Epoch",-1],_enemies apply {
+        private _record=+_x;_record set [1,+(_x select 1)];_record
+    }]];
+};
+// Hunt is a policy on the current finite sweep, not another knowledge or movement worker.
+private _sweep=_group getVariable ["CBE_PatrolTask",createHashMap];
+if (count (_sweep getOrDefault ["hunt",createHashMap]) > 0) then {
+    ["UPDATE",_group,_enemies] call CBE_fnc_HuntOperation;
+};
+// Reuse the same native observation for the finite cautious-approach policy. While it owns
+// movement/ROE, ordinary contact planners must not create competing actor or group tasks.
+if (count (_sweep getOrDefault ["creep",createHashMap]) > 0) then {
+    ["UPDATE",_group,_enemies] call CBE_fnc_CreepOperation;
+};
+if (count ((_group getVariable ["CBE_PatrolTask",createHashMap]) getOrDefault ["creep",createHashMap]) > 0) exitWith {_delay min 4};
 // Native hostile knowledge is the durable continuation of a short engine danger callback. The
 // danger FSM wakes the shared group brain immediately; once that finite record expires, a group
 // which is still seeing an enemy must retain combat cadence from its own engine knowledge. Without
@@ -783,6 +847,7 @@ private _authoredStationary=_waypointIndex < _waypointCount
     && {waypointType [_group,_waypointIndex] in ["HOLD","SENTRY"]}
     && {waypointDescription [_group,_waypointIndex] != "CBE AI PASS"};
 private _ordered = _garrisoned || {_defending}
+    || {count (_group getVariable ["CBE_ClearAreaTask",createHashMap]) > 0}
     || {_group getVariable ["CBE_AIPass_ClearBuilding", false]}
     || {_authoredStationary};
 if (count (_state getOrDefault ["aaRelocation",createHashMap]) == 0) then {
@@ -824,9 +889,17 @@ if (count _continuation == 4 && {(_continuation select 0) isEqualType 0}
 };
 private _remount = _group getVariable ["CBE_Cortex_Remount",[]];
 if (_remount isNotEqualTo []) then {
-    _remount params ["_deadline","_passengers"];
+    // Deadline/list alone cannot authorize boarding after a new mission route or operation.
+    private _deadline=_remount param [0,0,[0]];
+    private _passengers=_remount param [1,[],[[]]];
+    private _remountGeneration=_remount param [2,-1,[0]];
+    private _remountOrder=_remount param [3,[],[[]]];
+    private _remountCurrent=count _remount == 4 && {finite _deadline}
+        && {finite _remountGeneration} && {_remountGeneration == (_group getVariable ["CBE_OperationGeneration",0])}
+        && {_remountOrder isNotEqualTo []}
+        && {_remountOrder isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
     private _pending = _passengers select {alive (_x select 0) && {group (_x select 0) == _group} && {alive (_x select 1)} && {vehicle (_x select 0) != (_x select 1)} && {isNull assignedVehicle (_x select 0) || {assignedVehicle (_x select 0) == (_x select 1)}}};
-    private _cancel = _visible isNotEqualTo [] || {_dangerActive} || {_ordered}
+    private _cancel = _visible isNotEqualTo [] || {_dangerActive} || {_ordered} || {!_remountCurrent}
         || {!([] call _mayIssueMovement)}
         || {!(["CBE_AIPass_Vehicles_Enable",true] call _get)}
         || {!(["CBE_AIPass_VehicleRemount_Enable",true] call _get)};
@@ -834,16 +907,18 @@ if (_remount isNotEqualTo []) then {
         // A danger response can exist before native knowledge produces a visible enemy. Preserve
         // the still-dismounted passengers and cancel boarding now so the same tick can enter its
         // combat response without losing task ownership or issuing another GET IN command.
-        if (_visible isNotEqualTo [] || {_dangerActive}) then {_state set ["dismounted",+_pending]};
+        if (_remountCurrent && {_visible isNotEqualTo [] || {_dangerActive}}) then {_state set ["dismounted",+_pending]};
         {
             private _unit=_x select 0;
-            if ([] call _mayIssueMovement && {local _unit} && {isNull objectParent _unit}
+            // A replacement order ends our intent without unassigning its current passengers.
+            if (_remountCurrent && {[] call _mayIssueMovement} && {local _unit} && {isNull objectParent _unit}
                 && {assignedVehicle _unit == (_x select 1)}) then {
                 [_unit] orderGetIn false;
                 unassignVehicle _unit;
             };
         } forEach _pending;
-        private _reason = if (_visible isNotEqualTo [] || {_dangerActive}) then {"CONTACT"} else {
+        private _reason = if (!_remountCurrent) then {"ORDER_REPLACED"} else {
+            if (_visible isNotEqualTo [] || {_dangerActive}) then {"CONTACT"} else {
             if (_ordered) then {"ORDERED"} else {
                 if (!([] call _mayIssueMovement)) then {"EXTERNAL_OWNER"} else {
                     if (_cancel) then {"DISABLED"} else {
@@ -851,6 +926,7 @@ if (_remount isNotEqualTo []) then {
                     }
                 }
             }
+        };
         };
         // Record this finite transition, not a polling stream. Speed and assignment distinguish
         // unavailable boarding geometry from contact, external orders and actual seat completion.
@@ -868,7 +944,7 @@ if (_remount isNotEqualTo []) then {
         // Publish progress only when membership changes. Completed/reassigned passengers must
         // not consume the vehicle owner's bounded boarding window ahead of remaining actors.
         if (_pending isNotEqualTo _passengers) then {
-            _group setVariable ["CBE_Cortex_Remount",[_deadline,+_pending],true];
+            _group setVariable ["CBE_Cortex_Remount",[_deadline,+_pending,_remountGeneration,+_remountOrder],true];
         };
         {
             _x params ["_unit","_vehicle"];
@@ -1119,7 +1195,7 @@ switch (_state get "phase") do {
                 || {_now > (_state getOrDefault ["respondUntil", 0])}) then {
                 private _supportLease = _group getVariable ["CBE_AIPass_SupportLease",[]];
                 private _supportToken = _state getOrDefault ["supportToken",""];
-                if (count _supportLease == 6 && {_supportToken == (_supportLease select 0)}) then {
+                if (count _supportLease == 7 && {_supportToken == (_supportLease select 0)}) then {
                     [_group,_supportToken,false,_supportLease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
                 };
                 private _ownedMovement = _state getOrDefault ["movementLease",[]];
@@ -1866,6 +1942,55 @@ switch (_state get "phase") do {
         private _routeCurrent=count _episode == 7 && {count _routeProof == 2}
             && {(_routeProof select 0) isEqualTo (_episode select 4)}
             && {(_routeProof select 1) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
+        private _point=_state getOrDefault ["pointWithdrawal",[]];
+        private _pointScoped=_point isNotEqualTo [];
+        private _pointFinished=false;
+        if (_pointScoped && {_withdrawOwner}) then {
+            private _identity=count _point == 7 && {(_point select 2) == (_group getVariable ["CBE_AIPass_Epoch",-1])}
+                && {(_point select 3) == _generation} && {_withdrawKind == "WITHDRAW"}
+                && {(_operation getOrDefault ["ownerEpoch",-2]) == (_point select 2)}
+                && {(_operation getOrDefault ["phase",""]) != "CANCELLED"};
+            private _pointReason="";
+            private _pointStatus="INCOMPLETE";
+            private _missing=[];
+            if (!_identity) then {_pointReason="POINT_OWNER_CHANGED"} else {
+                // Exclude only this operation's unchanged native row. Natural completion can
+                // advance the current index; authored edits still veto arrival and all retries.
+                private _rows=if (count waypoints _group <= 65) then {
+                    ([_group] call CBE_fnc_AuthoredRouteReceipt) apply {_x select [1]}
+                } else {[]};
+                private _ownedIndex=_rows find (_point select 6);
+                if (_ownedIndex >= 0) then {_rows deleteAt _ownedIndex};
+                private _missionCurrent=count waypoints _group <= 65 && {_rows isEqualTo (_point select 5)};
+                private _capable=(_point select 4) select {[_x] call CBE_fnc_CortexCombatEffective && {group _x == _group}};
+                _missing=_capable select {!local _x || {!isNull objectParent _x} || {!isNull attachedTo _x}
+                    || {_x distance2D (_point select 0) > 30} || {(getPosATL _x select 2) > 3}
+                    || {[_x] call CBE_fnc_CortexActorMoveReserved}};
+                if (!_missionCurrent) then {_pointReason="NATIVE_ORDER_CHANGED"} else {
+                    if (serverTime >= (_point select 1)) then {_pointReason="TIMEOUT"} else {
+                        if (_capable isNotEqualTo [] && {_missing isEqualTo []}) then {
+                            _pointReason="OBJECTIVE_REACHED";_pointStatus="COMPLETE";
+                        } else {
+                            if (!_routeCurrent) then {_pointReason="ROUTE_CHANGED_OR_FINISHED"};
+                        };
+                    };
+                };
+            };
+            if (_pointReason != "") then {
+                private _retired=[_group,_generation,_pointStatus,_pointReason] call CBE_fnc_OperationRelease;
+                // Completion is not published if common retirement rejected a stale epoch,
+                // cancelled operation or external takeover. Never restore over a successor.
+                if (_retired && {local _group}
+                    && {(_group getVariable ["CBE_AIPass_State",createHashMap]) isEqualTo _state}
+                    && {(_state getOrDefault ["pointWithdrawal",[]]) isEqualTo _point}
+                    && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}) then {
+                    _group setVariable ["CBE_PointWithdrawal_Result",[_pointStatus,_pointReason,+(_point param [0,[],[[]]]),+_missing,serverTime],true];
+                    [_group,_state,false,false,_pointReason] call CBE_fnc_CortexRestoreCalm;
+                };
+                _pointFinished=true;
+            };
+        };
+        if (_pointFinished) exitWith {_delay=1};
         if (_withdrawOwner && {!_routeCurrent}) exitWith {
             [_group,_generation,"WITHDRAWAL_ROUTE_CHANGED_OR_FINISHED"] call CBE_fnc_OperationCancel;
             [_group,_state,false,true,"WITHDRAWAL_ROUTE_CHANGED_OR_FINISHED"] call CBE_fnc_CortexRestoreCalm;
@@ -1945,7 +2070,8 @@ switch (_state get "phase") do {
         private _withdrawalIntent=_group getVariable ["CBE_Cortex_WithdrawalIntent",[]];
         private _retreatThreat=_withdrawalIntent param [3,[],[[]]];
         private _travel=0;
-        if (count _start >= 2 && {count _retreatThreat >= 2}) then {
+        if (_pointScoped) then {_travel=((_start distance2D (_point select 0))-(_leader distance2D (_point select 0))) max 0};
+        if (!_pointScoped && {count _start >= 2} && {count _retreatThreat >= 2}) then {
             private _axisX=(_start select 0)-(_retreatThreat select 0);
             private _axisY=(_start select 1)-(_retreatThreat select 1);
             private _axisLength=sqrt (_axisX*_axisX+_axisY*_axisY);
@@ -1968,43 +2094,56 @@ switch (_state get "phase") do {
         // Physical completion may still be observed after release, but a retired operation may
         // never manufacture a fresh unscoped route from its old RETREAT state.
         if (_withdrawOwner && {(_shortWithdrawal || {_stalled})} && {_replans < 4}) then {
-            private _enemyPos = _state getOrDefault ["enemyPos",[]];
-            private _target = _state getOrDefault ["retreatTarget",getPosATL _leader];
-            private _distance = ((_leader distance2D _target) max 80) min 250;
-            private _away = if (count _enemyPos >= 2) then {_enemyPos getDir _leader} else {(getDir _leader)+180};
-            private _origin=getPosATL _leader;
-            private _candidateRoutes=[];
-            {
-                private _candidate=_origin getPos [_distance,_away+_x];
-                // A confirmed obstruction must not select the same failed destination again.
-                if (_candidate distance2D _target >= 20) then {_candidateRoutes pushBack [_candidate]};
-            } forEach [30,-30,60,-60];
-            // Recovery must retain the initial operation's mobility envelope. Infantry
-            // slope limits or an unchecked fallback cannot authorize a vehicle retry.
-            private _mobility=["INFANTRY","VEHICLE"] select (_withdrawKind == "VEHICLE_WITHDRAW");
-            private _legs=if (count _enemyPos >= 2) then {
-                private _screenPlatform=[objNull,vehicle _leader] select (_mobility == "VEHICLE");
-                [_origin,_candidateRoutes,_enemyPos,[],objNull,_mobility,_screenPlatform] call CBE_fnc_CortexSelectAvenue
+            if (_pointScoped) then {
+                // Retry only the fixed operator goal and this generation. No new escape point,
+                // refreshed episode or unscoped route is authorised by the original request.
+                _replans=_replans+1;_progressAt=_now;
+                private _waypoint=[_group,_point select 0,30,"MOVE",_generation,true] call CBE_fnc_CortexGroupMove;
+                if (!isNull (_waypoint param [0,grpNull]) && {(_waypoint param [1,-1]) >= 0}) then {
+                    private _row=([_group,"",false,_waypoint select 1] call CBE_fnc_AuthoredRouteReceipt) select 0;
+                    _point set [6,_row select [1]];_state set ["pointWithdrawal",_point];
+                    _group setVariable ["CBE_Cortex_WithdrawalOrder",[_episode select 4,[_group] call CBE_fnc_NativeOrderReceipt],true];
+                    _moving=true;_bestTravel=_travel;
+                };
             } else {
-                if (_mobility == "VEHICLE") then {[]} else {_candidateRoutes param [0,[]]}
-            };
-            // Count failed planning/command attempts as retries, never as physical movement.
-            // This keeps refusal from rerunning geometry on every brain callback.
-            _replans = _replans+1;
-            _progressAt = _now;
-            if (_legs isNotEqualTo []) then {
-                private _candidate=+(_legs select ((count _legs)-1));
-                private _waypoint=[_group,_candidate,30] call CBE_fnc_CortexGroupMove;
-                if (!isNull (_waypoint param [0,grpNull,[grpNull]]) && {(_waypoint param [1,-1,[0]]) >= 0}) then {
-                    _state set ["retreatTarget",_candidate];
-                    // Refresh only after a successful CBE replan, for either withdrawal kind.
-                    private _episode=_group getVariable ["CBE_Cortex_WithdrawalIntent",[]];
-                    if (count _episode == 7) then {
-                        _group setVariable ["CBE_Cortex_WithdrawalOrder",[_episode select 4,
-                            [_group] call CBE_fnc_NativeOrderReceipt],true];
+                private _enemyPos = _state getOrDefault ["enemyPos",[]];
+                private _target = _state getOrDefault ["retreatTarget",getPosATL _leader];
+                private _distance = ((_leader distance2D _target) max 80) min 250;
+                private _away = if (count _enemyPos >= 2) then {_enemyPos getDir _leader} else {(getDir _leader)+180};
+                private _origin=getPosATL _leader;
+                private _candidateRoutes=[];
+                {
+                    private _candidate=_origin getPos [_distance,_away+_x];
+                    // A confirmed obstruction must not select the same failed destination again.
+                    if (_candidate distance2D _target >= 20) then {_candidateRoutes pushBack [_candidate]};
+                } forEach [30,-30,60,-60];
+                // Recovery must retain the initial operation's mobility envelope. Infantry
+                // slope limits or an unchecked fallback cannot authorize a vehicle retry.
+                private _mobility=["INFANTRY","VEHICLE"] select (_withdrawKind == "VEHICLE_WITHDRAW");
+                private _legs=if (count _enemyPos >= 2) then {
+                    private _screenPlatform=[objNull,vehicle _leader] select (_mobility == "VEHICLE");
+                    [_origin,_candidateRoutes,_enemyPos,[],objNull,_mobility,_screenPlatform] call CBE_fnc_CortexSelectAvenue
+                } else {
+                    if (_mobility == "VEHICLE") then {[]} else {_candidateRoutes param [0,[]]}
+                };
+                // Count failed planning/command attempts as retries, never as physical movement.
+                // This keeps refusal from rerunning geometry on every brain callback.
+                _replans = _replans+1;
+                _progressAt = _now;
+                if (_legs isNotEqualTo []) then {
+                    private _candidate=+(_legs select ((count _legs)-1));
+                    private _waypoint=[_group,_candidate,30] call CBE_fnc_CortexGroupMove;
+                    if (!isNull (_waypoint param [0,grpNull,[grpNull]]) && {(_waypoint param [1,-1,[0]]) >= 0}) then {
+                        _state set ["retreatTarget",_candidate];
+                        // Refresh only after a successful CBE replan, for either withdrawal kind.
+                        private _episode=_group getVariable ["CBE_Cortex_WithdrawalIntent",[]];
+                        if (count _episode == 7) then {
+                            _group setVariable ["CBE_Cortex_WithdrawalOrder",[_episode select 4,
+                                [_group] call CBE_fnc_NativeOrderReceipt],true];
+                        };
+                        _bestTravel = _travel;
+                        _moving = true;
                     };
-                    _bestTravel = _travel;
-                    _moving = true;
                 };
             };
         };
@@ -2019,7 +2158,7 @@ switch (_state get "phase") do {
         private _timedOut = _now - (_state get "phaseStart") > 120;
         private _status = if (_timedOut) then {"INCOMPLETE"} else {["MOVING","WITHDRAWN"] select (!_moving && {_travel >= 30})};
         _group setVariable ["CBE_Cortex_Withdrawal",[_status,round _travel,_replans],true];
-        if ((!_moving && {_travel >= 30}) || {_timedOut}) then {
+        if (!_pointScoped && {(!_moving && {_travel >= 30}) || {_timedOut}}) then {
             [_timedOut] call _endWithdrawal;
         };
     };

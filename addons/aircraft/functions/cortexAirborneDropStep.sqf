@@ -26,6 +26,9 @@
  * Attempts rotate through the original roster, including after refusal. Temporarily unavailable
  * passengers still aboard remain pending until the existing deadline; actors leaving the original
  * group are not recalled. Only an accepted exit refreshes the aircraft drop hold.
+ * Original passengers positively observed in operating seats are withdrawn for this episode,
+ * never counted as landed or reselected after returning to cargo. Remaining cargo can hand over;
+ * withdrawal prevents full-insertion completion credit. Temporary unavailability stays pending.
  * Job-local lastExit records [actor,accepted,local time], not landing/deployment success.
  * Arguments:
  * 0: job state <HASHMAP> - group, aircraft, jumpers, index, phase, target, deadline
@@ -71,6 +74,32 @@ if (isNull _group || {!local _group} || {!(missionNamespace getVariable ["CBE_AI
     || {!(_job getOrDefault ["forced",false]) && {!([_group,"CBE_AIPass_Airborne_Enable",false] call CBE_fnc_CortexFeatureEnabled)}}) exitWith {call _finish};
 
 if (_episode isNotEqualTo (_aircraft getVariable ["CBE_AIPass_DropEpisode",[]])) exitWith {call _finish};
+// Keep the admission roster immutable. A positive live seat change ends only this actor's
+// participation; temporary reservations, missing locality and failed exits do not withdraw them.
+private _originalRoster=_job getOrDefault ["jumpers",[]];
+private _withdrawn=_job getOrDefault ["withdrawnCrew",[]];
+if (!(_originalRoster isEqualType []) || {count _originalRoster > 64}
+    || {_originalRoster findIf {!(_x isEqualType objNull)} >= 0}
+    || {!(_withdrawn isEqualType [])} || {count _withdrawn > 64}
+    || {_withdrawn findIf {!(_x in _originalRoster)} >= 0}) exitWith {call _finish};
+if (!isNull _aircraft && {alive _aircraft} && {time < (_job get "deadline")}) then {
+    private _seats=fullCrew [_aircraft,"",false];
+    if (count _seats <= 64) then {
+        {
+            _x params ["_occupant","_role","_cargoIndex","_turretPath","_personTurret"];
+            private _operating=if (toLowerANSI _role == "driver") then {
+                driver _aircraft == _occupant
+            } else {
+                toLowerANSI _role in ["gunner","commander","turret"] && {!_personTurret}
+                    && {_turretPath isNotEqualTo []} && {_aircraft turretUnit _turretPath == _occupant}
+            };
+            if (_operating && {alive _occupant} && {local _occupant}
+                && {group _occupant == _group} && {vehicle _occupant == _aircraft}
+                && {_occupant in _originalRoster}) then {_withdrawn pushBackUnique _occupant};
+        } forEach _seats;
+    };
+};
+_job set ["withdrawnCrew",_withdrawn];
 if ((_job get "phase") == "DROP") exitWith {
     if (time > (_job get "deadline")) exitWith {call _finish};
     private _roster=_job get "jumpers";
@@ -78,9 +107,10 @@ if ((_job get "phase") == "DROP") exitWith {
     if (!(_cursor isEqualType 0) || {!finite _cursor} || {_cursor < 0}
         || {_cursor != floor _cursor} || {_cursor >= count _roster}) then {_cursor=0};
     private _ordered=(_roster select [_cursor])+(_roster select [0,_cursor]);
-    private _aboard=_roster select {alive _x && {group _x == _group} && {vehicle _x == _aircraft}};
+    private _aboard=_roster select {alive _x && {group _x == _group} && {vehicle _x == _aircraft} && {!(_x in _withdrawn)}};
     private _jumpers = _ordered select {
         group _x == _group && {local _x} && {vehicle _x == _aircraft} && {!isPlayer _x}
+            && {!(_x in _withdrawn)}
             && {[_x] call CBE_fnc_CortexCombatEffective}
             && {!([_x] call CBE_fnc_CortexActorMoveReserved)}
             && {isNull remoteControlled _x}
@@ -124,7 +154,7 @@ if ((_job get "phase") == "DROP") exitWith {
 // Landing evidence belongs to the original passenger roster, not aircraft crew
 // or later group arrivals. Departed actors remain with their current commander.
 private _roster=_job get "jumpers";
-private _alive = _roster select {alive _x && {group _x == _group}};
+private _alive = _roster select {alive _x && {group _x == _group} && {!(_x in _withdrawn)}};
 private _landed = _alive findIf {vehicle _x != _x || {!isTouchingGround _x && {((getPosATL _x) select 2) > 2}}} < 0;
 if (!_landed && {time < (_job get "deadline")}) exitWith {3};
 // A landing can take long enough for a curator or another controller to issue an order after the
@@ -150,10 +180,10 @@ if (_groundOrderScoped && {currentWaypoint _group >= count waypoints _group}
     _waypoint setWaypointType "SAD";
     _group setCurrentWaypoint _waypoint;
 };
-if (_landed && {_alive isNotEqualTo []} && {_groundHandoverOK}) then {
+if (_landed && {_alive isNotEqualTo []} && {_groundHandoverOK} && {_withdrawn isEqualTo []}) then {
     missionNamespace setVariable ["CBE_AIPass_AirborneDrops", (missionNamespace getVariable ["CBE_AIPass_AirborneDrops", 0]) + 1];
     diag_log format ["[CBE] %1 airborne insertion complete (%2 on the ground).", _group, count _alive];
 } else {
-    diag_log format ["[CBE] %1 airborne insertion INCOMPLETE: landing/ground handover incomplete (deadline, unavailable passengers or partial assignment).", _group];
+    diag_log format ["[CBE] %1 airborne insertion INCOMPLETE: landed %2; withdrawn to crew %3; ground handover %4 (deadline, unavailable passengers, withdrawal or partial assignment).", _group, if (_landed) then {count _alive} else {0}, count _withdrawn, _groundHandover select 0];
 };
 call _finish

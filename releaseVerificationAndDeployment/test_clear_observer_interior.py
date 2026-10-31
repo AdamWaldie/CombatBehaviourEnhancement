@@ -55,13 +55,21 @@ class ClearObserverInteriorTests(unittest.TestCase):
                 self.assertGreater(top,origin+sum(c*v for c,v in zip(point,up)))
 
     def test_discovery_and_natural_indoor_paths_share_model_roof_limit(self):
-        for name in ('cortexClearBuilding','indoorActorNodeSelect','indoorActorOperation'):
+        for name in ('cortexClearBuilding','indoorActorNodeSelect','indoorActorOperation','cortexGarrison'):
             text=(ROOT/f'addons/infantry/functions/{name}.sqf').read_text()
             self.assertIn('call CBE_fnc_BuildingRoofTop',text)
             self.assertNotIn('vectorAdd [0,0,10]',text)
 
+        garrison=(ROOT/'addons/infantry/functions/cortexGarrison.sqf').read_text()
+        planning=garrison.split('private _building=_x;',1)[1].split('} forEach (_buildings select [0,64]);',1)[0]
+        self.assertEqual(planning.count('call CBE_fnc_BuildingRoofTop'),1)
+        self.assertLess(planning.index('call CBE_fnc_BuildingRoofTop'),planning.index('private _position=_x;'))
+        self.assertIn('if (!finite _roofTop || {_roofTop == -1e12}) exitWith {}',planning)
+        self.assertNotIn('vectorAdd [0,0,15]',planning)
+
     def test_invalid_or_below_actor_roof_limit_cannot_query_downward(self):
         checks={
+            'cortexGarrison':'_roofTop > (_positionASL select 2)+1',
             'buildingOperationStep':'_roomRoofTop <= (_actual select 2)+0.5',
             'cortexClearBuilding':'_roofTop <= (_positionASL select 2)+0.5',
             'indoorActorNodeSelect':'_roofTop > (_asl select 2)+0.4',

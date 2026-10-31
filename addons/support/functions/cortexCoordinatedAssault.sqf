@@ -54,7 +54,7 @@ if (_state getOrDefault ["coordinated", false]) exitWith {
         _x params ["_helper","_token"];
         private _lease = _helper getVariable ["CBE_AIPass_SupportLease",[]];
         private _status = _helper getVariable ["CBE_AIPass_SupportStatus",[]];
-        count _lease == 6 && {(_lease select 0) == _token} && {(_lease select 1) == _group}
+        count _lease == 7 && {(_lease select 0) == _token} && {(_lease select 1) == _group}
             && {serverTime < (_lease select 2)} && {count _status == 4}
             && {(_status select 0) == _token} && {_status select 2} && {_status select 3}
     };
@@ -88,7 +88,7 @@ private _acknowledged = false;
     private _prepared=count _eligibility == 3 && {(_eligibility select 0) == _token}
         && {(_eligibility select 1) == groupOwner _helper} && {serverTime < (_eligibility select 2)};
     private _executing=count _status == 4 && {(_status select 0) == _token} && {_status select 2};
-    if (count _lease == 6 && {(_lease select 0) == _token} && {(_lease select 1) == _group}
+    if (count _lease == 7 && {(_lease select 0) == _token} && {(_lease select 1) == _group}
         && {serverTime < (_lease select 2)} && {_prepared || {_executing}}
         && {[_helper] call CBE_fnc_CortexIsEligible}) then {
         if (_executing && {_status select 3}) then {_acknowledged = true};

@@ -26,6 +26,8 @@
  * active, tactical jobs are postponed by five seconds. Finite posture cleanup may remove only
  * exact-owned settings during the pause; it cannot start tactics. The pause refreshes a one-minute
  * resumption grace used by tactical-drill watchdogs, so deferred work is not mistaken for starvation.
+ * Existing grenade cleanup is independent of that tactical pause; new evasion remains paused.
+ * Per-actor source-owner/epoch/order guards still yield after shutdown or migration.
  * Locality and authority: machine-local. It performs no world scans. Changed restoration checkpoints are published after group jobs.
  * The latest 256 executed callbacks retain duration, lateness and bounded job identity in a local
  * ring, including callbacks which retire immediately. Paused/stale skips are not timing samples.
@@ -53,7 +55,8 @@ if (!(missionNamespace getVariable ["CBE_AIPass_Active", false])
     && {!(missionNamespace getVariable ["CBE_Aircraft_SchedulerActive", false])}
     && {!(missionNamespace getVariable ["CBE_Danger_PostureSchedulerActive", false])}
     && {!(missionNamespace getVariable ["CBE_ActorSettings_SchedulerActive", false])}
-    && {!(missionNamespace getVariable ["CBE_ClearHold_SchedulerActive", false])}) exitWith {};
+    && {!(missionNamespace getVariable ["CBE_ClearHold_SchedulerActive", false])}
+    && {!(missionNamespace getVariable ["CBE_Grenade_CleanupSchedulerActive", false])}) exitWith {};
 private _jobs = missionNamespace getVariable ["CBE_AIPass_Jobs", []];
 private _pending = missionNamespace getVariable ["CBE_AIPass_PendingJobs", []];
 private _now = time;
@@ -84,6 +87,7 @@ private _rescheduled = [];
 private _postureRetired=false;
 private _settingsRetired=false;
 private _holdsRetired=false;
+private _grenadeRetired=false;
 private _earliest = -1;
 // A dropped callback must notify its existing FSM, not strand it in pending/watchdog replay.
 // The FSM retains responsibility for generation-scoped physical/settings cleanup.
@@ -114,6 +118,7 @@ private _rejectDelay={
             case "AIRCRAFT": {"CBE_Aircraft_SchedulerActive"};
             case "POSTURE_CLEANUP": {"CBE_Danger_PostureSchedulerActive"};
             case "HOLD_CLEANUP": {"CBE_ClearHold_SchedulerActive"};
+            case "GRENADE_CLEANUP": {"CBE_Grenade_CleanupSchedulerActive"};
             case "SETTINGS_CLEANUP": {"CBE_ActorSettings_SchedulerActive"};
             default {"CBE_AIPass_Active"};
         };
@@ -127,6 +132,9 @@ private _rejectDelay={
         // This category retains the owner stale gate and shared budget; its finite handback
         // runtime can outlive tactical shutdown.
         if (_subsystem in ["POSTURE_CLEANUP","SETTINGS_CLEANUP","HOLD_CLEANUP"]) then {_jobPaused=false};
+        // Retire only an already-issued evasion under its original per-actor proof.
+        // The projectile/reaction job remains ordinary paused TACTICS work.
+        if (_subsystem == "GRENADE_CLEANUP") then {_jobPaused=false};
         private _group = _state getOrDefault ["group", grpNull];
         private _stale = !_enabled || {"group" in _state && {isNull _group || {!local _group} || {(_state getOrDefault ["ownerEpoch", -1]) != (_group getVariable ["CBE_AIPass_Epoch", 0])}}};
         private _callbackCanSuspend=canSuspend;
@@ -141,6 +149,8 @@ private _rejectDelay={
             && {isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}}) then {_settingsRetired=true};
         if (_subsystem == "HOLD_CLEANUP"
             && {isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}}) then {_holdsRetired=true};
+        if (_subsystem == "GRENADE_CLEANUP"
+            && {isNil "_delay" || {!(_delay isEqualType 0)} || {_delay < 0}}) then {_grenadeRetired=true};
         private _callbackMs=(diag_tickTime-_callbackStarted)*1000;
         private _queueLatency=(_now-_dueAt) max 0;
         _state set ["lastCallbackMs",_callbackMs];
@@ -194,6 +204,7 @@ private _rejectDelay={
                 if (_subsystem == "POSTURE_CLEANUP") then {_postureRetired=true};
                 if (_subsystem == "SETTINGS_CLEANUP") then {_settingsRetired=true};
                 if (_subsystem == "HOLD_CLEANUP") then {_holdsRetired=true};
+                if (_subsystem == "GRENADE_CLEANUP") then {_grenadeRetired=true};
             };
         };
     };
@@ -238,3 +249,6 @@ if (_settingsRetired && {missionNamespace getVariable ["CBE_ActorSettings_Schedu
 };
 
 if (_holdsRetired) then {[] call CBE_fnc_SchedulerReconcile};
+
+// Reconcile both retained and pending queues before removing the shared callback.
+if (_grenadeRetired) then {[] call CBE_fnc_SchedulerReconcile};

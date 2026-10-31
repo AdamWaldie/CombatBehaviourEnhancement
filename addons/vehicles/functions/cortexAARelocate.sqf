@@ -28,7 +28,7 @@ private _enabled=!_ordered && {missionNamespace getVariable ["CBE_AIPass_Active"
 private _crewReady={
     _enabled && {!isNull _vehicle} && {local _vehicle} && {alive _vehicle} && {canMove _vehicle}
         && {_vehicle isKindOf "LandVehicle"} && {!(_vehicle isKindOf "StaticWeapon")}
-        && {toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas"}
+        && {[_vehicle] call CBE_fnc_CortexAirDefenceRole}
         && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
         && {isNil {_vehicle getVariable "CBE_ExternalDrivingOwner"}}
         && {!(_vehicle getVariable ["CBE_Convoy_Active",false])}

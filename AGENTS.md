@@ -1,6 +1,16 @@
+## Active user priority - Protocol AI additions
+
+User direction30 October2026: focus current implementation batches on Protocol AI additions and their broad intentions. Select, combine and improve the best useful methods rather than copying entire mods or stacking controllers. The11 locally registered Protocol sources and named gaps are in releaseVerificationAndDeployment/referenceReviews/protocol-implementation-programme-20261020.json; newest jamming3824564775 and aircraft3828285847 need source-led integration. Preserve foundations-first lifecycles within those batches, audits paused, protected source stores and compatibility-last boundaries. Historical prior-source counts/reviews are not completion of new additions.
+
 ## Governing goal and source queue
 
 Read `IMPLEMENTATION-GOAL.md` before selecting implementation work. Its Governing execution rule governs source selection, the foundations-up sequence, finite batch criteria and regression safeguards. Follow its source-to-owner trace before changing behaviour and update the existing review/register with the result. Use `reference/sourceReviews/source-review-map.json` and its linked LAMBS, HBQ and Protocol reviews as the recoverable source queue. Historical references below to `LOCAL_IMPLEMENTATION_LEDGER.md` do not establish availability: that file is currently absent. Resolve stale instructions against the current directive and actual source evidence. Repair or isolate material foundation defects before dependent expansion; preserve existing owners and working behaviour. Audits remain paused. Keep build-out, offline checks, physical acceptance and measured performance distinct.
+
+## Regular implementation commits
+
+Make regular local commits as work progresses. Commit each coherent implementation or defect-fix checkpoint after its relevant checks, and before switching to a substantial new work area or handing over. Do not wait for the whole feature set, the full production goal, or a low-usage threshold. A necessary work-in-progress checkpoint must state unfinished work and failed or pending checks honestly.
+
+Keep pushes batched at coherent review checkpoints to control GitHub Actions usage. Local commits do not require repeated full builds when runtime inputs are unchanged; completed review/push checkpoints still require the applicable full gates. Before each Git mutation verify the CBE root, remote, branch and intended PR, stage only an exact reviewed whitelist, and preserve unrelated changes. Never treat a commit or green package as physical acceptance.
 
 # Contribution guidance
 
@@ -139,7 +149,7 @@ User clarification2026-10-24: arm stretching and similar visible body or weapon 
 
 ## Register recovery when the private master is unavailable
 
-The historical LOCAL_IMPLEMENTATION_LEDGER.md remains missing. Do not replace it with an inferred complete list. Later additions are separately reconciled in ignored .qa/implementation-register-additions.json against tracked referenceReviews/workshop-intake-*.json; the nine locally registered Protocol sources use protocol-implementation-programme-20261020.json. Read the named dated reviews before assigning work: an intake status is not whole-source implementation or physical acceptance. Recovery/backup and archive verification evidence is in local-reference-freshness-20261017.json registerRecovery20261024. Keep private registers/backups out of Git.
+The historical LOCAL_IMPLEMENTATION_LEDGER.md remains missing. Do not replace it with an inferred complete list. Later additions are separately reconciled in ignored .qa/implementation-register-additions.json against tracked referenceReviews/workshop-intake-*.json; the11 locally registered Protocol sources use protocol-implementation-programme-20261020.json. Read the named dated reviews before assigning work: an intake status is not whole-source implementation or physical acceptance. Recovery/backup and archive verification evidence is in local-reference-freshness-20261017.json registerRecovery20261024. Keep private registers/backups out of Git.
 
 
 ## Automatic airborne ground squad

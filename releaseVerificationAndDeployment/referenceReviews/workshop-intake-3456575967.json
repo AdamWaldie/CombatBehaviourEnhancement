@@ -1,0 +1,39 @@
+{
+  "workshopId": "3456575967",
+  "name": "Drongos Drone Tweaks",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3456575967",
+  "added": "2026-10-30",
+  "priority": "2 Complementary AI methods",
+  "status": "REGISTERED_SOURCE_REVIEW_PENDING",
+  "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+  "area": "Drone tactics/perception",
+  "scope": "Evaluate useful AI drone deployment, recon/FPV/grenade-drone and spotting methods against existing CBE drone/aircraft/AA owners. Keep inventory/distribution, task selection, native sensing, operator safety and finite cleanup coherent; do not automatically overwrite mission loadouts or import all dependencies.",
+  "userConditions": {},
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3456575967",
+  "localPresent": true,
+  "packageCount": 1,
+  "files": {
+    "meta.cpp": "2b1f33ab280d9768cff9b2a152fda41c377bee5b14d443b8ef732b67371fcab1",
+    "addons/DrongosDroneTweaks.pbo": "0c38acdf8d9d6f4a55704f87e2ce276413d11e363426758011ce6214ce4a662f"
+  },
+  "metadata": {
+    "meta.cpp": {
+      "publishedid": "3456575967",
+      "name": "Drongos Drone Tweaks"
+    }
+  },
+  "identityEvidence": "User URL and accessible Workshop description/title; installed metadata/package hashes only. No extracted-code review or behaviour proof.",
+  "evaluationTopics": [
+    "Trace actual config/FSM/scripts, callers and native writers; compare selected useful intent with current CBE owners before integration.",
+    "Record retained/adapted/rejected methods and dependencies/licence/provenance. No implementation credit from title, metadata or file counts.",
+    "Preserve mission/Zeus authority, finite owner-local lifecycle, player/specialist ownership and credible animation; avoid extra permanent scanners/controllers."
+  ],
+  "dependencies": "UNVERIFIED; source/config/API review required.",
+  "licence": "UNVERIFIED; establish original upstream and component-specific reuse rights before incorporating code.",
+  "sourceReview": "NOT_STARTED; webpage/local metadata and package inventory only.",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "ordering": "Foundations/FSM first, individual behaviour before squad/combined arms; compatibility expansion last. Reference-only items supply methods rather than an automatic implementation obligation.",
+  "sourceProtection": "Installed Workshop/game files, original signatures/assets and preserved references are read-only. No execution/repacking or copying raw reference assets into the product. Any future extraction uses a separate private dated directory."
+}

@@ -312,6 +312,28 @@ class CorridorFoundationTests(unittest.TestCase):
             self.assertIn(f'_envelope set [{dimension}', step)
             self.assertIn(f'_envelope param [{dimension},0]', geometry)
         self.assertIn('"INVALID_ENVELOPE"', geometry)
+        for text in (step,geometry):
+            self.assertIn('getObjectScale',text)
+            self.assertIn('vectorMultiply _scale',text)
+            self.assertIn('_scale <= 0',text)
+        self.assertIn('if (_invalidEnvelope) then {_envelope=[-1,-1,-1]}',step)
+        path=(ROOT/'addons/vehicles/functions/drivingPathGeometry.sqf').read_text()
+        for bound in ('_halfWidth=_halfWidth max','_height=_height max','"HULL_SCALE_UNAVAILABLE"',
+                      '"HULL_DIMENSIONS_EXCEEDED"'):
+            self.assertLess(path.index(bound),path.index('lineIntersectsSurfaces'))
+        # Geometry only: the old raw-envelope width admits this larger follower into a
+        # corridor that its real corners cannot fit. This does not simulate native steering.
+        import itertools
+        low=(-1.8,-4,-0.3);high=(2.2,5.2,3.1)
+        for scale in (0.25,0.5,1,2,3):
+            corners=[tuple(v*scale for v in c) for c in itertools.product(*zip(low,high))]
+            expected=(max(abs(c[0]) for c in corners),max(abs(c[1]) for c in corners),
+                      max(c[2] for c in corners)-min(c[2] for c in corners))
+            dims=(max(abs(low[0]),abs(high[0]))*scale,max(abs(low[1]),abs(high[1]))*scale,
+                  (high[2]-low[2])*scale)
+            for a,b in zip(dims,expected):self.assertAlmostEqual(a,b)
+        self.assertLessEqual(max(abs(low[0]),abs(high[0]))+0.5,3)
+        self.assertGreater(max(abs(low[0]),abs(high[0]))*2+0.5,3)
 
     def test_module_payload_values_are_parsed_and_authoritative(self):
         dialog = (ROOT / 'addons/vehicles/functions/zenDrivingCorridorModule.sqf').read_text()

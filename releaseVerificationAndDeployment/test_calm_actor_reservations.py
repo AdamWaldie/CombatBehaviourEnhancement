@@ -16,8 +16,31 @@ class CalmActorReservationTests(unittest.TestCase):
                       '!finite _x','finite (_lease select 2)'):
             self.assertIn(guard,shared)
         # Pending native cleanup is checked before the empty ordinary-marker shortcut.
-        for journal in ('CBE_Danger_FlightLease','CBE_Cortex_NavalEgressMove'):
+        for journal in ('CBE_Danger_FlightLease','CBE_Cortex_NavalEgressMove','CBE_Cortex_StaticRetirement'):
             self.assertLess(shared.index(journal),shared.index('if (_lease isEqualTo [])'))
+        retirement=(ROOT/'addons/infantry/functions/cortexStaticRetire.sqf').read_text()
+        ended=retirement.split('private _ended=',1)[1].split('if (_ended',1)[0]
+        for proof in ('_wasMounted || {_sawBoarding}','!_boarding','isNull objectParent _actor',
+                      'isNull assignedVehicle _actor','isNull attachedTo _actor'):
+            self.assertIn(proof,ended)
+        timeout=retirement.split('if (serverTime >= _deadline',1)[1].split('// Discovery',1)[0]
+        self.assertIn('"UNRESOLVED"',timeout)
+        self.assertNotIn('"CBE_Cortex_StaticRetirement",nil',timeout)
+        for bound in ('_attempt >= 20','_issued+10','CBE_Cortex_StaticRetirementWork',
+                      '_identity isNotEqualTo _id','_this call CBE_fnc_CortexStaticRetire'):
+            self.assertIn(bound,retirement)
+        for command in ('orderGetIn','unassignVehicle',' doMove',' doFollow',' action [','setPos','nearestObjects'):
+            self.assertNotIn(command,retirement)
+        support=(ROOT/'addons/infantry/functions/cortexStaticSupport.sqf').read_text()
+        release=support.split('private _release=',1)[1].split('// Both contact',1)[0]
+        self.assertIn('isNil {',release)
+        self.assertLess(release.index('call CBE_fnc_CortexStaticRetire'),release.index('orderGetIn false'))
+        self.assertIn('== "ADMITTED"',release)
+        migration=retirement.split('if (!local _actor)',1)[1].split('if (!(_mode',1)[0]
+        self.assertIn('"CBE_Cortex_StaticRetirementWork",nil',migration)
+        self.assertNotIn('"CBE_Cortex_StaticRetirement",nil',migration)
+        setup=(ROOT/'addons/infantry/functions/dangerSetup.sqf').read_text()
+        self.assertIn('["REAP",_x] call CBE_fnc_CortexStaticRetire',setup)
         for forbidden in ('doFollow','doMove','setVariable','lineIntersects','nearEntities'):
             self.assertNotIn(forbidden,helper)
     def test_old_hold_cannot_recall_a_live_successor(self):
@@ -29,7 +52,7 @@ class CalmActorReservationTests(unittest.TestCase):
         generic=self.s.split('private _target = _x getVariable',1)[1].split('// Use the same exact-assignment release',1)[0]
         self.assertIn('if ([_x] call _actorMoveFree) then {_x setVariable ["CBE_Cortex_ActorMove",nil]}',generic)
         # CALM delegates to the feature; its shared retirement still clears only static tags.
-        self.assertIn('[_group,_state,[],false,true,_yieldToExternal] call CBE_fnc_CortexStaticDeployStep',self.s)
+        self.assertIn('[_group,_state,[],false,true,_yieldToExternal,_preserveStaticPacking] call CBE_fnc_CortexStaticDeployStep',self.s)
         deploy=(ROOT/'addons/infantry/functions/cortexStaticDeployStep.sqf').read_text()
         clear=deploy.split('private _clearActor=',1)[1].split('private _canReleaseActor=',1)[0]
         self.assertIn('call _ownsActorMove',clear)
@@ -386,7 +409,7 @@ class CoordinationLeaseReplacementTests(unittest.TestCase):
         self.assertLess(active.index('call _sameLease'),active.index('CBE_Cortex_SupportRetryAfter'))
         self.assertLess(active.index('call _sameLease'),active.index('_stillActive pushBack _x'))
         helper=source.split('private _sameLease={',1)[1].split('private _teams=[];',1)[0]
-        for guard in ['isNull _group','count _lease == 6','(_lease select 0) == _token','serverTime < (_lease select 2)']:
+        for guard in ['isNull _group','count _lease == 7','(_lease select 0) == _token','serverTime < (_lease select 2)']:
             self.assertIn(guard,helper)
         publication=source.split('// Compare the live role here:',1)[1].split('} forEach _teams;',1)[0]
         self.assertIn('(_group getVariable ["CBE_Cortex_SupportRole",[]]) isNotEqualTo _role',publication)

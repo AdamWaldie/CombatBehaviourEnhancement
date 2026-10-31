@@ -1,10 +1,15 @@
 /*
  * Author: WaldoTheWarfighter
+ * Calm remount intent retains its original native waypoint receipt and operation generation;
+ * replacement orders retire boarding without seat cleanup, and migration keeps the original deadline.
  * Generic recall and marker retirement preserve unresolved flight/naval native cleanup
  * through the shared typed reservation gate; no restoration window is renewed.
  * Ordinary current-owner support teardown uses release-only native hold handback before
  * erasing its token. External yields and checkpoint-only restoration never invoke that executor.
+ * Named ordinary post-contact restoration preserves only an exact finite deferred static pack;
+ * explicit release/disable/external/locality teardown still retires it without native fire theft.
  * Remount cleanup preserves a newer vehicle assignment from Zeus or another controller.
+ * Attack permission is restored only by its common operation owner, never loose state flags.
  * Returns a group to CALM and releases the engagement controls it still owns.
  * Group behaviour/combat/speed restoration shares one atomic native-task footprint gate.
  * Blocked or unconfirmed pairs survive in the latest CalmPolicyUnresolved evidence receipt;
@@ -137,16 +142,15 @@ _state deleteAt "supportHeld";
 _state deleteAt "supportBoundSequence";
 // Withdrawals, calm restoration and external handovers retire the shared assignment.
 private _supportLease=_group getVariable ["CBE_AIPass_SupportLease",[]];
-if (count _supportLease == 6 && {(_state getOrDefault ["supportToken",""]) == (_supportLease select 0)}) then {
+if (count _supportLease == 7 && {(_state getOrDefault ["supportToken",""]) == (_supportLease select 0)}) then {
     [_group,_supportLease select 0,false,_supportLease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
 };
 [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
 private _movementOwner=(_state getOrDefault ["movementLease",[]]) param [0,""];
 if (_movementOwner != "") then {[_group,_movementOwner,false] call CBE_fnc_CortexOwnershipLease};
 {_state deleteAt _x} forEach ["supportHeld","supportBoundSequence","supportToken","responding","assaulting","respondingTo","respondUntil"];
-// Zeus may deliberately replace Cortex's disabled autonomous-attack state while taking over.
-// The external handover owns that setting, just as it owns replacement movement and ROE.
-if (!_yieldToExternal && {_state getOrDefault ["attackChanged",false]}) then {_group enableAttack (_state getOrDefault ["baseAttack",true])};
+// Native attack permission belongs to the common operation's typed receipt.
+// Loose legacy state flags cannot restore it or supply a default mission baseline.
 private _retreatModeLease = _state getOrDefault ["retreatCombatMode",[]];
 // The three group policy components restore together below, before remount admission.
 // Search movement never disables PATH. Do not enable a mission-disabled feature while
@@ -203,7 +207,10 @@ if (_pendingHolds isNotEqualTo []) then {[_group,_pendingHolds] call CBE_fnc_Cor
 [_group,_state,[],true,_yieldToExternal] call CBE_fnc_CortexStaticSupport;
 _group setVariable ["CBE_Danger_StaticAttempt",nil,true];
 // Carried equipment shares its executor's actor-task-safe retirement boundary.
-[_group,_state,[],false,true,_yieldToExternal] call CBE_fnc_CortexStaticDeployStep;
+private _preserveStaticPacking=!_yieldToExternal && {_reason in [
+    "CONTACT_ENDED","DANGER_EXPIRED","REGROUP_TIMEOUT","REGROUP_COHESIVE",
+    "INVESTIGATION_COMPLETE","INVESTIGATION_TIMEOUT"]};
+[_group,_state,[],false,true,_yieldToExternal,_preserveStaticPacking] call CBE_fnc_CortexStaticDeployStep;
 _group setVariable ["CBE_Danger_StaticDeployAttempt",nil,true];
 private _vehicleJink=_state getOrDefault ["vehicleDangerJink",[]];
 private _jinkVehicle=_vehicleJink param [1,objNull,[objNull]];
@@ -261,25 +268,54 @@ if (_unresolvedPolicies isNotEqualTo []) then {
         _group getVariable ["CBE_AIPass_Epoch",0],_group getVariable ["CBE_OperationGeneration",0],
         _reason,_unresolvedPolicies],true];
 };
+// This finite episode keeps its admitting native order, including same-position policy edits.
+// Publish before native seat commands; JIP metadata alone never issues boarding.
+private _boarding=_state getOrDefault ["dismounted",[]];
+private _remountDeadline=serverTime+60;
+private _remountGeneration=_group getVariable ["CBE_OperationGeneration",0];
+private _remountOrder=[_group] call CBE_fnc_NativeOrderReceipt;
+if (_allowRemount && {!_yieldToExternal} && {_boarding isNotEqualTo []}) then {
+    _group setVariable ["CBE_Cortex_Remount",[_remountDeadline,+_boarding,_remountGeneration,+_remountOrder],true];
+};
 {
     _x params ["_unit", "_vehicle"];
-    if (_allowRemount && {[_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled} && {group _unit == _group} && {isNull assignedVehicle _unit || {assignedVehicle _unit == _vehicle}} && {[_group, "CBE_AIPass_VehicleRemount_Enable", true] call CBE_fnc_CortexFeatureEnabled} && {[_unit, _vehicle, true] call CBE_fnc_CortexPassengerReady}) then {
+    if (_allowRemount && {!_yieldToExternal}
+        && {_remountGeneration == (_group getVariable ["CBE_OperationGeneration",0])}
+        && {_remountOrder isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
+        && {[_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {group _unit == _group}
+        && {isNull assignedVehicle _unit || {assignedVehicle _unit == _vehicle}}
+        && {[_group,"CBE_AIPass_VehicleRemount_Enable",true] call CBE_fnc_CortexFeatureEnabled}
+        && {[_unit,_vehicle,true] call CBE_fnc_CortexPassengerReady}) then {
         _unit assignAsCargo _vehicle;
         [_unit] orderGetIn true;
     };
-} forEach (_state getOrDefault ["dismounted", []]);
-// Retain boarding intent until seats are actually occupied. The public record lets
-// a new HC owner continue the bounded attempt; it never moves units into seats.
+} forEach _boarding;
 _group setVariable ["CBE_Cortex_DismountContinuation",nil,true];
-private _boarding = _state getOrDefault ["dismounted", []];
-if (_allowRemount && {_boarding isNotEqualTo []}) then {
-    _group setVariable ["CBE_Cortex_Remount",[serverTime+60,+_boarding],true];
-};
-if (!_allowRemount) then {
-    {private _unit=_x select 0; if (local _unit && {vehicle _unit == _unit} && {assignedVehicle _unit == (_x select 1)}) then {[_unit] orderGetIn false; unassignVehicle _unit}} forEach ((_group getVariable ["CBE_Cortex_Remount",[0,[]]]) select 1);
+if (!_allowRemount || {_yieldToExternal}) then {
+    private _retiringRemount=_group getVariable ["CBE_Cortex_Remount",[]];
+    private _retiringCurrent=count _retiringRemount == 4
+        && {(_retiringRemount select 2) isEqualTo (_group getVariable ["CBE_OperationGeneration",0])}
+        && {(_retiringRemount select 3) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
+    // Yielding to another owner never cancels that owner's matching seat command.
+    if (!_yieldToExternal && {_retiringCurrent}) then {
+        {
+            _x params ["_unit","_vehicle"];
+            if (local _unit && {group _unit == _group} && {isNull objectParent _unit}
+                && {assignedVehicle _unit == _vehicle}) then {[_unit] orderGetIn false; unassignVehicle _unit};
+        } forEach (_retiringRemount select 1);
+    };
     _group setVariable ["CBE_Cortex_Remount",nil,true];
 };
 [_group,_state] call CBE_fnc_CortexSearchHoldRelease;
+private _retiringPoint=_state getOrDefault ["pointWithdrawal",[]];
+if (_retiringPoint isNotEqualTo []) then {
+    if ((_group getVariable ["CBE_PointWithdrawal_Result",[]]) isEqualTo []) then {
+        _group setVariable ["CBE_PointWithdrawal_Result",["INCOMPLETE",_reason,+(_retiringPoint select 0),[],serverTime],true];
+    };
+    _group setVariable ["CBE_PointWithdrawal_Status",["ENDED",_reason,serverTime],true];
+    _state deleteAt "pointWithdrawal";
+};
 {_state deleteAt _x} forEach [
     "consolidationRoutes", "baseAttack", "attackChanged", "areaInvestigation", "enemyPos", "behaviourChanged", "speedChanged", "searchTeam", "searchMoveReceipts", "searchDeadline", "searchMemory", "searchIndoorJobs", "searchIndoorAttempted", "searchPointVisited", "lastContactObservation", "searchBuildingVisits", "dismounted", "onboardContactUntil", "reinforceRequested", "reinforceDispatchedAt",
     "withdrawn", "contactLeader", "lastSeen", "contactKnowledge", "dangerDismount", "holders", "holderRecallReceipts", "baseBehaviour", "baseSpeed", "armourSeen",

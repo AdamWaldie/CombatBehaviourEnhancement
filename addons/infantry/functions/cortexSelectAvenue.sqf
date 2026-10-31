@@ -46,6 +46,10 @@
  * Cost: one bounds/scale observation per platform plan; at most three cover probes per leg,
  * replacing existing route probes. No extra ray budget, scan, command, worker or cache.
  *
+ * 8: terrain-only BOOL false. Explicit point tasks without a known threat may opt in;
+ * empty threat/support origins and no screened-endpoint requirement are mandatory. No cover
+ * or concealment credit is calculated. Existing contact callers keep their threat requirement.
+ *
  * Return Value:
  * Array - selected ordered leg endpoints, or [] when no candidate is safe
  *
@@ -68,9 +72,11 @@ params [
     ["_threatObject",objNull,[objNull]],
     ["_mobility","INFANTRY",[""]],
     ["_platform",objNull,[objNull]],
-    ["_requireScreenedEndpoint",false,[false]]
+    ["_requireScreenedEndpoint",false,[false]],
+    ["_terrainOnly",false,[false]]
 ];
-if (count _start < 2 || {count _threat < 2} || {_candidates isEqualTo []}) exitWith {[]};
+if (count _start < 2 || {_candidates isEqualTo []}
+    || {if (_terrainOnly) then {_threat isNotEqualTo [] || {_supportOrigins isNotEqualTo []} || {_requireScreenedEndpoint}} else {count _threat < 2}}) exitWith {[]};
 _mobility=toUpper _mobility;
 if !(_mobility in ["INFANTRY","VEHICLE"]) then {_mobility="INFANTRY"};
 private _vehicleRoute=_mobility == "VEHICLE";
@@ -97,7 +103,7 @@ private _minimumSurfaceUp=[0.55,0.8] select _vehicleRoute;
 private _maximumGrade=[1.25,0.7] select _vehicleRoute;
 
 private _limited=_candidates select [0,(count _candidates) min 8];
-private _threatASL=(AGLToASL _threat) vectorAdd [0,0,1.4];
+private _threatASL=if (_terrainOnly) then {[]} else {(AGLToASL _threat) vectorAdd [0,0,1.4]};
 private _best=[];
 private _bestScore=1e12;
 {
@@ -201,6 +207,7 @@ private _bestScore=1e12;
                 if (!_valid) exitWith {};
             };
             if (!_valid) exitWith {};
+            if (!_terrainOnly) then {
             if (_vehicleScreening) then {
                 if (_envelope isNotEqualTo []) then {
                     private _endpointASL=AGLToASL [_to select 0,_to select 1,_to param [2,0]];
@@ -236,6 +243,7 @@ private _bestScore=1e12;
                         };
                     };
                 } forEach [0.25,0.5,0.75];
+            };
             };
             if (!_valid) exitWith {};
             _from=_to;

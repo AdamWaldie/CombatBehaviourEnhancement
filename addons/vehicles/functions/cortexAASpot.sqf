@@ -3,8 +3,9 @@
  * Purpose: Bounded local CIWS aim calibration from measured, stable-track bullet misses.
  * Locality/authority: Current CBE AA episode owner only. Returns lead seconds/elevation radians;
  * no skill, projectile, movement, target knowledge, firing or damage command is issued.
- * Repeat/JIP: At most8 ammo/munition-class rows and4 estimates/axis, no worker/network replay.
- * Owner/epoch/gunner/station changes invalidate history. Corrections halve every30s and expire60s.
+ * Repeat/JIP: Finished episodes cannot read/apply or update calibration, including pending camera cleanup.
+ * At most8 ammo/munition-class rows and4 estimates/axis, no worker/network replay.
+ * Owner/epoch/gunner/exact turret path/weapon station changes invalidate history. Corrections halve every30s and expire60s.
  * Three consistent estimates/axis within30s are required; rejected axes cannot refresh learning.
  * Each accepted update is bounded; each accepted update moves20percent toward the median,
  * capped0.005s/0.0005rad per sample and0.05s/0.005rad total. No perfect-hit or accuracy guarantee.
@@ -20,11 +21,21 @@ private _vehicle=_episode getOrDefault ["vehicle",objNull];
 private _gunner=_episode getOrDefault ["gunner",objNull];private _group=_episode getOrDefault ["group",grpNull];
 private _missile=_episode getOrDefault ["missile",objNull];
 private _until=_episode getOrDefault ["until",-1];
-if (remoteExecutedOwner > 0 || {isNull _vehicle} || {isNull _gunner} || {isNull _missile}
+private _turret=_episode getOrDefault ["turret",[]];
+private _liveEpisode=_vehicle getVariable ["CBE_AA_Intercept",createHashMap];
+if (remoteExecutedOwner > 0 || {_episode getOrDefault ["finished",false]}
+    || {!(_liveEpisode isEqualType createHashMap)} || {_liveEpisode getOrDefault ["finished",false]}
+    || {(_episode getOrDefault ["token",""]) == ""}
+    || {(_liveEpisode getOrDefault ["token",""]) != (_episode getOrDefault ["token",""])} || {isNull _vehicle} || {isNull _gunner} || {isNull _missile}
     || {!local _vehicle} || {!local _gunner} || {!local _missile}
-    || {gunner _vehicle != _gunner} || {group _gunner != _group} || {!local _group}
+    || {!(_turret isEqualType [])}
+    || {count _turret < 1} || {count _turret > 8}
+    || {_turret findIf {!(_x isEqualType 0) || {!finite _x}
+        || {_x != floor _x} || {_x < 0} || {_x >= 32}} >= 0}
+    || {_vehicle turretUnit _turret != _gunner} || {!(_vehicle turretLocal _turret)}
+    || {group _gunner != _group} || {!local _group}
     || {time >= _until} || {(_group getVariable ["CBE_AIPass_Epoch",0]) != (_episode getOrDefault ["ownerEpoch",-1])}) exitWith {[0,0]};
-private _identity=[clientOwner,_group,_episode get "ownerEpoch",_gunner,_episode get "weapon",_episode get "muzzle",_episode get "magazine"];
+private _identity=[clientOwner,_group,_episode get "ownerEpoch",_gunner,+_turret,_episode get "weapon",_episode get "muzzle",_episode get "magazine"];
 private _cache=_vehicle getVariable ["CBE_AA_Corrections",[[],[]]];
 private _rows=if ((_cache select 0) isEqualTo _identity) then {+((_cache select 1) select [0,8])} else {[]};
 private _ammo=getText (configFile >> "CfgMagazines" >> (_episode get "magazine") >> "ammo");

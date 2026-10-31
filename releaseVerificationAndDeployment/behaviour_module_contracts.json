@@ -9,14 +9,37 @@
     "CBE_ModuleDefend",
     "CBE_ModuleDrivingCorridor",
     "CBE_ModuleDrivingCorridorMission",
-    "CBE_ModuleAirborne"
+    "CBE_ModuleAirborne",
+    "CBE_ModuleRelease",
+    "CBE_ModulePatrol",
+    "CBE_ModuleHunt",
+    "CBE_ModuleRush",
+    "CBE_ModuleClear",
+    "CBE_ModuleClearArea",
+    "CBE_ModulePointAdvance",
+    "CBE_ModulePointWithdraw",
+    "CBE_ModuleVehiclePoint",
+    "CBE_ModuleVehiclePointRelease",
+    "CBE_ModuleCreep",
+    "CBE_ModuleJamming"
   ],
   "zen_labels": [
     "Create AI Convoy",
     "Garrison area",
     "Defend area",
     "Clear building",
-    "Navigation corridor"
+    "Navigation corridor",
+    "Release infantry task",
+    "Patrol area",
+    "Hunt known enemy",
+    "Press attack",
+    "Clear buildings in area",
+    "Advance to position",
+    "Withdraw to position",
+    "Position vehicle",
+    "Release vehicle position task",
+    "Cautious approach",
+    "AI radio denial"
   ],
   "contracts": [
     {
@@ -48,7 +71,8 @@
       ],
       "handlers": [
         "addons/infantry/functions/moduleGarrison.sqf",
-        "addons/infantry/functions/zenGarrisonModule.sqf"
+        "addons/infantry/functions/zenGarrisonModule.sqf",
+        "addons/infantry/functions/garrisonTaskDialog.sqf"
       ],
       "executor": "CBE_fnc_CortexOrderDispatch",
       "authority": "Server-authenticated curator, current-owner garrison executor and acknowledgement",
@@ -65,7 +89,8 @@
       ],
       "handlers": [
         "addons/infantry/functions/moduleGarrison.sqf",
-        "addons/infantry/functions/zenDefendModule.sqf"
+        "addons/infantry/functions/zenDefendModule.sqf",
+        "addons/infantry/functions/infantryTaskDialog.sqf"
       ],
       "executor": "CBE_fnc_CortexOrderDispatch",
       "authority": "Authenticated curator/server request, preflighted current-owner CortexDefend execution and acknowledgement",
@@ -81,7 +106,8 @@
         "building"
       ],
       "handlers": [
-        "addons/infantry/functions/zenClearModule.sqf"
+        "addons/infantry/functions/zenClearModule.sqf",
+        "addons/infantry/functions/moduleClear.sqf"
       ],
       "executor": "CBE_fnc_CortexOrderDispatch",
       "authority": "Authenticated curator/server task validation and current-owner CortexClearBuilding acknowledgement",
@@ -144,6 +170,202 @@
       "termination": "Disposable frontend deletes on submission/refusal; existing finite insertion handles task refusal, native/Zeus replacement, owner/aircraft loss, original deadline and landed-squad handover without JIP command replay",
       "guide": "docs/MODDING-AND-OPERATIONS.md",
       "physical_acceptance": "unverified; native no-ZEN placement, changed seat/aircraft, actual jump/landing, repeated use, HC/JIP and performance remain unrun while audits paused"
+    },
+    {
+      "behaviour": "Release assigned infantry tasks: clearance, garrison, defence, patrol and temporary actor tasks",
+      "target": "Explicit AI squad; native module attaches to an AI soldier",
+      "parameters": [
+        "squad"
+      ],
+      "handlers": [
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenReleaseModule.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Existing authenticated server dispatch and serial/deadline/native/Zeus receipt-fenced current-owner RELEASE executor",
+      "termination": "One-shot request; existing exact-owned feature cleanup may remain pending. No global reset, new task worker or replay.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; dialog/owner/native handback/repeat/locality checks await audit authorisation"
+    },
+    {
+      "behaviour": "One finite area patrol circuit",
+      "target": "Explicit AI foot squad; native module attaches to an AI soldier; ZEN selects the squad at the module centre",
+      "parameters": [
+        "squad",
+        "centreATL",
+        "radius25..500m",
+        "destinations3..8",
+        "duration30..1800s"
+      ],
+      "handlers": [
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenPatrolModule.sqf",
+        "addons/infantry/functions/infantryTaskDialog.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Existing assigned-curator authentication, server named payload validation, serial/12s deadline and native/Zeus receipts, repeated current-owner parameter validation. No new RPC. Helpers admit authenticated server context, refuse other remote senders.",
+      "termination": "Original finite circuit/task/leg deadlines, common-operation exact waypoint cleanup, combat suspension without deadline renewal, newer-control/locality cancellation. Existing Release infantry task cancels only tracked infantry tasks.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; dialog/payload/owner/circuit/release/Zeus/MP checks await audit authorisation"
+    },
+    {
+      "behaviour": "Finite Hunt from native ground-contact belief",
+      "target": "Explicit AI foot squad; native module attaches to AI soldier; position does not reveal target",
+      "parameters": [
+        "squad",
+        "huntRange50..2000 capped by CBA engagement range",
+        "duration30..1800s"
+      ],
+      "handlers": [
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenHuntModule.sqf",
+        "addons/infantry/functions/infantryTaskDialog.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Existing authenticated curator/server/current-owner task path and serial/12s/native/Zeus receipts; repeated parameter validation; native CortexKnowledge only, no remote registration of HuntOperation.",
+      "termination": "Existing finite PatrolOperation sweep owner and scoped Release. Native belief expires, original task/leg deadline, four retarget plans,10s sampling, newer control/locality stops; no new controller or world scan.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; physical search/retarget/contact/release/Zeus/MP await audit authorisation"
+    },
+    {
+      "behaviour": "One finite covered offensive episode: advance or close assault",
+      "target": "Explicit AI foot squad with viable fresh native contact; module position does not reveal an enemy",
+      "parameters": [
+        "squad",
+        "knowledge range50..2000 capped by CBA engagement range",
+        "original task duration30..300s"
+      ],
+      "handlers": [
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenRushModule.sqf",
+        "addons/infantry/functions/infantryTaskDialog.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Existing assigned-curator/server/current-owner serial/12s/native/Zeus receipt path; owner-local RushOperation delegates to actor-scoped tactical selector and existing native tacticalDrill FSM.",
+      "termination": "Nonrenewed explicit tag token/epoch/generation/deadline checked before policy/movement; exact tagged-only Release. Owner transfer keeps restoration but excludes timed explicit semantic replay. No extra worker/native command loop.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; movement/fire/role/release/Zeus/MP handback and cost await authorised audits"
+    },
+    {
+      "behaviour": "Finite physical clearance of selected area buildings",
+      "target": "Explicit AI foot squad and area centre",
+      "parameters": [
+        "squad",
+        "centre",
+        "radius10..150",
+        "buildingLimit1..8",
+        "duration30..1800"
+      ],
+      "handlers": [
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenClearAreaModule.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Authenticated server/current-owner validation; ClearAreaOperation delegates exact child CLEAR under original parent token/deadline/mission and owner epoch.",
+      "termination": "Original total deadline, newer task/native/Zeus/specialist owner, membership/owner loss, selected queue results; capped/failed visits remain PARTIAL.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; area flow, retained partial/inaccessible results, repeated tasks, interruption/locality and performance need authorised runtime audit."
+    },
+    {
+      "behaviour": "Finite covered advance to an explicit position",
+      "target": "Explicit AI foot squad and destination position; no hostile proxy",
+      "parameters": [
+        "squad",
+        "destinationATL",
+        "arrivalRadius5..25",
+        "duration30..300"
+      ],
+      "handlers": [
+        "addons/infantry/functions/modulePointAdvance.sqf",
+        "addons/infantry/functions/zenPointAdvanceModule.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Authenticated server/current-owner validation -> PointAdvanceOperation -> existing CortexAdvanceStart/tacticalDrill, original native/Zeus/epoch/token/generation proof.",
+      "termination": "Actual arrived final-bound/cohort/floor, partial missing original participants, original deadline, bounded approach/route budget, native/Zeus/owner or feature replacement.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; actual covered fire-team advance, native UI, cohort arrival/floor, repeat/casualty/normal/HC and measured performance require authorised runtime validation."
+    },
+    {
+      "behaviour": "Finite withdrawal to an explicit ground position",
+      "target": "Explicit AI foot squad and ground destination",
+      "parameters": [
+        "squad",
+        "destinationATL",
+        "fixed120s deadline",
+        "fixed30m ground arrival"
+      ],
+      "handlers": [
+        "addons/infantry/functions/modulePointAdvance.sqf",
+        "addons/infantry/functions/zenPointAdvanceModule.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Curator-authenticated WITHDRAW_POINT server dispatch and current-owner typed validation; PointWithdrawOperation reuses CortexRetreat/common WITHDRAW operation and existing native waypoint owner.",
+      "termination": "Original120s, capable original cohort ground arrival, bounded exact-goal retries, native/Zeus/specialist replacement, owner loss or scoped Release infantry task. No incoming-owner semantic replay.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "UNVERIFIED; audits paused. Native/optionalZEN selection/acknowledgement, actual ground withdrawal, smoke, repeat/casualty/normal/HC/locality and measured cost remain pending."
+    },
+    {
+      "behaviour": "Position one selected AI land vehicle and request exact task retirement",
+      "target": "Explicit AI platform with original operating crew; dry ground destination for START",
+      "parameters": [
+        "vehicle",
+        "position",
+        "30..300s original total move/hold deadline; native default180s;10m arrival"
+      ],
+      "handlers": [
+        "addons/vehicles/functions/vehiclePointDialog.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Curator-authenticated CortexOrderDispatch; current group/platform owner revalidates original mission/crew and real VEHICLE_POINT operation",
+      "termination": "Original deadline, explicit exact release, changed native/Zeus/mission/source/crew, disable,30s no progress or locality retirement; native unresolved proof blocks reacquisition",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; audits paused",
+      "native_forwarder": {
+        "handler": "addons/vehicles/functions/moduleVehiclePoint.sqf",
+        "calls": "CBE_fnc_VehiclePointDialog"
+      },
+      "owner_executor": "CBE_fnc_VehiclePointOperation -> VehicleTacticalMoveStart/Step -> VehicleCrewMoveNativePhase"
+    },
+    {
+      "behaviour": "Cautious native-belief approach",
+      "target": "Explicit AI foot squad and its recent known ground contact",
+      "parameters": [
+        "squad",
+        "huntRange",
+        "creepDuration"
+      ],
+      "handlers": [
+        "addons/infantry/functions/moduleGarrison.sqf",
+        "addons/infantry/functions/zenCreepModule.sqf",
+        "addons/infantry/functions/infantryTaskDialog.sqf"
+      ],
+      "executor": "CBE_fnc_CortexOrderDispatch",
+      "authority": "Authenticated server request and exact current-owner CreepOperation through PatrolOperation; CreepPolicy acknowledgement before first movement",
+      "termination": "Original task/leg deadline, stale belief, stand-off, actual nearby danger, changed native/Zeus/specialist control, release or owner loss",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; audits paused; native policies, approach, interruption, repeat, HC/JIP and measured cost pending"
+    },
+    {
+      "behaviour": "Start/update or end AI radio denial from an explicit emitter",
+      "target": "Exact attached editable object; no nearest-object fallback, spawn or automatic radar classification",
+      "parameters": [
+        "EMIT or STOP",
+        "radius50..100000m in UI; raw server API1..100000",
+        "FIXED selected AI sides (default) or RADAR_HOSTILES explicitly designated active-radar asset with live mutual hostility",
+        "serial and12s expiry transport guards"
+      ],
+      "handlers": [
+        "addons/infantry/functions/jammingTaskDialog.sqf"
+      ],
+      "frontends": [
+        "addons/infantry/functions/moduleJamming.sqf",
+        "addons/main/bootstrap/zenRegister.sqf"
+      ],
+      "executor": "CBE_fnc_CortexJammingField",
+      "authority": "Actual remote owner must have an assigned curator and editable emitter; server revalidates keys/types/bounds/expiry/serial, then atomically applies field and receipt. Raw client bypass refuses.",
+      "termination": "STOP removes field; emitter death/deletion stops effect. RADAR_HOSTILES is dormant while radar off, crew absent/dead/offboard, emitter hidden/non-simulated or sides not mutually hostile; queries use current state. Passive snapshot supports JIP; no historical command replay.",
+      "guide": "docs/Smart-AI-Pass.md",
+      "physical_acceptance": "unverified; native/optional ZEN dialog, authority/replay/expiry, movement/deletion,JIP/HC and actual AI report denial pending while audits paused"
     }
   ]
 }

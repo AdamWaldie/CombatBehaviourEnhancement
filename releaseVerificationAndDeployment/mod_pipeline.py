@@ -85,6 +85,8 @@ def stage(package, destination, focus, root=ROOT, native_baseline=False, perform
         raise ValueError('Normal naval fixtures require a separate normal batch')
     if focus == 'navalhc' and (batch_mode != 'headless' or not headless_provider):
         raise ValueError('Naval HC handover requires a headless batch and real provider')
+    if focus == 'rappelphysics' and batch_mode != 'normal':
+        raise ValueError('Native rappel physics requires a separate normal batch')
     if focus == 'aa' and batch_mode != 'normal':
         raise ValueError('Native AA warning/fire fixture requires a separate normal batch')
     if focus == 'indooractorshc' and (batch_mode != 'headless' or not headless_provider):
@@ -189,6 +191,8 @@ def release_gate(package, evidence):
         raise ValueError('Focused naval fixtures cannot accept a CBE release')
     if report.get('focus') == 'aa':
         raise ValueError('Focused AA warning/fire fixture cannot accept a CBE release')
+    if report.get('focus') == 'rappelphysics':
+        raise ValueError('Native rappel physics diagnostics cannot accept a CBE release')
     if report.get('focus') == 'nativebuildings':
         raise ValueError('Native building diagnostics cannot accept a CBE release')
     if report.get('focus') in ('indooractors','indooractorshc','indoornatural'):

@@ -38,6 +38,10 @@
  * Arguments:
  * 0: group <GROUP, default grpNull>
  * 1: state <HASHMAP, default empty HashMap>
+ * 3: explicit point order ARRAY [] or [destinationATL, knownThreatATL-or-empty].
+ * Owner-local PointWithdrawOperation only; fixed120s/30m ground arrival, no semantic replay.
+ * A point task retains its goal and cannot use automatic escape-destination replanning.
+ *
  * 2: resume intent <ARRAY, default []> - ["INFANTRY", origin, target, enemy position,
  *    server start, replans, best travel]
  *
@@ -48,10 +52,10 @@
  * [_group, _state] call CBE_fnc_CortexRetreat;
  * Result: the survivors fall back 200 m and regroup.
  *
- * Current callers: CBE_fnc_CortexGroupTick and CBE_fnc_CortexLocality.
+ * Current callers: CBE_fnc_CortexGroupTick, CBE_fnc_CortexLocality and CBE_fnc_PointWithdrawOperation.
  */
 
-params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_resume",[],[[]]]];
+params [["_group", grpNull, [grpNull]], ["_state", createHashMap, [createHashMap]], ["_resume",[],[[]]],["_pointOrder",[],[[]]]];
 // Validate authority before route geometry, ending support or changing combat settings. A
 // rejected native service task must not become a partially applied withdrawal.
 if (isNull _group || {!local _group}
@@ -65,6 +69,18 @@ if ((units _group) findIf {
 private _leader = [_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
 if (!([_leader] call CBE_fnc_CortexCombatEffective) || {!local _leader} || {group _leader != _group}) exitWith {false};
+private _pointScoped=_pointOrder isNotEqualTo [];
+if (_pointScoped && {count _pointOrder != 2 || {_resume isNotEqualTo []}
+    || {!((_pointOrder select 0) isEqualType [])} || {count (_pointOrder select 0) != 3}
+    || {(_pointOrder select 0) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+    || {!((_pointOrder select 1) isEqualType [])}
+    || {count (_pointOrder select 1) != 0 && {count (_pointOrder select 1) != 3}}
+    || {(_pointOrder select 1) findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}
+    || {(_pointOrder select 0) select 2 < -0.5} || {(_pointOrder select 0) select 2 > 2.5}
+    || {_leader distance2D (_pointOrder select 0) < 35} || {_leader distance2D (_pointOrder select 0) > 2000}
+    || {count units _group > 64} || {count waypoints _group > 64}
+    || {(units _group) findIf {isPlayer _x || {alive _x && {!local _x || {!isNull objectParent _x} || {!isNull attachedTo _x}}}} >= 0}}) exitWith {false};
+private _pointMission=if (_pointScoped) then {([_group] call CBE_fnc_AuthoredRouteReceipt) apply {_x select [1]}} else {[]};
 private _resuming = count _resume == 7 && {(_resume select 0) == "INFANTRY"};
 if (_resume isNotEqualTo [] && {!_resuming}) exitWith {false};
 private _startedAt = if (_resuming) then {_resume select 4} else {serverTime};
@@ -73,12 +89,16 @@ if (!(_startedAt isEqualType 0) || {!finite _startedAt} || {_startedAt < 0}
 private _elapsed = (serverTime-_startedAt) max 0;
 if (_elapsed >= 120) exitWith {false};
 
-private _enemyPos = if (_resuming) then {_resume select 3} else {_state getOrDefault ["enemyPos", []]};
-if (count _enemyPos < 2) exitWith {false};
+private _enemyPos = if (_pointScoped) then {+(_pointOrder select 1)} else {if (_resuming) then {_resume select 3} else {_state getOrDefault ["enemyPos", []]}};
+if (!_pointScoped && {count _enemyPos < 2}) exitWith {false};
 private _distance = (missionNamespace getVariable ["CBE_AIPass_Morale_RetreatDistance", 200]) * ([_group, "retreatScale"] call CBE_fnc_CortexProfile);
-private _away = _enemyPos getDir _leader;
+private _away = if (_enemyPos isEqualTo []) then {0} else {_enemyPos getDir _leader};
 private _point = if (_resuming) then {+(_resume select 2)} else {[]};
-if (!_resuming) then {
+if (_pointScoped) then {
+    private _legs=[getPosATL _leader,[[+(_pointOrder select 0)]],_enemyPos,[],objNull,"INFANTRY",objNull,false,_enemyPos isEqualTo []] call CBE_fnc_CortexSelectAvenue;
+    if (_legs isNotEqualTo []) then {_point=+(_pointOrder select 0)};
+};
+if (!_resuming && {!_pointScoped}) then {
     private _origin=getPosATL _leader;
     private _candidates=[];
     {
@@ -114,7 +134,7 @@ if (count (_state getOrDefault ["drill",createHashMap]) > 0) then {
 };
 // Withdrawals, calm restoration and external handovers retire the shared assignment.
 private _supportLease=_group getVariable ["CBE_AIPass_SupportLease",[]];
-if (count _supportLease == 6 && {(_state getOrDefault ["supportToken",""]) == (_supportLease select 0)}) then {
+if (count _supportLease == 7 && {(_state getOrDefault ["supportToken",""]) == (_supportLease select 0)}) then {
     [_group,_supportLease select 0,false,_supportLease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
 };
 [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
@@ -209,6 +229,10 @@ if (isNull (_waypoint param [0,grpNull,[grpNull]]) || {(_waypoint param [1,-1,[0
     _group setVariable ["CBE_Cortex_Withdrawal",["MOVEMENT_REJECTED",0,0],true];
     false
 };
+if (_pointScoped) then {
+    private _ownedRow=([_group,"",false,_waypoint select 1] call CBE_fnc_AuthoredRouteReceipt) select 0;
+    _state set ["pointWithdrawal",[+_point,_startedAt+120,_group getVariable ["CBE_AIPass_Epoch",0],_generation,+_participants,_pointMission,_ownedRow select [1]]];
+};
 _state set ["withdrawOperationGeneration",_generation];
 // RED grants the engine independent pursuit authority, which can replace the finite retreat
 // waypoint while the smoke layer still runs. YELLOW retains fire-at-will and formation movement.
@@ -225,7 +249,7 @@ _state set ["retreatStart",_origin];
 _state set ["retreatTarget",_point];
 _state set ["retreatProgress",[time,_bestTravel,_replans]];
 _group setVariable ["CBE_Cortex_Withdrawal",["MOVING",round (_leader distance2D _origin),_replans],true];
-private _withdrawalIntent=["INFANTRY",_origin,_point,_enemyPos,_startedAt,_replans,_bestTravel];
+private _withdrawalIntent=[["INFANTRY","POINT"] select _pointScoped,_origin,_point,_enemyPos,_startedAt,_replans,_bestTravel];
 _group setVariable ["CBE_Cortex_WithdrawalIntent",_withdrawalIntent,true];
 _group setVariable ["CBE_Cortex_WithdrawalOrder",[_startedAt,
     [_group] call CBE_fnc_NativeOrderReceipt],true];
@@ -266,7 +290,7 @@ isNil {
     };
 };
 
-if (!_resuming) then {
+if (!_resuming && {_enemyPos isNotEqualTo []}) then {
     private _smokers = (units _group) select {alive _x && {local _x} && {vehicle _x == _x}};
     // Preserve the leader's route ownership when another survivor can throw the screen.
     _smokers=(_smokers select {_x != _leader})+(_smokers select {_x == _leader});
@@ -289,7 +313,7 @@ if (!_resuming) then {
     };
 };
 private _withdrawReason=if (_resuming) then {"OWNERSHIP_RESUME"} else {
-    _state getOrDefault ["withdrawReason","MORALE_WITHDRAWAL"]
+    [(_state getOrDefault ["withdrawReason","MORALE_WITHDRAWAL"]),"POINT_WITHDRAWAL"] select _pointScoped
 };
 _state deleteAt "withdrawReason";
 [_group,_state,"RETREAT",_withdrawReason,time-_elapsed,_resuming] call CBE_fnc_CortexSetPhase;

@@ -150,6 +150,23 @@ class AIModularityContracts(unittest.TestCase):
         self.assertIn('"EXTERNAL_TAKEOVER"',release)
         self.assertIn('CBE_fnc_CortexZeusHeld',release)
         self.assertIn('CBE_fnc_CortexExternalTakeover',release)
+        # Boarding continuation must retain the order which admitted it, not just a seat list.
+        tick=src('cortexGroupTick')
+        boarding=tick.split('private _remount =',1)[1].split('private _contactDelay =',1)[0]
+        for proof in ('private _remountCurrent=', 'count _remount == 4',
+                      'CBE_OperationGeneration', 'CBE_fnc_NativeOrderReceipt',
+                      '_remountCurrent && {[] call _mayIssueMovement}', '"ORDER_REPLACED"',
+                      '[_deadline,+_pending,_remountGeneration,+_remountOrder]'):
+            self.assertIn(proof,boarding)
+        self.assertIn('[_remountDeadline,+_boarding,_remountGeneration,+_remountOrder]',restore)
+        adoption=locality.split('private _remountIntent =',1)[1]
+        self.assertIn('private _remountOrderCurrent=',adoption)
+        self.assertIn('if (_remountOrderCurrent',adoption)
+        self.assertIn('_remountIntent select 3',adoption)
+        crew=src('cortexVehicles').split('private _boarding=_passengerGroup getVariable',1)[1]
+        for proof in ('count _boarding == 4', '_boarding select 2', '_boarding select 3',
+                      'CBE_fnc_NativeOrderReceipt'):
+            self.assertIn(proof,crew)
         for name in ['dangerActionSelect','dangerReact','dangerStep','dangerRequest']:
             text=src(name)
             self.assertTrue(
@@ -649,7 +666,11 @@ class SemanticComponentContracts(unittest.TestCase):
     def test_static_support_release_preserves_new_actor_tasks(self):
         source = (ROOT/'addons/infantry/functions/cortexStaticSupport.sqf').read_text()
         release = source[source.index('private _release='):source.index('private _enabled=')]
-        self.assertIn('private _ownedBoarding=', release)
+        self.assertIn('[_actor,true,_lease param [7,objNull,[objNull]]] call _nativeTaskAllowed',release)
+        policy=source.split('private _nativeTaskAllowed=',1)[1].split('private _release=',1)[0]
+        self.assertIn('_command == "GET IN" && {_boarding}',policy)
+        self.assertIn('[_actor,_lease param [2,objNull,[objNull]]] call _assignmentOwned',policy)
+        self.assertIn('[_actor,_weapon] call _assignmentOwned',release)
         self.assertIn('&& {!_protectedTask} && {!_newMove}', release)
         self.assertIn('call CBE_fnc_CortexCombatEffective', release)
         self.assertLess(release.index('private _protectedTask='), release.index('orderGetIn false'))

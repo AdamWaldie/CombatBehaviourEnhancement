@@ -20,7 +20,21 @@ class DefendModuleTests(unittest.TestCase):
         self.assertIn('class CBE_ModuleDefend: CBE_ModuleGarrison',config)
         self.assertIn('call CBE_fnc_ZenDefendModule',module)
         self.assertIn('["order",_order]',module)
-        self.assertIn('["width",60]',module)
+        dialog=src('infantryTaskDialog')
+        self.assertIn('call CBE_fnc_InfantryTaskDialog',module)
+        for order in ('DEFEND','PATROL','HUNT','RUSH'):
+            self.assertIn('case "'+order+'"',dialog)
+        for key in ('facing','width','radius','patrolNodes','patrolDuration','huntRange','rushDuration'):
+            self.assertIn('["'+key+'",',dialog)
+            self.assertIn('"'+key+'"',src('cortexOrderDispatch'))
+            self.assertIn('"'+key+'"',src('cortexOrderLocal'))
+        self.assertLess(dialog.index('displayChild _curator'),dialog.index('createDisplay "RscDisplayEmpty"'))
+        self.assertLess(dialog.index('_start ctrlAddEventHandler'),dialog.index('call CBE_fnc_CortexOrderDispatch'))
+        self.assertEqual(dialog.count('call CBE_fnc_CortexOrderDispatch'),1)
+        self.assertIn('closeDisplay 2',dialog)
+        self.assertIn('count _choices != 4',dialog)
+        for forbidden in ('nearestObjects','doMove','setPos','CBA_fnc_addSetting','CBA_settings_fnc_set','remoteExec'):
+            self.assertNotIn(forbidden,dialog)
         self.assertIn('call CBE_fnc_CortexOrderDispatch',module)
         self.assertNotIn('nearestObjects',module)
     def test_task_controls_do_not_mutate_addon_settings(self):

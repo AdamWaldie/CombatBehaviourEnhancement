@@ -107,7 +107,7 @@ class RearHullProjectionTests(unittest.TestCase):
         for guard in ('count _candidates > 64','_sameHeight','_sameLane',
                       'if (_ahead && {_sameLane} && {_sameHeight})',
                       'if (_sameHeight && {_otherSpeed > 0.8})',
-                      '_area nearEntities [["LandVehicle"],false,false,false]'):
+                      '_area nearEntities [["LandVehicle","Air","Ship"],false,false,false]'):
             self.assertIn(guard,source)
 
 if __name__=='__main__': unittest.main()

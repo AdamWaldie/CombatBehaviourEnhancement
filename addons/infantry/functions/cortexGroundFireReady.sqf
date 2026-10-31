@@ -18,14 +18,15 @@
  * 3 observation <HASHMAP, empty>, receives reloadInProgress BOOL for queried matching muzzles;
  * 4 selection pass <BOOL, false>, permits completed failed-scan reuse in this local frame only.
  * 5 bullet suppression <BOOL, false>, requires nonexplosive shotBullet and >=20 loaded rounds.
- * 6 AA cannon <BOOL, false>, permits explosive shotBullet with >=20 loaded rounds; excludes missiles/shell simulation.
+ * 6 AA cannon <BOOL, false>, permits occupied non-FFV local cannon turrets and explosive shotBullet
+ * with >=20 loaded rounds; excludes driver stations and missiles/shell simulation. Other modes remain primary-only.
  * Bullet suppression remains nonexplosive even if both policies are requested.
  * Raw selection snapshots are reevaluated against this policy; they never cache permission.
  * Selection snapshots never authorize firing: the caller must repeat a fresh default check.
  * No native rows are collected or reused by default; optional rows remain caller-local and <=32.
  * Return Value: BOOL, station has usable damaging ammunition for the supplied target,
  * or any damaging ammunition when target is omitted; not proof of firing/effect.
- * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep, CortexVehicles and CortexAAIntercept.
+ * Current callers: CortexCombinedArmsLocal, CortexCombinedGroundStep, CortexVehicles and CortexAAStationSelect.
  * Example: [_vehicle,gunner _vehicle,_enemy] call CBE_fnc_CortexGroundFireReady;
  */
 params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],["_target",objNull,[objNull]],["_observation",createHashMap,[createHashMap]],["_selectionPass",false,[true]],["_bulletSuppression",false,[true]],["_aaCannon",false,[true]]];
@@ -33,11 +34,20 @@ _observation set ["reloadInProgress",false];
 {_observation deleteAt _x} forEach ["loadedWeapon","loadedMuzzle","loadedMagazine","loadedTurret","loadedPreference"];
 if (isNull _asset || {isNull _gunner} || {!local _gunner}
     || {!alive _asset} || {!(_asset isKindOf "LandVehicle")}
-    || {gunner _asset != _gunner} || {vehicle _gunner != _asset}) exitWith {false};
+    || {!_aaCannon && {gunner _asset != _gunner}} || {vehicle _gunner != _asset}) exitWith {false};
 private _crew=fullCrew [_asset,"",false];
+if (_aaCannon && {count _crew > 32}) exitWith {false};
 private _stationIndex=_crew findIf {(_x select 0) == _gunner};
 if (_stationIndex < 0) exitWith {false};
-private _station=(_crew select _stationIndex) select 3;
+private _row=_crew select _stationIndex;
+private _station=_row select 3;
+// Alternate station access is confined to the AA cannon capability query. Ordinary
+// ground fire remains primary-only; readiness never grants aim or fire authority.
+if (_aaCannon && {(_row select 4)
+    || {!(toLowerANSI (_row select 1) in ["gunner","commander","turret"])}
+    || {count _station < 1} || {count _station > 8}
+    || {_station findIf {!(_x isEqualType 0) || {!finite _x} || {_x != floor _x} || {_x < 0} || {_x >= 32}} >= 0}
+    || {_asset turretUnit _station != _gunner} || {!(_asset turretLocal _station)}}) exitWith {false};
 private _weapons=_asset weaponsTurret _station;
 private _targetPlatform=if (isNull _target) then {objNull} else {vehicle _target};
 private _targetFlag=if (isNull _targetPlatform) then {0} else {

@@ -23,6 +23,36 @@ class BuildingStartAdmissionTests(unittest.TestCase):
         self.assertLess(commit.index('exitWith {};'),commit.index('_old set ["cancelled",true]'))
         self.assertLess(commit.index('exitWith {};'),commit.index('execFSM'))
         self.assertNotIn('CortexQueueJob',start)
+        # An already-started egress owns its original exit allowance, not the expired
+        # sweep clock. This does not grant a different producer or fresh task that allowance.
+        window=start.split('private _windowCurrent=',1)[1].split('private _old=',1)[0]
+        for proof in ('_sweepClockKnown','"EGRESS"','"egressDeadlineServer"','"egressDeadline"',
+                      'finite _exitUntil','finite _exitLocalUntil','serverTime < _exitUntil',
+                      'time < _exitLocalUntil','"producerOwner"','isEqualTo _job',
+                      '"generation"','"ownerEpoch"','"cancelled"','"finished"'):
+            self.assertIn(proof,window)
+        self.assertNotIn('setVariable',window)
+        self.assertNotIn('_job set',window)
+        def admitted(phase,now,sweep,exit_until,local_now,local_exit,same_producer=True):
+            import math
+            if not math.isfinite(sweep) or sweep<0:return False
+            in_sweep=now<sweep
+            return in_sweep if phase!='EGRESS' else (
+                now<exit_until and local_now<local_exit and (in_sweep or same_producer))
+        self.assertTrue(admitted('EGRESS',105,100,130,205,230))
+        self.assertFalse(admitted('SWEEP',105,100,130,205,230))
+        self.assertFalse(admitted('REPLAN',105,100,130,205,230))
+        self.assertFalse(admitted('EGRESS',105,100,130,205,230,False))
+        self.assertFalse(admitted('EGRESS',130,100,130,205,230))
+        self.assertFalse(admitted('EGRESS',105,100,130,230,230))
+        self.assertFalse(admitted('EGRESS',85,100,80,205,230))
+        self.assertTrue(admitted('EGRESS',85,100,130,205,230,False))
+        self.assertTrue(admitted('ENTRY',85,100,130,205,230))
+        self.assertFalse(admitted('EGRESS',105,-1,130,205,230))
+        self.assertFalse(admitted('EGRESS',105,float('nan'),130,205,230))
+        self.assertIn('_deadline >= 0',start)
+        self.assertIn('_hardDeadline >= 0',start)
+
 
     def test_live_duplicate_does_not_restart_or_cancel_worker(self):
         start=source('buildingOperationStart')
@@ -42,7 +72,7 @@ class BuildingStartAdmissionTests(unittest.TestCase):
                       '(_existing select [0,6]) isNotEqualTo _identity',
                       '_job set ["producerRegistration",+_data]'):
             self.assertIn(guard,registration)
-        for forbidden in ('doMove','doStop','forceSpeed','setPos','execFSM','CBA_fnc_waitAndExecute'):
+        for forbidden in ('doMove','doStop','forceSpeed','setPos','execFSM'):
             self.assertNotIn(forbidden,registration)
         capture=registration.split('if (_mode == "CAPTURE") exitWith {',1)[1].split('if (_mode != "REGISTER"',1)[0]
         for guard in ('_original isNotEqualTo _registration','_sender != (_original select 1)',
@@ -54,6 +84,16 @@ class BuildingStartAdmissionTests(unittest.TestCase):
                       '_existing isEqualTo _candidate'):
             self.assertIn(guard,capture)
         self.assertNotIn('groupOwner _group != _sender',capture)  # Registered old owner, not successor.
+        self.assertEqual(capture.count('call CBA_fnc_waitAndExecute'),1)
+        expiry=capture.split('// Release the last candidate',1)[1]
+        for guard in ('serverTime < _expiresAt','count _stored == 7',
+                      '(_stored select 0) isEqualTo _producerIdentity',
+                      '(_stored select 4) == _expiresAt','(_stored select 6) == _candidateOwner',
+                      '_currentCandidates deleteAt _candidateKey'):
+            self.assertIn(guard,expiry)
+        self.assertIn('[_key,+_original,_candidate select 4,_incomingOwner]',expiry)
+        self.assertNotIn('_capture',expiry)  # Timer must not retain the large graph.
+        self.assertLess(capture.index('if (_existing isNotEqualTo []) exitWith'),capture.index('call CBA_fnc_waitAndExecute'))
         self.assertLess(capture.index('_sender != (_original select 1)'),capture.index('private _stack='))
         def may_submit(sender,registered=7,serial=1,original_serial=1,age=1,retire_age=1,incoming=8,current_owner=8):
             return (sender==registered and incoming!=sender and incoming==current_owner

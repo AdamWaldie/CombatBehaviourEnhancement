@@ -14,6 +14,12 @@
  * owner and again on any new owner (CBE_fnc_CortexDiscover). Interior arrival requires a
  * 1.5 m/0.75 m floor-aware visit within the building bounds without an intervening building wall.
  * Exterior arrival requires a 2 m/0.75 m supported exterior pose with an actual observation ray.
+ * Interior arrival watches outward at actual eye ASL height, converted at the remote endpoint;
+ * it does not flatten an upstairs watch point to ground or prove a clear firing lane.
+ * Physical interior arrival probes at most5 bearings for5m: outward first, then building-relative headings.
+ * Separate terrain/VIEW/FIRE checks choose the first clear direction; none keeps the original.
+ * Exterior exit observation and building-free in-place poses do not run this scan.
+ * PATH-held same-owner posts are not continuously rescanned; no new worker or deadline.
  * Other actors retain their native approach. Only validated physical arrival locks PATH; a fixed safety deadline records
  * failure and leaves movement enabled rather than renewing forever around an unreachable doorway.
  * Exhausted interior posts leave this order refill/reassignment pool in one bounded batch;
@@ -349,6 +355,7 @@ private _buildingAnchor = {
         -1
     };
     private _retiredPosts=createHashMap;
+    private _postBudget=createHashMap;
     private _assignmentValid=_job get "assignmentValid";
     private _assignmentArrived=_job get "assignmentArrived";
     private _invalidActors=(units _group) select {
@@ -522,8 +529,32 @@ private _buildingAnchor = {
                     };
                     _x setVariable ["CBE_AIPass_GarrisonDisabledPath", true, true];
                     _x disableAI "PATH";
-                    private _watch=if ((_assignment param [4,"INTERIOR"]) == "EXTERIOR") then {_assignment select 5} else {(_assignment select 0) getPos [50,_assignment select 1]};
-                    _x doWatch _watch;
+                    // Preserve exterior exit observation. Interior getPos offsets discard height;
+                    // construct the horizontal watch ray in ASL before converting its endpoint.
+                    private _watchActor=_x;
+                    private _watch=if ((_assignment param [4,"INTERIOR"]) == "EXTERIOR") then {_assignment select 5} else {
+                        private _bearing=_assignment select 1;
+                        private _watchEye=eyePos _watchActor;
+                        private _watchBuilding=_assignment param [2,objNull];
+                        if (!isNull _watchBuilding) then {
+                            // Prefer the original bearing, then try four building-relative headings.
+                            // Separate VIEW/FIRE probes observe only5m, not an effective firing lane.
+                            private _watchBearings=[_bearing];
+                            private _buildingBearing=getDir _watchBuilding;
+                            {_watchBearings pushBackUnique ((_buildingBearing+_x) mod 360)} forEach [0,90,180,270];
+                            {
+                                private _probe=_watchEye vectorAdd [5*sin _x,5*cos _x,0];
+                                if (!terrainIntersectASL [_watchEye,_probe]
+                                    && {(lineIntersectsSurfaces [_watchEye,_probe,_watchActor,objNull,true,1,"VIEW","NONE"]) isEqualTo []}
+                                    && {(lineIntersectsSurfaces [_watchEye,_probe,_watchActor,objNull,true,1,"FIRE","NONE"]) isEqualTo []}) exitWith {
+                                    _bearing=_x;
+                                };
+                            } forEach _watchBearings;
+                        };
+                        // A failed probe retains the original direction, with no new route or time.
+                        ASLToAGL (_watchEye vectorAdd [50*sin _bearing,50*cos _bearing,0])
+                    };
+                    _watchActor doWatch _watch;
                 };
             } else {
                 if (serverTime > (_job get "deadline")) then {
@@ -611,7 +642,12 @@ private _buildingAnchor = {
                                     if (_reassignments < 2 && {_alternatives isNotEqualTo []} && {[_x] call _mayIssueMovement}) then {
                                         private _routeUnit=_x;
                                         _alternatives=[_alternatives,[],{(_x select 0) distance2D getPosATL _routeUnit},"ASCEND"] call BIS_fnc_sortBy;
-                                        private _replacement=_alternatives select 0;
+                                        if (count _postBudget == 0) then {
+                                            _postBudget=createHashMapFromArray [["remaining",4],["profiles",createHashMap],["roofs",createHashMap]];
+                                        };
+                                        private _role=[_routeUnit,true] call CBE_fnc_CortexUnitRole;
+                                        private _choice=[_alternatives,_role,_postBudget] call CBE_fnc_CortexGarrisonPostChoice;
+                                        private _replacement=_alternatives select _choice;
                                         private _replacementDestination=_replacement select 0;
                                         private _replacementBuilding=_replacement param [2,objNull];
                                         private _replacementEntries=[_replacementBuilding,_x,_replacementDestination] call (_job get "buildingEntries");

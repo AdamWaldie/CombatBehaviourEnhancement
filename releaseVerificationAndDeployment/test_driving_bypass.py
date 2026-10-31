@@ -101,8 +101,40 @@ class DrivingBypassTests(unittest.TestCase):
     def test_sampling_bounds_match_declared_limits(self):
         self.assertEqual(24*3+23*9,279)
         self.assertEqual(20*3+19*9,231)
-        # Circumscribed clearance covers the hull at any planar orientation.
+        # Model extents become world metres once; padding and convoy demands
+        # remain metres. Compare the bound with actual rotated affine corners.
         import math
+        from itertools import product
+        for scale in (0.25,0.5,1,2,3):
+            low=(-1.5,-3,-0.3); high=(2,4,2.7)
+            width=max(abs(low[0]),abs(high[0]))*scale
+            length=max(abs(low[1]),abs(high[1]))*scale
+            radius=math.hypot(width,length)+1
+            for angle in range(0,91,5):
+                c=math.cos(math.radians(angle)); sn=math.sin(math.radians(angle))
+                for x,y in product((low[0],high[0]),(low[1],high[1])):
+                    self.assertLess(abs(scale*(x*c-y*sn)),radius)
+            self.assertAlmostEqual((high[2]-low[2])*scale,3*scale)
+        # A two-times hull needs more turn clearance, not scaled safety padding.
+        self.assertLess(math.hypot(2,4)+1,math.hypot(4,8)+1)
+        approach=(ROOT/'addons/vehicles/functions/drivingBypassApproach.sqf').read_text()
+        plan=(ROOT/'addons/vehicles/functions/drivingBypassPlan.sqf').read_text()
+        step=(ROOT/'addons/vehicles/functions/drivingBypassStep.sqf').read_text()
+        for body in (approach,plan,step):
+            self.assertIn('private _scale=getObjectScale _vehicle;',body)
+            self.assertIn('!finite _scale || {_scale <= 0}',body)
+            self.assertIn('(_bounds select 0) vectorMultiply _scale',body)
+            self.assertIn('(_bounds select 1) vectorMultiply _scale',body)
+        for body in (plan,step):
+            self.assertIn('max (_envelope param [0,0])',body)
+            self.assertIn('max (_envelope param [1,0])',body)
+        self.assertIn('private _convoyScale=getObjectScale _x;',step)
+        self.assertIn('if (_invalidEnvelope) exitWith',step)
+        self.assertIn('"HULL_SCALE_UNAVAILABLE"',plan)
+        # Raw model corners already transform with scale: never multiply twice.
+        self.assertIn('_body modelToWorldWorld [_xCoord,_yCoord,_x]',plan)
+        self.assertIn('_vehicle modelToWorldWorld [_xCoord,_yCoord,_x]',step)
+        # Circumscribed clearance covers the hull at any planar orientation.
         for width,length in ((1,2),(2,5),(3,9)):
             radius=math.hypot(width,length)+1
             for angle in range(0,91,5):

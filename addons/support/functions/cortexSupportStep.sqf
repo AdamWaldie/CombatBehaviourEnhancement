@@ -4,6 +4,8 @@
  * Initial discovery scores eight snapshotted groups per callback, before any reservation.
  * The complete ranked set retains nearest-first order and stable snapshot tie indices.
  * Discovery uses the original deadline; interruption/restart never rescans or renews it.
+ * Seven-field support leases append original response radius at slot6. Reservation
+ * rechecks current friendly-anchor distance within that captured radius before publication.
  * Assigns each responder a distinct optional 45 m rally area, with at least 110 m between centres.
  * Six bounded candidate areas lie behind the requester. Occupied areas are excluded, then the
  * shared avenue selector chooses a dry, usable endpoint and rejects a cliff-like or unnecessarily
@@ -133,7 +135,9 @@ for "_i" from 1 to 8 do {
     private _sharedCoordinated = _requesterCoordinated && {_helperCoordinated};
     private _helperSupport = _sharedReinforce || {_sharedCoordinated};
     private _helperTransmitter = [_helper] call CBE_fnc_CortexGroupTransmitter;
-    if (!isNull _helper && {!isNull _helperTransmitter} && {(_helper getVariable ["CBE_AIPass_SupportLease",[]]) isEqualTo []}
+    if (!isNull _helper && {!isNull _helperTransmitter}
+        && {_helperTransmitter distance2D _requesterTransmitter <= (_job get "discoveryRadius")}
+        && {(_helper getVariable ["CBE_AIPass_SupportLease",[]]) isEqualTo []}
         && {count ((units _helper) select {[_x] call CBE_fnc_CortexCombatEffective && {isNull objectParent _x}}) >= 3}
         && {[_helper] call CBE_fnc_CortexIsEligible} && {[_helper,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled}
         && {_helperSupport}) then {
@@ -153,7 +157,7 @@ for "_i" from 1 to 8 do {
                 _centre = _centre getPos [55,_axis+([-90,90] select (_slot mod 2))];
                 private _occupied = _kept findIf {
                     private _other = (_x select 0) getVariable ["CBE_AIPass_SupportLease",[]];
-                    count _other == 6 && {(_other select 3) distance2D _centre < 109}
+                    count _other == 7 && {(_other select 3) distance2D _centre < 109}
                 } >= 0;
                 if (!_occupied && {!surfaceIsWater _centre} && {((surfaceNormal _centre) select 2) >= 0.55}) then {
                     _rallyCandidates pushBack [_centre];
@@ -167,7 +171,7 @@ for "_i" from 1 to 8 do {
         };
         if (_rally isNotEqualTo []) then {
             private _token = format ["%1:%2",_job get "serial",_cursor];
-            private _lease = [_token,_requester,_job get "expiry",_rally,_job get "at",[]];
+            private _lease = [_token,_requester,_job get "expiry",_rally,_job get "at",[],_job get "discoveryRadius"];
             // A retired older operation must not abort this replacement reservation.
             _helper setVariable ["CBE_Cortex_SupportAbort",nil,true];
             _helper setVariable ["CBE_Cortex_SupportContact",[_token,+(_job get "enemy")],true];

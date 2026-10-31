@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Native attack restoration belongs only to the common operation receipt, never loose flags.
  * Legacy PATH handback requires the actual marker; modern holder lists grant no PATH or recall authority.
  * Cover STOP and native recalls yield to queued care and dormant actors. Exact hold
  * bookkeeping/restoration stays separate; treatment queues and original deadlines never change.
@@ -116,10 +117,6 @@ private _finishOperation={
     };
     _state deleteAt "supportOperationGeneration";
 };
-private _restoreAttack={
-    if (_mayRestoreGroup && {_state getOrDefault ["attackChanged",false]}) then {_group enableAttack (_state getOrDefault ["baseAttack",true])};
-    _state deleteAt "attackChanged"; _state deleteAt "baseAttack";
-};
 private _lease = _group getVariable ["CBE_AIPass_SupportLease",[]];
 private _requester = _lease param [1,grpNull,[grpNull]];
 private _sharedReinforce = !isNull _requester
@@ -231,7 +228,7 @@ private _releaseSupport={
     call _releaseStopHolds;
     // Reject only the exact lease snapshot accepted by this owner. The server validates token,
     // snapshot and sender again, making repeated cleanup and a racing replacement lease harmless.
-    if (count _lease == 6 && {_token == (_lease select 0)}) then {
+    if (count _lease == 7 && {_token == (_lease select 0)}) then {
         [_group,_token,false,_lease,clientOwner] remoteExecCall ["CBE_fnc_CortexSupportAck",2];
     };
     // Delete only this support assignment's route. A later withdrawal, vehicle
@@ -244,7 +241,8 @@ private _releaseSupport={
     if (_supportOwnsMovement) then {_state deleteAt "movementLease"};
     ["CANCELLED",_reason] call _finishOperation;
     [_group,"SUPPORT",false] call CBE_fnc_CortexOwnershipLease;
-    call _restoreAttack;
+    // Forget obsolete flags; only _finishOperation may restore typed native attack policy.
+    _state deleteAt "attackChanged"; _state deleteAt "baseAttack";
     {_state deleteAt _x} forEach ["supportToken","responding","respondingTo","respondUntil","arrivedAt","assaulting","supportBoundSettling","supportHoldAdoption","supportNativeMoves","supportCapacityRole","supportCapacityNextAt"];
 };
 // Engagement teardown requests release only; it must never consume a fresh role or start a bound.
@@ -268,7 +266,9 @@ if (count _abort == 4 && {(_abort select 0) == _token}) exitWith {
     _group setVariable ["CBE_Cortex_SupportAbort",nil,true];
     ["SERVER_RETIREMENT"] call _releaseSupport;
 };
-if (_lease isEqualTo [] || {(_lease select 0) != _token} || {serverTime >= (_lease select 2)}
+if (_lease isEqualTo [] || {count _lease != 7} || {!((_lease select 6) isEqualType 0)}
+    || {!finite (_lease select 6)} || {(_lease select 6) < 100} || {(_lease select 6) > 2000}
+    || {(_lease select 0) != _token} || {serverTime >= (_lease select 2)}
     || {!([_group,"CBE_AIPass_Contact_Enable",true] call CBE_fnc_CortexFeatureEnabled)}
     || {!_supportEnabled}) exitWith {
     ["LEASE_EXPIRED"] call _releaseSupport
@@ -368,7 +368,7 @@ if ((_state getOrDefault ["supportToken",""]) == _token
     && {_state getOrDefault ["responding",false]}
     && {!(_state getOrDefault ["assaulting",false])}
     && {(_state getOrDefault ["arrivedAt",-1]) < 0}
-    && {count _lease == 6}) then {
+    && {count _lease == 7}) then {
     private _fit=(units _group) select {[_x] call CBE_fnc_CortexCombatEffective};
     if (count _fit >= 3 && {_fit findIf {_x distance2D (_lease select 3) > 45} < 0}) then {
         _state set ["arrivedAt",time];

@@ -11,6 +11,8 @@
  * Group-bound posture/pace receipts defer the join until existing exact cleanup retires them.
  * Protected native tasks defer group transfer; tasks raised by join handlers prevent SAD/brain startup.
  * Creation-handler changes to original passenger commands/destinations/form leaders prevent joining.
+ * Job-local withdrawnCrew retains positively observed original passenger-to-crew transfers;
+ * those actors never join this old insertion, even if subsequently returned to cargo.
  * Original crew, later arrivals and departed passengers never join. No actor is relocated,
  * re-equipped, revealed, force-seated or assigned new skills. Source flight waypoints are untouched.
  * Arguments: 0 insertion job HASHMAP, empty. Requires group/aircraft/episode/jumpers/target/deadline.
@@ -44,6 +46,10 @@ _handoverResult=call {
     if (!(_roster isEqualType []) || {count _roster > 64}
         || {_roster findIf {!(_x isEqualType objNull)} >= 0}
         || {count (_roster arrayIntersect _roster) != count _roster}) exitWith {["DEFERRED",grpNull,[],false]};
+    private _withdrawn=_job getOrDefault ["withdrawnCrew",[]];
+    if (!(_withdrawn isEqualType []) || {count _withdrawn > 64}
+        || {_withdrawn findIf {!(_x in _roster)} >= 0}) exitWith {["DEFERRED",grpNull,[],false]};
+    _roster=_roster-_withdrawn;
     private _cargo=_roster select {alive _x && {group _x == _group}};
     if (_cargo isEqualTo []) exitWith {["NOT_REQUIRED",grpNull,[],false]};
     // Operating crew is distinct from cargo and person-turret/FFV passengers.

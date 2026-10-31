@@ -15,14 +15,15 @@
  * the two-second intake bound. Expired geometry refuses before cadence; expired identity
  * cannot acquire a new source lease. Existing independently valid witness proof may survive.
  * Return Value: Boolean - whether the observation was accepted.
- * Current callers: CBE engine danger intake and the group EnemyDetected observer.
+ * Current callers: CBE engine danger intake, group EnemyDetected observer and CortexUAVApproach
+ * (derived visible approach cue; it never masquerades as a native physical event).
  * Example: [leader _group,"HIT",getPosATL leader _group] call CBE_fnc_DangerRequest;
  */
 
 params [["_actor",objNull,[objNull]],["_cause","GUNFIRE",[""]],["_position",[],[[]]],["_source",objNull,[objNull]],
     ["_geometryExpiry",-1],["_identityExpiry",-1]];
 if (isNull _actor || {!local _actor} || {!([_actor] call CBE_fnc_CortexCombatEffective)} || {isPlayer _actor}
-    || {!(_cause in ["HIT","EXPLOSION","SUPPRESSED","DETECTED","PROXIMITY","CANFIRE","GUNFIRE","CASUALTY","BODY_FOUND","SCREAM"])} || {count _position != 3} || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {false};
+    || {!(_cause in ["HIT","EXPLOSION","SUPPRESSED","DETECTED","PROXIMITY","CANFIRE","GUNFIRE","CASUALTY","BODY_FOUND","SCREAM","UAV_APPROACH"])} || {count _position != 3} || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {false};
 // Native queue delivery cannot give an old observation a fresh two-second life.
 // -1 is reserved for a genuinely fresh callback with no supplied engine deadline.
 if ([_geometryExpiry,_identityExpiry] findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0 && {_x != -1}}} >= 0) exitWith {false};
@@ -46,6 +47,8 @@ if (_startupFailure isEqualType [] && {count _startupFailure == 3}
 // Detection alone cannot override a mission's ignoreTarget instruction. Real hazards
 // remain approximate alerts, with the ignored hostile identity omitted below.
 private _sourceIgnored=!isNull _source && {(_actor targetKnowledge _source) param [7,false,[true]]};
+if (_cause == "UAV_APPROACH" && {isNull _source || {!(_source isKindOf "Air")} || {!unitIsUAV _source}
+    || {_sourceIgnored} || {!((_actor targetKnowledge _source) param [1,false,[true]])}}) exitWith {false};
 if (_sourceIgnored && {_cause in ["DETECTED","PROXIMITY","CANFIRE"]}) exitWith {false};
 // Eligibility was checked at observer installation and is rechecked before dispatch. Keep bullet
 // callbacks cheap: cadence rejects duplicates before the ownership scan; accepted events are coalesced by cause and witness.

@@ -1,6 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Builds a bounded elevated corridor proposal from current solid support and hull width.
+ * Purpose: Builds a bounded elevated corridor proposal from current solid support and world-metre hull width.
+ * Raw model bounds are scaled once before width, height and tail-extension checks.
  * Locality / Authority: Read-only on the vehicle owner; no movement/physics/AI commands.
  * Pitch preserves the module's selected elevation profile without projecting onto terrain.
  * Length/width and station spacing stay horizontal; measured support/body geometry remains
@@ -42,8 +43,11 @@ if (!finite _axisLength || {_axisLength < 0.1}) exitWith {["DEGENERATE_AXIS"] ca
 private _axis=[(_nativeAxis select 0)/_axisLength,(_nativeAxis select 1)/_axisLength,0];
 private _axisGrade=(_nativeAxis select 2)/_axisLength;
 private _right=[_axis select 1,-(_axis select 0),0];
+private _scale=getObjectScale _vehicle;
+if (!finite _scale || {_scale <= 0}) exitWith {["HULL_SCALE_UNAVAILABLE"] call _failure};
 private _box=boundingBoxReal _vehicle;
-private _low=_box select 0;private _high=_box select 1;
+private _low=(_box select 0) vectorMultiply _scale;
+private _high=(_box select 1) vectorMultiply _scale;
 if (_envelope isNotEqualTo [] && {count _envelope != 3 || {
     _envelope findIf {!(_x isEqualType 0) || {!finite _x} || {_x < 0} || {_x > 100}} >= 0
 }}) exitWith {["INVALID_ENVELOPE"] call _failure};

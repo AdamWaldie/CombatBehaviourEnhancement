@@ -63,7 +63,7 @@
         "runtime-20260927-032658: CORE MASTER/GROUP/UNIT/EXTERNAL/SIDE refusal and physical arrival passed.",
         "runtime-20260927-094454: 53 lifecycle checks passed, zero SQF errors, server and client complete. Held-defence Zeus takeover and replacement arrival passed for server and two CBE HC variants after return to server. Added server mid-movement interruption, replacement arrival and 15-second no-resurrection checks passed. Real curator event delivery and interruption during every feature remain unverified; prior HC replacement failure retained."
       ],
-      "automation": "runGates.sqf: five closed-gate refusal and no-movement checks, each followed by reopened physical arrival. All ten passed in runtime-20260927-032658. Player-led, Zeus and locality variants remain outstanding. Standalone addon readiness and catalogue assertions run in runAddon; ZEN notifications, setting changes, diagnostics and compatibility side effects still require live checks.",
+      "automation": "runGates.sqf: five closed-gate refusal and no-movement checks, each followed by reopened physical arrival. All ten passed in runtime-20260927-032658. Player-led, Zeus and locality variants remain outstanding. Standalone addon readiness and catalogue assertions run in runAddon; ZEN notifications, setting changes, diagnostics and compatibility side effects still require live checks. A finite owner-local script Patrol task now sequences bounded geometry through the existing group brain/common operation and checks actual destinations, cohort proximity, original mission receipts, combat suspension and original deadlines. Patrol native/optional ZEN task controls and scoped Release now use the existing authenticated dispatcher; locality continuation and physical patrol evidence remain pending. Creep adds a finite native-belief three-leg cautious approach on the same patrol owner, with policy acquisition before movement, bounded updates and original-policy retirement. Offline wiring is not physical stealth or approach acceptance.",
       "executable_sources": [
         "runGates.sqf",
         "runAddon.sqf"
@@ -98,11 +98,20 @@
         "addons/vehicles/functions/zenConvoyModule.sqf",
         "addons/vehicles/functions/moduleConvoy.sqf",
         "addons/infantry/functions/cortexDrillStart.sqf",
+        "addons/infantry/functions/cortexDrillNativeCurrent.sqf",
         "addons/main/XEH_postInit.sqf",
         "addons/main/XEH_preInit.sqf",
         "addons/main/bootstrap/zenRegister.sqf",
         "addons/main/settings/aiConfig.sqf",
-        "addons/infantry/functions/cortexDrillResume.sqf"
+        "addons/infantry/functions/cortexDrillResume.sqf",
+        "addons/infantry/functions/patrolRoutePlan.sqf",
+        "addons/infantry/functions/patrolRouteCommit.sqf",
+        "addons/infantry/functions/patrolOperation.sqf",
+        "addons/infantry/functions/huntOperation.sqf",
+        "addons/infantry/functions/rushOperation.sqf",
+        "addons/infantry/functions/creepOperation.sqf",
+        "addons/infantry/functions/creepRoutePlan.sqf",
+        "addons/infantry/functions/zenCreepModule.sqf"
       ]
     },
     {
@@ -347,12 +356,13 @@
       "id": "MEDICAL",
       "title": "Finite squad medical assistance",
       "setup": "Use a local on-foot medic and one injured squad-mate in CALM and SECURITY. Repeat with active contact, a Zeus replacement order, a specialist medical owner, no medic, a vehicle passenger, and an unreachable casualty.",
-      "expected": "Only an eligible medic physically approaches and uses native treatment during CALM or SECURITY. CBE never changes health, teleports, merges groups or holds an assault. Contact, a newer Zeus order, specialist medical ownership, loss of an actor or no physical progress cancel the matching finite operation without replacing an external command.",
+      "expected": "Only an eligible medic physically approaches and uses native treatment during CALM or SECURITY. CBE never changes health, teleports, merges groups or holds an assault. Contact, a newer Zeus order, specialist medical ownership, loss of an actor or no physical progress cancel the matching finite operation without replacing an external command. Native leg-only injury above the configured threshold also qualifies for aid, and completion uses the original body/leg policy and deadline. New thresholds or timeout apply only to later attempts. Leg-only native treatment and live settings-change fixtures remain pending; existing fixtures do not prove them.",
       "settings": [
         "CBE_AIPass_MedicalAssist_Enable",
         "CBE_AIPass_MedicalAssist_Range",
         "CBE_AIPass_MedicalAssist_DamageThreshold",
-        "CBE_AIPass_MedicalAssist_Timeout"
+        "CBE_AIPass_MedicalAssist_Timeout",
+        "CBE_AIPass_MedicalAssist_LegThreshold"
       ],
       "status": "implemented_partial",
       "live_evidence": [],
@@ -368,7 +378,7 @@
       "id": "CONTACT",
       "title": "Contact detection",
       "setup": "Expose real enemies, then occlude them; compare live engine knowledge and Cortex phase. Separately expose a firing-capable squad with an authored HOLD or SENTRY waypoint.",
-      "expected": "Real sightings trigger contact; no omniscient acquisition; contact-off leaves explicit orders usable. Authored HOLD/SENTRY permits native observation and fire but blocks every autonomous CBE movement owner and replacement waypoint.",
+      "expected": "Real sightings trigger contact; no omniscient acquisition; contact-off leaves explicit orders usable. Authored HOLD/SENTRY permits native observation and fire but blocks every autonomous CBE movement owner and replacement waypoint. A personally known and visible small hostile UAV on a near collision course can request existing finite cover, preserving ROE and committed tasks; off/occluded/friendly/hovering/receding/crossing/expired cues do nothing. Dedicated native-UAV physical fixture remains pending; existing contact fixtures do not prove this path.",
       "settings": [
         "CBE_AIPass_Contact_Enable",
         "CBE_AIPass_EngageRange",
@@ -415,13 +425,17 @@
         "addons/infantry/functions/dangerReact.sqf",
         "addons/infantry/functions/cortexGroupAnchor.sqf",
         "addons/infantry/functions/cortexStaticSupport.sqf",
+        "addons/infantry/functions/cortexStaticRetire.sqf",
         "addons/infantry/functions/cortexStaticDeployStep.sqf",
+        "addons/infantry/functions/cortexStaticPackStep.sqf",
+        "addons/infantry/functions/cortexStaticNativeMoveState.sqf",
         "addons/infantry/functions/pointActorOperation.sqf",
         "addons/infantry/functions/casualtyObservationSelect.sqf",
         "addons/infantry/functions/casualtyWeaponRecover.sqf",
         "addons/infantry/functions/dangerPostureStep.sqf",
         "addons/infantry/functions/cortexGroupPostureTaskAvailable.sqf",
-        "addons/vehicles/functions/cortexDismountStop.sqf"
+        "addons/vehicles/functions/cortexDismountStop.sqf",
+        "addons/infantry/functions/cortexUAVApproach.sqf"
       ]
     },
     {
@@ -649,7 +663,7 @@
       "live_evidence": [
         "runtime-20260927-040456: server suite zero findings; natural detection, actual AT-directed shots, hold-fire, disabled stationary control, physical +60 m standoff and crew retention passed. Client completion missing, broader owner/disable variants unverified."
       ],
-      "automation": "runGunnery.sqf retains disabled stationary control and enabled physical AT standoff. runNaval.sqf adds separate and combined crew/passenger landings on a bounded real coastline search, requiring physical water travel, dismount, dry egress, crew retention and finite cleanup. Naval fixture is saved but unexecuted; varied coast, owner migration, Zeus interruption and specialist-loaded arms remain queued. A fresh DETECTED generation after primary-gunner loss now requires an existing dedicated AI commander to change internally to the gunner seat while the driver remains in place; no crew is spawned or moved directly into a seat. An exact armed or armoured vehicle may accept one short terrain-checked danger jink only when it is slow, fully crew-only, outside convoy control and has no existing movement owner; the saved real-danger physical fixture first proves the disabled state, then requires a generation-owned jink, at least 20 metres of physical travel and complete crew retention. It has not yet been executed against a packaged candidate. A stopped tracked fighting vehicle now has disabled/enabled natural-contact cases requiring a generation-owned hull-orientation operation, physical alignment within 20 degrees, less than 8 metres of travel and full crew retention. Saved, not yet executed.",
+      "automation": "runGunnery.sqf retains disabled stationary control and enabled physical AT standoff. runNaval.sqf adds separate and combined crew/passenger landings on a bounded real coastline search, requiring physical water travel, dismount, dry egress, crew retention and finite cleanup. Naval fixture is saved but unexecuted; varied coast, owner migration, Zeus interruption and specialist-loaded arms remain queued. A fresh DETECTED generation after primary-gunner loss now requires an existing dedicated AI commander to change internally to the gunner seat while the driver remains in place; no crew is spawned or moved directly into a seat. An exact armed or armoured vehicle may accept one short terrain-checked danger jink only when it is slow, fully crew-only, outside convoy control and has no existing movement owner; the saved real-danger physical fixture first proves the disabled state, then requires a generation-owned jink, at least 20 metres of physical travel and complete crew retention. It has not yet been executed against a packaged candidate. A stopped tracked fighting vehicle now has disabled/enabled natural-contact cases requiring a generation-owned hull-orientation operation, physical alignment within 20 degrees, less than 8 metres of travel and full crew retention. Saved, not yet executed. Finite mechanised support now uses the selected-crew FSM for current CBE-owned same-group dismounts; original context, rear geometry, useful sight line, bounded friendly clearance and deadline are offline-tested. No physical support-bound fixture has been executed; multi-bound escort, separate passenger groups and measured cost remain open.",
       "executable_sources": [
         "runGunnery.sqf",
         "runNaval.sqf",
@@ -672,7 +686,17 @@
         "addons/vehicles/functions/cortexAAObserve.sqf",
         "addons/vehicles/functions/cortexAARelocate.sqf",
         "addons/vehicles/functions/vehicleArmourShot.sqf",
-        "addons/vehicles/functions/vehicleTurnRetire.sqf"
+        "addons/vehicles/functions/vehicleTurnRetire.sqf",
+        "addons/vehicles/functions/cortexMechanisedSupport.sqf",
+        "addons/vehicles/functions/cortexMechanisedCargo.sqf",
+        "addons/vehicles/functions/cortexMechanisedRemote.sqf",
+        "addons/vehicles/functions/cortexMechanisedRemoteServer.sqf",
+        "addons/vehicles/functions/cortexMechanisedRemoteCrew.sqf",
+        "addons/vehicles/functions/cortexMechanisedContinue.sqf",
+        "addons/vehicles/functions/cortexMechanisedBoarded.sqf",
+        "addons/vehicles/functions/vehiclePointOperation.sqf",
+        "addons/vehicles/functions/moduleVehiclePoint.sqf",
+        "addons/vehicles/functions/vehiclePointDialog.sqf"
       ]
     },
     {
@@ -733,7 +757,8 @@
         "runVehicleDrills.sqf"
       ],
       "production_sources": [
-        "addons/infantry/functions/cortexRetreat.sqf"
+        "addons/infantry/functions/cortexRetreat.sqf",
+        "addons/infantry/functions/pointWithdrawOperation.sqf"
       ]
     },
     {
@@ -773,7 +798,7 @@
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "Implemented source includes road/actual-track/native-path observations, forward and rear hull constraints, crossing prediction, authenticated canonical gate opening, finite corridor and static-bypass execution, public recovery/command journals, bounded traffic retries, close-static backoff and native driver casualty handover. These are not live acceptance. Prepared normal fixtures require real traffic approach, separated stop/restart, newer direct-MOVE preservation, actual driver replacement plus route progress, and protected unconscious/locked/assigned seats; they remain unrun. Finite convoy bypass/corridor integration exists under separate convoy ownership and is assessed by the convoy cases. Experimental default-off automatic road-pass admission now connects sustained traffic observation to finite geometry preparation and real owner consent on the shared scheduler; it is unrun. Cooperative head-on jam passing, queue cascade, feasible lateral corner recovery, unknown gate conventions remain incomplete or unsupported. Native command propagation, real steering/braking, blocked geometry, modded vehicles, repeated use, new orders, JIP, HC/split locality and the five-percent median/ten-percent p95 performance budget remain unverified. All driving acceptance stays partial; empty live evidence must not be read as success. Canonical2..4participant head-on queue proposal discovery is staged after5s dwell and at most once/30s; it grants no consent or movement. Native hold/reverse/dependency/handback remains unimplemented. Distinct finite queue-role server broker/actual-owner acknowledgements are wired; consent never grants movement. Native hold/reverse/dependency/cleanup executor and physical protocol acceptance remain missing. Default-off gate closure now has a finite server observation executor. Physical aperture passage, full hull clearance, other traffic, interruption, normal/HC ownership changes, animation and repeat checks remain unrun. CLOSE_REQUESTED and CLOSED_OBSERVED are separate; neither is physical gate collision proof.",
+      "automation": "Implemented source includes road/actual-track/native-path observations, forward and rear hull constraints, crossing prediction, authenticated canonical gate opening, finite corridor and static-bypass execution, public recovery/command journals, bounded traffic retries, close-static backoff and native driver casualty handover. These are not live acceptance. Prepared normal fixtures require real traffic approach, separated stop/restart, newer direct-MOVE preservation, actual driver replacement plus route progress, and protected unconscious/locked/assigned seats; they remain unrun. Finite convoy bypass/corridor integration exists under separate convoy ownership and is assessed by the convoy cases. Experimental default-off automatic road-pass admission now connects sustained traffic observation to finite geometry preparation and real owner consent on the shared scheduler; it is unrun. Cooperative head-on jam passing, queue cascade, feasible lateral corner recovery, unknown gate conventions remain incomplete or unsupported. Native command propagation, real steering/braking, blocked geometry, modded vehicles, repeated use, new orders, JIP, HC/split locality and the five-percent median/ten-percent p95 performance budget remain unverified. All driving acceptance stays partial; empty live evidence must not be read as success. Canonical2..4participant head-on queue proposal discovery is staged after5s dwell and at most once/30s; it grants no consent or movement. Native hold/reverse/dependency/handback remains unimplemented. Distinct finite queue-role server broker/actual-owner acknowledgements are wired; consent never grants movement. Native hold/reverse/dependency/cleanup executor and physical protocol acceptance remain missing. Default-off gate closure now has a finite server observation executor. Physical aperture passage, full hull clearance, other traffic, interruption, normal/HC ownership changes, animation and repeat checks remain unrun. CLOSE_REQUESTED and CLOSED_OBSERVED are separate; neither is physical gate collision proof. Corridor lead and worst-convoy envelopes now use scaled world-metre dimensions, with shared path actual-hull minimums and invalid-size refusal before casts. Geometric tests are not scaled-vehicle driving, crossing or measured-performance evidence.",
       "executable_sources": [
         "runVehicleDrills.sqf",
         "runDrivingTraffic.sqf",
@@ -1024,8 +1049,8 @@
     {
       "id": "REPORT",
       "title": "Contact sharing",
-      "setup": "Use observing and receiving squads with voice proximity, separated communication and active jamming.",
-      "expected": "Reports use permitted communication, preserve uncertainty and do not depend on a vanilla radio item.",
+      "setup": "Use observing and receiving squads with voice proximity, separated communication and active jamming. Explicit server field variants must cover selected sides, moving/dead/deleted emitters, repeated updates/removal, overlap and32-field capacity, remote owner/JIP delivery and nearby voice.",
+      "expected": "Reports use permitted communication, preserve uncertainty and do not depend on a vanilla radio item. Native fields deny only CBE radio paths while live and in range; side/radius/update/deletion changes apply without new workers, player-radio mutation or target reveal. Existing mission hooks and local voice still work.",
       "settings": [
         "CBE_AIPass_ContactReports_Enable",
         "CBE_AIPass_ContactReports_Radius",
@@ -1034,7 +1059,7 @@
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runSupport.sqf: REPORT- actual delivery and receiver travel (partial variants; fresh live acceptance required). The whole sight-screen and investigation geometry uses the shared measured terrain transform outside VR.",
+      "automation": "runSupport.sqf: REPORT- actual delivery and receiver travel (partial variants; fresh live acceptance required). The whole sight-screen and investigation geometry uses the shared measured terrain transform outside VR. New explicit Protocol-intent field API/query is assigned to this existing communication case; native-field physical variants are NOT implemented/executed by the current runSupport fixture and remain pending while audits are paused. Mapping is source coverage only, not acceptance. Native/optional ZEN jamming task dialog and authenticated server field mutation now exist. Dialog operation, authority rejection, stale/duplicate task, emitter movement/deletion, voice/JIP/HC and radio effects are NOT implemented/run as physical variants in this fixture; UI/behaviour acceptance remains pending.",
       "executable_sources": [
         "runSupport.sqf"
       ],
@@ -1042,7 +1067,11 @@
         "addons/infantry/functions/cortexCanTransmit.sqf",
         "addons/infantry/functions/cortexGroupTransmitter.sqf",
         "addons/infantry/functions/cortexReportLocal.sqf",
-        "addons/infantry/functions/cortexReportServer.sqf"
+        "addons/infantry/functions/cortexReportServer.sqf",
+        "addons/infantry/functions/cortexJammingField.sqf",
+        "addons/infantry/functions/cortexJammingFactor.sqf",
+        "addons/infantry/functions/moduleJamming.sqf",
+        "addons/infantry/functions/jammingTaskDialog.sqf"
       ]
     },
     {
@@ -1168,7 +1197,7 @@
       ],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runAirborne.sqf: runtime 165401 normal and invalid-class fallback both deployed parachutes and landed alive with backpacks and operating crew retained. Normal post-landing movement passed (50.6/48.7 m). Fallback raw FAIL recorded 70.2/27.3 m travel with both inside the destination area: leader-relative destination made one route too short. Saved route now starts at least 65 m from every passenger; unexecuted. Automatic trigger, varied aircraft and owner/JIP variants remain open. Normal base fixture now uses a mixed operating crew/cargo group and observes automatic independent ground squad, crew route preservation and ground-brain startup before ordinary movement. This changed fixture is prepared only; earlier landing evidence does not validate the new handover. Native Zeus ModuleAirborne passenger/aircraft-bound dispatch is implemented offline only; no-ZEN module placement, seat/airframe changes, owner acknowledgement and actual drop remain unrun.",
+      "automation": "runAirborne.sqf: runtime 165401 normal and invalid-class fallback both deployed parachutes and landed alive with backpacks and operating crew retained. Normal post-landing movement passed (50.6/48.7 m). Fallback raw FAIL recorded 70.2/27.3 m travel with both inside the destination area: leader-relative destination made one route too short. Saved route now starts at least 65 m from every passenger; unexecuted. Automatic trigger, varied aircraft and owner/JIP variants remain open. Normal base fixture now uses a mixed operating crew/cargo group and observes automatic independent ground squad, crew route preservation and ground-brain startup before ordinary movement. This changed fixture is prepared only; earlier landing evidence does not validate the new handover. Native Zeus ModuleAirborne passenger/aircraft-bound dispatch is implemented offline only; no-ZEN module placement, seat/airframe changes, owner acknowledgement and actual drop remain unrun. Controlled rappel pose START/RELEASE primitive now exists behind existing operation/actor/flight lease proof, no provider workers or simulation/damage overrides. No controlled descent caller/module exists yet. Pose replication/JIP, reentrant animation handlers, cleanup/migration and physical quality are not implemented/run fixture variants; no full rappel acceptance.",
       "executable_sources": [
         "runAirborne.sqf"
       ],
@@ -1182,7 +1211,9 @@
         "addons/infantry/functions/cortexParachuteDeploy.sqf",
         "addons/infantry/functions/cortexParachuteObserve.sqf",
         "addons/infantry/functions/cortexParachutePublish.sqf",
-        "addons/aircraft/functions/moduleAirborne.sqf"
+        "addons/aircraft/functions/moduleAirborne.sqf",
+        "addons/aircraft/functions/rappelRoutePlan.sqf",
+        "addons/aircraft/functions/rappelPoseLocal.sqf"
       ]
     },
     {
@@ -1208,6 +1239,7 @@
         "addons/infantry/functions/cortexGarrisonRelease.sqf",
         "addons/infantry/functions/cortexGarrisonFailedPosts.sqf",
         "addons/infantry/functions/cortexGarrisonRefill.sqf",
+        "addons/infantry/functions/cortexGarrisonPostChoice.sqf",
         "addons/infantry/functions/cortexGarrisonArrived.sqf",
         "addons/infantry/functions/cortexGarrisonSettings.sqf"
       ]
@@ -1293,7 +1325,7 @@
         "runtime-20260927-193231: normal combat advance completed 33 checks with four findings and zero SQF errors. Actual covering fire and fire while moving passed. Contact deadline, frontage, clear-through and completion failed; ending GRENADE_UNRESOLVED with a separated leader. A saved explicit queued-throw cancellation transition is not yet live-verified. No acceptance claimed.",
         "Runtime 200043: focused ADVANCE-GRENADE completed 38 checks with zero findings and zero SQF errors, including actual grenade, physical clear-through by both elements and fire while moving. Single server-owner run; wider variants remain pending."
       ],
-      "automation": "runCombat.sqf requires the production tactical assessment to select ADVANCE and publish STARTED before its existing authored-route, physical bound, covering-fire, proximity-stop, completion and interruption checks. runTacticalAssessment.sqf requires armour overmatch and exposed elevated contacts to make one physical screened REPOSITION while retaining native combat, and rejects a rifle rush or repeated fallback. A failed safe avenue hands off to the same finite reposition and reassessment path. Changed stages await exact-package live acceptance.",
+      "automation": "runCombat.sqf requires the production tactical assessment to select ADVANCE and publish STARTED before its existing authored-route, physical bound, covering-fire, proximity-stop, completion and interruption checks. runTacticalAssessment.sqf requires armour overmatch and exposed elevated contacts to make one physical screened REPOSITION while retaining native combat, and rejects a rifle rush or repeated fallback. A failed safe avenue hands off to the same finite reposition and reassessment path. Changed stages await exact-package live acceptance. Fresh ordinary bound preparation may request one selected nearly-empty rifle reload with a ready covering witness, <=4 bounded mover proposals. Requests do not establish native reload completion, maintained fire or safe travel.",
       "executable_sources": [
         "runCombat.sqf"
       ],
@@ -1304,7 +1336,11 @@
         "addons/infantry/functions/cortexTacticalReposition.sqf",
         "addons/infantry/functions/cortexPrimaryAmmoAvailable.sqf",
         "addons/infantry/functions/combatElementSelect.sqf",
-        "addons/infantry/functions/combatPairElements.sqf"
+        "addons/infantry/functions/combatPairElements.sqf",
+        "addons/infantry/functions/pointAdvanceOperation.sqf",
+        "addons/infantry/functions/modulePointAdvance.sqf",
+        "addons/infantry/functions/zenPointAdvanceModule.sqf",
+        "addons/infantry/functions/cortexRifleReloadPlan.sqf"
       ]
     },
     {
@@ -1403,18 +1439,21 @@
       "live_evidence": [
         "runtime-20260927-040456: server suite zero findings; natural detection, actual AT-directed shots, hold-fire, disabled stationary control, physical +60 m standoff and crew retention passed. Client completion missing, broader owner/disable variants unverified."
       ],
-      "automation": "runGunnery.sqf: real projectile direction and AT target priority, BLUE hold-fire and cease-fire. Server cases passed in runtime-20260927-040456; remaining variants unverified. Transfer and feature-disable variants remain outstanding. Experimental point-defence aim/shot path is unrun: require real hostile native missile warning, actual bullet Fired receipts, alignment/lanes, original expiry and unchanged-lock handback. No hit/intercept credit from closest-pass telemetry. Local non-carrier missile effect requires exact native shot parents, armed bullet, observed interior closest pass within bounded model core and current owner; fuse command is not physical interception. Cross-owner/submunition cases must refuse effects. Stable measured miss calibration is unrun: require real per-round context, reject evasive/deviating tracks and demonstrate bounded correction/decay without skill or projectile edits. Same-group warning allocation is unrun: require native provenance, no original-expiry renewal, voice/radio delivery and jam interruption, available-platform distribution with urgent3D approach priority, and no independent retarget of active responses.",
+      "automation": "runGunnery.sqf: real projectile direction and AT target priority, BLUE hold-fire and cease-fire. Server cases passed in runtime-20260927-040456; remaining variants unverified. Transfer and feature-disable variants remain outstanding. Experimental point-defence aim/shot path is unrun: require real hostile native missile warning, actual bullet Fired receipts, alignment/lanes, original expiry and unchanged-lock handback. No hit/intercept credit from closest-pass telemetry. Local non-carrier missile effect requires exact native shot parents, armed bullet, observed interior closest pass within bounded model core and current owner; fuse command is not physical interception. Cross-owner/submunition cases must refuse effects. Stable measured miss calibration is unrun: require real per-round context, reject evasive/deviating tracks and demonstrate bounded correction/decay without skill or projectile edits. Same-group warning allocation is unrun: require native provenance, no original-expiry renewal, voice/radio delivery and jam interruption, available-platform distribution with urgent3D approach priority, and no independent retarget of active responses. AA allocation now has a3s finite pass with zero artificial inter-platform delay and1s transmitter-cache epochs. Low-FPS/scheduler-budget late-roster service and physical native interception remain unimplemented/unrun variants in this fixture; analytical scheduling checks are not engine acceptance.",
       "executable_sources": [
         "runGunnery.sqf"
       ],
       "production_sources": [
         "addons/infantry/functions/cortexGroundReload.sqf",
         "addons/vehicles/functions/cortexAAIntercept.sqf",
+        "addons/vehicles/functions/cortexAAStationSelect.sqf",
+        "addons/vehicles/functions/cortexAAMagazineIdentity.sqf",
         "addons/vehicles/functions/cortexAAInterceptEffect.sqf",
         "addons/vehicles/functions/cortexAASpot.sqf",
         "addons/vehicles/functions/cortexAAAllocate.sqf",
         "addons/vehicles/functions/cortexAAWarningLink.sqf",
-        "addons/vehicles/functions/cortexAAThreat.sqf"
+        "addons/vehicles/functions/cortexAAThreat.sqf",
+        "addons/vehicles/functions/cortexAirDefenceRole.sqf"
       ]
     },
     {
@@ -1538,7 +1577,10 @@
         "addons/infantry/functions/cortexRouteDoors.sqf",
         "addons/infantry/functions/buildingActorHoldOwned.sqf",
         "addons/infantry/functions/indoorActorSample.sqf",
-        "addons/infantry/functions/indoorActorGroupContext.sqf"
+        "addons/infantry/functions/indoorActorGroupContext.sqf",
+        "addons/infantry/functions/moduleClear.sqf",
+        "addons/infantry/functions/clearAreaOperation.sqf",
+        "addons/infantry/functions/zenClearAreaModule.sqf"
       ]
     },
     {
@@ -1549,14 +1591,20 @@
       "settings": [],
       "status": "implemented_partial",
       "live_evidence": [],
-      "automation": "runClient.sqf UI-* checks CBA registration and effective-state validity; interactive Addon Options, persistence and JIP acceptance pending Garrison area native and optional ZEN task controls now dispatch radius and walking/instant placement through the authenticated current-owner executor. Dialog, authentication, stale/duplicate rejection and physical acceptance remain pending; static registration earns no behaviour credit.",
+      "automation": "runClient.sqf UI-* checks CBA registration and effective-state validity; interactive Addon Options, persistence and JIP acceptance pending Garrison area native and optional ZEN task controls now dispatch radius and walking/instant placement through the authenticated current-owner executor. Dialog, authentication, stale/duplicate rejection and physical acceptance remain pending; static registration earns no behaviour credit. Scoped native/optional ZEN release controls use the existing authenticated infantry RELEASE path; interactive/native handback acceptance remains unverified.",
       "executable_sources": [
         "runClient.sqf"
       ],
       "production_sources": [
         "addons/core/functions/aiGetDiagnostics.sqf",
         "addons/infantry/functions/moduleGarrison.sqf",
-        "addons/infantry/functions/zenGarrisonModule.sqf"
+        "addons/infantry/functions/zenGarrisonModule.sqf",
+        "addons/infantry/functions/garrisonTaskDialog.sqf",
+        "addons/infantry/functions/infantryTaskDialog.sqf",
+        "addons/infantry/functions/zenReleaseModule.sqf",
+        "addons/infantry/functions/zenPatrolModule.sqf",
+        "addons/infantry/functions/zenHuntModule.sqf",
+        "addons/infantry/functions/zenRushModule.sqf"
       ]
     },
     {
@@ -1574,7 +1622,7 @@
         "runtime-20260927-092754 completed: 50 checks, one failure, zero SQF errors. No-waypoint Zeus takeover cleared defence on server and both HCs. Replacement travel passed server/HC1 but failed after HC2 returned to server; soldiers moved toward an older position. Detailed waypoint/expected-destination/adoption diagnostics added; interruption acceptance remains incomplete.",
         "runLifecycle.sqf: runtime-20260927-105913 completed 64 checks with zero findings or SQF errors. Disable/restart and Zeus replacement retained; moving leader casualty selected a living successor and physically continued on server, HC1 and HC2 without ownership change. ACE migration, disconnect, JIP, deletion and other action phases remain open."
       ],
-      "automation": "runLifecycle.sqf retains the accepted disable/restart, Zeus replacement and leader-casualty cases. Additive active-state cases now migrate INVESTIGATE, naturally reached SEARCH and production RETREAT to an HC: each requires OWNERSHIP_RESUME, the original deadline/start, and continued physical movement. RETREAT must not replay smoke, and Zeus must permanently release all three states. These new cases are saved but unexecuted. ACE migration, disconnect, JIP, deletion and remaining action phases remain open.",
+      "automation": "runLifecycle.sqf retains the accepted disable/restart, Zeus replacement and leader-casualty cases. Additive active-state cases now migrate INVESTIGATE, naturally reached SEARCH and production RETREAT to an HC: each requires OWNERSHIP_RESUME, the original deadline/start, and continued physical movement. RETREAT must not replay smoke, and Zeus must permanently release all three states. These new cases are saved but unexecuted. ACE migration, disconnect, JIP, deletion and remaining action phases remain open. Durable CQB resume orders now require complete typed progress/settings/clocks and matching room-history size before startup; synthetic fresh progress/failure defaults removed. This is not a sealed all-writer transfer or native-readiness proof.",
       "executable_sources": [
         "runLifecycle.sqf"
       ],
@@ -1596,7 +1644,9 @@
         "addons/core/functions/operationRelease.sqf",
         "addons/core/functions/operationRestore.sqf",
         "addons/core/functions/operationAttackPolicy.sqf",
-        "addons/core/functions/actorSettings.sqf"
+        "addons/infantry/functions/creepPolicy.sqf",
+        "addons/core/functions/actorSettings.sqf",
+        "addons/infantry/functions/clearOrderValid.sqf"
       ]
     },
     {
@@ -1802,7 +1852,7 @@
         "runtime-20261002-043144: forced helicopter LATERAL was rejected as STANDOFF, helicopter STANDOFF timed out in INGRESS, plane AA STANDOFF reached ATTACK but fired zero, natural waypoint-index progress was misread as authored route replacement, and the Zeus fixture passed an invalid argument type. This failed/stopped run is diagnostic evidence only.",
         "runtime-20261004-083928: the completed batch recorded 35 server findings. Every fixed-wing surface profile reached ATTACK but released no weapon; GUIDED exposed a valid loaded, aligned solution before native fireAtTarget rejected the pilot-fixed release. The moving air-to-air intercept did release a real missile. This is failure evidence, not acceptance."
       ],
-      "automation": "runAircraft.sqf provides moving airborne fixtures and physical flight/fire/countermeasure evidence, including forced helicopter lateral and fixed-wing strafe, offset, hook, bomb and guided passes, an observed-AA variant, a moving airborne intercept and Zeus replacement. It records the entire three-leg profile and quarter-second physical speed, altitude, destination and firing-solution samples; forced patterns must expose distinct geometry, produce physical profile change, release a real weapon and damage or destroy the target. Pilot-fixed surface weapons now use the engine operator release only after the existing range, angle, alignment, terrain and ballistic gates pass; turret weapons retain native fireAtTarget. A plane that crosses the target without a real Fired event records DELIVERY_MISSED and egresses instead of circling, with a separate no-post-target-circle assertion. These changes await a rebuilt live run; target loss and HC migration remain open. Authored air routes now compare waypoint metadata, script/trigger synchronization and attachment identities while excluding the owned attack leg and current-index progression. Script/Zeus metadata-only replacement, moving attachments and cost on long routes remain unverified; DESTROY vehicle attachment is not documented as guaranteed engine support.",
+      "automation": "runAircraft.sqf provides moving airborne fixtures and physical flight/fire/countermeasure evidence, including forced helicopter lateral and fixed-wing strafe, offset, hook, bomb and guided passes, an observed-AA variant, a moving airborne intercept and Zeus replacement. It records the entire three-leg profile and quarter-second physical speed, altitude, destination and firing-solution samples; forced patterns must expose distinct geometry, produce physical profile change, release a real weapon and damage or destroy the target. Pilot-fixed surface weapons now use the engine operator release only after the existing range, angle, alignment, terrain and ballistic gates pass; turret weapons retain native fireAtTarget. A plane that crosses the target without a real Fired event records DELIVERY_MISSED and egresses instead of circling, with a separate no-post-target-circle assertion. These changes await a rebuilt live run; target loss and HC migration remain open. Authored air routes now compare waypoint metadata, script/trigger synchronization and attachment identities while excluding the owned attack leg and current-index progression. Script/Zeus metadata-only replacement, moving attachments and cost on long routes remain unverified; DESTROY vehicle attachment is not documented as guaranteed engine support. Scripted requests now share a protected-position cone/blast veto; native autonomous DESTROY fire is outside it. Friendly/civilian/captive blast, mounted occupants, unsafe retry cadence and mixed-platform physical variants remain unimplemented in this fixture and unverified; no new physical acceptance is claimed. Initial/active scripted geometry now shares bounded native belief with estimate-derived lead, no exact hostile transform/velocity fallback. Lost/malformed belief, observer replacement, moving/occluded targets and native attachment semantics require physical variants not yet implemented/run in this fixture.",
       "executable_sources": [
         "runAircraft.sqf"
       ],
@@ -1819,7 +1869,9 @@
         "addons/aircraft/functions/flightLeaseAcquire.sqf",
         "addons/aircraft/functions/flightLeaseValid.sqf",
         "addons/aircraft/functions/flightLeaseRelease.sqf",
-        "addons/core/functions/authoredRouteReceipt.sqf"
+        "addons/core/functions/authoredRouteReceipt.sqf",
+        "addons/aircraft/functions/cortexAirReleaseSafe.sqf",
+        "addons/aircraft/functions/cortexAirContact.sqf"
       ]
     }
   ]

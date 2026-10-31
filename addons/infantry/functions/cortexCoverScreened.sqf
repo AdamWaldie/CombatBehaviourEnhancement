@@ -11,7 +11,7 @@
  * exactly COVER or CONCEALMENT; 4 source object <OBJECT, objNull>, optional second ray exclusion.
  * Invalid/degenerate points refuse before world queries.
  * Return: BOOL - observed non-human screening, not path reachability or invulnerability.
- * Current callers: CortexFindCover, DangerCoverStep and CortexSelectAvenue.
+ * Current callers: CortexFindCover, DangerCoverStep, CortexSelectAvenue and CortexGarrisonPostChoice.
  * Example: [eyePos enemy1,(getPosASL soldier1) vectorAdd [0,0,1],soldier1,"COVER"] call CBE_fnc_CortexCoverScreened;
  */
 params [["_start",[],[[]]],["_end",[],[[]]],["_actor",objNull,[objNull]],["_mode","COVER",[""]],["_source",objNull,[objNull]]];

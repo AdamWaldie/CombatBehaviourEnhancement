@@ -181,7 +181,11 @@ private _closePosition=_manoeuvre findIf {
 };
 private _freshPosition=_manoeuvre findIf {
     private _record=_enemies select _x;
-    (_record param [3,0,[0]]) >= 60 && {(_record param [2,1e9,[0]]) <= 10}
+    private _target=_record param [0,objNull,[objNull]];
+    private _minimum=if (_target isKindOf "CAManBase" && {isNull objectParent _target}) then {
+        _closeRange max 20
+    } else {60};
+    (_record param [3,0,[0]]) >= _minimum && {(_record param [2,1e9,[0]]) <= 10}
 };
 // Match the finite assault executor: two/three available actors are supported elements.
 // Assessment proposes only; the executor still validates actual roles, native tasks and avenue.

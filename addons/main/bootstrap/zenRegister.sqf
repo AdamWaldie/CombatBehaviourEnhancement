@@ -23,10 +23,43 @@ missionNamespace setVariable ["CBE_AITweaks_ZenRegisteredLocal", true];
 ["Combat Behaviour Enhancement (CBE)", "Defend area", {
     _this call CBE_fnc_ZenDefendModule;
 }] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Position vehicle", {
+    [_this select 0,_this select 1,false] call CBE_fnc_VehiclePointDialog;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Release vehicle position task", {
+    [_this select 0,_this select 1,true] call CBE_fnc_VehiclePointDialog;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Advance to position", {
+    _this call CBE_fnc_ZenPointAdvanceModule;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Withdraw to position", {
+    [_this select 0,_this select 1,"WITHDRAW_POINT"] call CBE_fnc_ZenPointAdvanceModule;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Clear buildings in area", {
+    _this call CBE_fnc_ZenClearAreaModule;
+}] call zen_custom_modules_fnc_register;
 ["Combat Behaviour Enhancement (CBE)", "Clear building", {
     _this call CBE_fnc_ZenClearModule;
 }] call zen_custom_modules_fnc_register;
 ["Combat Behaviour Enhancement (CBE)", "Navigation corridor", {
     _this call CBE_fnc_ZenDrivingCorridorModule;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Patrol area", {
+    _this call CBE_fnc_ZenPatrolModule;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Cautious approach", {
+    _this call CBE_fnc_ZenCreepModule;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Hunt known enemy", {
+    _this call CBE_fnc_ZenHuntModule;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Press attack", {
+    _this call CBE_fnc_ZenRushModule;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "Release infantry task", {
+    _this call CBE_fnc_ZenReleaseModule;
+}] call zen_custom_modules_fnc_register;
+["Combat Behaviour Enhancement (CBE)", "AI radio denial", {
+    [_this select 1] call CBE_fnc_JammingTaskDialog;
 }] call zen_custom_modules_fnc_register;
 true

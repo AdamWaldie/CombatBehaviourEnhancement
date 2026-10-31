@@ -397,6 +397,15 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-corridor-world-dimensions-20261030.json",
+      "sha256": "b910c69ff7391b519fa7a7eb43387770af2e7156911b8962b590df3c72be8dbb",
+      "scope": "Retain reviewed HBQ navigable-area intent (main controller2380-2469), repairing CBE corridor/path dimension units. Not a new whole-controller review, ford implementation or scaled-vehicle physics acceptance.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-crew-flight-20261021.json",
       "sha256": "29f7ee2683fdb2a6a4176e6e2562422542d76d0d6824913839e8978ae101ccfb",
       "scope": "Native crew flight ownership in ordinary recovery",
@@ -583,7 +592,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-legacy-gate-channels-20261025.json",
-      "sha256": "41f15b08f5e564b1ada515365a5fb36603ff1bf312dbbd471a804b2a4af8b59d",
+      "sha256": "713f72049f939f3f40abc3efb9a296c797d3b30a118c4ab003ab227684c6a78c",
       "scope": "Partial legacy gate channel implementation through existing server open/passage/close lifecycle, not arbitrary gate or full HBQ parity.",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -821,6 +830,16 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-road-travel-direction-20261028.json",
+      "sha256": "27c8079eed26d1107c041c6c50187a3fec3a295b64675bee87e9de2f350ae519",
+      "scope": "Reverse-aware shared road/terrain anticipation and direction-bound convoy observation. Selected HBQ RoadAhead/sector intent only, not a full controller/precision review or behavioural parity.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_nearestThreat.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-route-crew-proximity-20261017.json",
       "sha256": "3ff5d7469d35ecf7be7faeaa08dd2503909a751b117748a9a9d4eb30748314ed",
       "scope": "HBQ route refresh, intentional waiting, crew retention and proximity observation; scoped source review, not whole-mod parity",
@@ -970,8 +989,18 @@
       "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
     },
     {
+      "path": "releaseVerificationAndDeployment/referenceReviews/hbq-traffic-vehicle-categories-20261028.json",
+      "sha256": "5925e77274855809ce9b074053a949dce9913d31fc45170fcbfc816873312749",
+      "scope": "Complete preserved nearestThreat body and current CBE traffic/geometry observation; selected vehicle-category gap only, not whole-controller parity.",
+      "sourceFileMentions": [
+        "functions/fn_driveAssist.sqf",
+        "functions/fn_nearestThreat.sqf"
+      ],
+      "meaning": "Readable evidence pointer; a source mention is not complete semantic review or acceptance."
+    },
+    {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-traffic-world-frame-20261025.json",
-      "sha256": "ff8b191de37a0337e0881498fb1bf08f77a73fbd154e7883abaddf7a11d10e24",
+      "sha256": "f0d07bf58aadca67a82ecf9aa4407e341e54750a924992bed76a7e98182b51e7",
       "scope": "Read the record for its exact scope.",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"
@@ -1028,7 +1057,7 @@
     },
     {
       "path": "releaseVerificationAndDeployment/referenceReviews/hbq-wall-fence-gates-20261019.json",
-      "sha256": "1fcc78d55c62be0b321d63e4a0ce7e03a2ddafcde217e1b0f6f6817979fd1eed",
+      "sha256": "db54d07508e3476f2d6926ab138ca952b56352205203106d40d83a26bcc34fcd",
       "scope": "HBQ gate candidate classification and CBE live geometry/opening chain",
       "sourceFileMentions": [
         "functions/fn_driveAssist.sqf"

@@ -183,5 +183,193 @@
     },
     "validation": "Both preserved readable variants hash-verified and relevant worker/cleanup/dispatch bodies inspected; static assertions confirm ignored actor spawn and simulation/descent/damage writers. Original PBO/extractions unchanged. No product runtime changes, new test cases, build repetition or audit.",
     "limits": "Targeted source contract analysis, not whole-provider runtime validation or claim of reproducing actual overlap. Controlled rappel executor remains required and unimplemented; physical insertion/cleanup/normal-HC/performance remain unverified. Audits PAUSED."
+  },
+  "controlledPortConstraints20261028": {
+    "base": "ce01fdc9ac586f07f5319441e4f8f39da0cd41db",
+    "status": "SOURCE_CONSTRAINTS_RECONCILED_IMPLEMENTATION_OPEN",
+    "source": {
+      ".qa/advanced-rappelling-713709341-review/functions/fn_advancedRappellingInit.sqf": "35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b"
+    },
+    "licenseEvidence": "Lines1-11 carry The MIT License (MIT), Copyright(c)2016 Seth Duda, with permission to use/copy/modify/distribute and a requirement to retain the notice. CBE root LICENSE is MIT. A controlled script adaptation is available subject to retaining that notice; this is not permission to redistribute separate provider animation/sound assets, which remain an external dependency.",
+    "readScope": [
+      "194-304 AR_Get_Heli_Rappel_Points: declared points then six dynamic hull queries",
+      "306-350 actor admission/server-slot worker, already traced in workerHandleTrace20261024",
+      "352-595 actor-owned rope/device creation, physics/descent, landing and delayed damage cleanup",
+      "613-734 local/remote animation workers, AnimChanged and unconditional simulation reset"
+    ],
+    "primitiveFindings": [
+      "Point discovery itself issues no actor movement, but scans complete AP_RAPPEL_POINTS/custom mapping lists and all declared points without a hard input cap. Dynamic fallback uses6 hull queries each allowing100 hits; it is sparse model geometry, not safe rope routing/landing proof. Do not call it blindly as a bounded CBE primitive.",
+      "Actor movement uses a hidden can anchor and hidden AA device, two native ropes, per-iteration gravity/wind/rope-length integration and actor transforms. Source entry force-exits and randomly shifts the actor; source device overshoots its computed position by factor6. Landing can snap up to5m onto a probed surface. These are redesign points, not accepted CBE recovery or arrival evidence.",
+      "Actor worker starts separate delayed AI-descent, overspeed and animation writers. Animation replication starts additional delayed switchMove/switchGesture loops; AnimChanged can force another pose. Cleanup unconditionally enables simulation; actor cleanup restores damage true after activity is already cleared. Capturing only the main actor script handle still cannot acknowledge this graph.",
+      "Pure point/weapon/patch reads can inform an adapted task, but native provider actor/bulk/animation APIs cannot be used unchanged as CBE-owned finite execution. Source animation assets can remain dependency-provided; visual/body/grip quality requires actual in-engine review."
+    ],
+    "executionDirection": "Implement one controlled owner-local actor descent/cleanup lifecycle under original task identity and deadline; retain explicit handles for any child writer, or eliminate it. Use the existing aircraft/ground-handover owners for orchestration. Do not globally replace installed AR functions, copy raw provider files into the package, rely on shared booleans/grace delays, or expose a nonfunctional module.",
+    "finiteRequiredOutcome": [
+      "Admit only selected real cargo under current crew/flight/owner/native-order and stable-flight/geometry proof. Retain original finite task identity and deadline.",
+      "Bound the adapted anchor/landing geometry work and own only the exact ropes/devices and actor/native settings acquired by that task. Preserve mission damage/simulation/animation intent; no unconditional true cleanup.",
+      "Fence every physics/animation/delayed writer by original identity and actual owner; terminal acknowledgement follows actual cleanup/all writer retirement, not AR flag clear or elapsed time.",
+      "Ground/roof arrival and original cargo-to-ground handover require actual support and native observations. Cancellation/locality/casualty outcomes remain explicit; no forced landing or timeout-as-success.",
+      "Only after real task execution/handback exists should a behaviour module be exposed. Physical/normalHC/JIP/Zeus/repeat/animation/performance checks remain required when audits resume."
+    ],
+    "verification": "Source SHA matched and selected complete bodies reread. Source-only review: no runtime edit, provider execution, package rebuild, live audit, code parity or completion credit.",
+    "currentRuntime": "ce01fdc9 unchanged; .qa/candidates/gate-named-source-20261028-84118dc9 and fingerprinta7af207df4d77cc0c6b0cf173fd4023b735338d730fd6b66744c6e4ec342f842 remain the last verified candidate.",
+    "remaining": "Real controlled rappel execution and handover remain unimplemented. The source licence/input/writer review narrows the next implementation work; it does not deliver an insertion feature."
+  },
+  "boundedRouteGeometry20261028": {
+    "base": "19f668b4021835d8dbbcd6266da22710f738b2c9",
+    "status": "IMPLEMENTED_READ_ONLY_PREREQUISITE_EXECUTOR_OPEN",
+    "source": {
+      ".qa/advanced-rappelling-713709341-review/functions/fn_advancedRappellingInit.sqf": "35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b"
+    },
+    "trace": "AR_Get_Heli_Rappel_Points lines194-304 -> AR_Get_Corner_Points lines778-813. Adapt the six hull-probe layout only; retain MIT notice. No provider APIs, tables, animation or sound assets copied.",
+    "implementation": "addons/aircraft/functions/rappelRoutePlan.sqf; compiled CfgFunctions internal helper; no dispatcher/module/automatic caller until controlled execution exists.",
+    "bounds": "At most6 declared anchors or6 hull probes with8 hits each; at most2 separated routes; at most60 route queries with1 hit each. No custom mapping scans, timer, worker, cache, movement or settings writer.",
+    "geometry": "Current slow/upright simulation-enabled helicopter. Model-bounded finite points. Actual hull/proxy intersection for discovery; reject below-ground probe origins. Vertical4..45m descent, GEOM obstruction/body corridor,4 same-surface footprint samples, normal>=0.9; roofs require matching ROADWAY; water/vehicle/steep/narrow supports refuse. Snapshot only; live actor/crew/native order/rope/pose clearance and continual flight checks still required.",
+    "engineSources": [
+      "https://community.bistudio.com/wiki/boundingBoxReal",
+      "https://community.bistudio.com/wiki/lineIntersectsSurfaces"
+    ],
+    "verification": "Complete final build passed:1505 tests,461 SQF files,11 PBOs, HEMTT/FSM/config/docs/coverage/performance gates. Existing airborne ownership regression extended; no new test case. Independent candidate verification passed; distributed LICENSE contains Seth Duda copyright. Logs .qa/handovers/rappel-geometry-final-build-20261028.log and rappel-geometry-independent-20261028.log. No Arma/staging/physical/performance run.",
+    "remaining": "No controlled actor descent/cleanup/flight orchestration/ground handover yet. No module exposed. Geometry snapshot not safe-descent/arrival/handback proof. Physical and performance unverified; audits PAUSED.",
+    "candidate": {
+      "path": ".qa/candidates/rappel-geometry-20261028-19f668b4",
+      "base": "19f668b4021835d8dbbcd6266da22710f738b2c9",
+      "dirty": true,
+      "fingerprint": "e46f3bde52263b222b0590d7ba002ea74fbf11e054d34925aa44fdd2d42c8294",
+      "type": "unsigned development; not clean signed release or behavioural acceptance"
+    }
+  },
+  "actorOwnerIntegrationTrace20261028": {
+    "base": "dc5a7f23431504ec7f3e29da5818790eb0c79e45",
+    "status": "EXECUTION_CONSTRAINT_FOUND_ACTOR_PORT_STILL_OPEN",
+    "actualPaths": [
+      "addons/core/functions/cortexQueueJob.sqf",
+      "addons/core/functions/cortexSchedulerTick.sqf",
+      "addons/core/functions/actorSettings.sqf",
+      "addons/main/XEH_postInit.sqf",
+      "addons/infantry/functions/cortexParachuteProtectionRelease.sqf",
+      "addons/aircraft/functions/flightLeaseAcquire.sqf",
+      "addons/aircraft/functions/flightLeaseValid.sqf"
+    ],
+    "findings": [
+      "Scheduler skips callbacks for disabled subsystems, stale group owners/epochs and paused tactical jobs. Dedicated existing cleanup categories survive tactical pause, but no actor simulation/animation cleanup category exists. A generic tactical job cannot be sole retirement path for a suspended actor.",
+      "ActorSettings supports STANCE and SPEED only, not simulation, animation or damage. Do not silently add these unrelated write domains or trust its stance receipt as authority for rope physics.",
+      "XEH_postInit already installs passive actor init/Local hooks on every machine for native-feature retirement, including parachute protection/deployment. This is the existing actual-owner observation layer to integrate, not a reason to add a permanent global scan or globally change scheduler pauses.",
+      "FlightLeaseValid is actual-aircraft-owner local. Public lease metadata alone cannot grant a cargo owner flight authority. Full orchestration must explicitly account for split aircraft/cargo ownership; a local-only actor draft is not multiplayer completion."
+    ],
+    "decision": "Keep read-only route planner internal. Next actor port must include exact original resource/writer identity and native Local/init cleanup independent of tactical enablement, plus actual airframe authority. No private PFH/controller or simulation/animation writer added merely to bypass lifecycle gaps. Continue independent registered foundation fixes while designing that owned handback.",
+    "limits": "Read-only execution trace; not controlled descent, cleanup implementation or provider handover. Audits remain PAUSED."
+  },
+  "nativePhysicsAlternative20261029": {
+    "sourceSha256": "35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b",
+    "finding": "Original AR_Client_Rappel_From_Heli moves the actor with setPosWorld every0.01s; a separate animation worker disables simulation and repeated remote animation workers plus delayed damage resets outlive simple wrapper handles. Do not copy that writer graph or expose a flag-only handover.",
+    "engineSource": "https://community.bistudio.com/wiki/ropeCreate",
+    "newCandidate": "Official ropeCreate documentation includes a rope terminating on player. Investigate direct native actor endpoint as an alternative to manual actor/device transforms. Documentation is not proof that native Man physics supports controlled descent, safe animation, roof landing or split-owner migration; do not implement a production descent on this assumption alone.",
+    "foundationRepair": "lambs-danger-branch-execution-20261025.json#nativeFlightReturnObservation20261029 repairs an existing unconfirmed native return before adding another movement writer. It does not implement rappel descent, flight orchestration or provider quiescence.",
+    "status": "CONTROLLED_RAPPEL_EXECUTION_REMAINS_OPEN; native physics feasibility requires a focused engine check when audits are authorised; no module, test run or production rope writer added."
+  },
+  "flightOperatingActorRights20261029": {
+    "base": "5b188009ddcb5849fbfa7ab529e462d8aa70d338",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "sourceContext": "Revisited preserved nativePhysicsAlternative20261029 and actorOwnerIntegrationTrace20261028; no new upstream parity claim. Existing provider worker graph cannot acknowledge all delayed writers. Controlled native actor-rope feasibility still requires engine evidence; audits remain paused. Continue independent required flight foundation work.",
+    "actualTrace": [
+      "FlightLeaseAcquire/Valid previously checked currentPilot and airframe markers, plus pilot-group authority at admission, but never current effectiveCommander or its BIS remote marker.",
+      "AircraftEligible and helicopter braking/landing paths primarily derive pilot-group control; a player/remote/specialist commander in another group is not implied by that group. MissileDefenceStep calls fast FlightLeaseValid before bounded velocity mutation.",
+      "HelicopterDecelerationCorrectLocal and flight attack/landing own separate original crew/route/cleanup receipts. Airframe lease cannot simply be rebound to original crew without changing supported restoration paths."
+    ],
+    "change": "Read current effectiveCommander (pilot fallback when absent) and deduplicate the at-most2 operating actors. Player/native remote/BIS remote marker/shared CompatibilityExternalControl refuses acquire and fast permission before lease access. Acquire and fast permission also check existing Zeus hold for a distinct commander group. Same-group crew add no extra Zeus query; different commander groups can run the existing remaining-waypoint inspection and timing-cache update. No passenger/member/world scan, new cache or timer is introduced; per-controller original pilot-group/native checks remain. Airframe lease identity, same-token reacquisition, priority and exact cleanup release unchanged.",
+    "limits": "This closes current operating-actor permission gaps, not all specialist writers, original-crew task proof, native quiescence or provider/rappel execution. No production rope/physics/animation API or behaviour module added on undocumented feasibility assumptions.",
+    "runtimeHashes": {
+      "addons\\aircraft\\functions\\flightLeaseAcquire.sqf": "f90b6f49495ed9ac9107cc1c689d87a4fb4d23072bece1cbf40509b17f5bf348",
+      "addons\\aircraft\\functions\\flightLeaseValid.sqf": "ee1943b9bef404b7244b1e4a4abef1adfac8ea7e9c3e5dba9aad6cead1533a5b"
+    },
+    "checks": {
+      "red": ".qa/handovers/flight-crew-red-20261029.log: extended existing shared-flight case fails old source",
+      "focused": "Existing shared-flight case failed old source;617 operation cases pass after fix and final1505test build passes. No cases added/removed. Airframe same-token reacquisition and original release contracts explicitly retained.",
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "performance": "At most2 current operating-actor checks through existing compatibility boundary. Different commander groups add existing Zeus hold/remaining-waypoint inspection; same-group crew do not. No world/member scan, new worker/timer/cache. Actual overhead UNVERIFIED; no measured-budget claim.",
+      "full": "Final build exit0:1505tests/480compiledSQF/11PBO; config/FSM/docs/coverage/parity and static performance0findings pass.",
+      "candidate": ".qa/candidates/flight-command-rights-20261029-5b188009",
+      "fingerprint": "17e93f64458316aa56de52cae6f207d4c3d6cf0f8a16cf8185d6a28e33d88c5c",
+      "independent": "Verifier exit0 matching fingerprint. Unsigned development base5b188009+runtime/guide changes; source-review/handover metadata finalized afterward.",
+      "logs": [
+        ".qa/handovers/flight-crew-red-20261029.log",
+        ".qa/handovers/flight-command-rights-focused-20261029.log",
+        ".qa/handovers/flight-rights-build-20261029.log",
+        ".qa/handovers/flight-command-rights-final-build-20261029.log",
+        ".qa/handovers/flight-command-rights-independent-20261029.log"
+      ]
+    }
+  },
+  "executionIntegrationTrace20261030": {
+    "scope": "Re-read actor entry/physics/cleanup and complete animation worker of the preserved713709341 source; compared current flight lease and shared scheduler, no reference execution/edits.",
+    "finding": "The stock actor API retains force-exit/random start relocation/device overshoot and independent delayed animation/overspeed/damage writers. Shared tactical scheduler explicitly defers during ENDEX/SafeStart and doubles low-FPS delays, so continuous hanging-actor physics cannot simply be dropped into an ordinary tactical job. Source activity flag is still not quiescence.",
+    "nextRequired": "Controlled actor descent must own its complete physics/animation/rope/cleanup graph and exact authority, preserve original damage/simulation, handle loss of actor/flight control without stale writes and prove actual support arrival. Flight orchestration, ground handover and module must compose that executor. Do not expose unchanged stock API as working insertion. Physical movement/replication uncertainties remain while audits paused.",
+    "disposition": "Rappel remains required and unimplemented beyond route geometry; continue independent Protocol jamming behaviour-module gap in this batch. No wrapper/controller or animation/sound asset copied."
+  },
+  "controlledPoseBoundary20261030": {
+    "intent": "Replace the provider animation/remote-repair/simulation-writer subgraph as a prerequisite to complete owned descent, not a wrapper over an activity marker.",
+    "source": "Unchanged MIT713709341 main source35c63f68; original animation worker613-734 re-read. Its remote repair loops, AnimChanged reinjection and unconditional enableSimulation are not called. Independent native-command implementation; no source animation/sound asset copied.",
+    "engineSources": [
+      "https://community.bistudio.com/wiki/switchMove",
+      "https://community.bistudio.com/wiki/ropeCreate",
+      "https://community.bistudio.com/wiki/attachTo"
+    ],
+    "engineEvidence": "Official switchMove documentation: owner-local command has global effect/JIP sync; alternative2.18 syntax starts the move without an extra playMoveNow call. This supports trying one owned command instead of stock remote repair workers. Native handler timing/actual visuals not verified. Ropes still require valid alive rope-enabled transport/entity attachments; native description alone does not prove a new descent implementation.",
+    "implementation": "Internal RappelPoseLocal START/RELEASE; no controlled descent caller/module yet. Caller supplies immutable original group/epoch/generation/flight revision plus actor/aircraft/token/deadline. Current RAPPEL operation/participant, exact RAPPEL:token actor lease, flight identity, ordinary configured human and matching installed AR no-actions rifle/pistol asset required. <=64 participants/waypoints, deadline<=60s. At most one native apply and one clear per identity. Compact10-field current custody/7-field last identity public; full route baseline private. No simulation/damage/weapon/physics/seat/flight writes or provider workers.",
+    "cleanup": "Exact receipt and original authority/actor lease/private route/live eligibility required to reset still-present pose, within originaldeadline+30s. Clear attempt consumed before command; refusal then observes only. Observed authority loss permanently disables reset. Native pose absence permits exact passive retirement even after group/epoch change, without successor pose reset; only matching local baseline removed. Shared movement/fire predicate holds unresolved custody. No old epoch/generation stamping, replay after completion, unowned AR pose adoption or timeout handover inference. Full native actor-order/physical safety and whole-operation quiescence remain caller responsibilities.",
+    "limits": "Required building block, not physical rappel functionality or provider handback. No controlled descent caller, rope/device/entry/support-arrival/flight/ground handover exists yet. Unknown pose under new owner/task requires later confirmed cleanup; no timeout inference. Standard skeleton class check does not prove absence of deformation/artifacts. Asset dependency stays optional to core, missing assets refuse. Audits paused.",
+    "validation": {
+      "focused": "PASS1 new targeted actuator-ownership contract, justified by native actor-state risk. Existing suite now1507, not physical execution.",
+      "full": "PASS1507 tests,498 compiled SQF,11PBO/full offline gates; static performance0 findings.",
+      "buildLog": ".qa/handovers/protocol-rappel-pose-20261030-final-build.log",
+      "independent": "PASS unsigned development package verification",
+      "independentLog": ".qa/handovers/protocol-rappel-pose-20261030-independent.log",
+      "candidate": ".qa/candidates/protocol-rappel-pose-20261030-b624b905",
+      "fingerprint": "9b48715711ff0f58384b4837797981ff83233903baf965ae8f5dea8aa1f41697",
+      "provenance": "Unsigned dirty baseb624b905 plus checked implementation/test/guide/review/coverage inputs; later metadata separate, not clean future-commit release or signature verification.",
+      "development": "Focused guard initially matched remoteExecutedOwner as if it were remoteExec; tightened command-token assertion. After initial full passes, review tightened observed-loss custody, original caller context, single native attempts, weapon variants and route publication; final full build passes exact final source. No blanket acceptance/removed gates.",
+      "physical": "UNVERIFIED; audits PAUSED. No source execution, Arma staging/launch, pose capture or measured cost."
+    },
+    "currentProductHashes": {
+      "addons/aircraft/functions/rappelPoseLocal.sqf": "bd1e69f7e345cd23a6b37cfb8aa649daef32ee84ae92bd41b6817814ca034033",
+      "addons/infantry/functions/cortexActorMoveReserved.sqf": "d40f1f83b141f4f44aabf178ff038273fe3e37203c77ae92d38a70a434d7265a",
+      "addons/main/CfgFunctions.hpp": "e74fa383d01ffea4d3bd5e7cf278b8307549a48fffcba0dbb33503e0d0bf8fb4"
+    },
+    "custodyCorrection": "First full build passed, then source review found reset permission could revive after observed authority loss/token reuse. Exact-receipt withdrawal now permanently disables native reset; only actual pose absence permits later passive retirement. Retry binds original flight-lease revision. Post-native loss cannot mutate a nonlocal actor. No speculative scheduler suspension claim; actual animation-event timing unverified.",
+    "weaponPosePolicy": "Retain source separate rifle/pistol no-actions moves. Ordinary human unarmed/primary/handgun eligible; launcher/other selected weapons refuse. No imposed weapon switch. A changed selection cannot silently repair/replay a pose; post-request weapon must still match for acceptance. A completed identity cannot reapply; future legitimate task needs new original identity. This does not prove pose deformation quality or successful engine admission.",
+    "routePublication": "Only compact custody metadata is public. Full authored route/waypoint statements stay in the exact owner-local baseline; cannot be used as permission by a joining/migrated owner. Passive pose-absence retirement removes only the matching private baseline. No full route payload broadcast or JIP animation replay.",
+    "originalContextAndReplay": "Caller must supply immutable original group/epoch/generation/flight revision, compared with live state; never reconstruct identity from current metadata. Compact7-field last identity prevents replay after completion. Clear permission consumed before one native clear attempt; later calls observe only. Foreign/unowned AR animation family refuses new admission even after provider flag absence. No full route broadcast."
+  },
+  "nativePhysicsDiagnosticPrepared20261031": {
+    "base": "f1bd3ad759bc6d44618ab73ca33a706aee91f458",
+    "status": "PREPARED_UNRUN_NO_PRODUCTION_RAPPEL_IMPLEMENTATION",
+    "sourceSHA256": "35c63f68c0c7fccaeb3608d8650033aee0b3cae9f191ac5694b5528732af9e4b",
+    "sourceTrace": "Re-read original AR actor entry/physics/landing/damage cleanup and CBE pose/geometry/scheduler/operation owner contracts. Provider actor manually moved every0.01s plus independent simulation/animation/damage workers; direct native Man rope endpoint documented but physical support remains unknown. Ordinary tactical jobs can defer or discard on pause/ownership changes, so cannot simply own frozen actors. No source wrapper, native hanging writer or body freeze added.",
+    "finiteOutcome": "Prepared one isolated normal-VR rappelphysics harness case: simulated living Man vs simulated slingload crate beneath fixed simulation-off helicopter anchors. Six-second unassisted HOLD, one native unwind request/cell,23s observed descent; >=20 hold samples and <=150 samples/cell. Cargo control must physically hold/lower before Man inference. Actual >=8m descent and native ground contact required; stable anchors/life/locality/simulation observed. Native rope destruction observed then only disposable resources deleted.",
+    "owner": "Existing explicit-focus runServer dispatcher -> runRappelPhysics, normal batch guard in staging and launcher, release_gate explicitly refuses diagnostic promotion. Never automatically included in all/HC or run during preparation.",
+    "disposition": {
+      "retained": "Reference controlled-descent/real support arrival intent; source simulation/animation writer graph stays rejected.",
+      "prepared": "The native actor-endpoint physics alternative is now an executable, bounded comparison with a cargo validity control rather than a paper assumption.",
+      "notImplemented": "No production actor entry/descent/animation/flight orchestration/cargo-ground handover/module or external-provider quiescence."
+    },
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/ropeCreate",
+      "https://community.bistudio.com/wiki/ropeUnwind"
+    ],
+    "limits": "UNRUN; audits paused. Fixed simulation-off anchors and PATH-excluded protected payloads isolate physics, not real hover/entry/animation/deformation/casualty/roof/locality/handover or performance. Failed cargo control is inconclusive, not proof Man is unsupported. No actor transforms/velocity/simulation/damage/pose writes during measurement; initial fixture setup is not production recovery. RPT samples are discrete, not continuous safety proof. A passing diagnostic cannot accept CBE or a release.",
+    "validation": "PASS1509 repository tests,498 compiled production SQF,11PBO/full gates;0 static performance findings; independent unsigned package verification. Focused staging/gate suite PASS26, including one new necessary regression. Diagnostic SQF structurally checked/copied by staging tests; never executed in Arma. Unit staging in disposable repo test folders only; no installed-game staging or launch.",
+    "hashes": {
+      "releaseVerificationAndDeployment/cortexQA/runRappelPhysics.sqf": "73c8d117990ebcf7778cb33aa83ad7301163038db844a3a0567b7e5b65fcccc3",
+      "releaseVerificationAndDeployment/cortexQA/runServer.sqf": "a24465ce9c5b4c1f31df3375a95ac452ac7def375d3a36d63a0e2efb4e881560",
+      "releaseVerificationAndDeployment/mod_pipeline.py": "b72293cc127f4f135ef8ea35d3bfe4a7a506c20b87789a6372eaef23dd773b67",
+      "releaseVerificationAndDeployment/launch_mod_audit.ps1": "f1482332c45dcf1b3f28cc319b320d436f6fbbd87d7fa18f41090d62c8dc3287",
+      "releaseVerificationAndDeployment/test_mod_pipeline.py": "ca65f6ded87cce3ecccee305605cd2482f2d9aba7211ff9371e3614630393c25"
+    },
+    "candidate": ".qa/candidates/protocol-rappel-physics-prepared-20261031-f1bd3ad7",
+    "fingerprint": "9a0d2d14215f204e448cf28a349b60afc2e2b37456bbdc929da8814532a510c7",
+    "provenance": "Unsigned dirty basef1bd3ad7 plus checked QA/pipeline/guide inputs; production runtime unchanged. Metadata afterward. Not clean release/signature or physical evidence.",
+    "buildLog": ".qa/handovers/rappel-native-physics-preparation-20261031-build.log",
+    "independentLog": ".qa/handovers/rappel-native-physics-preparation-20261031-independent.log"
   }
 }

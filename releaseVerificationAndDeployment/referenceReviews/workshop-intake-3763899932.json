@@ -1,0 +1,45 @@
+{
+  "workshopId": "3763899932",
+  "name": "Realistic Vegetation Concealment",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3763899932",
+  "added": "2026-10-30",
+  "priority": "2 Complementary AI methods",
+  "status": "REGISTERED_SOURCE_REVIEW_PENDING",
+  "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+  "area": "Perception/concealment",
+  "scope": "Evaluate foliage occlusion and delayed visual confirmation through existing CBE native knowledge/perception owners; handle loss/reacquisition, dynamic actors and locality without omniscience or competing skill writers.",
+  "userConditions": {},
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3763899932",
+  "localPresent": true,
+  "packageCount": 1,
+  "files": {
+    "mod.cpp": "f91efacc9019f02928bd7869f120b9f32bf327ea3074ab42494230524f643ffe",
+    "meta.cpp": "93720057abcd54099dc1dc3854e01e649e3a3d694385d3c9bcd5e243475d42ec",
+    "addons/rvc.pbo": "dc26c10414da92a366a307cb8640612afaf54e72a7ce3b4dfe76840dbca7e2ec"
+  },
+  "metadata": {
+    "mod.cpp": {
+      "name": "Realistic Vegetation Concealment",
+      "author": "CallsignChris",
+      "overview": "A lightweight vegetation occlusion simulator that reduces how quickly AI visually confirm targets obscured by foliage."
+    },
+    "meta.cpp": {
+      "publishedid": "3763899932",
+      "name": "Realistic Vegetation Concealment"
+    }
+  },
+  "identityEvidence": "User URL and accessible Workshop description/title; installed metadata/package hashes only. No extracted-code review or behaviour proof.",
+  "evaluationTopics": [
+    "Trace actual config/FSM/scripts, callers and native writers; compare selected useful intent with current CBE owners before integration.",
+    "Record retained/adapted/rejected methods and dependencies/licence/provenance. No implementation credit from title, metadata or file counts.",
+    "Preserve mission/Zeus authority, finite owner-local lifecycle, player/specialist ownership and credible animation; avoid extra permanent scanners/controllers."
+  ],
+  "dependencies": "Workshop page lists CBA_A3.",
+  "licence": "Workshop description states APL-SA; packaged licence/provenance still to verify.",
+  "sourceReview": "NOT_STARTED; webpage/local metadata and package inventory only.",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "ordering": "Foundations/FSM first, individual behaviour before squad/combined arms; compatibility expansion last. Reference-only items supply methods rather than an automatic implementation obligation.",
+  "sourceProtection": "Installed Workshop/game files, original signatures/assets and preserved references are read-only. No execution/repacking or copying raw reference assets into the product. Any future extraction uses a separate private dated directory."
+}

@@ -118,6 +118,9 @@ class CfgFunctions {
             class VehicleCrewMoveReturnProof {file = "\z\cbe\addons\vehicles\functions\vehicleCrewMoveReturnProof.sqf";};
             class VehicleCrewMoveDeletionWatch {file = "\z\cbe\addons\vehicles\functions\vehicleCrewMoveDeletionWatch.sqf";};
             class VehicleArmourShot {file = "\z\cbe\addons\vehicles\functions\vehicleArmourShot.sqf";};
+            class ModuleVehiclePoint {file = "\z\cbe\addons\vehicles\functions\moduleVehiclePoint.sqf";};
+            class VehiclePointDialog {file = "\z\cbe\addons\vehicles\functions\vehiclePointDialog.sqf";};
+            class VehiclePointOperation {file = "\z\cbe\addons\vehicles\functions\vehiclePointOperation.sqf";};
             class VehicleTacticalMoveStart {file = "\z\cbe\addons\vehicles\functions\vehicleTacticalMoveStart.sqf";};
             class VehicleTacticalMoveStep {file = "\z\cbe\addons\vehicles\functions\vehicleTacticalMoveStep.sqf";};
             class VehicleTacticalMoveRetire {file = "\z\cbe\addons\vehicles\functions\vehicleTacticalMoveRetire.sqf";};
@@ -185,7 +188,10 @@ class CfgFunctions {
             class DangerEngineSubmit {file = "\z\cbe\addons\infantry\functions\dangerEngineSubmit.sqf";};
             class CortexIlluminationStep {file = "\z\cbe\addons\infantry\functions\cortexIlluminationStep.sqf";};
             class CortexStaticSupport {file = "\z\cbe\addons\infantry\functions\cortexStaticSupport.sqf";};
+            class CortexStaticRetire {file = "\z\cbe\addons\infantry\functions\cortexStaticRetire.sqf";};
             class CortexStaticDeployStep {file = "\z\cbe\addons\infantry\functions\cortexStaticDeployStep.sqf";};
+            class CortexStaticPackStep {file = "\z\cbe\addons\infantry\functions\cortexStaticPackStep.sqf";};
+            class CortexStaticNativeMoveState {file = "\z\cbe\addons\infantry\functions\cortexStaticNativeMoveState.sqf";};
             class DangerAttackPace {file = "\z\cbe\addons\infantry\functions\dangerAttackPace.sqf";};
             class DangerFlight {file = "\z\cbe\addons\infantry\functions\dangerFlight.sqf";};
             class DangerRefugeSelect {file = "\z\cbe\addons\infantry\functions\dangerRefugeSelect.sqf";};
@@ -214,6 +220,7 @@ class CfgFunctions {
             class IndoorActorNodeSelect {file = "\z\cbe\addons\infantry\functions\indoorActorNodeSelect.sqf";};
             class BuildingLaneJournal {file = "\z\cbe\addons\infantry\functions\buildingLaneJournal.sqf";};
             class BuildingStageJournal {file = "\z\cbe\addons\infantry\functions\buildingStageJournal.sqf";};
+            class ClearOrderValid {file = "\z\cbe\addons\infantry\functions\clearOrderValid.sqf";};
             class BuildingRoomJournal {file = "\z\cbe\addons\infantry\functions\buildingRoomJournal.sqf";};
             class BuildingProducerRegister {file = "\z\cbe\addons\infantry\functions\buildingProducerRegister.sqf";};
             class BuildingActorJournal {file = "\z\cbe\addons\infantry\functions\buildingActorJournal.sqf";};
@@ -306,8 +313,25 @@ class CfgFunctions {
             class CortexClearSettingsApply {file = "\z\cbe\addons\infantry\functions\cortexClearSettingsApply.sqf";};
             class CortexClearRelease {file = "\z\cbe\addons\infantry\functions\cortexClearRelease.sqf";};
             class ModuleGarrison {file = "\z\cbe\addons\infantry\functions\moduleGarrison.sqf";};
+            class ModulePointAdvance {file = "\z\cbe\addons\infantry\functions\modulePointAdvance.sqf";};
+            class ZenPointAdvanceModule {file = "\z\cbe\addons\infantry\functions\zenPointAdvanceModule.sqf";};
+            class PointAdvanceOperation {file = "\z\cbe\addons\infantry\functions\pointAdvanceOperation.sqf";};
+            class PointWithdrawOperation {file = "\z\cbe\addons\infantry\functions\pointWithdrawOperation.sqf";};
+            class ClearAreaOperation {file = "\z\cbe\addons\infantry\functions\clearAreaOperation.sqf";};
+            class ModuleClear {file = "\z\cbe\addons\infantry\functions\moduleClear.sqf";};
+            class ZenClearAreaModule {file = "\z\cbe\addons\infantry\functions\zenClearAreaModule.sqf";};
             class ZenClearModule {file = "\z\cbe\addons\infantry\functions\zenClearModule.sqf";};
             class ZenDefendModule {file = "\z\cbe\addons\infantry\functions\zenDefendModule.sqf";};
+            class ZenRushModule {file = "\z\cbe\addons\infantry\functions\zenRushModule.sqf";};
+            class ZenCreepModule {file = "\z\cbe\addons\infantry\functions\zenCreepModule.sqf";};
+            class ZenHuntModule {file = "\z\cbe\addons\infantry\functions\zenHuntModule.sqf";};
+            class ZenPatrolModule {file = "\z\cbe\addons\infantry\functions\zenPatrolModule.sqf";};
+            class ZenReleaseModule {file = "\z\cbe\addons\infantry\functions\zenReleaseModule.sqf";};
+            class CreepOperation {file = "\z\cbe\addons\infantry\functions\creepOperation.sqf";};
+            class CreepRoutePlan {file = "\z\cbe\addons\infantry\functions\creepRoutePlan.sqf";};
+            class CreepPolicy {file = "\z\cbe\addons\infantry\functions\creepPolicy.sqf";};
+            class InfantryTaskDialog {file = "\z\cbe\addons\infantry\functions\infantryTaskDialog.sqf";};
+            class GarrisonTaskDialog {file = "\z\cbe\addons\infantry\functions\garrisonTaskDialog.sqf";};
             class ZenGarrisonModule {file = "\z\cbe\addons\infantry\functions\zenGarrisonModule.sqf";};
             class CortexOrderDispatch {file = "\z\cbe\addons\infantry\functions\cortexOrderDispatch.sqf";};
             class CortexOrderLocal {file = "\z\cbe\addons\infantry\functions\cortexOrderLocal.sqf";};
@@ -318,6 +342,10 @@ class CfgFunctions {
             class CortexArtilleryFire {file = "\z\cbe\addons\support\functions\cortexArtilleryFire.sqf";};
             class CortexArtilleryRequest {file = "\z\cbe\addons\support\functions\cortexArtilleryRequest.sqf";};
             class CortexCanTransmit {file = "\z\cbe\addons\infantry\functions\cortexCanTransmit.sqf";};
+            class ModuleJamming {file = "\z\cbe\addons\infantry\functions\moduleJamming.sqf";};
+            class JammingTaskDialog {file = "\z\cbe\addons\infantry\functions\jammingTaskDialog.sqf";};
+            class CortexJammingField {file = "\z\cbe\addons\infantry\functions\cortexJammingField.sqf";};
+            class CortexJammingFactor {file = "\z\cbe\addons\infantry\functions\cortexJammingFactor.sqf";};
             class CortexGroupAnchor {file = "\z\cbe\addons\infantry\functions\cortexGroupAnchor.sqf";};
             class CortexGroupTransmitter {file = "\z\cbe\addons\infantry\functions\cortexGroupTransmitter.sqf";};
             class CortexBuildingDoor {file = "\z\cbe\addons\infantry\functions\cortexBuildingDoor.sqf";};
@@ -346,6 +374,8 @@ class CfgFunctions {
             class CortexAirPilotFeatureAdopt {file = "\z\cbe\addons\aircraft\functions\cortexAirPilotFeatureAdopt.sqf";};
             class CortexAirPilotFeatureRelease {file = "\z\cbe\addons\aircraft\functions\cortexAirPilotFeatureRelease.sqf";};
             class CortexAirWeaponOperatorAvailable {file = "\z\cbe\addons\aircraft\functions\cortexAirWeaponOperatorAvailable.sqf";};
+            class CortexAirContact {file = "\z\cbe\addons\aircraft\functions\cortexAirContact.sqf";};
+            class CortexAirReleaseSafe {file = "\z\cbe\addons\aircraft\functions\cortexAirReleaseSafe.sqf";};
             class CortexAirAttackPlan {file = "\z\cbe\addons\aircraft\functions\cortexAirAttackPlan.sqf";};
             class CortexAirAttack {file = "\z\cbe\addons\aircraft\functions\cortexAirAttack.sqf";};
             class AirAttackOperationStart {file = "\z\cbe\addons\aircraft\functions\airAttackOperationStart.sqf";};
@@ -370,9 +400,11 @@ class CfgFunctions {
             class CortexFlankStep {file = "\z\cbe\addons\infantry\functions\cortexFlankStep.sqf";};
             class CortexDrillResume {file = "\z\cbe\addons\infantry\functions\cortexDrillResume.sqf";};
             class CortexDrillStart {file = "\z\cbe\addons\infantry\functions\cortexDrillStart.sqf";};
+            class CortexDrillNativeCurrent {file = "\z\cbe\addons\infantry\functions\cortexDrillNativeCurrent.sqf";};
             class CortexDrillSetStage {file = "\z\cbe\addons\infantry\functions\cortexDrillSetStage.sqf";};
             class CortexSetPhase {file = "\z\cbe\addons\infantry\functions\cortexSetPhase.sqf";};
             class CortexGarrison {file = "\z\cbe\addons\infantry\functions\cortexGarrison.sqf";};
+            class CortexGarrisonPostChoice {file = "\z\cbe\addons\infantry\functions\cortexGarrisonPostChoice.sqf";};
             class CortexGarrisonArrived {file = "\z\cbe\addons\infantry\functions\cortexGarrisonArrived.sqf";};
             class CortexGarrisonFailedPosts {file = "\z\cbe\addons\infantry\functions\cortexGarrisonFailedPosts.sqf";};
             class CortexGarrisonRefill {file = "\z\cbe\addons\infantry\functions\cortexGarrisonRefill.sqf";};
@@ -381,8 +413,14 @@ class CfgFunctions {
             class CortexGrenadeCheck {file = "\z\cbe\addons\infantry\functions\cortexGrenadeCheck.sqf";};
             class CortexGroupMove {file = "\z\cbe\addons\infantry\functions\cortexGroupMove.sqf";};
             class CortexGroupMoveClear {file = "\z\cbe\addons\infantry\functions\cortexGroupMoveClear.sqf";};
+            class RushOperation {file = "\z\cbe\addons\infantry\functions\rushOperation.sqf";};
+            class HuntOperation {file = "\z\cbe\addons\infantry\functions\huntOperation.sqf";};
+            class PatrolOperation {file = "\z\cbe\addons\infantry\functions\patrolOperation.sqf";};
+            class PatrolRoutePlan {file = "\z\cbe\addons\infantry\functions\patrolRoutePlan.sqf";};
+            class PatrolRouteCommit {file = "\z\cbe\addons\infantry\functions\patrolRouteCommit.sqf";};
             class CortexGroupState {file = "\z\cbe\addons\infantry\functions\cortexGroupState.sqf";};
             class CortexGroupTick {file = "\z\cbe\addons\infantry\functions\cortexGroupTick.sqf";};
+            class CortexUAVApproach {file = "\z\cbe\addons\infantry\functions\cortexUAVApproach.sqf";};
             class CortexKnowledge {file = "\z\cbe\addons\infantry\functions\cortexKnowledge.sqf";};
             class CortexTacticalAssess {file = "\z\cbe\addons\infantry\functions\cortexTacticalAssess.sqf";};
             class CortexTacticalReposition {file = "\z\cbe\addons\infantry\functions\cortexTacticalReposition.sqf";};
@@ -419,6 +457,13 @@ class CfgFunctions {
             class CortexCombatEffective {file = "\z\cbe\addons\infantry\functions\cortexCombatEffective.sqf";};
             class CortexCapabilities {file = "\z\cbe\addons\infantry\functions\cortexCapabilities.sqf";};
             class CortexPassengerReady {file = "\z\cbe\addons\vehicles\functions\cortexPassengerReady.sqf";};
+            class CortexMechanisedSupport {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedSupport.sqf";};
+            class CortexMechanisedContinue {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedContinue.sqf";};
+            class CortexMechanisedBoarded {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedBoarded.sqf";};
+            class CortexMechanisedCargo {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedCargo.sqf";};
+            class CortexMechanisedRemote {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedRemote.sqf";};
+            class CortexMechanisedRemoteServer {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedRemoteServer.sqf";};
+            class CortexMechanisedRemoteCrew {file = "\z\cbe\addons\vehicles\functions\cortexMechanisedRemoteCrew.sqf";};
             class ConvoyUnloadPolicy {file = "\z\cbe\addons\vehicles\functions\convoyUnloadPolicy.sqf";};
             class CortexDismountStop {file = "\z\cbe\addons\vehicles\functions\cortexDismountStop.sqf";};
             class CortexVehicleUnloadPolicy {file = "\z\cbe\addons\vehicles\functions\cortexVehicleUnloadPolicy.sqf";};
@@ -434,9 +479,12 @@ class CfgFunctions {
             class CortexAARelocate {file = "\z\cbe\addons\vehicles\functions\cortexAARelocate.sqf";};
             class CortexAAInterceptEffect {file = "\z\cbe\addons\vehicles\functions\cortexAAInterceptEffect.sqf";};
             class CortexAASpot {file = "\z\cbe\addons\vehicles\functions\cortexAASpot.sqf";};
+            class CortexAirDefenceRole {file = "\z\cbe\addons\vehicles\functions\cortexAirDefenceRole.sqf";};
             class CortexAAThreat {file = "\z\cbe\addons\vehicles\functions\cortexAAThreat.sqf";};
             class CortexAAWarningLink {file = "\z\cbe\addons\vehicles\functions\cortexAAWarningLink.sqf";};
             class CortexAAAllocate {file = "\z\cbe\addons\vehicles\functions\cortexAAAllocate.sqf";};
+            class CortexAAStationSelect {file = "\z\cbe\addons\vehicles\functions\cortexAAStationSelect.sqf";};
+            class CortexAAMagazineIdentity {file = "\z\cbe\addons\vehicles\functions\cortexAAMagazineIdentity.sqf";};
             class CortexAAIntercept {file = "\z\cbe\addons\vehicles\functions\cortexAAIntercept.sqf";};
             class CortexAAObserve {file = "\z\cbe\addons\vehicles\functions\cortexAAObserve.sqf";};
             class CortexVehicles {file = "\z\cbe\addons\vehicles\functions\cortexVehicles.sqf";};
@@ -446,6 +494,7 @@ class CfgFunctions {
             class CortexTacticalStart {file = "\z\cbe\addons\infantry\functions\cortexTacticalStart.sqf";};
             class CortexAssaultStart {file = "\z\cbe\addons\infantry\functions\cortexAssaultStart.sqf";};
             class CortexAdvanceStart {file = "\z\cbe\addons\infantry\functions\cortexAdvanceStart.sqf";};
+            class CortexRifleReloadPlan {file = "\z\cbe\addons\infantry\functions\cortexRifleReloadPlan.sqf";};
             class CortexPrimaryAmmoAvailable {file = "\z\cbe\addons\infantry\functions\cortexPrimaryAmmoAvailable.sqf";};
             class CortexAmmoShare {file = "\z\cbe\addons\infantry\functions\cortexAmmoShare.sqf";};
             class CortexCoordinatedAssault {file = "\z\cbe\addons\support\functions\cortexCoordinatedAssault.sqf";};
@@ -463,6 +512,8 @@ class CfgFunctions {
             class CortexZeusWatchLocal {file = "\z\cbe\addons\core\functions\cortexZeusWatchLocal.sqf";};
 
 
+            class RappelPoseLocal {file = "\z\cbe\addons\aircraft\functions\rappelPoseLocal.sqf";};
+            class RappelRoutePlan {file = "\z\cbe\addons\aircraft\functions\rappelRoutePlan.sqf";};
             class ImprovedHelicopterLandingInit {file = "\z\cbe\addons\aircraft\functions\improvedHelicopterLandingInit.sqf";};
             class ImprovedHelicopterLandingStep {file = "\z\cbe\addons\aircraft\functions\improvedHelicopterLandingStep.sqf";};
             class ImprovedHelicopterLandingExecuteLocal {file = "\z\cbe\addons\aircraft\functions\improvedHelicopterLandingExecuteLocal.sqf";};

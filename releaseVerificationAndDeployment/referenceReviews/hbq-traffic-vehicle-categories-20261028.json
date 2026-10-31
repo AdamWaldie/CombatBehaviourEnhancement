@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-28",
+  "sourceBase": "bb9dea1dacf4ecbcd24e8b670ae6f0b3dda3b188",
+  "workshopId": "3812620045",
+  "scope": "Complete preserved nearestThreat body and current CBE traffic/geometry observation; selected vehicle-category gap only, not whole-controller parity.",
+  "sourceRoot": ".qa/hbq-complete-source-20261025",
+  "sourceWitnesses": [
+    {
+      "path": "functions/fn_nearestThreat.sqf",
+      "sha256": "db2d82840137c2ee19eb8b1131c103771325ad84b6ecef023ac4320673a14ec5",
+      "scope": "Complete108-line readable helper: sector, placed-object grid, crewed/empty vehicle discovery and allDead wreck categories."
+    },
+    {
+      "path": "functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "scope": "Selected OvtTry admission/occupied road/oncoming conditions, lines2045-2100; not renewed full-controller review."
+    }
+  ],
+  "finding": "HBQ nearestThreat explicitly includes destroyed Air and Ship objects as potential obstacles, whereas CBE FollowingCap admitted only LandVehicle to its full-hull/crossing observer. CBE GeometryCap separately observes solid ray hits but is not a substitute for that hull/crossing prediction.",
+  "implementation": [
+    "ADAPTED source obstacle-category intent through existing CBE FollowingCap observer: one area nearEntities query includes LandVehicle, Air and Ship, with dead entities enabled.",
+    "IMPROVED category consistency: actual moving or stationary aircraft/boat hulls use the same projection, vertical/lane overlap, measured crossing course and cap policy rather than limiting categories to wreck state.",
+    "The existing rear swept-hull observer now discovers the same three vehicle categories and retains dead Air/Ship hulls through actor admission. Live infantry stays separate. Existing64actor/250metre limits, overlap windows, turning sweep and independent rays remain unchanged.",
+    "RETAINED bounded discovery radius,256 hull projections/64 retained predictions, dense/scheduled refusal, reaction headroom, predecessor/queue authority and independent geometry sensing. No extra scan, cache, worker or command writer.",
+    "REJECTED source global allDead iteration and60second placed-object grid as required collision authority; current live area discovery/geometry retains existing owner and no cached-clearance permission."
+  ],
+  "remaining": [
+    "Physical road crossing/taxiing aircraft, grounded boat/wreck, vertically separated traffic, modded bounding boxes and performance unverified; audits paused.",
+    "Hull projection is conservative box occupancy, not exact surface or route clearance. Standard class discovery may not retain every engine replacement wreck class; geometry sampling remains independent.",
+    "External provider all-writer quiescence, precision/distance LOD and complete HBQ integration remain open.",
+    "Passing/bypass/queue planners retain independent geometry/occupancy contracts; this scoped observer correction does not prove their whole-route clearance or every vehicle category across the mod."
+  ],
+  "verification": {
+    "focused": "PASS:36 existing passing plan/traffic tests",
+    "fullBuild": "PASS",
+    "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+    "measuredPerformance": "NOT_MEASURED",
+    "fullTests": 1504,
+    "compiledSQF": 456,
+    "pboCount": 11,
+    "buildLog": ".qa/handovers/pass-categories-build-20261028.log",
+    "candidate": ".qa/candidates/pass-categories-20261028-55beea1a",
+    "fingerprint": "765fe2bc1e2799888fd4fb73c1612c84f7e022504d7d03db6dcc26474c5bb5c6",
+    "independentVerification": "PASS",
+    "independentLog": ".qa/handovers/pass-categories-independent-20261028.log",
+    "buildProvenance": "55beea1a822adcafbab8d64d9de56c28d0505618 plus dirty passing-observer source snapshot. Prior forward/rear checkpoint retained separately. Only engineering/handover metadata updated after packaging; product hashes pin runtime input, normalize Git line endings when matching."
+  },
+  "cost": "No new query or cadence. Broader native category results can increase discovery/projection work or reach existing conservative density refusal sooner. The existing radius and post-query projection/prediction limits remain; measured native query cost is unknown.",
+  "productHashes": {
+    "addons/vehicles/functions/drivingFollowingCap.sqf": "5448527c8060b8d9c40975e3d8413c02e27195179361ab5091f114733df33786",
+    "addons/vehicles/functions/drivingRearClear.sqf": "e88d35703cd4acea2e777a5703807737e7f33ba2678eb178245542e9c91da32b",
+    "addons/vehicles/functions/drivingPassTraffic.sqf": "525b291b392fc31ba30d2a38ce0ba773b0fc1ad1fd19b1c508f631bf4a0b277b"
+  },
+  "priorObserverCheckpoint": {
+    "commit": "55beea1a822adcafbab8d64d9de56c28d0505618",
+    "verification": {
+      "focused": "PASS:20 existing traffic tests and3 existing full-hull projection tests",
+      "fullBuild": "PASS",
+      "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+      "measuredPerformance": "NOT_MEASURED",
+      "fullTests": 1504,
+      "compiledSQF": 456,
+      "pboCount": 11,
+      "buildLog": ".qa/handovers/traffic-categories-build-20261028.log",
+      "candidate": ".qa/candidates/traffic-categories-20261028-bb9dea1d",
+      "fingerprint": "5f4d2795db65f9815c2d218e3f2757b6781560677b55421e350fa78380da5847",
+      "independentVerification": "PASS",
+      "independentLog": ".qa/handovers/traffic-categories-independent-20261028.log",
+      "buildProvenance": "bb9dea1dacf4ecbcd24e8b670ae6f0b3dda3b188 plus dirty input snapshot. Only engineering/handover metadata updated after packaging; recorded runtime hashes pin build input. Normalize Git line endings when matching committed source."
+    }
+  },
+  "passCorridorFollowup": {
+    "finding": "DrivingPassTraffic separately discovers only LandVehicle/CAManBase. Following/rear category support does not populate this observer. This helper runs before admission and during OUT, DROP_BACK and RETURN, so the category gap also affects active corridor observations.",
+    "change": "One existing nearEntities query now includes Air/Ship. Existing projected full hull, measured velocity/vertical interval, dead-entity admission, mounted-person exclusion, predecessor handling,64candidate/127segment/1250metre bounds and before/after crew/native-order context checks unchanged. No additional query or movement writer.",
+    "sourceDisposition": "The inspected HBQ overtaking road occupancy scan itself includes LandVehicle/CAManBase and alive only; CBE deliberately combines the broader wreck-obstacle intent from nearestThreat with its own existing dead-inclusive/3D predictive corridor. This is a capability improvement, not a claim of identical source behaviour.",
+    "limits": "Class expansion can increase candidates or conservative refusal. Measured cost, native physical path/abort and exotic engine wreck replacements remain unverified. Current course projection does not predict future steering or exact surface collision.",
+    "sourceBase": "55beea1a822adcafbab8d64d9de56c28d0505618"
+  },
+  "unknownGeometryRefusal20261028": {
+    "base": "fe976bae9c429fb1f5c77dd465a54a16a2261354",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "registeredScope": "HBQ collision observation intent through CBE owner-local driving foundations, before dependent convoy/queue expansion.",
+    "source": {
+      "path": ".qa/hbq-complete-source-20261025/functions/fn_nearestThreat.sqf",
+      "sha256": "db2d82840137c2ee19eb8b1131c103771325ad84b6ecef023ac4320673a14ec5",
+      "readScope": "Complete108-line helper; proximity/sector/category result is a broad-phase observation, not hull clearance."
+    },
+    "finding": "FollowingCap previously returned requested speed when horizontal heading was degenerate. Nonfinite own projection was checked only for dense pruning; nonfinite peer height could make both overlap comparisons false and preserve the cap. Rear/PassTraffic already refuse unavailable hull projection. This is a source-level refusal gap, not an observed physical failure.",
+    "change": "Retain the existing affine four-transform hull projection and finite-value validation policy used by DrivingHullInterval. Refuse degenerate/nonfinite horizontal heading and nonfinite own bounds before discovery. Refuse any nonfinite projected peer span before lane/height comparisons, terminating the existing bounded observer through its unavailable/budget sentinel. No helper replacement, projection/padding/spacing change or extra native transform.",
+    "execution": "DrivingAssistStart and ConvoyTick lead/follower callbacks consume the same zero cap/self-object sentinel. Their current ordinary/convoy traffic-blocked and speed-limited branches suppress recovery while the sample is unavailable. Existing owner/route/crew command checks remain. No movement, unflip, forced seat or expiry permission is introduced.",
+    "cost": "At most3 heading finite checks and6 own-bound checks, plus6 finite peer components for each projected candidate, under unchanged256 projections/64 predictions, one area query and existing cadence. Dense finite predicates remain. No measured cost claim.",
+    "verification": {
+      "red": ".qa/handovers/traffic-unknown-geometry-red-20261028.log: existing regression fails on old full-cap heading branch",
+      "focused": ".qa/handovers/traffic-unknown-geometry-focused-20261028.log:20 existing traffic checks PASS; numeric NaN overlap/vertical frame counterexamples and production guard/consumer contracts, not SQF runtime",
+      "fullTests": 1505,
+      "compiledSQF": 457,
+      "PBOs": 11,
+      "fullBuild": "PASS",
+      "independentVerify": "PASS",
+      "candidate": ".qa/candidates/traffic-unknown-geometry-20261028-fe976bae",
+      "fingerprint": "c7ff207c49778e164f6014e3f60f2bc872edae42295a2e551a4d43f96366b50b",
+      "buildLog": ".qa/handovers/traffic-unknown-geometry-build-20261028.log",
+      "independentLog": ".qa/handovers/traffic-unknown-geometry-independent-20261028.log",
+      "sourceNote": "Unsigned development package records base fe976bae9c429fb1f5c77dd465a54a16a2261354 plus dirty inputs. Engineering review/handover metadata follows packaging. Not a clean release or physical acceptance."
+    },
+    "productHashes": {
+      "addons/vehicles/functions/drivingFollowingCap.sqf": "b9dba549f5860baf232405d6c32b457435c9b6c4fa923fa6dd1ad0deca9145b5",
+      "addons/vehicles/functions/drivingHullInterval.sqf": "57d3263d83ca911d8a280cdaab9f6320fea1e1f6442ef6858fc515dac34082eb",
+      "addons/vehicles/functions/drivingAssistStart.sqf": "9ab9beb41356b260ed2ac4f1e1f565609d622bbb3f09fdac41e2f25299fd182e",
+      "addons/vehicles/functions/convoyTick.sqf": "dd9c3cfbcfe59948acfd6391ac4957e97352db1c06e7cfd8a9a78978b7624c90"
+    },
+    "limits": [
+      "No in-engine unknown-hull occurrence or stopping response demonstrated; audits paused.",
+      "Finite but inaccurate or empty native bounding boxes, native simulation/scale limits and faster/larger mod traffic remain separate uncertainties.",
+      "No general flipped recovery, full HBQ parity, physical convoy flow or performance acceptance."
+    ]
+  }
+}

@@ -143,7 +143,7 @@ private _crewReady={
             || {[_x] call CBE_fnc_CompatibilityExternalControl}
             || {!([_x] call CBE_fnc_CortexActorFireTaskAvailable)}
             || {!(_x checkAIFeature "MOVE")} || {!(_x checkAIFeature "PATH")}
-            || {!(currentCommand _x in ["","MOVE","WAIT"])}
+            || {!(currentCommand _x in ["","MOVE","WAIT","FOLLOW"])}
         } < 0}
         && {[_group] call CBE_fnc_NativeOrderReceipt isEqualTo _nativeOrder}
         && {[_driver,_operator] findIf {

@@ -4,7 +4,7 @@
   "name": "FPVSCARE",
   "author": "KRO",
   "added": "2026-10-20",
-  "status": "SOURCE_REVIEWED_PENDING_DESIGN_AND_IMPLEMENTATION",
+  "status": "SELECTED_VISUAL_APPROACH_CUE_IMPLEMENTED_PHYSICAL_UNVERIFIED",
   "scope": "Evaluate AI reactions to FPV drone threats across relevant individual, squad and vehicle behaviour; merge useful intent with existing danger FSM, threat recognition and movement ownership. No implementation or parity claimed.",
   "identityEvidence": {
     "mod.cpp": "name = \"FPVSCARE\";\nauthor = \"KRO\";\ntooltip = \"FPVSCARE\";\noverview = \"KRO - AI FPV drone korkusu.\";\npicture = \"\\fpvscare\\data\\ui\\fpvscare_logo_ca.paa\";\nlogo = \"\\fpvscare\\data\\ui\\fpvscare_logo_ca.paa\";\nlogoOver = \"\\fpvscare\\data\\ui\\fpvscare_logo_ca.paa\";\nlogoSmall = \"\\fpvscare\\data\\ui\\fpvscare_icon_ca.paa\";\naction = \"https://discord.gg/ARTKCjjYHg\";\nactionName = \"Discord\";\n",
@@ -17,7 +17,7 @@
     "meta.cpp": "86a1cbdc582db90ca3c010669762c90cac31bf7a99d79daa6fbc5cf3a5627b41",
     "addons\\fpvscare.pbo": "4a03e124e20c6e4446c7208703008798d273e4613e2b2f5ccb9d1b704b296bd5"
   },
-  "dependencies": "UNVERIFIED; inspect config/source. No dependency inferred from name or metadata.",
+  "dependencies": "Recovered config.cpp CfgPatches declares A3_Functions_F and A3_Data_F. Upstream runtime not exercised; CBE implementation has no FPVSCARE dependency.",
   "licence": "UNVERIFIED; review before incorporating implementation.",
   "evaluationTopics": [
     "Drone identification and visibility/hearing assumptions; avoid omniscient world scans.",
@@ -82,5 +82,47 @@
       "Preserved HBQ inventory and controller/semantic review JSON",
       "Private implementation-register-additions.json with this entry"
     ]
+  },
+  "selectedVisualApproach20261030": {
+    "sourceBase": "fd2d03b4015ce1b98f26f14e9e589eae75c6fa7a",
+    "sourceSnapshot": ".qa/fpvscare-installed-20261030-4a03e124",
+    "durableArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/FPVSCARE/20261030-4a03e124",
+    "sourceIntegrity": ".qa/handovers/fpvscare-source-20261030.json; all10 readable function hashes match original intake; PBO4a03e124 unchanged; selected complete isFPV/threat bodies and init scan loop/declared CfgPatches inspected, not whole runtime/licence review.",
+    "sourceIntent": "Recognise a small hostile approaching UAV and give exposed infantry a timely finite defensive reaction. Source uses approach dot/speed/proximity, sight/hearing substitute, brief shooting/fleeing and local warning.",
+    "disposition": {
+      "adapted": "Native-known small-Air-UAV identity and visible closing-course threat cue, using CBE group/actor ownership and danger cover/refuge rather than upstream controller. Add relative-velocity near-collision ETA/miss-distance bounds; no copied source body.",
+      "replaced": "Source allUnitsUAV/nearEntities0.25second perpetual/per-actor spawned work becomes one probe on existing group knowledge/contact callback, at most1candidate,8personal witnesses and1VIEW query; no new worker.",
+      "rejected": "Assumed35m hearing, projectile redirection to manufacture misses, forced weapon fire/selection, blanket AI flag/posture/behaviour/speed restore, unbounded per-drone controllers and motion over existing tasks.",
+      "notYetImplemented": "Buddy uncertainty warnings, hearing with credible sound model, close escape choices beyond existing cover, vehicle response and broad custom/extra classes. Native gunfire remains with existing firing owner; source screaming/dive/audio not imported."
+    },
+    "execution": [
+      "CortexGroupTick reuses its existing<=8 CortexKnowledge rows and <=64 actor roster. CortexUAVApproach admits recent age<=1s/error<=5m living hostile Air unitIsUAV with world-scaled native model diameter<=5m. Rotate one candidate and an8member window; source pose is not polled globally.",
+      "One personally known, nonignored <=1s native sighting from a local eligible idle foot observer precedes a targeted VIEW check. Only a visible, airborne source within120m may have live velocity read. Relative speed>4m/s, closing cosine>0.8, ETA0..4s and projected miss<=6m qualify. Hidden/nonclosing/hovering/high-overflight and stale/group-only observations refuse.",
+      "Publish the distinct UAV_APPROACH cause with original observation+1s geometry/identity bounds through existing DangerRequest. It never fabricates a native HIT/PROXIMITY record. Existing finite danger FSM ranks it6 (below immediate HIT/CANFIRE/SUPPRESSED), revalidates actual hostile witness/ignore/expiry and chooses HIDE while active operations retain MAINTAIN.",
+      "No new engagement contact is published. Group cover dispatch requires that exact original observer, with no substitute leader after observer loss. Existing cover/refuge/path/restoration/native task and ROE guards own every actual change. Native BLUE/GREEN and specialist/Zeus/mission priorities remain.",
+      "One-second failed probe and four-second accepted-cue cadence live only in current owner group state. No move/recovery clocks are renewed. Reuses existing CBE_AIPass_Danger_Enable; no settings/diagnostic Zeus module or extra movement owner.",
+      "DangerStep carries the original one-second geometry/identity cap into response, action and responsiveness publication. Delayed assessment cannot grant a fresh response window; other native cause durations are unchanged. Once accepted, actual movement still uses its original existing finite travel lease, not a renewed cue expiry."
+    ],
+    "cost": "At most8existing contact classifications,8personal targetKnowledge samples and one targeted VIEW query per eligible probe; candidate/observer cursors bounded, no discovery query/timer/handler/worker. Source velocity read only after sight confirmation. Native query cost and target5%median/10%p95 remain unmeasured.",
+    "validation": {
+      "red": ".qa/handovers/uav-approach-red-20261030.log:new single geometry/actual-owner case fails before implementation",
+      "focused": ".qa/handovers/uav-approach-focused-20261030.log:618operation cases pass; incoming/receding/crossing/hovering/overflight/range/ETA, actual knowledge->cue->danger->cover call path and command/query exclusions covered",
+      "source": ".qa/handovers/fpvscare-source-20261030.json and durable manifest.json",
+      "full": ".qa/handovers/uav-approach-final-build-20261030.log:1506tests (one new functional integration case)/489SQF/11PBOs; all config/FSM/docs/wiki/parity/coverage/static performance gates passed",
+      "physical": "NOT RUN; audits PAUSED; dedicated native-UAV normal/HC/JIP scenarios not implemented/run",
+      "retainedIntermediate": ".qa/handovers/uav-approach-build-20261030.log passed before final original-expiry propagation refinement. .qa/handovers/uav-approach-expiry-red-20261030.log preserves that red case; intermediate not sealed.",
+      "candidate": ".qa/candidates/uav-approach-20261030-fd2d03b4",
+      "fingerprint": "b30f22902fa12e6ea07f6f54c8cd440bcb50d4b5961f3c6d0449cf484630a042",
+      "packageSource": "Unsigned development basefd2d03b4 plus delivered runtime/config/test/coverage/guide changes; dirty=true; engineering metadata finalized afterward. Original unrelated dirt preserved.",
+      "independent": ".qa/handovers/uav-approach-independent-20261030.log:exit0 matching fingerprint"
+    },
+    "limits": [
+      "Visual cue only; not full FPVSCARE functionality, armed-drone certainty or kamikaze recognition. An unarmed UAV on a real near collision course may qualify.",
+      "Reuses nearest8 known-contact shortlist; no independent discovery or guaranteed timely response to an unseen/fast/swarming threat. One current observer/group cover lease is not whole-squad simultaneous evasion.",
+      "Existing tick cadence, cover availability and native path planner may miss an urgent escape; no physical safety or interception guarantee.",
+      "Custom non-unitIsUAV classes, credible hearing/warning, vehicle response and expanded evasion remain incomplete.",
+      "No source assets/third-party code shipped; upstream reuse rights still unverified."
+    ],
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED"
   }
 }

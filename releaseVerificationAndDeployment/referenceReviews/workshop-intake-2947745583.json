@@ -1,0 +1,39 @@
+{
+  "workshopId": "2947745583",
+  "name": "AI Cannot See Small Drones",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=2947745583",
+  "added": "2026-10-30",
+  "priority": "2 Complementary AI methods",
+  "status": "REGISTERED_SOURCE_REVIEW_PENDING",
+  "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+  "area": "Perception/drone balance",
+  "scope": "Evaluate fair small-drone visibility/detectability by size, range and environment against current CBE drone/AA perception. Preserve legitimate nearby detection and threats; do not automatically copy the page example captive-height toggle or global invulnerability.",
+  "userConditions": {},
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/2947745583",
+  "localPresent": true,
+  "packageCount": 1,
+  "files": {
+    "meta.cpp": "c2a3498ea1f32466d935821f7dc10c9de3d750a03cf8409a63abd33c2e23396a",
+    "Addons/HIG_droneAlt.pbo": "cbc00f569605158201e0510f68482294595605e1e6add93a7b0728b792a46141"
+  },
+  "metadata": {
+    "meta.cpp": {
+      "publishedid": "2947745583",
+      "name": "AI Cannot See Small Drones"
+    }
+  },
+  "identityEvidence": "User URL and accessible Workshop description/title; installed metadata/package hashes only. No extracted-code review or behaviour proof.",
+  "evaluationTopics": [
+    "Trace actual config/FSM/scripts, callers and native writers; compare selected useful intent with current CBE owners before integration.",
+    "Record retained/adapted/rejected methods and dependencies/licence/provenance. No implementation credit from title, metadata or file counts.",
+    "Preserve mission/Zeus authority, finite owner-local lifecycle, player/specialist ownership and credible animation; avoid extra permanent scanners/controllers."
+  ],
+  "dependencies": "UNVERIFIED; source/config/API review required.",
+  "licence": "UNVERIFIED; establish original upstream and component-specific reuse rights before incorporating code.",
+  "sourceReview": "NOT_STARTED; webpage/local metadata and package inventory only.",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "ordering": "Foundations/FSM first, individual behaviour before squad/combined arms; compatibility expansion last. Reference-only items supply methods rather than an automatic implementation obligation.",
+  "sourceProtection": "Installed Workshop/game files, original signatures/assets and preserved references are read-only. No execution/repacking or copying raw reference assets into the product. Any future extraction uses a separate private dated directory."
+}

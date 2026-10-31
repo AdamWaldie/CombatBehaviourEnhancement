@@ -1,0 +1,617 @@
+{
+  "date": "2026-10-29",
+  "sourceBase": "2dd621ff31f8e0d35bffcdbf388a74b76285dc09",
+  "workshopId": "1858075458",
+  "pboSHA256": "da03c62978184d2e1b7f28b79cb5e380ae15f40d4cf9ff11d48801b1dfb08534",
+  "sourceRoot": ".qa/lambs-wp-installed-20261029/members",
+  "durableArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/LAMBS/20261029-wp-da03c629",
+  "preservation": "Original durable PBO and all six selected readable member hashes checked against117-member manifest; raw source/assets not copied into product or repository. SQFC bytes retained privately, not semantically certified.",
+  "witnesses": [
+    {
+      "member": "functions/fnc_taskCQB.sqf",
+      "sha256": "6ddfd024edf58f4613a15d17c18d4428b0e4d56c2bf8939c2c3cbbaa2e6657c6",
+      "lines": 235,
+      "review": "Complete readable runtime body"
+    },
+    {
+      "member": "functions/fnc_taskAssault.sqf",
+      "sha256": "857ef0ce4d659e9d32670169643180433fb22a21ebbb9a25ce61abfba8099f07",
+      "lines": 230,
+      "review": "Complete readable runtime body"
+    },
+    {
+      "member": "functions/fnc_doAssaultUnitReset.sqf",
+      "sha256": "14aa4e71406a6bb0ce8a9a36e05701a3424cf7e115dd38ec9ca4b58c028a95df",
+      "lines": 55,
+      "review": "Complete readable runtime body"
+    },
+    {
+      "member": "functions/Modules/fnc_moduleCQB.sqf",
+      "sha256": "0259658d9a65996dbd950c3bdfe3f81c642be94e19e1576b98db2daa14618733",
+      "lines": 112,
+      "review": "Control entry/call-path review; complete wrapper-branch parity not claimed"
+    },
+    {
+      "member": "functions/ZEN/fnc_setCQB.sqf",
+      "sha256": "65403a812fe35dd5f523ec75e311f04ab21ae37bd69cca38cff7a571b73ee95a",
+      "lines": 9,
+      "review": "Control entry/call-path review; complete wrapper-branch parity not claimed"
+    },
+    {
+      "member": "scripts/fnc_wpCQB.sqf",
+      "sha256": "99c2d9fbd10e8d2e665a71f57aa717bcfe0c9eb1028d89ec1eaab6c7cc5a64c9",
+      "lines": 31,
+      "review": "Control entry/call-path review; complete wrapper-branch parity not claimed"
+    }
+  ],
+  "cqb": {
+    "intent": "Select and methodically traverse eligible buildings across an explicit area; move to the next building when current work ends.",
+    "sourceExecution": [
+      "taskCQB scheduled loop searches House/Strategic/Ruins within radius and optional area; side-shared model-position cache selects nearest eligible building.",
+      "Native nearest-known enemy object drives close rush; source samples actual object/building positions. Room assignment selects first remaining node for ready actors.",
+      "Source removes a node when a unit is within30m or by a leader coin flip; this is not physical interior traversal proof.",
+      "Stuck indoor actors may be repositioned with setVehiclePosition when no player is near. Global FULL/FILE/no-flee/attackfalse and per-actor AUTOCOMBAT/SUPPRESSION changes accompany the task. No immutable episode deadline.",
+      "Area is polled repeatedly; cache does not bind position indices to a per-visit object transform. Final cleanup recalls actors and resets stance rather than restoring a complete mission baseline."
+    ],
+    "disposition": {
+      "retainIntent": [
+        "Area-scoped nearest-building sequencing",
+        "Dynamic target membership and continuing to next useful building",
+        "Explicit task/module controls"
+      ],
+      "replaceMethods": [
+        "No distance-only/coin-flip cleared-node removal",
+        "No teleport or hidden-enemy transform route",
+        "No persistent per-unit or whole-area movement loop beside existing CBE owners",
+        "No unconditional feature/formation/attack restore"
+      ]
+    },
+    "currentCBE": [
+      "CortexClearBuilding and BuildingOperationStep already own explicit one-building pair/lane, physical visit/floor/room attempt, inaccessible-node evidence, cover/reserve/egress and exact settings/actor/native receipts. Geometry/visited data binds to object transform and visit context.",
+      "ZenClearModule already exposes explicit single squad/building; new ModuleClear adds native Zeus selectors backed by the same CortexOrderDispatch/Local executor. Optional ZEN is reused when present.",
+      "GroupTick SEARCH has a separate narrow remembered-contact indoor observation for up to two actors, not an area clearance executor.",
+      "CortexDiscover separately replays durable clearance through preflight. Original producer candidates stop at CANDIDATE_UNSEALED; no authenticated incoming native/settings/phase reconciliation consumer exists. Existing retiring callers already guard current ownership; adding a duplicate generic guard would not close that missing chain.",
+      "ClearAreaOperation now sequences a bounded owner-local area queue through GroupBrainStep/CortexGroupTick and existing CortexClearBuilding/BuildingOperationStep, with native CBE_ModuleClearArea and optional ZenClearAreaModule controls. Offline verified; physical/MP/flow and cost unverified. No whole-source parity claim."
+    ],
+    "missing": [
+      "Complete CQB incoming-controller all-writer/settings/native/phase reconciliation",
+      "Physical repeated entry/clearing/isolation/egress and measured performance"
+    ],
+    "nextFiniteImplementation": "Area sequencing build-out is implemented below. Next separate source gap is authored point-assault/withdrawal task execution and real behaviour modules. Area physical/repeat/MP and incoming-controller reconciliation remain unverified/open; do not launch while audits paused."
+  },
+  "pointAssault": {
+    "intent": "Deliberate movement to an operator-selected point, optionally a forced retreat, distinct from attack against known contact.",
+    "sourceExecution": [
+      "taskAssault clears known targets and imposes group policy/LINE/FULL/no-flee/attackfalse; disables multiple AI features and installs actor Fired/Hit handlers.",
+      "Each unit has its own PFH issuing repeated halfway moves and forceSpeed24 until within threshold; ATTACK may force temporary group recreation. No original total task deadline.",
+      "A group loop sends ready vehicles to destination and removes cargo boarding permission near it. Mixed crews/infantry share source group task context.",
+      "doAssaultUnitReset enables features to defaults, resets speed/stance, orders follow and may force an animation. Group cleanup imposes WEDGE/AWARE/YELLOW/attacktrue. These restore defaults rather than authored baselines."
+    ],
+    "currentCBE": [
+      "Press attack is contact-driven, not an explicit arbitrary-point assault equivalent. Its bounded approach extension must not be counted as taskAssault source parity.",
+      "CortexRetreat already owns morale-based screened withdrawal, smoke, physical progress, original120-second episode and typed policy restoration; it does not expose this source arbitrary-destination operator task.",
+      "CortexGroupMove and selected-crew movement are lower-level writers, not an authored point-assault module by themselves.",
+      "29 October: covered dismounted point advance now composes PointAdvanceOperation with existing CortexAdvanceStart/tacticalDrill; see pointAdvanceExecution20261029. It does not implement explicit retreat or vehicle point assault.",
+      "29 October: explicit ground-destination withdrawal script API now uses CortexRetreat and the existing RETREAT phase. Native/optional ZEN START controls and vehicle point assault remain missing; see pointWithdrawalExecution20261029.",
+      "29 October: native Zeus/optional ZEN Withdraw to position now dispatch authenticated WITHDRAW_POINT to the existing fixed-goal withdrawal executor; see pointWithdrawalControls20261029. Shared point UI retains separate advance/withdrawal policies; no second controller."
+    ],
+    "disposition": "Retain explicit destination assault/withdrawal intent. Compose on actual common operation/movement owners with immutable deadline and selected crew authority; reject copied per-actor PFHs, repeated raw moves, temporary group recreation, forced animation and default WEDGE/AI resets.",
+    "missing": [
+      "Vehicle point assault with selected-crew authority",
+      "Physical/MP/repeat/balance and cost validation"
+    ]
+  },
+  "nativeClear": {
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "files": [
+      "addons/infantry/functions/moduleClear.sqf",
+      "addons/main/config.cpp",
+      "addons/main/CfgFunctions.hpp"
+    ],
+    "execution": "CBE_ModuleClear -> ModuleClear -> optionalZenClearModule or native explicit selectors -> CortexOrderDispatch -> CortexOrderLocal CLEAR -> CortexClearBuilding -> existing BuildingOperationStep.",
+    "limits": "Single-building counterpart only; neither area CQB nor explicit point assault is implemented by this module. No acceptance or percentage uplift.",
+    "uiLifecycle": "Display-local choice arrays and control callbacks; cancel submits nothing. Existing child display refuses before createDisplay. No UI global worker or task replay.",
+    "primaryCommandReferences": [
+      "https://community.bistudio.com/wiki/createDisplay",
+      "https://community.bistudio.com/wiki/ctrlCreate"
+    ],
+    "validation": {
+      "tests": 1505,
+      "productionSQF": 471,
+      "pbo": 11,
+      "full": "Full local pipeline exit0; HEMTT/FSM/config/docs/coverage/parity gates passed; static performance0findings.",
+      "candidate": ".qa/candidates/native-clear-20261029-2dd621ff",
+      "fingerprint": "4fb743aa98d79e7477a1170b45e1a1912df7f57db9e56a1270133fed7a308521",
+      "independent": "Package verifier exit0, same fingerprint. Unsigned dev base2dd621ff+dirty inputs; engineering metadata finalized afterward.",
+      "logs": [
+        ".qa/handovers/native-clear-sealed-build-20261029.log",
+        ".qa/handovers/native-clear-independent-20261029.log"
+      ],
+      "retainedFailure": "Initial full build rejected upstream name in player-facing feature guide. Removed it from product prose without weakening boundary check; source comparison remains here. Subsequent pass repeated after actual native UI child-display guard correction.",
+      "physical": "UNVERIFIED;auditsPAUSED;native dialog, keyboard/layout, actual traversal and normal/HC repeat/authority tests pending."
+    },
+    "productHashes": {
+      "addons/infantry/functions/moduleClear.sqf": "d00431f058d1ccef97f36eaecc891b6f6038bd3bb56f9f2569e5031f67c9cfd6",
+      "addons/main/config.cpp": "7d586e5881b29dd007df5a1bf400c40e717132acdcae0123c0f81dae9568c145",
+      "addons/main/CfgFunctions.hpp": "40aa4c03fac679a5989b3529ea90f8584878cdebc337e3c686cb4960293063e1"
+    }
+  },
+  "physicalAcceptance": false,
+  "measuredPerformance": "UNVERIFIED;auditsPAUSED;5%median/10%p95 target remains",
+  "areaExecution20261029": {
+    "sourceBase": "d8465d3d5185c6789e8736ac408a826a00c45a3a",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "intent": "Adapt the complete taskCQB methodical multi-building intent onto existing CBE owner-local group and building executors, replacing unsupported traversal credit and competing movement loops.",
+    "execution": [
+      "Native CBE_ModuleClearArea -> ModuleGarrison or optional ZenClearAreaModule -> authenticated CortexOrderDispatch/Local CLEAR_AREA -> ClearAreaOperation START. Server/current owner validate named radius10..150,buildingLimit1..8,duration30..1800 and original task serial/native/Zeus receipts.",
+      "One group-brain decision services finite CHECK/STEP; no independent PFH, scheduler job or parent movement writer. Start refuses existing operational/actor-domain conflicts and needs a fully dismounted local AI squad with two combat-effective soldiers.",
+      "Inspect at most32 House candidates once; select at most requested1..8 and record pose. Each transition chooses nearest remaining selected building from current friendly anchor, without another world scan. Changed/deleted buildings retain incomplete outcomes.",
+      "Each child uses existing physical CLEAR with preserveBrain=true, minimumActors2, exact area token and immutable original server deadline cap. Parent-token proof participates in every existing constructor preparation guard.",
+      "BuildingOperationStep uses its existing exact finish to fence parent expiry/revocation before room or EGRESS commands. Ordinary egress safety time cannot renew the owner-local area child. Original task/phase/retry budgets are not reset.",
+      "Progress consumes exact private child brain,generation,visit and real terminal job result only after common operation retirement. Actual partial, refused or inaccessible results remain visible; any capped selection or failed child yields PARTIAL. Acceptance/time/queue length alone is not traversal credit.",
+      "Temporary native care/boarding/return defers next-child planning under the original deadline. Finished queue completion precedes readiness for new work; later care cannot strand an already witnessed result.",
+      "Scoped release/shutdown cancel only exact current child identity and operation; replacement orders/native/Zeus/specialist ownership win. Owner change drops local area metadata without replay. An in-progress single-building child retains existing separate durable-clearance rules; complete incoming native/settings/phase handover remains open.",
+      "Compact per-building visited/total counts, copied unreachable indices and entry/egress failure flags survive later child status replacement. Refused starts retain a newly witnessed admission reason; stale prior errors cannot be assigned to a different building. No actor/job graph is retained in public area results."
+    ],
+    "differencesRetained": [
+      "No source30m/coin-flip node removal or reposition recovery",
+      "No per-unit PFHs, blind default AI/formation/attack reset or hostile transforms",
+      "No side-global safe-building flag or permanent re-scan loop",
+      "Finite bounded area task, not universal whole-town safety or whole-mod parity"
+    ],
+    "validation": {
+      "tests": 1505,
+      "productionSQF": 473,
+      "pbo": 11,
+      "full": "Complete offline pipeline exit0; HEMTT/FSM/config/docs/coverage/settings/Zeus/parity gates passed; static performance0findings.",
+      "candidate": ".qa/candidates/area-clear-evidence-20261029-d8465d3d",
+      "fingerprint": "6182fcfc09f7fa6ab92897ed0691990f38e98a03c45f057bbdc00fd7b3afe3da",
+      "independent": "Package verifier exit0, same fingerprint. Unsigned dev base d8465d3d plus dirty build inputs; engineering/handover metadata finalized after packaging.",
+      "retainedFailures": "Focused fixture initially looked for CortexLocality in infantry instead of core; corrected test path. Full runs exposed transform/executor admission and terminal common-operation ordering contracts. Final integration preserved those existing guards and reused guarded child finish; no tests removed or acceptance weakened.",
+      "logs": [
+        ".qa/handovers/area-clear-evidence-build-20261029.log",
+        ".qa/handovers/area-clear-evidence-independent-20261029.log"
+      ],
+      "physical": "UNVERIFIED;auditsPAUSED",
+      "measuredCost": "UNVERIFIED;5%median/10%p95 remains required. Active area task caps existing group cadence at1s and plans at mostone new child per decision; existing building preparation cost remains unmeasured.",
+      "retainedEarlierCandidate": {
+        "candidate": ".qa/candidates/area-clear-20261029-d8465d3d",
+        "fingerprint": "f7a5109fe732b9f4cd82d4bed7aebf079fe60828e1fba294e4edd7a096fadb73"
+      }
+    },
+    "remaining": [
+      "Physical methodical traversal, room access/partial reporting, isolation/egress, casualty/repeat and actual module controls",
+      "Normal/HC/locality/JIP variants and complete incoming-controller reconciliation",
+      "Measured planning/update cost and tactical balance"
+    ]
+  },
+  "pointAdvanceExecution20261029": {
+    "sourceBase": "5077c532f97de6093f8a7aee9a506fbb30deac22",
+    "status": "IMPLEMENTED_PARTIAL_OFFLINE_CHECKED_PHYSICAL_UNVERIFIED",
+    "sourceIntent": "taskAssault explicit point-directed movement; adapt useful intent without per-actor controllers or default policy resets.",
+    "entry": [
+      "PointAdvanceOperation START/CANCEL",
+      "CBE_ModulePointAdvance and optional ZEN Advance to position",
+      "Authenticated ADVANCE_POINT dispatch and current-owner admission"
+    ],
+    "executor": "Existing CortexAdvanceStart and tacticalDrill/CortexFlankStep; no additional movement writer, PFH or worker.",
+    "bounds": "Fully dismounted AI cohort <=64; destination <=2000m; radius5..25m; original30..300s deadline; <=8chunks/64points. Existing role, ammunition, morale, native authority and interruption rules retained.",
+    "foundationDefect": "CortexAdvanceStart reused _element for moving-team selection before persisting elementRoster. Preserve _requestedElement so the covering team remains in the requested cohort. Previous committed source fails the same extended existing regression; corrected source passes. Static evidence does not establish historical live causation.",
+    "ownership": "Shared private explicitOrder, explicitKnowledge and approachChunks replace Rush-specific fields. No enemy object proxy; point geometry does not mutate group contact belief. Contact-off does not cancel a valid explicit advance, while Advance/Core/pause/native ownership gates remain. No semantic incoming-owner replay.",
+    "outcome": "Arrival uses physical cohort/floor checks; missing capable actors produce PARTIAL. No enemy neutralisation or room-clearance claim.",
+    "validation": {
+      "tests": 1505,
+      "productionSQF": 476,
+      "pbo": 11,
+      "fullBuild": "exit0; static performance0findings; HEMTT/config/FSM/docs/coverage/parity gates pass",
+      "candidate": ".qa/candidates/point-advance-20261029-5077c532",
+      "fingerprint": "7fc18d148efad64a7b0af60183d0376b278fc8bd17e3b4c7bd5d3851316f5c15",
+      "independent": "Package verifier exit0 with matching fingerprint. Unsigned development base5077c532 plus dirty runtime inputs, metadata completed later.",
+      "logs": [
+        ".qa/handovers/point-advance-checked-build-20261029.log",
+        ".qa/handovers/point-advance-independent-20261029.log"
+      ],
+      "retainedFailures": "First run caught a test syntax error. Next complete run caught contact-only expectations missing the new explicit-point exemption. Corrected those existing assertions; no removed tests or relaxed autonomous contact freshness. Final full1505pass.",
+      "physical": "UNVERIFIED; audits PAUSED",
+      "performance": "Measured engine cost UNVERIFIED; static audit has0findings."
+    },
+    "remaining": [
+      "Explicit destination withdrawal and vehicle assault are not implemented by this task",
+      "Physical module/UI, covered flow, casualties, repeat/interrupt/locality/MP checks",
+      "Measured performance and whole-source LAMBS/HBQ/Protocol parity"
+    ]
+  },
+  "pointWithdrawalExecution20261029": {
+    "sourceBase": "1daf12188608c669cf1ef9e1e63a92fe34d0ef4d",
+    "status": "SCRIPT_EXECUTOR_IMPLEMENTED_OFFLINE_CHECKED_CONTROLS_AND_PHYSICAL_PENDING",
+    "sourceIntent": "Retain taskAssault explicit destination retreat intent while using existing CBE retreat/native task owner instead of per-actor PFHs, temporary group recreation or default resets.",
+    "entry": "PointWithdrawOperation START/CANCEL owner-local API. CortexOrderLocal RELEASE can cancel the exact operation. Native/optional ZEN START controls are still queued, not shipped by this checkpoint.",
+    "executor": "CortexRetreat fourth argument [groundGoal,actualFreshThreatOrEmpty] -> common WITHDRAW operation -> existing CortexGroupMove and RETREAT case in CortexGroupTick. No new worker or PFH.",
+    "bounds": "Original120s server-time episode, fixed ground goal35..2000m from capable anchor, original cohort<=64, authored route<=64rows at admission/65with own temporary row. At most4 exact-generation retries; no destination fan or clock renewal for point tasks.",
+    "sourceAdaptation": "Fresh native threat knowledge permits opportunistic existing smoke. Without a known threat, an explicit opt-in terrain-only CortexSelectAvenue mode retains bounded water/slope checks but performs no exposure rays, cover credit or friendly corridor claim. Other selector callers retain their original threat requirement.",
+    "lifecycle": "Private seven-field point receipt retains goal/deadline/epoch/generation/original cohort/authored mission/own native row. Actual cohort ground arrival precedes route-finished interpretation; only the unchanged own row is excluded from full authored content comparison. Replacement orders veto further retries. COMPLETE requires successful common retirement and no successor before result publication/restoration. Release-only POINT intent cannot resume as autonomous INFANTRY after transfer.",
+    "outcome": "Remaining capable original group participants must be within30m at ground height<=3m. Timeout, inaccessible route, newer orders, specialist/owner loss or interruption remain incomplete; route acceptance alone gives no arrival credit. Existing automatic morale/vehicle retreat paths remain separate.",
+    "validation": {
+      "tests": 1505,
+      "productionSQF": 477,
+      "pbo": 11,
+      "fullBuild": "exit0; config/FSM/docs/coverage/parity and static performance0findings",
+      "candidate": ".qa/candidates/point-withdraw-20261029-1daf1218",
+      "fingerprint": "2edc3293d52725faafb5636adcdb234ea930bfe70d8e65b01b690f52df0c1f06",
+      "independent": "Package verifier exit0; matching fingerprint. Unsigned development base1daf1218 plus dirty runtime inputs, engineering metadata finalized afterward.",
+      "logs": [
+        ".qa/handovers/point-withdraw-retirement-build-20261029.log",
+        ".qa/handovers/point-withdraw-independent-20261029.log"
+      ],
+      "retainedFindings": "Existing resume test expected the old fixed INFANTRY tag/smoke guard; updated for separate non-replayable POINT type and no smoke without a threat. Existing door-hook test delimiter required the old Contact gate text; corrected its scope, not door authority. Review then required successful common retirement before completion publication and existing Zeus release cancellation. Final1505pass; no test cases added or removed.",
+      "physical": "UNVERIFIED; audits PAUSED",
+      "measuredPerformance": "UNVERIFIED; bounded authored-route observation is additional cost during this finite task only."
+    },
+    "remaining": [
+      "Vehicle point assault / selected operating crew handling",
+      "Physical route/arrival/ground checks, smoke, repeat, cancellations, normal/HC/locality and performance validation",
+      "Full LAMBS/HBQ/Protocol capability reconciliation remains incomplete"
+    ],
+    "latestControls": "Native Zeus and optional ZEN START controls now implemented; backend checkpoint validation remains preserved below. Latest controls evidence: pointWithdrawalControls20261029."
+  },
+  "pointWithdrawalControls20261029": {
+    "sourceBase": "265114260c19abbb9bdf09cee7a7d334712c2f06",
+    "status": "IMPLEMENTED_OFFLINE_CHECKED_PHYSICAL_UNVERIFIED",
+    "entry": [
+      "CBE_ModulePointWithdraw inherits existing native point handler",
+      "Optional ZEN Withdraw to position uses ZenPointAdvanceModule explicit WITHDRAW_POINT argument",
+      "Server whitelist/finite ground coordinates and current-owner repeated validation before temporary control changes",
+      "CortexOrderLocal delegates START to PointWithdrawOperation; existing RELEASE cancels exact task"
+    ],
+    "ui": "Shared native/optionalZEN handler validates advance/withdraw opcode. Native choices and ZEN callback carry position/order explicitly, preserving queued context. Cancel sends no request; native child-display guard remains. Withdrawal has explicit squad and destination with fixed120s/30m ground rules; advance retains its own optional radius/time selectors. No CBA setting or movement worker added.",
+    "validation": {
+      "tests": 1505,
+      "productionSQF": 477,
+      "pbo": 11,
+      "fullBuild": "exit0; HEMTT/config/FSM/docs/coverage/parity pass; static performance0findings",
+      "candidate": ".qa/candidates/withdraw-controls-20261029-26511426",
+      "fingerprint": "5a608449515d838426ac755cc43d1c7d8824e090ca772107b3b92510cb82a5d0",
+      "independent": "Package verifier exit0 matching fingerprint. Unsigned development base26511426+dirty runtime changes; engineering/handover metadata finalized after packaging.",
+      "logs": [
+        ".qa/handovers/withdraw-module-final-build-20261029.log",
+        ".qa/handovers/withdraw-module-independent-20261029.log"
+      ],
+      "retainedFailures": "First full run caught malformed multiline test literal and duplicate coverage assignment for shared point UI. Corrected existing test and retained one source-to-feature ownership mapping; reviewed behaviour contract covers both actual surfaces. Final1505pass; no added/removed test cases.",
+      "physical": "UNVERIFIED; audits PAUSED",
+      "performance": "Measured engine cost UNVERIFIED; this checkpoint adds UI/request routing only, no periodic worker."
+    },
+    "remaining": [
+      "Actual native/optionalZEN dialog selection, acknowledgement, cancellation and UI rendering",
+      "Ground routing, smoke, arrival/casualty/repeat, normal/HC/locality and measured performance",
+      "Vehicle point assault and broader whole-source capability gaps remain open"
+    ]
+  },
+  "vehiclePointAdmissionReview20261029": {
+    "sourceCommit": "781668dde8e755d1d5d820d91ff4afea96111e04",
+    "status": "SOURCE_BRANCH_AND_EXISTING_ADMISSION_COMPARED_NOT_IMPLEMENTED",
+    "source": {
+      "member": "functions/fnc_taskAssault.sqf",
+      "sha256": "857ef0ce4d659e9d32670169643180433fb22a21ebbb9a25ce61abfba8099f07",
+      "reviewedBranch": "lines174..194 vehicle loop, within previously complete230-line readable body review",
+      "actualMethod": "Selects unitReady ready vehicles; adjusts common destination with findEmptyPosition; vehicle doWatch/doMove; near destination orders cargo and passenger-turret occupants out and disables allowGetIn."
+    },
+    "currentCBEVersions": {
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "5d31ab879c43c8555a7e2b2c8606fca282c3cc963145a665f15d5a3a84a3152a",
+      "addons/vehicles/functions/vehicleTacticalMoveStep.sqf": "383f58add92252d0d8fa7ec95d41d2e15a5549bfdee2a906e1bd4e84b19f459a",
+      "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf": "93bce8c8afad4caadeb40948173f667a48e98514f8b38899b0594380c7e87ff8",
+      "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf": "430ce867a35867857d7cb880ae9de2196104cfde23d95538b53a4cec162014cc",
+      "addons/vehicles/functions/cortexVehicles.sqf": "60e6f534d5faaed91fbab87395f4a08065bbc45731864fec2ec4eee5c2538215"
+    },
+    "reviewBoundary": "Existing CBE entry guards, selected caller branch, source-current step guard and shared handback headers/phase call inspected. Hashes pin files, not a whole-function or whole-mod semantic review claim.",
+    "currentExecution": [
+      "CortexVehicles acquires VEHICLE_STANDOFF movement lease and common operation, then calls VehicleTacticalMoveStart with original driver/commander, generation and deadline. No group waypoint is added by that mover.",
+      "VehicleTacticalMoveStart refuses remoteExecutedOwner>0, requires exact VEHICLE_STANDOFF intent/epoch/generation/lease and Vehicles plus VehicleGunnery permissions. This is not an arbitrary explicit-position transport API.",
+      "VehicleTacticalMoveStep source-current guard also requires VEHICLE_STANDOFF and gunnery permission before delegating to shared VehicleCrewMoveNativePhase. Altering only constructor intent would not create a valid task lifecycle.",
+      "ArtilleryCrewMoveStart is separately bound to POSITION/SCOOT tokens and artillery sessions; it is not a generic point-task admission shortcut.",
+      "VehicleCrewMoveReturnProof requires completed original private worker/reference/current epoch and typed native return observations. Existing MOVE/idle and newer STOP evidence does not establish arbitrary FOLLOW/unknown-order return."
+    ],
+    "disposition": {
+      "retain": "Explicit selected-platform destination intent and useful existing selected-crew native-phase FSM/retirement proof. Preserve group membership, unrelated infantry/native tasks, actual seats and authored route.",
+      "adapt": "Provide a real point-purpose admission/source-current/retirement contract across the existing platform owner, with original request/deadline and native/mission/Zeus checks; expose authenticated behaviour controls only after actual executor admission works. Deliberately reconcile authenticated server dispatch with local-only worker guards.",
+      "reject": "Do not fabricate a VEHICLE_STANDOFF or artillery session, silently require gunnery for ordinary explicit travel, remove remote guards without a bounded trusted admission path, issue group-wide movement over unrelated infantry, or copy unowned watch/cargo allowGetIn resets."
+    },
+    "nextFiniteOutcome": "Implement selected-platform point movement through the existing native-phase owner with explicit purpose and unchanged request/crew/deadline proof at admission, STEP and retirement. Confirm direct/newer-native/deletion/owner-loss paths in existing checks. Add native/optionalZEN controls for that actual task; do not call registration alone implementation.",
+    "retainedGaps": [
+      "Vehicle point task still unimplemented",
+      "Shared FOLLOW/unknown native handback remains unresolved",
+      "Physical mixed infantry/crew travel, repeat/interrupt/normal/HC and measured cost remain unverified"
+    ],
+    "verification": "Metadata-only source review. Existing verified controls runtime remains781668dd with1505tests/477SQF/11PBO and candidate fingerprint5a608449515d838426ac755cc43d1c7d8824e090ca772107b3b92510cb82a5d0. No runtime edits, rebuild, audit or installed-file staging."
+  },
+  "crewBaselineReturnCorrection20261029": {
+    "sourceBase": "c2cac4189efd064de21b669772f613ef07128b7f",
+    "status": "IMPLEMENTED_OFFLINE_CHECKED_PHYSICAL_UNVERIFIED",
+    "defect": "VehicleTacticalMoveStart only validated positional MOVE coordinates, so unsupported original commands could be captured. Shared active return treated every non-MOVE original as idle, unlike passive RETURN proof which already restricted originals to idle/WAIT/MOVE. An original FOLLOW followed by current WAIT at the held point could therefore be acknowledged without restoring FOLLOW. This is a source counterexample, not an observed cause of earlier live convoy faults.",
+    "changes": [
+      "Tactical start requires original idle/WAIT/MOVE and typed destination arrays before worker allocation. Existing artillery admission already excludes unsupported native commands.",
+      "Shared native phase checks original return baseline before ISSUE/STOPPING/RETURNING command/acknowledgement paths. Unsupported pre-issue work retires without a command; already-issued legacy work remains UNRESOLVED rather than publishing native return acknowledgement.",
+      "Passive RETURN still refuses FOLLOW. EXTERNAL_STOP can supersede a legacy FOLLOW baseline only through actual completed original private FSM, matching epoch/generation/journal/seats, newer STOP on every living original, measured platform rest and dismounted-actor rest. No STOP/return command is issued by this observer."
+    ],
+    "remaining": [
+      "Full automatic restoration of original FOLLOW and other unsupported commands is still unimplemented",
+      "Vehicle point-task admission/source-current/retirement and equivalent controls remain open",
+      "Physical normal/HC, takeover/casualty/repeat and measured engine cost remain unverified"
+    ],
+    "versions": {
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "3c495ec062117729735b4267452a0e7c688268ed5de46e3c6975dfa500eba73d",
+      "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf": "5d97b3d069e572ed2cb770e059e1ea5ca89e143595dd605631d439b9418ca14b",
+      "addons/vehicles/functions/vehicleCrewMoveReturnProof.sqf": "01f79bd83d0b09e9adf52c76f135b5a6eb0df9043933fa7aceff422bcaf04a14"
+    },
+    "validation": {
+      "tests": 1505,
+      "productionSQF": 477,
+      "pbo": 11,
+      "focused": "Existing4 artillery/crew lifecycle cases pass; extended mixed original FOLLOW/unknown baseline counterexamples and passive mode distinction. No cases added or removed.",
+      "full": "Full build exit0; static performance0findings, config/FSM/docs/coverage/parity gates pass. No added native query/PFH/worker; baseline checks inspect two command slots.",
+      "candidate": ".qa/candidates/crew-baseline-final-20261029-c2cac418",
+      "fingerprint": "2bd5849fdaaae68c7d595665437a34780ee4825405245441a7636a66d4d05ab4",
+      "independent": "Final package verifier exit0 matching fingerprint. Unsigned dev basec2cac418 plus committed runtime changes; metadata finalized afterward. Guide updated after full runtime build, checked and copied into scratch package; all11 PBO hashes verified unchanged before resealing a fresh final candidate. Earlier sealed candidate retained.",
+      "logs": [
+        ".qa/handovers/crew-baseline-build-20261029.log",
+        ".qa/handovers/crew-baseline-guide-20261029.log",
+        ".qa/handovers/crew-baseline-final-independent-20261029.log"
+      ],
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "performance": "Measured overheadUNVERIFIED; static audit0findings."
+    }
+  },
+  "crewBaselinePrewriteCorrection20261029": {
+    "sourceBase": "dddaf8ef803ef8b495492aeb0b79e6872c474984",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "sourceContext": "Same preserved taskAssault source/version and selected-platform movement intent as vehiclePointAdmissionReview20261029. This is a defect in the shared CBE native lifecycle, not another upstream parity claim.",
+    "defect": "The previous original-baseline guard ran after release handling. A legacy REQUESTED/MOVING/HOLD journal with unsupported original FOLLOW could replace its goal and issue doMove to a temporary hold before STOPPING validation refused it. Without release, unsupported work could continue through MOVING/HOLD. The previous handover overclaimed pre-write refusal. This is a source counterexample, not verified live fault attribution.",
+    "execution": "VehicleTacticalMoveStep and ArtilleryCrewMoveStep call VehicleCrewMoveNativePhase inside their existing unscheduled FSM callbacks. Source loss/release used to reach the hold doMove before original-baseline validation. Existing exact finalizers retain already-issued work as UNRESOLVED.",
+    "change": "Validate original baseline at the beginning of the shared phase decision for every phase, before any journal mutation or native movement request. ISSUE can retire as never-issued; later unsupported phases remain UNRESOLVED with no further hold/return command. Supported idle/WAIT/MOVE behaviour and original deadlines are unchanged.",
+    "runtimeHashes": {
+      "addons/vehicles/functions/vehicleCrewMoveNativePhase.sqf": "154cdca97e28e86b67504a2bc8499206ac537fc6839d775a1f5bb32ded4f479c"
+    },
+    "checks": {
+      "regression": "Extended existing artillery lifecycle case: reproduced failure on previous code, then all4 existing cases pass. Checks require refusal before goal/hold/outward writes and in every phase; no test cases added or removed.",
+      "redLog": ".qa/handovers/crew-prewrite-red-20261029.log",
+      "focusedLog": ".qa/handovers/crew-prewrite-focused-20261029.log",
+      "full": "Full build exit0:1505 existing tests,477 compiled production SQF,11 PBOs; config/FSM/docs/coverage/parity gates pass; static performance0findings.",
+      "physical": "UNVERIFIED; audits remain PAUSED",
+      "performance": "No new worker, query, scan or retry; existing two-slot check moved before writes. Measured frame-time budget UNVERIFIED.",
+      "candidate": ".qa/candidates/crew-prewrite-20261029-dddaf8ef",
+      "fingerprint": "8d4c35ecca2faef2a06dafebb212e406eaa4fe307a0719650124c8af4426597f",
+      "independent": "Verifier exit0 matching sealed fingerprint. Unsigned development build: base dddaf8ef plus current runtime/doc changes; source-review/handover metadata finalized afterward. No Arma launch or installed-file staging.",
+      "buildLog": ".qa/handovers/crew-prewrite-build-20261029.log",
+      "independentLog": ".qa/handovers/crew-prewrite-independent-20261029.log"
+    },
+    "remaining": [
+      "Vehicle point task still unimplemented",
+      "Actual original FOLLOW restoration remains unsupported",
+      "CQB incoming reconciliation, broader LAMBS/HBQ/Protocol execution and physical validation remain open"
+    ]
+  },
+  "vehiclePointExecution20261029": {
+    "sourceBase": "18bb2263f45285f377b47b649b8d488024c89a67",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "source": {
+      "member": "functions/fnc_taskAssault.sqf",
+      "sha256": "857ef0ce4d659e9d32670169643180433fb22a21ebbb9a25ce61abfba8099f07",
+      "branch": "Vehicle destination loop174..194 revisited from complete readable body review; source ready-vehicle helper already reviewed separately. No whole-source parity claim."
+    },
+    "intent": "Position one explicitly selected crewed land platform without a hostile target, unrelated group movement or passenger policy changes.",
+    "execution": "Native ModuleVehiclePoint or optional ZEN VehiclePointDialog -> curator-authenticated CortexOrderDispatch -> current group/platform owner CortexOrderLocal -> VehiclePointOperation -> real VEHICLE_POINT OperationStart/lease -> existing VehicleTacticalMoveStart/vehicleTacticalMove.fsm/Step -> shared native phase and exact retirement/deletion/locality owners. No new movement worker type or RPC.",
+    "disposition": {
+      "retain": "Explicit ground vehicle destination and useful existing selected-original-crew native move/hold/return. Existing standoff/support defaults and deadlines remain distinct.",
+      "adapt": "Actual POINT purpose, fixed platform/cohort/objective/pointUntil at admission and continuation,30..300s original move/hold deadline,10m/3m measured-rest arrival,30s no-progress bound; generic operation uses mounted crew anchor and preserves unrelated posture. Movement does not depend on VehicleGunnery permission. Only POINT admits inherited authenticated server2 context.",
+      "reject": "No guessed enemy, vehicle doWatch reset, cargo orderGetIn/allowGetIn changes, group-wide waypoint or group split. No forged VEHICLE_STANDOFF/artillery source, unrestricted remote start, new recurring controller or hidden native completion."
+    },
+    "controls": "Native Position vehicle / Release vehicle position task and optional ZEN equivalents select actual platform. Native180s; ZEN30..300s. Cancel dialog submits nothing. Exact task release requests existing retirement, not forced native stop. CBA remains settings surface.",
+    "preserved": "Original seats, local owner/epoch/generation, baseline/native route, original deadline and strict shared native proof. Unsupported native FOLLOW/STOP/unknown, player/specialist/care, external/convoy/zero cap, active tasks and unresolved old reference refuse. Active ordinary-driving roster containing another platform refuses before group cleanup. Native/Zeus orders interrupt. Locality can retire only, never replay outward POINT. Point result distinguishes natural deadline expiry from lost source/feature/operation authority, including during native handback; the latter records pointCancelled and cannot be credited COMPLETE merely for prior arrival.",
+    "runtimeHashes": {
+      "addons/vehicles/functions/vehiclePointOperation.sqf": "3bae1bbea74cae5aa437612a22f44418a9238e366d6e1091ecd9e01a6d1226ed",
+      "addons/vehicles/functions/vehicleTacticalMoveStart.sqf": "5e38fab19cba2539092edd25bf7a40155e24fa4b9441b960c9de3c31296b6d27",
+      "addons/vehicles/functions/vehicleTacticalMoveStep.sqf": "2e2a019a70615e53f3a129051f6afc8ca25f9708217117f148196ef95d0d15dc",
+      "addons/vehicles/functions/vehicleTacticalMoveRetire.sqf": "40794edd97517ff9e5c6097422f4f28d809f3c393c158c144f5892885ad1db6b"
+    },
+    "validation": {
+      "focused": "Existing617 operation cases pass; lifecycle/transport assertions extended, including original point deadline/platform, no independent native writer, shared return and authentic dispatch. No test cases added or removed.",
+      "physical": "UNVERIFIED; auditsPAUSED",
+      "performance": "No extra runtime FSM/PFH/query loop; existing native cadence. One bounded UI128vehicle list plus attached selection. Runtime crew2/membership64 bounds. Measured budget UNVERIFIED.",
+      "full": "Final result-corrected build exit0:1505 tests/480 compiled productionSQF/11PBO; all config/FSM/docs/coverage/parity and static performance0findings pass. Source loss during/after arrival cannot inherit natural expiry completion.",
+      "candidate": ".qa/candidates/vehicle-point-final-20261029-18bb2263",
+      "fingerprint": "aa85715f31d5a9f552aa0a80e6f88142866eab4665400e0de0fabdc02c06835e",
+      "independent": "Final candidate verifier exit0, matching fingerprint. Unsigned development base18bb2263 plus current runtime/guide changes; metadata finalized afterward. Earlier pre-result-fix candidate remains preserved but superseded.",
+      "logs": [
+        ".qa/handovers/vehicle-point-focused-20261029.log",
+        ".qa/handovers/vehicle-point-focused-final-20261029.log",
+        ".qa/handovers/vehicle-point-build-20261029.log",
+        ".qa/handovers/vehicle-point-build-final-20261029.log",
+        ".qa/handovers/vehicle-point-independent-20261029.log",
+        ".qa/handovers/vehicle-point-result-build-20261029.log",
+        ".qa/handovers/vehicle-point-final-independent-20261029.log"
+      ],
+      "retainedFailures": "First focused invocation lacked discovery import path and stale source-literal expectations; normal discover passed after updating expectations without removing tests. First full run caught an overly broad UI executor contract and an internal reference name in product guide. Contract now names actual dispatcher handler and records native forwarding/owner execution separately; guide corrected. Final full and independent gates passed."
+    },
+    "remaining": [
+      "Actual routing/physical rest, UI, normal/HC/locality/repeat/interrupt and measured performance",
+      "Original FOLLOW restoration and other unknown native handbacks",
+      "Passenger-assault orchestration and broader LAMBS/HBQ/Protocol functionality",
+      "CQB incoming reconciliation and controlled-rappel executor remain open"
+    ]
+  },
+  "nativeGarrisonOptions20261029": {
+    "base": "b2bd574f5e990c3cf9474d20419ced23a455895a",
+    "source": {
+      "path": ".qa/lambs-wp-installed-20261029/members/functions/Modules/fnc_moduleGarrison.sqf",
+      "sha256": "d58613a8d359647e45119f7c929f8bdaac5007d1beb5c65330dced5c598e04f3",
+      "archiveMatch": true,
+      "scope": "Complete readable module wrapper; garrison executor descendants and all source module parity not newly claimed."
+    },
+    "intent": "Native curator module exposes explicit group/centre, radius, teleport and height preference rather than requiring script entry or an optional third-party UI.",
+    "gap": "CBE native Garrison fell straight through to fixed50m walking defaults while ZEN alone exposed existing executor placement/height options.",
+    "implementation": "Native Garrison now opens display-local squad, radius, placement and post-preference selectors before confirmation. Explicit soldier attachment retained. Cancel writes nothing; an existing Zeus child is preserved. Default50m/walk/higher-first; radius presets15/25/50/75/100/150m. Optional ZEN path unchanged.",
+    "path": "CBE_ModuleGarrison -> ModuleGarrison -> GarrisonTaskDialog -> CortexOrderDispatch curator authentication/parameter validation/12s request -> current owner CortexOrderLocal serial/route validation -> CortexGarrison preflight -> existing assignment/application/refill/release/adoption.",
+    "decisions": "Adapt real native task control intent through existing owner. Keep user-authorized instant interior placement explicitly selectable, exterior security walks. No exit-condition/patrol option exposed without its full executor; no settings modules or source default resets.",
+    "authority": "UI has no native AI command or direct remote call; named radius/teleport/sortByHeight values traverse existing server/owner checks. Existing module target requirement and other behaviour fallbacks unchanged. JIP replays no dialog or command; accepted garrison adoption is existing code.",
+    "cost": "One interface display and capped128 initial group snapshot plus explicitly attached group. No new recurring scan, AI job or worker.",
+    "validation": {
+      "red": ".qa/handovers/garrison-native-options-red-20261029.log",
+      "focused": ".qa/handovers/garrison-native-options-focused-20261029.log: all6 existing module cases pass; extended scoped native controls/confirmation/authority contracts.",
+      "full": ".qa/handovers/garrison-native-options-final-build-20261029.log:1505 existing tests,481 SQF,11 PBOs; config/FSM/docs/coverage/settings/task parity and static performance gates passed.",
+      "physicalAcceptance": false,
+      "measuredPerformance": false,
+      "firstBuild": ".qa/handovers/garrison-native-options-build-20261029.log failed stale generated FEATURE_STATUS after adding UI source; regenerated with existing checker, no criteria weakened.",
+      "candidate": ".qa/candidates/garrison-native-options-20261029-b2bd574f",
+      "fingerprint": "36b8d044756a007ad09c9c628f55c26415d397a1cf41f49ddf56f307a706bab5",
+      "independent": ".qa/handovers/garrison-native-options-independent-20261029.log: exit0, matching fingerprint",
+      "provenance": "Unsigned development base b2bd574f plus reviewed runtime/config/test/guide changes. Engineering metadata finalized after build; no installed staging."
+    },
+    "limitations": "UI layout, interactive selection/cancel, real authentication/owner acknowledgement, placement/occupancy, repeat/normal/HC/JIP/locality and performance remain physically unverified under audit pause. This is native control build-out, not whole LAMBS parity or new garrison movement.",
+    "runtimeLFHashes": {
+      "addons/infantry/functions/garrisonTaskDialog.sqf": "670c75d8675268528fb9a6b1d9c52925963a455d03c848f0abed5521dc359b3b",
+      "addons/infantry/functions/moduleGarrison.sqf": "7327883c28dc35354c5dd9a36f0dcc544f5237f8bd77621413e3b98869fd545d",
+      "addons/main/CfgFunctions.hpp": "a9dce35e84dd4ccddcaaa772d785fd2e31c696f2395b66a1a7a68b3067f16dad"
+    }
+  },
+  "nativeInfantryOptions20261029": {
+    "base": "a75609b23c910c801a629e398e8fa6a562b79579",
+    "sourceScope": "Selected native module parameter declarations and dispatch entries only; not complete wrapper/executor branches or whole LAMBS parity. Existing CBE ZEN dialogs and actual owner executors independently traced.",
+    "sources": [
+      {
+        "path": ".qa/lambs-wp-installed-20261029/members/functions/Modules/fnc_moduleDefend.sqf",
+        "sha256": "295358aea1a2e4cbe11d21a46ff4690ac346233e8e38af7ee07a18f1018f0524",
+        "archiveMatch": true
+      },
+      {
+        "path": ".qa/lambs-wp-installed-20261029/members/functions/Modules/fnc_modulePatrol.sqf",
+        "sha256": "95977ae4d339226dff2bbe6c8d959de345bc17236b50fadedd03d5e29785ee1b",
+        "archiveMatch": true
+      },
+      {
+        "path": ".qa/lambs-wp-installed-20261029/members/functions/Modules/fnc_moduleHunt.sqf",
+        "sha256": "4de8bef69cbcbd8754caefb6ff2eb438a4e1d6cd5d4b42e995facca34f5953dc",
+        "archiveMatch": true
+      },
+      {
+        "path": ".qa/lambs-wp-installed-20261029/members/functions/Modules/fnc_moduleRush.sqf",
+        "sha256": "15df9afcbef89e0cedbb833ecfd3e04afaa54ff4d0f65f4c301bc9847682fbfa",
+        "archiveMatch": true
+      }
+    ],
+    "intent": "Make real finite defence/patrol/known-contact tasks configurable without an optional third-party UI. Retain explicit target and named task arguments; do not copy source omniscience, unrestricted teleport/reset or perpetual loops.",
+    "gap": "Native DEFEND/PATROL/HUNT/RUSH submitted fixed defaults while ZEN exposed existing executor parameters.",
+    "implementation": "One interface-only InfantryTaskDialog uses display-local parameter descriptors, explicit squad selection, bounded numeric choices, current attached facing, cancellation and child-dialog protection. Defaults retained. Confirmation alone submits named values to existing authenticated dispatcher. Optional ZEN unchanged. Dead fixed fallback arguments removed; remaining native RELEASE/CLEAR_AREA retain their own policy.",
+    "path": "ModuleGarrison -> InfantryTaskDialog -> CortexOrderDispatch server curator/enum/range validation -> CortexOrderLocal current owner serial/route checks -> CortexDefend, PatrolOperation, HuntOperation(PatrolOperation) or RushOperation(tacticalDrill). Existing task release/cancel/deadline/native ownership unchanged.",
+    "cost": "One capped128 initial group snapshot plus attached squad, one modal display, at most3 parameter combos. No AI command writer, state controller, timer, world scan or recurring worker.",
+    "validation": {
+      "red": ".qa/handovers/native-infantry-options-red-20261029.log",
+      "focused": ".qa/handovers/native-infantry-options-focused-20261029.log:3 existing module cases pass; no cases added or removed.",
+      "full": ".qa/handovers/native-infantry-options-final-build-20261029.log:1505 existing tests,482 SQF,11 PBOs; config/FSM/docs/coverage/parity/static performance gates passed.",
+      "physicalAcceptance": false,
+      "measuredPerformance": false,
+      "firstBuild": ".qa/handovers/native-infantry-options-build-20261029.log passed before final gameplay-focused tooltip/guide wording. Final build covers delivered package.",
+      "candidate": ".qa/candidates/native-infantry-options-20261029-a75609b2",
+      "fingerprint": "2fa55821cd31d3f06a086ba52e44891e31393cc8525de737429158e7c3d9de01",
+      "independent": ".qa/handovers/native-infantry-options-independent-20261029.log: exit0 matching fingerprint",
+      "provenance": "Unsigned development base a75609b2 plus runtime/config/test/guide changes; engineering metadata finalized afterward. No installed staging."
+    },
+    "remaining": "UI/layout/keyboard/cancel/selection, actual owner acknowledgement, route/defence/search/combat quality, normal/HC/JIP/repeat and measured cost unverified. Task controls are not whole-source feature parity.",
+    "runtimeLFHashes": {
+      "addons/infantry/functions/infantryTaskDialog.sqf": "a578ba132df9cbbfe4a90ac06cff352a005778571a0b499c9cf3bb508a1cd0f6",
+      "addons/infantry/functions/moduleGarrison.sqf": "45b9654c7dd91c81bd6efffd51a967c16719706070bb57002e58eeb987a50a7f",
+      "addons/main/CfgFunctions.hpp": "74d46ce8a5226a3ef4e7c437e8fb508ac5acdc52b0832aca1d3c97874a028ec1"
+    }
+  },
+  "creepIntentReview20261029": {
+    "source": ".qa/lambs-wp-installed-20261029/members/functions/fnc_taskCreep.sqf",
+    "sha256": "7bca1b8824ade3640f95259e4f7ac71eaa9a30d41983de552c959550ce7335de",
+    "archiveMatch": true,
+    "scope": "Complete readable taskCreep body; findClosestTarget dependency and compiled runtime not newly reviewed.",
+    "intent": "Approach cautiously at limited pace, withhold fire until close or compromised, vary posture with distance/cover and respond to nearby firing.",
+    "sourceMethods": "Perpetual scheduled group loop, live target transforms and player preference, repeated raw per-actor moves, global AWARE/WEDGE/LIMITED/GREEN/attackfalse, distance/forest stance changes, FiredNear RED/attacktrue without complete baseline restoration.",
+    "currentCBE": "HuntOperation supplies finite native-belief search, not this deliberate covert approach/fire-control behaviour. Do not count Hunt or these native controls as a Creep implementation.",
+    "required": "Implement a finite cautious-approach policy through existing movement owner and reversible exact-owned group pace/ROE/behaviour lifecycle; honour authored stricter permissions, native belief, mission/Zeus/specialist control and actual compromise. Include a real behaviour module only with the executor. Reject omniscient target tracking, permanent/reset-to-default policy and unowned per-actor loops.",
+    "status": "UNIMPLEMENTED_SELECTED_INTENT_NO_PARITY_CREDIT"
+  },
+  "creepPolicyFoundation20261029": {
+    "base": "cf1145d787760f1b7c5e9176e136b6d44964c964",
+    "status": "POLICY_PREREQUISITE_TASK_EXECUTOR_AND_MODULE_UNFINISHED",
+    "sourceIntent": "creepIntentReview20261029 cautious limited-pace/hold-fire approach; CBE preserves native behaviour instead of adding unnecessary behaviour writes.",
+    "implementation": "Internal exact operation/generation/epoch-owned COMBAT/SPEED policy with immutable baselines, BLUE preservation, individual ROE guards and actual group/individual readback. No behaviour/formation/forceSpeed/stance mutation. Synchronous native writers only; no deferred policy command callback.",
+    "lifecycle": "OperationRestore releases this policy even when groupAttack receipt is absent. CortexLocality stages receiver retirement before epoch increment; afterwards and in existing CortexDiscover, exact receiver/epoch retires within the first original cleanup window. No movement/task replay. Unconfirmed applies/releases, unavailable actors, newer operations and expiry remain pending/unresolved; no success by timeout.",
+    "scope": "Foundation for the selected Creep intent only. No Creep approach, posture/compromise logic, server task intake or module exists yet; no whole-LAMBS parity credit.",
+    "primaryApiEvidence": [
+      "https://community.bistudio.com/wiki?mobileaction=toggle_view_desktop&title=setCombatMode&useskin=vector",
+      "https://community.bistudio.com/wiki?mobileaction=toggle_view_mobile&title=unitCombatMode"
+    ],
+    "apiLimit": "Official docs distinguish group and individual fire modes; getter/readback contract is not evidence of actual in-engine hold-fire, self-defence or restoration. Historical bug reports not treated as current engine truth.",
+    "cost": "Fast no-receipt return for other operations; no new scan/job/cache. At most64 actor readiness/individual-ROE observations and two property rows per policy call; actual native cost unmeasured.",
+    "validation": {
+      "focused": ".qa/handovers/creep-policy-focused-20261029.log:5 existing cases passed; initial comment-token false positive fixed by checking executable source.",
+      "hemttCheck": ".qa/handovers/creep-policy-hemtt-check-20261029.log passed before final native individual-readback additions.",
+      "full": ".qa/handovers/creep-policy-build-20261029.log:1505 existing tests,483 SQF,11 PBOs; config/FSM/docs/coverage/parity/static performance gates passed.",
+      "physicalAcceptance": false,
+      "measuredPerformance": false,
+      "candidate": ".qa/candidates/creep-policy-20261030-cf1145d7",
+      "fingerprint": "aa82d70138bd7befca0822558e764fe076c2631ac4d93dd290026c2bdd377827",
+      "independent": ".qa/handovers/creep-policy-independent-20261030.log: exit0 matching fingerprint",
+      "provenance": "Unsigned development basecf1145d7 plus policy/hooks/config/test/guide changes. Engineering metadata finalized afterwards; task/module still unfinished."
+    },
+    "runtimeLFHash": "7c11f33c11a88aaec01443d9f63bb25040da4c3b14ef1d635b49aaa2f81724e9",
+    "nextRequired": "Complete finite native-belief approach on existing Patrol/group movement owner, immutable custom approach route/task deadline, original ActorSettings posture lifecycle, compromise/close-range release, authenticated server/current-owner dispatch and native/optionalZEN behaviour control. Do not stop at this prerequisite or claim a usable Creep task."
+  },
+  "creepTaskImplementation20261030": {
+    "source": "creepIntentReview20261029; complete selected fnc_taskCreep body only, not all LAMBS descendants",
+    "sourceSha256": "7bca1b8824ade3640f95259e4f7ac71eaa9a30d41983de552c959550ce7335de",
+    "sourcePboSha256": "da03c62978184d2e1b7f28b79cb5e380ae15f40d4cf9ff11d48801b1dfb08534",
+    "status": "IMPLEMENTED_SCOPED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "retained": [
+      "Cautious ground approach",
+      "Limited group pace",
+      "Self-defence-only fire discipline before close contact",
+      "Stop cautious work on close range or actual nearby danger"
+    ],
+    "adapted": [
+      "Recent native ground-contact belief only, no live hostile transform",
+      "Three approach legs selected from three bounded terrain-screened avenues on existing Patrol/group waypoint owner",
+      "Original30..300s task and leg clocks; at most four material replans at least10s apart",
+      "Exact acknowledged group ROE/pace before first movement; original policies restored only if still owned",
+      "Authenticated CREEP named task via CortexOrderDispatch/Local; native and optional ZEN behaviour controls; CBA Contact gate"
+    ],
+    "rejected": [
+      "Perpetual loops",
+      "Omniscient player tracking",
+      "Raw competing per-unit doMove",
+      "Loose FiredNear default RED/attack resets",
+      "Whole-group forced posture/formation/behaviour changes"
+    ],
+    "postureDecision": "Preserve original authored/native posture, individual forced speed and formation. Adaptive source stance is deliberately not ported in this bounded task: adding stance control is not required for the cautious route/ROE executor and would introduce another actor-setting lifecycle. No claim of full Creep or LAMBS parity.",
+    "execution": [
+      "CortexOrderDispatch validates CREEP/range/duration and current native/control receipt, token and12s dispatch deadline",
+      "Current owner CortexOrderLocal repeats task validation and invokes CreepOperation START",
+      "Calm available foot group, no active task/policy; <=8 recent precise ground-contact beliefs",
+      "CreepRoutePlan plans ground stand-off; PatrolOperation START validates and prepares without waypoint",
+      "CreepPolicy APPLY must read back ACQUIRED; BEGIN repeats original mission/roster/epoch/generation and OWNED before common route commit",
+      "Existing GroupBrainStep/CortexGroupTick watchdog, Creep STEP/UPDATE, original finite deadlines; no second worker",
+      "Stand-off, actual nearby fire/hit/explosion/suppression, stale belief, failed route or policy, newer mission/Zeus/specialist work and release cancel; common OperationRestore retires exact policy",
+      "Locality transfer retires policy through existing locality/discovery; no task replay"
+    ],
+    "limits": [
+      "Native path connectivity and geometry selection do not prove concealment or tactical success",
+      "Source stealth/posture/formation/rifle behaviour is not claimed equivalent",
+      "Runtime ROE/readback/restore, native travel, compromise, repeat use, HC/JIP and measured cost unverified; audits paused"
+    ],
+    "checks": {
+      "focusedModules": ".qa/handovers/creep-modules-focused-20261030.log:6 existing cases passed",
+      "hemtt": ".qa/handovers/creep-executor-hemtt-20261030.log: check passed",
+      "operations": ".qa/handovers/creep-operations-final-20261030.log:617 existing cases passed after regenerating the coverage report",
+      "physical": "NOT RUN; user pause; no acceptance or measured-cost uplift",
+      "full": ".qa/handovers/creep-task-final-build-20261030.log:1505 existing cases,486 SQF,11 PBOs; config/FSM/docs/wiki/parity/coverage/static performance passed",
+      "initialFullFailure": "Public docs named an upstream source; corrected the product-document boundary without weakening checks. Restored unchanged pre-existing document bytes after detecting an encoding rewrite.",
+      "candidate": ".qa/candidates/creep-task-20261030-5b1f306b",
+      "packageSource": "Unsigned development package records base5b1f306b plus actual working runtime/config/test/guide edits; engineering metadata finalized afterward",
+      "fingerprint": "bdcc4c40d79878d359ec6705401c169e2d3b3849a85d3d8350d4ca4e384cfc7f",
+      "independent": ".qa/handovers/creep-task-independent-20261030.log:exit0, matching fingerprint"
+    },
+    "previousFoundation": "5b1f306bc21bf24f76b2f75fa8fe3b5fef57ba47 local policy prerequisite; this consumer supersedes its missing-executor note"
+  }
+}

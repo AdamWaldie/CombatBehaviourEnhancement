@@ -58,6 +58,13 @@ private _wait = {
     call _cbeQaWaitPredicate
 };
 private _saved = createHashMapFromArray (([] call CBE_fnc_CortexTuningSpec) apply {[_x select 0,missionNamespace getVariable [_x select 0,_x select 5]]});
+// Isolated feasibility diagnostic: never expands the all/feature acceptance batches.
+if (_focus == "rappelphysics") exitWith {
+    [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQARappelPhysics.sqf";
+    missionNamespace setVariable ["CBE_CortexQA_ServerDone",true,true];
+    missionNamespace setVariable ["CBE_CortexQA_ServerFailures",_failures,true];
+    diag_log format ["CBE CORTEX QA SERVER COMPLETE: %1 finding(s) %2",count _failures,_failures];
+};
 if (_focus == "roadpassing") exitWith {
     [_check,_phase,_wait] call compile preprocessFileLineNumbers "cortexQARoadPassing.sqf";
     [_saved] call CBE_fnc_CortexTuning;

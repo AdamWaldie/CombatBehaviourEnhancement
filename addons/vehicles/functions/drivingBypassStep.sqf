@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Raw dimensions are scaled once into world metres; affine corner transforms already include scale.
  * Native water-damaged engines refuse new movement/crew admission; cleanup remains available.
  * Queued ACE treatment vetoes steering before the native medical task appears.
  * Either operating crew member entering native flight vetoes bypass steering.
@@ -304,16 +305,24 @@ if ((_work get "phase") == "PLAN") exitWith {
     if (count _observed != 9 || {(_observed select 1) != _obstacle} || {(_observed select 8) isNotEqualTo (_work get "transform")}) exitWith {
         [_vehicle,_group,"OBSERVATION_CHANGED"] call CBE_fnc_DrivingBypassRelease;_inactive
     };
-    private _envelope=[];private _columnLength=0;
+    private _envelope=[];private _columnLength=0;private _invalidEnvelope=false;
     if (_convoy) then {
         _envelope=[0,0,0];
         {
-            private _bounds=boundingBoxReal _x;private _lo=_bounds select 0;private _hi=_bounds select 1;
+            if (_invalidEnvelope) exitWith {};
+            private _convoyScale=getObjectScale _x;
+            if (!finite _convoyScale || {_convoyScale <= 0}) exitWith {_invalidEnvelope=true};
+            private _bounds=boundingBoxReal _x;
+            private _lo=(_bounds select 0) vectorMultiply _convoyScale;
+            private _hi=(_bounds select 1) vectorMultiply _convoyScale;
             _envelope set [0,(_envelope select 0) max ((abs (_lo select 0)) max (abs (_hi select 0)))];
             _envelope set [1,(_envelope select 1) max ((abs (_lo select 1)) max (abs (_hi select 1)))];
             _envelope set [2,(_envelope select 2) max ((_hi select 2)-(_lo select 2))];
             _columnLength=_columnLength+((_hi select 1)-(_lo select 1))+(_configuration param [2,30]);
         } forEach (_configuration param [4,[]]);
+    };
+    if (_invalidEnvelope) exitWith {
+        [_vehicle,_group,"HULL_SCALE_UNAVAILABLE"] call CBE_fnc_DrivingBypassRelease;_inactive
     };
     private _proposal=if (_queue) then {_queueAgreement getOrDefault ["crossingProposal",[]]} else {
         [_vehicle,_observed,_work get "side",_envelope] call CBE_fnc_DrivingBypassPlan
@@ -339,10 +348,20 @@ if ((_work get "phase") == "PLAN") exitWith {
     };
     if (!(call _mayWrite) || {!([_obstacle] call _obstacleAvailable)} || {!(call _nativeAdmissionReady)} || {(expectedDestination _operator) isNotEqualTo (_work get "command")}
         || {(expectedDestination _driver) isNotEqualTo (_work get "driverCommand")}) exitWith {_inactive};
-    private _box=boundingBoxReal _vehicle;private _low=_box select 0;private _high=_box select 1;
+    // The final queue check and FOLLOW journal use the same metre footprint as planning.
+    private _scale=getObjectScale _vehicle;
+    if (!finite _scale || {_scale <= 0}) exitWith {
+        [_vehicle,_group,"HULL_SCALE_UNAVAILABLE"] call CBE_fnc_DrivingBypassRelease;_inactive
+    };
+    private _bounds=boundingBoxReal _vehicle;
+    private _low=(_bounds select 0) vectorMultiply _scale;
+    private _high=(_bounds select 1) vectorMultiply _scale;
     private _halfWidth=((abs (_low select 0)) max (abs (_high select 0))) max (_envelope param [0,0]);
     private _halfLength=((abs (_low select 1)) max (abs (_high select 1))) max (_envelope param [1,0]);
     private _radius=sqrt ((_halfWidth^2)+(_halfLength^2))+1;
+    if (!finite _radius || {_radius > 12}) exitWith {
+        [_vehicle,_group,"HULL_BUDGET"] call CBE_fnc_DrivingBypassRelease;_inactive
+    };
     if (_queue) then {
         // A stored proposal never grants cached collision/support clearance.
         // Reuse the same bounded validator immediately before the native commit.

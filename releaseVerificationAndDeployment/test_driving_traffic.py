@@ -12,12 +12,24 @@ class DrivingTrafficTests(unittest.TestCase):
             # Documentation mentions the caller speed policy; executable observer must not write.
             executable=s.split('params [[',1)[1]
             self.assertNotIn(command,executable)
-    def test_destroyed_vehicle_hulls_are_not_removed_by_scan_or_alive_filter(self):
+    def test_land_air_and_ship_hulls_include_wrecks_without_alive_or_heading_filter(self):
         s=src('drivingFollowingCap')
         self.assertIn('_area=[getPosATL _vehicle,_radius,_radius,0,false,_radius]',s)
-        self.assertIn('_area nearEntities [["LandVehicle"],false,false,false]',s)
+        self.assertIn('_area nearEntities [["LandVehicle","Air","Ship"],false,false,false]',s)
         admission=s.split('if (_other != _vehicle',1)[1].split('then {',1)[0]
         self.assertNotIn('alive _other',admission)
+        self.assertNotIn('isKindOf',admission)
+        executable=s.split('params [[',1)[1]
+        self.assertEqual(executable.count('nearEntities'),1)
+        self.assertEqual(executable.count('velocity _other'),1)
+        self.assertIn('private _otherVelocity=+_measuredVelocity;',executable)
+        self.assertNotIn('private _otherCentre=',executable)
+        self.assertIn('(_projectedLow select 0)+(_projectedHigh select 0)',executable)
+        self.assertIn('(_projectedLow select 1)+(_projectedHigh select 1)',executable)
+        self.assertNotIn('allDead',executable)
+        self.assertIn('[_other,_otherLow,_otherHigh] call _projectTrafficHull',s)
+        self.assertIn('count _candidates > 256',s)
+        self.assertIn('_sameHeight && {_otherSpeed > 0.8}',s)
         self.assertIn('((vectorDir _other) vectorDotProduct _forward) > 0.7',s)
         self.assertIn('_sameHeight',s)
         self.assertIn('count _candidates > 64',s)
@@ -79,6 +91,27 @@ class DrivingTrafficTests(unittest.TestCase):
             self.assertNotAlmostEqual(actual_gap,old_gap)
             self.assertGreaterEqual(peer[1][2],own[0][2])
             self.assertLessEqual(peer[0][2],own[1][2])
+        # Independent exhaustive corners verify the same horizontal centre for
+        # asymmetric models, 3D rotations, reverse axes, scale and large origins.
+        def transform(point,scale,yaw,pitch,roll,shift):
+            x,y,z=(scale*v for v in point)
+            cr,sr=math.cos(roll),math.sin(roll);y,z=cr*y-sr*z,sr*y+cr*z
+            cp,sp=math.cos(pitch),math.sin(pitch);x,z=cp*x+sp*z,-sp*x+cp*z
+            cy,sy=math.cos(yaw),math.sin(yaw);x,y=cy*x-sy*y,sy*x+cy*y
+            return tuple(v+d for v,d in zip((x,y,z),shift))
+        low=(-2,-5,-.7);high=(3,7,2.4)
+        for scale,yaw,pitch,roll,direction,origin in product((.5,1,2),(0,.7,2),(-.4,.2),(-.3,.6),(-1,1),((0,0,0),(100000,-200000,100))):
+            forward=(math.sin(yaw)*direction,math.cos(yaw)*direction,0)
+            right=(forward[1],-forward[0],0)
+            shift=tuple(a+b for a,b in zip(origin,(17,-31,5)))
+            points=[transform(q,scale,yaw,pitch,roll,shift) for q in product(*zip(low,high))]
+            relative=[tuple(v-o for v,o in zip(q,origin)) for q in points]
+            dot=lambda a,b:sum(x*y for x,y in zip(a,b))
+            mid_right=(min(dot(q,right) for q in relative)+max(dot(q,right) for q in relative))*.5
+            mid_forward=(min(dot(q,forward) for q in relative)+max(dot(q,forward) for q in relative))*.5
+            rebuilt=tuple(right[i]*mid_right+forward[i]*mid_forward for i in range(2))
+            centre=transform(tuple((a+b)*.5 for a,b in zip(low,high)),scale,yaw,pitch,roll,shift)
+            for i in range(2):self.assertAlmostEqual(rebuilt[i],centre[i]-origin[i],places=8)
         above=world_bounds((-1,-3,-1),(1,3,1),1,0,(0,20,10))
         self.assertGreater(above[0][2],own[1][2])
         # Forward projection must admit a long rotated hull whose centre is behind
@@ -126,8 +159,23 @@ class DrivingTrafficTests(unittest.TestCase):
         self.assertIn('_denseTraffic && {canSuspend}',s)
         self.assertIn('if (_evaluated > 64) exitWith {_predictionBudgetExceeded=true}',s)
         self.assertLess(s.index('if (_denseTraffic && {finite _otherSpeed}'),s.index('_evaluated=_evaluated+1'))
-        self.assertLess(s.index('_evaluated=_evaluated+1'),s.index('private _otherCentre='))
+        self.assertLess(s.index('_evaluated=_evaluated+1'),s.index('private _centreRight='))
         self.assertIn('if (_predictionBudgetExceeded) exitWith {[0,_vehicle',s)
+        # Unknown geometry is not an empty lane. In particular a NaN height makes
+        # both overlap comparisons false, and a vertical forward vector supplies
+        # no horizontal travel frame. Keep ordinary finite lanes unchanged.
+        self.assertFalse(float('nan') >= -0.75)
+        self.assertFalse(float('nan') <= 2.25)
+        self.assertEqual(math.hypot(0.0, 0.0), 0.0)
+        heading_guard=s[s.index('private _forward=vectorDir'):s.index('_forward=(vectorNormalized')]
+        self.assertIn('finite _x',heading_guard)
+        self.assertIn('exitWith {[0,_vehicle,-1,time,0,true]}',heading_guard)
+        own_guard=s[s.index('private _ownProjectionFinite='):s.index('private _front=')]
+        self.assertIn('if (!_ownProjectionFinite) exitWith {[0,_vehicle',own_guard)
+        peer_guard=s[s.index('private _projectedLow='):s.index('private _minX=')]
+        self.assertIn('finite _x',peer_guard)
+        self.assertIn('exitWith {_predictionBudgetExceeded=true}',peer_guard)
+        self.assertLess(s.index('if (!_ownProjectionFinite)'),s.index('nearEntities'))
 
 
     def test_convoy_observes_external_hulls_without_replacing_predecessor_spacing(self):
@@ -150,9 +198,10 @@ class DrivingTrafficTests(unittest.TestCase):
 
     def test_reverse_overlap_includes_destroyed_vehicles_without_treating_dead_infantry_as_live(self):
         s=src('drivingRearClear')
-        self.assertIn('_area nearEntities [["LandVehicle"],false,false,false]',s)
+        self.assertIn('_area nearEntities [["LandVehicle","Air","Ship"],false,false,false]',s)
         self.assertIn('_vehicle nearEntities ["CAManBase",_radius]',s)
         self.assertIn('alive _thisActor || {_thisActor isKindOf "LandVehicle"}',s)
+        self.assertIn('|| {_thisActor isKindOf "Air"} || {_thisActor isKindOf "Ship"}',s)
         self.assertIn('count _actors > 64',s)
         self.assertIn('private _scheduledObservation=canSuspend',s)
         self.assertIn('if (!_crewObserved || {_scheduledObservation})',s)

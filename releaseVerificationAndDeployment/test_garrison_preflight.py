@@ -10,6 +10,29 @@ class GarrisonPreflightTests(unittest.TestCase):
             self.assertLess(s.index(guard),cleanup)
         self.assertLess(cleanup,s.index('setVariable ["CBE_Cortex_GarrisonCandidates"'))
         self.assertEqual(s.count('nearestObjects'),1)
+        self.assertLess(s.index('call CBE_fnc_CortexGarrisonPostChoice'),s.index('if !(call _admissionCurrent) exitWith'))
+        self.assertLess(s.index('private _plannedAssignments='),cleanup)
+        self.assertIn('_plannedAssignments select _forEachIndex',s)
+        self.assertIn('if (_inPlace) then {_plannedAssignments=+_candidateAssignments}',s)
+        self.assertIn('_available deleteAt _choice',s)
+        choice=(ROOT/'addons/infantry/functions/cortexGarrisonPostChoice.sqf').read_text()
+        for bound in ('_posts select [0,16]','_remaining > 16','_remaining=_remaining-1',
+                      '_budget set ["remaining",_remaining]','private _postIndex=_forEachIndex;',
+                      'CBE_fnc_CortexCoverScreened','CBE_fnc_BuildingRoofTop'):
+            self.assertIn(bound,choice)
+        self.assertLess(choice.index('_remaining=_remaining-1'),choice.index('lineIntersectsSurfaces'))
+        for command in ('setVariable','doMove','doFollow','doFire','doTarget','reveal','nearestObjects','nearEntities'):
+            self.assertNotIn(command,choice)
+        refill=(ROOT/'addons/infantry/functions/cortexGarrisonRefill.sqf').read_text()
+        apply=(ROOT/'addons/infantry/functions/cortexGarrisonApplyLocal.sqf').read_text()
+        self.assertIn('count _vacancies >= 4',refill)
+        self.assertIn('call CBE_fnc_CortexGarrisonPostChoice',refill)
+        self.assertIn('call CBE_fnc_CortexGarrisonPostChoice',apply)
+        self.assertIn('if (count _postBudget == 0) then {',apply)
+        role=(ROOT/'addons/infantry/functions/cortexUnitRole.sqf').read_text()
+        self.assertIn('["_medicalFirst",false,[false]]',role)
+        self.assertIn('if (!_medicalFirst &&',role)
+
     def test_server_rejects_nonfinite_parameters_before_pending_requests(self):
         s=(ROOT/'addons/infantry/functions/cortexOrderDispatch.sqf').read_text(encoding='utf-8')
         for value in ('_radius','_facing','_width'):

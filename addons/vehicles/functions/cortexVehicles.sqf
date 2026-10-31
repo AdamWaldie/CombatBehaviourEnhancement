@@ -1,5 +1,11 @@
 /*
  * Author: WaldoTheWarfighter
+ * One finite rear troop-support bound may use the existing selected-crew FSM after
+ * CBE-owned dismounts. Original order/contact/deadline and urgent standoff retain priority.
+ * Failed escape avenues cache only an empty result for eight seconds on the current owner;
+ * crew/order/epoch/generation or material believed geometry changes invalidate without renewal.
+ * Calm remount intent retains its original native waypoint receipt and operation generation;
+ * replacement orders retire boarding without seat cleanup, and migration keeps the original deadline.
  * Locality/authority: Current group owner; native vehicle writes require actual vehicle/crew ownership.
  * Repeat/JIP: Existing owner-local group ticks maintain finite vehicle work; current
  * epoch, operation and native-order receipts reject stale commands after ownership changes.
@@ -127,10 +133,11 @@ if ((_group getVariable ["CBE_VehicleTurn_Work",createHashMap]) isNotEqualTo cre
 private _vehicleMove = _state getOrDefault ["movementLease",[]];
 private _activeVehicleMove = false;
 if (_vehicleMove isNotEqualTo []) then {
-    private _vehicleOwnsLease = (_vehicleMove param [0,""]) in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_JINK","VEHICLE_ORIENT"];
+    private _vehicleOwnsLease = (_vehicleMove param [0,""]) in ["VEHICLE_WITHDRAW","VEHICLE_STANDOFF","VEHICLE_POINT","VEHICLE_JINK","VEHICLE_ORIENT"];
     if (_vehicleOwnsLease) then {
         private _movementOwner=_vehicleMove param [0,""];
         private _movementFeature=switch (_movementOwner) do {
+            case "VEHICLE_POINT": {"CBE_AIPass_Vehicles_Enable"};
             case "VEHICLE_JINK": {"CBE_AIPass_VehicleJink_Enable"};
             case "VEHICLE_WITHDRAW": {"CBE_AIPass_VehicleWithdraw_Enable"};
             default {"CBE_AIPass_VehicleGunnery_Enable"};
@@ -255,7 +262,7 @@ if (_vehicleMove isNotEqualTo []) then {
             if (_vehicleCrewChanged) then {_activeVehicleMove=false};
             // Native selected standoff has no temporary group waypoint. Its independent
             // worker owns cleanup; the reference, including unresolved work, reserves it.
-            if (_movementOwner == "VEHICLE_STANDOFF"
+            if (_movementOwner in ["VEHICLE_STANDOFF","VEHICLE_POINT"]
                 && {(_group getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []}) then {
                 _activeVehicleMove=true;_vehicleRouteChanged=false;_vehicleCrewChanged=false;
             };
@@ -445,6 +452,7 @@ private _dismountAtThreat = {
         } >= 0}) then {
         // The crew cannot command another group out. Publish only bounded hazard geometry so the
         // passenger owner can run the same safety checks without receiving target knowledge.
+        ["OFFER",_vehicle,_group] call CBE_fnc_CortexMechanisedRemoteCrew;
         _vehicle setVariable ["CBE_Cortex_OnboardDanger",[_group,groupOwner _group,+_threatPosition,serverTime+30],true];
     };
     // A combined crew/passenger group has no cross-group report consumer. The same bounded
@@ -528,8 +536,11 @@ private _dismountAtThreat = {
                     } >= 0}
             } || {
                 private _boarding=_passengerGroup getVariable ["CBE_Cortex_Remount",[]];
-                _boarding isEqualType [] && {count _boarding == 2}
-                    && {(_boarding select 0) isEqualType 0} && {(_boarding select 1) isEqualType []}
+                _boarding isEqualType [] && {count _boarding == 4}
+                    && {(_boarding select 0) isEqualType 0} && {finite (_boarding select 0)}
+                    && {(_boarding select 1) isEqualType []}
+                    && {(_boarding select 2) isEqualTo (_passengerGroup getVariable ["CBE_OperationGeneration",0])}
+                    && {(_boarding select 3) isEqualTo ([_passengerGroup] call CBE_fnc_NativeOrderReceipt)}
                     && {serverTime < (_boarding select 0)} && {(_boarding select 0) <= serverTime+60}
                     && {!_movementOwned} && {_enemies isEqualTo []}
                     && {!([_passengerGroup] call CBE_fnc_CortexExternalTakeover)}
@@ -778,7 +789,7 @@ private _airContacts=[];private _airContactsRead=false;
 // observation each. Include held native engagements; never treat an old CBE intent as fire.
 // No persistent reservation survives this callback or a locality/operation change.
 private _aaAllocationVehicles=(_vehicles select [0,16]) select {
-    toLower getText (configOf _x >> "editorSubcategory") == "edsubcat_aas"
+    [_x] call CBE_fnc_CortexAirDefenceRole
 };
 private _aaEngagements=[];
 private _airProbeCount=(count _vehicles) max 1;
@@ -790,6 +801,21 @@ private _enemyPos = (_enemies select 0) select 1;
 private _selectVehicleEscape = {
     params ["_vehicle","_threatPosition","_threatObject","_distance",["_requireScreenedEndpoint",false]];
     private _origin=getPosATL _vehicle;
+    // Failed geometry is not movement permission. Reuse only the empty result within this
+    // short, non-renewing episode; every successful route still receives a fresh plan.
+    private _escapeContext=[clientOwner,_group,_group getVariable ["CBE_AIPass_Epoch",0],
+        _group getVariable ["CBE_OperationGeneration",0],driver _vehicle,effectiveCommander _vehicle,
+        _threatObject,_distance,_requireScreenedEndpoint];
+    private _escapeMiss=_vehicle getVariable ["CBE_Cortex_EscapeMiss",[]];
+    private _escapeCached=_escapeMiss isEqualType [] && {count _escapeMiss == 6}
+        && {serverTime < (_escapeMiss select 0)} && {(_escapeMiss select 0) <= serverTime+8}
+        && {_escapeContext isEqualTo (_escapeMiss select 1)}
+        && {(getPosASL _vehicle) vectorDistance (_escapeMiss select 2) <= 5}
+        && {_threatPosition vectorDistance (_escapeMiss select 3) <= 5}
+        && {private _headingDelta=abs (getDir _vehicle-(_escapeMiss select 5));
+            (_headingDelta min (360-_headingDelta)) <= 15}
+        && {(_escapeMiss select 4) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
+    if (_escapeCached) exitWith {[]};
     private _awayBearing=_threatPosition getDir _origin;
     private _candidates=[];
     {
@@ -797,7 +823,14 @@ private _selectVehicleEscape = {
     } forEach [0,-25,25,-45,45];
     private _selected=[_origin,_candidates,_threatPosition,[],_threatObject,"VEHICLE",_vehicle,_requireScreenedEndpoint]
         call CBE_fnc_CortexSelectAvenue;
-    if (_selected isEqualTo []) then {[]} else {_selected select ((count _selected)-1)}
+    if (_selected isEqualTo []) exitWith {
+        // Owner-local single-slot cache, no public/JIP replay and no timer or retry worker.
+        _vehicle setVariable ["CBE_Cortex_EscapeMiss",[serverTime+8,_escapeContext,
+            getPosASL _vehicle,+_threatPosition,[_group] call CBE_fnc_NativeOrderReceipt,getDir _vehicle]];
+        []
+    };
+    _vehicle setVariable ["CBE_Cortex_EscapeMiss",nil];
+    _selected select ((count _selected)-1)
 };
 private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
 {
@@ -814,6 +847,7 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
         private _reportedPosition=[25*round ((_enemyPos select 0)/25),25*round ((_enemyPos select 1)/25),0];
         // The far scheduler tier is 20 seconds. A shorter report could expire between the
         // independently scheduled crew and passenger jobs and make a valid handover impossible.
+        ["OFFER",_vehicle,_group] call CBE_fnc_CortexMechanisedRemoteCrew;
         _vehicle setVariable ["CBE_Cortex_OnboardReport",[_group,groupOwner _group,_reportedPosition,serverTime+35],true];
         _vehicle setVariable ["CBE_Cortex_OnboardReportDue",serverTime+5];
     };
@@ -1011,11 +1045,58 @@ private _withdrawn = +(_state getOrDefault ["withdrawn", []]);
             };
             };
         };
+        // Finite support bounds for this platform's recorded CBE dismounts. Urgent AT
+        // withdrawal/post-shot cover and existing coordinated roles retain priority.
+        // Admission advances the operation generation, consuming this original dismount
+        // receipt for initial planning. Follow-on legs need a completed native handback and real troop displacement.
+        if (!_movementOwned && {_atIndex < 0} && {!_postShotMove}
+            && {_state getOrDefault ["phase",""] == "CONTACT"}
+            && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo []}
+            && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
+            && {count (_group getVariable ["CBE_Cortex_DismountContinuation",[]]) == 4
+                || {(_vehicle getVariable ["CBE_Cortex_MechCargo",[]]) isNotEqualTo []}
+                || {(_vehicle getVariable ["CBE_Cortex_MechRemoteManifest",[]]) isNotEqualTo []}
+                || {((_vehicle getVariable ["CBE_VehicleTacticalMove_Work",createHashMap]) getOrDefault ["kind",""]) == "MECH_SUPPORT"}}
+            && {serverTime >= (_vehicle getVariable ["CBE_Cortex_MechSupportDue",0])}
+            && {[_group,_vehicle,_standoffSeats] call CBE_fnc_CortexVehicleCrewAvailable}) then {
+            _vehicle setVariable ["CBE_Cortex_MechSupportDue",serverTime+8];
+            private _supportContact=_enemies findIf {(_x select 2) <= 10 && {!((_x select 0) isKindOf "Air")}};
+            if (_supportContact >= 0) then {
+                private _supportEnemy=_enemies select _supportContact;
+                private _continuation=[_group,_vehicle] call CBE_fnc_CortexMechanisedContinue;
+                private _originalContext=if (_continuation isEqualTo []) then {[]} else {_continuation select 0};
+                private _supportPlan=[_group,_vehicle,[_supportEnemy select 0,+(_supportEnemy select 1),
+                    serverTime-(_supportEnemy select 2)],_originalContext] call CBE_fnc_CortexMechanisedSupport;
+                isNil {
+                    if (count _supportPlan == 3 && {[] call _mayIssueVehicle}
+                        && {!_movementOwned} && {count (_group getVariable ["CBE_Operation",createHashMap]) == 0}
+                        && {(_group getVariable ["CBE_Cortex_CombinedRole",[]]) isEqualTo []}
+                        && {[_group,"VEHICLE_STANDOFF",true,_supportPlan select 1] call CBE_fnc_CortexOwnershipLease}) then {
+                        private _supportTarget=((_supportPlan select 2) select 1) select 0;
+                        private _supportOperation=[_group,"VEHICLE_STANDOFF",_supportTarget,
+                            _standoffSeats arrayIntersect _standoffSeats,[_supportPlan select 0],"MOVING"] call CBE_fnc_OperationStart;
+                        private _supportAccepted=false;
+                        if (count _supportOperation > 0) then {
+                            private _supportGeneration=_supportOperation get "generation";
+                            _supportAccepted=[_group,_vehicle,_supportPlan select 0,_standoffSeats,
+                                _supportGeneration,_supportPlan select 1,[],_supportPlan select 2]
+                                call CBE_fnc_VehicleTacticalMoveStart;
+                            if (!_supportAccepted) then {
+                                [_group,_supportGeneration,"INCOMPLETE","SUPPORT_MOVE_REJECTED"] call CBE_fnc_OperationRelease;
+                            };
+                        };
+                        if (_supportAccepted) then {
+                            _movementOwned=true;_tacticalCommandActors=+_standoffSeats;
+                        } else {[_group,"VEHICLE_STANDOFF",false] call CBE_fnc_CortexOwnershipLease};
+                    };
+                };
+            };
+        };
         private _gunner = gunner _vehicle;
         // Native editor role is a preference, never ammunition or engagement permission.
         // Custom air-capable stations can join known-air gunnery without changing their
         // tactical role, ground-threat priority or movement ownership.
-        private _airDefence=toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas";
+        private _airDefence=[_vehicle] call CBE_fnc_CortexAirDefenceRole;
         private _airCandidate=_airDefence || {_vehicle isKindOf "LandVehicle" && {_vehicleIndex in _airProbeSlots}};
         private _warnedBy=objNull;
         if (_airDefence) then {

@@ -4,6 +4,8 @@
  * Locality/authority: Read-only on the observer owner. Callers retain server mission-token
  * authority; this helper never selects weapons or changes watch, target or movement orders.
  * Repeat/JIP: Stateless; every call rechecks assignment, live native knowledge and visibility.
+ * Native ignored targets never supply fixes. Unknown/invalid believed positions are refused;
+ * the native ATL aim-position estimate remains ATL, with no exact hostile-position fallback.
  * Existing binocular equipment is required, but a fix grants no weapon-selection authority.
  * Arguments: 0: spotter <OBJECT>; 1: enemy <OBJECT>; 2: previous impact ATL <ARRAY>, default [].
  * Return Value: Array [reported ATL, error], or [] without observation.
@@ -19,7 +21,7 @@ if (!local _spotter || {!alive _spotter} || {isPlayer _spotter} || {!alive _enem
     || {!([group _spotter] call CBE_fnc_CortexIsEligible)}) exitWith {[]};
 if (!([_spotter] call CBE_fnc_CortexCanTransmit)) exitWith {[]};
 private _knowledge = _spotter targetKnowledge _enemy;
-if (!(_knowledge select 1) || {_spotter knowsAbout _enemy < 1.5}
+if ((_knowledge param [7,false,[true]]) || {!(_knowledge select 1)} || {_spotter knowsAbout _enemy < 1.5}
     || {time - (_knowledge select 2) > 5}
     // The observed object may be a vehicle, aircraft or static weapon. Its direct side is the
     // stable identity boundary; `group _enemy` is meaningful only for infantry and previously
@@ -28,4 +30,7 @@ if (!(_knowledge select 1) || {_spotter knowsAbout _enemy < 1.5}
 private _eye = eyePos _spotter;
 if ([_spotter, "VIEW", _enemy] checkVisibility [_eye, aimPos _enemy] < 0.5) exitWith {[]};
 if (_impact isNotEqualTo [] && {[_spotter, "VIEW"] checkVisibility [_eye, (ATLToASL _impact) vectorAdd [0, 0, 1]] < 0.5}) exitWith {[]};
-[_spotter getHideFrom _enemy, _knowledge select 5]
+private _position=_spotter getHideFrom _enemy;
+if (count _position != 3 || {_position isEqualTo [0,0,0]}
+    || {_position findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}) exitWith {[]};
+[+_position, _knowledge select 5]

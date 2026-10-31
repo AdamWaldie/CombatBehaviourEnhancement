@@ -5,6 +5,7 @@
  * Checks shared passenger safety before routine unloading or boarding; emergency engine bailouts remain independent.
  * Locality/authority: read-only on the requesting owner unless stated below.
  * Repeat/JIP: no side effects; runtime gates and actor task ownership are read again on every call.
+ * Active or unresolved selected-platform movement refuses routine seat transitions even at rest.
  * Routine seat transitions require finite total linear speed below1km/h and angular speed
  * below0.01rad/s; this instantaneous observation does not authorize a later deferred command.
  * Matching boarding may continue, but medical, equipment, finite actor reservations and replacement
@@ -16,7 +17,7 @@
  * does not admit a routine seat transition. This is not full dismount-footprint clearance.
  * Arguments: 0: soldier <OBJECT>, objNull; 1: vehicle <OBJECT>, objNull; 2: boarding <BOOL>, false.
  * Return Value: Boolean.
- * Current callers: ConvoyCrewLocal, Vehicles and RestoreCalm.
+ * Current callers: ConvoyCrewLocal, CortexVehicles, CortexRestoreCalm, CortexGroupTick and CortexOnboardContact.
  * Example: [_unit, _vehicle] call CBE_fnc_CortexPassengerReady;
  */
 params [["_unit", objNull, [objNull]], ["_vehicle", objNull, [objNull]], ["_boarding", false, [true]]];
@@ -29,6 +30,17 @@ if (isNull _vehicle || {!alive _vehicle} || {!local _unit} || {isPlayer _unit}
     || {"ALL" in ((group _unit) getVariable ["CBE_AIPass_DisabledFeatures", []])}
     || {!isNull (_unit getVariable ["bis_fnc_moduleRemoteControl_owner", objNull])}
     ) exitWith {false};
+// A momentary rest sample is not consent to board or unload beneath a selected
+// platform move, HOLD or unresolved retirement. Emergency engine bailouts are separate.
+private _selectedWork=_vehicle getVariable ["CBE_VehicleTacticalMove_Work",createHashMap];
+private _selectedGroup=group effectiveCommander _vehicle;
+if (isNull _selectedGroup) then {_selectedGroup=group driver _vehicle};
+if ((!isNull _selectedGroup && {_selectedGroup != group _unit}
+        && {[_selectedGroup] call CBE_fnc_CortexExternalTakeover})
+    || {!(_selectedWork isEqualType createHashMap)}
+    || {count _selectedWork > 0 && {(_selectedWork getOrDefault ["phase",""]) != "RETIRED"}}
+    || {!isNull _selectedGroup
+        && {(_selectedGroup getVariable ["CBE_VehicleTacticalMove_Reference",[]]) isNotEqualTo []}}) exitWith {false};
 private _linearMotion=vectorMagnitude velocity _vehicle;
 private _angularMotion=vectorMagnitude angularVelocity _vehicle;
 if (!finite _linearMotion || {!finite _angularMotion}

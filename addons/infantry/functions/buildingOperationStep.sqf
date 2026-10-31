@@ -880,6 +880,13 @@ _group setVariable ["CBE_AIPass_ClearApplied", nil];
         diag_log format ["CBE CLEAR END TRACE: %1",[_reason,_operationGeneration,(_group getVariable ["CBE_Operation",createHashMap]) getOrDefault ["generation",-1],_group getVariable ["CBE_AIPass_Epoch",0],_brain getOrDefault ["ownerEpoch",-1]]];
         -1
     };
+    // The parent cap/revocation also fences EGRESS, whose ordinary safety allowance
+    // can outlive the sweep. Use this executor's exact guarded finish, not another
+    // release controller or a metadata-only parent cancellation.
+    private _areaDeadline=_job getOrDefault ["areaDeadline",-1];
+    if (_areaDeadline >= 0 && {serverTime >= _areaDeadline
+        || {((_group getVariable ["CBE_ClearAreaTask",createHashMap]) getOrDefault ["token",""])
+            != (_job getOrDefault ["areaTaskToken",""])}}) exitWith {[false,"PARENT_TASK_ENDED"] call _finish};
     if (isNull _group || {!local _group} || {!(_group getVariable ["CBE_AIPass_ClearBuilding", false])}
         || {!alive (_job get "building")} || {!(missionNamespace getVariable ["CBE_AIPass_Active", false])}) exitWith {[true,"CANCELLED"] call _finish};
     // This operation issues actor destinations, never native waypoints. Any authored

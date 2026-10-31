@@ -2,9 +2,12 @@
  * Author: WaldoTheWarfighter
  * Relays up to three expiring sighting reports to eligible mutually allied group owners, preserving reported positions.
  * Both mission friendship directions must be at least0.6; the receiver repeats this live check.
+ * Voice fallback selects a combat-effective group member independently of radio jamming.
  * Spatial discovery includes mounted crews. Radio range requires a communicating member at
  * both ends; voice uses3D ASL separation and is rechecked by the receiver. Radio radius
- * remains horizontal; a receiver high above the sender cannot substitute voice for a missing radio.
+ * remains horizontal, including discovery at any height; a receiver high above the sender
+ * cannot substitute voice for a missing radio. Query count/cadence are unchanged; returned
+ * population can increase where groups are vertically separated inside the same horizontal radius.
  * Locality/authority: server validates shared assignments; commands run only on the current AI owner.
  * Repeat/JIP: original finite observation times survive relay; invalid payloads spend no cooldown.
  * Server-time deadlines reject stale work; no historical JIP commands are replayed.
@@ -35,13 +38,17 @@ _sender setVariable ["CBE_AIPass_ReportServerDue", serverTime + 15];
 private _transmitter = [_sender] call CBE_fnc_CortexGroupTransmitter;
 private _voiceRange=missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35];
 private _range = if (!isNull _transmitter) then {missionNamespace getVariable ["CBE_AIPass_ContactReports_Radius",500]} else {missionNamespace getVariable ["CBE_AIPass_ContactReports_VoiceRange",35]};
-private _senderPosition = getPosATL ([_transmitter, leader _sender] select isNull _transmitter);
-private _senderASL=getPosASL ([_transmitter, leader _sender] select isNull _transmitter);
+private _senderAnchor=if (isNull _transmitter) then {[_sender,false] call CBE_fnc_CortexGroupTransmitter} else {_transmitter};
+if (isNull _senderAnchor) exitWith {};
+private _senderPosition = getPosATL _senderAnchor;
+private _senderASL=getPosASL _senderAnchor;
 // A receiver is eligible only when its transmitter or local command anchor is inside this report's
 // delivery envelope. Derive distinct groups from nearby actors rather than scanning every group.
 private _receiverGroups=[];
 private _receiverSeen=createHashMap;
-private _receiverArea=[_senderPosition,_range,_range,0,false,_range];
+// Radio eligibility is horizontal; keep elevated/airborne receivers in discovery.
+// The separate live ASL voice check still limits communication without both radios.
+private _receiverArea=[_senderPosition,_range,_range,0,false,-1];
 {
     private _receiverGroup=group _x;
     if (!isNull _receiverGroup) then {
@@ -61,7 +68,7 @@ private _receivers = [];
 {
     private _receiver = _x;
     private _receiverTransmitter = [_receiver] call CBE_fnc_CortexGroupTransmitter;
-    private _receiverAnchor = if (isNull _receiverTransmitter) then {leader _receiver} else {_receiverTransmitter};
+    private _receiverAnchor = if (isNull _receiverTransmitter) then {[_receiver,false] call CBE_fnc_CortexGroupTransmitter} else {_receiverTransmitter};
     if (_receiver != _sender && {(side _receiver) getFriend (side _sender) >= 0.6}
         && {(side _sender) getFriend (side _receiver) >= 0.6}
         && {!isNull _receiverAnchor} && {alive _receiverAnchor}

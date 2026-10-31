@@ -19,6 +19,39 @@ class ClearPreparationCommitTests(unittest.TestCase):
         for forbidden in ('setVariable','doMove','doStop','forceSpeed','setUnitPos','CortexClearRelease','serverTime+'):
             self.assertNotIn(forbidden,preflight)
         self.assertLess(text.index('if (_resumeSettingsPending) exitWith'),text.index('call CBE_fnc_OperationStart'))
+        valid=(ROOT/'addons/infantry/functions/clearOrderValid.sqf').read_text(encoding='utf-8')
+        body=valid.split('*/',1)[1]
+        for proof in ('count _order != 14','count _failures > 512','_expectedCount != _size',
+                      '(_cleared arrayIntersect _unreachable)','count _retries > _size',
+                      '!isNil {_retries select _i}','_spent != floor _spent',
+                      '_native findIf {isNil "_x"}','_transform findIf {isNil "_x"}'):
+            self.assertIn(proof,body)
+        for forbidden in ('setVariable','set [','pushBack','resize','serverTime','doMove','remoteExec'):
+            self.assertNotIn(forbidden,body)
+        self.assertLess(text.index('["INVALID_PRIOR_CLEAR_ORDER"]'),text.index('private _resumeCurrent='))
+        self.assertLess(text.index('["RESUME_ROOM_HISTORY_MISMATCH"]'),text.index('call CBE_fnc_OperationStart'))
+        for forbidden in ('_previous param [7,serverTime]','_previous param [10,_deadline',
+                          '_previous param [8,attackEnabled','_previous param [9,_nativeOrderReceipt',
+                          'if (count _failedBy != count _positions) then'):
+            self.assertNotIn(forbidden,text)
+        for field in (4,5,6,7,8,9,10,11,12):self.assertIn('_previous select '+str(field),text)
+        discover=(ROOT/'addons/core/functions/cortexDiscover.sqf').read_text(encoding='utf-8')
+        resume=discover.split('if (_clear isNotEqualTo [] && {!(_group getVariable ["CBE_AIPass_ClearApplied", false])}',1)[1]
+        self.assertLess(resume.index('call CBE_fnc_ClearOrderValid'),resume.index('_clear select 0'))
+        same_owner=text.split('if (_resumeRequested) exitWith {',1)[1].split('if (isNull _building)',1)[0]
+        for proof in ('isNil {','call _resumeCurrent','producerOwner','clientOwner','ownerEpoch',
+                      '_admissionEpoch','_admissionGeneration','"cancelled"','"finished"',
+                      'CBE_Cortex_ClearVisitContext','RESUME_TRANSFER_UNSEALED',
+                      '[_originalJob] call CBE_fnc_BuildingOperationStart'):
+            self.assertIn(proof,same_owner)
+        for forbidden in ('CortexClearRelease','call CBE_fnc_OperationStart;','setVariable','set [','serverTime+',
+                          'BuildingLaneJournal','CANDIDATE_UNSEALED','remoteExec'):
+            self.assertNotIn(forbidden,same_owner)
+        self.assertLess(text.index('RESUME_TRANSFER_UNSEALED'),text.index('_building buildingPos -1'))
+        for proof in ('producerOwner','ownerEpoch','"generation"','"cancelled"','"finished"'):
+            self.assertIn(proof,discover.split('private _clearProducer=',1)[1].split('// Aircraft occupants',1)[0])
+
+
         self.assertLess(text.index('RESUME_ACTOR_SETTINGS_CHANGED'),text.index('call CBE_fnc_CortexReleaseGroup'))
         self.assertIn('!([false] call _inspectResumeSettings)',text)
         gate=text.split('private _commitPreparation={',1)[1].split('// A valid new operation',1)[0]
@@ -265,6 +298,16 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertIn('_retireExisting getOrDefault ["capture",[]]',locality)
         self.assertNotRegex(retire,r'setVariable\s*\[[^;]*,true\]')
         self.assertIn('[CBE_fnc_BuildingProducerRetire,_retire,0,_retireKey]',locality)
+        finish=retire.split('private _finish={',1)[1].split('if (_state getOrDefault ["done",false])',1)[0]
+        self.assertIn('_state deleteAt "capture"',finish)
+        self.assertIn('getVariable ["CBE_Cortex_ClearRetireLocal",createHashMap]) isEqualTo _state',finish)
+        self.assertIn('getVariable ["CBE_Cortex_ClearLaneCaptureLocal",[]]) isEqualTo _capture',finish)
+        self.assertIn('setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil]',finish)
+        self.assertIn('_state set ["done",true]',finish)
+        self.assertIn('_state set ["result",_reason]',finish)
+        self.assertLess(retire.index('private _submission='),retire.index('["ORIGINAL_FSMS_RETIRED"] call _finish'))
+        self.assertNotIn('_capture set',finish)
+        self.assertNotIn('_capture deleteAt',finish)
         for guard in ('count _records > 706','SOURCE_METADATA_CHANGED',
                       '_currentPresent isNotEqualTo _present',
                       '(_object getVariable _variable) isNotEqualTo _original'):
@@ -490,7 +533,7 @@ class ClearPreparationCommitTests(unittest.TestCase):
         self.assertEqual(encoded_clock(25,30,100),95)
         self.assertEqual(encoded_clock(25,40,110),95)  # Same source time, later capture.
         self.assertLess(journal.index('_job set ["laneJournalLastResult",false]'),journal.index('private _positions='))
-        self.assertLess(text.index('if (!_laneAdopted) exitWith'),text.index('call CBE_fnc_BuildingOperationStart'))
+        self.assertLess(text.index('if (!_laneAdopted) exitWith'),text.index('if !([_job] call CBE_fnc_BuildingOperationStart)'))
         preflight=text.split('private _resumeLanePending=false;',1)[1].split('private _generation=-1;',1)[0]
         for proof in ('!_useResumeRoster','count _resumeLanes != 13','_resumeRosterContext','_resumePairs','_positions','arrayIntersect'):
             self.assertIn(proof,preflight)

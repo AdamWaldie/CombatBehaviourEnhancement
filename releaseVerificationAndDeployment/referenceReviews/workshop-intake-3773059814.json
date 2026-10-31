@@ -1,0 +1,51 @@
+{
+  "workshopId": "3773059814",
+  "name": "No more tanky AI (for ACE3)",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3773059814",
+  "added": "2026-10-30",
+  "priority": "4 Optional extension",
+  "status": "REGISTERED_SOURCE_REVIEW_PENDING",
+  "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+  "area": "Optional damage/medical extension",
+  "scope": "Evaluate only as an optional addon, off unless deliberately enabled, with explicit per-unit exclusions for boss enemies and mission-defined protected actors. Preserve ACE medical authority, player exclusion and damage-event/locality ownership; review fragmentation/pellet/mixed-caliber accounting before any forced-death fallback.",
+  "userConditions": {
+    "optionalAddon": true,
+    "defaultEnabled": false,
+    "perUnitExclusionsRequired": true,
+    "exampleExclusion": "Boss enemies",
+    "playerScope": "AI only unless separately authorized; do not inherit source player toggle automatically."
+  },
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3773059814",
+  "localPresent": true,
+  "packageCount": 1,
+  "files": {
+    "mod.cpp": "00b60416ae03fd3c9c17d87e6c78596d1ae988772b98cafd4d826e0242712573",
+    "meta.cpp": "5d021889bd246e61de16d2de651006b795d8d0c484d89518b919ef1127de7f9a",
+    "addons/NoMoreTankyAI.pbo": "1a8a3fcd76669e411e83c062c5878091b1cba9efba6c3cb3e944a6057bfcc617"
+  },
+  "metadata": {
+    "mod.cpp": {
+      "name": "No more tanky AI",
+      "author": "Lars",
+      "description": "Counts hits by caliber and kills AI that ACE leaves standing. Pure safety net - ACE always takes priority. Requires CBA and ACE3."
+    },
+    "meta.cpp": {
+      "publishedid": "3773059814",
+      "name": "No more tanky AI (for ACE3)"
+    }
+  },
+  "identityEvidence": "User URL and accessible Workshop description/title; installed metadata/package hashes only. No extracted-code review or behaviour proof.",
+  "evaluationTopics": [
+    "Trace actual config/FSM/scripts, callers and native writers; compare selected useful intent with current CBE owners before integration.",
+    "Record retained/adapted/rejected methods and dependencies/licence/provenance. No implementation credit from title, metadata or file counts.",
+    "Preserve mission/Zeus authority, finite owner-local lifecycle, player/specialist ownership and credible animation; avoid extra permanent scanners/controllers."
+  ],
+  "dependencies": "Workshop/local description requires CBA_A3 and ACE3; keep isolated optional addon boundary.",
+  "licence": "UNVERIFIED; establish original upstream and component-specific reuse rights before incorporating code.",
+  "sourceReview": "NOT_STARTED; webpage/local metadata and package inventory only.",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "ordering": "Foundations/FSM first, individual behaviour before squad/combined arms; compatibility expansion last. Reference-only items supply methods rather than an automatic implementation obligation.",
+  "sourceProtection": "Installed Workshop/game files, original signatures/assets and preserved references are read-only. No execution/repacking or copying raw reference assets into the product. Any future extraction uses a separate private dated directory."
+}

@@ -42,14 +42,14 @@ private _sameLease={
     params ["_group","_token"];
     if (isNull _group) exitWith {false};
     private _lease=_group getVariable ["CBE_AIPass_SupportLease",[]];
-    count _lease == 6 && {(_lease select 0) == _token}
+    count _lease == 7 && {(_lease select 0) == _token}
         && {serverTime < (_lease select 2)} && {(_lease select 5) isNotEqualTo []}
 };
 private _teams=[];
 {
     _x params ["_group","_token","","","_accepted"];
     private _lease=_group getVariable ["CBE_AIPass_SupportLease",[]];
-    if (_accepted == "ACCEPTED" && {count _lease == 6} && {(_lease select 0) == _token}
+    if (_accepted == "ACCEPTED" && {count _lease == 7} && {(_lease select 0) == _token}
         && {serverTime < (_lease select 2)} && {(_lease select 5) isNotEqualTo []}
         && {[_group,"CBE_AIPass_CoordinatedAssault_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
         _teams pushBack [_group,_token,_lease select 5];
@@ -137,7 +137,7 @@ private _capacityReady={
     private _report=_entry select 2;
     private _parent=_group getVariable ["CBE_Operation",createHashMap];
     private _lease=_group getVariable ["CBE_AIPass_SupportLease",[]];
-    if (!(_parent isEqualType createHashMap) || {count _lease != 6}) exitWith {false};
+    if (!(_parent isEqualType createHashMap) || {count _lease != 7}) exitWith {false};
     count _report == 8 && {(_report select 0) == 2} && {(_report select 1) isEqualTo (_group getVariable ["CBE_Cortex_SupportRole",[]])}
         && {((_report select 1) select 2) == "COVER"}
         && {!local _group || {(_report select 2) == (_group getVariable ["CBE_AIPass_Epoch",0])}}

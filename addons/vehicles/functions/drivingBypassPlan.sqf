@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Raw dimensions are scaled once into world metres; affine corner transforms already include scale.
  * Held queues whose complete hull union lies outside the conservative forward corridor may propose a checked straight crossing.
  * Purpose: Proposes one physical left/right bypass around a freshly observed bounded solid object.
  * Locality / Authority: Read-only on vehicle owner; cannot issue a path, alter world objects or
@@ -80,19 +81,26 @@ if (_transform isNotEqualTo (_observed select 8)) exitWith {["OBSTACLE_CHANGED"]
 private _vehicleTransform=[getPosWorld _vehicle,vectorDir _vehicle,vectorUp _vehicle];
 private _origin=getPosASL _vehicle;private _forward=vectorDir _vehicle;_forward set [2,0];_forward=vectorNormalized _forward;
 private _right=[_forward select 1,-(_forward select 0),0];
-private _bounds=boundingBoxReal _vehicle;private _low=_bounds select 0;private _high=_bounds select 1;
+// Model bounds become world metres once; room margins remain metre-valued.
+private _scale=getObjectScale _vehicle;
+if (!finite _scale || {_scale <= 0}) exitWith {["HULL_SCALE_UNAVAILABLE"] call _fail};
+private _bounds=boundingBoxReal _vehicle;
+private _low=(_bounds select 0) vectorMultiply _scale;
+private _high=(_bounds select 1) vectorMultiply _scale;
 private _halfWidth=((abs (_low select 0)) max (abs (_high select 0))) max (_envelope param [0,0]);
 private _halfLength=((abs (_low select 1)) max (abs (_high select 1))) max (_envelope param [1,0]);
 private _height=((_high select 2)-(_low select 2)) max (_envelope param [2,0]);
 private _radius=sqrt ((_halfWidth^2)+(_halfLength^2))+1;
-if (_radius > 12) exitWith {["HULL_BUDGET"] call _fail};
+if (!finite _radius || {_radius > 12}) exitWith {["HULL_BUDGET"] call _fail};
 private _bodies=if (_queueMode) then {_queueVehicles select [1]} else {[_obstacle]};
 private _minX=1e9;private _maxX=-1e9;private _minY=1e9;private _maxY=-1e9;
 private _knownHull=true;
 {
     private _body=_x;private _other=boundingBoxReal _body;
     private _otherLow=_other select 0;private _otherHigh=_other select 1;
-    if (_otherLow vectorDistance _otherHigh < 0.5) exitWith {_knownHull=false};
+    private _bodyScale=getObjectScale _body;
+    if (!finite _bodyScale || {_bodyScale <= 0}
+        || {(_otherLow vectorDistance _otherHigh)*_bodyScale < 0.5}) exitWith {_knownHull=false};
     private _bodyMinX=1e9;private _bodyMaxX=-1e9;private _bodyMinY=1e9;private _bodyMaxY=-1e9;
     {
         private _xCoord=_x;

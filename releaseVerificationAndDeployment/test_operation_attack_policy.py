@@ -19,6 +19,27 @@ class OperationAttackPolicyTests(unittest.TestCase):
         self.assertLess(text.index(confirmation),text.index('_restore set ["groupAttack"'))
         self.assertLess(text.index(confirmation),text.index('"ACQUIRED"',text.index('private _baseline=')))
         self.assertIn('class OperationAttackPolicy',source('addons/main/CfgFunctions.hpp'))
+        creep=source('addons/infantry/functions/creepPolicy.sqf')
+        for proof in ('isNil {','!local _group','CBE_OperationGeneration','ownerEpoch',
+                      'getOrDefault ["creep",false]','count _members <= 64',
+                      'unitCombatMode _x != _combat','_combat == "BLUE"','CBE_fnc_CortexExternalTakeover'):
+            self.assertLess(creep.index(proof),creep.index('[_key,_applied] call _write'))
+        for proof in ('[3,"REQUESTED"]','[3,"ACKED"]','[4,true]',
+                      'serverTime < _retireUntil','_retireUntil > _deadline+30',
+                      '"UNRESOLVED"','"retireOwner"','"retireEpoch"','!_successor'):
+            self.assertIn(proof,creep)
+        self.assertLess(creep.index('_row set [4,true]'),creep.index('[_key,_base] call _write'))
+        import re
+        executable=re.sub(r'/\*.*?\*/|//[^\n]*','',creep,flags=re.S)
+        for forbidden in ('setBehaviour','setFormation','forceSpeed','doMove','execFSM','waitAndExecute','CortexQueueJob'):
+            self.assertNotIn(forbidden,executable)
+        restore=source('addons/core/functions/operationRestore.sqf')
+        self.assertLess(restore.index('call CBE_fnc_CreepPolicy'),restore.index('if (count _attack != 2'))
+        locality=source('addons/core/functions/cortexLocality.sqf')
+        edge=locality.index('_group setVariable ["CBE_AIPass_Epoch",')
+        self.assertLess(locality.index('["HANDOVER",_group,'),edge)
+        self.assertGreater(locality.index('["RETIRE",_group] call CBE_fnc_CreepPolicy'),edge)
+
         unresolved=text.split('private _unresolved=',1)[1].split('private _restore=',1)[0]
         for proof in ('CBE_OperationAttack_Unresolved','finite (_unresolved select 1)','finite (_unresolved select 4)',
                       'attackEnabled _anchor == (_unresolved select 2)','exitWith {"REFUSED"}'):

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-28",
+  "sourceBase": "d38f481f1de3d771a669533c6ae5e4d342b9a817",
+  "workshopId": "3812620045",
+  "scope": "Reverse-aware shared road/terrain anticipation and direction-bound convoy observation. Selected HBQ RoadAhead/sector intent only, not a full controller/precision review or behavioural parity.",
+  "sourceRoot": ".qa\\hbq-complete-source-20261025",
+  "sourceWitnesses": [
+    {
+      "path": "functions/fn_driveAssist.sqf",
+      "sha256": "2e6f0515474117496216a8900b5341588603c0b43bf41ec74e259f5c863e9931",
+      "scope": "RoadAhead lines833-870 and consumer lines2869-2908"
+    },
+    {
+      "path": "functions/fn_nearestThreat.sqf",
+      "sha256": "db2d82840137c2ee19eb8b1131c103771325ad84b6ecef023ac4320673a14ec5",
+      "scope": "Directional sector declaration/implementation lines1-34 only; not renewed whole helper review"
+    }
+  ],
+  "finding": "CBE road branch/approach bearing and ordinary terrain sampling used forward hull heading even during native reverse travel. Collision/rear observers already had separate direction custody, but did not correct this earlier road/terrain ceiling. Existing convoy lead/revision changes reconstruct local state and already invalidate the road cache; only travel direction was missing from its reuse condition.",
+  "implementation": [
+    "DrivingRoadCap optional direction1/-1 changes initial road-walk/approach bearing by180degrees for backing. Invalid direction returns requested min15 without road lookup. No route is chosen or written.",
+    "DrivingAssistStart observes signed longitudinal motion and explicit native BACK near rest, reverses its existing terrain sample vector and passes that direction to shared road observer. Later detailed native reverse/track/task custody remains unchanged.",
+    "ConvoyTick passes the same direction and refreshes cached road cap when direction changes, retaining existing3second cadence otherwise. Existing state rebuild already covers lead/roster/revision; no duplicate ownership cache added.",
+    "ASL bridge/road endpoints, accepted-piece geometry, turn/junction/grade policy, original bounds and all lower feature/mission/traffic/pedestrian/recovery caps preserved."
+  ],
+  "cost": "Two cheap live motion/mode observations in existing ordinary/convoy callbacks. No new scheduler, handler, setting, worker or world discovery. Existing8transitions/9metadata/16connections bounds retained. Direction changes may cause one earlier road walk per existing convoy callback; unchanged cadence preserved. Measured cost unknown.",
+  "deliberateDepartures": "HBQ RoadAhead itself uses hull-forward heading and applies source conditional crossing/turn caps. CBE combines its anticipation intent with directional observation, retains conservative junction caps and endpoint-based grade. Does not claim identical balance, route selection or physical performance.",
+  "precisionGap": "Per-vehicle HBQ precision/player-distance observation LOD remains unimplemented. Prior cost decision preserved: do not reduce sensing or reaction accounting without latency/observation-age/physical and cost evidence. Current4s cruise/1s constrained cadence is not equivalent to HBQ precision tiers.",
+  "remaining": [
+    "Physical native backing through bends/grades and bridges, transition from BACK to forward, stationary unknown-mode behaviour, convoy succession and cost remain unverified; audits paused.",
+    "Shared road walk remains heading-based, not the native planned route; this grants no clearance. Whole HBQ/source integration and actual external-provider handovers remain open."
+  ],
+  "verification": {
+    "focusedTests": 617,
+    "focusedScope": "CortexOperations",
+    "focusedLog": ".qa/handovers/road-direction-focused-20261028.log",
+    "fullBuild": "PASS",
+    "physicalAcceptance": "NOT_RUN_AUDITS_PAUSED",
+    "measuredPerformance": "NOT_MEASURED",
+    "fullTests": 1504,
+    "compiledSQF": 456,
+    "pboCount": 11,
+    "buildLog": ".qa/handovers/road-direction-build-20261028.log",
+    "candidate": ".qa/candidates/road-direction-20261028-d38f481f",
+    "fingerprint": "527465c703f0fda8b97e5ef3f06e565195c3b7c858fbbd574c6af01284ec4ad1",
+    "independentVerification": "PASS",
+    "independentLog": ".qa/handovers/road-direction-independent-20261028.log",
+    "buildProvenance": "d38f481f1de3d771a669533c6ae5e4d342b9a817 plus dirty runtime snapshot. Only engineering/handover metadata changes after packaging; product hashes pin inputs, normalize Git line endings.",
+    "initialFailedGate": "Packaged lifecycle guide contained a reference-mod name; comparison moved to engineering review, existing boundary test preserved. Failed log .qa/handovers/road-direction-build-reference-boundary-20261028.log."
+  },
+  "productHashes": {
+    "addons/vehicles/functions/drivingRoadCap.sqf": "1c90a2932af64bcd090c9e587a3dbd54236df01fe1574391505c4d703dfce3b4",
+    "addons/vehicles/functions/drivingAssistStart.sqf": "9ab9beb41356b260ed2ac4f1e1f565609d622bbb3f09fdac41e2f25299fd182e",
+    "addons/vehicles/functions/convoyTick.sqf": "dd9c3cfbcfe59948acfd6391ac4957e97352db1c06e7cfd8a9a78978b7624c90"
+  }
+}

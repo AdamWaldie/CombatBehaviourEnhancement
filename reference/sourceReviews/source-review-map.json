@@ -3,7 +3,7 @@
   "reviewedAt": "2026-10-26",
   "sourceCommit": "6620c42c",
   "policy": "Select useful AI functionality, merge complementary methods into existing CBE owners, fix defects and improve gameplay quality, balance and cost. Rejecting an unsafe source method does not complete its required capability.",
-  "scope": "48 recoverable Workshop references plus WMP as a separate local integration reference. Historical master ledger absent; completeness against lost history is unknown. All top-level Workshop intake/review IDs currently found are covered.",
+  "scope": "67 recoverable Workshop intake/review entries plus WMP as a separate local integration reference. Historical master ledger absent; completeness against lost history is unknown. Counts describe the queue, not completed source review or implementation.",
   "assessmentBoundary": "This maps the review queue and intended contributions. It does not reassess all source implementations, renew percentages, claim whole-mod parity or grant physical acceptance. Candidate contributions are evaluation objectives, not findings that the source implements them.",
   "missingInputs": [
     "LOCAL_IMPLEMENTATION_LEDGER.md historical master not recovered",
@@ -56,7 +56,42 @@
         "implementation": "Own-group death-event forward clear-view cues reuse the existing finite civilian refuge owner; <=16 roster, <=45m, no killer reveal or polling.",
         "remaining": "Native civilian FSM body/scream/late-discovery parity, physical witnessing/refuge and measured performance remain unverified.",
         "scoresChanged": false
-      }
+      },
+      "currentSelectedSourceReview": "contactCommunicationReview20261028 in lambs-danger-branch-execution-20261025.json: contact plus three main sharing/range/veto descendants traced to actual native belief, server relay, receiver investigation and owner gating. Review only; no runtime change or parity credit. Side/equipment/range/API and physical effectiveness differences remain open.",
+      "currentSelectedIntegration": "nearbyInjuryCue20261028 in civilian-native-ownership-20261024.json: positive local civilian injury can cue two nearby own-group eligible peers through existing finite refuge ownership.10s coalescing/16roster/2probe/30m bounds. Injury approximation only; native screams, cross-group spread and later corpse inspection remain open. Source body inspection/looting is distinct from scream escape; no equipment changes copied. Exterior cover now preserves original primary choices and adds bounded lateral fallback for reserved/unusable central posts, reusing all existing owner/caller validation. See lambs-danger-branch-execution-20261025.json#coverPostAlternatives20261028. Not demonstrated CQB/cover effectiveness or cost. Static-support recruitment now preserves living incoming gunner assignments and explicit native STOP, with bounded discovery and atomic original-context admission; see lambs-fsm-foundations-20261020.json#staticFindSeatAuthority20261028. Native all-writer handback, cross-host arbitration and physical behaviour remain open. Carried-static one/pair deployment now binds original authored mission order through active work, native events and retirement; see lambs-fsm-foundations-20261020.json#staticDeployAuthoredOrder20261028. Selected on-foot MOVE/STOP and retry identity is now guarded by an actual-issued-leg reader in staticDeployNativeActor20261028; same-value, mounted/nonmovement and native all-writer handback limits remain. One shared native movement reader now protects static-team active work, native events and cleanup; phase markers cannot reset movement-goal publication allowance, and retries require settled matching goals rather than STOP/replacement positions. No physical or cost acceptance. Generated-weapon pending artillery ownership now prevents static packing/cleanup from dismounting the original gunner; owner shots require a matching carried weapon to remain ACTIVE even after movement-marker expiry. See lambs-fsm-foundations-20261020.json#staticArtilleryOwnership20261028. Existing finite squad progression remains; late automatic packing after record retirement is still open. Physical/performance evidence pending. Initial drill ADMISSION observations now distinguish formation versus direct native travel, freeze reserve state at roster commit and revalidate standalone source proof on resume. Observation grants no cleanup recall; see lambs-fsm-foundations-20261020.json#firstBoundNativeAdmissionImplementation20261028. Physical/native publication and same-value/mode limits remain.",
+      "waypointTasks20261029": {
+        "snapshot": ".qa/lambs-wp-installed-20261029",
+        "pboSHA256": "da03c62978184d2e1b7f28b79cb5e380ae15f40d4cf9ff11d48801b1dfb08534",
+        "review": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json",
+        "scope": "Patrol/Hunt/Rush/reset task bodies compared with current CBE owners. Finite Patrol/Hunt/Press attack executors and authenticated native/optional ZEN controls implemented; whole WP/danger source parity, further source options and physical/MP/performance remain incomplete.",
+        "physicalAcceptance": false,
+        "durableSourceArchive": "C:/Users/AdamW/Documents/AI-Reference-Archives/LAMBS/20261029-wp-da03c629",
+        "patrolFoundation": "lambs-wp-task-controls-20261029.json#patrolRouteFoundation20261029: bounded geometry and single-leg common-owner commit primitives; task sequencing/watchdog/continuation and modules still pending, physical/performance unverified.",
+        "patrolExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#patrolExecutor20261029",
+        "patrolExecutorStatus": "Finite owner-local circuit and authenticated native/optional ZEN controls implemented; local package gates passed. Incoming-owner continuation, broader source options and physical/MP/performance remain incomplete; no whole-source parity or percentage uplift.",
+        "patrolControls": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#patrolControls20261029",
+        "huntExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#huntExecution20261029",
+        "rushIntegration": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushIntegration20261029",
+        "rushExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushExecution20261029",
+        "rushContinuation": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-task-controls-20261029.json#rushContinuation20261029",
+        "areaCQBAndPointAssault": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json",
+        "areaExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#areaExecution20261029",
+        "pointAdvanceExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#pointAdvanceExecution20261029",
+        "pointWithdrawalExecutor": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#pointWithdrawalExecution20261029",
+        "pointWithdrawalControls": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#pointWithdrawalControls20261029",
+        "vehiclePointAdmissionReview": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#vehiclePointAdmissionReview20261029",
+        "crewBaselineReturnCorrection": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#crewBaselineReturnCorrection20261029"
+      },
+      "crewNativePrewriteEvidence20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#crewBaselinePrewriteCorrection20261029",
+      "selectedVehiclePoint20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#vehiclePointExecution20261029",
+      "nativeGarrisonOptions20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#nativeGarrisonOptions20261029",
+      "nativeInfantryOptions20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#nativeInfantryOptions20261029",
+      "creepIntentGap20261029": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#creepIntentReview20261029",
+      "creepTaskImplementation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-wp-cqb-point-assault-20261029.json#creepTaskImplementation20261030",
+      "staggeredRiflePreparation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-danger-branch-execution-20261025.json#staggeredRiflePreparation20261030",
+      "usableRequestedCohort20261030": "releaseVerificationAndDeployment/referenceReviews/operation-participant-admission-20261024.json#usableRequestedCohort20261030",
+      "flightCoverRetention20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-flight-cover-retention-20261030.json",
+      "assaultDescendantReconciliation20261030": "releaseVerificationAndDeployment/referenceReviews/lambs-assault-descendants-20261030.json"
     },
     {
       "workshopId": "3812620045",
@@ -64,7 +99,7 @@
       "priority": "0 Foundations",
       "candidateContribution": "Driving, traffic, recovery, convoy and crew policy",
       "reviewStatus": "All28 indexed auxiliary bodies/declarations reviewed; main controller major branch reviews extended, end-to-end reconciliation incomplete",
-      "nextSourceReview": "Reconcile reviewed controller decisions, issued native work, detached callbacks and cleanup with required CBE capability dispositions. See navigation/route-memory, obstacle/grinding/watchdog and startup/crew/cadence sections in the current HBQ intent review. Readable body coverage does not establish integration or physical parity.",
+      "nextSourceReview": "Reconcile reviewed controller decisions, issued native work, detached callbacks and cleanup with required CBE capability dispositions. See navigation/route-memory, obstacle/grinding/watchdog and startup/crew/cadence sections in the current HBQ intent review. Readable body coverage does not establish integration or physical parity. Selected road/travel-direction correction is in hbq-road-travel-direction-20261028.json; precision/distance LOD remains a separate unresolved capability and must not weaken safety without response/cost evidence.",
       "recordedImplementationStatus": "PARTIAL_IMPLEMENTATION_WHOLE_SOURCE_INCOMPLETE",
       "recordedRemaining": "Whole-source parity remains incomplete. Optional default-off ordinary crew recall is now built; shallow-ford policy and other recorded source gaps remain open. Current convoy pacing trace does not justify blind tuning; physical reliability and performance unverified.",
       "implementationAssessmentCommit": "52f9606d1612715eedeb862f8cca4705ca0420ae",
@@ -77,7 +112,11 @@
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
       },
-      "auxiliaryReviewEvidence": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-intent-20261026.json#auxiliaryBodyReconciliation20261026"
+      "auxiliaryReviewEvidence": "releaseVerificationAndDeployment/referenceReviews/hbq-route-refresh-intent-20261026.json#auxiliaryBodyReconciliation20261026",
+      "currentSelectedIntegration": "Scoped28Oct correction: ordinary/convoy road and terrain anticipation follows measured backing/native BACK, with direction-bound cache reuse and unchanged observation bounds. See hbq-road-travel-direction-20261028.json. Existing broad HBQ integration gaps remain; no whole-mod or physical parity claim. Roadway Air/Ship hulls and wrecks now enter existing full-hull forward/rear observers; unchanged bounds and no added query. See hbq-traffic-vehicle-categories-20261028.json. Physical/category/performance integration remains unverified. The independent passing-corridor query also includes Air/Ship through existing admission/active-leg observations, preserving its bounds and vertical intervals. Forward traffic now refuses unknown heading/own/peer projected hull geometry through the existing zero-cap sentinel; see hbq-traffic-vehicle-categories-20261028.json#unknownGeometryRefusal20261028. No spacing/cadence change or physical acceptance.",
+      "trafficObservationReuseEvidence": "releaseVerificationAndDeployment/referenceReviews/hbq-traffic-world-frame-20261025.json#trafficObservationReuse20261029",
+      "corridorWorldDimensions20261030": "releaseVerificationAndDeployment/referenceReviews/hbq-corridor-world-dimensions-20261030.json",
+      "bypassWorldDimensions20261030": "releaseVerificationAndDeployment/referenceReviews/hbq-corridor-world-dimensions-20261030.json#bypassWorldDimensions20261030"
     },
     {
       "workshopId": "3799391254",
@@ -99,7 +138,10 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
-      }
+      },
+      "egressExecutorRecovery20261029": "releaseVerificationAndDeployment/referenceReviews/building-start-admission-20261018.json#egressRecoveryWindow20261029",
+      "resumeOrderIntegrity20261030": "releaseVerificationAndDeployment/referenceReviews/clear-resume-order-integrity-20261030.json",
+      "listenerRetirement20261030": "releaseVerificationAndDeployment/referenceReviews/clear-throw-listener-fence-20261026.json#localListenerRetirement20261030"
     },
     {
       "workshopId": "3800081309",
@@ -143,7 +185,8 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
-      }
+      },
+      "nativeFollowSupersession20261030": "releaseVerificationAndDeployment/referenceReviews/artillery-selected-crew-20261025.json#nativeFollowSupersession20261030"
     },
     {
       "workshopId": "3802121807",
@@ -165,6 +208,10 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "nativeRefillFollowup20261028": {
+        "review": "protocol-pairs-3802121807-20261020.json#unrecordedReserveMove20261028",
+        "scope": "Existing drill casualty refill now excludes reserves outside its current admitted element with unrecorded native MOVE; no new pair timing/controller or physical acceptance."
       }
     },
     {
@@ -209,6 +256,11 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "currentSelectedIntegration": "Shared ground-AA role across six existing owners: native AA category/strict air-dominant profile inference plus live CBE_AirDefenceRole true/false/unset(-1) declaration for mixed-profile/custom-category platforms. Current observer/native callbacks, interceptor START/SHOT/STEP, allocation source/coverage and ground armour-shot observation read live role; existing relocation gate already does. CBA/actual weapon/task/owner admission and original warning/episode clocks remain. Native12profile calibration preserved; script designation closes that selected gap, not physical/JIP/HC/module/provider/interception parity. See explicitRoleDeclaration20261028 in protocol-aa review.",
+      "allocationCadence20261030": {
+        "review": "releaseVerificationAndDeployment/referenceReviews/protocol-aa-3809708209-20261020.json#allocationCadence20261030",
+        "scope": "Existing16-platform native-warning planner now fixed3s pass/zero artificial inter-platform delay; transmitter caches still expire1s. Original8s warning/interceptor limits, group/owner/role/ROE and default-off policy unchanged. PASS1506 offline; analytical feasibility is not physical interception/performance."
       }
     },
     {
@@ -241,7 +293,7 @@
       "reviewStatus": "Readable scripts reviewed; integration/scope gaps remain",
       "nextSourceReview": "Resolve real finite Advanced Rappelling provider contract and dependencies; detection alone does not implement rappelling.",
       "recordedImplementationStatus": "READABLE_SCRIPTS_REVIEWED_EXISTING_PATHS_OR_NAMED_GAPS",
-      "recordedRemaining": "Real finite provider-owned rappel task and handover are not implemented. Verify installed provider API/signature, rope/cargo state and physical completion before exposing a behaviour module. Dependency detection is not a completed feature.",
+      "recordedRemaining": "Bounded route geometry and guarded native pose primitive built/offline checked only. Controlled actor exit/rope/device/support-arrival physics, full cleanup/flight orchestration/ground handover and behaviour module remain unimplemented. Physical/normal-HC/JIP/deformation/performance unverified; stock provider activity flag is not quiescence.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment\\referenceReviews\\protocol-rappel-3819636004-20261020.json",
       "evidenceFilePresent": true,
@@ -253,6 +305,12 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "flightOperatingActorRights20261029": "releaseVerificationAndDeployment/referenceReviews/protocol-rappel-3819636004-20261020.json#flightOperatingActorRights20261029",
+      "controlledPoseBoundary20261030": {
+        "review": "releaseVerificationAndDeployment/referenceReviews/protocol-rappel-3819636004-20261020.json#controlledPoseBoundary20261030",
+        "status": "POSE_BUILDING_BLOCK_OFFLINE_VERIFIED_NO_DESCENT_EXECUTOR",
+        "scope": "Immutable original authority, finite native pose apply/clear, permanent observed-loss withdrawal, private route baseline and unresolved reservation guard. PASS1507 offline, physical pending. Not a working insertion task."
       }
     },
     {
@@ -565,10 +623,10 @@
       "name": "Pinned Down Medical Solution",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Squad medical assistance",
-      "reviewStatus": "Verified extracted source available; deep review unreconciled",
-      "nextSourceReview": "Use the verified extracted snapshot to trace aid allocation, casualty approach and ACE/native medical task ownership.",
-      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
-      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "reviewStatus": "Complete native need/kit and139-line resume helper plus selected dispatch/retry reviewed; body/leg/original-policy and guarded original-anchor approach return built; whole-source open",
+      "nextSourceReview": "Continue remaining source graph and actual native treatment/idle handover; do not treat animation-name medicStop or global flag/speed/waypoint reset as a qualified cancellation. Physical normal/HC/JIP and measured overhead remain pending while audits paused.",
+      "recordedImplementationStatus": "SELECTED_NATIVE_MEDICAL_POLICY_IMPLEMENTED_WHOLE_SOURCE_INCOMPLETE",
+      "recordedRemaining": "Native body/leg policy, original-anchor approach recall and busy-command retry gate integrated. Native treatment-end/quiescence, idle/leader-self handback and physical rejoin remain open; self-care/evacuation/KO/drag/carry/retry and complete source graph incomplete.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
@@ -586,7 +644,12 @@
         "readableSourceFiles": 23,
         "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
       },
-      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
+      "selectedReviewEvidence": [
+        "releaseVerificationAndDeployment/referenceReviews/pinned-medical-eligibility-policy-20261030.json",
+        "releaseVerificationAndDeployment/referenceReviews/pinned-medical-eligibility-policy-20261030.json#originalReturnAnchor20261030",
+        "releaseVerificationAndDeployment/referenceReviews/pinned-medical-eligibility-policy-20261030.json#nativeCommandRetry20261030"
+      ]
     },
     {
       "workshopId": "3721618614",
@@ -705,8 +768,8 @@
       "name": "Pinned Down Cover and Concealment",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Cover selection and concealment use",
-      "reviewStatus": "Selected cover eligibility, FSM branches and caller regions reviewed; whole-source reconciliation open",
-      "nextSourceReview": "Complete position-selection, reachability, threat-facing and defensive-position execution review; reconcile with existing movement/posture owners without a competing forced-speed hold. Selected caller cleanup defect fixed; remaining source scope is not complete.",
+      "reviewStatus": "Selected cover eligibility/FSM/callers and complete defensive-position proposal helper reviewed; bounded nearest-face fallback built; whole-source reconciliation open",
+      "nextSourceReview": "Continue actual reachability, safe firing/role placement and full caller/cleanup reconciliation from the protected snapshot. Native/trench internal positions need real elevation/access handling; nearest protected-face fallback is not their implementation or whole-source parity.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
@@ -729,7 +792,9 @@
       "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
       "selectedReviewEvidence": [
         "releaseVerificationAndDeployment/referenceReviews/pinned-cover-completion-dispositions-20261026.json",
-        "releaseVerificationAndDeployment/referenceReviews/danger-cover-return-anchor-20261026.json"
+        "releaseVerificationAndDeployment/referenceReviews/danger-cover-return-anchor-20261026.json",
+        "releaseVerificationAndDeployment/referenceReviews/pinned-cover-completion-dispositions-20261026.json#nearestProtectedFace20261030",
+        "releaseVerificationAndDeployment/referenceReviews/pinned-cover-completion-dispositions-20261026.json#recentFailedApproach20261030"
       ]
     },
     {
@@ -737,8 +802,8 @@
       "name": "Pinned Down Tracks and Boots",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Infantry and vehicle cooperation to evaluate",
-      "reviewStatus": "Seven selected helpers fully reviewed including troop median/overwatch/updateSupport/hold; wider registerJob/updateJob/release chain incomplete",
-      "nextSourceReview": "Trace tracked passenger registration, support movement writers and release/native handback. Troop-body mechanised escort is a distinct unimplemented capability; do not replace existing combined-ground live-fire anchor. See supportPositioningFollowup20261027.",
+      "reviewStatus": "Selected positioning helpers and registration/support/release dispatch traced through local command receiver, delayed reseat and route-resume writers; whole mod and physical handback remain open",
+      "nextSourceReview": "Real native boarding now retires old exit/cargo identities and permits fresh carriage acknowledgement, including delayed remote offer visibility under an immutable exit horizon. Continue sustained support episode lifetime and broader HBQ/Protocol foundation reconciliation. Physical repeats/ordering/migration and measured overhead remain unverified. See realBoardingSupport20261028.",
       "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
       "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
       "implementationAssessmentCommit": "ca778db2",
@@ -759,7 +824,7 @@
         "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
       },
       "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
-      "currentSelectedIntegration": "CortexPassengerReady resolves static non-vehicle deck parent, height/normal and linear/angular rest in its existing single-ray water exception. Existing CortexInfantrySpeed already handles bounded friendly hull braking; no source controller imported."
+      "currentSelectedIntegration": "Passenger custody, failed-avenue caching and up to three original-deadline troop-body support legs use the existing selected-crew FSM. Local or authenticated remote consent binds original cargo. Actual native boarding retires old identity; unacknowledged boarding-batch rosters keep their original expiry; locality only forgets old evidence. Sustained escort and whole-source reconciliation remain open; no forced seats/group/old-route replay."
     },
     {
       "workshopId": "3778948165",
@@ -841,10 +906,10 @@
       "name": "Pinned Down Conductor",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "Coordination contribution to identify",
-      "reviewStatus": "Verified extracted source available; deep review unreconciled",
-      "nextSourceReview": "Use the verified extracted snapshot to identify actual coordination decisions and ensure complementary methods share one CBE owner.",
-      "recordedImplementationStatus": "SOURCE_COVERAGE_UNRECONCILED",
-      "recordedRemaining": "Related CBE feature presence does not establish this source contribution or whole-mod build percentage. Complete semantic reconciliation.",
+      "reviewStatus": "Selected full contact/pressure/request/candidate/classifier/garrison/support bodies reviewed; SteelRain direct fire body reviewed, descendant/native provider graph incomplete",
+      "nextSourceReview": "Selected SteelRain CAS request/plane/AA/prediction/classifier/rearm direct bodies reviewed. Trace executeAirMission/parked/virtual launch and cleanup/acceptance graph; CBE initial geometry uses qualified native beliefs, but later surface native waypoint/progress/release transforms need separate observation justification. See airDispatchBelief20261030.",
+      "recordedImplementationStatus": "SELECTED_PRESSURE_SUPPORT_POLICY_AND_AMMO_ADMISSION_IMPLEMENTED_WHOLE_SOURCE_INCOMPLETE",
+      "recordedRemaining": "Selected support policy/ammo, roof/watch and bounded medic/MG post preferences implemented. Explicit garrison weapon roles, full marksman/observer/AA model, actual native-end acknowledgement, whole source graph and physical/performance validation remain incomplete.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": ".qa/source-refresh-20261011/code-inventory.json",
       "evidenceFilePresent": false,
@@ -862,7 +927,26 @@
         "readableSourceFiles": 76,
         "scope": "Verified extracted snapshot only; original PBOs/signatures absent. Source availability does not establish source review, implementation or reuse permission."
       },
-      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
+      "availabilityEvidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
+      "platformPressure20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-platform-pressure-20261030.json",
+      "supportRadiusPolicy20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-support-radius-policy-20261030.json",
+      "supportPrimaryCapacity20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-support-primary-capacity-20261030.json",
+      "garrisonRoleGraph20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json",
+      "garrisonWatchHeight20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#lifecycleAndWatchCorrection20261030",
+      "staticNativeMovement20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#staticNativeMovement20261030",
+      "staticAssignmentOwner20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#staticAssignmentOwner20261030",
+      "staticCrewRoles20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#staticCrewRoles20261030",
+      "garrisonPostGeometry20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#garrisonPostGeometry20261030",
+      "garrisonRoofLimitImplementation20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#roofLimitImplementation20261030",
+      "nearWatchOpening20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#nearWatchOpening20261030",
+      "rolePostPreference20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#rolePostPreference20261030",
+      "nativeCommandPolicy20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#nativeCommandPolicy20261030",
+      "authoredRouteGuard20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#authoredRouteGuard20261030",
+      "staticRetirement20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#staticRetirement20261030",
+      "supportBorrowingSource20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#supportBorrowingSource20261030",
+      "capabilityAvailability20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#capabilityAvailability20261030",
+      "candidateProposalSource20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#candidateProposalSource20261030",
+      "requestLifecycleFinite20261030": "releaseVerificationAndDeployment/referenceReviews/conductor-garrison-role-graph-20261030.json#requestLifecycleFinite20261030"
     },
     {
       "workshopId": "3800356547",
@@ -942,6 +1026,10 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
+      },
+      "airRouteFoundation20261028": {
+        "review": "releaseVerificationAndDeployment/referenceReviews/air-relief-route-alternatives-20261028.json",
+        "scope": "Independent existing CBE planner extension: two whole-pattern bearings after terrain failure without known AA; not source port/parity or physical acceptance."
       }
     },
     {
@@ -949,10 +1037,10 @@
       "name": "FPVSCARE",
       "priority": "2 Complementary AI methods",
       "candidateContribution": "AI reactions to FPV threats",
-      "reviewStatus": "Source reviewed; design/implementation pending",
-      "nextSourceReview": "Finish design from reviewed source, including credible threat cues, cover/evasion and original task handback.",
-      "recordedImplementationStatus": "SOURCE_REVIEWED_PENDING_DESIGN_AND_IMPLEMENTATION",
-      "recordedRemaining": "See dated intake; registration is not implementation.",
+      "reviewStatus": "Recovered all10 original readable hashes; selected classifier/threat bodies plus init scan/config declarations reviewed; visual approach cue built, full intent incomplete",
+      "nextSourceReview": "Continue remaining credible warning/evasion/vehicle intent through existing owners; do not restore global scanner, fabricated misses or forced firing. Verify native timing/visibility/geometry and handback in separate normal/HC batches only when audits resume.",
+      "recordedImplementationStatus": "SELECTED_VISUAL_APPROACH_CUE_IMPLEMENTED_PHYSICAL_UNVERIFIED",
+      "recordedRemaining": "Current known/visible near-collision foot-observer cue only. Buddy/hearing/vehicle/custom-class and expanded evasion integration remain incomplete; physical timing/path/ROE/owner transfer and measured cost unverified.",
       "implementationAssessmentCommit": "ca778db2",
       "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3820669449.json",
       "evidenceFilePresent": true,
@@ -962,7 +1050,8 @@
         "present": true,
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
-      }
+      },
+      "selectedVisualApproach20261030": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3820669449.json#selectedVisualApproach20261030"
     },
     {
       "workshopId": "3820871877",
@@ -1109,6 +1198,432 @@
         "observedAt": "2026-10-26",
         "scope": "Directory presence only; no package integrity, freshness or source-review claim."
       }
+    },
+    {
+      "workshopId": "3828285847",
+      "name": "PROTOCOL AI AIRCRAFT - BOMBS & ROCKETS",
+      "priority": "1 Protocol programme",
+      "candidateContribution": "Evaluate the complete relevant aircraft AI scope, with initial focus on bomb/rocket attack intent, and select useful methods for existing CBE aircraft/support owners. Do not assume filename or overview establishes individual functionality.",
+      "reviewStatus": "Complete readable source compared; scripted release veto implemented and offline verified; physical/performance pending.",
+      "nextSourceReview": "Continue remaining Protocol capabilities; aircraft native autonomous firing, later exact-target execution, handback and physical/performance proof remain open.",
+      "recordedImplementationStatus": "READABLE_SOURCE_REVIEWED_SCRIPTED_RELEASE_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+      "recordedRemaining": "Scoped scripted request and native-contact geometry improvements, not full Protocol aircraft parity. Native autonomous DESTROY firing outside veto; object attachment/handback semantics, actual targeting, belief/observer changes, dynamic safety and measured5%median/10%p95 cost remain unverified; audits paused.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/protocol-aircraft-3828285847-20261030.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": true,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3828285847",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Original3 hashes verified; complete readable source in protected private dated archive, no addon execution."
+      },
+      "latestIntegration": "Shared initial/active native belief reader removes CBE exact hostile position/velocity from aircraft geometry/lead. Existing finite owner retained; PASS1506 offline, physical/performance pending."
+    },
+    {
+      "workshopId": "3802425539",
+      "name": "Earshot",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate voice and radio-speaker audibility, masking and obstruction as bounded perceived sound evidence. Implement ACRE support as well as TFAR through optional provider adapters into existing CBE hearing/investigation owners. No target reveal or independent movement controller.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "requiredRadioProviders": [
+          "TFAR",
+          "ACRE"
+        ],
+        "requirement": "ACRE must work; existing TFAR-only source description does not satisfy this."
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3802425539.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3802425539",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3779029815",
+      "name": "AI Stop Head Lock",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate aiming-anchor changes against current CBE accuracy/fire control and representative vanilla/modded skeletons. Compare hit distribution, body aim and headshot bias; preserve authored skills and realistic weapon alignment. Metadata labels this an aiming-anchor test, not a proven improvement.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "metadataAlias": "AI Aiming Anchor Test",
+        "identityCaution": "Installed meta.cpp publishedid0; local title and user URL association only."
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3779029815.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3779029815",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "2947745583",
+      "name": "AI Cannot See Small Drones",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate fair small-drone visibility/detectability by size, range and environment against current CBE drone/AA perception. Preserve legitimate nearby detection and threats; do not automatically copy the page example captive-height toggle or global invulnerability.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-2947745583.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/2947745583",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "1809358689",
+      "name": "Universal Difficulty Overhaul",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Rework useful difficulty intent for CBE difficulty profiles and add more levels. Keep tactical competence, perception, accuracy and response tuning distinct; preserve mission-authored and other mission frameworks/custom skills through explicit ownership. Verify engine ranges and balance rather than copying advertised over-range skill values.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "requirement": "Rework for our difficulties and more levels; level names/count and values remain to design against CBE current profiles.",
+        "distinctFromWithdrawnBundle": "This exact Workshop ID is requested independently; it does not restore Universal AI3829519860."
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-1809358689.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/1809358689",
+        "present": false,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3763899932",
+      "name": "Realistic Vegetation Concealment",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate foliage occlusion and delayed visual confirmation through existing CBE native knowledge/perception owners; handle loss/reacquisition, dynamic actors and locality without omniscience or competing skill writers.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3763899932.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3763899932",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3475038178",
+      "name": "Turret Tweaks",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate AI turret/MG/coax and selected autocannon accuracy methods against existing CBE turret aiming and fire control; preserve player turrets, mission skill intent and real weapon distinctions. Cherry-pick useful balance rather than blanket accuracy debuffs.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3475038178.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3475038178",
+        "present": false,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3482637456",
+      "name": "Immortal's AI Pathfinder Improvement (Infantry)",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate infantry stuck detection and replanning against CBE finite movement/CQB/formation recovery. Preserve player-led groups, newer native orders, unreachable-position failure and original retry/deadline budgets; no teleport or permanent competing movement loop.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3482637456.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3482637456",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3600001673",
+      "name": "AI Auto mount as vehicle Gunner",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate opportunistic gunner occupancy through CBE seat/operator ownership, static support, convoy and crew recall. Respect players, explicit dismount/unassignment, specialist reservations and newer tasks; require real boarding, interruption and cancellation handling.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "identityCaution": "Installed meta.cpp publishedid0; source/Workshop binding not independently confirmed by metadata."
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3600001673.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3600001673",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3814408624",
+      "name": "Warriors Haven AI MG BurstFire",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Rework useful MG burst timing and coordination for CBE talking guns and fire control already partially implemented. Alternate/support fire with real ammunition, sectors, friendly safety and operator availability; merge through existing firing owners.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "requirement": "Talking guns and fire control integration; extend existing partial implementation rather than add a competing worker."
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3814408624.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3814408624",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3773059814",
+      "name": "No more tanky AI (for ACE3)",
+      "priority": "4 Optional extension",
+      "candidateContribution": "Evaluate only as an optional addon, off unless deliberately enabled, with explicit per-unit exclusions for boss enemies and mission-defined protected actors. Preserve ACE medical authority, player exclusion and damage-event/locality ownership; review fragmentation/pellet/mixed-caliber accounting before any forced-death fallback.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "optionalAddon": true,
+        "defaultEnabled": false,
+        "perUnitExclusionsRequired": true,
+        "exampleExclusion": "Boss enemies",
+        "playerScope": "AI only unless separately authorized; do not inherit source player toggle automatically."
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3773059814.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3773059814",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3443045523",
+      "name": "AI Stow NVGs",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate day/night NVG stow/restore with real inventory capacity, item identity, authored loadouts and current locality. Avoid loss/duplication, inappropriate animation/visibility changes or global all-unit polling when existing CBE discovery can own bounded updates.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3443045523.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3443045523",
+        "present": false,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3673419571",
+      "name": "Fast Reaction AI - FRAI",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate responsiveness intent and animation-speed effects separately from FSM decision latency. Preserve credible motion, weapon contacts and authored modifiers; reject arm stretching, superhuman blanket speed and competing permanent modifier writers. Compare with existing CBE owner-local lifecycle.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3673419571.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3673419571",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3456575967",
+      "name": "Drongos Drone Tweaks",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate useful AI drone deployment, recon/FPV/grenade-drone and spotting methods against existing CBE drone/aircraft/AA owners. Keep inventory/distribution, task selection, native sensing, operator safety and finite cleanup coherent; do not automatically overwrite mission loadouts or import all dependencies.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3456575967.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3456575967",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3742157919",
+      "name": "CL's AI Drone Warfare",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Evaluate dynamic AI drone use and squad/operator allocation, inventory/backpack handling and sortie cleanup. Merge useful capability with CBE/other drone sources rather than duplicate equipment distribution, controllers or omniscient target acquisition.",
+      "reviewStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {},
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REGISTERED_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3742157919.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3742157919",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3137367441",
+      "name": "[AI] Efficient Info Share",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Reference for deliberately connected persistent communication networks, sender/receiver exclusions, cooldown/delay and relay-node dependency. Compare with CBE current timestamped area reports, native knowledge, ownership and mission authority; no automatic reveal or all-map communication.",
+      "reviewStatus": "REFERENCE_ONLY_SOURCE_REVIEW_PENDING",
+      "kind": "INFORMATION_SHARING_REFERENCE",
+      "userConditions": {
+        "referenceOnly": true
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REFERENCE_ONLY_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3137367441.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3137367441",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3138998304",
+      "name": "[AI] Vicinity Info Share",
+      "priority": "2 Complementary AI methods",
+      "candidateContribution": "Reference for dynamic nearby-group communication, sender range versus receiver reaction range, exclusions and delay. Account for Zeus/script-spawned groups and locality changes; merge through existing CBE communication owner with bounded discovery and original evidence age.",
+      "reviewStatus": "REFERENCE_ONLY_SOURCE_REVIEW_PENDING",
+      "kind": "INFORMATION_SHARING_REFERENCE",
+      "userConditions": {
+        "referenceOnly": true
+      },
+      "nextSourceReview": "Resolve actual source/version/licence and compare complete relevant behaviour with existing CBE owners; follow this item intake topics.",
+      "recordedImplementationStatus": "REFERENCE_ONLY_SOURCE_REVIEW_PENDING",
+      "recordedRemaining": "Source/intent comparison and any selected implementation/physical/performance checks remain pending.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/workshop-intake-3138998304.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3138998304",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      }
+    },
+    {
+      "workshopId": "3824564775",
+      "name": "PROTOCOL AI JAMMING",
+      "priority": "1 Protocol programme",
+      "candidateContribution": "Review complete AI jamming functionality and selected useful intent for existing CBE communication/jamming ownership. Trace emitters, range/propagation, side policy, radio/voice distinctions, provider APIs and finite setup/update/cleanup; retain TFAR/ACRE requirements from Earshot without inventing native provider support.",
+      "reviewStatus": "Complete readable source reviewed; scoped AI radio fields pass offline gates; physical/performance pending",
+      "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+      "userConditions": {
+        "identityCaution": "Installed meta.cpp publishedid0; Workshop page inaccessible; title from local mod.cpp."
+      },
+      "nextSourceReview": "Finish this bounded field integration gates/checkpoint, then source-review new Protocol aircraft3828285847 against existing CBE aircraft owners. Keep other Protocol capability gaps queued; do not return to non-Protocol work by default.",
+      "recordedImplementationStatus": "SCOPED_NATIVE_AI_RADIO_FIELDS_IMPLEMENTED_PHYSICAL_PENDING",
+      "recordedRemaining": "Scoped AI EW field plus native/optional ZEN operator task built and offline verified, not full EW/Protocol parity. Actual dialog, native/optional-ZEN/server authority/replay/expiry, dynamic field/JIP/HC/voice/support and measured5%median/10%p95 cost unverified. Automatic discovery, ACRE/TFAR actual API integration and safe UAV link-loss doctrine remain open. Player radios/UAV control unchanged; future CBE checks only, no network barrier or already-delivered order cancellation.",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/protocol-jamming-3824564775-20261030.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3824564775",
+        "present": true,
+        "observedAt": "2026-10-30",
+        "scope": "Metadata/package inventory only; no source or behaviour proof."
+      },
+      "latestIntegration": "Native/optional ZEN AI radio-denial task built through existing server field owner; authenticated exact editable emitter, range/sides, atomic sequence/expiry mutation. PASS1506 offline; physical/performance pending."
+    },
+    {
+      "workshopId": "3826723321",
+      "name": "N3cro's Player/AI Revive & Medical",
+      "priority": "2 Complementary AI methods; existing Protocol/foundation priority unchanged",
+      "candidateContribution": "Dynamic AI revive/healing, one-helper casualty claims, situational approach, smoke/physical drag-to-cover, squad cover, Hold/Stop preservation and finite original-task handback. AI-only; no player mechanics or replacement medical framework.",
+      "reviewStatus": "INTAKE_ONLY_SOURCE_REVIEW_PENDING",
+      "nextSourceReview": "Read actual config/scripts/FSM/medical-provider APIs and licence; trace the six requested AI features against existing CBE owners, particularly casualty claim authority, actual physical drag/treatment, hold orders, task restoration, repeated dynamic use and bounded cost.",
+      "recordedImplementationStatus": "NOT_IMPLEMENTED_NEW_INTAKE",
+      "recordedRemaining": "All source review, design/integration and offline/physical/performance evidence remain pending. General goal and audits paused.",
+      "implementationAssessmentCommit": null,
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/n3-revive-medical-3826723321-intake-20261031.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3826723321",
+        "present": true,
+        "observedAt": "2026-10-31",
+        "scope": "Matching local metadata and package hashes recorded in intake review; no extracted-source or behavioural evidence."
+      }
     }
   ],
   "localReferences": [
@@ -1145,5 +1660,10 @@
     "lambsMain": ".qa/lambs-main-installed-20261025-bebceb06"
   },
   "audits": "paused",
-  "sourceAvailabilityReview": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
+  "sourceAvailabilityReview": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
+  "latestIntake20261031": {
+    "workshopId": "3826723321",
+    "scope": "AI-only dynamic medical assistance intake; not a whole-map review or implementation assessment.",
+    "evidence": "releaseVerificationAndDeployment/referenceReviews/n3-revive-medical-3826723321-intake-20261031.json"
+  }
 }

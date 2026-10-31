@@ -6,7 +6,7 @@ class CfgPatches {
         author = "WaldoTheWarfighter";
         requiredVersion = 2.18;
         requiredAddons[] = {"cba_main", "cba_xeh", "A3_Modules_F", "CBE_core", "CBE_danger", "CBE_infantry", "CBE_vehicles", "CBE_aircraft", "CBE_support", "CBE_compatibility"};
-        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModuleAirborne", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
+        units[] = {"CBE_ModuleConvoyStart", "CBE_ModuleConvoyHold", "CBE_ModuleConvoyRelease", "CBE_ModuleVehiclePoint", "CBE_ModuleVehiclePointRelease", "CBE_ModulePointAdvance", "CBE_ModulePointWithdraw", "CBE_ModuleClearArea", "CBE_ModuleClear", "CBE_ModuleGarrison", "CBE_ModuleDefend", "CBE_ModulePatrol", "CBE_ModuleHunt", "CBE_ModuleCreep", "CBE_ModuleRush", "CBE_ModuleRelease", "CBE_ModuleAirborne", "CBE_ModuleJamming", "CBE_ModuleDrivingCorridor", "CBE_ModuleDrivingCorridorMission", "CBE_DrivingCorridorArea"};
         weapons[] = {};
         version = "0.1.0";
         versionStr = "0.1.0";
@@ -107,6 +107,20 @@ class CfgVehicles {
             sync[] = {};
         };
     };
+    class CBE_ModuleJamming: Module_F {
+        scope = 1;
+        scopeCurator = 2;
+        displayName = "AI radio denial";
+        category = "CBE_CuratorOrders";
+        function = "CBE_fnc_ModuleJamming";
+        isGlobal = 1;
+        isTriggerActivated = 0;
+        isDisposable = 1;
+        curatorCanAttach = 1;
+        class ModuleDescription: ModuleDescription {
+            description = "Place on an explicit emitter. Start/update or end a scoped AI radio-denial field; choose radius and affected sides. No player radio, voice or UAV manipulation. ZEN optional.";
+        };
+    };
     class CBE_ModuleAirborne: Module_F {
         scope = 1;
         scopeCurator = 2;
@@ -133,9 +147,89 @@ class CfgVehicles {
         isDisposable = 1;
         curatorCanAttach = 1;
     };
+    class CBE_ModuleVehiclePoint: CBE_ModuleGarrison {
+        displayName = "Position vehicle";
+        function = "CBE_fnc_ModuleVehiclePoint";
+        CBE_operation = "VEHICLE_POINT";
+        class ModuleDescription: ModuleDescription {
+            description = "Select one crewed AI land vehicle and dry ground10..2000m away. Existing selected-crew FSM moves and holds with10m arrival/180s total limit; optional ZEN exposes30..300s. No group waypoint, forced passenger dismount or fire-policy reset. New native/Zeus orders retain priority; Release vehicle position task requests exact retirement.";
+        };
+    };
+    class CBE_ModuleVehiclePointRelease: CBE_ModuleVehiclePoint {
+        displayName = "Release vehicle position task";
+        CBE_operation = "VEHICLE_POINT_RELEASE";
+        class ModuleDescription: ModuleDescription {
+            description = "Select the exact vehicle with a CBE point task. Requests its existing finite native handback; it does not force a stop or clear unresolved proof. Does not cancel convoy, artillery or other tactical vehicle tasks.";
+        };
+    };
+    class CBE_ModulePointAdvance: CBE_ModuleGarrison {
+        displayName = "Advance to position";
+        function = "CBE_fnc_ModulePointAdvance";
+        CBE_operation = "ADVANCE_POINT";
+        class ModuleDescription: ModuleDescription {
+            description = "Place at the destination and explicitly select an AI foot squad for covered fire-team bounds. Default arrival10m/time180s; optional ZEN exposes5..25m/30..300s. No enemy proxy, forced group formation or hostile-room clearance claim. CBA Advance permission remains required; newer native/Zeus orders win.";
+        };
+    };
+    class CBE_ModulePointWithdraw: CBE_ModulePointAdvance {
+        displayName = "Withdraw to position";
+        CBE_operation = "WITHDRAW_POINT";
+        class ModuleDescription: ModuleDescription {
+            description = "Place at a ground destination and explicitly select an AI foot squad. Withdraws35..2000m under the existing retreat owner, fixed120s deadline and30m ground arrival. No teleport, forced group recreation or invented threat. Existing tasks refuse; Release infantry task cancels. Newer native/Zeus orders retain priority.";
+        };
+    };
+    class CBE_ModuleClearArea: CBE_ModuleGarrison {
+        displayName = "Clear buildings in area";
+        CBE_operation = "CLEAR_AREA";
+        class ModuleDescription: ModuleDescription {
+            description = "Place on an AI soldier for a finite physical-clearance queue around this location:50m radius,4building limit,900s original deadline. Optional ZEN exposes task parameters. Inaccessible/refused buildings stay incomplete; a capped queue reports partial coverage. No teleport or hostile-room safety claim.";
+        };
+    };
+    class CBE_ModuleClear: CBE_ModuleGarrison {
+        displayName = "Clear building";
+        function = "CBE_fnc_ModuleClear";
+        CBE_operation = "CLEAR";
+        class ModuleDescription: ModuleDescription {
+            description = "Select an explicit AI squad and building for physical clearance. Native selectors work without ZEN; optional ZEN uses the same authenticated current-owner executor. Reported model positions are not proof of access or hostile-room safety. This clears one building, not an entire area.";
+        };
+    };
     class CBE_ModuleDefend: CBE_ModuleGarrison {
         displayName = "Defend area";
         CBE_operation = "DEFEND";
+    };
+    class CBE_ModulePatrol: CBE_ModuleGarrison {
+        displayName = "Patrol area";
+        CBE_operation = "PATROL";
+        class ModuleDescription: ModuleDescription {
+            description = "Place on an AI soldier to request one ground patrol circuit at this location: 100m radius, four destinations, 900s deadline. Optional ZEN exposes task parameters. Existing tasks refuse; release them first. No teleport or mission waypoint reset.";
+        };
+    };
+    class CBE_ModuleHunt: CBE_ModuleGarrison {
+        displayName = "Hunt known enemy";
+        CBE_operation = "HUNT";
+        class ModuleDescription: ModuleDescription {
+            description = "Place on an AI soldier to search its own recent native ground-contact belief, within800m and900s by default. CBA engagement range caps knowledge; optional ZEN exposes task limits. No hidden enemy positions, free flares or forced AI policies. Release existing tasks first.";
+        };
+    };
+    class CBE_ModuleCreep: CBE_ModuleGarrison {
+        displayName = "Cautious approach";
+        CBE_operation = "CREEP";
+        class ModuleDescription: ModuleDescription {
+            description = "Place on an AI soldier to request a finite cautious approach to recent known ground contact. Choose knowledge range and30..300s task limit. Limited pace and self-defence discipline retire at stand-off or nearby danger. Original posture, formation and stricter ROE are preserved. Release existing tasks first.";
+        };
+    };
+    class CBE_ModuleRush: CBE_ModuleGarrison {
+        displayName = "Press attack";
+        CBE_operation = "RUSH";
+        class ModuleDescription: ModuleDescription {
+            description = "Place on an AI soldier to request one finite covered advance or close assault against viable fresh native contact. Defaults800m knowledge range and180s original deadline; optional ZEN exposes task limits. Existing roles, morale, fire/terrain/mission/Zeus protection remain. Release existing tasks first.";
+        };
+    };
+    class CBE_ModuleRelease: CBE_ModuleGarrison {
+        displayName = "Release infantry task";
+        CBE_operation = "RELEASE";
+        class ModuleDescription: ModuleDescription {
+            description = "Place on an AI soldier to request scoped CBE single/area clearance, garrison, defence, patrol, hunt, explicit attack/point advance and temporary infantry task release. The current owner preserves newer orders and protected actors. Native handback may remain pending.";
+        };
     };
     class CBE_ModuleConvoyStart: Module_F {
         scope = 1;

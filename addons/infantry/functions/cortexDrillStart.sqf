@@ -3,6 +3,7 @@
  * Natural admission transfers only exact completed CBE STOP holds into current-drill proof,
  * retiring their old recall tokens without issuing movement or creating a new hold deadline.
  * The full authored-order receipt freezes once for active execution and locality resume.
+ * Initial actor observations freeze before FSM launch; later starts never rebase an existing row.
  * Purpose: Starts the finite scripted FSM which executes one accepted flank, advance, direct assault or coordinated
  * support bound. The FSM observes lifecycle completion; the shared scheduler owns tactical cadence; bounded tactical calculations and actor
  * commands remain in CortexFlankStep so one implementation serves every manoeuvre type.
@@ -66,15 +67,19 @@ if (_drill getOrDefault ["nativeAdmissionChecked",false]) then {
         private _adopted=[];
         {
             private _actor=_x;
-            if (!(netId _actor in _commands) && {count _commands < 64}
-                && {[_group,_state,_actor] call CBE_fnc_CortexHolderRecallOwned}) then {
-                _commands set [netId _actor,[_actor,"HOLD",+(expectedDestination _actor),formLeader _actor,-1,[],[]]];
-                _actor setVariable ["CBE_Cortex_HolderToken",nil,true];
-                _adopted pushBack _actor;
+            if (!(netId _actor in _commands) && {count _commands < 64}) then {
+                if ([_group,_state,_actor] call CBE_fnc_CortexHolderRecallOwned) then {
+                    _commands set [netId _actor,[_actor,"HOLD",+(expectedDestination _actor),formLeader _actor,-1,[],[]]];
+                    _actor setVariable ["CBE_Cortex_HolderToken",nil,true];
+                    _adopted pushBack _actor;
+                } else {
+                    // Freeze observation once. This is not a movement issue/hold or cleanup lease.
+                    _commands set [netId _actor,[_actor,"ADMISSION",+(expectedDestination _actor),formLeader _actor,-1,[],[currentCommand _actor]]];
+                };
             };
         } forEach ((_drill getOrDefault ["units",[]]) select [0,64]);
+        _drill set ["nativeCommands",_commands];
         if (_adopted isNotEqualTo []) then {
-            _drill set ["nativeCommands",_commands];
             _state set ["holders",(_state getOrDefault ["holders",[]])-_adopted];
             _state set ["holderRecallReceipts",(_state getOrDefault ["holderRecallReceipts",[]]) select {
                 !(_x isEqualType [] && {count _x == 8} && {(_x select 0) in _adopted})

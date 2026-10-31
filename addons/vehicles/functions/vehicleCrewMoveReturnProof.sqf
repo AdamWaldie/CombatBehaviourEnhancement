@@ -4,7 +4,10 @@
  * Locality/authority: Read-only on current local platform/group/original actors. The producer
  * must still own the exact journal/reference. An actual completed private original FSM,
  * matching local worker serial/owner/episode epoch are required. RETURN additionally needs
- * recorded original return orders. A remote done flag, ended timer or changed seat alone
+ * recorded original MOVE/FOLLOW return orders and every surviving idle original at its retained stop goal.
+ * FOLLOW must retain its originally captured living same-group anchor and group leader, with
+ * exact recorded request and native command/anchor acknowledgement. Legacy uncaptured FOLLOW refuses.
+ * A remote done flag, ended timer or changed seat alone
  * is never sufficient.
  * Current group epoch and any recorded tactical generation must still match; this passive
  * check grants no new command authority. Caller runs it inside its unscheduled retirement call.
@@ -15,22 +18,32 @@
  * aboard the original platform or dismounted, with measured platform rest. Dismounted
  * originals must also have measured individual rest. Another occupied platform refuses.
  * STOP is intentionally perpetual, so readiness is not required.
- * It never restores or cancels that newer order.
+ * It never restores or cancels that newer order. A legacy FOLLOW baseline can be
+ * superseded by this positive STOP proof; RETURN still refuses FOLLOW as unrestored.
+ * EXTERNAL_FOLLOW retires only an ended issued-phase worker: every surviving original
+ * must show current native FOLLOW to a living different formation anchor in its own group,
+ * aboard this platform or dismounted. Replacement operators/another occupied platform refuse.
+ * Native FOLLOW may still be moving; neither rest nor completed travel is inferred. It may
+ * reflect native fallback rather than a new authored order. This proves only that this
+ * completed positional worker no longer owns those native commands, not original formation
+ * restoration. The caller retires the interrupted task; it never resumes a support bound.
  * Arguments: platform OBJECT,objNull; journal HASHMAP,empty; private worker ARRAY,[];
  * current private worker serial NUMBER,-1; optional evidence mode STRING,RETURN
- * (EXTERNAL_STOP is restricted to ended UNRESOLVED work).
- * Return: BOOL original return or explicit newer STOP observed, not physical returned travel.
- * Current callers: VehicleCrewMoveRetire for ended RETURNING/UNRESOLVED episodes.
+ * (EXTERNAL_STOP: ended UNRESOLVED; EXTERNAL_FOLLOW: ended issued phase, never ISSUE).
+ * Return: BOOL original return or positive native STOP/FOLLOW observed, not physical returned travel.
+ * Current callers: VehicleCrewMoveRetire for exact ended-worker retirement.
  * Example: [_vehicle,_work,_privateWorker,_workerSerial] call CBE_fnc_VehicleCrewMoveReturnProof;
  */
 params [["_battery",objNull,[objNull]],["_work",createHashMap,[createHashMap]],
     ["_executor",[],[[]]],["_executorSerial",-1,[0]],["_mode","RETURN",[""]]];
 private _group=_work getOrDefault ["group",grpNull];
 if (isNull _battery || {!local _battery} || {!(_group isEqualType grpNull)}
-    || {isNull _group} || {!local _group} || {!(_mode in ["RETURN","EXTERNAL_STOP"])}
+    || {isNull _group} || {!local _group} || {!(_mode in ["RETURN","EXTERNAL_STOP","EXTERNAL_FOLLOW"])}
     || {_mode == "RETURN" && {!("returns" in _work)}}
     || {_mode == "EXTERNAL_STOP" && {(_work getOrDefault ["phase",""]) != "UNRESOLVED"}}
-    || {!((_work getOrDefault ["phase",""]) in ["RETURNING","UNRESOLVED"])}
+    || {if (_mode == "EXTERNAL_FOLLOW") then {
+        !((_work getOrDefault ["phase",""]) in ["REQUESTED","MOVING","HOLD","STOPPING","RETURNING","UNRESOLVED"])
+    } else {!((_work getOrDefault ["phase",""]) in ["RETURNING","UNRESOLVED"])}}
     || {count _executor != 5} || {!finite _executorSerial} || {_executorSerial < 0}
     || {[0,1,2,3,4] findIf {!((_executor select _x) isEqualType 0)
         || {!finite (_executor select _x)}} >= 0}
@@ -46,14 +59,15 @@ if ("operationGeneration" in _work && {!(_generation isEqualType 0) || {!finite 
     || {_generation < 0} || {_generation != (_group getVariable ["CBE_OperationGeneration",-2])}}) exitWith {false};
 private _seats=_work getOrDefault ["crew",[]];
 private _baseline=_work getOrDefault ["baseline",[]];
-// The producer only admits idle/WAIT/MOVE and issues positional movement. A current
-// STOP is therefore a newer native order, not its own positional hold. Retire
+// Current producers admit idle/WAIT/MOVE; legacy work may retain FOLLOW. Neither
+// baseline is STOP and the worker only issues positional movement. A current STOP
+// therefore supersedes the old native request; it does not prove FOLLOW restoration. Retire
 // metadata only after the exact original private FSM has actually completed.
 if (_mode == "EXTERNAL_STOP") exitWith {
     if (!(_seats isEqualType []) || {count _seats != 2}
         || {_seats findIf {!(_x isEqualType objNull)} >= 0}
         || {!(_baseline isEqualType [])} || {count _baseline != 4}
-        || {[0,2] findIf {!((_baseline select _x) in ["","WAIT","MOVE"])} >= 0}) exitWith {false};
+        || {[0,2] findIf {!((_baseline select _x) in ["","WAIT","MOVE","FOLLOW"])} >= 0}) exitWith {false};
     private _stoppedWriters=(_seats arrayIntersect _seats) select {!isNull _x && {alive _x}};
     if (_stoppedWriters isEqualTo [] || {_stoppedWriters findIf {
         private _parent=objectParent _x;
@@ -73,17 +87,50 @@ if (_mode == "EXTERNAL_STOP") exitWith {
     private _angular=vectorMagnitude angularVelocity _battery;
     finite _linear && {finite _angular} && {_linear < 0.278} && {_angular < 0.01}
 };
+// This executor only issues positional movement. Positive current FOLLOW therefore
+// belongs to native/another control path, not to an outstanding request from this worker.
+// Observe every surviving original, never guess an anchor or issue formation recall.
+if (_mode == "EXTERNAL_FOLLOW") exitWith {
+    if (!(_seats isEqualType []) || {count _seats != 2}
+        || {_seats findIf {!(_x isEqualType objNull)} >= 0}
+        || {!(_baseline isEqualType [])} || {count _baseline != 4}
+        || {[0,2] findIf {!((_baseline select _x) in ["","WAIT","MOVE","FOLLOW"])} >= 0}) exitWith {false};
+    private _followingWriters=(_seats arrayIntersect _seats) select {!isNull _x && {alive _x}};
+    if (_followingWriters isEqualTo [] || {_followingWriters findIf {
+        if (!local _x || {group _x != _group}
+            || {currentCommand _x != "FOLLOW"}) exitWith {true};
+        private _parent=objectParent _x;
+        private _anchor=formLeader _x;
+        !isNull _parent && {_parent != _battery}
+            || {isNull _anchor} || {!alive _anchor} || {_anchor == _x}
+            || {group _anchor != _group}
+    } >= 0} || {[driver _battery,effectiveCommander _battery] findIf {
+        !isNull _x && {alive _x} && {!(_x in _followingWriters)}
+    } >= 0}) exitWith {false};
+    true
+};
 private _returns=_work get "returns";
 private _until=_work getOrDefault ["replyUntil",-1];
 private _cleanup=_work getOrDefault ["cleanupUntil",-1];
 if (!(_seats isEqualType []) || {count _seats != 2} || {_seats findIf {!(_x isEqualType objNull)} >= 0}
     || {!(_baseline isEqualType [])} || {count _baseline != 4}
-    || {[0,2] findIf {!((_baseline select _x) in ["","MOVE","WAIT"])
+    || {[0,2] findIf {!((_baseline select _x) in ["","MOVE","WAIT","FOLLOW"])
         || {!((_baseline select (_x+1)) isEqualType [])}} >= 0}
     || {!(_returns isEqualType [])} || {count _returns > 2}
     || {!(_until isEqualType 0)} || {!finite _until} || {_until < 0}
     || {!(_cleanup isEqualType 0)} || {!finite _cleanup} || {_cleanup < 0}) exitWith {false};
 private _original=_seats arrayIntersect _seats;
+private _followTargets=_work getOrDefault ["followTargets",[]];
+private _hasFollow=[0,2] findIf {(_baseline select _x) == "FOLLOW"} >= 0;
+if (_hasFollow && {!(_followTargets isEqualType []) || {count _followTargets != 2}
+    || {_followTargets findIf {!(_x isEqualType objNull)} >= 0}
+    || {(_work getOrDefault ["followGroupLeader",objNull]) != leader _group}
+    || {[0,1] findIf {
+        if ((_baseline select (_x*2)) != "FOLLOW") exitWith {false};
+        private _anchor=_followTargets select _x;
+        isNull _anchor || {!alive _anchor} || {_anchor == (_seats select _x)}
+            || {group _anchor != _group}
+    } >= 0}}) exitWith {false};
 private _writers=_original select {!isNull _x && {alive _x}};
 if (_writers isEqualTo [] || {_writers findIf {!local _x || {group _x != _group}
     || {objectParent _x != _battery}} >= 0}
@@ -116,12 +163,43 @@ private _observations=[_writers select 0,_writers param [1,_writers select 0]]
 if (count _observations != 4) exitWith {false};
 private _arrival=[ASLToAGL getPosASL _battery,vectorMagnitude velocity _battery,
     vectorMagnitude angularVelocity _battery];
-if (_expected isEqualTo []) exitWith {
+private _followExpected=[];
+{
+    if (_x in _writers && {(_baseline select (_forEachIndex*2)) == "FOLLOW"}) then {
+        _followExpected pushBack [_x,_followTargets select _forEachIndex];
+    };
+} forEach _original;
+private _followReturns=_work getOrDefault ["followReturns",[]];
+if (!(_followReturns isEqualType []) || {count _followReturns > 2}
+    || {_followReturns findIf {!(_x isEqualType []) || {count _x != 2}
+        || {!((_x select 0) isEqualType objNull)} || {!((_x select 1) isEqualType objNull)}} >= 0}
+    || {(_followReturns select {(_x select 0) in _writers}) isNotEqualTo _followExpected}
+    || {_followExpected findIf {
+        _x params ["_actor","_anchor"];
+        currentCommand _actor != "FOLLOW" || {formLeader _actor != _anchor}
+    } >= 0}) exitWith {false};
+if (_expected isEqualTo [] && {!_hasFollow}) exitWith {
     // No original MOVE to restore: require current idle, retained stop goal and physical rest.
     [0,2] findIf {!((_observations select _x) in ["","WAIT"])} < 0
         && {([_work getOrDefault ["goal",[]],_until,_observations,_observations,serverTime,_arrival]
             call CBE_fnc_VehicleCrewDestinationState) == "OWNED"}
 };
+// MOVE recipients cannot vouch for a different surviving original's idle handback.
+// Reuse the two cached native observations; no extra actor command/query or deadline.
+private _idleOriginalsCurrent=_writers findIf {
+    private _originalOffset=2*(_original find _x);
+    if ((_baseline select _originalOffset) == "MOVE") exitWith {false};
+    if ((_baseline select _originalOffset) == "FOLLOW") exitWith {false};
+    private _observationOffset=2*(_writers find _x);
+    private _command=_observations select _observationOffset;
+    private _destination=_observations select (_observationOffset+1);
+    private _sample=[_command,_destination,_command,_destination];
+    !(_command in ["","WAIT"]) || {
+        ([_work getOrDefault ["goal",[]],_until,_sample,_sample,serverTime,_arrival]
+            call CBE_fnc_VehicleCrewDestinationState) != "OWNED"
+    }
+} < 0;
+if (!_idleOriginalsCurrent) exitWith {false};
 _expected findIf {
     _x params ["_actor","_point"];
     private _offset=2*(_writers find _actor);

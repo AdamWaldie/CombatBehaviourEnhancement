@@ -37,7 +37,7 @@ if ([_group] call CBE_fnc_CortexExternalTakeover) exitWith {false};
 _role params ["_leaseToken","_sequence","_roleName","_point","_enemy"];
 if (_roleName != "MOVE" || {_role isNotEqualTo (_group getVariable ["CBE_Cortex_SupportRole",[]])}) exitWith {false};
 private _lease=_group getVariable ["CBE_AIPass_SupportLease",[]];
-if (count _lease != 6 || {(_lease select 0) != _leaseToken} || {serverTime >= (_lease select 2)}) exitWith {false};
+if (count _lease != 7 || {(_lease select 0) != _leaseToken} || {serverTime >= (_lease select 2)}) exitWith {false};
 private _deadlineReceipt=_group getVariable ["CBE_Cortex_SupportRoleDeadline",[]];
 if (!(_deadlineReceipt isEqualType []) || {count _deadlineReceipt != 4}
     || {(_deadlineReceipt select 0) isNotEqualTo _leaseToken} || {(_deadlineReceipt select 1) isNotEqualTo _sequence}

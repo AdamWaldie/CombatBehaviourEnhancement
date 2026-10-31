@@ -39,6 +39,16 @@
  * the original lease expiry. Duplicate actual-owner adoption never restarts that window.
  * Coordinated adoption requires the original parent recovery budget snapshot. Spent counts
  * and unavailable actors survive; running recovery commands/timers are never replayed.
+ * Fresh coordinated admission requires three primary-ammunition capacities, matching the
+ * existing COVER observer; ordinary rally needs one, while dedicated AT rally retains its
+ * actual launcher requirement. Fresh feet also require the shared native-task/reservation gate,
+ * so busy or pending-native actors do not supply admission capacity. At most64 fresh feet are
+ * assessed; oversized cohorts refuse before per-actor work, not silently truncated. Existing
+ * assignment/adoption rosters remain unchanged. A retained transport assignment alone is not a
+ * veto for an otherwise available dismounted actor. Loaded main rounds or compatible reserve qualify, not firing
+ * readiness. At most64 candidate feet are inspected; acknowledged/adopted tasks are unchanged.
+ * Original response radius is required in canonical lease slot6; next-operation setting
+ * changes cannot enlarge/shrink this assignment during delivery, retry or owner adoption.
  * Arguments: 0: job <HASHMAP> containing group, lease, waitUntil and optional adopt <BOOL>, authoredOrder <ARRAY> and authoredRevoked <BOOL> holdProof <ARRAY> and recoveryProof <ARRAY> for coordinated adoption.
  * Return Value: Retry delay in seconds or -1 after acknowledgement.
  * Current callers: SupportLocal through the existing scheduler and CortexLocality adoption.
@@ -48,6 +58,8 @@
 params ["_job"];
 private _group = _job get "group";
 private _lease = _job get "lease";
+if (count _lease != 7 || {!((_lease select 6) isEqualType 0)}
+    || {!finite (_lease select 6)} || {(_lease select 6) < 100} || {(_lease select 6) > 2000}) exitWith {-1};
 if (!local _group) exitWith {-1};
 private _current = _group getVariable ["CBE_AIPass_SupportLease",[]];
 if (_current isNotEqualTo _lease) exitWith {
@@ -56,7 +68,7 @@ if (_current isNotEqualTo _lease) exitWith {
         -1
     }
 };
-_lease params ["_token","_requester","_expiry","_rally","_needAT","_attack"];
+_lease params ["_token","_requester","_expiry","_rally","_needAT","_attack","_responseRadius"];
 private _state = [_group] call CBE_fnc_CortexGroupState;
 private _publicStatus=_group getVariable ["CBE_AIPass_SupportStatus",[]];
 private _adopting=_job getOrDefault ["adopt",false]
@@ -73,8 +85,13 @@ private _fit = (units _group) select {[_x] call CBE_fnc_CortexCombatEffective};
 // established assignment; its owner-side execution and capacity gates remain separate.
 private _footFit = _fit select {isNull objectParent _x};
 if (!_same) then {
-    _footFit=_footFit select {simulationEnabled _x && {!isObjectHidden _x} && {!fleeing _x}
-        && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}};
+    // OperationStart permits64 participants. Refuse oversized fresh cohorts before
+    // per-actor availability work, rather than acknowledge a task that cannot start.
+    if (count _footFit > 64) then {_footFit=[]} else {
+        _footFit=_footFit select {simulationEnabled _x && {!isObjectHidden _x} && {!fleeing _x}
+            && {(_x getVariable ["ace_medical_ai_healQueue",[]]) isEqualTo []}
+            && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}};
+    };
 };
 // Group-level rally destinations also reach native operating crews. A foot subset alone does
 // not make that authority safe: vehicle support retains its own movement operation.
@@ -169,7 +186,7 @@ private _okay = missionNamespace getVariable ["CBE_AIPass_Active",false] && {!([
     && {(_state getOrDefault ["supportAuthoredRevokedToken",""]) != _token} && {!_attackAllowed || {_committedAttack} || {_contactFresh}}
     && {!_operatingCrew} && {count _footFit >= 3} && {!isNull _anchor} && {behaviour _anchor != "CARELESS"} && {!fleeing _anchor}
     && {_same || {getSuppression _anchor <= ([0.2,0.65] select _contactPeer)}}
-    && {_groupTransmitter distance2D _requesterTransmitter <= (missionNamespace getVariable ["CBE_AIPass_Reinforce_Radius",600])}
+    && {_groupTransmitter distance2D _requesterTransmitter <= _responseRadius}
     && {(_group getVariable ["CBE_AIPass_Garrison",[]]) isEqualTo []} && {(_group getVariable ["CBE_AIPass_Defend",[]]) isEqualTo []}
     && {!(_group getVariable ["CBE_AIPass_ClearBuilding",false])} && {!(_group getVariable ["CBE_AIPass_RegroupQueued",false])}
     && {_same || {(_phase == "CALM" || {_contactPeer}) && {!(_state getOrDefault ["responding",false])}}}
@@ -178,6 +195,23 @@ private _okay = missionNamespace getVariable ["CBE_AIPass_Active",false] && {!([
     && {!_movementLeaseActive || {_supportOwnsMovement} || {_replaceLocalDrill} || {_prepareAlongsideDrill}}
     && {_fit findIf {private _v = vehicle _x; _v isKindOf "Air" || {_v isKindOf "StaticWeapon"} || {getNumber (configOf _v >> "artilleryScanner") == 1}} < 0}
     && {!_needAT || {_footFit findIf {"AT" in ([_x] call CBE_fnc_CortexCapabilities)} >= 0}};
+// Living dismounts are not necessarily armed reinforcement. Check ammunition only
+// after cheap eligibility, on this actual owner, before accepting a fresh task.
+// Existing assignments keep their separate capacity/retirement rules. Dedicated
+// non-coordinated AT support already proved its usable launcher above.
+if (_okay && {!_same} && {_sharedCoordinated || {!_needAT}}) then {
+    private _requiredPrimary=[1,3] select _sharedCoordinated;
+    private _primaryAvailable=0;
+    // Coordinated COVER observation already refuses groups above64 members.
+    // Do not admit an oversized cohort that can never provide that capacity receipt.
+    if (!_sharedCoordinated || {count units _group <= 64}) then {
+        {
+            if (_primaryAvailable >= _requiredPrimary) exitWith {};
+            if ([_x] call CBE_fnc_CortexPrimaryAmmoAvailable) then {_primaryAvailable=_primaryAvailable+1};
+        } forEach (_footFit select [0,64]);
+    };
+    _okay=_primaryAvailable >= _requiredPrimary;
+};
 // Eligibility acknowledgement is not an operation and owns no movement. A route-rejected or
 // delayed coordination request therefore cannot make this responder idle.
 if (_okay && {_directCoordinationPending}) exitWith {

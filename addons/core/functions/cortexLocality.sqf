@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Calm remount intent retains its original native waypoint receipt and operation generation;
+ * replacement orders retire boarding without seat cleanup, and migration keeps the original deadline.
  * Coordinated recovery snapshots retain generic and per-server-bound refresh budgets; commands are not replayed.
  * Locality cleanup passes each original private actor brain so retirement cannot bypass
  * its identity checks. Journal-only cleanup requires no installed local controller.
@@ -63,12 +65,23 @@ private _withdrawalOrderCurrent=count _withdrawalIntent == 7 && {count _withdraw
     && {(_withdrawalOrder select 1) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
 private _transitionIntent = _group getVariable ["CBE_Cortex_TransitionIntent",[]];
 private _remountIntent = _group getVariable ["CBE_Cortex_Remount",[]];
+// Validate before cleanup advances generation; a new owner cannot launder an old route into consent.
+private _remountOrderCurrent=_remountIntent isEqualType [] && {count _remountIntent == 4}
+    && {(_remountIntent select 0) isEqualType 0} && {finite (_remountIntent select 0)}
+    && {(_remountIntent select 1) isEqualType []}
+    && {(_remountIntent select 2) isEqualTo (_group getVariable ["CBE_OperationGeneration",0])}
+    && {(_remountIntent select 3) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
 private _supportLease = _group getVariable ["CBE_AIPass_SupportLease",[]];
 private _supportStatus = _group getVariable ["CBE_AIPass_SupportStatus",[]];
 private _navalIntent = _group getVariable ["CBE_Cortex_NavalOperation",[]];
 // Retire the old owner's common operation before this owner rebuilds any durable semantic intent.
 // Its public order remains available below (for example, a partially completed building clear),
 // but no stale route can survive long enough to compete with the reconstructed operation.
+// Group policy has only direct unscheduled writers. Stage retirement on the receiver
+// before its epoch changes; never replay the old cautious-approach task.
+if (_gained && {local _group} && {!isNil {_group getVariable "CBE_CreepPolicy"}}) then {
+    ["HANDOVER",_group,_group getVariable ["CBE_Operation",createHashMap]] call CBE_fnc_CreepPolicy;
+};
 private _inheritedAttackLease=[];
 private _inheritedDrill=[];
 private _inheritedSupportRecovery=[];
@@ -83,7 +96,7 @@ if (local _group) then {
             private _unavailable=_previousOperation getOrDefault ["unavailable",[]];
             private _boundSpent=_previousOperation getOrDefault ["boundRetryAttempts",createHashMap];
             private _boundProgress=_previousOperation getOrDefault ["boundProgress",[]];
-            if (count _supportLease == 6 && {(_previousOperation getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}
+            if (count _supportLease == 7 && {(_previousOperation getOrDefault ["intent",""]) == "COORDINATED_ASSAULT"}
                 && {(_previousOperation getOrDefault ["supportToken",""]) == (_supportLease select 0)}
                 && {(_previousOperation getOrDefault ["supportExpiry",-1]) == (_supportLease select 2)}
                 && {_spent isEqualType createHashMap} && {count _spent <= 64}
@@ -328,6 +341,9 @@ if (!_gained && {!local _group} && {count _clearRetireCapture == 17}
 };
 _group setVariable ["CBE_VehicleTurn_Cleanup",nil];
 _group setVariable ["CBE_AIPass_Epoch", (_group getVariable ["CBE_AIPass_Epoch", 0]) + 1];
+if (_gained && {local _group} && {!isNil {_group getVariable "CBE_CreepPolicy"}}) then {
+    ["RETIRE",_group] call CBE_fnc_CreepPolicy;
+};
 if (_gained && {local _group}) then {
     _group setVariable ["CBE_Cortex_LauncherTransfer",[clientOwner,_group getVariable ["CBE_AIPass_Epoch",0],serverTime+5]];
     {if (local _x && {(_x getVariable ["CBE_Cortex_LauncherMove",createHashMap]) isNotEqualTo createHashMap}) then {
@@ -345,6 +361,10 @@ if (_abortSource isNotEqualTo []) then {
 // First adoption establishes this machine's epoch; it is not a transfer from another
 // owner. Keep the existing map object so an initiating feature's local reference remains
 // authoritative. Real owner changes rebuild state from the published checkpoint.
+// Patrol is deliberately owner-local: retire its old task without replaying a public status.
+// Common operation cleanup above owns the old native waypoint.
+if (!_firstAdoption) then {_group setVariable ["CBE_PatrolTask",nil];};
+if (!_firstAdoption) then {_group setVariable ["CBE_ClearAreaTask",nil];};
 if (!_firstAdoption) then {_group setVariable ["CBE_AIPass_State", nil];};
 _group setVariable ["CBE_AIPass_Managed", nil];
 {_group setVariable [_x, nil]} forEach ["CBE_AIPass_GarrisonApplied", "CBE_AIPass_DefendApplied", "CBE_AIPass_ClearApplied"];
@@ -629,7 +649,7 @@ if (_inheritedDrill isNotEqualTo [] && {_withdrawalIntent isEqualTo []} && {_tra
 // acceptance path so every feature gate, vehicle exclusion, COMPAT handover and movement flag keeps
 // exactly one implementation. The new owner reconstructs semantics; it never replays an old job.
 private _supportAdoptable=_withdrawalIntent isEqualTo [] && {_transitionIntent isEqualTo []}
-    && {count _supportLease == 6} && {count _supportStatus == 4}
+    && {count _supportLease == 7} && {count _supportStatus == 4}
     && {(_supportLease select 0) == (_supportStatus select 0)}
     && {serverTime < (_supportLease select 2)} && {_supportStatus select 2}
     && {!([_group] call CBE_fnc_CortexZeusHeld)};
@@ -653,7 +673,8 @@ if (_passengers isNotEqualTo [] && {[_group] call CBE_fnc_CortexIsEligible}) the
 // Restore semantic boarding intent after old-owner cleanup, never its engine command. Preserve
 // the original deadline so repeated transfers cannot make remount immortal. A replacement vehicle
 // assignment or Zeus takeover wins and removes that actor from this attempt.
-if (count _remountIntent == 2 && {serverTime < (_remountIntent select 0)}
+if (_remountOrderCurrent && {serverTime < (_remountIntent select 0)}
+    && {(_remountIntent select 3) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}
     && {[_group] call CBE_fnc_CortexIsEligible} && {!([_group] call CBE_fnc_CortexZeusHeld)}) then {
     if ([_group,"CBE_AIPass_Vehicles_Enable",true] call CBE_fnc_CortexFeatureEnabled
         && {[_group,"CBE_AIPass_VehicleRemount_Enable",true] call CBE_fnc_CortexFeatureEnabled}) then {
@@ -664,7 +685,8 @@ if (count _remountIntent == 2 && {serverTime < (_remountIntent select 0)}
                 && {isNull assignedVehicle _unit || {assignedVehicle _unit == _vehicle}}
         };
         if (_pendingRemount isNotEqualTo []) then {
-            _group setVariable ["CBE_Cortex_Remount",[_remountIntent select 0,+_pendingRemount],true];
+            _group setVariable ["CBE_Cortex_Remount",[_remountIntent select 0,+_pendingRemount,
+                _group getVariable ["CBE_OperationGeneration",0],+(_remountIntent select 3)],true];
         };
     };
 };

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-30",
+  "sourceBase": "304d285b69c3a39d09eba4f3aecd69a6059ba9e6",
+  "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+  "topic": "Durable CQB resume must not manufacture missing progress, settings or spent history",
+  "source": "CBE legacy incoming resume path, source-to-owner comparison with existing clear-room-producer-boundary-20261026.json; no new upstream function port",
+  "originalSourceSha256": "5ca17ad0d839b826d06f042aa9d9f43f5bb2b9c445600392470b627651128664",
+  "findings": [
+    "cortexClearBuilding resumed failedBy with per-position empty defaults, reset mismatched row counts to empty arrays and substituted serverTime for missing lastProgressAt. Missing hardDeadline/baseAttack/native receipt/route continuation also had live/current defaults.",
+    "CortexDiscover indexed _clear select0 before any complete durable-order validation. Public progress records were used as legacy resume preparation, not an authenticated all-writer transfer."
+  ],
+  "implementation": [
+    "Pure ClearOrderValid checks the14-field durable shape, finite original clocks/settings, bounded disjoint room indices, sparse spent retries, exact failure rows/lane IDs, native receipt shape, optional contact belief and transform. No mutation, world query or clock renewal.",
+    "Actual discovery/startup invokes the helper before indexing/admission, then rechecks failure-history size against actual selected room count. A prior nonempty malformed clear also cannot supply a synthetic behaviour baseline to a fresh replacement.",
+    "Resume uses validated original field values directly, removing clock/settings/history fallback and size reset. Sparse retries remain absent, not replenished. Existing native/context/phase/actor settings preflight and command writers retain authority.",
+    "Validation deliberately does not enforce stallDeadline<=hardDeadline: actual producer progress may extend stall deadline while the immutable hard boundary is separately enforced. No new clock-skew or expiry guess in pure shape checks."
+  ],
+  "limits": [
+    "Not producer authentication, source/native quiescence, server seal or incoming readiness. CANDIDATE_UNSEALED still has no executable consumer.",
+    "Complete incoming phase/native/settings reconstruction and transport still required before full handover is claimed.",
+    "Physical repeat/HC/JIP/interruption/late data and measured performance remain unverified; auditsPAUSED.",
+    "Only structurally complete orders produced by the current14-field publisher are eligible; no first-release legacy fallback is introduced."
+  ],
+  "cost": "Two bounded admission checks plus discovery preflight while an unapplied durable clear exists; <=512 failure/retry rows, eight lane IDs per failure row. No timer, worker or new command writer.",
+  "verification": {
+    "hemtt": ".qa/handovers/clear-order-integrity-check-20261030.log:initial check passed before final missing-argument default; full gates pending",
+    "physical": "NOT RUN; auditsPAUSED",
+    "focused": ".qa/handovers/clear-order-integrity-focused-20261030.log:3 existing preparation cases passed",
+    "initialFull": ".qa/handovers/clear-order-integrity-build-20261030.log:3 failures/2 errors from assertions expecting removed fallback strings; updated to direct validated original reads and strengthened validation-before-handoff assertion, no checks skipped",
+    "full": ".qa/handovers/clear-order-integrity-final-build-20261030.log:1505existing tests,488SQF,11PBOs; config/FSM/docs/wiki/parity/coverage/static performance0findings passed",
+    "candidate": ".qa/candidates/clear-order-integrity-20261030-304d285b",
+    "fingerprint": "54eade177b192b860db8c7becda339145ef9039ad4fef61b1c1f74bb33a01f01",
+    "independent": ".qa/handovers/clear-order-integrity-independent-20261030.log:exit0 matching fingerprint",
+    "packageSource": "Unsigned development source base304d285b plus actual delivered runtime/config/test/lifecycle-guide changes; dirty=true. Engineering metadata finalized afterward. Not physical/native/sealed handover evidence."
+  },
+  "originalExecutorIsolation20261030": {
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_NO_CROSS_OWNER_RESUME",
+    "sourceIntent": "Protocol CQB source-register entry and existing LAMBS building-task lifecycle: one finite movement owner, retained clearance progress, interruption and repeat use. No upstream code copied.",
+    "actualPath": [
+      "CortexDiscover unapplied clear",
+      "CortexClearBuilding resume request",
+      "exact machine-private BuildingBrain/job",
+      "BuildingOperationStart live duplicate or one ended-executor restart"
+    ],
+    "finding": "No receiver consumes CANDIDATE_UNSEALED. The previous public-journal resume path could still reconstruct a successor without actual old-writer retirement or complete original private state.",
+    "change": "Resume now exits through actual original same-owner job only, inside the unscheduled identity/start boundary. Missing/foreign/cancelled/finished producers defer without consuming the durable order or issuing replacement commands. Discovery does not poll absent/foreign producers. Fresh explicit tasks remain available.",
+    "preserved": [
+      "Exact job phase, reservations, spent retries, room progress and original deadlines",
+      "Existing BuildingOperationStart one-restart limit, live-worker reuse, native route/geometry/current operation gates and original egress window",
+      "No new query, worker, timer, replicated marker or command writer"
+    ],
+    "limits": [
+      "Automatic cross-owner clearance resume deliberately unavailable until sealed all-writer/native/settings proof and incoming phase reconstruction are implemented",
+      "No claim of improved physical entry/flow, HC/JIP acceptance or measured performance; audits PAUSED",
+      "Existing public-journal reconstruction code is retained below the early resume exit as unfinished integration material, not an executable transfer path"
+    ],
+    "verification": {
+      "focused": ".qa/handovers/clear-original-executor-focused-20261030.log:3 existing cases passed",
+      "initialFull": ".qa/handovers/clear-original-executor-build-20261030.log:one stale startup-order assertion matched the new original-job call; scoped to the actual reconstructed-job startup, no checks skipped",
+      "full": ".qa/handovers/clear-original-executor-final-build-20261030.log:1505existing tests,488SQF,11PBOs; config/FSM/docs/wiki/parity/coverage/static performance0findings passed",
+      "candidate": ".qa/candidates/clear-original-executor-20261030-55d0b743",
+      "fingerprint": "19a24fb1fa5db51741b6116f67dfb9f0075762c711293dca81045f0b5603b702",
+      "independent": ".qa/handovers/clear-original-executor-independent-20261030.log:exit0 matching fingerprint",
+      "source": "Unsigned development base55d0b743 plus this runtime/test/lifecycle-guide change, dirty=true. Engineering metadata finalized after packaging.",
+      "physical": "NOT RUN; audits PAUSED"
+    }
+  }
+}

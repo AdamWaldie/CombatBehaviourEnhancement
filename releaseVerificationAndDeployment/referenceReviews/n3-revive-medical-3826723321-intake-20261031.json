@@ -1,0 +1,91 @@
+{
+  "workshopId": "3826723321",
+  "name": "N3cro's Player/AI Revive & Medical",
+  "author": "N3cro",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3826723321",
+  "added": "2026-10-31",
+  "priority": "2 Complementary AI methods; existing Protocol/foundation priority unchanged",
+  "status": "AI_ONLY_DYNAMIC_INTAKE_SOURCE_REVIEW_PENDING",
+  "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+  "area": "AI casualty aid, rescue, cover coordination and task handback",
+  "scope": "PURELY AI features from the user-supplied list, rebuilt for dynamic AI use through existing CBE owners. AI may assist downed/wounded players and AI; this does not include player-facing medical controls or a replacement revive/medical framework. Select, combine, fix and improve useful methods, not a whole-mod port or competing controller.",
+  "userConditions": {
+    "aiFeaturesOnly": true,
+    "dynamicAutonomousUse": true,
+    "requiresPreplacedModule": false,
+    "playerCasualtiesMayReceiveAIAid": true,
+    "playerControlsOrUIIncluded": false,
+    "replaceMedicalFramework": false,
+    "mergeAndImproveBestMethods": true
+  },
+  "requestedAIFeatures": [
+    {
+      "feature": "AI Revive",
+      "intent": "Eligible friendly AI autonomously assist downed players and AI. Prefer a qualified medic, then an actor with a First Aid Kit when the active medical rules permit. One reviver per casualty; exclude casualties being dragged or already receiving treatment."
+    },
+    {
+      "feature": "Situational Approach",
+      "intent": "Use threat, nearby friendly support and explicit task intent to choose a direct urgent approach, normal movement in quiet conditions, a covered rush with nearby support, or a cautious low approach when isolated under threat. Do not require pre-placed modules, scripted waypoints or hand-authored rescue routes."
+    },
+    {
+      "feature": "Drag To Cover",
+      "intent": "When current threat makes treatment unsafe, use available smoke toward the known threat, coordinate eligible squad cover and physically move the casualty to reachable nearby tree/rock/wall/building cover before treatment. Never invent smoke, enemy knowledge, accessible cover or physical arrival."
+    },
+    {
+      "feature": "AI Healing",
+      "intent": "AI treat wounded friendly players/AI and themselves when appropriate help is unavailable, using the active medical provider, actual supplies and bounded priorities."
+    },
+    {
+      "feature": "Hold Means Hold",
+      "intent": "Autonomous aid respects individual Stop/hold and newer mission/Zeus orders. A direct rescue task may temporarily leave a held position, then return to the captured still-owned position/order rather than erase hold state or regroup the whole group."
+    },
+    {
+      "feature": "Back To Formation",
+      "intent": "After aid or a finite rescue timeout, return to the original still-owned formation/task context. Release the casualty claim so another eligible helper can try; no indefinitely renewed timer, forced group reset or automatic wedge that overrides another active behaviour."
+    }
+  ],
+  "exclusions": [
+    "Player-operated revive/heal/drag actions and player UI/HUD/menus/keybinds.",
+    "Replacement damage, unconsciousness, injury, respawn/revive rules or medical supplies economy.",
+    "Automatic installation of the entire source addon or duplicate permanent rescue/cover controllers."
+  ],
+  "integrationRequirements": [
+    "Reconcile source implementation with current CBE danger/operation FSM, medical-task authority, movement/cover, communication, smoke/suppression and buddy/squad owners before changing production code.",
+    "Use bounded nearby discovery and credible casualty/threat knowledge. Support dynamically spawned AI and repeated casualties without a scenario-specific setup requirement.",
+    "Claim a casualty atomically on an explicit authority; authenticate treatment/drag requests to the current actor/casualty owner. Reconcile locality, HC and JIP without two revivers or duplicate handlers.",
+    "Respect existing medical providers, mission-authored injury/revive rules, skill baselines, player/specialist treatment ownership and actual inventory. Establish vanilla/ACE/API boundaries during review; do not assume compatible treatment or force a successful revive.",
+    "Hold/Stop is authoritative for autonomous aid. Explicit rescue permission is task-scoped; restore the original held position or task only if still owned, and yield immediately to newer orders.",
+    "Keep original rescue/approach/treatment deadlines and finite retries. On death, deletion, unavailable path/cover, dragging, treatment takeover or order replacement, release only owned claims, smoke/cover roles and movement state.",
+    "Use real physical casualty movement and credible animations/grip, with no arm stretching, teleport recovery, simulation/damage shortcuts, free smoke or invented treatment completion.",
+    "Record build-out, offline checks, physical assistance/repeat/cleanup evidence and measured performance separately. Audits and the full implementation goal remain paused."
+  ],
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3826723321",
+  "localPresent": true,
+  "packageCount": 1,
+  "files": {
+    "addons/N3ReviveMedical.pbo": "1f0444248ed65d61c6766667db1dca40874956774f1d685e55fc9366b2135c30",
+    "meta.cpp": "978dedb73a27a9f674bdd0efed1145acb4dfe9b22262e3a16d146c69b0ceba4c",
+    "mod.cpp": "5db80b316e7f4d04ed4d665d8631b97929da20326be2e43c5dbdbf9f433fe545"
+  },
+  "metadata": {
+    "meta.cpp": {
+      "publishedid": "3826723321",
+      "name": "N3cro's Player-AI Revive & Medical"
+    },
+    "mod.cpp": {
+      "name": "N3cro's Player/AI Revive & Medical",
+      "author": "N3cro"
+    }
+  },
+  "identityEvidence": "User URL and supplied AI feature list; installed mod.cpp/meta.cpp with matching publishedid and package hashes. Workshop open failed and search did not identify the item. No extracted-code review, source execution or behaviour verification.",
+  "review": "releaseVerificationAndDeployment/referenceReviews/n3-revive-medical-3826723321-intake-20261031.json",
+  "dependencies": "UNVERIFIED; inspect config/source and actual medical-provider APIs before integration.",
+  "licence": "UNVERIFIED; inspect source/component reuse rights. Independently implement selected intent unless permission permits reuse.",
+  "sourceReview": "NOT_STARTED; user-supplied requested scope and local metadata/package inventory only.",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "goal": "PAUSED",
+  "ordering": "Foundations first; integrate individual aid/movement and task custody before composing rescue pairs and squad cover. Existing Protocol priority remains. Compatibility-only sources remain deferred.",
+  "sourceProtection": "Installed Workshop originals, archives, game addons and signing files remain read-only; no raw source/assets/secrets in Git or product packages. Future extraction must use a separate private dated working directory."
+}

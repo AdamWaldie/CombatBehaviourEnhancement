@@ -43,6 +43,8 @@
  * Stationary waits/recovery require finite total linear velocity below1km/h, not forward speed.
  * This instantaneous admission is not physical HOLD/READY or proof of native reversing.
  * An unresolved exact reverse handback blocks fresh assistance until newer intent retires its proof.
+ * Terrain and shared road anticipation follow observed backing or explicit native BACK at rest.
+ * This does not change the later exact native-direction ownership/track observation.
  * Purpose: Applies a sparse, owner-local safety speed cap and bounded physical recovery to an
  * ordinary AI ground vehicle that is already following a native waypoint. This is the standalone
  * driving layer; registered convoys retain their separate predecessor-spacing controller. Terrain
@@ -526,11 +528,19 @@ _brain set ["geometryTracks",_geometryTracks];
                 _state set [4,getPosATL _vehicle];_state set [5,time];
                 _state set [6,0];_state set [7,-1];_state set [8,"INTENTIONAL_WAIT"];_state set [10,false];
             };
+            // Road/terrain anticipation follows measured backing, not the nose of the hull.
+            // At rest an explicit native BACK is useful; otherwise retain forward baseline policy.
+            private _roadLongitudinal=(velocity _vehicle) vectorDotProduct (vectorNormalized vectorDir _vehicle);
+            private _roadBackMode=toUpperANSI ((vehicleMoveInfo _vehicle) param [0,"",[""]]) == "BACK";
+            private _roadDirection=if (!finite _roadLongitudinal) then {0} else {
+                [1,-1] select (_roadLongitudinal < -0.15 || {abs _roadLongitudinal <= 0.15 && {_roadBackMode}})
+            };
             private _origin=getPosASL _vehicle;
             private _direction=vectorDir _vehicle;
             _direction set [2,0];
             if (vectorMagnitude _direction < 0.1) then {_direction=[sin (getDir _vehicle),cos (getDir _vehicle),0]};
             _direction=vectorNormalized _direction;
+            if (_roadDirection < 0) then {_direction=_direction vectorMultiply -1};
             private _maximumGrade=0;
             private _last=_origin;
             {
@@ -543,7 +553,7 @@ _brain set ["geometryTracks",_geometryTracks];
             private _cap=(missionNamespace getVariable ["CBE_AIPass_DrivingAssist_MaxSpeed",70]) max 15 min 120;
             // The shared read-only road walk anticipates bends/junctions without choosing a route.
             // It runs at this vehicle's existing sparse cadence; mission and traffic caps still win.
-            private _roadObservation=[_vehicle,_cap] call CBE_fnc_DrivingRoadCap;
+            private _roadObservation=[_vehicle,_cap,_roadDirection] call CBE_fnc_DrivingRoadCap;
             _cap=_cap min (_roadObservation select 0);
             // On an actual bridge road, the road observer already evaluates ASL deck endpoints.
             // Terrain beneath the deck is not its grade. Keep terrain policy elsewhere and

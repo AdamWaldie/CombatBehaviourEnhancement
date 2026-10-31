@@ -1,0 +1,39 @@
+{
+  "workshopId": "3482637456",
+  "name": "Immortal's AI Pathfinder Improvement (Infantry)",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3482637456",
+  "added": "2026-10-30",
+  "priority": "2 Complementary AI methods",
+  "status": "REGISTERED_SOURCE_REVIEW_PENDING",
+  "kind": "IMPLEMENTATION_REVIEW_CANDIDATE",
+  "area": "Movement/recovery",
+  "scope": "Evaluate infantry stuck detection and replanning against CBE finite movement/CQB/formation recovery. Preserve player-led groups, newer native orders, unreachable-position failure and original retry/deadline budgets; no teleport or permanent competing movement loop.",
+  "userConditions": {},
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3482637456",
+  "localPresent": true,
+  "packageCount": 1,
+  "files": {
+    "meta.cpp": "630ff004d537dd0bcad95ff2cc8907d3f76f696543ea7c454f6c07c00fc56708",
+    "Addons/AIPathfinderImprovementDEV.pbo": "0a930dced5f4918cbd9cb635958ae7f6c335dee867e40655008361d985764b1a"
+  },
+  "metadata": {
+    "meta.cpp": {
+      "publishedid": "3482637456",
+      "name": "Immortal's AI Pathfinder Improvement (Infantry)"
+    }
+  },
+  "identityEvidence": "User URL and accessible Workshop description/title; installed metadata/package hashes only. No extracted-code review or behaviour proof.",
+  "evaluationTopics": [
+    "Trace actual config/FSM/scripts, callers and native writers; compare selected useful intent with current CBE owners before integration.",
+    "Record retained/adapted/rejected methods and dependencies/licence/provenance. No implementation credit from title, metadata or file counts.",
+    "Preserve mission/Zeus authority, finite owner-local lifecycle, player/specialist ownership and credible animation; avoid extra permanent scanners/controllers."
+  ],
+  "dependencies": "UNVERIFIED; source/config/API review required.",
+  "licence": "UNVERIFIED; establish original upstream and component-specific reuse rights before incorporating code.",
+  "sourceReview": "NOT_STARTED; webpage/local metadata and package inventory only.",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "ordering": "Foundations/FSM first, individual behaviour before squad/combined arms; compatibility expansion last. Reference-only items supply methods rather than an automatic implementation obligation.",
+  "sourceProtection": "Installed Workshop/game files, original signatures/assets and preserved references are read-only. No execution/repacking or copying raw reference assets into the product. Any future extraction uses a separate private dated directory."
+}

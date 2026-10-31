@@ -2,13 +2,14 @@
  * Author: WaldoTheWarfighter
  * Purpose: Read unambiguous legacy gate animation leaves from declarative open/close actions.
  * Locality/authority: Read-only owner geometry or server admission for a physically observed gate.
- * Never evaluates action statements. Only literal this animate [name,0/1] is accepted;
- * indexed Open/CloseDoor_N or Open/CloseGate_N pairs must name one identical model animation.
+ * Never evaluates action statements. Only literal this animate/animateSource [name,0/1] is accepted;
+ * indexed Open/CloseDoor_N or Open/CloseGate_N pairs must name one identical channel and leaf.
+ * ANIM requires an existing model animation; SOURCE requires a configured user-driven source.
  * Repeat/JIP: Stateless, no worker/cache or replay. Caller uses only when no supported source
  * leaf exists; animation modes are never mixed by this fallback. Unknown mappings refuse.
  * Bounds: 32 actions,512 characters/statement,128 model animation names,8 leaves.
  * Arguments: 0 gate OBJECT objNull.
- * Return: ARRAY [index,animation,current phase,"ANIM"] rows, or[] when ambiguous/unsupported.
+ * Return: ARRAY [index,name,current phase,"ANIM"/"SOURCE"] rows, or[] when ambiguous/unsupported.
  * Current callers: DrivingGateOpenServer source-empty fallback; DrivingGeometryCap bounded candidate classification.
  * Example: private _leaves=[gate1] call CBE_fnc_DrivingGateLegacyLeaves;
  */
@@ -29,9 +30,13 @@ private _space=toString [32,9,13,10];
     private _statement=getText (_x >> "statement");
     if (count _statement > 512) exitWith {_invalid=true};
     private _start=_statement find "[";private _end=_statement find "]";
-    if (_start < 0 || {_end <= _start}
-        || {toLowerANSI ((_statement select [0,_start]) splitString _space joinString "") != "thisanimate"}
+    if (_start < 0 || {_end <= _start}) exitWith {_invalid=true};
+    private _words=(_statement select [0,_start]) splitString _space;
+    if (count _words != 2 || {toLowerANSI (_words select 0) != "this"}) exitWith {_invalid=true};
+    private _command=toLowerANSI (_words joinString "");
+    if (!(_command in ["thisanimate","thisanimatesource"])
         || {((_statement select [_end+1]) splitString (_space+";")) isNotEqualTo []}) exitWith {_invalid=true};
+    private _channel=["ANIM","SOURCE"] select (_command == "thisanimatesource");
     private _literal=_statement select [_start+1,_end-_start-1];
     if ({_x == 44} count toArray _literal != 1) exitWith {_invalid=true};
     private _arguments=_literal splitString ",";
@@ -45,10 +50,13 @@ private _space=toString [32,9,13,10];
     private _name=toString (_tail select [0,_quoteEnd]);
     if ((toArray _name) findIf {!(_x in [95] || {_x >= 48 && {_x <= 57}}
         || {_x >= 65 && {_x <= 90}} || {_x >= 97 && {_x <= 122}})} >= 0
-        || {!(_name in _animations)}) exitWith {_invalid=true};
+        || {if (_channel == "ANIM") then {!(_name in _animations)} else {
+            private _source=configOf _gate >> "AnimationSources" >> _name;
+            !isClass _source || {toLowerANSI getText (_source >> "source") != "user"}
+        }}) exitWith {_invalid=true};
     private _key=str _index;private _row=_pairs getOrDefault [_key,[[],[]]];
     if ((_row select _phase) isNotEqualTo []) exitWith {_invalid=true};
-    _row set [_phase,[_name]];_pairs set [_key,_row];
+    _row set [_phase,[_name,_channel]];_pairs set [_key,_row];
 } forEach _actions;
 if (_invalid) exitWith {[]};
 private _leaves=[];
@@ -59,8 +67,11 @@ for "_index" from 1 to 8 do {
         || {(_pair select 0) isNotEqualTo (_pair select 1)}) exitWith {_invalid=true};
     private _name=(_pair select 0) select 0;
     if (_leaves findIf {(_x select 1) == _name} >= 0) exitWith {_invalid=true};
-    private _phase=_gate animationPhase _name;
+    private _channel=(_pair select 0) select 1;
+    if (_leaves findIf {(_x select 3) != _channel} >= 0) exitWith {_invalid=true};
+    private _phase=if (_channel == "ANIM") then {_gate animationPhase _name}
+        else {_gate animationSourcePhase _name};
     if (!finite _phase || {_phase < 0} || {_phase > 1}) exitWith {_invalid=true};
-    _leaves pushBack [_index,_name,_phase,"ANIM"];
+    _leaves pushBack [_index,_name,_phase,_channel];
 };
 if (_invalid) then {[]} else {_leaves}

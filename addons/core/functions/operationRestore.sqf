@@ -25,9 +25,10 @@ private _current=_group getVariable ["CBE_Operation",createHashMap];
 if (_current isNotEqualTo _operation
     || {(_current getOrDefault ["generation",-1]) != (_operation getOrDefault ["generation",-2])}
     || {(_operation getOrDefault ["ownerEpoch",-1]) != (_group getVariable ["CBE_AIPass_Epoch",0])}) exitWith {false};
+private _creepPolicy=["RELEASE",_group,_operation] call CBE_fnc_CreepPolicy;
 private _restore=_operation getOrDefault ["restore",createHashMap];
 private _attack=_restore getOrDefault ["groupAttack",[]];
-if (count _attack != 2 || {!((_attack select 0) isEqualType true)} || {!((_attack select 1) isEqualType true)}) exitWith {false};
+if (count _attack != 2 || {!((_attack select 0) isEqualType true)} || {!((_attack select 1) isEqualType true)}) exitWith {_creepPolicy == "RELEASED"};
 private _report={
     params ["_restored","_decision"];
     if (_decision != "RESTORE_UNCONFIRMED") then {_restore deleteAt "groupAttack"};

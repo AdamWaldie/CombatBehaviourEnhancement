@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Observer-veto retirement preserves its explicit reason instead of claiming COMPLETE.
  * Purpose: Executes one bounded artillery implementation step and reports its semantic phase to the finite mission FSM.
  * Locality / Authority: Server only through CBE's shared scheduler. Battery and observer owners still execute checked physical commands through existing callbacks.
  * Execution: Ended/invalid FSM handles retire the callback only, without cleanup,
@@ -84,7 +85,7 @@ if (_semantic == "RELOCATING") then {
             _delay=1;
         } else {
             _brain set ["finished",true];
-            _brain set ["cancelReason",["COMPLETE","UNCERTAINTY_PARKED"] select (_mission getOrDefault ["parked",false])];
+            _brain set ["cancelReason",_mission getOrDefault ["finishReason",["COMPLETE","UNCERTAINTY_PARKED"] select (_mission getOrDefault ["parked",false])]];
             if (_mission getOrDefault ["parked",false]) then {_semantic="QUARANTINED"};
         };
     };

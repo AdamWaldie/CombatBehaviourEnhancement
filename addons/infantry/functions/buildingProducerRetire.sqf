@@ -9,6 +9,9 @@
  * post-edge actor/settings records are all required. Intentional edge cleanup precedes the baseline.
  * This is original-FSM retirement only, not all-writer quiescence, a server seal or readiness.
  * One original-owner CAPTURE submission follows these checks; no retry or JIP replay.
+ * Every terminal result drops this observer's payload/brain/record references. Only its exact
+ * current machine-private capture is removed; submitted transport data is never mutated.
+ * The compact result and completed-FSM observation remain, not a retained frozen actor graph.
  * Arguments: 0 state HASHMAP default empty: taskGroup GROUP, capture ARRAY, writers ARRAY,
  * until NUMBER server time, attempts NUMBER, producer NUMBER, done BOOL; records ARRAY
  * [object/group,variableName,present,valueCopy] rows, max706, after intentional edge cleanup.
@@ -22,7 +25,15 @@ private _group=_state getOrDefault ["taskGroup",grpNull];
 private _capture=_state getOrDefault ["capture",[]];
 private _finish={
     params ["_reason"];
+    // No terminal state retries capture submission. Release private payload roots,
+    // but never clear a replacement observer or change the submitted nested arrays.
+    if (!isNull _group
+        && {(_group getVariable ["CBE_Cortex_ClearRetireLocal",createHashMap]) isEqualTo _state}
+        && {(_group getVariable ["CBE_Cortex_ClearLaneCaptureLocal",[]]) isEqualTo _capture}) then {
+        _group setVariable ["CBE_Cortex_ClearLaneCaptureLocal",nil];
+    };
     _state set ["done",true];_state set ["result",_reason];
+    _state deleteAt "capture";
     _state deleteAt "writers";_state deleteAt "records";
     -1
 };

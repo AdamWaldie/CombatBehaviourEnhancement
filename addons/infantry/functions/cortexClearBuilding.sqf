@@ -1,6 +1,11 @@
 /*
  * Author: WaldoTheWarfighter
+ * Optional internal parent taskDeadline only shortens this episode; areaTaskToken fences preparation.
  * Building geometry identities include scale; stale geometry grants no current task or visit proof.
+ * Automatic cross-owner resume is unavailable until authenticated source/native quiescence
+ * and incoming reconstruction are implemented. Resume now reuses only the exact private
+ * same-owner job through BuildingOperationStart, never the public reconstruction below.
+ * Refusal leaves the durable order and original budgets intact; explicit fresh tasks remain.
  * Resume settings preflight preserves the durable order on known partial/native mismatch,
  * rechecking original canonical/mirror/motion snapshots before operation mutation.
  * Resume startup refuses known actor settings/motion adoption failures; this is not
@@ -28,6 +33,8 @@
  * Geometry is captured before queries and rechecked before replacement and publication.
  * The worker retains that original snapshot, never a recaptured post-planning pose.
  * Resume is adoption only: missing, replaced or different-target orders never become fresh tasks.
+ * Durable progress/settings/clock shape is validated before startup; missing failure history or
+ * progress time cannot become empty history or a new timestamp.
  * Discovery supplies its exact durable order/generation; admission rechecks them before handoff.
  * Prepared worker startup retains the admitted operation epoch. Refusal reports false and
  * retires only this still-owned clear; a new owner or successor retains its durable state.
@@ -88,7 +95,9 @@
  * 0: group <GROUP or OBJECT> - the group, or a unit in it
  * 1: target <OBJECT or ARRAY> - the building, or a position (the nearest building is used)
  * 2: options <HASHMAP> (optional) - resume (default false), preserveBrain (default false for an
- *    explicit order) and operation-specific controls. Internal resumeOrder (ARRAY) and
+ *    explicit order) and operation-specific controls. Internal taskDeadline (NUMBER,-1) only
+ *    shortens lifetime; areaTaskToken (STRING,empty) binds preparation to its live parent.
+ *    Internal resumeOrder (ARRAY) and
  *    resumeGeneration (NUMBER) default to the entry snapshot; discovery passes its observed
  *    order/generation. A cancelled or replaced snapshot refuses without retiring a successor.
  *    Natural contact entry uses preserveBrain so
@@ -141,6 +150,20 @@ if !([_group] call CBE_fnc_CortexIsEligible) exitWith {["GROUP_INELIGIBLE"] call
 if (_target isEqualType [] && {!(count _target in [2,3])
     || {_target findIf {!(_x isEqualType 0) || {!finite _x}} >= 0}}) exitWith {["INVALID_TARGET_POSITION"] call _refuse};
 private _admissionEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
+private _taskDeadline=_options getOrDefault ["taskDeadline",-1];
+private _areaTaskToken=_options getOrDefault ["areaTaskToken",""];
+if (!(_taskDeadline isEqualType 0) || {!finite _taskDeadline}
+    || {_taskDeadline != -1 && {serverTime >= _taskDeadline || {_taskDeadline > serverTime+1800}}}
+    || {!(_areaTaskToken isEqualType "")}) exitWith {["INVALID_PARENT_TASK"] call _refuse};
+private _areaTaskCurrent={
+    if (_areaTaskToken == "") exitWith {true};
+    private _parent=_group getVariable ["CBE_ClearAreaTask",createHashMap];
+    (_parent getOrDefault ["token",""]) == _areaTaskToken
+        && {(_parent getOrDefault ["ownerEpoch",-1]) == _admissionEpoch}
+        && {(_parent getOrDefault ["deadline",-1]) == _taskDeadline}
+        && {serverTime < _taskDeadline}
+};
+if !(call _areaTaskCurrent) exitWith {["PARENT_TASK_CHANGED"] call _refuse};
 private _admissionNativeReceipt=[_group] call CBE_fnc_NativeOrderReceipt;
 private _entryOperation=_group getVariable ["CBE_Operation",createHashMap];
 private _admissionOperationIdentity=[_entryOperation getOrDefault ["generation",-1],
@@ -151,6 +174,9 @@ private _admissionGeneration=_group getVariable ["CBE_AIPass_ClearGeneration",0]
 private _previous = _group getVariable ["CBE_AIPass_ClearOrder", []];
 private _resumeRequested=_options getOrDefault ["resume",false];
 if !(_resumeRequested isEqualType true) exitWith {["INVALID_RESUME"] call _refuse};
+if ((_resumeRequested || {_previous isNotEqualTo []}) && {!([_previous] call CBE_fnc_ClearOrderValid)}) exitWith {
+    ["INVALID_PRIOR_CLEAR_ORDER"] call _refuse
+};
 private _expectedOrder=_options getOrDefault ["resumeOrder",_previous];
 private _expectedGeneration=_options getOrDefault ["resumeGeneration",_admissionGeneration];
 private _resumeCurrent={
@@ -172,6 +198,32 @@ if (_resumeRequested && {!(call _resumeCurrent)}) exitWith {["RESUME_ORDER_CHANG
 private _building = if (_target isEqualType objNull) then {_target} else {nearestBuilding _target};
 if (_resumeRequested && {(_previous param [0,objNull,[objNull]]) != _building}) exitWith {
     ["RESUME_TARGET_CHANGED"] call _refuse
+};
+// Independently replicated journals cannot authorize a new producer. Until the sealed
+// incoming executor exists, resume may only reuse the actual private same-owner job.
+// This preserves private phases, reservations, clocks and spent attempts without decoding
+// an incomplete public checkpoint or consuming/replacing the durable order.
+if (_resumeRequested) exitWith {
+    private _continued=false;
+    private _resumeFailure="RESUME_TRANSFER_UNSEALED";
+    isNil {
+        private _producer=_group getVariable ["CBE_BuildingBrain",createHashMap];
+        private _originalJob=_producer getOrDefault ["job",createHashMap];
+        if (!(call _resumeCurrent)
+            || {_admissionEpoch != (_group getVariable ["CBE_AIPass_Epoch",0])}
+            || {(_producer getOrDefault ["producerOwner",-1]) != clientOwner}
+            || {(_producer getOrDefault ["ownerEpoch",-1]) != _admissionEpoch}
+            || {(_producer getOrDefault ["generation",-1]) != _admissionGeneration}
+            || {_producer getOrDefault ["cancelled",false]}
+            || {_producer getOrDefault ["finished",false]}
+            || {(_originalJob getOrDefault ["group",grpNull]) isNotEqualTo _group}
+            || {(_originalJob getOrDefault ["building",objNull]) isNotEqualTo _building}
+            || {(_originalJob getOrDefault ["visitContext",[]]) isNotEqualTo (_group getVariable ["CBE_Cortex_ClearVisitContext",[]])}) exitWith {};
+        _resumeFailure="RESUME_EXECUTOR_REFUSED";
+        _continued=[_originalJob] call CBE_fnc_BuildingOperationStart;
+    };
+    if (!_continued) then {[_resumeFailure] call _refuse};
+    _continued
 };
 if (isNull _building) exitWith {
     [] call _retireResume;
@@ -212,6 +264,7 @@ if (_resumeRequested && {!(_resumeRosterContext isEqualType [])
 if (_resumeRosterContext isEqualType []) then {_resumeRosterContext=+_resumeRosterContext};
 private _admissionStable={
     !isNull _building && {alive _building} && {!isObjectHidden _building}
+        && {call _areaTaskCurrent}
         && {_admissionTransform isEqualTo [getPosWorld _building,vectorDir _building,vectorUp _building,getObjectScale _building]}
 };
 private _allPositions = _building buildingPos -1;
@@ -235,6 +288,9 @@ private _positions = _allPositions select {
 // permission to advertise every model position as a verified interior room.
 if (_positions isEqualTo []) exitWith {
     ["NO_VALID_ROOFED_POSITIONS"] call _refuse
+};
+if (_resumeRequested && {!([_previous,count _positions] call CBE_fnc_ClearOrderValid)}) exitWith {
+    ["RESUME_ROOM_HISTORY_MISMATCH"] call _refuse
 };
 private _leader = [_group] call CBE_fnc_CortexGroupAnchor;
 if (isNull _leader) then {_leader=leader _group};
@@ -359,7 +415,7 @@ if (_useResumeRoster) then {
 };
 // A one-time native belief may seed a floor's route, never track an unseen live target.
 // Preserve the original timestamp across owner adoption; a stale hint is not renewed.
-private _contactBelief=if (_resume) then {+(_previous param [11,[],[[]]])} else {_options getOrDefault ["contactBelief",[]]};
+private _contactBelief=if (_resume) then {+(_previous select 11)} else {_options getOrDefault ["contactBelief",[]]};
 private _validBelief=_contactBelief isEqualType [] && {count _contactBelief == 2}
     && {(_contactBelief select 0) isEqualType []} && {count (_contactBelief select 0) == 3}
     && {(_contactBelief select 0) findIf {!(_x isEqualType 0) || {!finite _x}} < 0}
@@ -376,31 +432,31 @@ if (_validBelief) then {
 if (!_validBelief) then {_contactBelief=[]} else {_contactBelief=[+(_contactBelief select 0),_contactBelief select 1]};
 private _baseBehaviour = if (_previous isEqualTo []) then {behaviour _leader} else {_previous select 3};
 private _cleared = if (_resume) then {+(_previous select 1)} else {[]};
-private _unreachable = if (_resume) then {+(_previous param [4, []])} else {[]};
-private _retryCounts = if (_resume) then {+(_previous param [5, []])} else {[]};
-private _failedBy = if (_resume) then {+(_previous param [6, _positions apply {[]}])} else {_positions apply {[]}};
-if (count _failedBy != count _positions) then {_failedBy = _positions apply {[]}};
-private _lastProgressAt = if (_resume) then {_previous param [7,serverTime]} else {serverTime};
+private _unreachable = if (_resume) then {+(_previous select 4)} else {[]};
+private _retryCounts = if (_resume) then {+(_previous select 5)} else {[]};
+private _failedBy = if (_resume) then {+(_previous select 6)} else {_positions apply {[]}};
+private _lastProgressAt = if (_resume) then {_previous select 7} else {serverTime};
 private _deadline = if (_resume) then {_previous select 2} else {serverTime + 240};
 // Genuine approach progress may renew the stall lease, but never the episode lifetime.
 // Retain the absolute server-clock boundary across HC resume; legacy orders keep their
 // already published deadline rather than gaining a fresh lifetime on each owner.
 private _lifetime = (240 max (60*count _positions)) min 900;
-private _hardDeadline = if (_resume) then {_previous param [10,_deadline,[0]]} else {serverTime+_lifetime};
+private _hardDeadline = if (_resume) then {_previous select 10} else {serverTime+_lifetime};
+if (_taskDeadline >= 0) then {_hardDeadline=_hardDeadline min _taskDeadline;_deadline=_deadline min _hardDeadline};
 if (_resume && {!(call _resumeCurrent)}) exitWith {["RESUME_ORDER_CHANGED"] call _refuse};
 if (serverTime >= (_deadline min _hardDeadline)) exitWith {[] call _retireResume; false};
 // Validate the new building/team before one release/publication commit. A fresh request
 // may supersede the observed task, never a later task which appeared during preparation.
 if !(call _admissionStable) exitWith {["TARGET_CHANGED_DURING_ADMISSION"] call _refuse};
-private _baseAttack=if (_resume) then {_previous param [8,attackEnabled _leader,[true]]} else {attackEnabled _leader};
+private _baseAttack=if (_resume) then {_previous select 8} else {attackEnabled _leader};
 private _nativeOrderReceipt=[_group] call CBE_fnc_NativeOrderReceipt;
-if (_resume && {(_previous param [9,_nativeOrderReceipt,[[]]]) isNotEqualTo _nativeOrderReceipt}) exitWith {
+if (_resume && {(_previous select 9) isNotEqualTo _nativeOrderReceipt}) exitWith {
     [false] call _retireResume;
     false
 };
 if !([_group,false,false,true] call CBE_fnc_CortexIsEligible) exitWith {["GROUP_INELIGIBLE"] call _refuse};
 private _preserveBrain=_options getOrDefault ["preserveBrain",false];
-private _continueRoute=if (_resume) then {_previous param [12,false,[true]]} else {_options getOrDefault ["continueRoute",false]};
+private _continueRoute=if (_resume) then {_previous select 12} else {_options getOrDefault ["continueRoute",false]};
 if (!(_continueRoute isEqualType true)) exitWith {["INVALID_CONTINUATION"] call _refuse};
 if (!(_preserveBrain isEqualType true)) exitWith {["INVALID_PRESERVE_BRAIN"] call _refuse};
 // A delayed lane/roster publication must not consume the durable order by entering
@@ -827,6 +883,7 @@ private _claimedEntryIndices=[];
 } forEach _pairs;
 [{_group setVariable ["CBE_Cortex_ClearStatus",["ENTRY",count _cleared,count _unreachable,count _positions,count _pairs,serverTime],true]}] call _commitPreparation;
 private _job=createHashMapFromArray [
+    ["areaDeadline",_taskDeadline],["areaTaskToken",_areaTaskToken],
     ["nativeHoldPositions",_admissionHoldPositions],
     ["group", _group], ["team", _team], ["started", []], ["positions", _positions], ["navigationPositions",+_allPositions], ["transitPositions",_allPositions select {!(_x in _positions)}], ["cleared", _cleared], ["building", _building], ["assigned", _team apply {[]}], ["unreachable",_unreachable], ["retryCounts",_retryCounts],
     ["entry",_entryRoute], ["entries",_entries], ["securityEntries",_securityEntries], ["pairs",_pairs], ["pairRoutes",_pairRoutes], ["pairStates",_pairStates], ["pending",_pending],

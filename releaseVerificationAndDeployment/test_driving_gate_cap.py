@@ -36,6 +36,37 @@ class DrivingGateCapTests(unittest.TestCase):
                       '"thisanimate"','count _arguments != 2','_name in _animations',
                       '(_pair select 0) isNotEqualTo (_pair select 1)','_leaves findIf','"ANIM"'):
             self.assertIn(guard,legacy)
+        for guard in ('"thisanimatesource"','"AnimationSources" >> _name',
+                      'getText (_source >> "source") != "user"','_row set [_phase,[_name,_channel]]',
+                      '(_x select 3) != _channel','_gate animationSourcePhase _name'):
+            self.assertIn(guard,legacy)
+        # Declarative interpretation only: never run action statements. Paired channel
+        # and model/source existence are independent requirements.
+        import re
+        literal=re.compile(r"\s*this\s+(animateSource|animate)\s*\[\s*(['\"])([A-Za-z0-9_]+)\2\s*,\s*([01])\s*\]\s*;?\s*",re.I)
+        def parse(text, expected, animations=(), user_sources=()):
+            match=literal.fullmatch(text)
+            if not match or int(match[4]) != expected:
+                return None
+            command,_,name,_=match.groups()
+            channel='SOURCE' if command.lower() == 'animatesource' else 'ANIM'
+            if name not in (user_sources if channel == 'SOURCE' else animations):
+                return None
+            return name,channel
+        sources=('barrier_raise',)
+        self.assertEqual(parse('this animateSource ["barrier_raise",1];',1,user_sources=sources),('barrier_raise','SOURCE'))
+        self.assertEqual(parse("this animate ['leaf',0]",0,animations=('leaf',)),('leaf','ANIM'))
+        for invalid in ('this animateSource ["barrier_raise",1]; doStop player;',
+                        'this animateSource ["barrier_raise",1,true]',
+                        'this animateSource [variable,1]',
+                        'this animateSource ["missing",1]',
+                        'other animateSource ["barrier_raise",1]',
+                        'thisanimateSource ["barrier_raise",1]'):
+            self.assertIsNone(parse(invalid,1,user_sources=sources))
+        self.assertIsNone(parse('this animateSource ["barrier_raise",0]',1,user_sources=sources))
+        self.assertIsNone(parse('this animateSource ["barrier_raise",1]',1,animations=sources))
+        self.assertNotEqual(parse('this animate ["barrier_raise",1]',1,animations=sources),
+                            parse('this animateSource ["barrier_raise",0]',0,user_sources=sources))
         for forbidden in ('compile','parseSimpleArray','call compile','spawn','setVariable'):
             self.assertNotIn(forbidden,legacy)
         self.assertIn('if (_sources isEqualTo []) then {_sources=[_gate]',server)

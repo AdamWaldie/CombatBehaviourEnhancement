@@ -70,8 +70,16 @@ if (_cause in ["DETECTED","PROXIMITY","CANFIRE","GUNFIRE"]
         || {!([_sourceObserver] call CBE_fnc_CortexCombatEffective)}
         || {!local _sourceObserver} || {group _sourceObserver != _group}
         || {_sourceObserver knowsAbout _source <= 0} || {_sourceIgnored}}) exitWith {"HIDE"};
+// A derived UAV cue requires its original known hostile witness; no identity-free panic.
+if (_cause == "UAV_APPROACH" && {isNull _source || {!alive _source} || {!(_source isKindOf "Air")}
+    || {!unitIsUAV _source} || {(side _group) getFriend (side _source) >= 0.6}
+    || {!finite _sourceUntil} || {time >= _sourceUntil} || {_sourceIgnored}
+    || {!([_sourceObserver] call CBE_fnc_CortexCombatEffective)} || {!local _sourceObserver}
+    || {group _sourceObserver != _group}
+    || {!((_sourceObserver targetKnowledge _source) param [1,false,[true]])}}) exitWith {"RELEASE"};
 // A current operation has already committed a physical route and owns its restoration. A danger
 // event raises its priority but must not send the group back to an earlier reaction position.
 if (count (_group getVariable ["CBE_Operation",createHashMap]) > 0) exitWith {"MAINTAIN"};
+if (_cause == "UAV_APPROACH") exitWith {"HIDE"};
 if (_cause in ["HIT","EXPLOSION","SUPPRESSED","SCREAM","CASUALTY","BODY_FOUND"]) exitWith {"HIDE"};
 "ENGAGE"

@@ -1,5 +1,6 @@
 /*
  * Author: WaldoTheWarfighter
+ * Withdraws original remote passenger support consent before group cleanup; no troop/vehicle command is sent.
  * Post-clear hold recall respects unresolved native movement cleanup through the shared
  * reservation gate; no hold/retry deadline or successor task is renewed.
  * Pending landed-foot handover is retired by group release even after the boat operation ended.
@@ -54,6 +55,7 @@
 
 params [["_group", grpNull, [grpNull]], ["_forget", true, [false]], ["_reason", "", [""]], ["_keepBrain",false,[false]]];
 if (isNull _group) exitWith {};
+[_group,"CLOSE"] call CBE_fnc_CortexMechanisedRemote;
 [_group,true] call CBE_fnc_CortexIlluminationStep;
 // Only the Contact-disabled reconciliation may preserve the independent actor/brain work.
 // Validate before actor retirement; full release and takeover cannot inherit this exemption.
@@ -79,6 +81,8 @@ if (!_keepBrain) then {
     };
 } forEach units _group;
 };
+if (local _group && {!_keepBrain}) then {["CANCEL",_group,[_reason]] call CBE_fnc_PatrolOperation};
+if (local _group && {!_keepBrain}) then {["CANCEL",_group,[_reason]] call CBE_fnc_ClearAreaOperation};
 private _state = _group getVariable ["CBE_AIPass_State", createHashMap];
 private _brain=_group getVariable ["CBE_GroupBrain",createHashMap];
 if (count _brain > 0 && {!_keepBrain}) then {

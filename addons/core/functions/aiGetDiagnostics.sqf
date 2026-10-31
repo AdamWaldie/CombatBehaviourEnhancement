@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Calm remount intent retains its original native waypoint receipt and operation generation;
+ * replacement orders retire boarding without seat cleanup, and migration keeps the original deadline.
  * Repeat/JIP: Read-only on demand; does not install handlers or mutate JIP state.
  * Reports whether CBE's AI profile is active and whether ordinary AI groups currently owned by
  * headless clients have acknowledged profile adoption and resumed their applicable CBE work. Also reports the Cortex scheduler and
@@ -714,7 +716,7 @@ _checks pushBack ["ai","cortex-snapshot-scope","LOADED",format ["Snapshot server
         _checks pushBack ["ai",format ["cortex-drill-health-%1",netId _group],["ERROR","LOADED"] select _healthy,format ["group=%1 type=%2 stage=%3 token=%4 heartbeatAgeSeconds=%5 watchdogSeconds=%6 movementLease=%7 resumeGraceSeconds=%8 schedulerWatchdogs=%9. An overdue controller wakes its same keyed scheduler callback; a stored drill or waypoint is not completion evidence.",groupId _group,_drill getOrDefault ["type","UNKNOWN"],_drill getOrDefault ["stage","UNKNOWN"],_drill getOrDefault ["token",""],_heartbeatAge,_watchdog,_movementLease,_resumeGrace,_drillFsmJob getOrDefault ["watchdogCount",0]]];
     };
     private _remount=_group getVariable ["CBE_Cortex_Remount",[]];
-    if (count _remount == 2) then {
+    if (count _remount == 4) then {
         private _remountDeadline=_remount select 0;
         private _remountPassengers=_remount select 1;
         private _remountConflicts=_remountPassengers select {
@@ -725,7 +727,9 @@ _checks pushBack ["ai","cortex-snapshot-scope","LOADED",format ["Snapshot server
             _x params ["_unit","_vehicle"];
             alive _unit && {alive _vehicle} && {vehicle _unit != _vehicle}
         };
-        private _remountHealthy=serverTime < _remountDeadline && {_remountConflicts isEqualTo []};
+        private _remountHealthy=serverTime < _remountDeadline && {_remountConflicts isEqualTo []}
+            && {(_remount select 2) isEqualTo (_group getVariable ["CBE_OperationGeneration",0])}
+            && {(_remount select 3) isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)};
         _checks pushBack ["ai",format ["cortex-remount-ownership-%1",netId _group],["ERROR","LOADED"] select _remountHealthy,format ["group=%1 secondsRemaining=%2 passengers=%3 pending=%4 assignmentConflicts=%5. The stored list is boarding intent, not proof that passengers stayed aboard or re-entered; a different assignment must cancel the affected actor.",groupId _group,(_remountDeadline-serverTime) max 0,count _remountPassengers,count _remountPending,count _remountConflicts]];
     };
     private _transition=_group getVariable ["CBE_Cortex_TransitionIntent",[]];
@@ -781,7 +785,7 @@ _checks pushBack ["ai","cortex-snapshot-scope","LOADED",format ["Snapshot server
         private _leaseToken=_supportLease param [0,""];
         private _leaseExpiry=_supportLease param [2,0];
         private _roleToken=_supportRole param [0,""];
-        private _supportHealthy=count _supportLease == 6 && {serverTime < _leaseExpiry}
+        private _supportHealthy=count _supportLease == 7 && {serverTime < _leaseExpiry}
             && {_supportToken in ["",_leaseToken]} && {_roleToken in ["",_leaseToken]};
         _checks pushBack ["ai",format ["cortex-support-ownership-%1",netId _group],["ERROR","LOADED"] select _supportHealthy,format ["group=%1 leaseToken=%2 localToken=%3 roleToken=%4 secondsRemaining=%5 responding=%6 assaulting=%7 movementLease=%8. Token disagreement or an expired retained lease identifies overlapping or orphaned coordinated work.",groupId _group,_leaseToken,_supportToken,_roleToken,(_leaseExpiry-serverTime) max 0,_state getOrDefault ["responding",false],_state getOrDefault ["assaulting",false],_state getOrDefault ["movementLease",[]]]];
     };

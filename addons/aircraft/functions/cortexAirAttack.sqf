@@ -1,5 +1,7 @@
 /*
  * Author: WaldoTheWarfighter
+ * Scripted geometry/lead uses the shared bounded native belief, never exact target transforms.
+ * Scripted fire requests share CortexAirReleaseSafe; native autonomous fire is outside its veto.
  * Execution and Fired guidance require the original live common operation generation/owner
  * epoch as well as the aircraft flight lease. Cancelled/replaced operations cannot keep attacking.
  * Existing stage deadlines gate execution before planning/command side effects and at shared
@@ -523,10 +525,13 @@ if (_stage == "") then {
     _job set ["terrainLift",_plan getOrDefault ["terrainLift",0]];
     _job set ["terrainClearanceMinimum",_plan getOrDefault ["terrainClearanceMinimum",0]];
     _job set ["terrainSampleCount",_plan getOrDefault ["terrainSampleCount",0]];
+    _job set ["terrainRouteOffset",_plan getOrDefault ["terrainRouteOffset",0]];
+    _job set ["terrainRouteAttempts",_plan getOrDefault ["terrainRouteAttempts",0]];
     _job set ["terrainCorridor",_plan getOrDefault ["terrainCorridor",0]];
     _job set ["terrainRequiredLift",_plan getOrDefault ["terrainRequiredLift",0]];
     _job set ["terrainViable",_plan getOrDefault ["terrainViable",true]];
-    _job set ["targetPosition",+(_plan getOrDefault ["targetPosition",getPosATL _target])];
+    _job set ["targetPosition",+(_plan get "targetPosition")];
+    _job set ["lastTargetPositionASL",ATLToASL (_plan get "targetPosition")];
     _job set ["type","AIR_ATTACK"]; _job set ["stage",""]; _job set ["deadline",serverTime+75]; _job set ["shots",0];
     _job set ["origin",getPosATL _aircraft]; _job set ["resumePosition",_resumePosition];
     _job set ["resumeWaypointIndex",_waypointIndex]; _job set ["routeSignature",_routeSignature];
@@ -654,7 +659,7 @@ if (!isNull _target && {alive _target} && {captive _target
     || {(side _group) getFriend side _target >= 0.6}}) exitWith {["TARGET_NO_LONGER_HOSTILE",true] call _finish};
 if (!isNull _target && {alive _target} && {_stage in ["INGRESS","ATTACK"]}
     && {(_group knowsAbout _target) <= 0}) exitWith {["TARGET_KNOWLEDGE_LOST",true] call _finish};
-if (!isNull _target) then {_job set ["lastTargetPositionASL",getPosASL _target]};
+
 // Destroying the target must not strand the aircraft at the firing point. Complete the full
 // INGRESS -> ATTACK -> EGRESS contract, using the wreck's stable position for departure geometry.
 // A target lost before an actual attack remains a failed run and hands native control back at once.
@@ -694,6 +699,32 @@ if (_targetUnavailable && {!(_job getOrDefault ["targetDestroyed",false])}) then
     };
 };
 if (_targetUnavailable && {!(_job getOrDefault ["targetDestroyed",false])}) exitWith {["TARGET_LOST",true] call _finish};
+// One contact read per active visit serves range, release, lead and route progress. Egress
+// retains the last estimate so lost/deleted contacts cannot force exact-position reads or a chase.
+private _targetASL=+(_job get "lastTargetPositionASL");
+private _estimatedVelocity=[0,0,0];
+private _contactUnavailable=false;
+if (_stage in ["INGRESS","ATTACK"] && {!_targetUnavailable}) then {
+    private _contact=[_pilot,_target] call CBE_fnc_CortexAirContact;
+    if (_contact isEqualTo []) exitWith {_contactUnavailable=true};
+    _targetASL=+(_contact select 0);
+    private _knower=_contact select 1;
+    private _previousEstimate=_job getOrDefault ["contactEstimate",[]];
+    if (count _previousEstimate == 4 && {(_previousEstimate select 0) == _target}
+        && {(_previousEstimate select 1) == _knower}) then {
+        private _elapsed=serverTime-(_previousEstimate select 2);
+        if (_elapsed >= 0.25 && {_elapsed <= 5}) then {
+            _estimatedVelocity=(_targetASL vectorDiff (_previousEstimate select 3)) vectorMultiply (1/_elapsed);
+            // Native corrections can jump; bound lead without importing actual hostile velocity.
+            private _estimateSpeed=vectorMagnitude _estimatedVelocity;
+            if (_estimateSpeed > 350) then {_estimatedVelocity=_estimatedVelocity vectorMultiply (350/_estimateSpeed)};
+        };
+    };
+    _job set ["contactEstimate",[_target,_knower,serverTime,+_targetASL]];
+    _job set ["lastTargetPositionASL",+_targetASL];
+};
+if (_contactUnavailable) exitWith {["TARGET_ESTIMATE_UNAVAILABLE",true] call _finish};
+private _targetATL=ASLToATL _targetASL;
 if ((getPosATL _aircraft select 2) < 25) exitWith {["GROUND_CLEARANCE"] call _finish};
 // A failed fixed-wing solution must never continue into rising terrain. Current AGL alone only
 // catches a descent after the aircraft is already low, so sample the velocity-projected position at
@@ -736,29 +767,7 @@ private _destination=_points select _stageIndex;
 // the lease has a real end and cannot orbit indefinitely.
 if (_job getOrDefault ["airToAir",false] && {_stage in ["INGRESS","ATTACK"]}) then {
     private _leadSeconds=[16,5] select (_stage == "ATTACK");
-    private _knowers=((units _group) select [0,8]) select {
-        local _x && {[_x] call CBE_fnc_CortexCombatEffective} && {_x knowsAbout _target >= 1}
-    };
-    private _knower=_knowers param [0,objNull,[objNull]];
-    if (isNull _knower) exitWith {_job set ["interceptEstimateLost",true]};
-    private _believed=_knower getHideFrom _target;
-    if (_believed isEqualTo [0,0,0]) exitWith {_job set ["interceptEstimateLost",true]};
-    private _believedASL=ATLToASL _believed;
-    private _previousEstimate=_job getOrDefault ["interceptEstimate",[]];
-    private _estimatedVelocity=[0,0,0];
-    if (count _previousEstimate == 4 && {(_previousEstimate select 0) == _target}
-        && {(_previousEstimate select 1) == _knower}) then {
-        private _elapsed=serverTime-(_previousEstimate select 2);
-        if (_elapsed >= 0.25 && {_elapsed <= 5}) then {
-            _estimatedVelocity=(_believedASL vectorDiff (_previousEstimate select 3)) vectorMultiply (1/_elapsed);
-            // A changed native estimate can jump. Bound extrapolation rather than turn
-            // that correction into a fictitious high-speed contact trajectory.
-            private _estimateSpeed=vectorMagnitude _estimatedVelocity;
-            if (_estimateSpeed > 350) then {_estimatedVelocity=_estimatedVelocity vectorMultiply (350/_estimateSpeed)};
-        };
-    };
-    _job set ["interceptEstimate",[_target,_knower,serverTime,+_believedASL]];
-    private _predictedASL=_believedASL vectorAdd (_estimatedVelocity vectorMultiply _leadSeconds);
+    private _predictedASL=_targetASL vectorAdd (_estimatedVelocity vectorMultiply _leadSeconds);
     _destination=ASLToATL _predictedASL;
     // Match the moving contact's predicted altitude across terrain cells, with a safety floor.
     // Surface attack profiles remain independent of this interception-only height.
@@ -769,14 +778,13 @@ if (_job getOrDefault ["airToAir",false] && {_stage in ["INGRESS","ATTACK"]}) th
     _points set [_stageIndex,_destination];
     _job set ["points",_points];
 };
-if (_job getOrDefault ["interceptEstimateLost",false]) exitWith {["TARGET_ESTIMATE_UNAVAILABLE",true] call _finish};
 // Fixed guns, rockets and bombs cross the objective, so a target-attached DESTROY waypoint gives
 // the native flight controller a useful roll-in. Guided stand-off weapons instead retain their
 // inbound release point: attaching that phase to the target overwrites its safe launch distance and
 // forces the aircraft through the objective before it can fire.
 private _nativeAttackWaypoint=_isPlane && {_stage == "ATTACK"} && {!isNull _target}
     && {(_job getOrDefault ["pattern",""]) != "STANDOFF"};
-if (_nativeAttackWaypoint) then {_destination=getPosATL _target};
+if (_nativeAttackWaypoint) then {_destination=+_targetATL};
 private _stageDistance=_aircraft distance2D _destination;
 private _closestKey="closest"+_stage;
 private _stageClosest=(_job getOrDefault [_closestKey,_stageDistance]) min _stageDistance;
@@ -791,7 +799,7 @@ _job set ["shots",_shots];
 private _deliveryAlong=-1e10;
 private _deliveryPassed=false;
 if (_isPlane && {_stage == "ATTACK"} && {!(_job getOrDefault ["airToAir",false])}) then {
-    private _plannedTarget=+(_job getOrDefault ["targetPosition",getPosATL _target]);
+    private _plannedTarget=+(_job get "targetPosition");
     private _deliveryOrigin=+(_points select 0);
     private _deliveryAxis=_plannedTarget vectorDiff _deliveryOrigin;
     _deliveryAxis set [2,0];
@@ -850,7 +858,7 @@ if (_commandedStage != _stage) then {
     // other types may not work. Keep this path pending physical attack/flight acceptance;
     // Cortex never forces an attitude to hide a failed native association.
     if (_nativeAttackWaypoint) then {
-        _ownedWaypoint setWaypointPosition [getPosATL _target,0];
+        _ownedWaypoint setWaypointPosition [_targetATL,0];
         _ownedWaypoint setWaypointType "DESTROY";
         _ownedWaypoint setWaypointCombatMode "RED";
         _ownedWaypoint waypointAttachVehicle _target;
@@ -940,14 +948,14 @@ if (_stage == "ATTACK") then {
         };
         _job set ["targetCommanded",true];
     };
-    private _range=_aircraft distance _target;
-    private _horizontalRange=_aircraft distance2D _target;
+    private _range=(getPosASL _aircraft) vectorDistance _targetASL;
+    private _horizontalRange=_aircraft distance2D _targetATL;
     // The plan-time corridor and live safety floor may veto an unsafe run. They do not manufacture
     // a pitch correction. Native attack flight retains the continuous terrain and obstacle picture
     // that a sparse scheduled script cannot reproduce cheaply or safely.
     private _deliveryTerrainClear=_job getOrDefault ["terrainViable",true];
     private _weaponVector=if (_weapon == "") then {[0,0,0]} else {_aircraft weaponDirection _weapon};
-    private _targetVector=(aimPos _target) vectorDiff (getPosASL _aircraft);
+    private _targetVector=_targetASL vectorDiff (getPosASL _aircraft);
     private _alignment=if (vectorMagnitude _weaponVector > 0.01 && {vectorMagnitude _targetVector > 0.01}) then {
         (vectorNormalized _weaponVector) vectorDotProduct (vectorNormalized _targetVector)
     } else {-1};
@@ -1037,7 +1045,7 @@ if (_stage == "ATTACK") then {
         if (_muzzleSpeed > 0) then {
             _integrationVelocity=_integrationVelocity vectorAdd ((vectorDir _aircraft) vectorMultiply _muzzleSpeed);
         };
-        private _targetAltitude=aimPos _target select 2;
+        private _targetAltitude=_targetASL select 2;
         private _integrationTime=0;
         private _integrationStep=0.2;
         for "_integrationIndex" from 0 to 119 do {
@@ -1059,7 +1067,7 @@ if (_stage == "ATTACK") then {
     // A moving target will not remain under its current coordinates during the fall.
     // This bounded linear estimate only vetoes an unsuitable release; native aiming and the
     // real projectile remain untouched, and later acceleration can still defeat this estimate.
-    private _bombTargetPosition=(getPosASL _target) vectorAdd ((velocity _target) vectorMultiply _fallTime);
+    private _bombTargetPosition=_targetASL vectorAdd (_estimatedVelocity vectorMultiply _fallTime);
     private _bombImpactError=_predictedBombImpact distance2D _bombTargetPosition;
     private _bombWindow=_bombImpactError <= 55 && {_forwardAlignment >= 0.92};
     // A nose-mounted weapon needs forward closure. A retained lateral turret is specifically
@@ -1118,8 +1126,19 @@ if (_stage == "ATTACK") then {
         && {serverTime < _requestAt+3};
     private _requestAvailable=_requestProducedShot || {_requestAt < 0}
         || {!_requestPending && {_requestAttempts < 2}};
+    // Sample protected positions only when an otherwise ready scripted request is due.
+    // One observation gates both native request branches; an unsafe result never renews
+    // phase/operation clocks or counts as a shot attempt. Native DESTROY may fire independently.
+    private _releaseSafe=false;
+    if (_validSolution && {_requestAvailable}
+        && {serverTime >= (_job getOrDefault ["nextWeaponFire",0])}) then {
+        _releaseSafe=[_operator,_targetASL,_selectedMagazine,_weaponClass,_predictedBombImpact]
+            call CBE_fnc_CortexAirReleaseSafe;
+        _job set ["releaseSafety",[_releaseSafe,serverTime]];
+        if (!_releaseSafe) then {_job set ["nextWeaponFire",serverTime+1]};
+    };
     private _pilotSurfaceRelease=_pilotSurfaceStation;
-    if (_validSolution && {_pilotSurfaceRelease} && {_requestAvailable}
+    if (_validSolution && {_releaseSafe} && {_pilotSurfaceRelease} && {_requestAvailable}
         && {[_aircraft,_group,_operator] call CBE_fnc_CortexAirWeaponOperatorAvailable}
         && {serverTime >= (_job getOrDefault ["nextWeaponFire",0])}) then {
         // The attached DESTROY waypoint establishes the run but does not consistently ask a
@@ -1139,7 +1158,7 @@ if (_stage == "ATTACK") then {
         };
         _job set ["nextWeaponFire",serverTime+_pilotFireDelay];
     };
-    if (_validSolution && {!_pilotSurfaceRelease} && {_requestAvailable}
+    if (_validSolution && {_releaseSafe} && {!_pilotSurfaceRelease} && {_requestAvailable}
         && {[_aircraft,_group,_operator] call CBE_fnc_CortexAirWeaponOperatorAvailable}
         && {serverTime >= (_job getOrDefault ["nextWeaponFire",0])}) then {
         // One native request at a time for an independently aimed turret. Fixed-wing pilots are
@@ -1192,7 +1211,7 @@ _aircraft setVariable ["CBE_Cortex_AirAttackPlan",[
     _job getOrDefault ["selectedMagazine",""],
     _job getOrDefault ["terrainLift",0],_job getOrDefault ["terrainClearanceMinimum",0],
     _job getOrDefault ["terrainSampleCount",0],_job getOrDefault ["terrainCorridor",0],
-    +(_job getOrDefault ["targetPosition",getPosATL _target]),
+    +(_job get "targetPosition"),
     _job getOrDefault ["terrainRequiredLift",0],_job getOrDefault ["terrainViable",true]
 ],true];
 
@@ -1230,15 +1249,15 @@ private _stagePassed=_stageClosest <= _captureRadius && {_stageDistance >= _stag
 // do not share a vertical origin and can misclassify a climbing or descending approach.
 private _ingressBehind=_isPlane && {_stage == "INGRESS"}
     && {(velocity _aircraft) vectorDotProduct ((ATLToASL _destination) vectorDiff getPosASL _aircraft) <= 0}
-    && {_aircraft distance2D _target <= 9500}
-    && {(velocity _aircraft) vectorDotProduct ((getPosASL _target) vectorDiff getPosASL _aircraft) > 0};
+    && {_aircraft distance2D _targetATL <= 9500}
+    && {(velocity _aircraft) vectorDotProduct (_targetASL vectorDiff getPosASL _aircraft) > 0};
 // A lateral helicopter ingress is complete when the live aircraft enters its turret's practical
 // engagement range. Native rotary-wing combat flight does not reliably capture an arbitrary offset
 // point while a gunner is tracking a contact; waiting for that coordinate caused useful flight and
 // gunfire to be labelled INGRESS_NONPROGRESS instead of beginning the abeam attack.
 private _lateralWeaponEntry=!_isPlane && {_stage == "INGRESS"}
     && {(_job getOrDefault ["pattern",""]) == "LATERAL"}
-    && {_aircraft distance2D _target <= 1800};
+    && {_aircraft distance2D _targetATL <= 1800};
 if (_stage == "EGRESS" && {(_stageDistance <= _effectiveCapture || {_stagePassed})}
     && {_aircraft distance2D (_points select 1) >= 400}) exitWith {["COMPLETE",true] call _finish};
 private _egressTravel=if (_stage == "EGRESS") then {
@@ -1324,8 +1343,8 @@ switch _stage do {
         // This case runs after the earlier release-basket scope has ended. Re-measure only the
         // small geometry needed to close an unused guided pass; do not retain a per-frame flight
         // controller or borrow stale basket values from a previous scheduler step.
-        private _standoffRange=_aircraft distance _target;
-        private _standoffTargetVector=(aimPos _target) vectorDiff (getPosASL _aircraft);
+        private _standoffRange=(getPosASL _aircraft) vectorDistance _targetASL;
+        private _standoffTargetVector=_targetASL vectorDiff (getPosASL _aircraft);
         _standoffTargetVector set [2,0];
         private _standoffForward=vectorDir _aircraft;
         _standoffForward set [2,0];

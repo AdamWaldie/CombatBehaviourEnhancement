@@ -3,12 +3,14 @@
  * Ground-element scope and original roster accompany standalone drill intent; migration must
  * not widen a landed infantry element into its whole mixed crew/passenger group.
  * Coordinated checkpoints retain exact acknowledged MOVE observations and original progress clocks, without replay authority.
+ * Loose legacy attack flags are not transported; common operations retain their typed policy.
  * Publishes restoration data and bounded post-contact movement intent after an unscheduled AI job.
  * A missing or stale public phase is repaired through CortexSetPhase with an explicit continuity
  * record; the checkpoint never changes observable phase state outside the common transition path.
  * Locality/authority: current group owner unless stated otherwise below.
  * Repeat/JIP: durable restoration data is public; local jobs are never replayed verbatim.
- * Active native HOLD proof is bounded to64 matching stopped actors; MOVE/acknowledgement state is not replayed.
+ * Active native observations and HOLD proof are bounded to64 rows. Actual owned MOVE proof
+ * can be observed on the incoming owner; commands and acknowledgement grace are never replayed.
  * Arguments: 0: group <GROUP>, default grpNull.
  * Return Value: Nothing unless a value is explicitly returned below.
  * Current callers: scheduler and locality restoration.
@@ -24,7 +26,7 @@ private _saved = [];
         if (_value isEqualType []) then {_value = _value apply {if (_x isEqualType []) then {+_x} else {_x}}};
         _saved pushBack [_x, _value];
     };
-} forEach ["supportHeld", "supportAuthoredOrder", "supportAuthoredRevoked", "supportAuthoredRevokedToken", "baseAttack", "attackChanged", "retreatCombatMode", "retreatSpeedMode", "baseBehaviour", "behaviourChanged", "hadContact", "baseSpeed", "speedChanged", "searchTeam", "searchMoveReceipts", "holders", "holderRecallReceipts", "dismounted"];
+} forEach ["supportHeld", "supportAuthoredOrder", "supportAuthoredRevoked", "supportAuthoredRevokedToken", "retreatCombatMode", "retreatSpeedMode", "baseBehaviour", "behaviourChanged", "hadContact", "baseSpeed", "speedChanged", "searchTeam", "searchMoveReceipts", "holders", "holderRecallReceipts", "dismounted"];
 private _retreatSpeedLease=_state getOrDefault ["retreatSpeedMode",[]];
 if (count _retreatSpeedLease == 2) then {_saved pushBack ["restoreGroupSpeedMode",+_retreatSpeedLease]};
 private _drill = _state getOrDefault ["drill", createHashMap];
@@ -47,7 +49,8 @@ if (count _drill > 0) then {
     // Stable clock anchors avoid broadcasting a changing countdown on every checkpoint.
     private _generation=_drill getOrDefault ["operationGeneration",-1];
     private _points=_drill getOrDefault ["points",[]];
-    if (_generation >= 0 && {count _points <= 64} && {count (_drill getOrDefault ["units",[]]) <= 64}
+    if ((_drill getOrDefault ["explicitOrder",[]]) isEqualTo []
+        && {_generation >= 0} && {count _points <= 64} && {count (_drill getOrDefault ["units",[]]) <= 64}
         && {(_drill getOrDefault ["supportToken",""]) == ""}
         && {(_drill getOrDefault ["stage",""]) in ["START","MOVE","PAUSE","HOLD"]}) then {
         private _clock=[_drill getOrDefault ["boundDeadline",-1],_drill getOrDefault ["pauseUntil",0]];
@@ -70,13 +73,21 @@ if (count _drill > 0) then {
             };
         } forEach ["type","buddyBounds","target","units","desiredStrength","teams","teamSizes","teamTurn","points","index","stage","enemyPos",
             "assaulting","assaultObjective","assaultDirection","assaultGrenade","finishFlank","consolidating","boundDeadlineIdentity","boundQuorumUntil","boundWaypoint","authoredOrder","elementScoped","elementRoster"];
-        // Carry passive HOLD provenance only. No MOVE replay, acknowledgement grace,
+        // Carry passive HOLD and currently matching admission/issued-leg provenance. No MOVE replay, acknowledgement grace,
         // local callback or FSM handle becomes portable command authority.
         private _holdProof=[];
+        private _nativeProof=[];
         private _nativeCommands=_drill getOrDefault ["nativeCommands",createHashMap];
         if (_nativeCommands isEqualType createHashMap && {count _nativeCommands <= 64}) then {
             {
                 private _row=_nativeCommands get _x;
+                if (_row isEqualType [] && {count _row == 7}
+                    && {(_row select 1) in ["ADMISSION","MOVE"]}
+                    && {(_row select 0) in (_drill get "units")}
+                    && {[_row select 0,_row] call CBE_fnc_CortexDrillNativeCurrent}) then {
+                    // Original observation/issued-leg proof, no portable acknowledgement clock.
+                    _nativeProof pushBack [_row select 0,_row select 1,+(_row select 2),_row select 3,-1,[],+(_row select 6)];
+                };
                 if (_row isEqualType [] && {count _row == 7} && {(_row select 1) == "HOLD"}) then {
                     private _actor=_row select 0;
                     if (_actor isEqualType objNull && {!isNull _actor} && {local _actor}
@@ -90,6 +101,7 @@ if (count _drill > 0) then {
             } forEach (keys _nativeCommands);
         };
         _payload pushBack ["resumeNativeHolds",_holdProof];
+        _payload pushBack ["resumeNativeCommands",_nativeProof];
         _payload pushBack ["resumeHoldIssuer",[_drill getOrDefault ["token",""],clientOwner,
             _drill getOrDefault ["ownerEpoch",-1],_generation]];
         _payload pushBack ["resumeSpots",if (_moveProof isEqualTo []) then {+(_drill getOrDefault ["resumeSpots",[]])} else {_moveProof}];
@@ -115,7 +127,7 @@ private _supportLease=_group getVariable ["CBE_AIPass_SupportLease",[]];
 private _supportGeneration=_state getOrDefault ["supportOperationGeneration",-1];
 private _supportEpoch=_group getVariable ["CBE_AIPass_Epoch",0];
 private _supportOrder=_state getOrDefault ["supportAuthoredOrder",[]];
-if (_supportToken != "" && {count _supportLease == 6} && {(_supportLease select 0) == _supportToken}
+if (_supportToken != "" && {count _supportLease == 7} && {(_supportLease select 0) == _supportToken}
     && {serverTime < (_supportLease select 2)} && {_supportGeneration == (_group getVariable ["CBE_OperationGeneration",-2])}
     && {!(_state getOrDefault ["supportAuthoredRevoked",false])}
     && {_supportOrder isNotEqualTo []} && {_supportOrder isEqualTo ([_group] call CBE_fnc_NativeOrderReceipt)}) then {

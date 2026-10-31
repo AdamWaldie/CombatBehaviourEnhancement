@@ -3,6 +3,7 @@
  * Purpose: Select the exact loaded ground-turret weapon/muzzle observed by GroundFireReady.
  * Locality/authority: Actual local AI gunner and local turret only. Callers retain their
  * operation, target, ROE and firing-lane authority; this helper never targets or fires.
+ * Alternate stations require the exact live AA episode; ordinary ground callers remain primary-only.
  * Repeat/JIP: Read native selected state each call; issue only while it differs, then
  * require native station acknowledgement with the same loaded magazine, positive rounds
  * and completed magazine reload phase. Positive/unknown reload phase grants no fire admission.
@@ -20,7 +21,7 @@
 params [["_asset",objNull,[objNull]],["_gunner",objNull,[objNull]],
     ["_observation",createHashMap,[createHashMap]],["_fireOwner","",[""]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2} || {isNull _asset} || {isNull _gunner} || {!local _gunner}
-    || {!alive _asset} || {!(_asset isKindOf "LandVehicle")} || {gunner _asset != _gunner}
+    || {!alive _asset} || {!(_asset isKindOf "LandVehicle")}
     || {vehicle _gunner != _asset} || {isPlayer _gunner} || {!isNull remoteControlled _gunner}
     || {!([_gunner,_fireOwner] call CBE_fnc_CortexActorFireTaskAvailable)}
     || {!([_gunner] call CBE_fnc_CortexCombatEffective)}
@@ -33,6 +34,17 @@ if (!(_weapon isEqualType "") || {_weapon == ""} || {!(_muzzle isEqualType "")} 
     || {!(_magazine isEqualType "")} || {_magazine == ""}
     || {!(_turret isEqualType [])} || {count _turret > 8}
     || {_turret findIf {!(_x isEqualType 0) || {!finite _x} || {_x != floor _x} || {_x < -1}} >= 0}) exitWith {false};
+// Only the exact live AA episode may extend this selector beyond the primary gunner.
+// A token prefix or another station's observation is not admission.
+if (gunner _asset != _gunner) then {
+    private _aa=_asset getVariable ["CBE_AA_Intercept",createHashMap];
+    if (_fireOwner == "" || {(_aa getOrDefault ["token",""]) != _fireOwner}
+        || {_aa getOrDefault ["finished",false]} || {time >= (_aa getOrDefault ["until",-1])}
+        || {(_aa getOrDefault ["gunner",objNull]) != _gunner}
+        || {(_aa getOrDefault ["turret",[]]) isNotEqualTo _turret}
+        || {_asset turretUnit _turret != _gunner}) exitWith {_fireOwner=""};
+};
+if (gunner _asset != _gunner && {_fireOwner == ""}) exitWith {false};
 private _crew=fullCrew [_asset,"",false];
 if (count _crew > 64 || {_crew findIf {(_x select 0) == _gunner && {(_x select 3) isEqualTo _turret}} < 0}
     || {!(_asset turretLocal _turret)}

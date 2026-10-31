@@ -81,6 +81,11 @@ private _vehicleCursor=_job get "vehicleCursor";
 private _spotters=_job get "spotters";
 {
     private _group = _x;
+    // Existing discovery services a finite split-locality policy handback. An unresolved
+    // receipt is observation-only; no extra job or renewed restoration window is installed.
+    if (local _group && {!isNil {_group getVariable "CBE_CreepPolicy"}}) then {
+        ["RETIRE",_group] call CBE_fnc_CreepPolicy;
+    };
     if (isServer) then {
         private _supportBrain=_group getVariable ["CBE_Support_Brain",createHashMap];
         if (count _supportBrain > 0 && {!(_supportBrain getOrDefault ["cancelled",false])}
@@ -236,7 +241,16 @@ if (_tacticalReference isEqualType [] && {count _tacticalReference == 5}) then {
             };
             _clear=_group getVariable ["CBE_AIPass_ClearOrder",[]];
         };
-        if (_clear isNotEqualTo [] && {!(_group getVariable ["CBE_AIPass_ClearApplied", false])}) then {
+        // No polling/reconstruction from unsealed network state after owner loss.
+        // Only the original private producer may use same-owner executor recovery.
+        private _clearProducer=_group getVariable ["CBE_BuildingBrain",createHashMap];
+        if (_clear isNotEqualTo [] && {!(_group getVariable ["CBE_AIPass_ClearApplied", false])}
+            && {(_clearProducer getOrDefault ["producerOwner",-1]) == clientOwner}
+            && {(_clearProducer getOrDefault ["ownerEpoch",-1]) == (_group getVariable ["CBE_AIPass_Epoch",0])}
+            && {(_clearProducer getOrDefault ["generation",-1]) == (_group getVariable ["CBE_AIPass_ClearGeneration",-2])}
+            && {!(_clearProducer getOrDefault ["cancelled",false])}
+            && {!(_clearProducer getOrDefault ["finished",false])}
+            && {[_clear] call CBE_fnc_ClearOrderValid}) then {
             [_group, _clear select 0, createHashMapFromArray [["resume", true],["resumeOrder",+_clear],["resumeGeneration",_group getVariable ["CBE_AIPass_ClearGeneration",0]]]] call CBE_fnc_CortexClearBuilding;
         };
         // Aircraft occupants have dedicated flight, flare, missile-reaction and airborne controllers.

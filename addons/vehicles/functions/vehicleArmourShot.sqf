@@ -72,6 +72,7 @@ _result=call {
     };
     private _valid={
         local _vehicle && {alive _vehicle} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
+            && {!([_vehicle] call CBE_fnc_CortexAirDefenceRole)}
             && {local _group} && {!isNull _group} && {call _controlsCurrent}
             && {!isNull _gunner} && {local _gunner} && {gunner _vehicle == _gunner}
             && {group _gunner == _group} && {!isPlayer _gunner} && {isNull remoteControlled _gunner}
@@ -116,7 +117,7 @@ _result=call {
             || {!((_payload select 2) isEqualType createHashMap)}
             || {!(_vehicle isKindOf "Tank" || {_vehicle isKindOf "Wheeled_APC_F"})}
             || {getNumber (configOf _vehicle >> "artilleryScanner") > 0}
-            || {toLowerANSI getText (configOf _vehicle >> "editorSubcategory") == "edsubcat_aas"}) exitWith {false};
+            || {[_vehicle] call CBE_fnc_CortexAirDefenceRole}) exitWith {false};
         _gunner=gunner _vehicle;_group=group _gunner;_target=_payload select 0;
         if ([driver _vehicle,effectiveCommander _vehicle] findIf {
             isNull _x || {!local _x} || {!(currentCommand _x in ["","WAIT"])}

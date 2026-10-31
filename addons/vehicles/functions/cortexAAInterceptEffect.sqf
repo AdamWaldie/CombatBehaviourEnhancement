@@ -3,10 +3,11 @@
  * Purpose: Apply one scripted direct-pass fuse effect from a captured real AA bullet.
  * This is an explicit gameplay fuse approximation, never a claim of native projectile collision.
  * Locality/authority: Unscheduled current turret-owner callback only; both round and warned
- * missile must be local. Scheduled direct calls refuse rather than carry stale geometry to effect.
+ * missile must be local, at the exact captured occupied primary turret path. Scheduled direct calls refuse rather than carry stale geometry to effect.
  * Exact private episode, native shot parents, original deadlines, actual current positions and
  * armed real-shot state qualify the effect. No remote identity guess or nearest copy fallback.
- * Repeat/JIP: One receipt per missile, no replay/worker. Unknown geometry, temporal gaps,
+ * Repeat/JIP: Finished episodes refuse effects even if their exact camera cleanup is pending.
+ * One receipt per missile, no replay/worker. Unknown geometry, temporal gaps,
  * turning over5deg, submunition payloads or cross-owner projectiles refuse without effects.
  * A damaging warhead checks protected entities at its current position: max12m/four times
  * indirectHitRange, <=250m; at most64 entries evaluated. One veto per engine time sample prevents
@@ -20,7 +21,7 @@
  */
 params [["_episode",createHashMap,[createHashMap]],["_row",[],[[]]],
     ["_roundPos",[],[[]]],["_targetPos",[],[[]]]];
-if (remoteExecutedOwner > 0 || {canSuspend} || {count _row != 9}) exitWith {false};
+if (remoteExecutedOwner > 0 || {canSuspend} || {_episode getOrDefault ["finished",false]} || {count _row != 9}) exitWith {false};
 _row params ["_round","_previousRound","_previousMissile","_at","_origin","_previousDir","_previousUp"];
 private _vehicle=_episode getOrDefault ["vehicle",objNull];
 private _missile=_episode getOrDefault ["missile",objNull];
@@ -29,18 +30,25 @@ private _group=_episode getOrDefault ["group",grpNull];
 private _source=_episode getOrDefault ["source",objNull];
 private _victim=_episode getOrDefault ["victim",_vehicle];
 private _token=_episode getOrDefault ["token",""];
+private _turret=_episode getOrDefault ["turret",[]];
 private _until=_episode getOrDefault ["until",-1];
+private _liveEpisode=_vehicle getVariable ["CBE_AA_Intercept",createHashMap];
 if (isNull _victim || {!alive _victim} || {isNull _round} || {isNull _missile} || {isNull _vehicle} || {isNull _gunner} || {isNull _source}
     || {!local _round} || {!local _missile} || {!local _vehicle} || {!local _gunner} || {!local _group}
     || {!alive _round} || {!alive _missile} || {!alive _vehicle}
-    || {gunner _vehicle != _gunner} || {group _gunner != _group}
-    || {!(_vehicle turretLocal [0])} || {(_episode getOrDefault ["turret",[]]) isNotEqualTo [0]}
+    || {group _gunner != _group}
+    || {!(_turret isEqualType [])} || {count _turret < 1} || {count _turret > 8}
+    || {_turret findIf {!(_x isEqualType 0) || {!finite _x}
+        || {_x != floor _x} || {_x < 0} || {_x >= 32}} >= 0}
+    || {!(_vehicle turretLocal _turret)} || {_vehicle turretUnit _turret != _gunner}
     || {time >= _until} || {time-_at <= 0} || {time-_at > 0.1}
     || {(_group getVariable ["CBE_AIPass_Epoch",0]) != (_episode getOrDefault ["ownerEpoch",-1])}
     || {(_gunner getVariable ["CBE_AA_InterceptOwner",[]]) isNotEqualTo [_token,_until]}
-    || {((_vehicle getVariable ["CBE_AA_Intercept",createHashMap]) getOrDefault ["token",""]) != _token}
+    || {!(_liveEpisode isEqualType createHashMap)}
+    || {_liveEpisode getOrDefault ["finished",false]}
+    || {(_liveEpisode getOrDefault ["token",""]) != _token}
     || {!isNil {_missile getVariable "CBE_AA_FuseReceipt"}}
-    || {(_episode getOrDefault ["rounds",[]]) findIf {(_x select 0) == _round && {_x isEqualTo _row}} < 0}
+    || {(_liveEpisode getOrDefault ["rounds",[]]) findIf {(_x select 0) == _round && {_x isEqualTo _row}} < 0}
     || {!([_gunner,_token] call CBE_fnc_CortexActorFireTaskAvailable)}
     || {!(_gunner checkAIFeature "FIREWEAPON")}
     || {!(combatMode _group in ["YELLOW","RED"])} || {!(unitCombatMode _gunner in ["YELLOW","RED"])}
