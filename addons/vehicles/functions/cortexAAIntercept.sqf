@@ -5,7 +5,8 @@
  * START searches bounded station capability; each STEP freshly reads only its exact admitted muzzle.
  * Purpose: Finite experimental point-defence aiming and real-shot observation for a native
  * incoming-missile warning. This is the aim/shot building block, with an optional owner-local measured direct-pass fuse effect.
- * Locality/authority: Current local AI primary gunner at its observed native turret path.
+ * Locality/authority: Current local AI operator at its observed native turret path.
+ * Primary preferred; up to four occupied same-defence-group stations qualify at START only.
  * START accepts1..8 nonnegative indices below32 and resolves that exact inherited config
  * path once (<=32 native config entries/level). Invalid paths/geometry refuse; never assume[0].
  * Shot/step/cleanup retain that same occupied local station. Existing task/ROE/owner checks apply.
@@ -39,6 +40,13 @@
  */
 params [["_vehicle",objNull,[objNull]],["_mode","START",[""]],["_payload",[],[[]]]];
 if (remoteExecutedOwner > 0 && {remoteExecutedOwner != 2}) exitWith {[-1,false] select (_mode != "STEP")};
+// Scheduler callbacks already run unscheduled. Public direct script calls can be
+// scheduled: keep the bounded native observation/admission/command transaction intact.
+if (canSuspend) exitWith {
+    private _result=false;
+    isNil {_result=[_vehicle,_mode,_payload] call CBE_fnc_CortexAAIntercept;false};
+    _result
+};
 if (isNull _vehicle) exitWith {
     if (_mode == "STEP") then {
         private _gone=_payload param [0,createHashMap,[createHashMap]];
@@ -70,7 +78,7 @@ private _finish={
             if !("finishReason" in _state) then {_state set ["finishReason",_reason]};
             private _mayUnlock=!(_state getOrDefault ["unlockWithdrawn",false])
                 && {!isNull _actor} && {local _actor} && {local _vehicle}
-                && {gunner _vehicle == _actor} && {_vehicle turretUnit _turret == _actor}
+                && {_vehicle turretUnit _turret == _actor}
                 && {_vehicle turretLocal _turret}
                 && {!isNull _releaseGroup} && {local _releaseGroup}
                 && {_releaseGroup == (_state get "group")}
@@ -139,7 +147,7 @@ if (_mode == "SHOT") exitWith {
     private _shotToken=_state get "token";
     private _shotTurret=_state get "turret";
     if (time >= (_state get "until") || {_state getOrDefault ["finished",false]}
-        || {!local _operator} || {!local _shotGroup} || {gunner _vehicle != _operator}
+        || {!local _operator} || {!local _shotGroup}
         || {_vehicle turretUnit _shotTurret != _operator} || {!(_vehicle turretLocal _shotTurret)}
         || {group _operator != _shotGroup} || {isPlayer _operator}
         || {!isNull remoteControlled _operator}
@@ -183,13 +191,10 @@ if (_mode == "START") exitWith {
     if (count _state > 0) exitWith {false};
     private _gunner=gunner _vehicle;private _group=group _gunner;
     if (!local _vehicle || {isNull _gunner} || {!local _gunner}
-        || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
-        || {!simulationEnabled _gunner} || {isObjectHidden _gunner}
-        || {!([_group,"CBE_AIPass_AAIntercept_Enable",false] call CBE_fnc_CortexFeatureEnabled)}
-        || {!([_gunner] call CBE_fnc_CortexActorFireTaskAvailable)}
-        || {!([_group] call CBE_fnc_CortexIsEligible)}
-        || {!([_gunner] call CBE_fnc_CortexCombatEffective)}
         || {isPlayer _gunner} || {!isNull remoteControlled _gunner}
+        || {!simulationEnabled _vehicle} || {isObjectHidden _vehicle}
+        || {!([_group,"CBE_AIPass_AAIntercept_Enable",false] call CBE_fnc_CortexFeatureEnabled)}
+        || {!([_group] call CBE_fnc_CortexIsEligible)}
         || {!([_vehicle] call CBE_fnc_CortexAirDefenceRole)}) exitWith {false};
     private _warning=_vehicle getVariable ["CBE_AA_MissileWarning",[]];
     private _victim=_vehicle;
@@ -205,7 +210,6 @@ if (_mode == "START") exitWith {
         || {(_warning select 2) != (_group getVariable ["CBE_AIPass_Epoch",0])}
         || {serverTime >= (_warning select 3)} || {isNull (_warning select 4)}
         || {!([_warning select 4,_group,_warning select 5] call CBE_fnc_CortexAAThreat)}) exitWith {false};
-    if (!([_vehicle,_gunner,_group,_victim] call CBE_fnc_CortexAAWarningLink)) exitWith {false};
     // Reap at most four terminal local records, including work discarded on master stop.
     {
         private _old=_x getVariable ["CBE_AA_Intercept",createHashMap];
@@ -213,54 +217,22 @@ if (_mode == "START") exitWith {
     } forEach ((missionNamespace getVariable ["CBE_AA_InterceptVehicles",[]]) select [0,4]);
     private _registry=(missionNamespace getVariable ["CBE_AA_InterceptVehicles",[]])-[objNull];
     if (count _registry >= 4) exitWith {false};
-    private _observation=createHashMap;
-    if (!([_vehicle,_gunner,objNull,_observation,false,false,true] call CBE_fnc_CortexGroundFireReady)) exitWith {false};
+    private _observation=[_vehicle,_group,_victim] call CBE_fnc_CortexAAStationSelect;
+    if (count _observation == 0) exitWith {false};
+    _gunner=_observation get "gunner";
     private _turret=+(_observation get "loadedTurret");
-    if (!(_turret isEqualType []) || {count _turret < 1} || {count _turret > 8}
-        || {_turret findIf {!(_x isEqualType 0) || {!finite _x}
-            || {_x != floor _x} || {_x < 0} || {_x >= 32}} >= 0}
-        || {_vehicle turretUnit _turret != _gunner} || {!(_vehicle turretLocal _turret)}) exitWith {false};
-    private _lock=_vehicle lockedCameraTo _turret;
-    if (!isNil "_lock" && {!(_lock isEqualType objNull && {isNull _lock})}) exitWith {false};
     private _magazine=_observation get "loadedMagazine";
-    private _speed=getNumber (configFile >> "CfgMagazines" >> _magazine >> "initSpeed");
-    private _weaponConfig=configFile >> "CfgWeapons" >> (_observation get "loadedWeapon");
-    private _muzzleConfig=_weaponConfig >> (_observation get "loadedMuzzle");
-    private _override=getNumber (_weaponConfig >> "initSpeed");
-    if (isNumber (_muzzleConfig >> "initSpeed")) then {_override=getNumber (_muzzleConfig >> "initSpeed")};
-    if (_override > 0) then {_speed=_override};
-    if (_override < 0) then {_speed=_speed*(-_override)};
-    private _ammoConfig=configFile >> "CfgAmmo" >> getText (configFile >> "CfgMagazines" >> _magazine >> "ammo");
-    private _gravity=if (isNumber (_ammoConfig >> "coefGravity")) then {getNumber (_ammoConfig >> "coefGravity")} else {1};
-    if (!finite _speed || {!finite _gravity} || {_gravity < 0} || {_gravity > 4}) exitWith {false};
-    // Preserve the engine's raw turret config indices (BIS_fnc_turretConfig convention).
-    // Filtering/reordering child classes can select another station's optical/barrel points.
-    private _main=configOf _vehicle;
-    {
-        private _children=_main >> "Turrets";
-        if (count _children > 32 || {_x >= count _children}) exitWith {_main=configNull};
-        _main=_children select _x;
-        if (!isClass _main) exitWith {_main=configNull};
-    } forEach _turret;
-    if (!isClass _main) exitWith {false};
-    private _optic=getText (_main >> "memoryPointGunnerOptics");
-    private _selections=_vehicle selectionNames "Memory";
-    // Native multi-barrel turrets may override inherited gunBeg through this array.
-    // Use one declared, physically present origin; never substitute model centre.
-    // A first-barrel origin approximates alternating barrels, not an exact fired position.
-    private _barrels=(getArray (_main >> "memoryPointGun")) select [0,8];
-    _barrels pushBackUnique getText (_main >> "gunBeg");
-    private _barrel="";
-    private _barrelIndex=_barrels findIf {_x isEqualType "" && {_x != ""} && {_x in _selections}};
-    if (_barrelIndex >= 0) then {_barrel=_barrels select _barrelIndex};
-    if (_speed < 100 || {_speed > 2000} || {!(_barrel in _selections)} || {!(_optic in _selections)}) exitWith {false};
     private _serial=(_vehicle getVariable ["CBE_AA_InterceptSerial",0])+1;
     _vehicle setVariable ["CBE_AA_InterceptSerial",_serial];
     private _token=format ["AA:%1:%2:%3",clientOwner,_serial,netId _vehicle];
     _state=createHashMapFromArray [["vehicle",_vehicle],["group",_group],["gunner",_gunner],
         ["token",_token],["turret",_turret],["missile",_warning select 4],["source",_warning select 5],
         ["weapon",_observation get "loadedWeapon"],["muzzle",_observation get "loadedMuzzle"],
-        ["magazine",_magazine],["directFuse",getNumber (_ammoConfig >> "indirectHit") <= 0 && {getNumber (_ammoConfig >> "explosive") <= 0}],["speed",_speed],["gravity",_gravity],["barrel",_barrel],["optic",_optic],
+        ["magazine",_magazine],["directFuse",_observation get "directFuse"],
+        ["speed",_observation get "speed"],["gravity",_observation get "gravity"],
+        ["barrel",_observation get "barrel"],["optic",_observation get "optic"],
+        ["secondary",_observation get "secondary"],["stationWeapons",_observation getOrDefault ["stationWeapons",[]]],
+        ["directionFront",_observation get "directionFront"],["directionRear",_observation get "directionRear"],
         ["ownerEpoch",_group getVariable ["CBE_AIPass_Epoch",0]],
         ["route",[_group] call CBE_fnc_NativeOrderReceipt],["command",currentCommand _gunner],
         ["target",getAttackTarget _gunner],["assigned",assignedTarget _gunner],
@@ -285,7 +257,7 @@ private _missile=_state get "missile";private _turret=_state get "turret";
 private _token=_state get "token";
 private _valid=local _vehicle && {alive _vehicle} && {local _gunner} && {local _group}
     && {[_vehicle] call CBE_fnc_CortexAirDefenceRole}
-    && {gunner _vehicle == _gunner} && {_vehicle turretUnit _turret == _gunner}
+    && {_vehicle turretUnit _turret == _gunner}
     && {_vehicle turretLocal _turret}
     && {group _gunner == _group} && {simulationEnabled _vehicle} && {!isObjectHidden _vehicle}
     && {simulationEnabled _gunner} && {!isObjectHidden _gunner}
@@ -305,7 +277,9 @@ private _valid=local _vehicle && {alive _vehicle} && {local _gunner} && {local _
     && {combatMode _group in ["YELLOW","RED"]} && {unitCombatMode _gunner in ["YELLOW","RED"]}
     && {([_group] call CBE_fnc_NativeOrderReceipt) isEqualTo (_state get "route")}
     && {currentCommand _gunner == (_state get "command")}
-    && {getAttackTarget _gunner == (_state get "target")} && {assignedTarget _gunner == (_state get "assigned")};
+    && {getAttackTarget _gunner == (_state get "target")} && {assignedTarget _gunner == (_state get "assigned")}
+    && {(_vehicle getVariable ["CBE_AA_Intercept",createHashMap]) isEqualTo _state}
+    && {!(_state getOrDefault ["finished",false])} && {time < (_state get "until")};
 if (!_valid || {time >= (_state get "until")} || {(_state get "steps") >= 160}) exitWith {
     ["EXPIRED_OR_REPLACED"] call _finish;-1
 };
@@ -425,16 +399,46 @@ private _camera=_vehicle modelToWorldWorld (_vehicle selectionPosition [_state g
 private _point=_aim vectorAdd (_camera vectorDiff _origin);
 _vehicle lockCameraTo [_point,_turret,true];_state set ["applied",+_point];
 _state set ["aimContext",[time,+_targetPos,+_velocity,+_correction,+_origin]];
-private _direction=_vehicle weaponDirection (_state get "weapon");
-private _aligned=(_direction vectorCos (_origin vectorFromTo _aim)) >= cos 0.5;
-if (_aligned && {time >= (_state get "nextFire")} && {(_state get "attempts") < 16}
-    && {[_gunner,_aim,_state get "magazine"] call CBE_fnc_CortexLineOfFireClear}
-    && {!(terrainIntersectASL [_origin,_aim])}
-    && {(lineIntersectsSurfaces [_origin,_aim,_vehicle,_missile,true,1,"FIRE","GEOM"]) isEqualTo []}
-    && {[_vehicle,_gunner,_observation,_token] call CBE_fnc_CortexGroundSelectMuzzle}) then {
-    _state set ["shotWindow",time+0.2];
-    _state set ["attempts",(_state get "attempts")+1];_state set ["nextFire",time+0.15];
-    _vehicle fireAtTarget [objNull,_state get "muzzle"];
+// The entry adapter keeps scheduled direct calls unscheduled too. Native camera
+// readback must acknowledge our point; no remote/deferred script fire message is sent.
+// An admitted native fire action itself is not immediately cancellable.
+private _confirmedLock=_vehicle lockedCameraTo _turret;
+if (!isNil "_confirmedLock" && {_confirmedLock isEqualTo (_state get "applied")}) then {
+    private _secondary=_state getOrDefault ["secondary",false];
+    private _direction=[0,0,0];
+    if (_secondary) then {
+        // Turret config gunEnd is REAR and gunBeg FRONT. weaponDirection has no
+        // turret parameter and can alias identical weapons in another station.
+        private _rear=_vehicle modelToWorldWorld (_vehicle selectionPosition [_state get "directionRear","Memory"]);
+        private _front=_vehicle modelToWorldWorld (_vehicle selectionPosition [_state get "directionFront","Memory"]);
+        _direction=if (_rear distance _front >= 0.05) then {_rear vectorFromTo _front} else {[0,0,0]};
+    } else {_direction=_vehicle weaponDirection _weapon};
+    private _aligned=vectorMagnitude _direction > 0.5 && {(_direction vectorCos (_origin vectorFromTo _aim)) >= cos 0.5};
+    if (_aligned && {time >= (_state get "nextFire")} && {(_state get "attempts") < 16}
+        && {[_gunner,_aim,_state get "magazine"] call CBE_fnc_CortexLineOfFireClear}
+        && {!(terrainIntersectASL [_origin,_aim])}
+        && {(lineIntersectsSurfaces [_origin,_aim,_vehicle,_missile,true,1,"FIRE","GEOM"]) isEqualTo []}
+        && {[_vehicle,_gunner,_observation,_token] call CBE_fnc_CortexGroundSelectMuzzle}) then {
+        _state set ["nextFire",time+0.15];
+        // Ambiguous loaded identity also consumes an admission attempt; it cannot
+        // turn the finite sixteen-request budget into repeated inventory polling.
+        _state set ["attempts",(_state get "attempts")+1];
+        private _identity=[];
+        if (_secondary) then {
+            _observation set ["stationWeapons",_state get "stationWeapons"];
+            _identity=[_vehicle,_gunner,_observation] call CBE_fnc_CortexAAMagazineIdentity;
+        };
+        if (!_secondary || {_identity isNotEqualTo []}) then {
+            _state set ["shotWindow",time+0.2];
+            if (_secondary) then {
+                // Exact current loaded instance only. No reserve loading, remote
+                // fire queue or success inference; Fired captures actual rounds.
+                _vehicle action ["UseMagazine",_vehicle,_gunner,_identity select 1,_identity select 0];
+            } else {
+                _vehicle fireAtTarget [objNull,_state get "muzzle"];
+            };
+        };
+    };
 };
 _state set ["steps",(_state get "steps")+1];
 0.05

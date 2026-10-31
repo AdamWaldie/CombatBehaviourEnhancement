@@ -54,7 +54,7 @@ Feature cases: **65**. Required variant categories: **14**.
 | COORD - Coordinated assault | 2 | 0 | 14 | `runCoordinated.sqf` | 10 | implemented_partial |
 | STANCE - Cover stance | 1 | 0 | 2 | `runReactions.sqf` | 0 | implemented_partial |
 | AMMO - Magazine sharing | 2 | 0 | 3 | `runMechanics.sqf` | 0 | implemented_partial |
-| GUNNERY - Vehicle threat priority | 2 | 0 | 8 | `runGunnery.sqf` | 1 | implemented_partial |
+| GUNNERY - Vehicle threat priority | 2 | 0 | 10 | `runGunnery.sqf` | 1 | implemented_partial |
 | ART-SMOKE - Artillery smoke | 1 | 0 | 0 | `runArtillerySmoke.sqf` | 1 | implemented_partial |
 | BREAK - Aircraft evasive break | 1 | 0 | 0 | `runAircraft.sqf` | 2 | implemented_partial |
 | DEFEND - Defence orders | 0 | 0 | 5 | `runServer.sqf` | 0 | implemented_partial |

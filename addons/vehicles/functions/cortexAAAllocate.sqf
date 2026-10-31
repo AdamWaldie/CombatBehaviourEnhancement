@@ -8,6 +8,7 @@
  * is sampled once across those platforms per callback, then compared for at most8 warnings.
  * One platform per scheduler visit with zero added delay; lower-FPS/budget deferral still applies.
  * Three-second pass limit and native warning expiry both stop admission. Cached transmitter
+ * <=32 occupied rows/four receiver stations are sampled once per responder; radio
  * reads expire after one second; longer allocation never grants a longer communication permission.
  * The ephemeral sample grants no fire permission and is never retained. No world scan/replay.
  * Existing active responses are never retargeted or renewed. Overflow refuses new tracks.
@@ -131,19 +132,38 @@ private _coverageMissiles=[];
                 && {[_x] call CBE_fnc_CortexAirDefenceRole}
                 && {private _coverageGunner=_active getOrDefault ["gunner",objNull];
                     !isNull _coverageGunner && {alive _coverageGunner} && {local _coverageGunner}
-                        && {gunner _x == _coverageGunner} && {group _coverageGunner == _group}
+                        && {_x turretUnit (_active get "turret") == _coverageGunner}
+                        && {_x turretLocal (_active get "turret")} && {group _coverageGunner == _group}
                         && {(_coverageGunner getVariable ["CBE_AA_InterceptOwner",[]])
                             isEqualTo [_active get "token",_active get "until"]}
                 }) then {
                 _coverageMissiles pushBack (_active getOrDefault ["missile",objNull]);
             };
 } forEach _vehicles;
+// Warning ranking must not reject a linked secondary station because the primary
+// operator lacks a radio/voice path. One bounded occupied manifest per responder;
+// this is only a communications hint, not weapon, camera or firing admission.
+private _receivers=[];private _crew=fullCrew [_vehicle,"",false];
+if (count _crew <= 32) then {
+    private _operating={
+        params ["_row"];
+        !isNull (_row select 0) && {group (_row select 0) == _group}
+            && {toLowerANSI (_row select 1) in ["gunner","commander","turret"]} && {!(_row select 4)}
+    };
+    private _primary=gunner _vehicle;
+    private _primaryIndex=_crew findIf {(_x select 0) == _primary && {[_x] call _operating}};
+    if (_primaryIndex >= 0) then {_receivers pushBack _primary};
+    {
+        if (count _receivers >= 4) exitWith {};
+        if ([_x] call _operating) then {_receivers pushBackUnique (_x select 0)};
+    } forEach _crew;
+};
 private _ranked=[];
 {
     private _trackIndex=_forEachIndex;
     private _missile=_x select 4;private _victim=_x select 6;
     if (_vehicle distance _missile <= 1500 && {!(_vehicle in (_x select 7))}
-        && {[_vehicle,gunner _vehicle,_group,_victim,_plan get "linkCache"] call CBE_fnc_CortexAAWarningLink}
+        && {_receivers findIf {[_vehicle,_x,_group,_victim,_plan get "linkCache"] call CBE_fnc_CortexAAWarningLink} >= 0}
         && {[_missile,_group,_x select 5] call CBE_fnc_CortexAAThreat}) then {
         private _position=(getPosASL _missile) vectorDiff (getPosASL _victim);
         private _velocity=(velocity _missile) vectorDiff (velocity _victim);

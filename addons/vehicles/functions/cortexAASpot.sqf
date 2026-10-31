@@ -28,7 +28,7 @@ if (remoteExecutedOwner > 0 || {_episode getOrDefault ["finished",false]}
     || {(_episode getOrDefault ["token",""]) == ""}
     || {(_liveEpisode getOrDefault ["token",""]) != (_episode getOrDefault ["token",""])} || {isNull _vehicle} || {isNull _gunner} || {isNull _missile}
     || {!local _vehicle} || {!local _gunner} || {!local _missile}
-    || {gunner _vehicle != _gunner} || {!(_turret isEqualType [])}
+    || {!(_turret isEqualType [])}
     || {count _turret < 1} || {count _turret > 8}
     || {_turret findIf {!(_x isEqualType 0) || {!finite _x}
         || {_x != floor _x} || {_x < 0} || {_x >= 32}} >= 0}

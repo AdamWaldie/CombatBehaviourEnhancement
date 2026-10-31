@@ -17,7 +17,7 @@ params [["_vehicle",objNull,[objNull]],["_gunner",objNull,[objNull]],
     ["_group",grpNull,[grpNull]],["_victim",objNull,[objNull]],["_cache",[],[[]]]];
 if (_victim == _vehicle && {!isNull _vehicle}) exitWith {true};
 if (isNull _vehicle || {isNull _group} || {isNull _victim} || {!alive _victim}
-    || {isNull _gunner} || {gunner _vehicle != _gunner} || {group _gunner != _group}
+    || {isNull _gunner} || {vehicle _gunner != _vehicle} || {group _gunner != _group}
     || {group gunner _victim != _group}
     || {!([_group,"CBE_AIPass_ContactReports_Enable",true] call CBE_fnc_CortexFeatureEnabled)}) exitWith {false};
 private _sender=gunner _victim;

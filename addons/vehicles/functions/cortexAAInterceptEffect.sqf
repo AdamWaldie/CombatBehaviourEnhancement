@@ -36,7 +36,7 @@ private _liveEpisode=_vehicle getVariable ["CBE_AA_Intercept",createHashMap];
 if (isNull _victim || {!alive _victim} || {isNull _round} || {isNull _missile} || {isNull _vehicle} || {isNull _gunner} || {isNull _source}
     || {!local _round} || {!local _missile} || {!local _vehicle} || {!local _gunner} || {!local _group}
     || {!alive _round} || {!alive _missile} || {!alive _vehicle}
-    || {gunner _vehicle != _gunner} || {group _gunner != _group}
+    || {group _gunner != _group}
     || {!(_turret isEqualType [])} || {count _turret < 1} || {count _turret > 8}
     || {_turret findIf {!(_x isEqualType 0) || {!finite _x}
         || {_x != floor _x} || {_x < 0} || {_x >= 32}} >= 0}

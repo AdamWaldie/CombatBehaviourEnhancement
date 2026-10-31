@@ -1446,6 +1446,8 @@
       "production_sources": [
         "addons/infantry/functions/cortexGroundReload.sqf",
         "addons/vehicles/functions/cortexAAIntercept.sqf",
+        "addons/vehicles/functions/cortexAAStationSelect.sqf",
+        "addons/vehicles/functions/cortexAAMagazineIdentity.sqf",
         "addons/vehicles/functions/cortexAAInterceptEffect.sqf",
         "addons/vehicles/functions/cortexAASpot.sqf",
         "addons/vehicles/functions/cortexAAAllocate.sqf",

@@ -282,7 +282,7 @@
       "priority": "After foundations and FSM lifecycle",
       "disposition": "Implement useful intent, fix defects, improve integration; no wholesale source copying or functionality claim.",
       "review": "protocol-aa-3809708209-20261020.json",
-      "remaining": "Native-AA idle relocation, same-group native-warning allocation and default-off finite main-turret point-defence aim/shot/local-direct-pass-fuse/calibration code paths exist. Physical interception, balance and performance are unverified. Cross-owner projectile effects, payload/submunition handling, broader weapon/station layers, mixed/custom-AA relocation and authored-route cases remain unsupported or incomplete. Binary registration/declarations are reviewed; runtime dependencies and licensing remain separate.",
+      "remaining": "Native-AA relocation, same-group warning allocation and default-off finite exact-station cannon point-defence paths exist, now primary-preferred with bounded same-defence-group secondary station fallback. Physical interception, balance and performance are unverified. Primary-absent, other-group, driver/FFV and simultaneous multi-station interception, cross-owner projectile effects, incoming-owner reconciliation, payload/submunition handling, broader weapon layers and mixed/custom-AA relocation/authored-route cases remain unsupported or incomplete. Binary registration/declarations reviewed; runtime dependencies and licensing remain separate.",
       "binaryConfiguration": {
         "review": "protocol-binary-configuration-20261021.json",
         "status": "DECODED_REGISTRATION_AND_DECLARED_DEPENDENCIES_VERIFIED_RUNTIME_AND_LICENCE_SEPARATE"
@@ -353,6 +353,12 @@
         "scope": "Own native camera readback gates exact retirement; one unlock request; finished-state all-writer refusal; existing discovery observes pending state, and the affected station cannot bypass it on lease expiry. Cross-owner reconciliation and physical handover remain unverified.",
         "latestFollowup": "Live stored token/finished state also gates fuse/calibration, and captured rounds must remain in actual live custody; see liveCustodyFollowup. Offline verified only.",
         "authorityWithdrawal": "Observed original crew/group/locality/lease/external authority loss permanently withdraws the old unlock permission. Native absence/successor observation still retires passively; ordinary feature/epoch cleanup preserved. Offline verified, physical/incoming-owner handover unverified."
+      },
+      "secondaryStationExecution20261031": {
+        "review": "protocol-aa-3809708209-20261020.json#secondaryStationExecution20261031",
+        "scope": "Use an appropriate occupied AA cannon station rather than treating the primary gunner alias as the only usable weapon; merge with existing warning allocation, exact station readiness, owner-local interception, measured calibration and native cleanup.",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+        "physicalAcceptance": false
       }
     },
     {

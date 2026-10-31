@@ -483,6 +483,8 @@ class CfgFunctions {
             class CortexAAThreat {file = "\z\cbe\addons\vehicles\functions\cortexAAThreat.sqf";};
             class CortexAAWarningLink {file = "\z\cbe\addons\vehicles\functions\cortexAAWarningLink.sqf";};
             class CortexAAAllocate {file = "\z\cbe\addons\vehicles\functions\cortexAAAllocate.sqf";};
+            class CortexAAStationSelect {file = "\z\cbe\addons\vehicles\functions\cortexAAStationSelect.sqf";};
+            class CortexAAMagazineIdentity {file = "\z\cbe\addons\vehicles\functions\cortexAAMagazineIdentity.sqf";};
             class CortexAAIntercept {file = "\z\cbe\addons\vehicles\functions\cortexAAIntercept.sqf";};
             class CortexAAObserve {file = "\z\cbe\addons\vehicles\functions\cortexAAObserve.sqf";};
             class CortexVehicles {file = "\z\cbe\addons\vehicles\functions\cortexVehicles.sqf";};

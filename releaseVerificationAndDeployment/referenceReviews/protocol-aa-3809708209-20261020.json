@@ -566,5 +566,48 @@
         "releaseVerificationAndDeployment/test_aa_observation.py": "73e0790d6cdab43b0db4730c4e76467412452ad060e3b83d15b1a2240c6cd928"
       }
     }
+  },
+  "secondaryStationExecution20261031": {
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_PENDING",
+    "source": {
+      "workshopId": "3809708209",
+      "pboSha256": "4921491a6e4afd5b74eeaa9c009e1144e90b6103e92a6167a4e22ba0061877cf",
+      "mainSha256": "2fdeb2d597f4589a4b35eac7107db1725f84f5ced9a715e2a9bceebfcb427788",
+      "archive": "C:/Users/AdamW/Documents/AI-Reference-Archives/Protocol/20261030-aa-4921491a",
+      "reviewed": "Fresh hashes match installed PBO and protected extracted main; re-read station capability lines129-172 and native fire helper. No reference input changed."
+    },
+    "intent": "Use an appropriate occupied AA cannon station rather than treating the primary gunner alias as the only usable weapon; merge with existing warning allocation, exact station readiness, owner-local interception, measured calibration and native cleanup.",
+    "disposition": "Adapt source station-capability intent. Retain CBE loaded-state/safety/authority and bounded native-warning allocation instead of source reserve-only capability, broad scans, arbitrary projectile fire or forced radar/movement. Local UseMagazine dispatch follows the installed native BIS_fnc_fire vehicle mechanism, with unique loaded-instance and compatible-muzzle proof; do not invoke its remote action graph or copy raw source.",
+    "callPath": "Existing AAObserve IncomingMissile -> AAAllocate (four bounded receiving stations for ranking) -> AAIntercept START -> AAStationSelect -> GroundFireReady AA-only mode / AAMagazineIdentity -> immutable episode. STEP uses exact actual barrel axis, native camera acknowledgement, GroundSelectMuzzle exact-live-AA exception, fresh loaded identity and local UseMagazine for secondary, existing fireAtTarget for primary. Fired -> SHOT/effect/calibration retain selected turret. Coverage/finalizer use the same actor/path.",
+    "preserved": "Primary preference and ordinary primary ground-fire policy; exact group/epoch/route/command/fire lease; warning source and original deadline; four-platform registry; one episode/platform;160 steps,16 admission attempts,eight observed rounds; native camera retirement/irreversible unlock withdrawal; no station reselection, new worker, sensor, setting or module.",
+    "cost": "One <=32 occupied manifest per responder ranking and <=4 receiver links/track within existing8-track16-platform planner and one-second32-actor transmitter cache. START<=4 candidate stations,<=32 loaded-state reads each; secondary<=32 compatibility queries,<=16 weapons/8 muzzles and<=256 compatible classes/query,<=128 magazine rows. Secondary dispatch<=16 fresh identity queries with<=128 rows, original8s expiry. Existing50ms aim scheduler, no world scan. Actual cost unmeasured.",
+    "nativeContracts": [
+      "https://community.bistudio.com/wiki/fireAtTarget",
+      "https://community.bistudio.com/wiki/compatibleMagazines",
+      "https://community.bistudio.com/wiki/magazinesAllTurrets",
+      "https://community.bistudio.com/wiki/Arma_3:_Actions",
+      "https://community.bistudio.com/wiki/Turret_Config_Reference",
+      "Installed Arma 3/Addons/functions_f.pbo Misc/fn_fire.sqf inspected read-only to stdout; no raw member added to product."
+    ],
+    "validation": "PASS1510 repository tests,500 compiled productionSQF,11PBO/full gates;0 static performance findings; independent unsigned package verification and content checks. One new AA regression covers fallback/identity/call-path contracts. Physical behaviour and runtime cost unverified.",
+    "limits": "Requires existing local eligible primary AI gunner/group for discovery/authority; primary-absent, other-group, driver/FFV and simultaneous multi-station interception unsupported. Native actions already dispatched cannot be assumed stopped. Physical shots/accuracy/interception, native action behaviour on modded stations, casualties/reseat/Zeus/repeat/normal-HC migration and5%median/10%p95 overhead unverified; audits PAUSED. Cross-owner projectile effects, incoming-owner reconciliation and payload/submunition layers remain incomplete.",
+    "physicalAcceptance": false,
+    "hashes": {
+      "addons/vehicles/functions/cortexAAStationSelect.sqf": "5e875f4ac8c3497d40235177a4c181cc2b8823cacc516d419eb557df4d404833",
+      "addons/vehicles/functions/cortexAAMagazineIdentity.sqf": "09f23c3b1b7d0b70ed5cdc2d54bb6406f261e9d1cd7ab7babb32f578bd8bbdab",
+      "addons/vehicles/functions/cortexAAIntercept.sqf": "a372b0a0e8ee46eefcab701877864c420a98a0f114cf2848093e2acdb2bf599c",
+      "addons/vehicles/functions/cortexAAAllocate.sqf": "01675db5a49f3dde528956cdd0eb79f3102d56d4b9ffb86b34022824f08c60f3",
+      "addons/vehicles/functions/cortexAAWarningLink.sqf": "3e76f7c85bd673e0304a3c2a72068c3cd5c444ea37d97fefb824688dfc7dd52c",
+      "addons/vehicles/functions/cortexAAInterceptEffect.sqf": "e0cc1c17d3a4fc470a2a0070b0227efde396a7add8c5616d3e5b9a23788caba2",
+      "addons/vehicles/functions/cortexAASpot.sqf": "6205db7568eec66feff13b7e470094f07e287509b26436a0e87bd5a905434cdb",
+      "addons/infantry/functions/cortexGroundFireReady.sqf": "3cc8657fd7bee23e08c28df6b2e8092d7fadca54ffec3045eafc54a5c0dfe3de",
+      "addons/infantry/functions/cortexGroundSelectMuzzle.sqf": "76873d9a448f2ba2d100bd0b27bcb68d46ef5117bddc59407b5eb52e4969ea7e",
+      "addons/main/CfgFunctions.hpp": "005b494dccd8c2347d1ae0f6a2bbf9e01fe34707fde4cd106ee4b75dc53a2c4f",
+      "releaseVerificationAndDeployment/cortexQA/coverage.json": "37b619ea0089f23fa1919cdeefaf8002bf52cdafdaf3caacd3d5e006f0cad4ff",
+      "releaseVerificationAndDeployment/test_aa_observation.py": "68ba41e6f69541647b44b3daae99ca29220f1151f06bb7d1ad4fd78ca7ef1f92"
+    },
+    "candidate": ".qa/candidates/protocol-aa-secondary-station-20261031-2a96d2f9",
+    "fingerprint": "2e2e23c213dd0b66e45668a6051e96b774bccfb277027c712b5d02ff9081be5f",
+    "provenance": "Unsigned dirty base2a96d2f9 plus checked runtime/test/guide inputs; later metadata separate. Not clean signed release or physical proof."
   }
 }
