@@ -2,21 +2,33 @@
  * Author: WaldoTheWarfighter
  * Accepts the pending observer result only from its expected and current owner.
  * Locality/authority: documented guards enforce server coordination and owner-local execution.
+ * A TARGET_IGNORED refusal from that exact pending observer marks this mission for
+ * normal finite retirement before another burst. It neither fabricates a fix nor cancels
+ * already-fired shells; invalid/stale/refused-owner replies cannot set the veto.
  * Repeat/JIP: mission tokens reject stale work; server state survives HC migration, not restart.
  * Arguments: 0: battery <OBJECT>; 1: token <STRING>; 2: spotter <OBJECT>; 3: fix <ARRAY>.
  * 4: reply owner <NUMBER>, default -1; HC callers supply clientOwner.
  * 5: native observation server time <NUMBER>, default -1; missing/stale time cannot update the fix.
+ * 6: refusal STRING, default empty; only TARGET_IGNORED with empty fix is supported.
+ * 7: observation serial NUMBER, required; matches only this pending ranging exchange.
  * Return Value: Nothing.
  * Current callers: ArtilleryObserve.
- * Example: [_gun, _token, _spotter, [], clientOwner] remoteExecCall ["CBE_fnc_CortexArtilleryReport", 2];
+ * Example: [_gun, _token, _spotter, [], clientOwner, -1, "", 1] remoteExecCall ["CBE_fnc_CortexArtilleryReport", 2];
  */
-params ["_battery", "_token", "_spotter", "_fix", ["_replyOwner",-1,[0]], ["_observedAt",-1,[0]]];
+params ["_battery", "_token", "_spotter", "_fix", ["_replyOwner",-1,[0]], ["_observedAt",-1,[0]], ["_refusal","",[""]], ["_observationSerial",-1,[0]]];
 if (!isServer || {isNull _battery}) exitWith {};
 private _sender = [_replyOwner,owner _spotter] call CBE_fnc_HeadlessResolveSender;
 private _mission = (missionNamespace getVariable ["CBE_AIPass_FireMissions", createHashMap]) getOrDefault [netId _battery, createHashMap];
 if (count _mission == 0 || {(_mission get "token") != _token} || {(_mission get "phase") != "OBSERVE"}
     || {_spotter != (_mission get "spotter")} || {_sender != (_mission get "observerOwner")}
-    || {_sender != owner _spotter}) exitWith {};
+    || {_sender != owner _spotter}
+    || {!finite _observationSerial} || {_observationSerial < 1} || {_observationSerial != floor _observationSerial}
+    || {_observationSerial != (_mission getOrDefault ["observerSerial",-1])}) exitWith {};
+if ((_mission getOrDefault ["observerVeto",""]) != "") exitWith {};
+if (!(_refusal in ["","TARGET_IGNORED"])) exitWith {};
+if (_refusal == "TARGET_IGNORED") exitWith {
+    if (_fix isEqualTo []) then {_mission set ["observerVeto","TARGET_IGNORED"]};
+};
 if (count _fix == 2 && {finite _observedAt} && {_observedAt >= 0}
     && {_observedAt <= serverTime+1} && {serverTime-_observedAt <= 10}
     && {[_spotter] call CBE_fnc_CortexCombatEffective}

@@ -230,6 +230,11 @@
         "review": "protocol-artillery-3801354927-20261020.json#originalFormationReturn20261030",
         "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
         "scope": "Selected artillery FOLLOW admission and original-anchor native return integrated; group/crew preserved, no replacement anchor, no new controller. Mixed MOVE/idle/FOLLOW and pending initial native reply remain bounded; physical formation travel not proven."
+      },
+      "ignoredObserverTarget20261031": {
+        "review": "protocol-artillery-3801354927-20261020.json#ignoredObserverTarget20261031",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+        "scope": "Shared assigned observer fixes honor native target-ignore. Existing ranging exchange carries exact serial and explicit authenticated veto; finite mission retires without false COMPLETE or unresolved-shot release. No universal shot cancellation or physical claim."
       }
     },
     {

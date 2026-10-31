@@ -5245,6 +5245,40 @@ class CortexOperations(unittest.TestCase):
                      '_spotter knowsAbout _enemy < 1.5','time - (_knowledge select 2) > 5',
                      'checkVisibility','_spotter getHideFrom _enemy'):
             self.assertIn(gate,observer)
+        self.assertIn('_knowledge param [7,false,[true]]',observer)
+        self.assertIn('_position isEqualTo [0,0,0]',observer)
+        self.assertNotIn('ASLToATL _position',observer)
+        observe=source('cortexArtilleryObserve')
+        report=source('cortexArtilleryReport')
+        step=source('cortexArtilleryMissionStep')
+        self.assertIn('_observedAt, _refusal, _observationSerial] remoteExecCall',observe)
+        veto=report.split('if (_refusal == "TARGET_IGNORED") exitWith {',1)[1].split('if (count _fix == 2',1)[0]
+        self.assertIn('_fix isEqualTo []',veto)
+        self.assertIn('_mission set ["observerVeto","TARGET_IGNORED"]',veto)
+        for guard in ('(_mission get "token") != _token', '(_mission get "phase") != "OBSERVE"',
+                      '_spotter != (_mission get "spotter")', '_sender != (_mission get "observerOwner")',
+                      '_sender != owner _spotter', '_observationSerial != (_mission getOrDefault ["observerSerial",-1])'):
+            self.assertLess(report.index(guard),report.index('if (_refusal == "TARGET_IGNORED")'))
+        retirement=step.split('if ((_mission get "phase") == "OBSERVE" && {(_mission getOrDefault ["observerVeto"',1)[1].split('// Executor loss',1)[0]
+        self.assertIn('call _finish',retirement)
+        self.assertIn('_mission set ["finishReason","TARGET_IGNORED"]',retirement)
+        self.assertIn('_mission getOrDefault ["finishReason"',source('artilleryMissionStep'))
+        self.assertIn('getOrDefault ["observerVeto",""]) != ""',report)
+        self.assertIn('_mission set ["observerSerial",(_mission getOrDefault ["observerSerial",0])+1]',step)
+        self.assertLess(step.index('getOrDefault ["observerVeto"'),step.index('CBE_fnc_CortexArtilleryAim'))
+        # Refusal is distinct from lost sight, and only an original current-owner
+        # observation may retire a waiting mission; pending native rounds remain reserved.
+        def stopped(phase,token_ok=True,owner_ok=True,observer_ok=True,serial_ok=True,refusal='',fix=()):
+            accepted=phase=='OBSERVE' and token_ok and owner_ok and observer_ok and serial_ok
+            return accepted and refusal=='TARGET_IGNORED' and not fix
+        self.assertTrue(stopped('OBSERVE',refusal='TARGET_IGNORED'))
+        self.assertFalse(stopped('OBSERVE'))
+        self.assertFalse(stopped('OBSERVE',refusal='UNKNOWN'))
+        self.assertFalse(stopped('OBSERVE',refusal='TARGET_IGNORED',fix=((1,2,3),4)))
+        for phase in ('PENDING','UNCERTAIN','READY','FIRING'):
+            self.assertFalse(stopped(phase,refusal='TARGET_IGNORED'))
+        for key in ('token_ok','owner_ok','observer_ok','serial_ok'):
+            self.assertFalse(stopped('OBSERVE',refusal='TARGET_IGNORED',**{key:False}))
         self.assertNotIn(' selectWeapon ',source('cortexGroupTick'))
 
     def test_danger_recycle_never_substitutes_exact_hostile_position(self):
