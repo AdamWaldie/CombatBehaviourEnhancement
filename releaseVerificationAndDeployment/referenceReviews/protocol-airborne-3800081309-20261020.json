@@ -168,5 +168,32 @@
       "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "9d804680232481078ab9835dc48cdc663c41a7ca619e72d2ca573d252fd0916b",
       "releaseVerificationAndDeployment/test_cortex_operations.py": "4316c7017617c8aa7816f3f75e57e29ebd34d7c79cef560775daa910fd8478c8"
     }
+  },
+  "operatingCrewWithdrawal20261031": {
+    "base": "020f85bb9ada7d221fc7435ee3bb09c5db825739",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "sourcePboSHA256": "9b484e9f8b48b59ee5355f8544f96f2a8668129df0aa73403c5becdc836bff1a",
+    "sourceMainSHA256": "4bd72b47fad6cf35250fff1cbde9d01e225f8f236c35606546d8f3eee066d375",
+    "sourceTrace": "Actual installed PBO and private readable main hashes rechecked unchanged. Protocol fn_airborne separates selected cargo from operating gunners, but staggered exit only checks alive/aboard. CBE final live-seat exit gate now protects promoted crew; old original-roster tracking still waited for them and blocked real landed cargo handover.",
+    "owner": "CortexAirborneCheck original episode -> existing scheduled CortexAirborneDropStep DROP/LAND -> existing CortexAirborneGroundHandover -> actual join/waypoint acknowledgements.",
+    "change": "Immutable admission roster plus episode-local withdrawnCrew subset. At most64 occupied fullCrew rows; original living local same-group aboard actor plus actual driver or non-person operating turret identity. Positive transfers stay withdrawn for this episode after returning to cargo. DROP pending/selection and LAND/handover exclude only that subset. Original deadline stays fixed; all-withdrawn creates no squad. Any withdrawal logs incomplete original insertion and prevents completed-drop credit; remaining genuinely landed cargo may form its independent squad.",
+    "disposition": {
+      "retained": "Staggered actual cargo/FFV exit; keep operating crew and flight orders; existing finite parachute cleanup and ground-squad join.",
+      "improved": "Live crew reassignment no longer blocks other landed passengers; immutable roster, irreversible explicit withdrawal, honest partial result.",
+      "rejected": "Treating failed/unavailable passengers as landed, shrinking the original roster, renewed deadlines, reclaiming a transferred crew member, whole-flight group attack orders."
+    },
+    "engineReference": "https://community.bistudio.com/wiki/fullCrew",
+    "limits": "One additional native occupied-seat query per existing step. Engine materializes its list before the64-row inspection cap. Oversized/unknown or nonlocal observations do not withdraw actors. No timer/PFH/world scan/seat mutation or controller added. Physical repeated insertion/seat changes/HC/JIP, actual ground travel and measured cost remain unverified; audits paused.",
+    "hashes": {
+      "addons/aircraft/functions/cortexAirborneDropStep.sqf": "844b45d860283e748c28fd852c84e4ea41520afe8b43d54b716381e75739cd5f",
+      "addons/aircraft/functions/cortexAirborneGroundHandover.sqf": "2a8a675fd525dd01ca94cc9db20df6c1a6f5a2324069addba98f411c0ba83d7d",
+      "releaseVerificationAndDeployment/test_airborne_drop_fairness.py": "2365b69ad966cb5ad3011d729b28035571d4830692b605e91a67f586712c5b4b"
+    },
+    "validation": "PASS1508 tests,498 compiled SQF,11PBO; config/FSM/docs/wiki/parity/coverage/full gates;0 static performance findings; independent unsigned package/hash verification. Existing crew-handover regression extended; no new test cases.",
+    "candidate": ".qa/candidates/protocol-airborne-withdrawal-20261031-020f85bb",
+    "fingerprint": "c402d701a7f0c78e9c4f46c20d0e344be0b8a48bace2de7e23ce97efb24d0f04",
+    "provenance": "Unsigned dirty base020f85bb plus checked runtime/test/guide inputs; later metadata separate. Not a clean release, signature verification or physical evidence.",
+    "buildLog": ".qa/handovers/airborne-crew-withdrawal-20261031-build.log",
+    "independentLog": ".qa/handovers/airborne-crew-withdrawal-20261031-independent.log"
   }
 }

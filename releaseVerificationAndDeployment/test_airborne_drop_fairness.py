@@ -42,7 +42,7 @@ class AirborneDropFairnessTests(unittest.TestCase):
         self.assertNotIn('_job set ["deadline"',drop)
         landing=text.split('// LAND\n',1)[1]
         self.assertIn('_roster=_job get "jumpers"',landing)
-        self.assertIn('_roster select {alive _x && {group _x == _group}}',landing)
+        self.assertIn('_roster select {alive _x && {group _x == _group} && {!(_x in _withdrawn)}}',landing)
         self.assertIn('findIf {!(_x in _alive)} < 0',landing)
         self.assertLess(landing.index('private _groundOrderScoped='),landing.index('_group addWaypoint'))
         self.assertIn('if (_groundOrderScoped &&',landing)
@@ -120,6 +120,36 @@ class AirborneDropFairnessTests(unittest.TestCase):
         self.assertEqual(joined,{'cargo-a','cargo-b'})
         self.assertEqual(current-joined,{'dead-cargo','pilot','gunner','late-arrival'})
         self.assertNotEqual(len(joined-{'cargo-b'}),len(joined)) # Partial join cannot count as full.
+
+        # A positively observed operating-seat transfer is irreversible within the
+        # old episode; temporary care/locality/exit refusals remain pending instead.
+        observation=step.split('// Keep the admission roster immutable.',1)[1].split('if ((_job get "phase") == "DROP")',1)[0]
+        for proof in ('fullCrew [_aircraft,"",false]', 'count _seats <= 64',
+                      'driver _aircraft == _occupant', '!_personTurret',
+                      '_aircraft turretUnit _turretPath == _occupant', 'local _occupant',
+                      'group _occupant == _group', 'vehicle _occupant == _aircraft',
+                      '_occupant in _originalRoster', '_withdrawn pushBackUnique _occupant'):
+            self.assertIn(proof,observation)
+        self.assertNotIn('_job set ["jumpers"',step)
+        self.assertNotIn('assignedVehicleRole',observation)
+        self.assertIn('_roster=_roster-_withdrawn',helper)
+        self.assertLess(helper.index('_roster=_roster-_withdrawn'),helper.index('private _mixed='))
+        self.assertIn('&& {_withdrawn isEqualTo []}',step)
+        self.assertIn('withdrawn to crew %3',step)
+        original={'landed-a','landed-b','promoted','temporarily-busy'}
+        withdrawn=set()
+        withdrawn.update({'promoted'} & original)
+        self.assertEqual(original-withdrawn,{'landed-a','landed-b','temporarily-busy'})
+        # A later cargo-seat snapshot does not erase the witnessed withdrawal.
+        withdrawn.update(set())
+        self.assertNotIn('promoted',original-withdrawn)
+        landed={'landed-a','landed-b'}
+        self.assertFalse((original-withdrawn)<=landed)
+        landed.add('temporarily-busy')
+        self.assertTrue((original-withdrawn)<=landed)
+        self.assertFalse(not withdrawn)  # Ground handover is not full-roster success.
+        self.assertEqual(original,{'landed-a','landed-b','promoted','temporarily-busy'})
+        self.assertFalse(original-original)  # All withdrawn: no ground squad to create.
 
     def test_attempt_advances_before_exit_and_only_acceptance_refreshes_hold(self):
         text=(ROOT/'addons/aircraft/functions/cortexAirborneDropStep.sqf').read_text()

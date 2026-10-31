@@ -2802,9 +2802,12 @@ Existing actor availability, native STOP/post, original route and one-shot reque
 
 ### Airborne landing roster and mixed groups
 
-Insertion landing tracks the original cargo roster still belonging to the insertion group. Pilots, operating crew and later group arrivals do not become jumpers or prevent the inserted passengers from completing their landing observation. An original passenger still airborne or aboard remains pending until the original deadline; departed actors receive no recall.
+Insertion landing tracks the original cargo roster still belonging to the insertion group. Pilots, operating crew and later group arrivals do not become jumpers or prevent the inserted passengers from completing their landing observation. An original passenger still airborne or aboard remains pending until the original deadline; departed actors receive no recall. The exception is a positively observed transfer into a driver or operating turret seat in the original aircraft: that actor withdraws from this insertion episode and is never ejected, counted as landed or reclaimed if later moved back to cargo. FFV seats remain passenger seats. A local actor plus matching actual driver/turret occupancy is required; failed exits, care, reservations and missing locality do not withdraw anyone. The original roster and deadline remain unchanged.
 
 The fallback SAD waypoint is group-wide, so it is permitted only when every living current member belongs to that landed cargo. Mixed crew/cargo groups and groups with later nonparticipant arrivals receive no fallback waypoint. Existing authored routes and external control still take priority. Completing cargo tracking does not establish a mixed-group ground-combat handover, parachute deployment quality or physical acceptance. Repeated insertion, normal/headless locality and performance remain unverified while audits are paused.
+
+
+Landed remaining cargo can still form its independent ground squad while withdrawn crew retain the flight group and route. Any withdrawal reports an incomplete original insertion, including landed/withdrawn counts and ground-handover status, and does not increment the completed-drop counter. An all-withdrawn roster creates no ground squad. One occupied-seat query is added to the existing finite drop/landing step, inspecting at most64 rows; no new scan, worker, controller, setting or module is introduced. Actual seat-transfer replication, repeated use and cost remain unverified.
 
 
 ### Loaded launcher selection and forward fire safety

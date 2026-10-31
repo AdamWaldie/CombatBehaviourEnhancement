@@ -163,6 +163,11 @@
         "review": "protocol-airborne-3800081309-20261020.json#actualSeatExit20261030",
         "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
         "scope": "Final actual cargo/FFV occupancy and native protected-task/STOP checks prevent queued exit from ejecting a promoted flight operator. Current exit geometry sampled inside unscheduled admission; existing finite deployment and original roster/deadlines retained."
+      },
+      "operatingCrewWithdrawal20261031": {
+        "review": "protocol-airborne-3800081309-20261020.json#operatingCrewWithdrawal20261031",
+        "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+        "scope": "Positive actual passenger-to-crew transfers withdraw irreversibly from the old episode without rewriting original roster or deadline. Remaining landed cargo can use existing ground-squad handover; withdrawn actors are never credited as landed/full success."
       }
     },
     {
