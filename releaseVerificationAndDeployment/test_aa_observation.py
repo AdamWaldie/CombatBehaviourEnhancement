@@ -274,6 +274,10 @@ class AAObservation(unittest.TestCase):
         self.assertLess(step.index('_job getOrDefault ["token",""]'),step.index('if (_state getOrDefault ["finished",false])'))
         for name in ('cortexAAInterceptEffect','cortexAASpot'):
             self.assertIn('_episode getOrDefault ["finished",false]',(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text())
+            live=(ROOT/f'addons/vehicles/functions/{name}.sqf').read_text()
+            self.assertIn('_liveEpisode getOrDefault ["finished",false]',live)
+            self.assertIn('_liveEpisode getOrDefault ["token",""]',live)
+
 
         observer=(ROOT/'addons/vehicles/functions/cortexAAObserve.sqf').read_text()
         self.assertLess(observer.index('_retiring getOrDefault ["finished",false]'),observer.index('if (_eligible && {_current})'))

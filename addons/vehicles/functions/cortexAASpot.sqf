@@ -22,7 +22,11 @@ private _gunner=_episode getOrDefault ["gunner",objNull];private _group=_episode
 private _missile=_episode getOrDefault ["missile",objNull];
 private _until=_episode getOrDefault ["until",-1];
 private _turret=_episode getOrDefault ["turret",[]];
-if (remoteExecutedOwner > 0 || {_episode getOrDefault ["finished",false]} || {isNull _vehicle} || {isNull _gunner} || {isNull _missile}
+private _liveEpisode=_vehicle getVariable ["CBE_AA_Intercept",createHashMap];
+if (remoteExecutedOwner > 0 || {_episode getOrDefault ["finished",false]}
+    || {!(_liveEpisode isEqualType createHashMap)} || {_liveEpisode getOrDefault ["finished",false]}
+    || {(_episode getOrDefault ["token",""]) == ""}
+    || {(_liveEpisode getOrDefault ["token",""]) != (_episode getOrDefault ["token",""])} || {isNull _vehicle} || {isNull _gunner} || {isNull _missile}
     || {!local _vehicle} || {!local _gunner} || {!local _missile}
     || {gunner _vehicle != _gunner} || {!(_turret isEqualType [])}
     || {count _turret < 1} || {count _turret > 8}

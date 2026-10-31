@@ -32,6 +32,7 @@ private _victim=_episode getOrDefault ["victim",_vehicle];
 private _token=_episode getOrDefault ["token",""];
 private _turret=_episode getOrDefault ["turret",[]];
 private _until=_episode getOrDefault ["until",-1];
+private _liveEpisode=_vehicle getVariable ["CBE_AA_Intercept",createHashMap];
 if (isNull _victim || {!alive _victim} || {isNull _round} || {isNull _missile} || {isNull _vehicle} || {isNull _gunner} || {isNull _source}
     || {!local _round} || {!local _missile} || {!local _vehicle} || {!local _gunner} || {!local _group}
     || {!alive _round} || {!alive _missile} || {!alive _vehicle}
@@ -43,9 +44,11 @@ if (isNull _victim || {!alive _victim} || {isNull _round} || {isNull _missile} |
     || {time >= _until} || {time-_at <= 0} || {time-_at > 0.1}
     || {(_group getVariable ["CBE_AIPass_Epoch",0]) != (_episode getOrDefault ["ownerEpoch",-1])}
     || {(_gunner getVariable ["CBE_AA_InterceptOwner",[]]) isNotEqualTo [_token,_until]}
-    || {((_vehicle getVariable ["CBE_AA_Intercept",createHashMap]) getOrDefault ["token",""]) != _token}
+    || {!(_liveEpisode isEqualType createHashMap)}
+    || {_liveEpisode getOrDefault ["finished",false]}
+    || {(_liveEpisode getOrDefault ["token",""]) != _token}
     || {!isNil {_missile getVariable "CBE_AA_FuseReceipt"}}
-    || {(_episode getOrDefault ["rounds",[]]) findIf {(_x select 0) == _round && {_x isEqualTo _row}} < 0}
+    || {(_liveEpisode getOrDefault ["rounds",[]]) findIf {(_x select 0) == _round && {_x isEqualTo _row}} < 0}
     || {!([_gunner,_token] call CBE_fnc_CortexActorFireTaskAvailable)}
     || {!(_gunner checkAIFeature "FIREWEAPON")}
     || {!(combatMode _group in ["YELLOW","RED"])} || {!(unitCombatMode _gunner in ["YELLOW","RED"])}

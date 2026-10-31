@@ -532,6 +532,22 @@
       "addons/vehicles/functions/cortexAASpot.sqf": "7465085a216e4e93b842e20574956ae8bb91ba4d0cc9d2bb1b819defa0104c84",
       "addons/infantry/functions/cortexActorFireTaskAvailable.sqf": "0f59f461112b742b29bc91c64f4e5391382963d6c93a689b668be911f7d3aa59",
       "releaseVerificationAndDeployment/test_aa_observation.py": "4cbb0b13741ef3127e765d9b7f0f879988e0d30f572fd8d400d6b4d8243f8eff"
+    },
+    "liveCustodyFollowup": {
+      "base": "baf111be4731702bbbca32cf3136e2737d1ab2bc",
+      "status": "IMPLEMENTED_OFFLINE_VERIFIED_NATIVE_PHYSICAL_UNVERIFIED",
+      "finding": "A copied pre-retirement context need not see its original HashMap finished flag. Passed-context checks alone cannot establish live custody while a finished original camera record remains stored.",
+      "change": "Fuse and calibration readers also check the actual stored live episode token and finished state. Fuse must find its captured row in the live episode, not only the supplied snapshot. Current real callers continue to supply the same admitted episode; expired/copied/replaced inputs cannot borrow retired custody.",
+      "validation": "PASS1508 tests,498SQF,11PBO/full gates;0 static performance findings; independent unsigned verifier. Existing AA regression extended without new cases. Previous checkpoint/candidate remains historical; this followup closes the identified live-state gap.",
+      "candidate": ".qa/candidates/protocol-aa-live-retirement-20261031-baf111be",
+      "fingerprint": "23af3e88432e2a0be6a5f1b451d507c99f840b9d30e9bbd4470520090fd13dc7",
+      "provenance": "Unsigned dirty basebaf111be plus checked runtime/test/guide inputs, later metadata separate; not clean release/signature/physical proof.",
+      "limits": "Cross-owner reconciliation/native camera/effect ordering/normal-HC/JIP/Zeus/repeat/performance remain unverified; audits paused.",
+      "hashes": {
+        "addons/vehicles/functions/cortexAAInterceptEffect.sqf": "a4b6a1f1ed909cc9fcf15ef368245339a35c25872820ce954becda9034ca87b7",
+        "addons/vehicles/functions/cortexAASpot.sqf": "f4eb8ba70f0fb693394d6eeef830dd02daf1922c659d6fd5b765a4f05a978de1",
+        "releaseVerificationAndDeployment/test_aa_observation.py": "ff76047e970f0d5382afdd1ab33e731b36ccd56ab3f7c59f240535aa8429b6b5"
+      }
     }
   }
 }
