@@ -351,7 +351,7 @@
       "parameters": [
         "EMIT or STOP",
         "radius50..100000m in UI; raw server API1..100000",
-        "explicit affected AI sides",
+        "FIXED selected AI sides (default) or RADAR_HOSTILES explicitly designated active-radar asset with live mutual hostility",
         "serial and12s expiry transport guards"
       ],
       "handlers": [
@@ -363,7 +363,7 @@
       ],
       "executor": "CBE_fnc_CortexJammingField",
       "authority": "Actual remote owner must have an assigned curator and editable emitter; server revalidates keys/types/bounds/expiry/serial, then atomically applies field and receipt. Raw client bypass refuses.",
-      "termination": "STOP removes field; emitter death/deletion stops effect when observed by querying owners. Passive current snapshot supports JIP, no old command replay.",
+      "termination": "STOP removes field; emitter death/deletion stops effect. RADAR_HOSTILES is dormant while radar off, crew absent/dead/offboard, emitter hidden/non-simulated or sides not mutually hostile; queries use current state. Passive snapshot supports JIP; no historical command replay.",
       "guide": "docs/Smart-AI-Pass.md",
       "physical_acceptance": "unverified; native/optional ZEN dialog, authority/replay/expiry, movement/deletion,JIP/HC and actual AI report denial pending while audits paused"
     }

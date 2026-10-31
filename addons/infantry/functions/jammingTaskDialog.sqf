@@ -1,6 +1,8 @@
 /*
  * Author: WaldoTheWarfighter
- * Purpose: Native Zeus task dialog for an explicit emitter, radius and affected AI sides.
+ * Purpose: Native Zeus task dialog for explicit emitter, range and fixed-side/radar-linked policy.
+ * Radar-linked mode is an explicit gameplay designation, not automatic radar classification.
+ * It requires configured active radar; live emission and crew/hostility govern queries.
  * Locality/authority: Interface only; named confirmation goes through CortexJammingField's
  * authenticated server path. No addon setting or player radio/voice control is changed.
  * Repeat/JIP: One display context; cancel sends nothing, confirm disables itself. Server
@@ -34,7 +36,7 @@ private _make={
     _control
 };
 private _background=_display ctrlCreate ["RscText",-1];
-_background ctrlSetPosition [_left,_top-0.02*safeZoneH,_width,0.70*safeZoneH];
+_background ctrlSetPosition [_left,_top-0.02*safeZoneH,_width,0.80*safeZoneH];
 _background ctrlSetBackgroundColor [0.06,0.07,0.06,0.98];_background ctrlCommit 0;
 ["RscText",-1,0,0.04,"AI radio-denial task"] call _make;
 ["RscText",-1,0.05,0.03,"Task action"] call _make;
@@ -46,9 +48,14 @@ _action ctrlSetTooltip "Only CBE AI radio checks are affected. Player voice, ACR
 private _radius=["RscCombo",7262,0.17,0.04] call _make;
 {_radius lbAdd str _x} forEach _radii;_radius lbSetCurSel 2;
 _radius ctrlSetTooltip "Field follows this emitter's current position. Destruction/deletion removes its effect; no movement controller is created.";
-["RscText",-1,0.23,0.03,"Affected AI sides (select at least one to start)"] call _make;
+["RscText",-1,0.23,0.03,"Emission policy"] call _make;
+private _policy=["RscCombo",7265,0.26,0.04] call _make;
+{_policy lbAdd _x} forEach ["Fixed: selected AI sides","Active radar: mutually hostile AI sides"];
+_policy lbSetCurSel 0;
+_policy ctrlSetTooltip "Fixed uses the sides below. Radar mode ignores those choices and follows native radar on/off and current onboard crew side; only explicitly selected active-radar assets qualify.";
+["RscText",-1,0.32,0.03,"Affected AI sides (fixed policy only)"] call _make;
 {
-    private _row=0.27+_forEachIndex*0.055;
+    private _row=0.36+_forEachIndex*0.055;
     private _box=_display ctrlCreate ["RscCheckbox",7270+_forEachIndex];
     _box ctrlSetPosition [_left+0.02,_top+_row*safeZoneH,0.035,0.04*safeZoneH];
     _box cbSetChecked false;_box ctrlCommit 0;
@@ -57,8 +64,13 @@ _radius ctrlSetTooltip "Field follows this emitter's current position. Destructi
     _label ctrlCommit 0;
     _label ctrlSetTooltip "Select only sides whose AI radio traffic this emitter should deny. Voice can still work at close range.";
 } forEach ["BLUFOR","OPFOR","Independent","Civilian"];
-private _confirm=["RscButton",7263,0.53,0.045,"Issue task"] call _make;
-private _cancel=["RscButton",7264,0.59,0.04,"Cancel"] call _make;
+_policy ctrlAddEventHandler ["LBSelChanged",{
+    params ["_control","_selected"];
+    private _display=ctrlParent _control;
+    for "_index" from 0 to 3 do {(_display displayCtrl (7270+_index)) ctrlEnable (_selected == 0)};
+}];
+private _confirm=["RscButton",7263,0.64,0.045,"Issue task"] call _make;
+private _cancel=["RscButton",7264,0.70,0.04,"Cancel"] call _make;
 _cancel ctrlAddEventHandler ["ButtonClick",{(ctrlParent (_this select 0)) closeDisplay 2}];
 _confirm ctrlAddEventHandler ["ButtonClick",{
     params ["_button"];
@@ -66,18 +78,21 @@ _confirm ctrlAddEventHandler ["ButtonClick",{
     (_display getVariable ["CBE_jammingChoices",[]]) params ["_emitter","_radii"];
     private _action=lbCurSel (_display displayCtrl 7261);
     private _radiusIndex=lbCurSel (_display displayCtrl 7262);
+    private _policyIndex=lbCurSel (_display displayCtrl 7265);
     private _sides=[];
     {if (cbChecked (_display displayCtrl (7270+_forEachIndex))) then {_sides pushBack _x}}
         forEach [west,east,resistance,civilian];
     if (isNull _emitter || {!(_action in [0,1])} || {_radiusIndex < 0}
-        || {_radiusIndex >= count _radii} || {_action == 0 && {_sides isEqualTo []}}) exitWith {
-        ["AI RADIO DENIAL","Select an emitter, radius and affected sides before starting.","ERROR"] call CBE_fnc_AITweaksNotifyLocal
+        || {_radiusIndex >= count _radii} || {!(_policyIndex in [0,1])}
+        || {_action == 0 && {_policyIndex == 0} && {_sides isEqualTo []}}) exitWith {
+        ["AI RADIO DENIAL","Select emitter, radius and policy. Fixed fields also need affected sides.","ERROR"] call CBE_fnc_AITweaksNotifyLocal
     };
     private _serial=(missionNamespace getVariable ["CBE_EW_LocalSerial",0])+1;
     missionNamespace setVariable ["CBE_EW_LocalSerial",_serial];
     _button ctrlEnable false;
     private _submitted=[["mode",["EMIT","STOP"] select (_action == 1)],
         ["emitter",_emitter],["radius",_radii select _radiusIndex],["sides",_sides],
+        ["policy",["FIXED","RADAR_HOSTILES"] select _policyIndex],
         ["serial",_serial],["expires",serverTime+10]] call CBE_fnc_CortexJammingField;
     if (_submitted) then {_display closeDisplay 1} else {
         _button ctrlEnable true;

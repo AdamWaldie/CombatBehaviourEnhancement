@@ -82,12 +82,13 @@
     }
   },
   "currentProductHashes": {
-    "addons/infantry/functions/cortexJammingField.sqf": "01b3ea6d8c683a90fa1ce21430ff614d787d0e58f47ab4f14968902006bbf46c",
+    "addons/infantry/functions/cortexJammingField.sqf": "ea0c55728226b95f389293403d1fc0cc17bb162e6ac13859f390ef73fb9f0fae",
     "addons/infantry/functions/moduleJamming.sqf": "b48f95290848f01ac3ca2777e9b3dc8cf35bf5bdb286a2b664283dd458cd0284",
-    "addons/infantry/functions/jammingTaskDialog.sqf": "2cd36e55623283ca55a0822fb1cdd0a40314f432acb37079aea009817f6c7a8d",
+    "addons/infantry/functions/jammingTaskDialog.sqf": "41d5a4020abefdc273deb22dcde018f7a75df59b7980a1b00ad297f81ee31fab",
     "addons/main/CfgFunctions.hpp": "e74fa383d01ffea4d3bd5e7cf278b8307549a48fffcba0dbb33503e0d0bf8fb4",
     "addons/main/config.cpp": "9ba7a8a76c801b70f9dce4158f8c04a57a504c1a24648ed3dbce9bf89dfbcbd4",
-    "addons/main/bootstrap/zenRegister.sqf": "38c1f0decf2a8785f4e8c93c21cebcfebf7cfb6cffbd003fa94f59efbddb4814"
+    "addons/main/bootstrap/zenRegister.sqf": "38c1f0decf2a8785f4e8c93c21cebcfebf7cfb6cffbd003fa94f59efbddb4814",
+    "addons/infantry/functions/cortexJammingFactor.sqf": "1ff0681203e1c120670e7e41cf3013a1637dee7bdc6ccf6c8844fd8531aba3ee"
   },
   "initialProductHashesBeforeCuratorTask20261030": {
     "addons/infantry/functions/cortexJammingField.sqf": "194b28d143990f9e89affa3e86fe5b714bc67bca985358670b0655380f691537",
@@ -109,5 +110,40 @@
         "current": "e74fa383d01ffea4d3bd5e7cf278b8307549a48fffcba0dbb33503e0d0bf8fb4"
       }
     }
+  },
+  "radarLinkedPolicy20261031": {
+    "base": "de732ba118e4eace8986f7ba691bdbd5e5a631e8",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_PHYSICAL_UNVERIFIED",
+    "sourceMainSHA256": "37562e35095ecff8218fbfcb52144ecb28261cd0d361c6dbfe3cbfdd4816bbdf",
+    "sourcePboSHA256": "3d3a9989c397cbdd97a3d792df7c5b1dee9c40c9318f6e1d09daaeb72fb7951b",
+    "sourceTrace": "Fresh private readable header/_isRadar reviewed and hash rechecked unchanged. Protocol _isRadar infers any active/passive radar, radarType or broad name substrings then global player/UAV effects. Retain dynamic emitter intent; reject automatic radar-as-jammer classification, player voice/channel mutations, fake ACRE variables and forced UAV physics.",
+    "owner": "Existing native/optional ZEN JammingTaskDialog -> authenticated atomic CortexJammingField server snapshot -> CortexJammingFactor called by existing AI radio communication owners. Fixed server positional API preserved; no new module/controller.",
+    "change": "Optional RADAR_HOSTILES per-task policy explicitly designates selected configured active-radar asset. Native live emission, current actual onboard commander side, mutual friendship threshold, distance and emitter simulation/visibility/life govern future queries. Default FIXED retains existing three-field snapshots/selected sides. Radar rows add policy descriptor; at most32 fields. Named seven-key task validates policy on server and includes it in replay identity; side choices disabled in radar UI mode.",
+    "disposition": {
+      "retained": "Dynamic local interference tied to current emitter and faction; reports/support continue through existing shared communication owners.",
+      "combined": "Existing explicit field/Zeus behaviour task with native configured active radar plus actual live radar/crew and bilateral friendship evidence.",
+      "improved": "Operator explicitly designates EW capability; no global discovery/movement owner. Radar off/on, crew loss/capture, alliance changes and position alter next query; passive-only/name-matched objects do not qualify.",
+      "rejected": "Treating all radars as jammers by fuzzy names, forced activation, player/voice/UAV interference or per-unit restoration workers."
+    },
+    "engineReferences": [
+      "https://community.bistudio.com/wiki/listVehicleSensors",
+      "https://community.bistudio.com/wiki/isVehicleRadarOn",
+      "https://community.bistudio.com/wiki/effectiveCommander"
+    ],
+    "cost": "Radar-only registration materializes configured sensors then inspects <=32 rows. Factor <=32 fields; distance before native radar and commander/bilateral friendship. No worker/EH/PFH/world scan/timer/new network stream; existing snapshot/reply messages carry policy.",
+    "limits": "Explicit gameplay designation, not physical radar jamming model or automatic discovery. Native radar state/crew/position replication may lag across owners. No ACRE/TFAR player radio integration, frequency/power/terrain attenuation, native UAV link effects or cancellation of delivered orders. Actual UI/native-ZEN/server/normal-HC/JIP/dynamic EW/balance and5%median/10%p95 cost unverified; audits paused.",
+    "hashes": {
+      "addons/infantry/functions/cortexJammingField.sqf": "ea0c55728226b95f389293403d1fc0cc17bb162e6ac13859f390ef73fb9f0fae",
+      "addons/infantry/functions/cortexJammingFactor.sqf": "1ff0681203e1c120670e7e41cf3013a1637dee7bdc6ccf6c8844fd8531aba3ee",
+      "addons/infantry/functions/jammingTaskDialog.sqf": "41d5a4020abefdc273deb22dcde018f7a75df59b7980a1b00ad297f81ee31fab",
+      "releaseVerificationAndDeployment/test_group_communication.py": "492de0df302a0a80fe59f55d39a231e99fe02f4eeb76dcd20569962df2f492b0",
+      "releaseVerificationAndDeployment/behaviour_module_contracts.json": "46393a5ea3b9246b485456cf53a022a8c3e485fed5ed5449f7cb0a644dc8486d"
+    },
+    "validation": "PASS1508 tests,498 compiled SQF,11PBO/full gates;0 static performance findings; independent unsigned package/hash verification. Six focused existing communication tests passed; existing regression extended, no new cases. Initial edit quote typo corrected before compilation/full gates.",
+    "candidate": ".qa/candidates/protocol-jamming-radar-policy-20261031-de732ba1",
+    "fingerprint": "98a7a960b5174a1a4ba9d54f23165247263fdee5bad898a841f760f2fcc7b893",
+    "provenance": "Unsigned dirty basede732ba1 plus checked runtime/test/guide/module-contract inputs; later metadata separate. Not clean release/signature or physical evidence.",
+    "buildLog": ".qa/handovers/jamming-radar-policy-20261031-build.log",
+    "independentLog": ".qa/handovers/jamming-radar-policy-20261031-independent.log"
   }
 }

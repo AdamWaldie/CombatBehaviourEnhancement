@@ -159,8 +159,8 @@ class GroupCommunicationTests(unittest.TestCase):
             self.assertIn(proof,field)
         # Curator tasks authenticate in the same atomic field owner; raw remote bypass stays refused.
         for proof in ('isNil {','_sender > 2 && {isNull _curator}',
-                      '_emitter in curatorEditableObjects _curator','count _this != 6',
-                      'count (_keys arrayIntersect _keys) != 6','_expires <= serverTime',
+                      '_emitter in curatorEditableObjects _curator','count _this != 7',
+                      'count (_keys arrayIntersect _keys) != 7','_expires <= serverTime',
                       '_expires > serverTime+12','_payload isEqualTo (_previous select 1)',
                       'count _receipts >= 64','_sender > 0 && {_sender != 2}'):
             self.assertIn(proof,field)
@@ -170,7 +170,7 @@ class GroupCommunicationTests(unittest.TestCase):
         self.assertIn('call CBE_fnc_CortexJammingField',dialog)
         self.assertIn('deleteVehicle _logic',module)
         self.assertNotIn('nearest',module)
-        for key in ('mode','emitter','radius','sides','serial','expires'):
+        for key in ('mode','emitter','radius','sides','policy','serial','expires'):
             self.assertIn('["'+key+'",',dialog)
             self.assertIn('_task get "'+key+'"',field)
         self.assertIn('isNull _emitter',dialog)
@@ -180,8 +180,37 @@ class GroupCommunicationTests(unittest.TestCase):
         self.assertNotIn('CBA_fnc_setSetting',dialog)
         for proof in ('count _fields > 32','_side in (_row select 2)',
                       'alive (_row select 0)','getPosASL (_row select 0)',
-                      'vectorDistance','exitWith {_factor=1}'):
+                      'vectorDistance','if (_factor == 1) exitWith {}'):
             self.assertIn(proof,factor)
+        # Optional radar-linked emission uses actual native state and live mutual
+        # hostility; fixed-side props retain the original three-field shape.
+        self.assertIn('params ["_emitter","_enabled",["_radius",200],["_sides",[]],["_policy","FIXED"]]',field)
+        self.assertIn('listVehicleSensors _emitter',field)
+        self.assertIn('count _sensors > 32',field)
+        self.assertIn('"ActiveRadarSensorComponent"',field)
+        self.assertIn('_emitter,true,_radius,_sides,_policy',field)
+        self.assertIn('[_mode,_emitter,_radius,+_sides,_policy]',field)
+        self.assertIn('[_emitter,_radius,_affected]',field)
+        for proof in ('isVehicleRadarOn _emitter','effectiveCommander _emitter',
+                      'vehicle _commander == _emitter','simulationEnabled _emitter','isObjectHidden _emitter',
+                      '_emitterSide getFriend _side < 0.6','_side getFriend _emitterSide < 0.6'):
+            self.assertIn(proof,factor)
+        self.assertLess(factor.index('vectorDistance'),factor.index('isVehicleRadarOn'))
+        self.assertIn('"FIXED","RADAR_HOSTILES"',dialog)
+        self.assertIn('LBSelChanged',dialog)
+        self.assertIn('ctrlEnable (_selected == 0)',dialog)
+        def radar_denies(distance=100,radius=200,radar=True,onboard=True,alive=True,
+                         simulated=True,hidden=False,crew_side='EAST',friend_out=0,friend_in=0):
+            return distance<=radius and radar and onboard and alive and simulated and not hidden and crew_side in ('WEST','EAST','GUER') and friend_out<0.6 and friend_in<0.6
+        self.assertTrue(radar_denies())
+        self.assertTrue(radar_denies(distance=200))
+        for args in ({'radar':False},{'onboard':False},{'alive':False},{'simulated':False},
+                     {'hidden':True},{'crew_side':'CIV'},{'distance':201},
+                     {'friend_in':0.6},{'friend_out':0.6},{'friend_in':1},{'friend_out':1}):
+            self.assertFalse(radar_denies(**args))
+        # Restored radar/crew/hostility is read afresh; no cached previous denial.
+        self.assertFalse(radar_denies(radar=False))
+        self.assertTrue(radar_denies(radar=True))
         for worker in ('spawn','sleep','addPerFrameHandler','allUnits','vehicles select',
                        'setVelocity','engineOn','enableChannel','enableRadio'):
             self.assertNotIn(worker,field)
