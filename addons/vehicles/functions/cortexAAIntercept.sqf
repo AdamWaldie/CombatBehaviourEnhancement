@@ -26,6 +26,7 @@
  * Measured stable-track miss calibration may adjust later aim through bounded CortexAASpot.
  * Shot calibration uses first observed projectile position, not an assumed first-barrel origin.
  * Exact unchanged camera point may be unlocked; successor locks/orders/crew always win.
+ * Observed crew/group/locality/lease or external takeover permanently withdraws unlock permission.
  * Cleanup retains exact fire-owner proof and current actor/platform external-control gates,
  * independently of feature enablement and original epoch. Yielding does not cancel native fire.
  * Arguments: 0 vehicle OBJECT,objNull; 1 mode STRING,START (START/STEP/SHOT/RELEASE);
@@ -67,6 +68,19 @@ private _finish={
             private _releaseGroup=group _actor;
             _state set ["finished",true];
             if !("finishReason" in _state) then {_state set ["finishReason",_reason]};
+            private _mayUnlock=!(_state getOrDefault ["unlockWithdrawn",false])
+                && {!isNull _actor} && {local _actor} && {local _vehicle}
+                && {gunner _vehicle == _actor} && {_vehicle turretUnit _turret == _actor}
+                && {_vehicle turretLocal _turret}
+                && {!isNull _releaseGroup} && {local _releaseGroup}
+                && {_releaseGroup == (_state get "group")}
+                && {(_actor getVariable ["CBE_AA_InterceptOwner",[]]) isEqualTo [_token,_state get "until"]}
+                && {!([_releaseGroup,false,_actor] call CBE_fnc_CortexExternalTakeover)}
+                && {!([_vehicle] call CBE_fnc_CompatibilityExternalControl)};
+            // Observed takeover, seat/group/locality or lease loss permanently removes
+            // this episode's native-write permission, even if the same actor later returns.
+            // Passive absence/replacement observation below does not need that permission.
+            if (!_mayUnlock) then {_state set ["unlockWithdrawn",true]};
             private _cameraGone=_applied isEqualTo [];
             if (!_cameraGone && {local _vehicle} && {_vehicle turretLocal _turret}) then {
                 private _lock=_vehicle lockedCameraTo _turret;
@@ -81,13 +95,7 @@ private _finish={
                 _cameraGone=call _absent;
                 if (!_cameraGone && {!isNil "_lock"} && {_lock isEqualTo _applied}
                     && {!(_state getOrDefault ["unlockAttempted",false])}
-                    && {time <= (_state get "until")+30}
-                    && {!isNull _actor} && {local _actor} && {gunner _vehicle == _actor}
-                    && {_vehicle turretUnit _turret == _actor}
-                    && {!isNull _releaseGroup} && {local _releaseGroup}
-                    && {(_actor getVariable ["CBE_AA_InterceptOwner",[]]) isEqualTo [_token,_state get "until"]}
-                    && {!([_releaseGroup,false,_actor] call CBE_fnc_CortexExternalTakeover)}
-                    && {!([_vehicle] call CBE_fnc_CompatibilityExternalControl)}) then {
+                    && {time <= (_state get "until")+30} && {_mayUnlock}) then {
                     // Consume before the only native clear. Later discovery observes only.
                     _state set ["unlockAttempted",true];
                     _vehicle lockCameraTo [objNull,_turret,false];

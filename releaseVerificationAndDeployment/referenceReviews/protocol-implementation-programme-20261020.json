@@ -341,7 +341,8 @@
         "review": "protocol-aa-3809708209-20261020.json#nativeCameraRetirement20261031",
         "status": "IMPLEMENTED_OFFLINE_VERIFIED_NATIVE_PHYSICAL_UNVERIFIED",
         "scope": "Own native camera readback gates exact retirement; one unlock request; finished-state all-writer refusal; existing discovery observes pending state, and the affected station cannot bypass it on lease expiry. Cross-owner reconciliation and physical handover remain unverified.",
-        "latestFollowup": "Live stored token/finished state also gates fuse/calibration, and captured rounds must remain in actual live custody; see liveCustodyFollowup. Offline verified only."
+        "latestFollowup": "Live stored token/finished state also gates fuse/calibration, and captured rounds must remain in actual live custody; see liveCustodyFollowup. Offline verified only.",
+        "authorityWithdrawal": "Observed original crew/group/locality/lease/external authority loss permanently withdraws the old unlock permission. Native absence/successor observation still retires passively; ordinary feature/epoch cleanup preserved. Offline verified, physical/incoming-owner handover unverified."
       }
     },
     {

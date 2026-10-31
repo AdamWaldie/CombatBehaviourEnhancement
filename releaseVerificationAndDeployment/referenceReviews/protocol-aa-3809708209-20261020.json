@@ -548,6 +548,23 @@
         "addons/vehicles/functions/cortexAASpot.sqf": "f4eb8ba70f0fb693394d6eeef830dd02daf1922c659d6fd5b765a4f05a978de1",
         "releaseVerificationAndDeployment/test_aa_observation.py": "ff76047e970f0d5382afdd1ab33e731b36ccd56ab3f7c59f240535aa8429b6b5"
       }
+    },
+    "authorityWithdrawal": {
+      "base": "1627defbc9f4c44f2b5a806970b246d3b7f369c3",
+      "status": "IMPLEMENTED_OFFLINE_VERIFIED_NATIVE_PHYSICAL_UNVERIFIED",
+      "finding": "Repeated finalization re-evaluated only present control. An observed player/Zeus/provider/crew/group/locality/lease loss could block one cleanup call then allow the same old receipt to unlock after control returned. Current group was not explicitly tied to original group.",
+      "change": "One-way unlockWithdrawn is retained in the exact original finished episode after observed authority loss; no returning actor/seat/host can revive permission. Original group identity is mandatory. Exact native no-lock/different-target observation can still passively retire metadata. Feature-disable/epoch cleanup remains independent when actual original actor/station/group/lease/control are intact.",
+      "disposition": "Reuse the irreversible observed-loss principle already used by controlled pose custody inside the existing AA finalizer; no provider wrapper, alternative controller, new callback or copied source. This is a current CBE lifecycle fix, not fresh whole-source review or Protocol parity.",
+      "validation": "PASS1508 tests,498SQF,11PBO/full gates;0 static performance findings; independent unsigned verification. Existing AA contract extended with authority-loss/return sequence and passive absence cases; no new tests.",
+      "candidate": ".qa/candidates/protocol-aa-cleanup-withdrawal-20261031-1627defb",
+      "fingerprint": "302f124d231aa01d8c7d17b628a6c087053834bc7f64f6a30776bf850c801fcf",
+      "provenance": "Unsigned dirty base1627defb plus checked runtime/test/guide inputs; later metadata separate. Not clean release/signature/physical proof.",
+      "cost": "Same current authority readers evaluated once/finalization and one private latch. No world scan, worker, timer, command, network, renewed deadline or unlock retry. Actual cost remains unmeasured.",
+      "limits": "Observed losses only; same-value unobserved control cannot be inferred. Native takeover/return, capacity retention, locality/incoming-owner reconciliation, shutdown/repeat/HC/JIP/Zeus and5%median/10%p95 performance remain unverified; audits paused.",
+      "hashes": {
+        "addons/vehicles/functions/cortexAAIntercept.sqf": "41f6d4fe3e278a7d5f5b639efbc7465927e65c0b0586e915db34ed86b3687808",
+        "releaseVerificationAndDeployment/test_aa_observation.py": "73e0790d6cdab43b0db4730c4e76467412452ad060e3b83d15b1a2240c6cd928"
+      }
     }
   }
 }

@@ -263,6 +263,11 @@ class AAObservation(unittest.TestCase):
         self.assertIn('isNil {',release)
         self.assertLess(release.index('_state set ["unlockAttempted",true]'),unlock)
         self.assertIn('time <= (_state get "until")+30',release)
+        self.assertIn('!(_state getOrDefault ["unlockWithdrawn",false])',release)
+        self.assertLess(release.index('_state set ["unlockWithdrawn",true]'),unlock)
+        self.assertIn('_releaseGroup == (_state get "group")',release)
+        self.assertIn('&& {_mayUnlock}',release)
+
         self.assertGreater(release.rindex('_lock=_vehicle lockedCameraTo _turret'),unlock)
         self.assertLess(release.index('if (!_cameraGone) exitWith {false}'),release.index('_vehicle setVariable ["CBE_AA_Intercept",nil]'))
         self.assertIn('"cameraPending",!_cameraGone',release)
@@ -298,6 +303,15 @@ class AAObservation(unittest.TestCase):
         for kwargs in ({'allowed':False},{'attempted':True},{'late':True}):
             self.assertEqual(cleanup(True,'ours',**kwargs),(False,False))
         self.assertEqual(cleanup(False,None),(False,False))
+        # Returning to the original actor/seat/host does not revive an episode after
+        # observed player/Zeus/provider/group/seat/locality/lease authority loss.
+        withdrawn=False
+        for current_authority in (False,True,True):
+            withdrawn=withdrawn or not current_authority
+            self.assertEqual(cleanup(True,'ours',allowed=current_authority and not withdrawn),(False,False))
+        self.assertEqual(cleanup(True,None,allowed=False),(True,False))
+        self.assertEqual(cleanup(True,'successor',allowed=False),(True,False))
+
 
 
         self.assertIn('_lock isEqualTo _applied',intercept)
