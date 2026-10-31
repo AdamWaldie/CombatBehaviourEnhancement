@@ -3,7 +3,7 @@
   "reviewedAt": "2026-10-26",
   "sourceCommit": "6620c42c",
   "policy": "Select useful AI functionality, merge complementary methods into existing CBE owners, fix defects and improve gameplay quality, balance and cost. Rejecting an unsafe source method does not complete its required capability.",
-  "scope": "48 recoverable Workshop references plus WMP as a separate local integration reference. Historical master ledger absent; completeness against lost history is unknown. All top-level Workshop intake/review IDs currently found are covered.",
+  "scope": "67 recoverable Workshop intake/review entries plus WMP as a separate local integration reference. Historical master ledger absent; completeness against lost history is unknown. Counts describe the queue, not completed source review or implementation.",
   "assessmentBoundary": "This maps the review queue and intended contributions. It does not reassess all source implementations, renew percentages, claim whole-mod parity or grant physical acceptance. Candidate contributions are evaluation objectives, not findings that the source implements them.",
   "missingInputs": [
     "LOCAL_IMPLEMENTATION_LEDGER.md historical master not recovered",
@@ -1604,6 +1604,26 @@
         "scope": "Metadata/package inventory only; no source or behaviour proof."
       },
       "latestIntegration": "Native/optional ZEN AI radio-denial task built through existing server field owner; authenticated exact editable emitter, range/sides, atomic sequence/expiry mutation. PASS1506 offline; physical/performance pending."
+    },
+    {
+      "workshopId": "3826723321",
+      "name": "N3cro's Player/AI Revive & Medical",
+      "priority": "2 Complementary AI methods; existing Protocol/foundation priority unchanged",
+      "candidateContribution": "Dynamic AI revive/healing, one-helper casualty claims, situational approach, smoke/physical drag-to-cover, squad cover, Hold/Stop preservation and finite original-task handback. AI-only; no player mechanics or replacement medical framework.",
+      "reviewStatus": "INTAKE_ONLY_SOURCE_REVIEW_PENDING",
+      "nextSourceReview": "Read actual config/scripts/FSM/medical-provider APIs and licence; trace the six requested AI features against existing CBE owners, particularly casualty claim authority, actual physical drag/treatment, hold orders, task restoration, repeated dynamic use and bounded cost.",
+      "recordedImplementationStatus": "NOT_IMPLEMENTED_NEW_INTAKE",
+      "recordedRemaining": "All source review, design/integration and offline/physical/performance evidence remain pending. General goal and audits paused.",
+      "implementationAssessmentCommit": null,
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/n3-revive-medical-3826723321-intake-20261031.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3826723321",
+        "present": true,
+        "observedAt": "2026-10-31",
+        "scope": "Matching local metadata and package hashes recorded in intake review; no extracted-source or behavioural evidence."
+      }
     }
   ],
   "localReferences": [
@@ -1640,5 +1660,10 @@
     "lambsMain": ".qa/lambs-main-installed-20261025-bebceb06"
   },
   "audits": "paused",
-  "sourceAvailabilityReview": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json"
+  "sourceAvailabilityReview": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
+  "latestIntake20261031": {
+    "workshopId": "3826723321",
+    "scope": "AI-only dynamic medical assistance intake; not a whole-map review or implementation assessment.",
+    "evidence": "releaseVerificationAndDeployment/referenceReviews/n3-revive-medical-3826723321-intake-20261031.json"
+  }
 }

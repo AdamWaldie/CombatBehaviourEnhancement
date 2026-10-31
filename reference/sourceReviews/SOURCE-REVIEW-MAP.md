@@ -2,7 +2,7 @@
 
 Select useful AI functionality, merge complementary methods into existing CBE owners, fix defects and improve gameplay quality, balance and cost. Rejecting an unsafe source method does not complete its required capability.
 
-48 recoverable Workshop references plus WMP as a separate local integration reference. The historical master ledger is absent. Completeness against lost history is unknown. All top-level Workshop intake/review IDs currently found are covered.
+67 recoverable Workshop intake/review entries plus WMP as a separate local integration reference. Historical master ledger absent; completeness against lost history is unknown. Counts describe the queue, not completed source review or implementation.
 
 This maps the review queue and intended contributions. It does not reassess all source implementations, renew percentages, claim whole-mod parity or grant physical acceptance. Candidate contributions are evaluation objectives, not findings that the source implements them.
 
@@ -227,3 +227,12 @@ Protocol AA allocation cadence30 October2026: source missile-first intent rechec
 
 
 Protocol controlled rappel pose boundary30 October2026: RappelPoseLocal now provides a guarded internal native START/RELEASE seam, using immutable caller-supplied original authority, exact actor/flight leases, native rifle/pistol asset checks, one apply/clear attempt per identity, permanent observed-loss withdrawal and private route baseline. No provider repair/damage/simulation workers or actor movement. Shared movement/fire reservation retains unknown pose cleanup. PASS1507 tests/498SQF/11PBO/full gates and independent unsigned verification; one new native-actuator contract. This is a required building block with no descent caller or module, not working rappel insertion/handback. Physics/exit/support arrival/full cleanup/flight/ground orchestration and physical/normal-HC/JIP/deformation/performance remain open. Source protocol-rappel-3819636004-20261020.json#controlledPoseBoundary20261030; audits paused.
+
+
+## AI-only dynamic medical aid intake - 31 October 2026
+
+[N3cro's Player/AI Revive & Medical (3826723321)](https://steamcommunity.com/sharedfiles/filedetails/?id=3826723321) is queued **only for its AI features**, rebuilt for dynamic AI use. AI may help player or AI casualties; player-operated controls/UI and replacement medical, damage or respawn rules are excluded. No pre-placed module or authored rescue route should be required.
+
+Select and improve autonomous revive (medics before eligible FAK carriers, one helper per casualty, no dragging conflict), threat-aware approaches, real smoke/cover/squad support and physical dragging to cover, healing and fallback self-aid, respect for Stop/hold, explicit ordered rescue with still-owned return, and finite rescue timeout/formation or task handback. Merge with existing CBE FSM/medical/movement/buddy/squad owners rather than add a competing controller. Preserve medical-provider and mission rules, actual supplies, credible animation, locality/HC/JIP authority and newer orders.
+
+[The intake record](../../releaseVerificationAndDeployment/referenceReviews/n3-revive-medical-3826723321-intake-20261031.json) contains the six requested features, exclusions, local identity/hashes and evaluation constraints. Matching installed metadata/package observed; Workshop page retrieval failed. **Source review not started; no implementation or physical acceptance credit.** Existing Protocol/foundation priority is unchanged; the full implementation goal and audits remain paused.
