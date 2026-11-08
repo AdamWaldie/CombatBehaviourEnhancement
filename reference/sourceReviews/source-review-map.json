@@ -3,7 +3,7 @@
   "reviewedAt": "2026-10-26",
   "sourceCommit": "6620c42c",
   "policy": "Select useful AI functionality, merge complementary methods into existing CBE owners, fix defects and improve gameplay quality, balance and cost. Rejecting an unsafe source method does not complete its required capability.",
-  "scope": "67 recoverable Workshop intake/review entries plus WMP as a separate local integration reference. Historical master ledger absent; completeness against lost history is unknown. Counts describe the queue, not completed source review or implementation.",
+  "scope": "68 recoverable Workshop intake/review entries plus WMP as a separate local integration reference. Historical master ledger absent; counts describe the queue, not review/implementation completion.",
   "assessmentBoundary": "This maps the review queue and intended contributions. It does not reassess all source implementations, renew percentages, claim whole-mod parity or grant physical acceptance. Candidate contributions are evaluation objectives, not findings that the source implements them.",
   "missingInputs": [
     "LOCAL_IMPLEMENTATION_LEDGER.md historical master not recovered",
@@ -1624,6 +1624,24 @@
         "observedAt": "2026-10-31",
         "scope": "Matching local metadata and package hashes recorded in intake review; no extracted-source or behavioural evidence."
       }
+    },
+    {
+      "workshopId": "3830239722",
+      "name": "Pinned Down: Feat of Arms",
+      "priority": "2 Complementary AI integration reference; existing Protocol/foundation priority unchanged",
+      "candidateContribution": "PURELY AI features. Study how the bundled AI systems mesh as inspiration for CBE: shared state/ownership, competing decisions and native writers, lifecycle/handover, settings boundaries and performance. Merge and improve useful complementary intent through existing CBE owners; no whole-mod adoption, new dependency or duplicate controllers.",
+      "reviewStatus": "AI_ONLY_COMPOSITE_INTAKE_SOURCE_REVIEW_PENDING",
+      "nextSourceReview": "Read bundled source/config and integration glue against preserved standalone Pinned Down snapshots; record best complementary AI methods and actual ownership/conflict/cleanup/performance behaviour. Exclude all non-AI features.",
+      "recordedImplementationStatus": "NOT_IMPLEMENTED_NEW_INTAKE",
+      "evidencePointer": "releaseVerificationAndDeployment/referenceReviews/pinned-down-feat-of-arms-3830239722-intake-20261107.json",
+      "evidenceFilePresent": true,
+      "implementationReassessedByThisMap": false,
+      "installedDirectoryObservation": {
+        "path": "E:/SteamLibrary/steamapps/workshop/content/107410/3830239722",
+        "present": true,
+        "observedAt": "2026-11-07",
+        "scope": "Local metadata/10PBO inventory only; no code or behavioural proof."
+      }
     }
   ],
   "localReferences": [
@@ -1665,5 +1683,10 @@
     "workshopId": "3826723321",
     "scope": "AI-only dynamic medical assistance intake; not a whole-map review or implementation assessment.",
     "evidence": "releaseVerificationAndDeployment/referenceReviews/n3-revive-medical-3826723321-intake-20261031.json"
+  },
+  "latestIntake20261107": {
+    "workshopId": "3830239722",
+    "scope": "AI-only inspiration for integration/meshing; source review pending.",
+    "evidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-feat-of-arms-3830239722-intake-20261107.json"
   }
 }

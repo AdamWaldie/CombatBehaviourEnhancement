@@ -1,3 +1,19 @@
+## Recovered snapshot and AI-only reference intake - 7 November 2026
+
+Current permanent workdir E:/Github/CombatBehaviourEnhancement, remote https://github.com/AdamWaldie/CombatBehaviourEnhancement.git, branch Adam/cbe-mechanised-support-20261028. Old C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks is incomplete (working files and Git metadata missing); never treat its pointers as current. Restored c7a951e1 from GitHub into a new permanent checkout. User requested committing all current work, then asked whether references were lost. General implementation goal and audits remain PAUSED.
+
+Recovered the interrupted aircraft WIP from its saved tool command and proved exact SHA256 a2527eb1074f21661688c9a690c20085a0c371e6e2486b361a03bb8d0bd3f4d1 against prior durable receipt. This snapshot includes it UNVALIDATED, as explicitly requested. No compiler, runtime regression or physical acceptance claim. On goal resumption inspect/fix this finite waypoint/target cleanup/route handback edit and its old tests before dependent work. Last fully built production remains afbd9ada; prior local candidate paths under the deleted temporary .qa are now missing. Rebuild later when authorised/needed; no audit launch now.
+
+Restored private .qa/implementation-register-additions.json from dated durable c7a951e1 backup. Re-recorded user-requested3830239722 Pinned Down: Feat of Arms purely for AI features and inspiration for meshing existing source methods, with metadata and10PBO hashes, source/config/licence review pending. No whole-mod/player/UI/artwork/audio-only port or implementation credit. See tracked pinned-down-feat-of-arms-3830239722-intake-20261107.json and updated source map. 3826723321 AI-only dynamic medical intake remains intact.
+
+Verified current protected references: PinnedDown/20261013-013708 all320 files match its manifest across8 extracted-source snapshots; original signedPBOs were not archived. Four Protocol/20261030-{aa-4921491a,airborne-9b484e9f,aircraft-c38af1b3,jamming-3d3a9989} snapshots all36 recorded files match provenance. 54 of the prior67 tracked refs are installed;8 unavailable PinnedDown installs are covered by those verified archives. Four other installs were already unavailable in prior records (3822271074,1809358689,3475038178,3443045523). Smart Merge AI3721618614 raw PBO/extracted copy remains unlocated; its code-review records/hashes are safe in Git. Newly added3830239722 bundle is also installed. Do not claim all sources lost or all sources fully recovered.
+
+Recovery report .qa/recovery-20261107.json, exact aircraft recovery script/WIP copy in C:/Users/AdamW/Documents/AI-Reference-Archives/CBE-Continuation/recovery-20261107. Git restores committed deleted branding/workflow files; historical local deletions are not reapplied from assumptions. An undocumented prior docs/PERFORMANCE-VALIDATION.md local edit cannot be reconstructed with byte-level certainty. Preserve these limits instead of saying every old local modification was recovered.
+
+Keep all protected references, archives, signing pair and secrets read-only/out of Git and packages. Do not reinitialise or delete the damaged temporary folder or logs. Current full objective/plan/registers/protection context retained below; current register now in permanent checkout .qa. User's latest provided AGENTS rules replace earlier provided AGENTS instructions: finite definition of done and <5% usage checkpoint/handover. Do not resume goal/audits from a commit request alone.
+
+---
+
 ## Goal PAUSED; AI-only medical reference intake - 31 October 2026
 
 The user explicitly paused the full CBE goal after the afbd9ada AA checkpoint. The goal tool confirms PAUSED. Audits remain PAUSED. This later request authorises only adding3826723321 to the implementation register; it does not resume production implementation, tests in Arma or automatic goal work.

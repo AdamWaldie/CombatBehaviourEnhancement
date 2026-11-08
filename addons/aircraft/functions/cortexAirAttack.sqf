@@ -64,6 +64,11 @@
  * never completes it. Zeus priority, locality loss, explicit exclusions, runtime disablement or a
  * changed curator waypoint end the lease immediately. The named CBE leg also has a metadata
  * receipt; an edit yields and removes only its CBE name, preserving the edited native waypoint.
+ * Association/detachment is read back before native activation; refusal ends through exact owned cleanup.
+ * Pilot doFire assignments are recorded and scoped target/watch clears are requested at egress/ordinary end;
+ * this is not proof that a previously admitted native shot or autonomous attack has stopped.
+ * Normal return requires the original pilot, operation and full unchanged authored route/waypoint receipt;
+ * no coordinate guess or crew-wide follow order can replace unrelated crew tasks.
  * Every cleanup path repeats that check, including early cancellation before normal route comparison. Cleanup deletes only that named temporary
  * waypoint. A successful run hands the aircraft back toward its unchanged original waypoint.
  * During direct Zeus handover, cleanup clears this attack's target commands, preserves the native
@@ -90,6 +95,36 @@
 params [["_job",createHashMap,[createHashMap]],["_executorFailure","",[""]]];
 private _aircraft=_job getOrDefault ["aircraft",objNull];
 if (isNull _aircraft) exitWith {-1};
+// This operation may clear only the actual operator/target pair it commanded. A
+// same-vehicle replacement, newer native target or specialist/service task is not ours.
+private _releaseOwnedTarget={
+    params ["_releaseGroup"];
+    isNil {
+        private _assignment=_job getOrDefault ["targetAssignment",[objNull,objNull]];
+        private _ownedOperator=_assignment param [0,objNull];
+        private _ownedTarget=_assignment param [1,objNull];
+        private _station=_job getOrDefault ["selectedTurret",[]];
+        private _sameStation=if (_station isEqualTo [-1]) then {driver _aircraft == _ownedOperator}
+            else {_aircraft turretUnit _station == _ownedOperator};
+        if (local _aircraft && {!isNull _releaseGroup} && {local _releaseGroup}
+            && {[_aircraft,"AIR_ATTACK",_job getOrDefault ["flightLeaseToken",""]] call CBE_fnc_FlightLeaseValid}
+            && {!isNull _ownedOperator} && {!isNull _ownedTarget} && {_sameStation}
+            && {_ownedOperator == (_job getOrDefault ["selectedOperator",objNull])}
+            && {group _ownedOperator == _releaseGroup} && {local _ownedOperator}
+            && {[_ownedOperator] call CBE_fnc_CortexCombatEffective} && {!isPlayer _ownedOperator}
+            && {isNull remoteControlled _ownedOperator}
+            && {!([_releaseGroup,false,_ownedOperator] call CBE_fnc_CortexExternalTakeover)}
+            && {!([_ownedOperator] call CBE_fnc_CompatibilityExternalControl)}
+            && {!([_releaseGroup] call CBE_fnc_CortexZeusHeld)}
+            && {[_ownedOperator] call CBE_fnc_CortexActorFireTaskAvailable}
+            && {assignedTarget _ownedOperator isEqualTo _ownedTarget}
+            && {isNull getAttackTarget _ownedOperator || {getAttackTarget _ownedOperator == _ownedTarget}}) then {
+            _ownedOperator doTarget objNull;
+            _ownedOperator doWatch objNull;
+        };
+        false
+    };
+};
 private _finish={
     params ["_reason",["_resume",false]];
     // A kill completes the weapon phase, not the flight lease. Preserve that semantic result after
@@ -236,42 +271,36 @@ private _finish={
         // On an ordinary finite end, retire only the exact hostile CBE assigned and only while no
         // player, curator or specialist has claimed the group. A newer target survives cleanup.
         if (!_preserveEditedLeg && {!(_reason in ["CONTROL_RELEASED","AUTHORED_ROUTE_CHANGED","OWNED_ROUTE_CHANGED"])}) then {
-            private _assignment=_job getOrDefault ["targetAssignment",[objNull,objNull]];
-            private _ownedOperator=_assignment param [0,objNull];
-            private _ownedTarget=_assignment param [1,objNull];
-            private _cleanupExternal=[_finishGroup] call CBE_fnc_CortexExternalTakeover
-                || {[_finishGroup] call CBE_fnc_CortexZeusHeld};
-            if (_ownsFlight && {!_cleanupExternal} && {!isNull _ownedTarget}) then {
-                {
-                    if (_x == _ownedOperator && {alive _x} && {local _x} && {!isPlayer _x} && {group _x == _finishGroup} && {isNull (remoteControlled _x)}
-                        && {!([group _x,false,_x] call CBE_fnc_CortexExternalTakeover)}
-                        && {!([_x] call CBE_fnc_CompatibilityExternalControl)}
-                        && {[_x] call CBE_fnc_CortexActorFireTaskAvailable}
-                        && {assignedTarget _x isEqualTo _ownedTarget}) then {
-                        _x doTarget objNull;
-                        _x doWatch objNull;
-                    };
-                } forEach crew _aircraft;
-            };
+            if (_ownsFlight) then {[_finishGroup] call _releaseOwnedTarget};
         };
         if (_resume && {_ownsFlight} && {!_preserveEditedLeg} && {!isNull _finishGroup} && {local _finishGroup}) then {
-            private _resumePosition=_job getOrDefault ["resumePosition",[]];
-            private _resumeGroup=group driver _aircraft;
-            private _resumeWaypointIndex=if (count _resumePosition >= 2) then {
-                (waypoints _resumeGroup) findIf {waypointPosition _x distance2D _resumePosition <= 2}
-            } else {-1};
-            // The shared takeover boundary includes player occupants, Zeus and specialist markers
-            // on every crew group. A completed attack must not re-form the aircraft over any one
-            // of those newer owners merely because its own operation reached a normal release.
+            // Returning to a coordinate is not returning to an authored task: several
+            // different orders can share that coordinate, including object-attached ones.
+            private _resumePilot=_job getOrDefault ["resumePilot",objNull];
+            private _resumeGroup=_finishGroup;
+            private _resumeReceipt=_job getOrDefault ["resumeWaypointReceipt",[]];
+            private _resumeGeneration=_job getOrDefault ["operationGeneration",-1];
+            private _resumeOperation=_resumeGroup getVariable ["CBE_Operation",createHashMap];
             private _resumeExternal = [_resumeGroup] call CBE_fnc_CortexExternalTakeover
                 || {(crew _aircraft) findIf {[group _x] call CBE_fnc_CortexExternalTakeover} >= 0};
-            if (count _resumePosition >= 2 && {!_resumeExternal}) then {
-                {if (alive _x && {!isPlayer _x}) then {_x doFollow leader _resumeGroup}} forEach crew _aircraft;
-                if (_resumeWaypointIndex >= 0 && {_resumeWaypointIndex < count waypoints _resumeGroup}) then {
-                    private _resumeWaypoint=(waypoints _resumeGroup) select _resumeWaypointIndex;
-                    if (waypointPosition _resumeWaypoint distance2D _resumePosition <= 2) then {
-                        _resumeGroup setCurrentWaypoint _resumeWaypoint;
-                    };
+            // Cleanup can run before the ordinary route comparison (executor failure or
+            // pilot replacement). No crew-wide follow order may overwrite their tasks.
+            if (!_resumeExternal && {!isNull _resumePilot} && {local _resumePilot}
+                && {driver _aircraft == _resumePilot} && {group _resumePilot == _resumeGroup}
+                && {[_resumePilot] call CBE_fnc_CortexCombatEffective}
+                && {[_resumePilot] call CBE_fnc_CortexActorFireTaskAvailable}
+                && {_resumeGeneration >= 0}
+                && {(_resumeGroup getVariable ["CBE_OperationGeneration",-2]) == _resumeGeneration}
+                && {(_resumeOperation getOrDefault ["generation",-3]) == _resumeGeneration}
+                && {(_resumeOperation getOrDefault ["ownerEpoch",-1]) == (_resumeGroup getVariable ["CBE_AIPass_Epoch",0])}
+                && {(_resumeOperation getOrDefault ["cancelReason",""]) == ""}
+                && {count _resumeReceipt == 1}) then {
+                private _route=[_resumeGroup] call CBE_fnc_AuthoredRouteReceipt;
+                private _resumeIndex=(_resumeReceipt select 0) select 0;
+                private _row=_route select {(_x select 0) == _resumeIndex};
+                if (_route isEqualTo (_job getOrDefault ["routeSignature",[]])
+                    && {_row isEqualTo _resumeReceipt}) then {
+                    _resumeGroup setCurrentWaypoint [_resumeGroup,_resumeIndex];
                 };
             };
         };
@@ -472,6 +501,7 @@ if (_stage == "") then {
     // Capture authored route content rather than currentWaypoint. The engine advances that index as
     // an aircraft flies, which previously looked like a replacement order and cancelled valid runs.
     private _routeSignature=[_group] call CBE_fnc_AuthoredRouteReceipt;
+    private _resumeWaypointReceipt=_routeSignature select {(_x select 0) == _waypointIndex};
     _job set ["target",_target]; _job set ["points",_plan get "points"];
     _job set ["pattern",_plan get "pattern"]; _job set ["token",_plan get "token"];
     if ((_plan get "pattern") == "LATERAL") then {
@@ -535,6 +565,7 @@ if (_stage == "") then {
     _job set ["type","AIR_ATTACK"]; _job set ["stage",""]; _job set ["deadline",serverTime+75]; _job set ["shots",0];
     _job set ["origin",getPosATL _aircraft]; _job set ["resumePosition",_resumePosition];
     _job set ["resumeWaypointIndex",_waypointIndex]; _job set ["routeSignature",_routeSignature];
+    _job set ["resumePilot",_pilot];_job set ["resumeWaypointReceipt",+_resumeWaypointReceipt];
     // The temporary waypoint belongs to this finite CBE lease. A namespace-specific name keeps
     // route-diff and cleanup ownership unambiguous when an unrelated controller adds waypoints.
     _job set ["ownedWaypointName",format ["CBE_AIR_%1",_plan get "token"]];
@@ -826,7 +857,12 @@ private _interceptRefresh=_job getOrDefault ["airToAir",false] && {_stage == "IN
     && {_destination distance (_job getOrDefault ["commandedDestination",_destination]) >= 300};
 if (_interceptRefresh) then {_commandedStage=""};
 if (_commandedStage != _stage && {!([] call _mayControlAircraft)}) exitWith {["CONTROL_RELEASED"] call _finish};
+private _waypointFailure="";
 if (_commandedStage != _stage) then {
+    // Scheduler callbacks are unscheduled. Direct script callers can be scheduled;
+    // keep these native writes and their exact receipt together, without a worker.
+    isNil {
+    if (!([] call _mayControlAircraft)) exitWith {_waypointFailure="CONTROL_RELEASED";false};
     // forceSpeed/getForcedSpeed are metres per second; planned stage speeds are km/h.
     // Preserve a stricter authored cap and leave independent native limitSpeed untouched.
     private _speedReceipt=_job getOrDefault ["forcedSpeedReceipt",[]];
@@ -859,21 +895,32 @@ if (_commandedStage != _stage) then {
     // Cortex never forces an attitude to hide a failed native association.
     if (_nativeAttackWaypoint) then {
         _ownedWaypoint setWaypointPosition [_targetATL,0];
-        _ownedWaypoint setWaypointType "DESTROY";
-        _ownedWaypoint setWaypointCombatMode "RED";
         _ownedWaypoint waypointAttachVehicle _target;
+        if (waypointAttachedVehicle _ownedWaypoint == _target) then {
+            _ownedWaypoint setWaypointType "DESTROY";
+            _ownedWaypoint setWaypointCombatMode "RED";
+        } else {_waypointFailure="ATTACK_ASSOCIATION_REFUSED"};
     } else {
         _ownedWaypoint waypointAttachVehicle objNull;
-        _ownedWaypoint setWaypointType "MOVE";
+        if (isNull waypointAttachedVehicle _ownedWaypoint) then {
+            _ownedWaypoint setWaypointType "MOVE";
+        } else {_waypointFailure="ATTACK_DETACH_REFUSED"};
     };
-    _group setCurrentWaypoint _ownedWaypoint;
+    // These are our own writes, including a refused association. Capture them before
+    // cleanup so they cannot be mislabelled as an external edit and left active.
     _job set ["ownedWaypointReceipt",[_group,_ownedWaypointName,true] call CBE_fnc_AuthoredRouteReceipt];
+    if (_waypointFailure != "") exitWith {};
+    if (_stage == "EGRESS") then {[_group] call _releaseOwnedTarget};
+    _group setCurrentWaypoint _ownedWaypoint;
     _job set ["commandedStage",_stage];
     _job set ["commandedDestination",+_destination];
     _job set ["commandedAt",serverTime];
     _job set ["stageBestDistance",_stageDistance];
     if (!_interceptRefresh) then {_job set ["stageProgressAt",serverTime]};
+    false
+    };
 };
+if (_waypointFailure != "") exitWith {[_waypointFailure] call _finish};
 
 // Measure useful approach to the active leg rather than raw displacement. Orbiting 300 metres and
 // returning to the same range is not progress. A single threshold update is cheap and lets the
@@ -1144,6 +1191,7 @@ if (_stage == "ATTACK") then {
         // The attached DESTROY waypoint establishes the run but does not consistently ask a
         // pilot-operated fixed station to release. Request native fire once; a Fired event remains
         // mandatory evidence, so an unavailable weapon or refused command cannot pass this run.
+        _job set ["targetAssignment",[_operator,_fireTarget]];
         _operator doFire _fireTarget;
         _job set ["releaseDetail",["NATIVE_PILOT_REQUEST",_weapon,_range,_forwardAlignment,
             _deliveryAlong,_deliveryTerrainClear,waypointType [_group,currentWaypoint _group]]];

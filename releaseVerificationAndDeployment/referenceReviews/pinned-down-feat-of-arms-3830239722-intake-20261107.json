@@ -1,0 +1,68 @@
+{
+  "workshopId": "3830239722",
+  "name": "Pinned Down: Feat of Arms",
+  "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3830239722",
+  "added": "2026-11-07",
+  "priority": "2 Complementary AI integration reference; existing Protocol/foundation priority unchanged",
+  "status": "AI_ONLY_COMPOSITE_REFERENCE_SOURCE_REVIEW_PENDING",
+  "kind": "COMPOSITE_AI_INTEGRATION_REFERENCE",
+  "scope": "PURELY AI features. Study how the bundled AI systems mesh as inspiration for CBE: shared state/ownership, competing decisions and native writers, lifecycle/handover, settings boundaries and performance. Merge and improve useful complementary intent through existing CBE owners; no whole-mod adoption, new dependency or duplicate controllers.",
+  "userConditions": {
+    "aiPartsOnly": true,
+    "integrationInspiration": true,
+    "playerFeatures": false,
+    "artworkOrUI": false,
+    "nonAIAudio": false,
+    "automaticWholesalePort": false
+  },
+  "claimedSuiteComponentsFromLocalOverview": [
+    "Combat Suppression",
+    "Cover & Concealment",
+    "Medical Solution",
+    "Conductor",
+    "Tracks & Boots",
+    "Surrender",
+    "Steel Rain",
+    "Battle Lines"
+  ],
+  "evaluationTopics": [
+    "Compare integration glue and changed behaviour against the preserved standalone Pinned Down snapshots, preserving the best working methods and recording conflicts/rejections.",
+    "Trace actual config, scripts/FSM, native command writers, feature ownership, arbitration and interruption before implementation.",
+    "Reconcile suppression, cover, AI medical aid, regroup/coordination, infantry/vehicle cooperation, surrender, AI artillery and tactical lines with existing CBE owners. Only source-proven AI behaviour is eligible.",
+    "Exclude player-facing mechanics, player medical frameworks, interface/artwork and audio-only effects. Use source-proven AI sensing/reaction methods only where relevant.",
+    "Verify multiplayer/HC/JIP locality, repeat/cleanup, finite retries, mission/Zeus priority, credible animation and measured cost; local overview describes primarily single-player use."
+  ],
+  "localPath": "E:/SteamLibrary/steamapps/workshop/content/107410/3830239722",
+  "localPresent": true,
+  "packageCount": 10,
+  "files": {
+    "addons/AMBS.pbo": "e03a208c7b24e64262aee98990a4886dc0506e5a00a612248f597307cda05096",
+    "addons/pd_conductor.pbo": "cdac3ba906362a007bceae0ff73a2ae28eca2b746c325f6a8d64f7d58c1a54e0",
+    "addons/pd_cover_concealment.pbo": "ca183d6bb573a0a40a82688e9d26b98152215e8dbd3eed4235dd376b8446fa23",
+    "addons/PD_MedicalSolution.pbo": "0bcd2faf874df297a213bfa0acaf6b5276b1633dd0a6154d232826aca959199a",
+    "addons/pd_suppressive_audio.pbo": "23a52d01a1a9757866186ef5677413a97f22115f1fbbc467606bafd5ee521f7b",
+    "addons/PD_surrender.pbo": "1cd47872b713da21898f6027d04b3548245f89f79b7622a9ad40dcceccfc3400",
+    "addons/pd_tracks_and_boots.pbo": "6ac732d89f7405bd5c6e7cff550d81c8ff54766c186992f679a362a33977a8ef",
+    "addons/PinnedDown.pbo": "1775357c37841031fcb9cf8bba7541b2fc5a811bdca004f657d472836c764256",
+    "addons/pinneddown_arty.pbo": "cce16b968232630191c73e9354186d95941af65104bfc1e1047dee07f8dbdb96",
+    "addons/pinneddown_battlelines.pbo": "30740d1445b6c665a7f2bbc6671fc65165d8b8fb932de1cc23861aacb99c690b",
+    "meta.cpp": "31b7a271f17cb7668fb77c19eac17a6255575fb5d52382f0b71934a0bdd7e5d6",
+    "mod.cpp": "10cde7342361d57faef5dabbd555fb265f0261ab656ae7d5343a486cb4420e8e"
+  },
+  "identityEvidence": "User URL plus installed mod.cpp and folder. meta.cpp publishedid0 is not independent Workshop binding. Online retrieval previously failed. Package names/overview do not prove source integration or behaviour.",
+  "metadata": {
+    "name": "Pinned Down: Feat of Arms",
+    "author": "Mikey74",
+    "version": "0.1.0 TEST1",
+    "publishedid": "0"
+  },
+  "dependencies": "Local overview declares CBA A3; source/config validation pending. Warns against duplicate standalone Pinned Down addons and other AI controller conflicts.",
+  "licence": "UNVERIFIED; inspect component-specific provenance/reuse rights before incorporating code.",
+  "sourceReview": "NOT_STARTED; metadata/package inventory only.",
+  "implementationCredit": false,
+  "physicalAcceptance": false,
+  "audits": "PAUSED",
+  "goal": "PAUSED",
+  "review": "releaseVerificationAndDeployment/referenceReviews/pinned-down-feat-of-arms-3830239722-intake-20261107.json",
+  "sourceProtection": "Installed originals and existing archives remain unchanged. No raw reference source/assets or secrets in Git/product."
+}

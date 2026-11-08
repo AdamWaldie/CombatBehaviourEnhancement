@@ -2,7 +2,7 @@
 
 Select useful AI functionality, merge complementary methods into existing CBE owners, fix defects and improve gameplay quality, balance and cost. Rejecting an unsafe source method does not complete its required capability.
 
-67 recoverable Workshop intake/review entries plus WMP as a separate local integration reference. Historical master ledger absent; completeness against lost history is unknown. Counts describe the queue, not completed source review or implementation.
+68 recoverable Workshop intake/review entries plus WMP as a separate local integration reference. Historical master ledger absent; completeness against lost history is unknown. Counts describe the queue, not completed source review or implementation.
 
 This maps the review queue and intended contributions. It does not reassess all source implementations, renew percentages, claim whole-mod parity or grant physical acceptance. Candidate contributions are evaluation objectives, not findings that the source implements them.
 
@@ -236,3 +236,10 @@ Protocol controlled rappel pose boundary30 October2026: RappelPoseLocal now prov
 Select and improve autonomous revive (medics before eligible FAK carriers, one helper per casualty, no dragging conflict), threat-aware approaches, real smoke/cover/squad support and physical dragging to cover, healing and fallback self-aid, respect for Stop/hold, explicit ordered rescue with still-owned return, and finite rescue timeout/formation or task handback. Merge with existing CBE FSM/medical/movement/buddy/squad owners rather than add a competing controller. Preserve medical-provider and mission rules, actual supplies, credible animation, locality/HC/JIP authority and newer orders.
 
 [The intake record](../../releaseVerificationAndDeployment/referenceReviews/n3-revive-medical-3826723321-intake-20261031.json) contains the six requested features, exclusions, local identity/hashes and evaluation constraints. Matching installed metadata/package observed; Workshop page retrieval failed. **Source review not started; no implementation or physical acceptance credit.** Existing Protocol/foundation priority is unchanged; the full implementation goal and audits remain paused.
+
+
+## AI-only integration reference - 7 November 2026
+
+[Pinned Down: Feat of Arms (3830239722)](https://steamcommunity.com/sharedfiles/filedetails/?id=3830239722) is queued purely for AI features and as inspiration for meshing complementary systems. Compare its integration glue against preserved standalone Pinned Down sources: ownership and conflicting writers, suppression/cover/AI medical aid, coordination/regroup, vehicle cooperation, surrender, artillery and tactical lines. Merge useful methods through existing CBE owners. Exclude player features, interface/artwork and audio-only effects.
+
+[The intake record](../../releaseVerificationAndDeployment/referenceReviews/pinned-down-feat-of-arms-3830239722-intake-20261107.json) records metadata, ten package hashes and boundaries. Source/config/licence and behaviour review remain pending; no implementation credit. General implementation and audits remain paused.
