@@ -1,3 +1,7 @@
+## E-drive-first storage - 8 November 2026
+
+User direction: use E: and avoid C: when possible going forward. Canonical checkout is already `E:/Github/CombatBehaviourEnhancement`. Put new project working data, build output, downloads, reference research and primary archives on E:. Use `E:/AI-Reference-Archives/CBE-Reference-Library` as the primary archive store; existing C: snapshots are secondary backups and protected legacy originals. Do not move/delete them or relocate the permanent signing key pair. Existing Windows/tool profile paths are exceptions, not new project-data defaults. The archive utility now reads preserved sources from E:, creates its primary on E:, and requires an explicit mirror destination instead of automatically writing to C:. Prefer another non-C backup destination when available. Implementation and audits remain paused.
+
 ## Permanent checkout and mandatory reference preservation - 8 November 2026
 
 Current checkout: `E:/Github/CombatBehaviourEnhancement`, local branch `main`. The recovered snapshot is on GitHub's existing draft PR branch; GitHub `main` is unchanged. The old temporary checkout is incomplete and must not be used. Confirm actual root/remote/branch before Git writes; do not push GitHub main or merge a PR without explicit authorisation.

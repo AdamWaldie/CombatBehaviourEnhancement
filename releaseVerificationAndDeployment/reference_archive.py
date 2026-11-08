@@ -10,7 +10,8 @@ import sys
 import tempfile
 
 REPO = Path(__file__).resolve().parents[1]
-STORES = Path('C:/Users/AdamW/Documents/AI-Reference-Archives')
+ARCHIVE_ROOT = Path('E:/AI-Reference-Archives/CBE-Reference-Library')
+STORES = ARCHIVE_ROOT/'20261108-complete-local-snapshot/preserved'
 WORKSHOP = Path('E:/SteamLibrary/steamapps/workshop/content/107410')
 
 
@@ -168,8 +169,8 @@ def main():
     c.add_argument('--registry', type=Path, default=REPO/'.qa/implementation-register-additions.json')
     c.add_argument('--stores', type=Path, default=STORES)
     c.add_argument('--workshop-root', type=Path, action='append')
-    c.add_argument('--archive-root', type=Path, default=STORES/'CBE-Reference-Library')
-    c.add_argument('--mirror-root', type=Path, default=Path('E:/AI-Reference-Archives/CBE-Reference-Library'))
+    c.add_argument('--archive-root', type=Path, default=ARCHIVE_ROOT)
+    c.add_argument('--mirror-root', type=Path, required=True, help='Explicit permanent backup root; prefer a non-C location when available')
     c.add_argument('--label'); c.add_argument('--report', type=Path)
     v = sub.add_parser('verify'); v.add_argument('archive', type=Path)
     args = p.parse_args()

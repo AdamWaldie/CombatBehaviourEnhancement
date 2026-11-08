@@ -6,8 +6,8 @@
   "githubMainChanged": false,
   "registeredReferences": 68,
   "archivedReferenceCount": 63,
-  "primary": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\CBE-Reference-Library\\20261108-complete-local-snapshot",
-  "mirror": "E:\\AI-Reference-Archives\\CBE-Reference-Library\\20261108-complete-local-snapshot",
+  "primary": "E:\\AI-Reference-Archives\\CBE-Reference-Library\\20261108-complete-local-snapshot",
+  "mirror": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\CBE-Reference-Library\\20261108-complete-local-snapshot",
   "manifestSHA256": "04d4d6ad83a48ca288140364a311d477420537fc5aba9708ee584ba7a083efc3",
   "fileCount": 1680,
   "sourceBytes": 281665135,
@@ -86,5 +86,7 @@
   "missingAction": "Reacquire raw packages/source for the five unavailable references, then create a new dated snapshot. Four have official Steam metadata but no anonymous direct download URL; Smart Merge AI metadata request returns result9. Review records are preserved, not substitute source copies.",
   "sourceProtection": "Private raw reference archives remain outside Git and product packages. Existing source originals/archives unchanged. Snapshots immutable; updates use new directories.",
   "audits": "PAUSED",
-  "implementationGoal": "PAUSED"
+  "implementationGoal": "PAUSED",
+  "storagePolicy": "E drive first for project data, builds, working files and primary references/archives. Existing C-drive snapshot retained as a secondary backup. Future mirror roots must be explicitly selected; no automatic C-drive archive writes.",
+  "preservedSourceRoot": "E:/AI-Reference-Archives/CBE-Reference-Library/20261108-complete-local-snapshot/preserved"
 }

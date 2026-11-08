@@ -1,3 +1,9 @@
+## Storage preference update - 8 November 2026
+
+Canonical repo remains E:/Github/CombatBehaviourEnhancement on local main. User requests E-drive-first storage and avoiding C: when possible. New project work/builds/caches/research/downloads and primary archives belong on E:. The verified E:/AI-Reference-Archives/CBE-Reference-Library/20261108-complete-local-snapshot is now primary; the identical C: snapshot remains an existing secondary backup. No snapshot/source/key was moved or deleted. Archive utility defaults and source-map/index pointers now prefer E:; mirror-root must be selected explicitly (prefer non-C when available), preventing automatic future C: archive copies. Read preserved source snapshots on E: rather than the historical C: originals. Existing Windows tool/profile paths and unchanged signing authority are exceptions. Keep the full goal and audits PAUSED.
+
+---
+
 ## Permanent archive and local main - 8 November 2026
 
 User authorised pushing recovered1761d0d6 and archiving all reference mods, including installed ones, and requested main in E:/Github/CombatBehaviourEnhancement. Recovered commit verified on draftPR20 branch. Local main now contains that work and all origin/main ancestry (origin/main8b3e8d5 is ancestor); GitHub main deliberately unchanged. Do not infer permission to merge/publish. General implementation goal and audits remain PAUSED.

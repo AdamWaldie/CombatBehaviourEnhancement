@@ -1676,8 +1676,9 @@
     "hbq": ".qa/hbq-complete-source-20261025",
     "lambsDanger": ".qa/lambs-2621-review/danger",
     "lambsMain": ".qa/lambs-main-installed-20261025-bebceb06",
-    "referenceLibrary": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\CBE-Reference-Library\\20261108-complete-local-snapshot",
-    "referenceLibraryMirror": "E:\\AI-Reference-Archives\\CBE-Reference-Library\\20261108-complete-local-snapshot"
+    "referenceLibrary": "E:\\AI-Reference-Archives\\CBE-Reference-Library\\20261108-complete-local-snapshot",
+    "referenceLibraryMirror": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\CBE-Reference-Library\\20261108-complete-local-snapshot",
+    "storagePolicy": "E drive first; C-drive locations below are historical/protected originals or existing backup copies, not new working-data defaults."
   },
   "audits": "paused",
   "sourceAvailabilityReview": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
