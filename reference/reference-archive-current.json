@@ -1,0 +1,90 @@
+{
+  "date": "2026-11-08",
+  "status": "AVAILABLE_SOURCES_ARCHIVED_VERIFIED_FIVE_SOURCE_GAPS",
+  "workdir": "E:/Github/CombatBehaviourEnhancement",
+  "branch": "main",
+  "githubMainChanged": false,
+  "registeredReferences": 68,
+  "archivedReferenceCount": 63,
+  "primary": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\CBE-Reference-Library\\20261108-complete-local-snapshot",
+  "mirror": "E:\\AI-Reference-Archives\\CBE-Reference-Library\\20261108-complete-local-snapshot",
+  "manifestSHA256": "04d4d6ad83a48ca288140364a311d477420537fc5aba9708ee584ba7a083efc3",
+  "fileCount": 1680,
+  "sourceBytes": 281665135,
+  "installed": 55,
+  "extractedOnly": 8,
+  "unavailable": [
+    {
+      "workshopId": "1809358689",
+      "name": "Universal Difficulty Overhaul"
+    },
+    {
+      "workshopId": "3443045523",
+      "name": "AI Stow NVGs"
+    },
+    {
+      "workshopId": "3475038178",
+      "name": "Turret Tweaks"
+    },
+    {
+      "workshopId": "3721618614",
+      "name": "Smart Merge AI"
+    },
+    {
+      "workshopId": "3822271074",
+      "name": "Infiltration AI Enhancement"
+    }
+  ],
+  "verification": "Every copied source/destination SHA-256 compared; complete primary and mirror manifests independently verified. Same-size tamper fixture rejected.",
+  "missingRecoveryCheck": [
+    {
+      "publishedfileid": "1809358689",
+      "result": 1,
+      "title": "Universal Difficulty Overhaul",
+      "filename": "",
+      "file_size": "31059",
+      "consumer_app_id": 107410,
+      "publicDownloadUrlAvailable": false
+    },
+    {
+      "publishedfileid": "3443045523",
+      "result": 1,
+      "title": "AI Stow NVGs",
+      "filename": "",
+      "file_size": "5280",
+      "consumer_app_id": 107410,
+      "publicDownloadUrlAvailable": false
+    },
+    {
+      "publishedfileid": "3475038178",
+      "result": 1,
+      "title": "Turret Tweaks",
+      "filename": "",
+      "file_size": "18757",
+      "consumer_app_id": 107410,
+      "publicDownloadUrlAvailable": false
+    },
+    {
+      "publishedfileid": "3721618614",
+      "result": 9,
+      "title": null,
+      "filename": null,
+      "file_size": null,
+      "consumer_app_id": null,
+      "publicDownloadUrlAvailable": false
+    },
+    {
+      "publishedfileid": "3822271074",
+      "result": 1,
+      "title": "Infiltration AI Enhancement  \u6f5c\u5165\u589e\u5f3a",
+      "filename": "",
+      "file_size": "579402",
+      "consumer_app_id": 107410,
+      "publicDownloadUrlAvailable": false
+    }
+  ],
+  "missingAction": "Reacquire raw packages/source for the five unavailable references, then create a new dated snapshot. Four have official Steam metadata but no anonymous direct download URL; Smart Merge AI metadata request returns result9. Review records are preserved, not substitute source copies.",
+  "sourceProtection": "Private raw reference archives remain outside Git and product packages. Existing source originals/archives unchanged. Snapshots immutable; updates use new directories.",
+  "audits": "PAUSED",
+  "implementationGoal": "PAUSED"
+}

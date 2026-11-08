@@ -14,3 +14,7 @@ runtime-*/
 releases/
 .hemttprivatekey
 *.biprivatekey
+
+# Reference research snapshots stay outside the product repository.
+reference-archives/
+.reference-archives/

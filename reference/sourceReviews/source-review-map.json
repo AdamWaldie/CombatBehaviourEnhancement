@@ -1101,7 +1101,7 @@
     },
     {
       "workshopId": "3822271074",
-      "name": "Identity unresolved",
+      "name": "Infiltration AI Enhancement",
       "priority": "3 Optional stealth",
       "candidateContribution": "Optional stealth contribution, identity unresolved",
       "reviewStatus": "Source review pending",
@@ -1669,13 +1669,15 @@
     "Installed Workshop originals, extracted baselines, archive manifests and permanent signing originals remain read-only."
   ],
   "stores": {
-    "workdir": "C:/Users/AdamW/AppData/Local/Temp/WaldosAITweaks",
+    "workdir": "E:/Github/CombatBehaviourEnhancement",
     "workshop": "E:/SteamLibrary/steamapps/workshop/content/107410",
     "pinnedDown": "C:/Users/AdamW/Documents/AI-Reference-Archives/PinnedDown/20261013-013708",
     "registerBackup": "C:/Users/AdamW/Documents/AI-Reference-Archives/CBE-Implementation-Register/20261024-airborne-preflight-234416342678",
     "hbq": ".qa/hbq-complete-source-20261025",
     "lambsDanger": ".qa/lambs-2621-review/danger",
-    "lambsMain": ".qa/lambs-main-installed-20261025-bebceb06"
+    "lambsMain": ".qa/lambs-main-installed-20261025-bebceb06",
+    "referenceLibrary": "C:\\Users\\AdamW\\Documents\\AI-Reference-Archives\\CBE-Reference-Library\\20261108-complete-local-snapshot",
+    "referenceLibraryMirror": "E:\\AI-Reference-Archives\\CBE-Reference-Library\\20261108-complete-local-snapshot"
   },
   "audits": "paused",
   "sourceAvailabilityReview": "releaseVerificationAndDeployment/referenceReviews/pinned-down-archive-provenance-20261026.json",
@@ -1688,5 +1690,6 @@
     "workshopId": "3830239722",
     "scope": "AI-only inspiration for integration/meshing; source review pending.",
     "evidence": "releaseVerificationAndDeployment/referenceReviews/pinned-down-feat-of-arms-3830239722-intake-20261107.json"
-  }
+  },
+  "permanentArchiveIndex": "reference/reference-archive-current.json"
 }

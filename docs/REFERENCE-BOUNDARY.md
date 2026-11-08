@@ -1,5 +1,8 @@
 # Product reference and recovery boundary
 
+For current permanent archive locations, integrity checks, restore instructions and missing-source records, use [the reference archive guide](../reference/REFERENCE-ARCHIVE.md) and [the archive index](../reference/reference-archive-current.json). New or updated sources must be archived and verified before implementation or installation changes.
+
+
 CBE behaviour guides, settings, diagnostics and internal API names describe behaviour rather than
 source projects. Necessary external config classes, public functions, animation markers and ownership
 fields remain inside compatibility adapters and their tests. CBA remains required infrastructure; ZEN is optional.

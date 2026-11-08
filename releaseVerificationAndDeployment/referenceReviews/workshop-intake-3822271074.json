@@ -7,7 +7,7 @@
   "masterLedger": "Historical LOCAL_IMPLEMENTATION_LEDGER.md is absent; preserve this addition separately for reconciliation. Do not reconstruct the historical register.",
   "workshopId": "3822271074",
   "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3822271074",
-  "name": null,
+  "name": "Infiltration AI Enhancement",
   "priority": "Soft optional; scenario-sensitive",
   "scope": "Evaluate selectively for stealth-mission improvements. Optional inclusion only if useful intent can be integrated safely; registration does not commit CBE to reproducing the entire mod.",
   "identityEvidence": "User-supplied Workshop ID. Not installed at the standard local Workshop path; web page unavailable and ID search returned no results. Name, author and precise mechanisms remain unverified.",
@@ -21,5 +21,13 @@
     "Finite owner-local execution, cancellation, repeat/JIP/locality safety and clean restoration without overwriting newer mission orders.",
     "Adopt useful parts only; redesign or reject intrusive global changes, omniscience, conflicting controllers or excessive cost."
   ],
-  "decisionGate": "Require source review, scenario tradeoff assessment and later representative physical validation before enabling. Preserve caveats even if a subset is selected."
+  "decisionGate": "Require source review, scenario tradeoff assessment and later representative physical validation before enabling. Preserve caveats even if a subset is selected.",
+  "officialMetadata20261108": {
+    "endpoint": "https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/",
+    "result": 1,
+    "consumerAppId": 107410,
+    "fileSize": 579402,
+    "publicDownloadUrlAvailable": false,
+    "scope": "Title/app identity only; no source or functionality validation."
+  }
 }
